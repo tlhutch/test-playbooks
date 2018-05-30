@@ -28,6 +28,7 @@ class TestExecutionNodeAssignment(Base_Api_Test):
     def reset_instance(self, request):
         def func(instance):
             def teardown():
+                instance.enabled = True
                 instance.patch(capacity_adjustment=1)
             request.addfinalizer(teardown)
         return func
@@ -312,6 +313,73 @@ class TestExecutionNodeAssignment(Base_Api_Test):
         assert jt.get().related.last_job.get().execution_node == instance.hostname
         assert inv_source.get().related.last_update.get().execution_node == instance.hostname
         assert project.get().related.last_update.get().execution_node == instance.hostname
+
+    def test_single_instance_with_capacity_assigned_as_job_execution_node(self, factories, reset_instance,
+                                                                          tower_instance_group):
+        ig = factories.instance_group()
+        instances = random.sample(tower_instance_group.related.instances.get().results, 3)
+        for instance in instances:
+            ig.add_instance(instance)
+
+        enabled_instance = instances.pop()
+        for instance in instances:
+            reset_instance(instance)
+            instance.enabled = False
+
+        jt = factories.v2_job_template()
+        jt.add_instance_group(ig)
+
+        job = jt.launch().wait_until_completed()
+        assert job.execution_node == enabled_instance.hostname
+
+    def test_multiple_instances_with_capacity_assigned_as_job_execution_node(self, factories, reset_instance,
+                                                                             tower_instance_group):
+        ig = factories.instance_group()
+        instances = random.sample(tower_instance_group.related.instances.get().results, 3)
+        for instance in instances:
+            ig.add_instance(instance)
+
+        disabled_instance = instances.pop()
+        reset_instance(disabled_instance)
+        disabled_instance.enabled = False
+
+        jt = factories.v2_job_template(allow_simultaneous=True)
+        jt.add_instance_group(ig)
+
+        num_jobs = self.find_num_jobs(instances)
+        for _ in range(num_jobs):
+            jt.launch()
+        jobs = jt.related.jobs.get()
+        utils.poll_until(lambda: jobs.get(status='successful').count == num_jobs, interval=5, timeout=300)
+
+        job_execution_nodes = [job.execution_node for job in jobs.results]
+        assert set(job_execution_nodes) == set([instance.hostname for instance in instances])
+
+    def test_additional_ig_instances_assigned_when_primary_ig_has_no_capacity(self, factories, reset_instance,
+                                                                              tower_instance_group):
+        ig1, ig2 = [factories.instance_group() for _ in range(2)]
+        instances = random.sample(tower_instance_group.related.instances.get().results, 3)
+
+        disabled_instance = instances.pop()
+        reset_instance(disabled_instance)
+        disabled_instance.enabled = False
+
+        ig1.add_instance(disabled_instance)
+        for instance in instances:
+            ig2.add_instance(instance)
+
+        jt = factories.v2_job_template(allow_simultaneous=True)
+        for ig in (ig1, ig2):
+            jt.add_instance_group(ig)
+
+        num_jobs = self.find_num_jobs(instances)
+        for _ in range(num_jobs):
+            jt.launch()
+        jobs = jt.related.jobs.get()
+        utils.poll_until(lambda: jobs.get(status='successful').count == num_jobs, interval=5, timeout=300)
+
+        job_execution_nodes = [job.execution_node for job in jobs.results]
+        assert set(job_execution_nodes) == set([instance.hostname for instance in instances])
 
     def test_no_execution_node_assigned_with_jt_with_ig_with_no_instances(self, factories):
         ig = factories.instance_group()

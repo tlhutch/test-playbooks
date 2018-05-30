@@ -135,6 +135,18 @@ class TestInstanceGroupPolicies(Base_Api_Test):
         assert ig_instances.count == 5
         assert set(ig_instance_hostnames) == set(tower_instance_hostnames)
 
+    def test_ig_has_correct_instances_after_updating_multiple_rules(self, factories, tower_instance_hostnames):
+        ig = factories.instance_group()
+        assert ig.instances == 0
+
+        ig.patch(policy_instance_percentage=40, policy_instance_minimum=1, policy_instance_list=tower_instance_hostnames)
+        utils.poll_until(lambda: ig.get().instances == 5, interval=1, timeout=30)
+
+        ig_instances = ig.related.instances.get()
+        ig_instance_hostnames = self.get_ig_instances(ig)
+        assert ig_instances.count == 5
+        assert set(ig_instance_hostnames) == set(tower_instance_hostnames)
+
     def test_single_instances_are_distributed_evenly_with_igs_with_policy_instance_percentage(self, factories,
                                                                                               tower_instance_hostnames):
         igs = []
@@ -294,6 +306,16 @@ class TestInstanceGroupPolicies(Base_Api_Test):
             utils.poll_until(lambda: igroup.get().instances == 5, interval=1, timeout=30)
             assert instance.hostname in self.get_ig_instances(igroup)
 
+    def test_instances_may_be_manually_associated_to_multiple_instance_groups(self, factories, tower_instance_group):
+        instances = tower_instance_group.related.instances.get().results
+
+        ig1, ig2 = [factories.instance_group() for _ in range(2)]
+        for ig in (ig1, ig2):
+            for instance in instances:
+                ig.add_instance(instance)
+        for ig in (ig1, ig2):
+            utils.poll_until(lambda: ig.get().instances == len(instances), interval=1, timeout=30)
+
     def test_tower_ig_unaffected_by_manual_instance_association_and_disassociation_in_other_igs(self, factories, v2,
                                                                                                 tower_instance_group):
         tower_ig_instances = tower_instance_group.related.instances.get()
@@ -305,12 +327,14 @@ class TestInstanceGroupPolicies(Base_Api_Test):
         ig.add_instance(instance)
         utils.poll_until(lambda: ig.get().instances == 1, interval=1, timeout=30)
 
+        utils.logged_sleep(2)  # allow Tower to potentially update
         assert tower_instance_group.get().instances == 5
         assert tower_ig_instances.get().count == 5
 
         ig.remove_instance(instance)
         utils.poll_until(lambda: ig.get().instances == 0, interval=1, timeout=30)
 
+        utils.logged_sleep(2)  # allow Tower to potentially update
         assert tower_instance_group.get().instances == 5
         assert tower_ig_instances.get().count == 5
 

@@ -202,25 +202,6 @@ class TestTraditionalCluster(Base_Api_Test):
             assert any(execution_host in instance.hostname for instance in instances), \
                 "Job not run on instance in assigned instance group"
 
-    def test_use_fact_cache_with_mutually_exclusive_instance_groups(self, v2, factories):
-        instance_groups = v2.instance_groups.get().results
-        ig1, ig2 = self.mutually_exclusive_instance_groups(instance_groups)
-        host = factories.v2_host()
-        gather_facts_jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='gather_facts.yml', use_fact_cache=True)
-        use_facts_jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='use_facts.yml', job_tags='ansible_facts',
-                                                 use_fact_cache=True)
-        gather_facts_jt.add_instance_group(ig1)
-        use_facts_jt.add_instance_group(ig2)
-
-        gather_facts_job, use_facts_job = [jt.launch().wait_until_completed() for jt in (gather_facts_jt, use_facts_jt)]
-        assert gather_facts_job.is_successful
-        assert use_facts_job.is_successful
-
-        ansible_facts = host.related.ansible_facts.get()
-        assert use_facts_job.result_stdout.count(ansible_facts.ansible_distribution) == 1
-        assert use_facts_job.result_stdout.count(ansible_facts.ansible_machine) == 1
-        assert use_facts_job.result_stdout.count(ansible_facts.ansible_system) == 1
-
     @pytest.mark.requires_isolation
     @pytest.mark.parametrize('base_resource, parent_resource', [('job_template', 'inventory'), ('job_template', 'organization'), ('inventory', 'organization')])
     def test_instance_group_hierarchy(self, v2, factories, base_resource, parent_resource):
