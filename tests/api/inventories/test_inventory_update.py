@@ -1,6 +1,7 @@
 import json
 
 from towerkit.config import config
+from dateutil.parser import parse
 from towerkit.utils import load_json_or_yaml
 from towerkit import exceptions as exc
 import pytest
@@ -559,11 +560,26 @@ class TestInventoryUpdate(Base_Api_Test):
         assert job_env.AZURE_SUBSCRIPTION_ID == 'SomeSubscription'
         assert job_env.AZURE_TENANT == 'SomeTenant'
 
+    @pytest.mark.github('https://github.com/ansible/tower/issues/1111')
+    def test_inventory_events_are_inserted_in_the_background(self, factories):
+        aws_cred = factories.v2_credential(kind='aws')
+        ec2_source = factories.v2_inventory_source(source='ec2', credential=aws_cred)
+        inv_update = ec2_source.update().wait_until_completed()
+
+        # the first few events should be created/inserted *after* the job
+        # created date and _before_ the job's finished date; this means that
+        # events are being asynchronously inserted into the database _while_
+        # the job is in "running" state
+        events = inv_update.related.events.get(order='id').results
+        assert len(events) > 0, "Problem with fixture, AWS inventory update did not produce any events"
+        for event in events[:10]:
+            assert parse(event.created) > parse(inv_update.created)
+            assert parse(event.created) < parse(inv_update.finished)
+
     @pytest.mark.github('https://github.com/ansible/tower/issues/1741')
     def test_inventory_events_are_searchable(self, factories):
-        inventory = factories.v2_inventory()
         aws_cred = factories.v2_credential(kind='aws')
-        ec2_source = factories.v2_inventory_source(inventory=inventory, source='ec2', credential=aws_cred)
+        ec2_source = factories.v2_inventory_source(source='ec2', credential=aws_cred)
         inv_update = ec2_source.update().wait_until_completed()
         assert inv_update.related.events.get().count > 0
         assert inv_update.related.events.get(search='added to group').count > 0
