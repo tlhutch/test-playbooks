@@ -53,6 +53,13 @@ class TestJobTemplateExtraVars(Base_Api_Test):
                 jt.extra_vars = utils.to_str(invalid)
             assert e.value.message == {'extra_vars': ['Must be valid JSON or YAML.']}
 
+    @pytest.mark.github('https://github.com/ansible/tower/issues/1408')
+    def test_confirm_recursive_extra_vars_rejected(self, factories):
+        jt = factories.v2_job_template()
+        with pytest.raises(towerkit.exceptions.BadRequest) as e:
+            jt.extra_vars = "&id001\nfoo: *id001\n"
+            assert 'Variables not compatible with JSON standard (error: Circular reference detected)' in e.message
+
     @pytest.mark.ansible_integration
     def test_launch_with_extra_vars_from_job_template(self, job_template_with_extra_vars):
         """Verify that when no launch-time extra_vars are provided, job extra_vars consist
