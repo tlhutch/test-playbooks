@@ -104,7 +104,7 @@ class TestActivityStream(Base_Api_Test):
         assert activity.object_association == ''
 
     @pytest.mark.github('https://github.com/ansible/tower/issues/1722')
-    def test_copying_jt_with_labels_should_not_create_activity_stream_entries_for_each_label(self, v2, factories, admin_user):
+    def test_copying_jt_with_labels_should_not_create_activity_stream_entries_for_each_label(self, factories, admin_user):
         label_name = fauxfactory.gen_alphanumeric()
         org = factories.v2_organization()
         jt = factories.v2_job_template()
@@ -120,3 +120,34 @@ class TestActivityStream(Base_Api_Test):
         utils.poll_until(lambda: copied.related.labels.count > 0, interval=10, timeout=30)
         assert copied.related.activity_stream.get(operation='create').count == 1
         assert copied.related.activity_stream.get(operation='associate', object2='label').count == 0
+
+    @pytest.mark.github('https://github.com/ansible/tower/issues/1614')
+    @pytest.mark.github('https://github.com/ansible/tower/issues/1616')
+    @pytest.mark.parametrize('_type', ['job_template', 'workflow_job_template'])
+    def test_launching_template_with_labels_should_not_create_activity_stream_entries_for_each_label(self, factories, admin_user, _type):
+        label_name = fauxfactory.gen_alphanumeric()
+        org = factories.v2_organization()
+        jt = getattr(factories, 'v2_{}'.format(_type))()
+        actual_jt = jt
+
+        if _type == 'workflow_job_template':
+            actual_jt = factories.v2_job_template()
+            factories.workflow_job_template_node(
+                workflow_job_template=jt,
+                unified_job_template=actual_jt
+            )
+
+        # original JT has 3 labels and one associate activity stream entry each
+        for i in range(3):
+            actual_jt.related.labels.post({'name': label_name + str(i), 'organization': org.id})
+
+        job = jt.launch().wait_until_completed()
+        if _type == 'workflow_job_template':
+            wfjn = job.related.workflow_nodes.get().results.pop()
+            job = wfjn.get_related('job')
+        assert job.related.activity_stream.get(operation='create').count == 1
+        assert job.related.activity_stream.get(operation='associate', object2='label').count == 0
+
+        relaunched = job.relaunch().wait_until_completed()
+        assert relaunched.related.activity_stream.get(operation='create').count == 1
+        assert relaunched.related.activity_stream.get(operation='associate', object2='label').count == 0
