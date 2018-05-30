@@ -1,8 +1,10 @@
 import logging
 
+import fauxfactory
 from towerkit import utils
 import towerkit.exceptions
 import pytest
+import six
 
 from tests.api import Base_Api_Test
 
@@ -100,3 +102,21 @@ class TestActivityStream(Base_Api_Test):
         assert activity.object2 == ''
         assert activity.operation == 'delete'
         assert activity.object_association == ''
+
+    @pytest.mark.github('https://github.com/ansible/tower/issues/1722')
+    def test_copying_jt_with_labels_should_not_create_activity_stream_entries_for_each_label(self, v2, factories, admin_user):
+        label_name = fauxfactory.gen_alphanumeric()
+        org = factories.v2_organization()
+        jt = factories.v2_job_template()
+
+        # original JT has 3 labels and one associate activity stream entry each
+        for i in range(3):
+            jt.related.labels.post({'name': label_name + str(i), 'organization': org.id})
+        assert jt.related.activity_stream.get(operation='create').count == 1
+        assert jt.related.activity_stream.get(operation='associate', object2='label').count == 3
+
+        # copied JT has 3 labels and no associate activity stream entries for the labels
+        copied = jt.get_related('copy').post({'name': six.text_type('{} (Copied)').format(jt.name)})
+        utils.poll_until(lambda: copied.related.labels.count > 0, interval=10, timeout=30)
+        assert copied.related.activity_stream.get(operation='create').count == 1
+        assert copied.related.activity_stream.get(operation='associate', object2='label').count == 0
