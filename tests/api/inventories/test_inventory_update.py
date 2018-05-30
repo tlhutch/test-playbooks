@@ -556,3 +556,13 @@ class TestInventoryUpdate(Base_Api_Test):
         assert job_env.AZURE_SECRET == '**********'
         assert job_env.AZURE_SUBSCRIPTION_ID == 'SomeSubscription'
         assert job_env.AZURE_TENANT == 'SomeTenant'
+
+    @pytest.mark.github('https://github.com/ansible/tower/issues/1741')
+    def test_inventory_events_are_searchable(self, factories):
+        inventory = factories.v2_inventory()
+        aws_cred = factories.v2_credential(kind='aws')
+        ec2_source = factories.v2_inventory_source(inventory=inventory, source='ec2', credential=aws_cred)
+        inv_update = ec2_source.update().wait_until_completed()
+        assert inv_update.related.events.get().count > 0
+        assert inv_update.related.events.get(search='added to group').count > 0
+        assert inv_update.related.events.get(search='SOME RANDOM STRING THAT IS NOT PRESENT').count == 0
