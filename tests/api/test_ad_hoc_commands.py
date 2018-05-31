@@ -567,3 +567,25 @@ print json.dumps(inv, indent=2)
         assert "inventory" not in ad_hoc_command_pg.json['related']
         assert "credential" not in ad_hoc_command_pg.json['related']
         assert "created_by" not in ad_hoc_command_pg.json['related']
+
+    @pytest.mark.parametrize('extra_var, attr', [
+        ['name', 'username'],
+        ['id', 'id'],
+        ['first_name', 'first_name'],
+        ['last_name', 'last_name'],
+        ['email', 'email'],
+    ])
+    @pytest.mark.parametrize('prefix', ['awx', 'tower'])
+    @pytest.mark.github('https://github.com/ansible/tower/issues/1076')
+    def test_awx_metavars_for_adhoc_commands(self, v2, factories, host, update_setting_pg, extra_var, attr, prefix):
+        admin_user = factories.v2_user(first_name='Joe', last_name='Admin', is_superuser=True)
+        value = str(getattr(admin_user, attr))
+        var_name = '{}_user_{}'.format(prefix, extra_var)
+        update_setting_pg(
+            v2.settings.get().get_endpoint('jobs'),
+            dict(ALLOW_JINJA_IN_EXTRA_VARS='always')
+        )
+        with self.current_user(admin_user):
+            ahc = factories.v2_ad_hoc_command(inventory=host.ds.inventory, module_name='shell',
+                                              module_args='echo "%s={{ %s }}"' % (attr, var_name)).wait_until_completed()
+        assert "=".join([attr, value]) in ahc.result_stdout
