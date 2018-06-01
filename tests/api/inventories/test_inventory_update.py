@@ -289,8 +289,8 @@ class TestInventoryUpdate(Base_Api_Test):
     @pytest.mark.ansible_integration
     def test_update_with_stdout_injection(self, factories, ansible_version_cmp):
         """Verify that we can inject text to update stdout through our script."""
-        if ansible_version_cmp('2.4.0') >= 1:
-            # stderr is not mirrored to the update with ansible-inventory from ansible 2.4
+        if ansible_version_cmp('2.4.0') >= 1 and ansible_version_cmp('2.5.1') < 1:
+            # this doesn't work with ansible-inventory from 2.4 through 2.5.1
             pytest.skip('https://github.com/ansible/ansible/issues/33776')
         inv_script = factories.v2_inventory_script(script=("#!/usr/bin/env python\n"
                                                            "from __future__ import print_function\nimport sys\n"
