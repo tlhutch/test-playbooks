@@ -76,7 +76,8 @@ class TestSchedules(APITest):
              'Multiple BYMONTHDAYs not supported.'),
             ('DTSTART:20140331T055000Z RRULE:FREQ=YEARLY;BYMONTH=1,2;INTERVAL=1', 'Multiple BYMONTHs not supported.'),
             ('DTSTART:20140331T055000Z RRULE:FREQ=YEARLY;BYYEARDAY=120;INTERVAL=1', 'BYYEARDAY not supported.'),
-            ('DTSTART:20140331T055000Z RRULE:FREQ=YEARLY;BYWEEKNO=10;INTERVAL=1', 'BYWEEKNO not supported.')
+            ('DTSTART:20140331T055000Z RRULE:FREQ=YEARLY;BYWEEKNO=10;INTERVAL=1', 'BYWEEKNO not supported.'),
+            ('DTSTART:20030925T104941Z RRULE:FREQ=DAILY;INTERVAL=10;COUNT=500;UNTIL=20040925T104941Z', 'RRULE may not contain both COUNT and UNTIL'),
         ]
         for invalid, expected in invalid_rrules:
             with pytest.raises(exc.BadRequest, message='Failed to raise for invalid rrule "{}"'.format(invalid)) as e:
