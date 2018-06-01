@@ -444,3 +444,21 @@ print json.dumps(inv, indent=2)
         matching_job_events = job_pg.get_related('job_events', event='runner_on_skipped')
         assert matching_job_events.count == 1, \
             "Unexpected number of matching job events (%s != 1)" % matching_job_events.count
+
+    @pytest.mark.github('https://github.com/ansible/tower/issues/1225')
+    def test_tower_host_undefined_for_job(self, v2, factories):
+        # AWX_HOST should still work
+        jt = factories.v2_job_template(
+            playbook='environ_test.yml',
+            extra_vars='env_variable: AWX_HOST\nenv_value: {}'.format(
+                v2.settings.get().get_endpoint('system').TOWER_URL_BASE
+            )
+        )
+        factories.v2_host(inventory=jt.ds.inventory)
+        job = jt.launch().wait_until_completed()
+        assert job.is_successful
+
+        # TOWER_HOST should be undefined
+        jt.extra_vars = jt.extra_vars.replace('AWX_HOST', 'TOWER_HOST')
+        job = jt.launch().wait_until_completed()
+        assert job.status == 'failed'
