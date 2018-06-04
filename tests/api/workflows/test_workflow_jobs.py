@@ -3,6 +3,7 @@ import re
 
 import pytest
 import towerkit
+from towerkit.config import config
 from towerkit.utils import poll_until
 
 from tests.api import Base_Api_Test
@@ -376,3 +377,25 @@ class Test_Workflow_Jobs(Base_Api_Test):
         assert job.failed
         assert job.job_explanation == 'Job spawned from workflow could not start because it was missing a related resource ' \
                                       'such as project or inventory'
+
+    @pytest.mark.github('https://github.com/ansible/tower/issues/910')
+    def test_awx_metavars_for_workflow_jobs(self, v2, factories, update_setting_pg):
+        update_setting_pg(
+            v2.settings.get().get_endpoint('jobs'),
+            dict(ALLOW_JINJA_IN_EXTRA_VARS='always')
+        )
+        wfjt = factories.v2_workflow_job_template()
+        jt = factories.v2_job_template(playbook='debug_extra_vars.yml',
+                                       extra_vars='var1: "{{ awx_workflow_job_id }}"\nvar2: "{{ awx_user_name }}"')
+        factories.v2_host(inventory=jt.ds.inventory)
+        factories.v2_workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt)
+        wf_job = wfjt.launch().wait_until_completed()
+        assert wf_job.is_successful, "Workflow job {} unsuccessful".format(wfjt.id)
+
+        # Get job in node
+        wfjns = wf_job.related.workflow_nodes.get().results
+        wfjn = wfjns.pop()
+        job = wfjn.get_related('job')
+        assert job.is_successful, "Job {} unsuccessful".format(job.id)
+        assert '"var1": "{}"'.format(wf_job.id) in job.result_stdout
+        assert '"var2": "{}"'.format(config.credentials.users.admin.username) in job.result_stdout
