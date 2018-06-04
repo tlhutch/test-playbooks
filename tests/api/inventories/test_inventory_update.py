@@ -560,6 +560,24 @@ class TestInventoryUpdate(Base_Api_Test):
         assert job_env.AZURE_SUBSCRIPTION_ID == 'SomeSubscription'
         assert job_env.AZURE_TENANT == 'SomeTenant'
 
+    @pytest.mark.parametrize('source, cred_type', {
+        'cloudforms': 'Red Hat CloudForms',
+        'rhv': 'Red Hat Virtualization',
+        'satellite6': 'Red Hat Satellite 6',
+        'vmware': 'VMware vCenter',
+    }.items())
+    @pytest.mark.github('https://github.com/ansible/tower/issues/826')
+    def test_config_parser_properly_escapes_special_characters_in_passwords(self, v2, factories, source, cred_type):
+        cred_type = v2.credential_types.get(managed_by_tower=True, name=cred_type).results.pop()
+        cred = factories.v2_credential(
+            credential_type=cred_type,
+            inputs={'host': 'http://example.org', 'username': 'xyz', 'password': 'pass%word'}
+        )
+        source = factories.v2_inventory_source(source=source, credential=cred)
+        inv_update = source.update().wait_until_completed()
+        assert 'ERROR! No inventory was parsed, please check your configuration and options' in inv_update.result_stdout
+        assert 'SyntaxError' not in inv_update.result_stdout
+
     @pytest.mark.github('https://github.com/ansible/tower/issues/1111')
     def test_inventory_events_are_inserted_in_the_background(self, factories):
         aws_cred = factories.v2_credential(kind='aws')
