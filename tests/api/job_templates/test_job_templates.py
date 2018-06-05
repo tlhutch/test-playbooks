@@ -472,7 +472,7 @@ print json.dumps(inv, indent=2)
     ])
     @pytest.mark.parametrize('prefix', ['awx', 'tower'])
     @pytest.mark.github('https://github.com/ansible/tower/issues/1076')
-    def test_awx_metavars_for_job(self, v2, factories, update_setting_pg, extra_var, attr, prefix):
+    def test_awx_metavars_for_jobs(self, v2, factories, update_setting_pg, extra_var, attr, prefix):
         admin_user = factories.v2_user(first_name='Joe', last_name='Admin', is_superuser=True)
         value = str(getattr(admin_user, attr))
         var_name = '{}_user_{}'.format(prefix, extra_var)
@@ -485,4 +485,5 @@ print json.dumps(inv, indent=2)
                                            extra_vars='var1: "{{ %s }}"' % var_name)
             factories.v2_host(inventory=jt.ds.inventory)
             job = jt.launch().wait_until_completed()
+        assert job.is_successful
         assert '"var1": "{}"'.format(value) in job.result_stdout

@@ -226,6 +226,23 @@ class TestSchedules(APITest):
         assert job.wait_until_completed().is_successful
         assert schedule.get().next_run is None
 
+    @pytest.mark.github('https://github.com/ansible/tower/issues/910')
+    def test_awx_metavars_for_scheduled_jobs(self, v2, factories, update_setting_pg):
+        update_setting_pg(
+            v2.settings.get().get_endpoint('jobs'),
+            dict(ALLOW_JINJA_IN_EXTRA_VARS='always')
+        )
+        jt = factories.v2_job_template(playbook='debug_extra_vars.yml',
+                                       extra_vars='var1: "{{ awx_schedule_id }}"')
+        factories.v2_host(inventory=jt.ds.inventory)
+        schedule = jt.add_schedule(rrule=self.minutely_rrule())
+
+        unified_jobs = schedule.related.unified_jobs.get()
+        poll_until(lambda: unified_jobs.get().count == 1, interval=15, timeout=5 * 60)
+        job = unified_jobs.results.pop()
+        assert job.wait_until_completed().is_successful
+        assert '"var1": "{}"'.format(schedule.id) in job.result_stdout
+
     @pytest.mark.github('https://github.com/ansible/tower/issues/891')
     def test_schedule_preview_accounts_for_missing_dst_hour(self, v2):
         schedules = v2.schedules.get()
