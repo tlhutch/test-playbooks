@@ -1,6 +1,7 @@
 import logging
 import json
 
+from towerkit import config
 import towerkit.tower.inventory
 import towerkit.exceptions
 import pytest
@@ -41,6 +42,16 @@ class TestJobTemplates(Base_Api_Test):
 
         # assert success
         assert job_pg.is_successful, "Job unsuccessful - %s" % job_pg
+
+    @pytest.mark.github('https://github.com/ansible/tower/issues/1529')
+    def test_modified_by_unaffected_by_launch(self, v2, factories, job_template_ping):
+        admin_user = factories.v2_user(first_name='Joe', last_name='Admin', is_superuser=True)
+        assert job_template_ping.summary_fields.modified_by['username'] == config.credentials.users.admin.username
+        with self.current_user(admin_user):
+            job = job_template_ping.launch()
+            assert job.summary_fields.created_by.username == admin_user.username
+        tmpl = v2.job_templates.get(id=job_template_ping.id).results.pop()
+        assert tmpl.summary_fields.get('modified_by', {}).get('username') == config.credentials.users.admin.username
 
     @pytest.mark.ansible_integration
     def test_launch_with_limit_in_payload(self, job_template_with_random_limit):
