@@ -4,7 +4,7 @@ import socket
 import json
 
 from towerkit.config import config
-from towerkit import utils
+from towerkit import utils, exceptions as exc
 import pytest
 
 from tests.api import Base_Api_Test
@@ -80,6 +80,14 @@ class TestJobTemplateCallbacks(Base_Api_Test):
         assert result['status'] == httplib.BAD_REQUEST
         assert result.get('failed', True)
         assert result['json']['msg'] == 'No matching host could be found!'
+
+    @pytest.mark.github('https://github.com/ansible/tower/issues/958')
+    def test_provision_failure_with_null_inventory(self, host_config_key, job_template):
+        """Verify launch failure when called on a job template has no associated inventory"""
+        job_template.host_config_key = host_config_key
+        with pytest.raises(exc.BadRequest) as e:
+            job_template.inventory = None
+        assert 'Cannot enable provisioning callback without an inventory set.' in str(e)
 
     @pytest.fixture(scope="function")
     def hosts_with_actual_ipv4_for_name_and_random_ssh_host(self, request, factories, group, callback_host):
