@@ -5,7 +5,7 @@ from dateutil.parser import parse
 from dateutil.relativedelta import relativedelta
 
 import pytest
-from towerkit import exceptions as exc
+from towerkit import exceptions as exc, config
 from towerkit.rrule import RRule
 from towerkit.utils import poll_until, random_title
 import pytz
@@ -225,6 +225,16 @@ class TestSchedules(APITest):
         job = unified_jobs.results.pop()
         assert job.wait_until_completed().is_successful
         assert schedule.get().next_run is None
+
+    @pytest.mark.github('https://github.com/ansible/tower/issues/1541')
+    def test_modified_by_unaffected_by_launch(self, v2, job_template_ping):
+        assert job_template_ping.summary_fields.modified_by['username'] == config.credentials.users.admin.username
+        schedule = job_template_ping.add_schedule(rrule=self.minutely_rrule())
+
+        unified_jobs = schedule.related.unified_jobs.get()
+        poll_until(lambda: unified_jobs.get().count == 1, interval=15, timeout=5 * 60)
+        tmpl = v2.job_templates.get(id=job_template_ping.id).results.pop()
+        assert tmpl.summary_fields.get('modified_by', {}).get('username') == config.credentials.users.admin.username
 
     @pytest.mark.github('https://github.com/ansible/tower/issues/910')
     def test_awx_metavars_for_scheduled_jobs(self, v2, factories, update_setting_pg):
