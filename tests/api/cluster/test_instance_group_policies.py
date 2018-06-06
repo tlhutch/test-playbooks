@@ -29,7 +29,7 @@ class TestInstanceGroupPolicies(Base_Api_Test):
 
     @pytest.mark.github('https://github.com/ansible/tower/issues/881')
     @pytest.mark.parametrize('instance_percentage, expected_num_instances',
-        [(0, 0), (20, 1), (41, 2), (79, 3), (100, 5)])
+        [(0, 0), (20, 1), (41, 3), (79, 4), (100, 5)])
     def test_correct_instances_with_new_ig_with_policy_instance_percentage(self, factories, tower_instance_hostnames,
                                                                            instance_percentage, expected_num_instances):
         ig = factories.instance_group(policy_instance_percentage=instance_percentage)
