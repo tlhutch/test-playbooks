@@ -22,6 +22,15 @@ class TestOpenShiftCluster(Base_Api_Test):
                    set(instance.id for instance in tower_instance_group.related.instances.get().results)
         return func
 
+    def verify_instance(self, instance):
+        assert instance.enabled
+        assert instance.cpu == 0
+        assert instance.memory == 0
+        assert instance.capacity == max(instance.cpu_capacity, instance.mem_capacity)
+        assert instance.cpu_capacity > 0
+        assert instance.mem_capacity > 0
+        assert instance.capacity_adjustment == '1.00'
+
     def test_scale_up_tower_pod(self, v2, tower_instance_group, tower_version, tower_ig_contains_all_instances):
         num_instances = v2.instances.get().count + 2
         openshift_utils.scale_dc(dc='ansible-tower', replicas=num_instances)
@@ -32,12 +41,7 @@ class TestOpenShiftCluster(Base_Api_Test):
         utils.poll_until(lambda: instances.get(version=tower_version).count == num_instances, interval=5, timeout=600)
         assert set([instance.hostname for instance in instances.get().results]) == tower_pods
         for instance in instances.results:
-            assert instance.enabled
-            assert instance.cpu == 0
-            assert instance.memory == 0
-            assert instance.capacity == max(instance.cpu_capacity, instance.mem_capacity)
-            assert instance.cpu_capacity > 0
-            assert instance.mem_capacity > 0
+            self.verify_instance(instance)
 
         ping = v2.ping.get()
         utils.poll_until(lambda: len(ping.get().instances) == num_instances, interval=5, timeout=180)
@@ -55,12 +59,7 @@ class TestOpenShiftCluster(Base_Api_Test):
         utils.poll_until(lambda: instances.get(version=tower_version).count == num_instances, interval=5, timeout=600)
         assert set([instance.hostname for instance in instances.get().results]) == tower_pods
         for instance in instances.results:
-            assert instance.enabled
-            assert instance.cpu == 0
-            assert instance.memory == 0
-            assert instance.capacity == max(instance.cpu_capacity, instance.mem_capacity)
-            assert instance.cpu_capacity > 0
-            assert instance.mem_capacity > 0
+            self.verify_instance(instance)
 
         ping = v2.ping.get()
         utils.poll_until(lambda: len(ping.get().instances) == num_instances, interval=5, timeout=180)
@@ -82,12 +81,7 @@ class TestOpenShiftCluster(Base_Api_Test):
         # verify API contents
         utils.poll_until(lambda: v2.instances.get(version=tower_version).count == 1, interval=5, timeout=600)
         instance = v2.instances.get().results.pop()
-        assert instance.enabled
-        assert instance.cpu == 0
-        assert instance.memory == 0
-        assert instance.capacity == max(instance.cpu_capacity, instance.mem_capacity)
-        assert instance.cpu_capacity > 0
-        assert instance.mem_capacity > 0
+        self.verify_instance(instance)
 
         ping = v2.ping.get()
         utils.poll_until(lambda: len(ping.get().instances) == 1, interval=5, timeout=180)
