@@ -52,11 +52,12 @@ class TestInstances(Base_Api_Test):
         assert job.wait_until_completed(timeout=120).is_successful
 
     @pytest.mark.github('https://github.com/ansible/tower/issues/1713')
-    def test_disabiling_instance_should_not_impact_currently_running_jobs(self, request, v2, factories):
+    def test_disabiling_instance_should_not_impact_currently_running_jobs(self, request, v2, factories,
+                                                                          tower_version):
         ig = factories.instance_group()
         instance = v2.instances.get().results.pop()
         ig.add_instance(instance)
-        utils.poll_until(lambda: ig.related.instances.get(cpu__gt=0).count == 1, interval=5, timeout=30)
+        utils.poll_until(lambda: ig.related.instances.get(version=tower_version).count == 1, timeout=30)
 
         jt = factories.v2_job_template(playbook='sleep.yml', extra_vars='{"sleep_interval": 30}')
         factories.v2_host(inventory=jt.ds.inventory)
