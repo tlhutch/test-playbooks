@@ -351,8 +351,8 @@ class TestInstanceGroupPolicies(Base_Api_Test):
             utils.poll_until(lambda: igroup.get().instances == num_instances, interval=1, timeout=30)
 
         openshift_utils.prep_environment()
-        openshift_utils.scale_dc(dc='tower', replicas=num_instances + 1)
-        utils.poll_until(lambda: v2.instances.get(cpu__gt=0).count == num_instances + 1, interval=5, timeout=600)
+        openshift_utils.scale_dc(dc='ansible-tower', replicas=num_instances + 1)
+        utils.poll_until(lambda: v2.instances.get(capacity__gt=0).count == num_instances + 1, interval=5, timeout=600)
 
         for igroup in (pct_ig, min_ig, mixed_policy_ig):
             utils.poll_until(lambda: igroup.get().instances == num_instances + 1, interval=1, timeout=30)
@@ -370,8 +370,8 @@ class TestInstanceGroupPolicies(Base_Api_Test):
             utils.poll_until(lambda: igroup.get().instances == num_instances, interval=1, timeout=30)
 
         openshift_utils.prep_environment()
-        openshift_utils.scale_dc(dc='tower', replicas=num_instances - 1)
-        utils.poll_until(lambda: v2.instances.get(cpu__gt=0).count == num_instances - 1, interval=5, timeout=600)
+        openshift_utils.scale_dc(dc='ansible-tower', replicas=num_instances - 1)
+        utils.poll_until(lambda: v2.instances.get(capacity__gt=0).count == num_instances - 1, interval=5, timeout=600)
 
         for igroup in (pct_ig, min_ig, mixed_policy_ig):
             utils.poll_until(lambda: igroup.get().instances == num_instances - 1, interval=1, timeout=30)
