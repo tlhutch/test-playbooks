@@ -61,42 +61,47 @@ class LicenseTest(Base_Api_Test):
                                         company_name=fauxfactory.gen_utf8(), contact_name=fauxfactory.gen_utf8(),
                                         contact_email=fauxfactory.gen_email(), trial=True)
 
-    @pytest.fixture
+    @pytest.fixture(scope='class')
     def install_legacy_license(self, apply_license):
         with apply_license('legacy', days=31, instance_count=self.license_instance_count):
             yield
 
-    @pytest.fixture
+    @pytest.fixture(scope='class')
     def install_trial_legacy_license(self, apply_license):
         with apply_license('legacy', days=31, instance_count=self.license_instance_count, trial=True):
             yield
 
-    @pytest.fixture
+    @pytest.fixture(scope='class')
     def install_basic_license(self, apply_license):
         with apply_license('basic', days=31, instance_count=self.license_instance_count):
             yield
 
     @pytest.fixture
+    def func_install_basic_license(self, apply_license):
+        with apply_license('basic', days=31, instance_count=self.license_instance_count):
+            yield
+
+    @pytest.fixture(scope='class')
     def install_enterprise_license(self, apply_license):
         with apply_license('enterprise', days=31, instance_count=self.license_instance_count):
             yield
 
-    @pytest.fixture
+    @pytest.fixture(scope='class')
     def install_enterprise_license_expired(self, apply_license, api_config_pg):
         with apply_license(license_type='enterprise', instance_count=self.license_instance_count, days=-61):
             yield
 
-    @pytest.fixture
+    @pytest.fixture(scope='class')
     def install_legacy_license_warning(self, apply_license):
         with apply_license(license_type='legacy', instance_count=self.license_instance_count, days=1):
             yield
 
-    @pytest.fixture
+    @pytest.fixture(scope='class')
     def install_legacy_license_expired(self, apply_license):
         with apply_license(license_type='legacy', instance_count=self.license_instance_count, days=-61):
             yield
 
-    @pytest.fixture
+    @pytest.fixture(scope='class')
     def install_legacy_license_grace_period(self, apply_license):
         with apply_license(license_type='legacy', instance_count=self.license_instance_count, days=-1):
             yield
