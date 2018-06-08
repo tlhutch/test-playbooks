@@ -41,7 +41,11 @@ def apply_license(api, mp_trail, mp_message_board):
 
         initial_info_key = license_hash + '_initial_info'
 
+        node_name = request.node.name if request else "Unknown"
+        func_name = request._pyfuncitem.name if request else "Unknown"
+
         def teardown_license():
+            log.info("{}::{} teardown license {}".format(node_name, func_name, license_hash))
             with mp_trail(license_hash, 'finish') as finish:
                 if finish:
                     config = api.current_version.get().config.get()
@@ -54,7 +58,10 @@ def apply_license(api, mp_trail, mp_message_board):
                         config.post(initial_info)
                     del mp_message_board[initial_info_key]
 
+                    log.info(str(mp_message_board))
+
         try:
+            log.info("{}::{} setup license {}".format(node_name, func_name, license_hash))
             with mp_trail(license_hash, 'start') as start:
                 if start:
                     config = api.current_version.get().config.get()
@@ -66,6 +73,9 @@ def apply_license(api, mp_trail, mp_message_board):
                     else:
                         log.info('Applying {} license...'.format(license_type))
                         config.install_license(license_type=license_type, days=days, **kwargs)
+
+                    log.info(str(mp_message_board))
+
             if request:
                 # We need to explictly register teardowns instead of yield-driven
                 # teardown for class_factory teardown ordering
@@ -93,6 +103,7 @@ def install_legacy_license(apply_license, class_subrequest):
 
 @pytest.fixture(scope='class')
 def install_basic_license(apply_license, class_subrequest):
+    #import pdb; pdb.set_trace()
     with apply_license('basic', request=class_subrequest):
         yield
 
