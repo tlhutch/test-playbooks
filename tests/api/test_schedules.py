@@ -3,6 +3,7 @@ from dateutil import rrule
 from datetime import datetime
 from dateutil.parser import parse
 from dateutil.relativedelta import relativedelta
+import json
 
 import pytest
 from towerkit import exceptions as exc, config
@@ -11,6 +12,10 @@ from towerkit.utils import poll_until, random_title
 import pytz
 
 from tests.api import APITest
+
+
+def minutely_rrule(**kwargs):
+    return RRule(rrule.MINUTELY, dtstart=datetime.utcnow() + relativedelta(minutes=-1, seconds=+30), **kwargs)
 
 
 @pytest.mark.api
@@ -26,9 +31,6 @@ class TestSchedules(APITest):
         dtstart = datetime.utcnow() + relativedelta(**{kwarg: -1, 'seconds': 30})
         freq = getattr(rrule, frequency)
         return RRule(freq, dtstart=dtstart)
-
-    def minutely_rrule(self, **kwargs):
-        return RRule(rrule.MINUTELY, dtstart=datetime.utcnow() + relativedelta(minutes=-1, seconds=+30), **kwargs)
 
     def strftime(self, dt):
         return dt.strftime('%Y-%m-%dT%H:%M:%SZ')
@@ -90,7 +92,7 @@ class TestSchedules(APITest):
             extra_data = {random_title(): random_title() for _ in range(20)}
         else:
             extra_data = {}
-        rule = self.minutely_rrule()
+        rule = minutely_rrule()
         payload = dict(name=random_title(),
                        description=random_title(),
                        enabled=False,
@@ -205,7 +207,7 @@ class TestSchedules(APITest):
                 schedule.get()
 
     def test_schedule_triggers_launch_without_count(self, v2_unified_job_template):
-        rule = self.minutely_rrule()
+        rule = minutely_rrule()
         schedule = v2_unified_job_template.add_schedule(rrule=rule)
         assert schedule.next_run == rule.next_run
 
@@ -216,7 +218,7 @@ class TestSchedules(APITest):
         assert schedule.get().next_run == rule.next_run
 
     def test_schedule_triggers_launch_with_count(self, v2_unified_job_template):
-        rule = self.minutely_rrule(count=2)
+        rule = minutely_rrule(count=2)
         schedule = v2_unified_job_template.add_schedule(rrule=rule)
         assert schedule.next_run == rule.next_run
 
@@ -229,7 +231,7 @@ class TestSchedules(APITest):
     @pytest.mark.github('https://github.com/ansible/tower/issues/1541')
     def test_modified_by_unaffected_by_launch(self, v2, job_template_ping):
         assert job_template_ping.summary_fields.modified_by['username'] == config.credentials.users.admin.username
-        schedule = job_template_ping.add_schedule(rrule=self.minutely_rrule())
+        schedule = job_template_ping.add_schedule(rrule=minutely_rrule())
 
         unified_jobs = schedule.related.unified_jobs.get()
         poll_until(lambda: unified_jobs.get().count == 1, interval=15, timeout=5 * 60)
@@ -245,7 +247,7 @@ class TestSchedules(APITest):
         jt = factories.v2_job_template(playbook='debug_extra_vars.yml',
                                        extra_vars='var1: "{{ awx_schedule_id }}"')
         factories.v2_host(inventory=jt.ds.inventory)
-        schedule = jt.add_schedule(rrule=self.minutely_rrule())
+        schedule = jt.add_schedule(rrule=minutely_rrule())
 
         unified_jobs = schedule.related.unified_jobs.get()
         poll_until(lambda: unified_jobs.get().count == 1, interval=15, timeout=5 * 60)
@@ -320,6 +322,67 @@ class TestSchedules(APITest):
             assert prev.local[0] == expected[1]
             assert len(prev.utc) == 1
             assert len(prev.local) == 1
+
+
+@pytest.mark.api
+@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+class TestSchedulePrompts(APITest):
+
+    def ask_everything(self, setup=False, inventory=None, config=False):
+        r = {}
+        # names for promptable fields and a non-default value
+        prompts = [
+                ('variables', {'foo': 'bar'}),
+                ('diff_mode', True),
+                ('limit', 'foo'),
+                ('tags', 'bar'),
+                ('skip_tags', 'foo'),
+                ('job_type', 'check'),
+                ('verbosity', 2),
+                ('inventory', inventory.id if inventory else None)
+        ]
+        for fd, val in prompts:
+            if setup:
+                r['ask_{}_on_launch'.format(fd)] = True
+            else:
+                job_fd = fd
+                if fd == 'tags':
+                    job_fd = 'job_tags'
+                if fd == 'variables':
+                    if config:
+                        job_fd = 'extra_data'
+                    else:
+                        job_fd = 'extra_vars'
+                r[job_fd] = val
+        return r
+
+    def test_schedule_triggers_launch_without_count(self, factories, inventory):
+        jt = factories.v2_job_template(**self.ask_everything(setup=True))
+        schedule = jt.add_schedule(
+            rrule=minutely_rrule(),
+            **self.ask_everything(inventory=inventory, config=True)
+        )
+        # sanity assertions
+        bad_params = []
+        for fd, val in self.ask_everything(inventory=inventory, config=True).items():
+            if getattr(schedule, fd) != val:
+                bad_params.append((fd, val, getattr(schedule, fd)))
+        assert not bad_params, 'Schedule parameters {} were not enabled.'.format(bad_params)
+
+        unified_jobs = schedule.related.unified_jobs.get()
+        poll_until(lambda: unified_jobs.get().count == 1, interval=15, timeout=5 * 60)
+        job = unified_jobs.results.pop()
+        assert job.wait_until_completed().is_successful
+        job_values = []
+        for fd, val in self.ask_everything(inventory=inventory).items():
+            job_val = getattr(job, fd)
+            if fd == 'extra_vars':
+                job_val = json.loads(job_val)
+            if job_val != val:
+                job_values.append((fd, val, job_val))
+        assert not job_values, 'Job did not use prompts from schedule {}'.format(
+            job_values
+        )
 
 
 @pytest.mark.api
