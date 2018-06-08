@@ -103,7 +103,7 @@ class TestNoLicenseSerial(LicenseTest):
         assert conf.license_info.license_key == legacy_license_json['license_key']
 
     @pytest.mark.github('https://github.com/ansible/tower/issues/806')
-    def test_cannot_launch_job(self, install_basic_license, api_config_pg, job_template):
+    def test_cannot_launch_job(self, func_install_basic_license, api_config_pg, job_template):
         """Verify that job_templates cannot be launched"""
         api_config_pg.delete()
         with pytest.raises(exc.LicenseExceeded):
