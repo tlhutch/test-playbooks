@@ -370,7 +370,7 @@ class TestPrompts(Base_Api_Test):
         jt_survey = copy.deepcopy(wfjt_survey)
         jt_survey[0]['default'] = 'jt_survey'
         jt_survey[1]['default'] = 'jt_survey'
-        jt.add_survey(jt_survey)
+        jt.add_survey(spec=jt_survey)
 
         payload = dict(extra_vars=dict(var1='launch', var2='$encrypted$', var3='launch'))
         wfj = wfjt.launch(payload).wait_until_completed()
