@@ -23,6 +23,7 @@ def do_all_jobs_overlap(jobs):
             return False
     return True
 
+
 @pytest.mark.api
 @pytest.mark.requires_cluster
 @pytest.mark.mp_group('ExecutionNodeAssignment', 'serial')
@@ -476,7 +477,7 @@ class TestExecutionNodeAssignment(Base_Api_Test):
         jobs_execution_nodes = [j.get().execution_node for j in jobs]
 
         # Verify all jobs ran overlapping
-        assert True == do_all_jobs_overlap(jobs), \
+        assert True is do_all_jobs_overlap(jobs), \
             "All jobs found to not be running at the same time {}" \
                 .format(["(%s, %s), " % (j.started, j.finished) for j in jobs])
 
@@ -547,7 +548,7 @@ class TestExecutionNodeAssignment(Base_Api_Test):
         jobs = [j.wait_until_completed() for j in jobs]
 
         # Verify all jobs ran overlapping
-        assert True == do_all_jobs_overlap(jobs), \
+        assert True is do_all_jobs_overlap(jobs), \
             "All jobs found to not be running at the same time {}" \
                 .format(["(%s, %s), " % (j.started, j.finished) for j in jobs])
 
