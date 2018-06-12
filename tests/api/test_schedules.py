@@ -356,7 +356,7 @@ class TestSchedulePrompts(APITest):
                 r[job_fd] = val
         return r
 
-    def test_schedule_triggers_launch_without_count(self, factories, inventory):
+    def test_schedule_uses_prompted_fields(self, factories, inventory):
         jt = factories.v2_job_template(**self.ask_everything(setup=True))
         schedule = jt.add_schedule(
             rrule=minutely_rrule(),
@@ -370,7 +370,7 @@ class TestSchedulePrompts(APITest):
         assert not bad_params, 'Schedule parameters {} were not enabled.'.format(bad_params)
 
         unified_jobs = schedule.related.unified_jobs.get()
-        poll_until(lambda: unified_jobs.get().count == 1, interval=15, timeout=5 * 60)
+        poll_until(lambda: unified_jobs.get().count == 1, interval=15, timeout=1.5 * 60)
         job = unified_jobs.results.pop()
         assert job.wait_until_completed().is_successful
         job_values = []
@@ -383,6 +383,20 @@ class TestSchedulePrompts(APITest):
         assert not job_values, 'Job did not use prompts from schedule {}'.format(
             job_values
         )
+
+    def test_schedule_unprompted_fields(self, factories, inventory):
+        jt = factories.v2_job_template()
+        mrrule = rrule=minutely_rrule()
+        for key, value in self.ask_everything(inventory=inventory, config=True).items():
+            data = {}
+            data[key] = value
+            with pytest.raises(exc.BadRequest) as e:
+                jt.add_schedule(rrule=mrrule, **data)
+            msg = 'Field is not configured to prompt on launch.'
+            if key == 'extra_data':
+                msg = ('Variables foo are not allowed on launch. Check the Prompt '
+                       'on Launch setting on the Job Template to include Extra Variables.')
+            assert e.value[1] == {key: [msg]}
 
 
 @pytest.mark.api
