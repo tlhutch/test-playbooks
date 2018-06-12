@@ -104,6 +104,13 @@ class TestInstanceGroups(Base_Api_Test):
         with pytest.raises(exc.Forbidden):
             tower_instance_group.delete()
 
+    def test_instance_group_names_do_not_allow_unicode(self, factories):
+        title = utils.random_title()
+
+        with pytest.raises(exc.BadRequest) as e:
+            factories.instance_group(name=title)
+        assert e.value[1]['name'] == [u'{0} contains unsupported characters'.format(title)]
+
     def test_verify_instance_group_read_only_fields(self, factories):
         ig = factories.instance_group()
         original_json = ig.json
