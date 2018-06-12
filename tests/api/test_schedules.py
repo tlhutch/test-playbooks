@@ -398,6 +398,42 @@ class TestSchedulePrompts(APITest):
                        'on Launch setting on the Job Template to include Extra Variables.')
             assert e.value[1] == {key: [msg]}
 
+    @pytest.mark.parametrize('type', ['job_template', 'workflow_job_template'])
+    def test_schedule_validates_required_survey_vars(self, type, factories):
+        if type == 'job_template':
+            template = factories.v2_job_template()
+        else:
+            template = factories.v2_workflow_job_template()
+        survey = [dict(required=True,
+                       question_name='Q',
+                       variable='var1',
+                       type='password',
+                       default="")]
+        template.add_survey(spec=survey)
+        with pytest.raises(exc.BadRequest) as e:
+            template.add_schedule(rrule=minutely_rrule())
+        assert e.value[1] == {'variables_needed_to_start': ["'var1' value missing"]}
+
+    @pytest.mark.parametrize('type', ['job_template', 'workflow_job_template'])
+    def test_schedule_allows_survey_var(self, type, factories):
+        if type == 'job_template':
+            template = factories.v2_job_template()
+        else:
+            template = factories.v2_workflow_job_template()
+        survey = [dict(required=True,
+                       question_name='Q',
+                       variable='var1',
+                       type='text',
+                       default="")]
+        template.add_survey(spec=survey)
+        schedule = template.add_schedule(rrule=minutely_rrule(), extra_data={'var1': 'foo'})
+        unified_jobs = schedule.related.unified_jobs.get()
+        poll_until(lambda: unified_jobs.get().count == 1, interval=15, timeout=1.5 * 60)
+        job = unified_jobs.results.pop()
+        assert job.wait_until_completed().is_successful
+        job_vars = json.loads(job.extra_vars)
+        assert job_vars == {'var1': 'foo'}
+
 
 @pytest.mark.api
 @pytest.mark.destructive
