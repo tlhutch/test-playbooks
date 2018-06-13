@@ -386,7 +386,7 @@ class TestSchedulePrompts(APITest):
 
     def test_schedule_unprompted_fields(self, factories, inventory):
         jt = factories.v2_job_template()
-        mrrule = rrule=minutely_rrule()
+        mrrule = minutely_rrule()
         for key, value in self.ask_everything(inventory=inventory, config=True).items():
             data = {}
             data[key] = value
