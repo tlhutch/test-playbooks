@@ -1,11 +1,27 @@
 import random
 import six
+import itertools
+import datetime
 
 from towerkit import utils
 import pytest
 
 from tests.lib.helpers import openshift_utils
 from tests.api import Base_Api_Test
+
+
+def do_all_jobs_overlap(jobs):
+    def overlap(start1, end1, start2, end2):
+        """Does the range (start1, end1) overlap with (start2, end2)?"""
+        return end1 >= start2 and end2 >= start1
+
+    for (j1, j2) in list(itertools.combinations(jobs, 2)):
+        if not overlap(datetime.datetime.strptime(j1.started, '%Y-%m-%dT%H:%M:%S.%fZ'),
+                       datetime.datetime.strptime(j1.finished, '%Y-%m-%dT%H:%M:%S.%fZ'),
+                       datetime.datetime.strptime(j2.started, '%Y-%m-%dT%H:%M:%S.%fZ'),
+                       datetime.datetime.strptime(j2.finished, '%Y-%m-%dT%H:%M:%S.%fZ')):
+            return False
+    return True
 
 
 @pytest.mark.api
@@ -23,7 +39,7 @@ class TestExecutionNodeAssignment(Base_Api_Test):
 
     @pytest.fixture
     def tower_ig_instances(self, tower_instance_group):
-        return tower_instance_group.related.instances.get().results
+        return tower_instance_group.related.instances.get(order_by='hostname').results
 
     @pytest.fixture
     def reset_instance(self, request):
@@ -58,6 +74,8 @@ class TestExecutionNodeAssignment(Base_Api_Test):
         def fn(capacity_size):
             jt = factories.v2_job_template(allow_simultaneous=True,
                                            forks=capacity_size,
+                                           playbook='sleep.yml',
+                                           extra_vars=dict(sleep_interval=60),
                                            limit="all[0]")
             map(lambda i: factories.v2_host(inventory=jt.ds.inventory),
                 xrange(0, capacity_size + 1))
@@ -439,8 +457,9 @@ class TestExecutionNodeAssignment(Base_Api_Test):
                                                                                                        largest_capacity,
                                                                                                        jt_generator_for_consuming_given_capacity,
                                                                                                        reset_instance,
-                                                                                                       tower_instance_group):
-        instances = v2.instances.get(order_by='hostname').results
+                                                                                                       tower_instance_group,
+                                                                                                       tower_ig_instances):
+        instances = random.sample(tower_ig_instances, max(3, len(tower_ig_instances)))
 
         jobs_count = len(instances)
         forks = largest_capacity + 1
@@ -451,10 +470,15 @@ class TestExecutionNodeAssignment(Base_Api_Test):
 
         jt = jt_generator_for_consuming_given_capacity(forks)
         jobs = [jt.launch() for i in xrange(0, jobs_count)]
-        map(lambda j: j.wait_until_completed(), jobs)
+        jobs = [j.wait_until_completed() for j in jobs]
 
         # Refresh jobs for execution_node attribute
         jobs_execution_nodes = [j.get().execution_node for j in jobs]
+
+        # Verify all jobs ran overlapping
+        assert do_all_jobs_overlap(jobs), \
+            "All jobs found to not be running at the same time {}" \
+                .format(["(%s, %s), " % (j.started, j.finished) for j in jobs])
 
         for (instance, execution_node) in zip(instances[:index], jobs_execution_nodes[:index]):
             assert execution_node == instance.hostname, \
@@ -471,7 +495,8 @@ class TestExecutionNodeAssignment(Base_Api_Test):
     def test_job_distribution_group_spill_over(self, v2,
                                                factories,
                                                largest_capacity, jt_generator_for_consuming_given_capacity,
-                                               tower_instance_group):
+                                               tower_instance_group,
+                                               tower_ig_instances):
         """
         * Create a job template designed to consume (a little less than) half the capacity
           of a given node. Configure the JT to run simultaneous jobs.
@@ -492,7 +517,7 @@ class TestExecutionNodeAssignment(Base_Api_Test):
           assignment should 'spillover' from one instance group to the next (in
           order of instance group assignment to the JT).
         """
-        instances = v2.instances.get(order_by='hostname').results
+        instances = random.sample(tower_ig_instances, max(3, len(tower_ig_instances)))
 
         jobs_count = len(instances) * 2
         forks = (largest_capacity - 1) / 2
@@ -518,7 +543,12 @@ class TestExecutionNodeAssignment(Base_Api_Test):
 
         map(lambda ig: jt.add_instance_group(ig), instance_groups)
         jobs = [jt.launch() for x in xrange(0, jobs_count)]
-        map(lambda j: j.wait_until_completed(), jobs)
+        jobs = [j.wait_until_completed() for j in jobs]
+
+        # Verify all jobs ran overlapping
+        assert do_all_jobs_overlap(jobs), \
+            "All jobs found to not be running at the same time {}" \
+                .format(["(%s, %s), " % (j.started, j.finished) for j in jobs])
 
         for ig in instance_groups:
             if len(ig.policy_instance_list) == 2:
