@@ -201,7 +201,7 @@ class TestGeneralSettings(Base_Api_Test):
         update_setting_pg(api_settings_jobs_pg, payload)
 
         # assert new job stdout truncated
-        assert re.search('^Standard Output too large to display \(\d+ bytes\), only download supported for sizes over 0 bytes$',
+        assert re.search('^Standard Output too large to display \(\d+ bytes\), only download supported for sizes over 0 bytes.$',
                          unified_job_with_stdout.get().result_stdout), \
             "Expected result_stdout error message not matched - %s." % unified_job_with_stdout.result_stdout
         if unified_job_with_stdout.type != "system_job":
