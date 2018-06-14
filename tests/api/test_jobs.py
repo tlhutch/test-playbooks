@@ -247,13 +247,15 @@ class Test_Job(Base_Api_Test):
         result = exc_info.value[1]
 
         # assert expected error responses
-        assert 'passwords_needed_to_start' in result, \
-            "Expecting 'passwords_needed_to_start' in API response when " \
+        assert 'Missing passwords needed to start' in result['credential_passwords'][0], \
+            "Expecting 'Missing passwords needed to start' in API response when " \
             "relaunching a job, without provided credential " \
             "passwords. %s" % json.dumps(result)
 
         # assert expected values in response
-        assert credential.expected_passwords_needed_to_start == result['passwords_needed_to_start']
+        expected_passwords = result['credential_passwords'][0].split(':')[1]
+        expected_password_list = expected_passwords.replace(' ', '').split(',')
+        assert credential.expected_passwords_needed_to_start == expected_password_list
 
     def test_relaunch_uses_extra_vars_from_job(self, job_with_extra_vars):
         """Verify that when you relaunch a job containing extra_vars in the
