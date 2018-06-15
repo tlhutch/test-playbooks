@@ -405,7 +405,7 @@ class TestSchedulePrompts(APITest):
                        question_name='Q1',
                        variable='var1',
                        type='text',
-                       default=""),
+                       default=''),
                   dict(required=True,
                        question_name='Q2',
                        variable='var2',
@@ -432,9 +432,52 @@ class TestSchedulePrompts(APITest):
                        default='')]
         template.add_survey(spec=survey)
         schedule = template.add_schedule(rrule=minutely_rrule(), extra_data={'var1': 'var1', 'var2': 'very_secret'})
+        assert schedule.extra_data == {'var1': 'var1', 'var2': '$encrypted$'}
 
         unified_jobs = schedule.related.unified_jobs.get()
-        poll_until(lambda: unified_jobs.get().count == 1, interval=5, timeout=1.5 * 60)
+        poll_until(lambda: unified_jobs.get().count == 1, interval=5, timeout=2 * 60)
+        job = unified_jobs.results.pop()
+        assert job.wait_until_completed().is_successful
+        assert json.loads(job.extra_vars) == {'var1': 'var1', 'var2': '$encrypted$'}
+
+    @pytest.mark.parametrize('ujt_type', ['job_template', 'workflow_job_template'])
+    def test_can_create_schedule_when_optional_survey_questions_are_unanswered(self, factories, ujt_type):
+        template = getattr(factories, 'v2_' + ujt_type)()
+        survey = [dict(required=False,
+                       question_name='Q1',
+                       variable='var1',
+                       type='text',
+                       default=''),
+                  dict(required=False,
+                       question_name='Q2',
+                       variable='var2',
+                       type='password',
+                       default='')]
+        template.add_survey(spec=survey)
+        schedule = template.add_schedule(rrule=minutely_rrule())
+        assert schedule.extra_data == {'var1': 'var1', 'var2': '$encrypted$'}
+
+    @pytest.mark.github('https://github.com/ansible/tower/issues/2186')
+    @pytest.mark.parametrize('ujt_type', ['job_template', 'workflow_job_template'])
+    def test_can_create_schedule_when_defaults_are_supplied_with_required_survey_questions_with_defaults(self, factories,
+                                                                                                         ujt_type):
+        template = getattr(factories, 'v2_' + ujt_type)()
+        survey = [dict(required=True,
+                       question_name='Q1',
+                       variable='var1',
+                       type='text',
+                       default='var1'),
+                  dict(required=True,
+                       question_name='Q2',
+                       variable='var2',
+                       type='password',
+                       default='very_secret')]
+        template.add_survey(spec=survey)
+        schedule = template.add_schedule(rrule=minutely_rrule(), extra_data={'var1': 'var1', 'var2': '$encrypted$'})
+        assert schedule.extra_data == {'var1': 'var1', 'var2': '$encrypted$'}
+
+        unified_jobs = schedule.related.unified_jobs.get()
+        poll_until(lambda: unified_jobs.get().count == 1, interval=5, timeout=2 * 60)
         job = unified_jobs.results.pop()
         assert job.wait_until_completed().is_successful
         assert json.loads(job.extra_vars) == {'var1': 'var1', 'var2': '$encrypted$'}
