@@ -332,13 +332,13 @@ class TestSchedulePrompts(APITest):
         r = {}
         # names for promptable fields and a non-default value
         prompts = [
-                ('variables', {'foo': 'bar'}),
+                ('variables', {'var1': 'bar'}),
                 ('diff_mode', True),
-                ('limit', 'foo'),
-                ('tags', 'bar'),
-                ('skip_tags', 'foo'),
+                ('limit', 'test_limit'),
+                ('tags', 'test_tag'),
+                ('skip_tags', 'test_skip_tag'),
                 ('job_type', 'check'),
-                ('verbosity', 2),
+                ('verbosity', 5),
                 ('inventory', inventory.id if inventory else None)
         ]
         for fd, val in prompts:
@@ -398,41 +398,46 @@ class TestSchedulePrompts(APITest):
                        'on Launch setting on the Job Template to include Extra Variables.')
             assert e.value[1] == {key: [msg]}
 
-    @pytest.mark.parametrize('type', ['job_template', 'workflow_job_template'])
-    def test_schedule_validates_required_survey_vars(self, type, factories):
-        if type == 'job_template':
-            template = factories.v2_job_template()
-        else:
-            template = factories.v2_workflow_job_template()
+    @pytest.mark.parametrize('ujt_type', ['job_template', 'workflow_job_template'])
+    def test_cannot_create_schedule_without_answering_required_survey_questions(self, factories, ujt_type):
+        template = getattr(factories, 'v2_' + ujt_type)()
         survey = [dict(required=True,
-                       question_name='Q',
+                       question_name='Q1',
                        variable='var1',
+                       type='text',
+                       default=""),
+                  dict(required=True,
+                       question_name='Q2',
+                       variable='var2',
                        type='password',
-                       default="")]
+                       defautl='')]
         template.add_survey(spec=survey)
         with pytest.raises(exc.BadRequest) as e:
             template.add_schedule(rrule=minutely_rrule())
-        assert e.value[1] == {'variables_needed_to_start': ["'var1' value missing"]}
+        assert e.value[1] == e.value[1] == {'variables_needed_to_start': ["'var1' value missing", "'var2' value missing"]}
 
-    @pytest.mark.parametrize('type', ['job_template', 'workflow_job_template'])
-    def test_schedule_allows_survey_var(self, type, factories):
-        if type == 'job_template':
-            template = factories.v2_job_template()
-        else:
-            template = factories.v2_workflow_job_template()
+    @pytest.mark.github('https://github.com/ansible/tower/issues/2182')
+    @pytest.mark.parametrize('ujt_type', ['job_template', 'workflow_job_template'])
+    def test_can_create_schedule_when_required_survey_questions_answered(self, factories, ujt_type):
+        template = getattr(factories, 'v2_' + ujt_type)()
         survey = [dict(required=True,
-                       question_name='Q',
+                       question_name='Q1',
                        variable='var1',
                        type='text',
-                       default="")]
+                       default=''),
+                  dict(required=True,
+                       question_name='Q2',
+                       variable='var2',
+                       type='password',
+                       default='')]
         template.add_survey(spec=survey)
-        schedule = template.add_schedule(rrule=minutely_rrule(), extra_data={'var1': 'foo'})
+        schedule = template.add_schedule(rrule=minutely_rrule(), extra_data={'var1': 'var1', 'var2': 'very_secret'})
+
         unified_jobs = schedule.related.unified_jobs.get()
-        poll_until(lambda: unified_jobs.get().count == 1, interval=15, timeout=1.5 * 60)
+        poll_until(lambda: unified_jobs.get().count == 1, interval=5, timeout=1.5 * 60)
         job = unified_jobs.results.pop()
         assert job.wait_until_completed().is_successful
-        job_vars = json.loads(job.extra_vars)
-        assert job_vars == {'var1': 'foo'}
+        assert json.loads(job.extra_vars) == {'var1': 'var1', 'var2': '$encrypted$'}
 
 
 @pytest.mark.api
