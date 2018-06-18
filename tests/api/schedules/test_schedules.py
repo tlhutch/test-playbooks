@@ -3,7 +3,6 @@ from dateutil import rrule
 from datetime import datetime
 from dateutil.parser import parse
 from dateutil.relativedelta import relativedelta
-import json
 
 import pytest
 from towerkit import exceptions as exc, config
@@ -11,29 +10,12 @@ from towerkit.rrule import RRule
 from towerkit.utils import poll_until, random_title
 import pytz
 
-from tests.api import APITest
-
-
-def minutely_rrule(**kwargs):
-    return RRule(rrule.MINUTELY, dtstart=datetime.utcnow() + relativedelta(minutes=-1, seconds=+30), **kwargs)
+from tests.api.schedules import SchedulesTest
 
 
 @pytest.mark.api
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
-class TestSchedules(APITest):
-
-    @pytest.fixture(ids=('minutely', 'hourly', 'daily', 'weekly', 'monthly', 'yearly'),
-                    params=[('MINUTELY', 'minutes'), ('HOURLY', 'hours'), ('DAILY', 'days'), ('WEEKLY', 'weeks'),
-                            ('MONTHLY', 'months'), ('YEARLY', 'years')])
-    def immediate_rrule(self, request):
-        """Creates an RRule with the next recurrence targeted for 30 seconds from invocation"""
-        frequency, kwarg = request.param
-        dtstart = datetime.utcnow() + relativedelta(**{kwarg: -1, 'seconds': 30})
-        freq = getattr(rrule, frequency)
-        return RRule(freq, dtstart=dtstart)
-
-    def strftime(self, dt):
-        return dt.strftime('%Y-%m-%dT%H:%M:%SZ')
+class TestSchedules(SchedulesTest):
 
     def test_new_resources_are_without_schedules(self, v2_unified_job_template):
         assert v2_unified_job_template.related.schedules.get().count == 0
@@ -92,7 +74,7 @@ class TestSchedules(APITest):
             extra_data = {random_title(): random_title() for _ in range(20)}
         else:
             extra_data = {}
-        rule = minutely_rrule()
+        rule = self.minutely_rrule()
         payload = dict(name=random_title(),
                        description=random_title(),
                        enabled=False,
@@ -207,7 +189,7 @@ class TestSchedules(APITest):
                 schedule.get()
 
     def test_schedule_triggers_launch_without_count(self, v2_unified_job_template):
-        rule = minutely_rrule()
+        rule = self.minutely_rrule()
         schedule = v2_unified_job_template.add_schedule(rrule=rule)
         assert schedule.next_run == rule.next_run
 
@@ -218,7 +200,7 @@ class TestSchedules(APITest):
         assert schedule.get().next_run == rule.next_run
 
     def test_schedule_triggers_launch_with_count(self, v2_unified_job_template):
-        rule = minutely_rrule(count=2)
+        rule = self.minutely_rrule(count=2)
         schedule = v2_unified_job_template.add_schedule(rrule=rule)
         assert schedule.next_run == rule.next_run
 
@@ -231,7 +213,7 @@ class TestSchedules(APITest):
     @pytest.mark.github('https://github.com/ansible/tower/issues/1541')
     def test_modified_by_unaffected_by_launch(self, v2, job_template_ping):
         assert job_template_ping.summary_fields.modified_by['username'] == config.credentials.users.admin.username
-        schedule = job_template_ping.add_schedule(rrule=minutely_rrule())
+        schedule = job_template_ping.add_schedule(rrule=self.minutely_rrule())
 
         unified_jobs = schedule.related.unified_jobs.get()
         poll_until(lambda: unified_jobs.get().count == 1, interval=15, timeout=5 * 60)
@@ -247,7 +229,7 @@ class TestSchedules(APITest):
         jt = factories.v2_job_template(playbook='debug_extra_vars.yml',
                                        extra_vars='var1: "{{ awx_schedule_id }}"')
         factories.v2_host(inventory=jt.ds.inventory)
-        schedule = jt.add_schedule(rrule=minutely_rrule())
+        schedule = jt.add_schedule(rrule=self.minutely_rrule())
 
         unified_jobs = schedule.related.unified_jobs.get()
         poll_until(lambda: unified_jobs.get().count == 1, interval=15, timeout=5 * 60)
@@ -322,6 +304,7 @@ class TestSchedules(APITest):
             assert prev.local[0] == expected[1]
             assert len(prev.utc) == 1
             assert len(prev.local) == 1
+<<<<<<< HEAD:tests/api/test_schedules.py
 
 
 @pytest.mark.api
