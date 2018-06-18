@@ -483,7 +483,7 @@ class TestSchedulePrompts(APITest):
                        default='very_secret')]
         template.add_survey(spec=survey)
         schedule = template.add_schedule(rrule=minutely_rrule(), extra_data={'var1': 'var1', 'var2': '$encrypted$'})
-        assert schedule.extra_data == {'var1': 'var1', 'var2': '$encrypted$'}
+        assert schedule.extra_data == {'var1': 'var1'}
 
         unified_jobs = schedule.related.unified_jobs.get()
         poll_until(lambda: unified_jobs.get().count == 1, interval=5, timeout=2 * 60)
