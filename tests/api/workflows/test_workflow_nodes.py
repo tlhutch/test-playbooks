@@ -1,9 +1,11 @@
-import pytest
 import logging
+import json
+
+from towerkit.exceptions import BadRequest
+import pytest
 
 from tests.api import Base_Api_Test
 
-from towerkit.exceptions import BadRequest
 
 log = logging.getLogger(__name__)
 
@@ -27,7 +29,75 @@ log = logging.getLogger(__name__)
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class Test_Workflow_Nodes(Base_Api_Test):
 
-    # Node cannot point to Workflow Job Template or System Job
+    select_jt_fields = ('inventory', 'project', 'credential', 'playbook', 'job_type')
+    workflow_fields = ('inventory', 'credential', 'job_type', 'job_tags', 'skip_tags', 'verbosity', 'diff_mode', 'limit')
+
+    def test_workflow_node_jobs_should_source_from_underlying_template(self, factories):
+        host = factories.v2_host()
+        wfjt = factories.v2_workflow_job_template()
+        jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='debug_extra_vars.yml')
+        wf_node = factories.v2_workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt)
+
+        survey = [dict(required=True,
+                       question_name='Q1',
+                       variable='var1',
+                       type='text',
+                       default='survey'),
+                  dict(required=True,
+                       question_name='Q2',
+                       variable='var2',
+                       type='password',
+                       default='survey')]
+        jt.add_survey(spec=survey)
+
+        wfj = wfjt.launch().wait_until_completed()
+        job = jt.get().related.last_job.get()
+
+        assert wfj.is_successful
+        assert job.is_successful
+        assert json.loads(job.extra_vars) == {'var1': 'survey', 'var2': '$encrypted$'}
+
+        # verify job sources JT and not wf node
+        for field in self.select_jt_fields:
+            assert getattr(jt, field) == getattr(job, field)
+        for field in self.workflow_fields:
+            assert getattr(jt, field) == getattr(job, field)
+            assert getattr(wf_node, field) != getattr(job, field)
+
+    def test_workflow_node_values_take_precedence_over_template_values(self, factories, ask_everything_jt):
+        host, credential = factories.v2_host(), factories.v2_credential()
+        wfjt = factories.v2_workflow_job_template()
+        wf_node = factories.v2_workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=ask_everything_jt,
+                                                          inventory=host.ds.inventory, credential=credential, job_type='check',
+                                                          job_tags='always', skip_tags='wf_skip_tag', verbosity=5,
+                                                          diff_mode=True, limit=host.name,
+                                                          extra_data={'var1': 'wf_var', 'var2': 'wf_var'})
+
+        survey = [dict(required=True,
+                       question_name='Q1',
+                       variable='var1',
+                       type='text',
+                       default='survey_var'),
+                  dict(required=True,
+                       question_name='Q2',
+                       variable='var2',
+                       type='password',
+                       default='survey_var')]
+        ask_everything_jt.add_survey(spec=survey)
+
+        wfj = wfjt.launch().wait_until_completed()
+        job = ask_everything_jt.get().related.last_job.get()
+        assert wfj.is_successful
+        assert job.is_successful
+        assert json.loads(job.extra_vars) == {'var1': 'wf_var', 'var2': '$encrypted$'}
+
+        # verify job sources wf node and not JT
+        jt_fields = filter(lambda field: field not in ('project', 'playbook'), self.select_jt_fields)
+        for field in jt_fields:
+            assert getattr(ask_everything_jt, field) != getattr(job, field)
+        for field in self.workflow_fields:
+            assert getattr(ask_everything_jt, field) != getattr(job, field)
+            assert getattr(wf_node, field) == getattr(job, field)
 
     def test_workflow_job_template_node_cannot_contain_workflow_job_template(self, factories):
         wfjt = factories.workflow_job_template()
