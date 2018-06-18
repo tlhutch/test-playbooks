@@ -387,15 +387,17 @@ class TestSchedulePrompts(APITest):
     def test_schedule_unprompted_fields(self, factories, inventory):
         jt = factories.v2_job_template()
         mrrule = minutely_rrule()
-        for key, value in self.ask_everything(inventory=inventory, config=True).items():
+        schedule_prompts = self.ask_everything(inventory=inventory, config=True)
+        for key, value in schedule_prompts.items():
             data = {}
             data[key] = value
             with pytest.raises(exc.BadRequest) as e:
                 jt.add_schedule(rrule=mrrule, **data)
             msg = 'Field is not configured to prompt on launch.'
             if key == 'extra_data':
-                msg = ('Variables foo are not allowed on launch. Check the Prompt '
-                       'on Launch setting on the Job Template to include Extra Variables.')
+                msg = ('Variables {} are not allowed on launch. Check the Prompt '
+                       'on Launch setting on the Job Template to include Extra Variables.'.format(
+                            schedule_prompts['extra_data'].keys()[0]))
             assert e.value[1] == {key: [msg]}
 
     @pytest.mark.parametrize('ujt_type', ['job_template', 'workflow_job_template'])
@@ -452,10 +454,17 @@ class TestSchedulePrompts(APITest):
                        question_name='Q2',
                        variable='var2',
                        type='password',
-                       default='')]
+                       default='foo')]
         template.add_survey(spec=survey)
         schedule = template.add_schedule(rrule=minutely_rrule())
-        assert schedule.extra_data == {'var1': 'var1', 'var2': '$encrypted$'}
+        assert schedule.extra_data == {}
+
+        # Test that resultant job has the survey defaults
+        unified_jobs = schedule.related.unified_jobs.get()
+        poll_until(lambda: unified_jobs.get().count == 1, interval=5, timeout=2 * 60)
+        job = unified_jobs.results.pop()
+        assert job.wait_until_completed().is_successful
+        assert json.loads(job.extra_vars) == {'var1': '', 'var2': '$encrypted$'}
 
     @pytest.mark.github('https://github.com/ansible/tower/issues/2186')
     @pytest.mark.parametrize('ujt_type', ['job_template', 'workflow_job_template'])
