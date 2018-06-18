@@ -9,6 +9,7 @@ from tests.api.schedules import SchedulesTest
 
 @pytest.mark.api
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+@pytest.mark.saved_prompts
 class TestJobTemplateSchedules(SchedulesTest):
 
     select_jt_fields = ('inventory', 'credential', 'project', 'playbook', 'job_type', 'job_tags', 'skip_tags',
@@ -221,7 +222,7 @@ class TestJobTemplateSchedules(SchedulesTest):
                        default='very_secret')]
         template.add_survey(spec=survey)
         schedule = template.add_schedule(rrule=self.minutely_rrule(), extra_data={'var1': 'var1', 'var2': '$encrypted$'})
-        assert schedule.extra_data == {'var1': 'var1', 'var2': '$encrypted$'}
+        assert schedule.extra_data == {'var1': 'var1'}
 
         unified_jobs = schedule.related.unified_jobs.get()
         utils.poll_until(lambda: unified_jobs.get().count == 1, interval=5, timeout=2 * 60)

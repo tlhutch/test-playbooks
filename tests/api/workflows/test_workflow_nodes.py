@@ -32,6 +32,7 @@ class Test_Workflow_Nodes(Base_Api_Test):
     select_jt_fields = ('inventory', 'project', 'credential', 'playbook', 'job_type')
     workflow_fields = ('inventory', 'credential', 'job_type', 'job_tags', 'skip_tags', 'verbosity', 'diff_mode', 'limit')
 
+    @pytest.mark.saved_prompts
     def test_workflow_node_jobs_should_source_from_underlying_template(self, factories):
         host = factories.v2_host()
         wfjt = factories.v2_workflow_job_template()
@@ -64,6 +65,7 @@ class Test_Workflow_Nodes(Base_Api_Test):
             assert getattr(jt, field) == getattr(job, field)
             assert getattr(wf_node, field) != getattr(job, field)
 
+    @pytest.mark.saved_prompts
     def test_workflow_node_values_take_precedence_over_template_values(self, factories, ask_everything_jt):
         host, credential = factories.v2_host(), factories.v2_credential()
         wfjt = factories.v2_workflow_job_template()
