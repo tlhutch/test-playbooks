@@ -44,6 +44,33 @@
 ### Containerized Tower as a product deliverable
 [Feature](https://github.com/ansible/tower/blob/release_3.3.0/docs/clustering.md)
 
+#### Generalized regression testing for traditional cluster Tower
+
+From 3.1.7:
+- [ ] Verify base upgrade scenario with same inventory.
+- [ ] Verify upgrade scenario with added instance in inventory.
+- [ ] Verify upgrade scenario with removed instance in inventory.
+- [ ] Verify upgrade scenario with added/removed instance group.
+
+From 3.2.5:
+- [ ] Verify base upgrade scenario with same inventory.
+- [ ] Verify upgrade scenario with added instance in inventory.
+- [ ] Verify upgrade scenario with removed instance in inventory.
+- [ ] Verify upgrade scenario with added/removed instance group.
+
+General:
+- [ ] Verify awx-manage provision/deprovision.
+- [ ] Verify isolated instances may not be added to instance groups.
+- [ ] Verify that isolated instances may not be removed from instance groups.
+- [ ] Verify that isolated instances are not sourced via IG creation with instance policy rules.
+- [ ] Verify that isolated instances are not sourced via IG update with instance policy rules.
+- [ ] Verify cannot delete controller IG.
+- [ ] Verify cannot delete isolated IG.
+- [ ] Verify cannot associate isolated instance with Tower group.
+- [ ] Verify Tower group excludes isolated instances.
+- [ ] Verify that instances automatically get added to instance groups with policy_instance_list with instance reboot.
+
+
 ### "Ben's Stuff" - Inventory & Network Visualization
 [Feature]()
 
