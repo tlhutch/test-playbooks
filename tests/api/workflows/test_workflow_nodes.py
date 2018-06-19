@@ -30,7 +30,7 @@ log = logging.getLogger(__name__)
 class Test_Workflow_Nodes(Base_Api_Test):
 
     select_jt_fields = ('inventory', 'project', 'credential', 'playbook', 'job_type')
-    workflow_fields = ('inventory', 'credential', 'job_type', 'job_tags', 'skip_tags', 'verbosity', 'diff_mode', 'limit')
+    promptable_fields = ('inventory', 'credential', 'job_type', 'job_tags', 'skip_tags', 'verbosity', 'diff_mode', 'limit')
 
     @pytest.mark.saved_prompts
     def test_workflow_node_jobs_should_source_from_underlying_template(self, factories):
@@ -61,7 +61,7 @@ class Test_Workflow_Nodes(Base_Api_Test):
         # verify job sources JT and not wf node
         for field in self.select_jt_fields:
             assert getattr(jt, field) == getattr(job, field)
-        for field in self.workflow_fields:
+        for field in self.promptable_fields:
             assert getattr(jt, field) == getattr(job, field)
             assert getattr(wf_node, field) != getattr(job, field)
 
@@ -97,7 +97,7 @@ class Test_Workflow_Nodes(Base_Api_Test):
         jt_fields = filter(lambda field: field not in ('project', 'playbook'), self.select_jt_fields)
         for field in jt_fields:
             assert getattr(ask_everything_jt, field) != getattr(job, field)
-        for field in self.workflow_fields:
+        for field in self.promptable_fields:
             assert getattr(ask_everything_jt, field) != getattr(job, field)
             assert getattr(wf_node, field) == getattr(job, field)
 
