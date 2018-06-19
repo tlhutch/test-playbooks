@@ -6,6 +6,7 @@ from tests.api import Base_Api_Test
 
 
 @pytest.mark.api
+@pytest.mark.mp_group(group="TestInstances", strategy="isolated_serial")
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestInstances(Base_Api_Test):
     def find_expected_capacity(self, instance):
