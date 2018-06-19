@@ -9,13 +9,11 @@ from tests.api.schedules import SchedulesTest
 
 @pytest.mark.api
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
-@pytest.mark.saved_prompts
 class TestJobTemplateSchedules(SchedulesTest):
 
     select_jt_fields = ('inventory', 'project', 'credential', 'playbook', 'job_type')
     promptable_fields = ('inventory', 'credential', 'job_type', 'job_tags', 'skip_tags', 'verbosity',
                          'diff_mode', 'limit')
-
 
     def ask_everything(self, setup=False, inventory=None, config=False):
         r = {}
@@ -45,35 +43,19 @@ class TestJobTemplateSchedules(SchedulesTest):
                 r[job_fd] = val
         return r
 
-    def test_schedule_uses_prompted_fields(self, factories, inventory):
+    def test_schedule_uses_prompted_fields(self, factories):
         jt = factories.v2_job_template(**self.ask_everything(setup=True))
-        schedule = jt.add_schedule(
-            rrule=self.minutely_rrule(),
-            **self.ask_everything(inventory=inventory, config=True)
-        )
-        # sanity assertions
+        inventory = factories.v2_inventory()
+        schedule = jt.add_schedule(rrule=self.minutely_rrule(),
+            **self.ask_everything(inventory=inventory, config=True))
+
         bad_params = []
         for fd, val in self.ask_everything(inventory=inventory, config=True).items():
             if getattr(schedule, fd) != val:
                 bad_params.append((fd, val, getattr(schedule, fd)))
         assert not bad_params, 'Schedule parameters {} were not enabled.'.format(bad_params)
 
-        unified_jobs = schedule.related.unified_jobs.get()
-        utils.poll_until(lambda: unified_jobs.get().count == 1, interval=15, timeout=1.5 * 60)
-        job = unified_jobs.results.pop()
-        assert job.wait_until_completed().is_successful
-        job_values = []
-        for fd, val in self.ask_everything(inventory=inventory).items():
-            job_val = getattr(job, fd)
-            if fd == 'extra_vars':
-                job_val = json.loads(job_val)
-            if job_val != val:
-                job_values.append((fd, val, job_val))
-        assert not job_values, 'Job did not use prompts from schedule {}'.format(
-            job_values
-        )
-
-    def test_schedule_unprompted_fields(self, factories, inventory):
+    def test_schedule_creation_rejected_when_jt_ask_disabled(self, factories, inventory):
         jt = factories.v2_job_template()
         mrrule = self.minutely_rrule()
         schedule_prompts = self.ask_everything(inventory=inventory, config=True)
@@ -88,6 +70,16 @@ class TestJobTemplateSchedules(SchedulesTest):
                        'on Launch setting on the Job Template to include Extra Variables.'.format(
                             schedule_prompts['extra_data'].keys()[0]))
             assert e.value[1] == {key: [msg]}
+
+    def test_schedule_creation_rejected_when_jt_ask_credential_disabled(self, factories):
+        jt = factories.v2_job_template()
+        mrrule = self.minutely_rrule()
+        schedule = jt.add_schedule(rrule=mrrule)
+        credential = factories.v2_credential()
+
+        with pytest.raises(exc.BadRequest) as e:
+            schedule.add_credential(credential)
+        assert e.value[1] == {'msg': 'Related template is not configured to accept credentials on launch.'}
 
     def test_schedule_jobs_should_source_from_underlying_template(self, factories):
         jt = factories.v2_job_template()
@@ -105,9 +97,9 @@ class TestJobTemplateSchedules(SchedulesTest):
                        default='survey')]
         jt.add_survey(spec=survey)
         schedule = jt.add_schedule(rrule=self.minutely_rrule())
-        unified_jobs = schedule.related.unified_jobs.get()
 
-        utils.poll_until(lambda: unified_jobs.get().count == 1, timeout=2 * 60)
+        unified_jobs = schedule.related.unified_jobs.get()
+        utils.poll_until(lambda: unified_jobs.get().count == 1, timeout=1.5 * 60)
         job = unified_jobs.results.pop()
         assert job.wait_until_completed().is_successful
         assert json.loads(job.extra_vars) == {'var1': 'survey', 'var2': '$encrypted$'}
@@ -118,7 +110,7 @@ class TestJobTemplateSchedules(SchedulesTest):
             assert getattr(jt, field) == getattr(job, field)
 
     def test_schedule_values_take_precedence_over_jt_values(self, factories, ask_everything_jt):
-        host, credential = factories.v2_host(), factories.v2_credential()
+        host = factories.v2_host()
 
         survey = [dict(required=False,
                        question_name='Q1',
@@ -135,16 +127,23 @@ class TestJobTemplateSchedules(SchedulesTest):
                        job_tags='always', skip_tags='unmatched', limit='all', diff_mode=True, verbosity=5,
                        extra_data={'var1': 'schedule', 'var2': 'schedule'})
         schedule = ask_everything_jt.add_schedule(**payload)
-        unified_jobs = schedule.related.unified_jobs.get()
 
-        utils.poll_until(lambda: unified_jobs.get().count == 1, timeout=2 * 60)
+        creds = [factories.v2_credential(kind=kind) for kind in ('ssh', 'aws')]
+        creds.append(factories.v2_credential(kind='vault', inputs={'vault_password': 'fake'}))
+        for cred in creds:
+            schedule.add_credential(cred)
+
+        unified_jobs = schedule.related.unified_jobs.get()
+        utils.poll_until(lambda: unified_jobs.get().count == 1, timeout=1.5 * 60)
         job = unified_jobs.results.pop()
         assert job.wait_until_completed().is_successful
         assert json.loads(job.extra_vars) == {'var1': 'schedule', 'var2': '$encrypted$'}
 
-        fields = filter(lambda field: field not in ['extra_data', 'rrule'], payload)
+        fields = filter(lambda field: field not in ('extra_data', 'rrule'), payload)
         for field in fields:
             assert payload[field] == getattr(job, field)
+        job_cred_ids = [cred.id for cred in job.related.credentials.get().results]
+        assert set(cred.id for cred in creds) == set(job_cred_ids)
 
     @pytest.mark.parametrize('ujt_type', ['job_template', 'workflow_job_template'])
     def test_cannot_create_schedule_without_answering_required_survey_questions(self, factories, ujt_type):
@@ -158,7 +157,7 @@ class TestJobTemplateSchedules(SchedulesTest):
                        question_name='Q2',
                        variable='var2',
                        type='password',
-                       defautl='')]
+                       default='')]
         template.add_survey(spec=survey)
         with pytest.raises(exc.BadRequest) as e:
             template.add_schedule(rrule=self.minutely_rrule())
@@ -180,11 +179,10 @@ class TestJobTemplateSchedules(SchedulesTest):
                        default='')]
         template.add_survey(spec=survey)
         schedule = template.add_schedule(rrule=self.minutely_rrule(), extra_data={'var1': 'var1', 'var2': 'very_secret'})
-        assert schedule.extra_data == {'var1': 'var1', 'var2': '$encrypted$'}
+        assert schedule.extra_data == {'var1': 'var1'}
 
-        # verify sourced variables
         unified_jobs = schedule.related.unified_jobs.get()
-        utils.poll_until(lambda: unified_jobs.get().count == 1, interval=5, timeout=2 * 60)
+        utils.poll_until(lambda: unified_jobs.get().count == 1, interval=5, timeout=1.5 * 60)
         job = unified_jobs.results.pop()
         assert job.wait_until_completed().is_successful
         assert json.loads(job.extra_vars) == {'var1': 'var1', 'var2': '$encrypted$'}
@@ -246,12 +244,12 @@ class TestJobTemplateSchedules(SchedulesTest):
         assert not schedule.extra_data
 
         unified_jobs = schedule.related.unified_jobs.get()
-        utils.poll_until(lambda: unified_jobs.get().count == 1, interval=5, timeout=2 * 60)
+        utils.poll_until(lambda: unified_jobs.get().count == 1, interval=5, timeout=1.5 * 60)
         job = unified_jobs.results.pop()
         assert job.wait_until_completed().is_successful
         assert json.loads(job.extra_vars) == {'var1': 'survey', 'var2': '$encrypted$'}
         assert '"var1": "survey"' in job.result_stdout
-        assert '"var1": "very_secret"' in job.result_stdout
+        assert '"var2": "very_secret"' in job.result_stdout
 
     def test_schedule_spawned_jobs_source_schedule_variables(self, factories):
         jt = factories.v2_job_template(playbook='debug_extra_vars.yml', ask_variables_on_launch=True)
@@ -270,15 +268,15 @@ class TestJobTemplateSchedules(SchedulesTest):
         jt.add_survey(spec=survey)
         schedule = jt.add_schedule(rrule=self.minutely_rrule(),
                                    extra_data={'var1': 'schedule', 'var2': '$encrypted$'})
-        assert schedule.extra_data == {'var1': u'schedule'}
+        assert schedule.extra_data == {'var1': 'schedule'}
 
         unified_jobs = schedule.related.unified_jobs.get()
-        utils.poll_until(lambda: unified_jobs.get().count == 1, interval=5, timeout=2 * 60)
+        utils.poll_until(lambda: unified_jobs.get().count == 1, interval=5, timeout=1.5 * 60)
         job = unified_jobs.results.pop()
         assert job.wait_until_completed().is_successful
         assert json.loads(job.extra_vars) == {'var1': 'schedule', 'var2': '$encrypted$'}
         assert '"var1": "schedule"' in job.result_stdout
-        assert '"var1": "very_secret"' in job.result_stdout
+        assert '"var2": "very_secret"' in job.result_stdout
 
     def test_schedule_spawned_jobs_source_updated_survey_defaults(self, factories):
         jt = factories.v2_job_template(playbook='debug_extra_vars.yml')
@@ -288,29 +286,29 @@ class TestJobTemplateSchedules(SchedulesTest):
                        question_name='Q1',
                        variable='var1',
                        type='text',
-                       default='survey'),
+                       default='old_survey'),
                   dict(required=False,
                        question_name='Q2',
                        variable='var2',
                        type='password',
-                       default='very_secret')]
+                       default='old_survey')]
         jt.add_survey(spec=survey)
         schedule = jt.add_schedule(rrule=self.minutely_rrule())
         assert not schedule.extra_data
 
         for question in survey:
-            question['default'] = 'updated'
+            question['default'] = 'new_survey'
         jt.add_survey(spec=survey)
 
         unified_jobs = schedule.related.unified_jobs.get()
-        utils.poll_until(lambda: unified_jobs.get().count == 1, interval=5, timeout=2 * 60)
+        utils.poll_until(lambda: unified_jobs.get().count == 1, interval=5, timeout=1.5 * 60)
         job = unified_jobs.results.pop()
         assert job.wait_until_completed().is_successful
-        assert json.loads(job.extra_vars) == {'var1': 'updated', 'var2': '$encrypted$'}
-        assert '"var1": "updated"' in job.result_stdout
-        assert '"var1": "updated"' in job.result_stdout
+        assert json.loads(job.extra_vars) == {'var1': 'new_survey', 'var2': '$encrypted$'}
+        assert '"var1": "new_survey"' in job.result_stdout
+        assert '"var2": "new_survey"' in job.result_stdout
 
-    def test_schedule_spawned_jobs_source_updated_schedule_extra_data(self, factories):
+    def test_schedule_spawned_jobs_source_updated_survey_and_schedule(self, factories):
         jt = factories.v2_job_template(playbook='debug_extra_vars.yml', ask_variables_on_launch=True)
         factories.v2_host(inventory=jt.ds.inventory)
 
@@ -318,25 +316,24 @@ class TestJobTemplateSchedules(SchedulesTest):
                        question_name='Q1',
                        variable='var1',
                        type='text',
-                       default='survey'),
+                       default='old_survey'),
                   dict(required=False,
                        question_name='Q2',
                        variable='var2',
                        type='password',
-                       default='very_secret')]
+                       default='old_survey')]
         jt.add_survey(spec=survey)
         schedule = jt.add_schedule(rrule=self.minutely_rrule(),
-                                   extra_data={'var1': 'schedule', 'var2': '$encrypted$'})
-        assert schedule.extra_data == {'var1': u'schedule'}
+                                   extra_data={'var1': 'old_schedule', 'var2': '$encrypted$'})
+        assert schedule.extra_data == {'var1': 'old_schedule'}
 
         for question in survey:
             question['default'] = 'new_survey'
         jt.add_survey(spec=survey)
-        schedule = jt.add_schedule(rrule=self.minutely_rrule(),
-                                   extra_data={'var1': 'new_schedule', 'var2': 'new_schedule'})
+        schedule.extra_data = {'var1': 'new_schedule', 'var2': 'new_schedule'}
 
         unified_jobs = schedule.related.unified_jobs.get()
-        utils.poll_until(lambda: unified_jobs.get().count == 1, interval=5, timeout=2 * 60)
+        utils.poll_until(lambda: unified_jobs.get().count == 1, interval=5, timeout=1.5 * 60)
         job = unified_jobs.results.pop()
         assert job.wait_until_completed().is_successful
         assert json.loads(job.extra_vars) == {'var1': 'new_schedule', 'var2': '$encrypted$'}
@@ -356,14 +353,12 @@ class TestJobTemplateSchedules(SchedulesTest):
         schedule = jt.add_schedule(rrule=self.minutely_rrule())
         assert not schedule.extra_data
 
-	survey[0]['type'] = 'password'
+        survey[0]['type'] = 'password'
         jt.add_survey(spec=survey)
-        schedule = jt.add_schedule(rrule=self.minutely_rrule(), extra_data={'var1': 'schedule'})
-        assert schedule.extra_data == {"var1": "$encrypted$"}
 
         unified_jobs = schedule.related.unified_jobs.get()
-        utils.poll_until(lambda: unified_jobs.get().count == 1, interval=5, timeout=2 * 60)
+        utils.poll_until(lambda: unified_jobs.get().count == 1, interval=5, timeout=1.5 * 60)
         job = unified_jobs.results.pop()
         assert job.wait_until_completed().is_successful
         assert json.loads(job.extra_vars) == {'var1': '$encrypted$'}
-        assert '"var1": "schedule"' in job.result_stdout
+        assert '"var1": "survey"' in job.result_stdout

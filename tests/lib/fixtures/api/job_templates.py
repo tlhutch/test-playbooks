@@ -63,10 +63,10 @@ def job_template_multi_ask(factories, organization, project, ssh_credential_mult
 
 @pytest.fixture
 def ask_everything_jt(factories):
-    return factories.job_template(playbook='debug_extra_vars.yml', ask_inventory_on_launch=True,
-                                  ask_credential_on_launch=True, ask_job_type_on_launch=True, ask_tags_on_launch=True,
-                                  ask_skip_tags_on_launch=True, ask_variables_on_launch=True,
-                                  ask_diff_mode_on_launch=True, ask_limit_on_launch=True, ask_verbosity_on_launch=True)
+    return factories.v2_job_template(playbook='debug_extra_vars.yml', ask_inventory_on_launch=True,
+                                     ask_credential_on_launch=True, ask_job_type_on_launch=True, ask_tags_on_launch=True,
+                                     ask_skip_tags_on_launch=True, ask_variables_on_launch=True,
+                                     ask_diff_mode_on_launch=True, ask_limit_on_launch=True, ask_verbosity_on_launch=True)
 
 
 @pytest.fixture(scope="function")

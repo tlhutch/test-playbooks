@@ -8,7 +8,6 @@ from tests.api.schedules import SchedulesTest
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestSystemJobTemplateSchedules(SchedulesTest):
 
-    @pytest.mark.saved_prompts
     @pytest.mark.parametrize('name, extra_data',
                              [('Cleanup Job Schedule', dict(days='120')),
                               ('Cleanup Activity Schedule', dict(days='355'))],
@@ -18,7 +17,6 @@ class TestSystemJobTemplateSchedules(SchedulesTest):
         assert schedules.count == 1
         assert schedules.results.pop().extra_data == extra_data
 
-    @pytest.mark.saved_prompts
     def test_sjt_can_have_multiple_schedules(self, request, system_job_template):
         extra_data = dict(days='120')
         schedules = [system_job_template.add_schedule(extra_data=extra_data) for _ in range(5)]
