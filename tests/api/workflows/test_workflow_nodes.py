@@ -120,7 +120,7 @@ class Test_Workflow_Nodes(Base_Api_Test):
         jt = factories.job_template()
         with pytest.raises(BadRequest) as exception:
             api_workflow_job_template_nodes_pg.post(dict(unified_job_template=jt.id))
-        assert 'Workflow job template is missing during creation' in str(exception.value)
+        assert exception.value.message == {'workflow_job_template': ['This field is required.']}
 
     def test_workflow_job_template_node_cannot_be_created_without_job_template(self, factories, api_workflow_job_template_nodes_pg):
         wfjt = factories.workflow_job_template()
