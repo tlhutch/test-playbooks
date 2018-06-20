@@ -10,28 +10,12 @@ from towerkit.rrule import RRule
 from towerkit.utils import poll_until, random_title
 import pytz
 
-from tests.api import APITest
+from tests.api.schedules import SchedulesTest
 
 
 @pytest.mark.api
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
-class TestSchedules(APITest):
-
-    @pytest.fixture(ids=('minutely', 'hourly', 'daily', 'weekly', 'monthly', 'yearly'),
-                    params=[('MINUTELY', 'minutes'), ('HOURLY', 'hours'), ('DAILY', 'days'), ('WEEKLY', 'weeks'),
-                            ('MONTHLY', 'months'), ('YEARLY', 'years')])
-    def immediate_rrule(self, request):
-        """Creates an RRule with the next recurrence targeted for 30 seconds from invocation"""
-        frequency, kwarg = request.param
-        dtstart = datetime.utcnow() + relativedelta(**{kwarg: -1, 'seconds': 30})
-        freq = getattr(rrule, frequency)
-        return RRule(freq, dtstart=dtstart)
-
-    def minutely_rrule(self, **kwargs):
-        return RRule(rrule.MINUTELY, dtstart=datetime.utcnow() + relativedelta(minutes=-1, seconds=+30), **kwargs)
-
-    def strftime(self, dt):
-        return dt.strftime('%Y-%m-%dT%H:%M:%SZ')
+class TestSchedules(SchedulesTest):
 
     def test_new_resources_are_without_schedules(self, v2_unified_job_template):
         assert v2_unified_job_template.related.schedules.get().count == 0
@@ -320,30 +304,3 @@ class TestSchedules(APITest):
             assert prev.local[0] == expected[1]
             assert len(prev.utc) == 1
             assert len(prev.local) == 1
-
-
-@pytest.mark.api
-@pytest.mark.destructive
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
-class TestSystemJobTemplateSchedules(APITest):
-
-    @pytest.mark.parametrize('name, extra_data',
-                             [('Cleanup Job Schedule', dict(days='120')),
-                              ('Cleanup Activity Schedule', dict(days='355'))],
-                             ids=['Cleanup Job Schedule', 'Cleanup Activity Schedule'])
-    def test_default_schedules_are_prepopulated(self, v2, name, extra_data):
-        schedules = v2.schedules.get(name=name)
-        assert schedules.count == 1
-        assert schedules.results.pop().extra_data == extra_data
-
-    def test_sjt_can_have_multiple_schedules(self, request, system_job_template):
-        extra_data = dict(days='120')
-        schedules = [system_job_template.add_schedule(extra_data=extra_data) for _ in range(5)]
-
-        def teardown():
-            for s in schedules:
-                s.delete()
-
-        request.addfinalizer(teardown)
-
-        assert system_job_template.related.schedules.get().count == 6
