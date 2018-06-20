@@ -11,8 +11,8 @@ class Test_Copy_Inventory_Script(Base_Api_Test):
     identical_fields = ['type', 'description', 'script', 'organization']
     unequal_fields = ['id', 'created', 'modified']
 
-    def test_copy_normal(self, copy_for_test, factories):
+    def test_copy_normal(self, copy_with_teardown, factories):
         v2_inventory_script = factories.v2_inventory_script()
-        new_inventory_script = copy_for_test(v2_inventory_script)
+        new_inventory_script = copy_with_teardown(v2_inventory_script)
         check_identical_fields(v2_inventory_script, new_inventory_script, self.identical_fields)
         check_unequal_fields(v2_inventory_script, new_inventory_script, self.unequal_fields)
