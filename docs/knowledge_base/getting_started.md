@@ -93,3 +93,5 @@ Invoke playbook with:
 ```
 (tower-qa) Simfarm@ovpn-127-13:~/Git/tower-qa/playbooks$ ansible-playbook -i inventory deploy-tower.yml -e @images-ec2.yml -e @vars.yml
 ```
+
+Written by [Christopher Wang](mailto:chrwang@redhat.com) (Github: simfarm) May 10, 2018.

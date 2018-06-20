@@ -92,3 +92,5 @@ Login Succeeded
 ```
 
 After that, rerun your setup playbook and you should be good to go.
+
+Written by [Christopher Wang](mailto:chrwang@redhat.com) (Github: simfarm) January 12, 2018.
