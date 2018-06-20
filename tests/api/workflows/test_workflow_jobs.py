@@ -283,7 +283,7 @@ class Test_Workflow_Jobs(Base_Api_Test):
         poll_until(lambda: getattr(job.get(), 'status') == 'canceled', timeout=60)
 
         # Confirm WF job success
-        poll_until(lambda: getattr(wfj.get(), 'status') == 'successful', timeout=3 * 60)
+        poll_until(lambda: wfj.get().failed, timeout=3 * 60)
 
     def test_cancel_job_in_workflow_with_downstream_jobs(self, factories, api_jobs_pg):
         """Cancel job spawned by workflow job. Confirm jobs downstream from cancelled job
@@ -347,7 +347,7 @@ class Test_Workflow_Jobs(Base_Api_Test):
         poll_until(lambda: getattr(n1_job.get(), 'status') == 'canceled', timeout=60)
 
         # Confirm workflow job completes successfully
-        poll_until(lambda: getattr(wfj.get(), 'status') == 'successful', timeout=3 * 60)
+        poll_until(lambda: wfj.get().failed, timeout=3 * 60)
 
         # Confirm remaining jobs in workflow completed successfully
         for job_node in (n4_job_node, n5_job_node):
