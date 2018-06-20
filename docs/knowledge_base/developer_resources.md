@@ -20,3 +20,5 @@ DEBUG:towerkit.api.client:"POST http://127.0.0.1:8013/api/v2/teams/" elapsed: 0:
 
 * Using Towerkit to validate that resources are properly displayed in the tower UI by changing name generation [tunables](https://github.com/ansible/towerkit/blob/master/towerkit/utils.py#L243).
 * Playbooks for installing Tower in various configurations. For instance, with [LDAP](https://github.com/ansible/tower-qa/blob/master/playbooks/deploy-tower-ldap.yml) or with [bundle installer](https://github.com/ansible/tower-qa/blob/master/playbooks/deploy-tower-bundle.yml).
+
+Written by [Christopher Wang](mailto:chrwang@redhat.com) (Github: simfarm) Janury 25, 2018.
