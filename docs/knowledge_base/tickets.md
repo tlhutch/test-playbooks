@@ -20,6 +20,28 @@ Sometimes we should include environment information. This includes:
 * Linux platform (Centos, Ubuntu).
 * Ansible version.
 
+Tracebacks and various Tower log files are stored under the following two places:
+```
+[root@ip-10-0-4-216 ~]# ll /var/log/supervisor/
+-rw-r--r--. 1 root root        0 Jun 20 23:45 awx-callback-receiver.log
+-rw-r--r--. 1 root root  5564698 Jun 21 18:23 awx-celeryd.log
+-rw-r--r--. 1 root root   111529 Jun 21 05:54 awx-channels-worker.log
+-rw-r--r--. 1 root root     2294 Jun 21 05:54 awx-daphne.log
+-rw-r--r--. 1 root root  2129168 Jun 21 18:07 awx-uwsgi.log
+-rw-r--r--. 1 root root        0 Jun 20 23:45 failure-event-handler.stderr.log
+-rw-r--r--. 1 root root    24511 Jun 21 05:54 supervisord.log
+
+[root@ip-10-0-4-216 ~]# ll /var/log/tower/
+-rw-r-----. 1 awx  awx    12302 Jun 21 03:02 callback_receiver.log
+-rw-r-----. 1 awx  awx        0 Jun 20 23:43 fact_receiver.log
+-rw-r-----. 1 awx  awx        0 Jun 20 23:43 management_playbooks.log
+-rw-r--r--. 1 root root 1212937 Jun 20 23:46 setup-2018-06-20-23:38:02.log  # tower installation log
+-rw-r-----. 1 awx  awx   809784 Jun 21 15:46 task_system.log
+-rw-r-----. 1 awx  awx   456052 Jun 21 15:53 tower.log  # server errors appear here
+-rw-r-----. 1 awx  awx        0 Jun 20 23:43 tower_rbac_migrations.log
+-rw-r-----. 1 awx  awx        0 Jun 20 23:43 tower_system_tracking_migrations.log
+```
+
 Here is a great example of a [UI ticket](https://github.com/ansible/tower/issues/1214). For a great example of an API ticket, see [here](https://github.com/ansible/tower/issues/1418).
 
 ### Verifying Tickets
