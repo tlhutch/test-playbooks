@@ -1,5 +1,6 @@
 import logging
 import json
+import re
 
 from towerkit import config
 import towerkit.tower.inventory
@@ -149,11 +150,11 @@ class TestJobTemplates(Base_Api_Test):
          (2, ['TASK [ping]', 'PLAY RECAP', '{"changed": false, "ping": "pong"}', 'PLAYBOOK: ping.yml',
               'META: ran handlers']),
          (3, ['TASK [ping]', 'PLAY RECAP', 'PLAYBOOK: ping.yml', 'META: ran handlers',
-              "EXEC /bin/sh -c 'echo ~ && sleep 0'"]),
+              re.compile("EXEC /bin/sh -c 'echo ~(awx)? && sleep 0'")]),
          (4, ['TASK [ping]', 'PLAY RECAP', 'PLAYBOOK: ping.yml', 'META: ran handlers',
-              "EXEC /bin/sh -c 'echo ~ && sleep 0'", 'Loading callback plugin awx_display']),
+              re.compile("EXEC /bin/sh -c 'echo ~(awx)? && sleep 0'"), 'Loading callback plugin awx_display']),
          (5, ['TASK [ping]', 'PLAY RECAP', 'PLAYBOOK: ping.yml', 'META: ran handlers',
-              "EXEC /bin/sh -c 'echo ~ && sleep 0'", 'Loading callback plugin awx_display'])],
+              re.compile("EXEC /bin/sh -c 'echo ~(awx)? && sleep 0'"), 'Loading callback plugin awx_display'])],
          ids=['0-normal', '1-verbose', '2-more verbose', '3-debug', '4-connection debug', '5-winrm debug'])
     def test_launch_with_verbosity_in_payload(self, factories, verbosity, stdout_lines):
         host = factories.v2_host()
@@ -165,7 +166,10 @@ class TestJobTemplates(Base_Api_Test):
         assert job.ask_verbosity_on_launch
         assert job.verbosity == verbosity
         for line in stdout_lines:
-            assert line in job.result_stdout
+            if isinstance(line, re._pattern_type):
+                assert re.search(line, job.result_stdout) is not None
+            else:
+                assert line in job.result_stdout
 
     def test_launch_with_ignored_payload(self, job_template, another_inventory, another_ssh_credential):
         """Verify that launch-time objects are ignored when their ask flag is set to false."""
