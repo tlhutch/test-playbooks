@@ -154,6 +154,28 @@ class TestCustomCredentials(Base_Api_Test):
         stdout = job.related.job_events.get(host=host.id, task='debug').results.pop().event_data.res.cat.stdout
         assert stdout == (one_contents if 'one' in injector_var.values().pop().values().pop() else two_contents)
 
+    @pytest.mark.parametrize('injector_vars',
+                             [dict(extra_vars=dict(file_to_cat1='{{ tower.filename.one }}', file_to_cat2='{{ tower.filename.two }}')),
+                              dict(env=dict(AP_FILE_TO_CAT1='{{ tower.filename.one }}', AP_FILE_TO_CAT2='{{ tower.filename.two }}'))],
+                             ids=('extra_vars', 'env_vars'))
+    def test_multiple_custom_credential_files_sourced(self, factories, injector_vars):
+        one_contents, two_contents = [random_title(10000) for _ in range(2)]
+        injectors = dict(file={'template.one': one_contents, 'template.two': two_contents})
+        injectors.update(injector_vars)
+        credential_type = factories.credential_type(injectors=injectors)
+
+        credential = factories.v2_credential(credential_type=credential_type)
+
+        host = factories.v2_host()
+        jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='cat_files.yml')
+        jt.add_extra_credential(credential)
+        job = jt.launch().wait_until_completed()
+        assert job.is_successful
+
+        job_events = job.related.job_events.get(host=host.id, task='debug')
+        assert job_events.results[0].event_data.res.cat1.stdout == one_contents
+        assert job_events.results[1].event_data.res.cat2.stdout == two_contents
+
     def test_credential_creation_and_usage_dont_leak_fields_into_activity_stream(self, factories):
         inputs = dict(fields=[dict(id='field_one', label='FieldOne', secret=True),
                               dict(id='field_two', label='FieldTwo', secret=True)])
