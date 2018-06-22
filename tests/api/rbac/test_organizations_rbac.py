@@ -1,3 +1,5 @@
+from collections import namedtuple
+
 import pytest
 import httplib
 
@@ -14,6 +16,25 @@ from tests.api import Base_Api_Test
 @pytest.mark.rbac
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class Test_Organization_RBAC(Base_Api_Test):
+
+    ResourceMapping = namedtuple('ResourceMapping', [
+        'resource_role', 'resource_type'])
+
+    org_resource_admin_mappings = [
+        ResourceMapping(resource_role='Inventory Admin',
+                        resource_type='inventory'),
+        ResourceMapping(resource_role='Project Admin',
+                        resource_type='project'),
+        ResourceMapping(resource_role='Notification Admin',
+                        resource_type='notification_template'),
+        ResourceMapping(resource_role='Credential Admin',
+                        resource_type='credential'),
+        ResourceMapping(resource_role='Workflow Admin',
+                        resource_type='workflow_job_template'),
+    ]
+
+    def mapping_id(param):
+        return param.resource_role
 
     def test_unprivileged_user(self, factories):
         """An unprivileged user should not be able to:
@@ -121,7 +142,8 @@ class Test_Organization_RBAC(Base_Api_Test):
 
         with self.current_user(username=user.username, password=user.password):
             check_user_capabilities(organization.get(), role)
-            check_user_capabilities(api_organizations_pg.get(id=organization.id).results.pop(), role)
+            check_user_capabilities(api_organizations_pg.get(
+                id=organization.id).results.pop(), role)
 
     def test_org_admin_job_deletion(self, factories):
         """Test that org admins can delete jobs from their organization only."""
@@ -217,7 +239,8 @@ class Test_Organization_RBAC(Base_Api_Test):
         # assert that /organizations/N/users/ now shows our test user
         assert users.get().count == 1, "Expected one user under /organization/N/users/, got %s." % users.count
         assert users.results[0].id == user.id, \
-            "Expected user with ID %s but got one with ID %s." % (user.id, users.results[0].id)
+            "Expected user with ID %s but got one with ID %s." % (
+                user.id, users.results[0].id)
 
     def test_autopopulated_member_role(self, organization, org_user):
         """Tests that when you create a user by posting to /organizations/N/users/
@@ -247,3 +270,82 @@ class Test_Organization_RBAC(Base_Api_Test):
 
         with pytest.raises(towerkit.exceptions.BadRequest):
             organization.set_object_roles(team, role)
+
+    @pytest.mark.parametrize('resource_mapping', org_resource_admin_mappings, ids=mapping_id)
+    def test_organization_resource_admins_can_create_resources(self, factories, resource_mapping):
+        org = factories.organization()
+        resource_admin = factories.user()
+        org.set_object_roles(resource_admin, resource_mapping.resource_role)
+        with self.current_user(resource_admin):
+            getattr(
+                factories, 'v2_{}'.format(resource_mapping.resource_type))(organization=org)
+
+    @pytest.mark.parametrize('resource_mapping', org_resource_admin_mappings, ids=mapping_id)
+    def test_organization_resource_admins_can_modify_resources(self, factories, resource_mapping):
+        """Test that the resource admin can modify and delete for organization resources that they did not create."""
+        org = factories.organization()
+        resource_admin = factories.user()
+
+        org.set_object_roles(resource_admin, resource_mapping.resource_role)
+
+        resource = getattr(factories, 'v2_{}'.format(
+            resource_mapping.resource_type))(organization=org)
+
+        with self.current_user(resource_admin):
+            assert_response_raised(resource, httplib.OK)
+
+    @pytest.mark.parametrize('resource_mapping',
+                             [m for m in org_resource_admin_mappings
+                              if m.resource_type != 'notification_template'],
+                             ids=mapping_id)
+    def test_organization_resource_admins_can_grant_permissions_to_internal_users(self, factories, resource_mapping):
+        org = factories.organization()
+        resource_admin, user = [factories.v2_user(
+            organization=o) for o in (None, org)]
+        org.set_object_roles(resource_admin, resource_mapping.resource_role)
+
+        resource = getattr(
+            factories, 'v2_{}'.format(resource_mapping.resource_type))(organization=org)
+
+        with self.current_user(resource_admin):
+            resource.set_object_roles(user, 'admin')
+
+    @pytest.mark.parametrize('resource_mapping',
+                             [m for m in org_resource_admin_mappings if
+                              m.resource_type != 'notification_template'],
+                             ids=mapping_id)
+    def test_organization_resource_admins_cannot_grant_permissions_to_external_users(self, factories, resource_mapping):
+        org = factories.organization()
+        resource_admin, user = [factories.v2_user(
+            organization=o) for o in (None, None)]
+        org.set_object_roles(resource_admin, resource_mapping.resource_role)
+
+        resource = getattr(factories, 'v2_{}'.format(
+            resource_mapping.resource_type))(organization=org)
+
+        with self.current_user(resource_admin):
+            if resource_mapping.resource_type == 'credential':
+                # Credentials use a different exception
+                with pytest.raises(towerkit.exceptions.BadRequest):
+                    resource.set_object_roles(user, 'admin')
+            else:
+                with pytest.raises(towerkit.exceptions.Forbidden):
+                    resource.set_object_roles(user, 'admin')
+
+    @pytest.mark.parametrize('resource_mapping', org_resource_admin_mappings, ids=mapping_id)
+    def test_organization_resource_admins_cannot_modify_resources_in_other_orgs(self, factories, resource_mapping):
+        org1, org2 = [factories.v2_organization() for _ in range(2)]
+        resource_admin, user = [factories.v2_user(
+            organization=o) for o in (None, org2)]
+
+        org1.set_object_roles(resource_admin, resource_mapping.resource_role)
+
+        resource = getattr(
+            factories, 'v2_{}'.format(resource_mapping.resource_type))(organization=org2)
+
+        with self.current_user(resource_admin):
+            if resource_mapping.resource_type != 'notification_template':
+                # Skip notification_templates because they do not have object-level permissions
+                with pytest.raises(towerkit.exceptions.Forbidden):
+                    resource.set_object_roles(user, 'admin')
+            assert_response_raised(resource, httplib.FORBIDDEN)
