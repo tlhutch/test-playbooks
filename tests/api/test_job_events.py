@@ -298,13 +298,16 @@ class Test_Job_Events(Base_Api_Test):
         """Runs Ansible's no_log integration test playbook and confirms Tower's callback receiver offers
         near equivalent censoring.
         """
+        if ansible_version_cmp('2.4.0.0') < 0:
+            pytest.skip('no_log_local.yml uses loop syntax. Requires ansible >= 2.4')
         host = factories.host(name='testhost')
         project = factories.project(scm_url='https://github.com/ansible/ansible.git')
         jt = factories.job_template(project=project, playbook='test/integration/targets/no_log/no_log_local.yml',
                                     inventory=host.ds.inventory, verbosity=1)
 
         job = jt.launch().wait_until_completed()
-        assert job.is_successful
+        assert not job.is_successful
+        assert job.status == 'failed'
 
         playbook_on_task_start = self.get_job_events_by_event_type(job, 'playbook_on_task_start')
         task_start_task_args = map(lambda x: x.event_data.get('task_args', ''), playbook_on_task_start)
@@ -317,13 +320,13 @@ class Test_Job_Events(Base_Api_Test):
         hidden_prefix = 'the output has been hidden'
         for event in events:
             data = event.event_data
-            if data.get('event_loop'):
+            if 'res' not in data:
+                if event.event != 'runner_on_skipped':
+                    raise(Exception('Unexpected lack of result in event_data: {0}'.format(event)))
+                continue
+            if 'results' in data.res:
                 results = data.res.results
             else:
-                if 'res' not in data:
-                    if event.event != 'runner_on_skipped':
-                        raise(Exception('Unexpected lack of result in event_data: {0}'.format(event)))
-                    continue
                 results = [data.res]
 
             if ansible_version_cmp('2.4.3.0') >= 0:  # should match whitelist at ansible/lib/ansible/executor/task_result.py
@@ -332,15 +335,17 @@ class Test_Job_Events(Base_Api_Test):
                 desired_result_keys = {'censored'}
 
             for result in results:
+                # task_args not shown unless DISPLAY_ARGS_TO_STDOUT is True (default is False)
+                # https://github.com/ansible/tower/pull/1195/files
+                # https://docs.ansible.com/ansible/2.4/intro_configuration.html#display-args-to-stdout
+                assert data.task_args == ''
                 if result.get('_ansible_no_log') is False:
                     assert 'censored' not in data.res
-                    assert hidden_prefix not in data.task_args
                     result = data.res.get('result', data.res)
                     assert hidden_prefix not in result.get('cmd', '')
                     assert hidden_prefix not in result.get('stdout', '')
                     assert hidden_prefix not in result.get('stdout_lines', '')
                 else:
-                    assert hidden_prefix in data.task_args
                     assert set(result.keys()) | desired_result_keys == desired_result_keys
                     assert hidden_prefix in result.censored
 
