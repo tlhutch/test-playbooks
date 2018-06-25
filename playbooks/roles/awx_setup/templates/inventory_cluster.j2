@@ -36,7 +36,7 @@
 {% if 'database' in groups %}
 [database]
 {% for host in groups['database'] %}
-{{ host }} ansible_user={{ hostvars[host]['ansible_user'] }} ansible_host={{ hostvars[host]['ansible_host'] }}
+{{ hostvars[host].ansible_default_ipv4.address }} ansible_user={{ hostvars[host]['ansible_user'] }}
 {% endfor %}
 {% endif %}
 
@@ -60,7 +60,7 @@ pg_database="{{ hostvars['127.0.0.1']['tower_db']['pg_database'] }}"
 pg_username="{{ hostvars['127.0.0.1']['tower_db']['pg_username'] }}"
 pg_password="{{ hostvars['127.0.0.1']['tower_db']['pg_password'] }}"
 {% else %}
-pg_host="{{ groups['database'][0] }}"
+pg_host="{{ hostvars[groups['database'][0]].ansible_default_ipv4.address }}"
 pg_port="{{ pg_port | default('5432') }}"
 pg_database="{{ pg_database }}"
 pg_username="{{ pg_username }}"
