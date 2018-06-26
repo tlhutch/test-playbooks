@@ -36,7 +36,7 @@
 {% if 'database' in groups %}
 [database]
 {% for host in groups['database'] %}
-{{ hostvars[host].ansible_default_ipv4.address }} ansible_user={{ hostvars[host]['ansible_user'] }}
+{{ hostvars[host].ansible_default_ipv4.address }} ansible_user={{ hostvars[host]['ansible_user'] }} ansible_ssh_private_key_file=~/.ssh/cluster_key
 {% endfor %}
 {% endif %}
 
