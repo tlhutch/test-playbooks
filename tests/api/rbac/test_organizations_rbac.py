@@ -349,3 +349,65 @@ class Test_Organization_RBAC(Base_Api_Test):
                 with pytest.raises(towerkit.exceptions.Forbidden):
                     resource.set_object_roles(user, 'admin')
             assert_response_raised(resource, httplib.FORBIDDEN)
+
+    @pytest.mark.parametrize('resource_mapping',
+                             org_resource_admin_mappings,
+                             ids=mapping_id)
+    def test_resource_permissions_are_deescalated_after_disassociating(self, factories, resource_mapping):
+        """Grant a user resource admin rights, create a resource, remove user's role, and verify
+        that they are not able to modify the resource"""
+        org = factories.organization()
+        resource_admin, user = [factories.v2_user(
+            organization=org) for _ in range(2)]
+        org.set_object_roles(resource_admin, resource_mapping.resource_role)
+
+        resource = getattr(
+            factories, 'v2_{}'.format(resource_mapping.resource_type))(organization=org)
+
+        org.set_object_roles(
+            resource_admin, resource_mapping.resource_role, disassociate=True)
+        with self.current_user(resource_admin):
+            if resource_mapping.resource_type != 'notification_template':
+                # Skip notification_templates because they do not have object-level permissions
+                with pytest.raises(towerkit.exceptions.Forbidden):
+                    resource.set_object_roles(user, 'admin')
+            assert_response_raised(resource, httplib.FORBIDDEN)
+
+    def test_workflow_admins_cannot_add_templates_to_workflows_without_permission(self, factories):
+        org = factories.v2_organization()
+        workflow_admin = factories.v2_user()
+        org.set_object_roles(workflow_admin, 'Workflow Admin')
+
+        inv = factories.v2_inventory(organization=org)
+        jt = factories.v2_job_template(inventory=inv)
+
+        with self.current_user(workflow_admin):
+            wfjt = factories.v2_workflow_job_template(organization=org)
+            with pytest.raises(towerkit.exceptions.Forbidden):
+                factories.v2_workflow_job_template_node(
+                    workflow_job_template=wfjt, unified_job_template=jt)
+
+    def test_workflow_admins_can_only_modify_vars_on_nodes_with_permission(self, factories):
+        org = factories.v2_organization()
+        inv = factories.v2_inventory(organization=org)
+
+        workflow_admin = factories.v2_user()
+        org.set_object_roles(workflow_admin, 'Workflow Admin')
+
+        jt = factories.v2_job_template(
+            inventory=inv, ask_variables_on_launch=True)
+        wfjt = factories.v2_workflow_job_template(organization=org)
+        wfnode = factories.v2_workflow_job_template_node(
+            workflow_job_template=wfjt, unified_job_template=jt)
+        # Verify that the workflow admin can't modify extra vars on templates they don't
+        # have access to
+        with self.current_user(workflow_admin):
+            with pytest.raises(towerkit.exceptions.Forbidden):
+                wfnode.extra_data = dict(var1='ansibull')
+            assert wfnode.extra_data != dict(var1='ansibull')
+
+        # Grant access to the workflow admin and verify that they can change the extra vars
+        jt.set_object_roles(workflow_admin, 'Execute')
+        with self.current_user(workflow_admin):
+            wfnode.extra_data = dict(var1='parrot')
+        assert wfnode.extra_data == dict(var1='parrot')
