@@ -10,6 +10,7 @@ from tests.api import Base_Api_Test
 
 @pytest.mark.api
 @pytest.mark.nondestructive
+@pytest.mark.mp_group('InstanceGroups', 'isolated_serial')
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestInstanceGroups(Base_Api_Test):
 
