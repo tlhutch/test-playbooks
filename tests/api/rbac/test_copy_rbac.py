@@ -23,7 +23,11 @@ class Test_Copy_RBAC(Base_Api_Test):
         resource = getattr(factories, resource_name)()
 
         with self.current_user(non_superuser):
-            assert not resource.can_copy()
+            if non_superuser.is_system_auditor:
+                assert not resource.can_copy()
+            else:
+                with pytest.raises(exc.Forbidden):
+                    resource.can_copy()
 
             with pytest.raises(exc.Forbidden):
                 resource.copy()
@@ -56,16 +60,3 @@ class Test_Copy_RBAC(Base_Api_Test):
         with self.current_user(user):
             assert resource.can_copy()
             copy_with_teardown(resource)
-
-    @pytest.mark.parametrize('resource_name', copiable_resource_names)
-    def test_org_admin_cannot_copy_resource_of_other_org(self, factories, resource_name, set_test_roles):
-        organization = factories.organization()
-        resource = getattr(factories, resource_name)()
-        user = factories.user()
-        set_test_roles(user, organization, 'user', 'admin')
-
-        with self.current_user(user):
-            assert not resource.can_copy()
-
-            with pytest.raises(exc.Forbidden):
-                resource.copy()
