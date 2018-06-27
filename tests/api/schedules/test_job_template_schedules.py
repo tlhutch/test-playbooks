@@ -166,7 +166,14 @@ class TestJobTemplateSchedules(SchedulesTest):
     @pytest.mark.github('https://github.com/ansible/tower/issues/2182')
     @pytest.mark.parametrize('ujt_type', ['job_template', 'workflow_job_template'])
     def test_can_create_schedule_when_required_survey_questions_answered(self, factories, ujt_type):
-        template = getattr(factories, 'v2_' + ujt_type)()
+        if ujt_type == 'job_template':
+            survey_template = factories.v2_job_template(playbook='debug_extra_vars.yml')
+            factories.v2_host(inventory=survey_template.ds.inventory)
+        else:
+            survey_template = factories.v2_workflow_job_template()
+            jt = factories.v2_job_template(playbook='debug_extra_vars.yml')
+            factories.v2_workflow_job_template_node(workflow_job_template=survey_template, unified_job_template=jt)
+
         survey = [dict(required=True,
                        question_name='Q1',
                        variable='var1',
@@ -177,17 +184,17 @@ class TestJobTemplateSchedules(SchedulesTest):
                        variable='var2',
                        type='password',
                        default='')]
-        template.add_survey(spec=survey)
-        schedule = template.add_schedule(rrule=self.minutely_rrule(), extra_data={'var1': 'var1', 'var2': 'very_secret'})
-        assert schedule.extra_data == {'var1': 'var1'}
+        survey_template.add_survey(spec=survey)
+        schedule = survey_template.add_schedule(rrule=self.minutely_rrule(), extra_data={'var1': 'var1', 'var2': 'very_secret'})
+        assert schedule.extra_data == {'var1': 'var1', 'var2': '$encrypted$'}
 
         unified_jobs = schedule.related.unified_jobs.get()
         utils.poll_until(lambda: unified_jobs.get().count == 1, interval=5, timeout=1.5 * 60)
         job = unified_jobs.results.pop()
         assert job.wait_until_completed().is_successful
         assert json.loads(job.extra_vars) == {'var1': 'var1', 'var2': '$encrypted$'}
-        assert '"var1": "new_schedule"' in job.result_stdout
-        assert '"var1": "new_schedule"' in job.result_stdout
+        assert '"var1": "var1"' in job.result_stdout
+        assert '"var2": "very_secret"' in job.result_stdout
 
     @pytest.mark.parametrize('ujt_type', ['job_template', 'workflow_job_template'])
     def test_can_create_schedule_when_optional_survey_questions_are_unanswered(self, factories, ujt_type):
