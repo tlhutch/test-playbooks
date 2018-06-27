@@ -45,8 +45,7 @@ py.test --ansible-host-pattern=127.0.0.1 --base-url http://127.0.0.1:8013 --api-
 Run tests with four processes to increase speed:
 ```
 py.test --ansible-host-pattern=127.0.0.1 --base-url http://127.0.0.1:8013 --api-destructive --api-credentials=config/credentials.yml --ansible-sudo -vs --mp --np 4 -k test_labels.py
-``` 
-
+```
 
 ##### Getting Started with Playbooks
 * The "deploy" playbooks deploy Tower in various configurations (with LDAP, with cluster, via bundle installer etc.).
@@ -87,6 +86,12 @@ munin_password: fo0m4nchU
 redis_password: fo0m4nchU
 rds_username: 'tower'
 rds_password: 'fo0m4nchU'
+```
+
+The Ansible ec2 inventory script needs the following environment variables:
+```
+    export AWS_ACCESS_KEY_ID='AK123'
+    export AWS_SECRET_ACCESS_KEY='abc123'
 ```
 
 Invoke playbook with:
