@@ -93,6 +93,7 @@ The Ansible ec2 inventory script needs the following environment variables:
     export AWS_ACCESS_KEY_ID='AK123'
     export AWS_SECRET_ACCESS_KEY='abc123'
 ```
+* If you need credentials, ask [Graham Mainwarning](mailto:gmainwar@redhat.com).
 
 Invoke playbook with:
 ```
