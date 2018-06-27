@@ -183,38 +183,6 @@ class TestExecutionNodeAssignment(Base_Api_Test):
         job_execution_nodes = [job.execution_node for job in jobs.results]
         assert set(job_execution_nodes) == set([instance.hostname for instance in instances])
 
-    def test_jobs_should_distribute_among_completely_overlapping_instance_groups(self, factories, tower_ig_instances,
-                                                                                 reset_instance):
-
-        ig1, ig2 = [factories.instance_group() for _ in range(2)]
-        instances = random.sample(tower_ig_instances, 2)
-        for instance in instances:
-            reset_instance(instance)
-            instance.capacity_adjustment = 0
-
-        for ig in (ig1, ig2):
-            for instance in instances:
-                ig.add_instance(instance)
-        utils.poll_until(lambda: ig1.get().instances == 2 and ig2.get().instances == 2, interval=5,
-                         timeout=300)
-
-        jt = factories.v2_job_template(playbook='sleep.yml', allow_simultaneous=True,
-                                       extra_vars='{"sleep_interval": 60}')
-        for _ in range(3):
-            factories.v2_host(inventory=jt.ds.inventory)
-        for ig in (ig1, ig2):
-            jt.add_instance_group(ig)
-
-        num_jobs = self.find_ig_overflow_jobs(ig1, 4)
-        for _ in range(num_jobs):
-            jt.launch()
-        jobs = jt.related.jobs.get()
-        utils.poll_until(lambda: len([job.execution_node for job in jobs.get().results
-                         if job.execution_node != '']) == num_jobs, interval=5, timeout=300)
-
-        job_execution_nodes = [job.execution_node for job in jobs.results]
-        assert set(job_execution_nodes) == set([instance.hostname for instance in instances])
-
     @pytest.mark.github('https://github.com/ansible/tower/issues/1767')
     def test_jobs_should_distribute_among_new_instance_group_members(self, factories, tower_ig_instances):
         ig = factories.instance_group()
