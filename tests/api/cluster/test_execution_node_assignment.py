@@ -26,9 +26,9 @@ def do_all_jobs_overlap(jobs):
 
 @pytest.fixture
 def wait_for_jobs(v2):
-    def fn(jobs, status='successful'):
+    def fn(jobs, status='successful', interval=5, timeout=120, **kwargs):
         return utils.poll_until(lambda: v2.unified_jobs.get(id__in=','.join([str(j.id) for j in
-                    jobs]), status=status).count == len(jobs), interval=5, timeout=120)
+                    jobs]), status=status, **kwargs).count == len(jobs), interval=interval, timeout=timeout)
     return fn
 
 
@@ -223,24 +223,28 @@ class TestExecutionNodeAssignment(Base_Api_Test):
         assert project_update.execution_node == instance.hostname
 
     def test_project_updates_should_distribute_among_new_instance_group_members(self, factories,
-                                                                                tower_ig_instances):
+                                                                                tower_ig_instances,
+                                                                                wait_for_jobs):
         ig = factories.instance_group()
         instances = random.sample(tower_ig_instances, 2)
         for instance in instances:
             ig.add_instance(instance)
 
-        project = factories.v2_project()
-        project.ds.organization.add_instance_group(ig)
-        initial_update = project.get().related.last_update.get()
+        projects = [factories.v2_project(scm_delete_on_update=True,
+                                         scm_url='https://github.com/ansible/ansible.git') for _ in range(2)]
+        project_updates = []
+        for project in projects:
+            project.ds.organization.add_instance_group(ig)
+            project_updates.append(project.update())
 
-        num_jobs = self.find_num_jobs(instances)
-        for _ in range(num_jobs):
-            project.update()
-        project_updates = project.related.project_updates.get()
-        utils.poll_until(lambda: project_updates.get(status='successful', not__id=initial_update.id).count == num_jobs,
-                         interval=5, timeout=300)
+        wait_for_jobs(project_updates, finished__isnull=False)
 
-        update_execution_nodes = [update.execution_node for update in project_updates.results]
+        project_updates = [pu.get() for pu in project_updates]
+        assert do_all_jobs_overlap(project_updates), \
+            "All project updates found to not be running at the same time {}" \
+                .format(["(%s, %s), " % (j.started, j.finished) for j in project_updates])
+
+        update_execution_nodes = [update.execution_node for update in project_updates]
         assert set(update_execution_nodes) == set([instance.hostname for instance in instances])
 
     @pytest.mark.parametrize('resource', ['inventory', 'organization', 'both'])
