@@ -24,6 +24,14 @@ def do_all_jobs_overlap(jobs):
     return True
 
 
+@pytest.fixture
+def wait_for_jobs(v2):
+    def fn(jobs, status='successful'):
+        return utils.poll_until(lambda: v2.unified_jobs.get(id__in=','.join([str(j.id) for j in
+                    jobs]), status=status).count == len(jobs), interval=5, timeout=120)
+    return fn
+
+
 @pytest.mark.api
 @pytest.mark.requires_cluster
 @pytest.mark.mp_group('ExecutionNodeAssignment', 'serial')
@@ -49,6 +57,9 @@ class TestExecutionNodeAssignment(Base_Api_Test):
                 instance.patch(capacity_adjustment=1)
             request.addfinalizer(teardown)
         return func
+
+    def inventory_script_code(self, sleep_time):
+        return "#!/usr/bin/env python\nimport time\ntime.sleep({})\nprint('{{}}')\n".format(sleep_time)
 
     def find_num_jobs(self, instances):
         # find number of jobs to distribute among a set of instances
@@ -313,22 +324,29 @@ class TestExecutionNodeAssignment(Base_Api_Test):
         assert inv_update.execution_node == instance.hostname
 
     def test_inventory_updates_should_distribute_among_new_instance_group_members(self, factories,
-                                                                                  tower_ig_instances):
+                                                                                  tower_ig_instances,
+                                                                                  wait_for_jobs):
         ig = factories.instance_group()
         instances = random.sample(tower_ig_instances, 2)
         for instance in instances:
             ig.add_instance(instance)
 
-        inv_source = factories.v2_inventory_source()
-        inv_source.ds.inventory.add_instance_group(ig)
-
         num_jobs = self.find_num_jobs(instances)
+        inv_script = factories.v2_inventory_script(script=self.inventory_script_code(20))
+        inv_updates = []
         for _ in range(num_jobs):
-            inv_source.update()
-        inv_updates = inv_source.related.inventory_updates.get()
-        utils.poll_until(lambda: inv_updates.get(status='successful').count == num_jobs, interval=5, timeout=300)
+            inv_source = factories.v2_inventory_source(inventory_script=inv_script)
+            inv_source.ds.inventory.add_instance_group(ig)
+            inv_updates.append(inv_source.update())
 
-        update_execution_nodes = [update.execution_node for update in inv_updates.results]
+        wait_for_jobs(inv_updates)
+
+        inv_updates = [iu.get() for iu in inv_updates]
+        assert do_all_jobs_overlap(inv_updates), \
+            "All jobs found to not be running at the same time {}" \
+                .format(["(%s, %s), " % (j.started, j.finished) for j in inv_updates])
+
+        update_execution_nodes = [update.execution_node for update in inv_updates]
         assert set(update_execution_nodes) == set([instance.hostname for instance in instances])
 
     def test_wfjt_node_jobs_run_on_target_instance_via_unified_jt_ig_assignment(self, factories, tower_ig_instances):
