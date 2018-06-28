@@ -287,17 +287,12 @@ def cloud_inventory(request, factories):
 
 # Convenience fixture that returns all of our cloud_groups as a list
 @pytest.fixture(scope="function")
-def cloud_groups(ansible_os_family, ansible_distribution_major_version, aws_group, azure_group, azure_ad_group,
-                 openstack_v2_group, openstack_v3_group):  # TODO: Add VMware when possible
-    if (ansible_os_family == 'RedHat' and ansible_distribution_major_version == '6'):
-        return [aws_group, gce_group, openstack_v2_group, openstack_v3_group]
-    else:
-        return [aws_group, azure_group, azure_ad_group, gce_group, openstack_v2_group, openstack_v3_group]
+def cloud_groups(aws_group, azure_group, azure_ad_group, gce_group, openstack_v2_group,
+                 openstack_v3_group):  # TODO: Add VMware when possible
+    return [aws_group, azure_group, azure_ad_group, gce_group, openstack_v2_group, openstack_v3_group]
 
 
 # Convenience fixture that iterates through cloud_groups that support source_regions
 @pytest.fixture(scope="function", params=['aws', 'azure', 'gce'])
-def cloud_group_supporting_source_regions(ansible_os_family, ansible_distribution_major_version, request):
-    if (ansible_os_family == 'RedHat' and ansible_distribution_major_version == '6' and request.param == 'azure'):
-        pytest.skip("Inventory import %s not unsupported on EL6 platforms." % request.param)
+def cloud_group_supporting_source_regions(request):
     return request.getfuncargvalue(request.param + '_group')

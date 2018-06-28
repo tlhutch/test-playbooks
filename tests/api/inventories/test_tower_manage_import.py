@@ -72,6 +72,7 @@ def get_ec2_inventory():
 
 @pytest.mark.api
 @pytest.mark.destructive
+@pytest.mark.skip_openshift
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestTowerManageInventoryImport(Base_Api_Test):
 

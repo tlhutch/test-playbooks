@@ -148,6 +148,7 @@ print json.dumps({})
         # assert successful inventory_update
         assert job_pg.is_successful, "Inventory update unsuccessful - %s" % job_pg
 
+    @pytest.mark.skip_openshift
     def test_ssh_connections(self, job_with_ssh_connection, api_settings_jobs_pg, update_setting_pg):
         """Verify that jobs complete successfully when connecting to inventory
         using the default ansible connection type (e.g. not local).

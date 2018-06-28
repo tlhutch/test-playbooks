@@ -22155,6 +22155,7 @@ inventory_dict = {
 
 @pytest.mark.api
 @pytest.mark.nondestructive
+@pytest.mark.skip_openshift
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class Test_AC_1235(Base_Api_Test):
 

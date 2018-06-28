@@ -40,6 +40,7 @@ class TestJobTemplateCallbacks(Base_Api_Test):
         host = 'localhost' if is_docker else base_url.hostname
         return '{0}://{1}{2}'.format(scheme, host, port)
 
+    @pytest.mark.skip_openshift
     def test_matching_hosts_contains_member_in_member_query(self, ansible_runner, host_config_key, job_template,
                                                             host_with_default_ipv4_in_variables, callback_host):
         """Assert a GET on the callback resource returns a list containing a matching host if made by that host"""
@@ -64,6 +65,7 @@ class TestJobTemplateCallbacks(Base_Api_Test):
         desired_hostname = 'local' if 'localhost' in callback_host else host_with_default_ipv4_in_variables.name
         assert matching_hosts[0] == desired_hostname
 
+    @pytest.mark.skip_openshift
     def test_provision_failure_with_empty_inventory(self, ansible_runner, factories, host_config_key, callback_host):
         """Verify launch failure when called on a job template with an empty inventory"""
         job_template = factories.job_template()
@@ -107,6 +109,7 @@ class TestJobTemplateCallbacks(Base_Api_Test):
 
         return hosts
 
+    @pytest.mark.skip_openshift
     def test_provision_failure_with_non_matching_ssh_host(self, ansible_runner, factories, host_config_key,
                                                           hosts_with_actual_ipv4_for_name_and_random_ssh_host,
                                                           callback_host):
@@ -128,6 +131,7 @@ class TestJobTemplateCallbacks(Base_Api_Test):
         assert result.get('failed', True)
         assert result['json']['msg'] == 'No matching host could be found!'
 
+    @pytest.mark.skip_openshift
     def test_provision_failure_with_multiple_host_matches(self, ansible_runner, factories, ansible_default_ipv4,
                                                           host_config_key, callback_host):
         """Verify launch failure when launching a job_template where multiple hosts match"""
@@ -155,6 +159,7 @@ class TestJobTemplateCallbacks(Base_Api_Test):
         assert result.get('failed', True)
         assert result['json']['msg'] == 'Multiple hosts matched the request!'
 
+    @pytest.mark.skip_openshift
     def test_provision_failure_with_incorrect_hostkey(self, ansible_runner, job_template,
                                                       host_with_default_ipv4_in_variables, host_config_key,
                                                       callback_host):
@@ -173,6 +178,7 @@ class TestJobTemplateCallbacks(Base_Api_Test):
         assert result.get('failed', True)
         assert result['json']['detail'] == 'You do not have permission to perform this action.'
 
+    @pytest.mark.skip_openshift
     def test_provision_failure_without_credential(self, ansible_runner, job_template_no_credential,
                                                   host_with_default_ipv4_in_variables, host_config_key, callback_host):
         """Verify launch failure when launching a job_template with no credentials"""
@@ -190,6 +196,7 @@ class TestJobTemplateCallbacks(Base_Api_Test):
         assert result.get('failed', True)
         assert result['json']['msg'] == 'Cannot start automatically, user input required!'
 
+    @pytest.mark.skip_openshift
     def test_provision_failure_with_ask_credential(self, ansible_runner, job_template_ask,
                                                    host_with_default_ipv4_in_variables, host_config_key, callback_host):
         """Verify launch failure when launching a job_template with ASK credentials"""
@@ -207,6 +214,7 @@ class TestJobTemplateCallbacks(Base_Api_Test):
         assert result.get('failed', True)
         assert result['json']['msg'] == 'Cannot start automatically, user input required!'
 
+    @pytest.mark.skip_openshift
     def test_provision_failure_with_unprovided_survey_variables_needed_to_start(self, ansible_runner,
                                                                                 job_template_variables_needed_to_start,
                                                                                 host_with_default_ipv4_in_variables,
@@ -227,6 +235,7 @@ class TestJobTemplateCallbacks(Base_Api_Test):
         assert result.get('failed', True)
         assert result['json']['msg'] == 'Cannot start automatically, user input required!'
 
+    @pytest.mark.skip_openshift
     def test_provision_with_provided_variables_needed_to_start(self, ansible_runner,
                                                                job_template_variables_needed_to_start,
                                                                host_with_default_ipv4_in_variables, host_config_key,
@@ -254,6 +263,7 @@ class TestJobTemplateCallbacks(Base_Api_Test):
         assert job.launch_type == "callback"
         assert job.is_successful
 
+    @pytest.mark.skip_openshift
     def test_provision_job_template_with_limit(self, api_jobs_url, ansible_runner, job_template_with_random_limit,
                                                host_with_default_ipv4_in_variables, host_config_key, callback_host):
         """Assert that launching a callback job against a job_template with an
@@ -285,6 +295,7 @@ class TestJobTemplateCallbacks(Base_Api_Test):
         desired_hostname = 'local' if 'localhost' in callback_host else host_with_default_ipv4_in_variables.name
         assert job.limit == desired_hostname
 
+    @pytest.mark.skip_openshift
     @pytest.mark.parametrize(
         'ask_on_launch,provided_extra_vars,expected_extra_vars',
         [[False, {}, {}],
@@ -328,6 +339,7 @@ class TestJobTemplateCallbacks(Base_Api_Test):
         assert host_summaries.results[0].host == desired_id
         assert json.loads(job.extra_vars) == expected_extra_vars
 
+    @pytest.mark.skip_openshift
     def test_provision_without_required_extra_vars(self, ansible_runner, job_template,
                                                    host_with_default_ipv4_in_variables,
                                                    host_config_key, callback_host):
@@ -345,6 +357,7 @@ class TestJobTemplateCallbacks(Base_Api_Test):
         assert callback_result.get('failed', True)
         assert callback_result['json']['msg'] == 'Cannot start automatically, user input required!'
 
+    @pytest.mark.skip_openshift
     def test_provision_failure_with_currently_running_and_simultaneous_disallowed(
             self, api_jobs_url, ansible_runner, job_template,
             host_with_default_ipv4_in_variables, host_config_key,
@@ -388,6 +401,7 @@ class TestJobTemplateCallbacks(Base_Api_Test):
             desired_id = inventory.related.hosts.get(name='local').results.pop().id
         assert host_summaries.results[0].host == desired_id
 
+    @pytest.mark.skip_openshift
     def test_synced_host_provision_with_inventory_update_on_launch(self, ansible_runner, factories, host_config_key,
                                                                     ansible_default_ipv4, callback_host):
         """Confirms that when a provisioning host is loaded from an update_on_launch-generated inventory sync
@@ -436,6 +450,7 @@ class TestJobTemplateCallbacks(Base_Api_Test):
         assert len(host_summaries) == 1
         assert host_summaries[0].related.host.get().name == ansible_host
 
+    @pytest.mark.skip_openshift
     def test_member_host_provision_with_inventory_update_on_launch(self, ansible_runner, factories, host_config_key,
                                                                     ansible_default_ipv4, callback_host):
         """Confirms that when a provisioning host is already in an inventory an update_on_launch inventory sync
@@ -486,6 +501,7 @@ class TestJobTemplateCallbacks(Base_Api_Test):
         assert len(host_summaries) == 1
         assert host_summaries[0].related.host.get().name == ansible_host
 
+    @pytest.mark.skip_openshift
     def test_provision_without_inventory_update_on_launch(self, ansible_runner, factories, host_config_key,
                                                           custom_group, ansible_default_ipv4, callback_host):
         """Assert that a callback job against a job_template does not initiate an inventory_update"""

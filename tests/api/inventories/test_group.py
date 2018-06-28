@@ -216,7 +216,7 @@ class TestGroup(Base_Api_Test):
         verify child group with children:N, hosts:0 -> group deleted, children promote to parent
         verify child group with children:N, hosts:M -> group deleted, children and hosts promote to parent
     """
-
+    @pytest.mark.skip_openshift
     def test_disassociate_root_group(self, root_variation):
         """verify behavior of disassociate of a top-level group.
         POST {id=N, disassociate=True} to /inventories/N/groups
@@ -254,6 +254,7 @@ class TestGroup(Base_Api_Test):
         # Verify no hosts were removed
         assert root_variation.get_related('hosts').count == total_inv_hosts
 
+    @pytest.mark.skip_openshift
     def test_disassociate_non_root_group(self, non_root_variation):
         """verify behavior of disassociate of a child group
         POST {disassociate=True} /groups/N/children
@@ -308,6 +309,7 @@ class TestGroup(Base_Api_Test):
         # Verify hosts were promoted
         assert parent_group.get_related('hosts').count == total_parent_hosts + total_group_hosts
 
+    @pytest.mark.skip_openshift
     def test_delete(self, api_groups_pg, variation):
         """verify behavior of group delete
         DELETE /groups/N
@@ -372,6 +374,7 @@ class TestGroup(Base_Api_Test):
             # Verify that the parent.all_hosts has changed
             assert parent_group.get_related('all_hosts').count == total_parent_all_hosts - total_group_all_hosts
 
+    @pytest.mark.skip_openshift
     def test_associate_with_root_group(self, non_root_variation):
         """Verify expected behavior when disassociating a group from it's parent, thereby creating a root group.
         POST {id=M, disassociate=True} /groups/N/children
@@ -430,6 +433,7 @@ class TestGroup(Base_Api_Test):
             # Verify that the parent.all_hosts has changed
             assert parent_group.get_related('all_hosts').count == total_parent_all_hosts - total_group_all_hosts
 
+    @pytest.mark.skip_openshift
     def test_associate_with_non_root_group(self, root_variation):
         """Verify expected behavior for a group association
         POST {id=N} /group/<new_parent>/children
@@ -505,6 +509,7 @@ class TestGroup(Base_Api_Test):
             # Verify that the parent.all_hosts has changed
             assert parent_group.get_related('all_hosts').count == total_parent_all_hosts
 
+    @pytest.mark.skip_openshift
     def test_reassociate_with_non_root_group(self, non_root_variation):
         """Verify expected behavior for moving a group from one non-root-group to another
         POST {id=M} /groups/<new_parent>/children

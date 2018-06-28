@@ -114,6 +114,7 @@ class TestJobTemplateLaunchCredentials(Base_Api_Test):
         assert job.credential == ssh_credential_ask.id
 
     @pytest.mark.ansible_integration
+    @pytest.mark.skip_openshift
     def test_launch_with_unencrypted_ssh_credential(self, ansible_runner, job_template,
                                                     unencrypted_ssh_credential_with_ssh_key_data):
         (credential_type, credential) = unencrypted_ssh_credential_with_ssh_key_data
@@ -138,6 +139,7 @@ class TestJobTemplateLaunchCredentials(Base_Api_Test):
             assert job.is_successful
 
     @pytest.mark.ansible_integration
+    @pytest.mark.skip_openshift
     def test_launch_with_encrypted_ssh_credential(self, ansible_runner, job_template,
                                                   encrypted_ssh_credential_with_ssh_key_data):
         (credential_type, credential) = encrypted_ssh_credential_with_ssh_key_data

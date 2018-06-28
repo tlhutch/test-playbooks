@@ -400,6 +400,7 @@ class TestSCMInventorySource(Base_Api_Test):
         ansible_env = event.event_data.res.ansible_env
         assert ansible_env.ENV_VAR == env_var
 
+    @pytest.mark.skip_openshift
     def test_scm_inventory_disallows_manual_project(self, factories, project_ansible_playbooks_manual):
         desired_error = {'source_project': ['Cannot use manual project for SCM-based inventory.']}
         with pytest.raises(exc.BadRequest) as e:
