@@ -1,35 +1,11 @@
 import random
 import six
-import itertools
-import datetime
 
 from towerkit import utils
 import pytest
 
 from tests.lib.helpers import openshift_utils
 from tests.api import Base_Api_Test
-
-
-def do_all_jobs_overlap(jobs):
-    def overlap(start1, end1, start2, end2):
-        """Does the range (start1, end1) overlap with (start2, end2)?"""
-        return end1 >= start2 and end2 >= start1
-
-    for (j1, j2) in list(itertools.combinations(jobs, 2)):
-        if not overlap(datetime.datetime.strptime(j1.started, '%Y-%m-%dT%H:%M:%S.%fZ'),
-                       datetime.datetime.strptime(j1.finished, '%Y-%m-%dT%H:%M:%S.%fZ'),
-                       datetime.datetime.strptime(j2.started, '%Y-%m-%dT%H:%M:%S.%fZ'),
-                       datetime.datetime.strptime(j2.finished, '%Y-%m-%dT%H:%M:%S.%fZ')):
-            return False
-    return True
-
-
-@pytest.fixture
-def wait_for_jobs(v2):
-    def fn(jobs, status='successful', interval=5, timeout=120, **kwargs):
-        return utils.poll_until(lambda: v2.unified_jobs.get(id__in=','.join([str(j.id) for j in
-                    jobs]), status=status, **kwargs).count == len(jobs), interval=interval, timeout=timeout)
-    return fn
 
 
 @pytest.mark.api
@@ -224,7 +200,8 @@ class TestExecutionNodeAssignment(Base_Api_Test):
 
     def test_project_updates_should_distribute_among_new_instance_group_members(self, factories,
                                                                                 tower_ig_instances,
-                                                                                wait_for_jobs):
+                                                                                wait_for_jobs,
+                                                                                do_all_jobs_overlap):
         ig = factories.instance_group()
         instances = random.sample(tower_ig_instances, 2)
         for instance in instances:
@@ -268,7 +245,8 @@ class TestExecutionNodeAssignment(Base_Api_Test):
 
     def test_inventory_updates_should_distribute_among_new_instance_group_members(self, factories,
                                                                                   tower_ig_instances,
-                                                                                  wait_for_jobs):
+                                                                                  wait_for_jobs,
+                                                                                  do_all_jobs_overlap):
         ig = factories.instance_group()
         instances = random.sample(tower_ig_instances, 2)
         for instance in instances:
@@ -370,7 +348,8 @@ class TestExecutionNodeAssignment(Base_Api_Test):
                                                                                                        jt_generator_for_consuming_given_capacity,
                                                                                                        reset_instance,
                                                                                                        tower_instance_group,
-                                                                                                       tower_ig_instances):
+                                                                                                       tower_ig_instances,
+                                                                                                       do_all_jobs_overlap):
         instances = random.sample(tower_ig_instances, max(3, len(tower_ig_instances)))
 
         jobs_count = len(instances)
@@ -408,7 +387,8 @@ class TestExecutionNodeAssignment(Base_Api_Test):
                                                factories,
                                                largest_capacity, jt_generator_for_consuming_given_capacity,
                                                tower_instance_group,
-                                               tower_ig_instances):
+                                               tower_ig_instances,
+                                               do_all_jobs_overlap):
         """
         * Create a job template designed to consume (a little less than) half the capacity
           of a given node. Configure the JT to run simultaneous jobs.
