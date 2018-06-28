@@ -1,8 +1,10 @@
 import logging
 import json
 import re
+import threading
+import time
 
-from towerkit import config
+from towerkit import config, utils
 import towerkit.tower.inventory
 import towerkit.exceptions
 import pytest
@@ -424,6 +426,40 @@ print json.dumps(inv, indent=2)
                 tower_resource.delete()
 
         assert job.wait_until_completed().is_successful
+
+    def test_job_listing_after_delete_does_not_500(self, factories, v2):
+        num_jobs = 2
+        host = factories.v2_host()
+        jt = factories.job_template(inventory=host.ds.inventory, allow_simultaneous=True)
+        [jt.launch() for i in range(num_jobs)]
+
+        utils.poll_until(lambda: jt.related.jobs.get(status='successful').count == num_jobs, timeout=300)
+
+        def delete_job_template(jt_id, delay):
+            time.sleep(delay)
+            v2.job_templates.get(id=jt_id).results[0].delete()
+
+        def do_get_jobs(loops, failed, index):
+            failed[index] = False
+            for i in range(loops):
+                try:
+                    v2.unified_jobs.get(page_size=num_jobs, order_by='-finished', not__launch_type='sync')
+                except towerkit.exceptions.InternalServerError:
+                    failed[index] = True
+                    break
+
+        thread_count = 5
+        failed = [False] * thread_count
+        threads = [threading.Thread(target=do_get_jobs, args=(100, failed, i)) for i in range(thread_count)]
+        t_delete = threading.Thread(target=delete_job_template, args=(jt.id, 2))
+
+        map(lambda t: t.start(), threads + [t_delete])
+        map(lambda t: t.join(), threads + [t_delete])
+
+        for failure in failed:
+            assert False is failure, \
+                    "Getting list of jobs shortly after deleting related job" \
+                    "template resulted in a 500 error"
 
     def test_launch_with_diff_mode(self, factories):
         host = factories.v2_host()
