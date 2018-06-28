@@ -1,5 +1,13 @@
 ---
 freeipa_users:
+- username: tower_0
+  first: ansible
+  last: Tower
+  cn: tower user 0
+- username: tower_1
+  first: ansible
+  last: Tower
+  cn: tower user 1
 - username: saml_user
   first: SAML
   last: User
