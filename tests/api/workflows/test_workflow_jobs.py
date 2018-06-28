@@ -128,20 +128,20 @@ class Test_Workflow_Jobs(Base_Api_Test):
     @pytest.mark.ansible_integration
     def test_workflow_job_single_node_failure(self, factories):
         """Workflow with single node with failing job template.
-        Expect workflow job to be 'successful', job to be 'failure'
+        Expect workflow job to fail, job to be 'failure'
         """
         wfjt = factories.workflow_job_template()
         host = factories.host()
         jt = factories.job_template(inventory=host.ds.inventory, playbook='fail_unless.yml')
         factories.workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt)
         wf_job = wfjt.launch().wait_until_completed()
-        assert wf_job.is_successful, "Workflow job {} unsuccessful".format(wfjt.id)
+        assert wf_job.status == 'failed', "Workflow job {} should have failed".format(wfjt.id)
 
         # Get job in node
         wfjns = wf_job.related.workflow_nodes.get().results
         assert len(wfjns) == 1, "Expected one workflow job node, found {}".format(len(wfjns))
         job = wfjns.pop().get_related('job')
-        assert not job.is_successful, "Job {} successful".format(job.id)
+        assert job.status == 'failed', "Job {} successful".format(job.id)
 
     @pytest.mark.ansible_integration
     def test_workflow_job_trigger_conditions(self, factories, api_workflow_job_nodes_pg):
