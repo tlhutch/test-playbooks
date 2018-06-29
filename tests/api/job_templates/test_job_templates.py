@@ -13,7 +13,7 @@ from tests.api import Base_Api_Test
 log = logging.getLogger(__name__)
 
 
-@pytest.fixture(scope="function", params=['project', 'inventory', 'credential'])
+@pytest.fixture(scope="function", params=['project', 'inventory'])
 def job_template_with_deleted_related(request, job_template):
     """Creates and deletes an object."""
     related_pg = job_template.get_related(request.param)
@@ -274,12 +274,7 @@ class TestJobTemplates(Base_Api_Test):
         assert not launch_pg.ask_variables_on_launch
         assert not launch_pg.passwords_needed_to_start
         assert not launch_pg.variables_needed_to_start
-
-        # if a credential was deleted, the API should require one to launch
-        if related == 'credential':
-            assert launch_pg.credential_needed_to_start
-        else:
-            assert not launch_pg.credential_needed_to_start
+        assert not launch_pg.credential_needed_to_start
 
         # assert launch failure
         with pytest.raises(towerkit.exceptions.BadRequest):
