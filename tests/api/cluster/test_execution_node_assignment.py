@@ -1,27 +1,11 @@
 import random
 import six
-import itertools
-import datetime
 
 from towerkit import utils
 import pytest
 
 from tests.lib.helpers import openshift_utils
 from tests.api import Base_Api_Test
-
-
-def do_all_jobs_overlap(jobs):
-    def overlap(start1, end1, start2, end2):
-        """Does the range (start1, end1) overlap with (start2, end2)?"""
-        return end1 >= start2 and end2 >= start1
-
-    for (j1, j2) in list(itertools.combinations(jobs, 2)):
-        if not overlap(datetime.datetime.strptime(j1.started, '%Y-%m-%dT%H:%M:%S.%fZ'),
-                       datetime.datetime.strptime(j1.finished, '%Y-%m-%dT%H:%M:%S.%fZ'),
-                       datetime.datetime.strptime(j2.started, '%Y-%m-%dT%H:%M:%S.%fZ'),
-                       datetime.datetime.strptime(j2.finished, '%Y-%m-%dT%H:%M:%S.%fZ')):
-            return False
-    return True
 
 
 @pytest.mark.api
@@ -49,6 +33,9 @@ class TestExecutionNodeAssignment(Base_Api_Test):
                 instance.patch(capacity_adjustment=1)
             request.addfinalizer(teardown)
         return func
+
+    def inventory_script_code(self, sleep_time):
+        return "#!/usr/bin/env python\nimport time\ntime.sleep({})\nprint('{{}}')\n".format(sleep_time)
 
     def find_num_jobs(self, instances):
         # find number of jobs to distribute among a set of instances
@@ -110,35 +97,6 @@ class TestExecutionNodeAssignment(Base_Api_Test):
         job_execution_nodes = [job.execution_node for job in jobs.results]
         assert set(job_execution_nodes) == set([instance.hostname for instance in tower_ig_instances])
 
-    def test_jobs_should_distribute_among_mutually_exclusive_instance_groups(self, factories, tower_ig_instances,
-                                                                             reset_instance):
-        ig1, ig2 = [factories.instance_group() for _ in range(2)]
-        instances = random.sample(tower_ig_instances, 2)
-        for instance in instances:
-            reset_instance(instance)
-            instance.capacity_adjustment = 0
-        ig1.add_instance(instances[0])
-        ig2.add_instance(instances[1])
-        utils.poll_until(lambda: ig1.get().instances == 1 and ig2.get().instances == 1, interval=5,
-                         timeout=300)
-
-        jt = factories.v2_job_template(playbook='sleep.yml', allow_simultaneous=True,
-                                       extra_vars='{"sleep_interval": 60}')
-        for _ in range(3):
-            factories.v2_host(inventory=jt.ds.inventory)
-        for ig in (ig1, ig2):
-            jt.add_instance_group(ig)
-
-        num_jobs = self.find_ig_overflow_jobs(ig1, 4)
-        for _ in range(num_jobs):
-            jt.launch()
-        jobs = jt.related.jobs.get()
-        utils.poll_until(lambda: len([job.execution_node for job in jobs.get().results
-                         if job.execution_node != '']) == num_jobs, interval=5, timeout=300)
-
-        job_execution_nodes = [job.execution_node for job in jobs.results]
-        assert set(job_execution_nodes) == set([instance.hostname for instance in instances])
-
     @pytest.mark.github('https://github.com/ansible/tower/issues/1418')
     def test_jobs_should_distribute_among_partially_overlapping_instance_groups(self, factories, tower_ig_instances,
                                                                                 reset_instance):
@@ -152,38 +110,6 @@ class TestExecutionNodeAssignment(Base_Api_Test):
         ig2.add_instance(instances[1])
         for ig in (ig1, ig2):
             ig.add_instance(instances[2])
-        utils.poll_until(lambda: ig1.get().instances == 2 and ig2.get().instances == 2, interval=5,
-                         timeout=300)
-
-        jt = factories.v2_job_template(playbook='sleep.yml', allow_simultaneous=True,
-                                       extra_vars='{"sleep_interval": 60}')
-        for _ in range(3):
-            factories.v2_host(inventory=jt.ds.inventory)
-        for ig in (ig1, ig2):
-            jt.add_instance_group(ig)
-
-        num_jobs = self.find_ig_overflow_jobs(ig1, 4)
-        for _ in range(num_jobs):
-            jt.launch()
-        jobs = jt.related.jobs.get()
-        utils.poll_until(lambda: len([job.execution_node for job in jobs.get().results
-                         if job.execution_node != '']) == num_jobs, interval=5, timeout=300)
-
-        job_execution_nodes = [job.execution_node for job in jobs.results]
-        assert set(job_execution_nodes) == set([instance.hostname for instance in instances])
-
-    def test_jobs_should_distribute_among_completely_overlapping_instance_groups(self, factories, tower_ig_instances,
-                                                                                 reset_instance):
-
-        ig1, ig2 = [factories.instance_group() for _ in range(2)]
-        instances = random.sample(tower_ig_instances, 2)
-        for instance in instances:
-            reset_instance(instance)
-            instance.capacity_adjustment = 0
-
-        for ig in (ig1, ig2):
-            for instance in instances:
-                ig.add_instance(instance)
         utils.poll_until(lambda: ig1.get().instances == 2 and ig2.get().instances == 2, interval=5,
                          timeout=300)
 
@@ -273,24 +199,29 @@ class TestExecutionNodeAssignment(Base_Api_Test):
         assert project_update.execution_node == instance.hostname
 
     def test_project_updates_should_distribute_among_new_instance_group_members(self, factories,
-                                                                                tower_ig_instances):
+                                                                                tower_ig_instances,
+                                                                                wait_for_jobs,
+                                                                                do_all_jobs_overlap):
         ig = factories.instance_group()
         instances = random.sample(tower_ig_instances, 2)
         for instance in instances:
             ig.add_instance(instance)
 
-        project = factories.v2_project()
-        project.ds.organization.add_instance_group(ig)
-        initial_update = project.get().related.last_update.get()
+        projects = [factories.v2_project(scm_delete_on_update=True,
+                                         scm_url='https://github.com/ansible/ansible.git') for _ in range(2)]
+        project_updates = []
+        for project in projects:
+            project.ds.organization.add_instance_group(ig)
+            project_updates.append(project.update())
 
-        num_jobs = self.find_num_jobs(instances)
-        for _ in range(num_jobs):
-            project.update()
-        project_updates = project.related.project_updates.get()
-        utils.poll_until(lambda: project_updates.get(status='successful', not__id=initial_update.id).count == num_jobs,
-                         interval=5, timeout=300)
+        wait_for_jobs(project_updates, finished__isnull=False)
 
-        update_execution_nodes = [update.execution_node for update in project_updates.results]
+        project_updates = [pu.get() for pu in project_updates]
+        assert do_all_jobs_overlap(project_updates), \
+            "All project updates found to not be running at the same time {}" \
+                .format(["(%s, %s), " % (j.started, j.finished) for j in project_updates])
+
+        update_execution_nodes = [update.execution_node for update in project_updates]
         assert set(update_execution_nodes) == set([instance.hostname for instance in instances])
 
     @pytest.mark.parametrize('resource', ['inventory', 'organization', 'both'])
@@ -313,22 +244,32 @@ class TestExecutionNodeAssignment(Base_Api_Test):
         assert inv_update.execution_node == instance.hostname
 
     def test_inventory_updates_should_distribute_among_new_instance_group_members(self, factories,
-                                                                                  tower_ig_instances):
+                                                                                  tower_ig_instances,
+                                                                                  wait_for_jobs,
+                                                                                  do_all_jobs_overlap):
         ig = factories.instance_group()
         instances = random.sample(tower_ig_instances, 2)
         for instance in instances:
             ig.add_instance(instance)
 
-        inv_source = factories.v2_inventory_source()
-        inv_source.ds.inventory.add_instance_group(ig)
-
         num_jobs = self.find_num_jobs(instances)
+        inv_script = factories.v2_inventory_script(script=self.inventory_script_code(20))
+        inv_sources = []
         for _ in range(num_jobs):
-            inv_source.update()
-        inv_updates = inv_source.related.inventory_updates.get()
-        utils.poll_until(lambda: inv_updates.get(status='successful').count == num_jobs, interval=5, timeout=300)
+            inv_source = factories.v2_inventory_source(inventory_script=inv_script)
+            inv_source.ds.inventory.add_instance_group(ig)
+            inv_sources.append(inv_source)
 
-        update_execution_nodes = [update.execution_node for update in inv_updates.results]
+        inv_updates = [inv_source.update() for inv_source in inv_sources]
+
+        wait_for_jobs(inv_updates)
+
+        inv_updates = [iu.get() for iu in inv_updates]
+        assert do_all_jobs_overlap(inv_updates), \
+            "All jobs found to not be running at the same time {}" \
+                .format(["(%s, %s), " % (j.started, j.finished) for j in inv_updates])
+
+        update_execution_nodes = [update.execution_node for update in inv_updates]
         assert set(update_execution_nodes) == set([instance.hostname for instance in instances])
 
     def test_wfjt_node_jobs_run_on_target_instance_via_unified_jt_ig_assignment(self, factories, tower_ig_instances):
@@ -372,55 +313,6 @@ class TestExecutionNodeAssignment(Base_Api_Test):
         job = jt.launch().wait_until_completed()
         assert job.execution_node == enabled_instance.hostname
 
-    def test_multiple_instances_with_capacity_assigned_as_job_execution_node(self, factories, reset_instance,
-                                                                             tower_instance_group):
-        ig = factories.instance_group()
-        instances = random.sample(tower_instance_group.related.instances.get().results, 3)
-        for instance in instances:
-            ig.add_instance(instance)
-
-        disabled_instance = instances.pop()
-        reset_instance(disabled_instance)
-        disabled_instance.enabled = False
-
-        jt = factories.v2_job_template(allow_simultaneous=True)
-        jt.add_instance_group(ig)
-
-        num_jobs = self.find_num_jobs(instances)
-        for _ in range(num_jobs):
-            jt.launch()
-        jobs = jt.related.jobs.get()
-        utils.poll_until(lambda: jobs.get(status='successful').count == num_jobs, interval=5, timeout=300)
-
-        job_execution_nodes = [job.execution_node for job in jobs.results]
-        assert set(job_execution_nodes) == set([instance.hostname for instance in instances])
-
-    def test_additional_ig_instances_assigned_when_primary_ig_has_no_capacity(self, factories, reset_instance,
-                                                                              tower_instance_group):
-        ig1, ig2 = [factories.instance_group() for _ in range(2)]
-        instances = random.sample(tower_instance_group.related.instances.get().results, 3)
-
-        disabled_instance = instances.pop()
-        reset_instance(disabled_instance)
-        disabled_instance.enabled = False
-
-        ig1.add_instance(disabled_instance)
-        for instance in instances:
-            ig2.add_instance(instance)
-
-        jt = factories.v2_job_template(allow_simultaneous=True)
-        for ig in (ig1, ig2):
-            jt.add_instance_group(ig)
-
-        num_jobs = self.find_num_jobs(instances)
-        for _ in range(num_jobs):
-            jt.launch()
-        jobs = jt.related.jobs.get()
-        utils.poll_until(lambda: jobs.get(status='successful').count == num_jobs, interval=5, timeout=300)
-
-        job_execution_nodes = [job.execution_node for job in jobs.results]
-        assert set(job_execution_nodes) == set([instance.hostname for instance in instances])
-
     def test_no_execution_node_assigned_with_jt_with_ig_with_no_instances(self, factories):
         ig = factories.instance_group()
         assert ig.instances == 0
@@ -458,7 +350,8 @@ class TestExecutionNodeAssignment(Base_Api_Test):
                                                                                                        jt_generator_for_consuming_given_capacity,
                                                                                                        reset_instance,
                                                                                                        tower_instance_group,
-                                                                                                       tower_ig_instances):
+                                                                                                       tower_ig_instances,
+                                                                                                       do_all_jobs_overlap):
         instances = random.sample(tower_ig_instances, max(3, len(tower_ig_instances)))
 
         jobs_count = len(instances)
@@ -496,7 +389,8 @@ class TestExecutionNodeAssignment(Base_Api_Test):
                                                factories,
                                                largest_capacity, jt_generator_for_consuming_given_capacity,
                                                tower_instance_group,
-                                               tower_ig_instances):
+                                               tower_ig_instances,
+                                               do_all_jobs_overlap):
         """
         * Create a job template designed to consume (a little less than) half the capacity
           of a given node. Configure the JT to run simultaneous jobs.

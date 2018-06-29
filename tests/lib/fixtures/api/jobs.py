@@ -1,4 +1,8 @@
 import pytest
+import datetime
+import itertools
+
+from towerkit import utils
 
 
 @pytest.fixture(scope="function")
@@ -32,3 +36,28 @@ def job_with_extra_vars(job_template_with_extra_vars):
 def job_with_ssh_connection(job_template_with_ssh_connection):
     """Launch job_with_ssh_connection and return the job resource."""
     return job_template_with_ssh_connection.launch()
+
+
+@pytest.fixture
+def wait_for_jobs(v2):
+    def fn(jobs, status='successful', interval=5, timeout=120, **kwargs):
+        return utils.poll_until(lambda: v2.unified_jobs.get(id__in=','.join([str(j.id) for j in
+                    jobs]), status=status, **kwargs).count == len(jobs), interval=interval, timeout=timeout)
+    return fn
+
+
+@pytest.fixture
+def do_all_jobs_overlap():
+    def fn(jobs):
+        def overlap(start1, end1, start2, end2):
+            """Does the range (start1, end1) overlap with (start2, end2)?"""
+            return end1 >= start2 and end2 >= start1
+
+        for (j1, j2) in list(itertools.combinations(jobs, 2)):
+            if not overlap(datetime.datetime.strptime(j1.started, '%Y-%m-%dT%H:%M:%S.%fZ'),
+                           datetime.datetime.strptime(j1.finished, '%Y-%m-%dT%H:%M:%S.%fZ'),
+                           datetime.datetime.strptime(j2.started, '%Y-%m-%dT%H:%M:%S.%fZ'),
+                           datetime.datetime.strptime(j2.finished, '%Y-%m-%dT%H:%M:%S.%fZ')):
+                return False
+        return True
+    return fn
