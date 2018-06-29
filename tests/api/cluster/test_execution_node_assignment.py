@@ -25,15 +25,6 @@ class TestExecutionNodeAssignment(Base_Api_Test):
     def tower_ig_instances(self, tower_instance_group):
         return tower_instance_group.related.instances.get(order_by='hostname').results
 
-    @pytest.fixture
-    def reset_instance(self, request):
-        def func(instance):
-            def teardown():
-                instance.enabled = True
-                instance.patch(capacity_adjustment=1)
-            request.addfinalizer(teardown)
-        return func
-
     def find_num_jobs(self, instances):
         # find number of jobs to distribute among a set of instances
         return 3 * len(instances)
