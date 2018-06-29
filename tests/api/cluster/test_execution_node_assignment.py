@@ -254,11 +254,13 @@ class TestExecutionNodeAssignment(Base_Api_Test):
 
         num_jobs = self.find_num_jobs(instances)
         inv_script = factories.v2_inventory_script(script=self.inventory_script_code(20))
-        inv_updates = []
+        inv_sources = []
         for _ in range(num_jobs):
             inv_source = factories.v2_inventory_source(inventory_script=inv_script)
             inv_source.ds.inventory.add_instance_group(ig)
-            inv_updates.append(inv_source.update())
+            inv_sources.append(inv_source)
+
+        inv_updates = [inv_source.update() for inv_source in inv_sources]
 
         wait_for_jobs(inv_updates)
 
