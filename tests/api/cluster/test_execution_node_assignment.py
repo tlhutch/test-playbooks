@@ -260,7 +260,7 @@ class TestExecutionNodeAssignment(Base_Api_Test):
             inv_source.ds.inventory.add_instance_group(ig)
             inv_sources.append(inv_source)
 
-        inv_updates = [inv_source.update() for inv_source in inv_sources]
+        inv_updates = [inv_src.update() for inv_src in inv_sources]
 
         wait_for_jobs(inv_updates)
 
