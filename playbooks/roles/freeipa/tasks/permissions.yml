@@ -1,0 +1,52 @@
+- name: Change default user attribute Permission
+  shell: 'ipa permission-mod "System: Read User Standard Attributes" --bindtype="permission"'
+
+- name: Add read-all privilege
+  shell: 'ipa privilege-add "Tower - Read All"'
+
+- name: Add read-all Permission to Privilege
+  shell: 'ipa privilege-add-permission "Tower - Read All" --permissions="System: Read User Standard Attributes"'
+
+- name: Create the roles for the privileges
+  shell: 'ipa role-add "Tower - Read All"'
+
+- name: Add the read all privileges to the role
+  shell: 'ipa role-add-privilege "Tower - Read All" --privileges="Tower - Read All"'
+
+- name: Add the bind user to the role
+  shell: 'ipa role-add-member "Tower - Read All" --user="ldap_binder"'
+
+- name: Add group-based permissions
+  shell: >
+    'ipa permission-add "Tower - {{ item.name }}"
+    --memberof={{ item.memberof }}
+    --bindtype=permission
+    --type=user
+    --right=read
+    --right=search
+    --right=compare
+    --attrs=objectclass
+    --attrs=givenName
+    --attrs=sn
+    --attrs=mail'
+  loop: freeipa_permissions
+
+- name: Add group permission privileges
+  shell: 'ipa privilege-add "Tower - {{ item.name }}"'
+  loop: freeipa_permissions
+
+- name: Add Permissions to Privileges
+  shell: 'ipa privilege-add-permission "Tower - {{ item.name }}" --permissions="Tower - {{ item.name }}"'
+  loop: freeipa_permissions
+
+- name: Create the roles for the privileges
+  shell: 'ipa role-add "Tower - {{ item.name }}"'
+  loop: freeipa_permissions
+
+- name: Add the privileges to the roles
+  shell: 'ipa role-add-privilege "Tower - {{ item.name }}" --privileges="Tower - {{ item.name }}"'
+  loop: freeipa_permissions
+
+- name: Add the groups to the role
+  shell: 'ipa role-add-member "Tower - {{ item.name }}" --groups={{ item.rolegroup }}'
+  loop: freeipa_permissions
