@@ -16,9 +16,12 @@ class TestUnifiedJobImpact(Base_Api_Test):
         ig.add_instance(instance)
         return ig
 
-    def unified_job_impact(self, unified_job_type, num_hosts=None):
+    def unified_job_impact(self, unified_job_type, forks=None, num_hosts=None):
         if unified_job_type in ('job', 'ahc'):
-            return min(num_hosts, 5) + 1
+            if forks == 0:
+                return min(num_hosts, 5) + 1
+            else:
+                return min(forks, num_hosts) + 1
         elif unified_job_type in ('inventory_update', 'project_update'):
             return 1
         elif unified_job_type == 'system_job':
@@ -60,11 +63,11 @@ class TestUnifiedJobImpact(Base_Api_Test):
                          launch_type='sync').count == 1, interval=1, timeout=60)
 
         utils.poll_until(lambda: instance.get().jobs_running == 1, interval=1, timeout=60)
-        assert instance.get().consumed_capacity == self.unified_job_impact('job', num_hosts)
+        assert instance.consumed_capacity == self.unified_job_impact('job', num_hosts=num_hosts)
         self.verify_resource_percent_capacity_remaining(instance)
 
         utils.poll_until(lambda: ig_with_single_instance.get().jobs_running == 1, interval=1, timeout=60)
-        assert ig_with_single_instance.get().consumed_capacity == self.unified_job_impact('job', num_hosts)
+        assert ig_with_single_instance.get().consumed_capacity == self.unified_job_impact('job', num_hosts=num_hosts)
         self.verify_resource_percent_capacity_remaining(ig_with_single_instance)
 
     @pytest.mark.parametrize('num_hosts', [3, 5, 7])
@@ -82,11 +85,61 @@ class TestUnifiedJobImpact(Base_Api_Test):
         factories.v2_ad_hoc_command(inventory=inventory, module_name='shell', module_args='sleep 120')
 
         utils.poll_until(lambda: instance.get().jobs_running == 1, interval=1, timeout=60)
-        assert instance.get().consumed_capacity == self.unified_job_impact('ahc', num_hosts)
+        assert instance.consumed_capacity == self.unified_job_impact('ahc', num_hosts=num_hosts)
         self.verify_resource_percent_capacity_remaining(instance)
 
         utils.poll_until(lambda: ig_with_single_instance.get().jobs_running == 1, interval=1, timeout=60)
-        assert ig_with_single_instance.get().consumed_capacity == self.unified_job_impact('ahc', num_hosts)
+        assert ig_with_single_instance.get().consumed_capacity == self.unified_job_impact('ahc', num_hosts=num_hosts)
+        self.verify_resource_percent_capacity_remaining(ig_with_single_instance)
+
+    @pytest.mark.parametrize('forks', [3, 5, 7])
+    def test_job_impact_scales_with_number_of_forks(self, factories, ig_with_single_instance, forks):
+        jt = factories.v2_job_template(playbook='sleep.yml', extra_vars='{"sleep_interval": 120}', forks=forks)
+        jt.add_instance_group(ig_with_single_instance)
+        instance = ig_with_single_instance.related.instances.get().results.pop()
+
+        inventory = jt.ds.inventory
+        for _ in range(5):
+            factories.v2_host(inventory=inventory)
+
+        self.assert_instance_reflects_zero_running_jobs(instance.get())
+        self.assert_instance_group_reflects_zero_running_jobs(ig_with_single_instance.get())
+
+        jt.launch()
+        utils.poll_until(lambda: jt.ds.project.related.project_updates.get(status='successful',
+                         launch_type='sync').count == 1, interval=1, timeout=60)
+
+        utils.poll_until(lambda: instance.get().jobs_running == 1, interval=1, timeout=60)
+        assert instance.consumed_capacity == self.unified_job_impact('job', forks=forks, num_hosts=5)
+        self.verify_resource_percent_capacity_remaining(instance)
+
+        utils.poll_until(lambda: ig_with_single_instance.get().jobs_running == 1, interval=1, timeout=60)
+        assert ig_with_single_instance.consumed_capacity == self.unified_job_impact('job', forks=forks,
+                                                                                    num_hosts=5)
+        self.verify_resource_percent_capacity_remaining(ig_with_single_instance)
+
+    @pytest.mark.parametrize('forks', [3, 5, 7])
+    def test_ahc_impact_scales_with_number_of_forks(self, factories, ig_with_single_instance, forks):
+        instance = ig_with_single_instance.related.instances.get().results.pop()
+
+        inventory = factories.v2_inventory()
+        inventory.add_instance_group(ig_with_single_instance)
+        for _ in range(5):
+            factories.v2_host(inventory=inventory)
+
+        self.assert_instance_reflects_zero_running_jobs(instance.get())
+        self.assert_instance_group_reflects_zero_running_jobs(ig_with_single_instance.get())
+
+        factories.v2_ad_hoc_command(inventory=inventory, module_name='shell', module_args='sleep 120',
+                                    forks=forks)
+
+        utils.poll_until(lambda: instance.get().jobs_running == 1, interval=1, timeout=60)
+        assert instance.consumed_capacity == self.unified_job_impact('ahc', num_hosts=5, forks=forks)
+        self.verify_resource_percent_capacity_remaining(instance)
+
+        utils.poll_until(lambda: ig_with_single_instance.get().jobs_running == 1, interval=1, timeout=60)
+        assert ig_with_single_instance.consumed_capacity == self.unified_job_impact('ahc', num_hosts=5,
+                                                                                    forks=forks)
         self.verify_resource_percent_capacity_remaining(ig_with_single_instance)
 
     def test_instance_group_updates_for_simultaneously_running_jobs(self, factories, ig_with_single_instance):
