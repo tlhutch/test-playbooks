@@ -62,32 +62,69 @@ class TestInstanceGroups(Base_Api_Test):
             assert ig.capacity == self.find_expected_capacity(ig)
             assert ig.consumed_capacity == self.find_expected_consumed_capacity(ig)
 
-    @pytest.mark.github('https://github.com/ansible/tower/issues/860')
-    @pytest.mark.parametrize('resource_name, method', [('job_template', 'launch'),
-                                                       ('project', 'update'),
-                                                       ('inventory_source', 'update')],
-                             ids=['job', 'project_update', 'inventory_update'])
-    def test_conflict_exception_when_attempting_to_delete_ig_with_running_uj(self, factories, tower_instance_group,
-                                                                             resource_name, method):
+    def check_resource_is_being_used(self, error, unified_job):
+        assert error.value[1] == {
+                'active_jobs': [{
+                    u'type': unicode(unified_job.type),
+                    u'id': unified_job.id
+                }],
+                'error': u'Resource is being used by running jobs.'}
+
+    def test_conflict_exception_when_attempting_to_delete_ig_with_running_job(self, factories, tower_instance_group):
         instance = random.sample(tower_instance_group.related.instances.get().results, 1).pop()
         ig = factories.instance_group()
         ig.add_instance(instance)
 
-        resource = getattr(factories, 'v2_' + resource_name)()
+        jt = factories.v2_job_template(playbook='sleep.yml', extra_vars=dict(sleep_interval=360))
+        factories.v2_host(inventory=jt.ds.inventory)
+        jt.add_instance_group(ig)
 
-        if resource_name == 'job_template':
-            resource.add_instance_group(ig)
-        elif resource_name == 'project':
-            resource.ds.organization.add_instance_group(ig)
-        else:
-            resource.ds.inventory.add_instance_group(ig)
+        job = jt.launch()
 
-        uj = getattr(resource, method)()
+        utils.poll_until(lambda: job.get().status == 'running', interval=5, timeout=60)
 
-        with pytest.raises(exc.Conflict) as e:
+        with pytest.raises(exc.Conflict) as error:
             ig.delete()
-        assert e.value[1] == dict(active_jobs=[dict(type=uj.type, id=str(uj.id))],
-                                  error='Resource is being used by running jobs.')
+
+        self.check_resource_is_being_used(error, job)
+
+    def test_conflict_exception_when_attempting_to_delete_ig_with_running_project_update(self, factories, tower_instance_group):
+        instance = random.sample(tower_instance_group.related.instances.get().results, 1).pop()
+        ig = factories.instance_group()
+        ig.add_instance(instance)
+
+        project = factories.v2_project(scm_url='https://github.com/ansible/ansible.git', scm_delete_on_update=True)
+        project.ds.organization.add_instance_group(ig)
+
+        pu = project.update()
+
+        utils.poll_until(lambda: pu.get().status == 'running', interval=5, timeout=60)
+
+        with pytest.raises(exc.Conflict) as error:
+            ig.delete()
+
+        self.check_resource_is_being_used(error, pu)
+
+    def test_conflict_exception_when_attempting_to_delete_ig_with_running_inventory_update(self,
+                                                                                           factories,
+                                                                                           tower_instance_group,
+                                                                                           inventory_script_code_with_sleep):
+        instance = random.sample(tower_instance_group.related.instances.get().results, 1).pop()
+        ig = factories.instance_group()
+        ig.add_instance(instance)
+
+        inv_script = factories.v2_inventory_script(script=inventory_script_code_with_sleep(20))
+        inventory_source = factories.v2_inventory_source(inventory_script=inv_script)
+        inventory_source.ds.inventory.add_instance_group(ig)
+
+        iu = inventory_source.update()
+
+        utils.poll_until(lambda: iu.get().status == 'running', interval=5, timeout=60)
+
+        with pytest.raises(exc.Conflict) as error:
+            ig.delete()
+
+        self.check_resource_is_being_used(error, iu)
 
     def test_verify_tower_instance_group_is_a_partially_protected_group(self, tower_instance_group):
         instances = [instance for instance in tower_instance_group.related.instances.get().results]
