@@ -114,6 +114,7 @@ class Test_Copy_Inventory(Base_Api_Test):
                 self.check_host_fields(old_hosts[i], new_hosts[i], old_inventory, new_inventory)
         assert not new_frontier
 
+    @pytest.mark.github('https://github.com/ansible/tower/issues/2303')
     def test_copy_inventory_with_sources(self, cloud_inventory, copy_with_teardown):
         assert cloud_inventory.get().has_inventory_sources
         new_inventory = copy_with_teardown(cloud_inventory)
@@ -133,6 +134,7 @@ class Test_Copy_Inventory(Base_Api_Test):
         check_fields(inventory, new_inventory, self.identical_fields, self.unequal_fields)
         assert new_inventory.insights_credential == inventory.insights_credential
 
+    @pytest.mark.github('https://github.com/ansible/tower/issues/2263')
     def test_copy_inventory_insights_credential_without_permission(self, factories, copy_with_teardown, set_test_roles):
         insights_cred = factories.v2_credential(kind='insights')
         organization = factories.v2_organization()

@@ -89,6 +89,7 @@ class Test_Copy_Job_Template(Base_Api_Test):
         assert new_jt.credential == jt.credential
         assert sorted(new_cred_ids) == sorted(cred_ids)
 
+    @pytest.mark.github('https://github.com/ansible/tower/issues/2263')
     def test_copy_references_without_permission(self, factories, copy_with_teardown, set_test_roles):
         orgA = factories.v2_organization()
         orgB = factories.v2_organization()

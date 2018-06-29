@@ -43,6 +43,7 @@ class Test_Copy_Project(Base_Api_Test):
         assert new_project.related.current_update
         assert new_project.credential == v2_project.credential
 
+    @pytest.mark.github('https://github.com/ansible/tower/issues/2263')
     def test_copy_without_credential_permission(self, factories, copy_with_teardown, set_test_roles):
         credendial = factories.v2_credential(kind='scm')
         organization = factories.v2_organization()
