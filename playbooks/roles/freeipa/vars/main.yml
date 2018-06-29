@@ -94,3 +94,9 @@ freeipa_groups:
   members: ['bstrickland', 'hhill', 'jjack']
 - name: stricklandpropane_admins
   members: ['bstrickland', 'hhill']
+
+freeipa_permissions:
+  - name: Tower - Planet Express
+    memberof: planetexpress
+  - name: Tower - Dreamland
+    memberof: dreamland

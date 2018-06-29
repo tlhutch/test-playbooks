@@ -112,3 +112,22 @@
 - name: Change default user attribute Permission
   shell: 'ipa permission-mod "System: Read User Standard Attributes" --bindtype="permission"'
   when: 'Bind rule type: permission' not in ipa_default_permission.stdout
+
+- name: Check if group-based privileges are present
+  shell: 'ipa permission-find Tower'
+  register: freeipa_group_permissions
+  failed_when: False
+
+- name: Add group-based privileges
+  shell: >
+    'ipa permission-add {{ item.name }}
+    --memberof={{ item.memberof }}
+    --bindtype=permission
+    --type=user
+    --right=["read", "search", "compare"]
+    --attrs=objectclass
+    --attrs=givenName
+    --attrs=sn
+    --attrs=mail'
+  loop: freeipa_permissions
+  when: item.name not in freeipa_group_permissions.stdout
