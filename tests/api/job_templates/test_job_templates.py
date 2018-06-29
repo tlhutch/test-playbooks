@@ -427,6 +427,7 @@ print json.dumps(inv, indent=2)
 
         assert job.wait_until_completed().is_successful
 
+    @pytest.mark.github('https://github.com/ansible/tower/issues/789')
     def test_job_listing_after_delete_does_not_500(self, factories, v2):
         num_jobs = 2
         host = factories.v2_host()
