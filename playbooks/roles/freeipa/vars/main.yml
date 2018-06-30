@@ -102,7 +102,7 @@ freeipa_groups:
 freeipa_permissions:
   - name: Tower - Planet Express
     memberof: planetexpress
-    rolegroup: tower_0
+    rolegroup: tower_dir_0
   - name: Tower - Dreamland
     memberof: dreamland
-    rolegroup: tower_1
+    rolegroup: tower_dir_1

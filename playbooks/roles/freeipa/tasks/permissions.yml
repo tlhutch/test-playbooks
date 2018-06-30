@@ -23,11 +23,13 @@
     --bindtype=permission
     --type=user
     --right=read
-    --right=search
+    --right=searchs
     --right=compare
     --attrs=objectclass
+    --attrs=displayname
     --attrs=givenName
     --attrs=sn
+    --attrs=cn
     --attrs=mail'
   loop: freeipa_permissions
 
