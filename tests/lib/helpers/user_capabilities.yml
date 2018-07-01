@@ -1,10 +1,10 @@
 ---
 ad_hoc_command:
-  ad hoc: {copy: false, delete: false, start: true}
-  admin: {copy: false, delete: false, start: true}
-  read: {copy: false, delete: false, start: false}
-  update: {copy: false, delete: false, start: false}
-  use: {copy: false, delete: false, start: false}
+  ad hoc: {delete: false, start: true}
+  admin: {delete: false, start: true}
+  read: {delete: false, start: false}
+  update: {delete: false, start: false}
+  use: {delete: false, start: false}
 credential:
   admin: {copy: false, delete: true, edit: true}
   read: {copy: false, delete: false, edit: false}
