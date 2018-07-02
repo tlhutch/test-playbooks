@@ -296,3 +296,10 @@ def cloud_groups(aws_group, azure_group, azure_ad_group, gce_group, openstack_v2
 @pytest.fixture(scope="function", params=['aws', 'azure', 'gce'])
 def cloud_group_supporting_source_regions(request):
     return request.getfuncargvalue(request.param + '_group')
+
+
+@pytest.fixture
+def inventory_script_code_with_sleep():
+    def fn(sleep_time):
+        return "#!/usr/bin/env python\nimport time\ntime.sleep({})\nprint('{{}}')\n".format(sleep_time)
+    return fn

@@ -34,9 +34,6 @@ class TestExecutionNodeAssignment(Base_Api_Test):
             request.addfinalizer(teardown)
         return func
 
-    def inventory_script_code(self, sleep_time):
-        return "#!/usr/bin/env python\nimport time\ntime.sleep({})\nprint('{{}}')\n".format(sleep_time)
-
     def find_num_jobs(self, instances):
         # find number of jobs to distribute among a set of instances
         return 3 * len(instances)
@@ -246,14 +243,15 @@ class TestExecutionNodeAssignment(Base_Api_Test):
     def test_inventory_updates_should_distribute_among_new_instance_group_members(self, factories,
                                                                                   tower_ig_instances,
                                                                                   wait_for_jobs,
-                                                                                  do_all_jobs_overlap):
+                                                                                  do_all_jobs_overlap,
+                                                                                  inventory_script_code_with_sleep):
         ig = factories.instance_group()
         instances = random.sample(tower_ig_instances, 2)
         for instance in instances:
             ig.add_instance(instance)
 
         num_jobs = self.find_num_jobs(instances)
-        inv_script = factories.v2_inventory_script(script=self.inventory_script_code(20))
+        inv_script = factories.v2_inventory_script(script=inventory_script_code_with_sleep(20))
         inv_sources = []
         for _ in range(num_jobs):
             inv_source = factories.v2_inventory_source(inventory_script=inv_script)
