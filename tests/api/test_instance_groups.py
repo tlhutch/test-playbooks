@@ -80,7 +80,8 @@ class TestInstanceGroups(Base_Api_Test):
 
         reset_instance(instance)
         instance.capacity_adjustment = '0.00'
-        assert ig.get().capacity == instance.get().capacity
+        utils.poll_until(lambda: instance.get().capacity == min(instance.cpu_capacity, instance.mem_capacity),
+                         interval=1, timeout=30)
 
     def test_instance_group_capacity_should_adjust_for_enabling_and_disabling_instances(self, factories,
                                                                                         tower_instance_group,
@@ -88,14 +89,14 @@ class TestInstanceGroups(Base_Api_Test):
         ig = factories.instance_group()
         instance = tower_instance_group.related.instances.get().results.pop()
         ig.add_instance(instance)
-        assert ig.get().capacity == instance.capacity
+        utils.poll_until(lambda: ig.get().capacity == instance.capacity, interval=1, timeout=30)
 
         reset_instance(instance)
         instance.enabled = False
-        assert ig.get().capacity == 0
+        utils.poll_until(lambda: instance.get().capacity == 0, interval=1, timeout=30)
 
         instance.enabled = True
-        assert ig.get().capacity == instance.capacity
+        utils.poll_until(lambda: ig.get().capacity == instance.capacity, interval=1, timeout=30)
 
     def test_conflict_exception_when_attempting_to_delete_ig_with_running_job(self, factories, tower_instance_group):
         instance = random.sample(tower_instance_group.related.instances.get().results, 1).pop()
