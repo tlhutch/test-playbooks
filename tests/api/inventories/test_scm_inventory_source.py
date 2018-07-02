@@ -426,7 +426,7 @@ class TestSCMInventorySource(Base_Api_Test):
                                                        update_on_project_update=True)
         with pytest.raises(exc.BadRequest) as e:
             scm_inv_source.add_schedule()
-        assert e.value.message == {'unified_job_template': ['Inventory sources with `update_on_project_update` cannot'
+        assert e.value.message == {'unified_job_template': [u'Inventory sources with `update_on_project_update` cannot'
                                                             ' be scheduled. Schedule its source project `{0.name}` '
                                                             'instead.'.format(scm_inv_source.ds.project)]}
 
