@@ -1,7 +1,7 @@
 ---
 - name: Install EPEL
   yum:
-    name: epel-release
+    name: https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
     state: latest
   become: true
 
@@ -9,6 +9,8 @@
   yum:
     name: letsencrypt
     state: latest
+    skip_broken: True
+    update_cache: True
   become: true
 
 - name: Generate certificate
