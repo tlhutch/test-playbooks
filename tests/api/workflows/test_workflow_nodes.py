@@ -129,7 +129,6 @@ class Test_Workflow_Nodes(Base_Api_Test):
         assert 'unified_job_template' in str(exception.value)
         assert 'This field cannot be blank.' in str(exception.value)
 
-    @pytest.mark.github('https://github.com/ansible/tower/issues/812')
     def test_workflow_node_creation_rejected_when_source_jt_has_ask_disabled(self, factories):
         inventory = factories.v2_inventory()
         credential = factories.v2_credential()
@@ -149,9 +148,19 @@ class Test_Workflow_Nodes(Base_Api_Test):
                               'skip_tags': ['Field is not configured to prompt on launch.'],
                               'limit': ['Field is not configured to prompt on launch.'],
                               'inventory': ['Field is not configured to prompt on launch.'],
-                              # 'credential': ['Field is not configured to prompt on launch.'],
-                              'extra_data': ['Variables var1 are not allowed on launch. ' \
+                              'extra_data': ['Variables var1 are not allowed on launch. '
                                              'Check the Prompt on Launch setting on the Job Template to include Extra Variables.']}
+
+    def test_workflow_node_creation_rejected_when_source_jt_has_ask_credential_disabled(self, factories):
+        credential = factories.v2_credential()
+
+        wfjt = factories.v2_workflow_job_template()
+        jt = factories.v2_job_template()
+
+        with pytest.raises(BadRequest) as e:
+            factories.v2_workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt,
+                                                    credential=credential)
+        assert e.value[1] == {'credential': ['Related template is not configured to accept credentials on launch.']}
 
     def test_workflow_node_creation_rejected_when_jt_has_ask_credential(self, factories):
         wfjt = factories.v2_workflow_job_template()
