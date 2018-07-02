@@ -25,6 +25,14 @@ class TestInstanceGroups(Base_Api_Test):
             consumed_capacity += instance.consumed_capacity
         return consumed_capacity
 
+    def check_resource_is_being_used(self, error, unified_job):
+        assert error.value[1] == {
+                'active_jobs': [{
+                    u'type': unicode(unified_job.type),
+                    u'id': unified_job.id
+                }],
+                'error': u'Resource is being used by running jobs.'}
+
     def test_instance_group_capacity_should_be_sum_of_individual_instances(self, factories, tower_instance_group):
         tower_hostnames = [instance.hostname for instance in tower_instance_group.related.instances.get().results]
         ig = factories.instance_group(policy_instance_list=tower_hostnames)
@@ -61,14 +69,6 @@ class TestInstanceGroups(Base_Api_Test):
             assert ig.get().instances == num_instances
             assert ig.capacity == self.find_expected_capacity(ig)
             assert ig.consumed_capacity == self.find_expected_consumed_capacity(ig)
-
-    def check_resource_is_being_used(self, error, unified_job):
-        assert error.value[1] == {
-                'active_jobs': [{
-                    u'type': unicode(unified_job.type),
-                    u'id': unified_job.id
-                }],
-                'error': u'Resource is being used by running jobs.'}
 
     def test_conflict_exception_when_attempting_to_delete_ig_with_running_job(self, factories, tower_instance_group):
         instance = random.sample(tower_instance_group.related.instances.get().results, 1).pop()
