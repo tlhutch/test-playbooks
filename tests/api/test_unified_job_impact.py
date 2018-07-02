@@ -60,11 +60,11 @@ class TestUnifiedJobImpact(Base_Api_Test):
                          launch_type='sync').count == 1, interval=1, timeout=60)
 
         utils.poll_until(lambda: instance.get().jobs_running == 1, interval=1, timeout=60)
-        assert instance.consumed_capacity == self.unified_job_impact('job', num_hosts)
+        assert instance.get().consumed_capacity == self.unified_job_impact('job', num_hosts)
         self.verify_resource_percent_capacity_remaining(instance)
 
         utils.poll_until(lambda: ig_with_single_instance.get().jobs_running == 1, interval=1, timeout=60)
-        assert ig_with_single_instance.consumed_capacity == self.unified_job_impact('job', num_hosts)
+        assert ig_with_single_instance.get().consumed_capacity == self.unified_job_impact('job', num_hosts)
         self.verify_resource_percent_capacity_remaining(ig_with_single_instance)
 
     @pytest.mark.parametrize('num_hosts', [3, 5, 7])
@@ -82,11 +82,11 @@ class TestUnifiedJobImpact(Base_Api_Test):
         factories.v2_ad_hoc_command(inventory=inventory, module_name='shell', module_args='sleep 120')
 
         utils.poll_until(lambda: instance.get().jobs_running == 1, interval=1, timeout=60)
-        assert instance.consumed_capacity == self.unified_job_impact('ahc', num_hosts)
+        assert instance.get().consumed_capacity == self.unified_job_impact('ahc', num_hosts)
         self.verify_resource_percent_capacity_remaining(instance)
 
         utils.poll_until(lambda: ig_with_single_instance.get().jobs_running == 1, interval=1, timeout=60)
-        assert ig_with_single_instance.consumed_capacity == self.unified_job_impact('ahc', num_hosts)
+        assert ig_with_single_instance.get().consumed_capacity == self.unified_job_impact('ahc', num_hosts)
         self.verify_resource_percent_capacity_remaining(ig_with_single_instance)
 
     def test_instance_group_updates_for_simultaneously_running_jobs(self, factories, ig_with_single_instance):
