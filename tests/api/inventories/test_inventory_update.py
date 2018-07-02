@@ -547,8 +547,7 @@ class TestInventoryUpdate(Base_Api_Test):
         assert update_pg.timeout == custom_inventory_source.timeout, \
             "Update_pg has a different timeout value ({0}) than its inv_source ({1}).".format(update_pg.timeout, custom_inventory_source.timeout)
 
-    #@pytest.mark.parametrize('inventory_source', ['azure_rm', None], ids=['azure', 'custom'])
-    @pytest.mark.parametrize('inventory_source', [None], ids=['custom'])
+    @pytest.mark.parametrize('inventory_source', ['azure_rm', None], ids=['azure', 'custom'])
     def test_environment_variables_sourced_with_inventory_update_with_azure_credential(self, factories, inventory_source):
         azure_cred = factories.v2_credential(kind='azure_rm', client='SomeClient', cloud_environment='SomeCloudEnvironment',
                                              password='SomePassword', secret='SomeSecret', subscription='SomeSubscription',
