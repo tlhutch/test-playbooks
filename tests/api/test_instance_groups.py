@@ -88,6 +88,8 @@ class TestInstanceGroups(Base_Api_Test):
                                                                                         reset_instance):
         ig = factories.instance_group()
         instance = tower_instance_group.related.instances.get().results.pop()
+        initial_capacity = instance.capacity
+
         ig.add_instance(instance)
         utils.poll_until(lambda: ig.get().capacity == instance.capacity, interval=1, timeout=30)
 
@@ -96,7 +98,7 @@ class TestInstanceGroups(Base_Api_Test):
         utils.poll_until(lambda: instance.get().capacity == 0, interval=1, timeout=30)
 
         instance.enabled = True
-        utils.poll_until(lambda: ig.get().capacity == instance.capacity, interval=1, timeout=30)
+        utils.poll_until(lambda: ig.get().capacity == initial_capacity, interval=1, timeout=30)
 
     def test_conflict_exception_when_attempting_to_delete_ig_with_running_job(self, factories, tower_instance_group):
         instance = random.sample(tower_instance_group.related.instances.get().results, 1).pop()
