@@ -14,7 +14,8 @@ git+ssh://git@github.com/ansible/pytest-mp.git
 git+ssh://git@github.com/rmfitzpatrick/pytest-ansible.git@handle_ansible_vars_restructuring
 pytest-cache
 pytest-cov
-pytest-github
+# Pull from github until a new release is cut (https://github.com/jlaska/pytest-github/pull/11)
+git+ssh://git@github.com/jlaska/pytest-github.git
 pytest-ordering
 python-dateutil
 pytz
