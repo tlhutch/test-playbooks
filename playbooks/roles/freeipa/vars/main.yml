@@ -1,5 +1,9 @@
 ---
 freeipa_users:
+- username: tower_all
+  first: Ansible
+  last: Tower
+  cn: tower view-all user
 - username: tower_0
   first: ansible
   last: Tower
@@ -94,6 +98,8 @@ freeipa_groups:
   members: ['bstrickland', 'hhill', 'jjack']
 - name: stricklandpropane_admins
   members: ['bstrickland', 'hhill']
+- name: tower_dir_all
+  members: ['tower_all']
 - name: tower_dir_0
   members: ['tower_0']
 - name: tower_dir_1

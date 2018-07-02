@@ -1,6 +1,7 @@
 from copy import deepcopy
 
 from towerkit.utils import random_title
+from towerkit import config
 import pytest
 
 from tests.api import Base_Api_Test
@@ -12,13 +13,20 @@ from tests.api import Base_Api_Test
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestLDAP(Base_Api_Test):
 
+    ldap_password = config.credentials.freeipa.ldap_password
+    user_base_dn = 'cn=users,cn=accounts,dc=testing,dc=ansible,dc=com'
     base_ldap_settings = dict(
         AUTH_LDAP_SERVER_URI='ldap://idp.testing.ansible.com',
-        AUTH_LDAP_BIND_DN='uid=ldap_binder,cn=sysaccounts,cn=etc,dc=testing,dc=ansible,dc=com',
-        AUTH_LDAP_BIND_PASSWORD='secret123',
-        AUTH_LDAP_USER_SEARCH=[],
-        AUTH_LDAP_USER_DN_TEMPLATE='uid=%(user)s,cn=users,cn=accounts,dc=testing,dc=ansible,dc=com',
-        AUTH_LDAP_USER_ATTR_MAP=dict(first_name='givenName', last_name='sn', email='mail'),
+        AUTH_LDAP_BIND_DN='uid=tower_all,%s' % user_base_dn,
+        AUTH_LDAP_BIND_PASSWORD=ldap_password,
+        AUTH_LDAP_USER_SEARCH=[
+            'cn=users,cn=accounts,dc=testing,dc=ansible,dc=com',
+            'SCOPE_SUBTREE',
+            '(uid=%(user)s)'
+        ],
+        AUTH_LDAP_USER_DN_TEMPLATE='',
+        AUTH_LDAP_USER_ATTR_MAP=dict(
+            first_name='givenName', last_name='sn', email='mail'),
         AUTH_LDAP_GROUP_SEARCH=[
             'cn=groups,cn=accounts,dc=testing,dc=ansible,dc=com',
             'SCOPE_SUBTREE',
@@ -29,7 +37,16 @@ class TestLDAP(Base_Api_Test):
         AUTH_LDAP_DENY_GROUP=None,
         AUTH_LDAP_USER_FLAGS_BY_GROUP={}
     )
-    ldap_password = 'Th1sP4ssd'
+
+    def create_additional_directory_config(self, dir_number, bind_user):
+        new_ldap_settings = dict()
+        for k in deepcopy(self.base_ldap_settings):
+            if k != 'AUTH_LDAP_BIND_DN':
+                new_ldap_settings.update(
+                    {"AUTH_{}_{}".format(dir_number, k[5:]): self.base_ldap_settings[k]})
+        new_ldap_settings.update(
+            {'AUTH_{}_LDAP_BIND_DN'.format(dir_number): 'uid={},{}'.format(bind_user, self.user_base_dn)})
+        return new_ldap_settings
 
     def test_ldap_user_creation(self, v2, api_settings_ldap_pg, update_setting_pg):
         update_setting_pg(api_settings_ldap_pg, self.base_ldap_settings)
@@ -73,9 +90,9 @@ class TestLDAP(Base_Api_Test):
                            remove_admins=False, remove_users=True)
         }
         ldap_settings['AUTH_LDAP_TEAM_MAP'] = {
-           team_name: dict(organization=org_name,
-                           users=['cn=bobsburgers_admins,cn=groups,cn=accounts,dc=testing,dc=ansible,dc=com'],
-                           remove=True)
+            team_name: dict(organization=org_name,
+                            users=['cn=bobsburgers_admins,cn=groups,cn=accounts,dc=testing,dc=ansible,dc=com'],
+                            remove=True)
         }
         update_setting_pg(api_settings_ldap_pg, ldap_settings)
         assert v2.teams.get(name=team_name).count == 0
