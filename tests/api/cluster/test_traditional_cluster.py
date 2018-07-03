@@ -390,11 +390,9 @@ class TestTraditionalCluster(Base_Api_Test):
             assert job.is_successful
 
     @pytest.mark.requires_isolation
-    def test_instance_removal(self, admin_user, ansible_module_cls, factories, user_password, v2):
+    def test_instance_removal(self, connection, admin_user, ansible_module_cls, factories, user_password, v2):
         """
-        This test checks the behaviour of a cluster as nodes are removed and restored.
-
-        For each ordinary node in the cluster:
+        This test checks a full node's ability to recover when its tower services are stopped and restarted
 
         * A long running job is started assigned to run on the node
         * The node is taken offline
@@ -407,130 +405,116 @@ class TestTraditionalCluster(Base_Api_Test):
         * We check that group and instance capacity for the now-online node are restored
         * We check a new job against the now-back-online node starts and completes
         """
+        current_host = connection.server.split('/')[-1]
+
         manager = ansible_module_cls.inventory_manager
         hosts = manager.get_group_dict()['instance_group_ordinary_instances']
+        hosts.remove(current_host)
+        host = random.choice(hosts)
+        instance = v2.instances.get(hostname=host).results.pop()
 
-        # fetch the instance groups containing each ordinary node
+        # fetch the instance group containing the host being removed
         # we name the instance groups 1...n where n is the number of ordinary nodes in the cluster
-        hostname_to_instance_group = {}
-        for i in range(1, len(hosts) + 1):
-            group = v2.instance_groups.get(name=str(i)).results[0]
+        ig = None
+        for index in range(1, len(hosts) + 1):
+            group = v2.instance_groups.get(name=str(index)).results[0]
             hostname = group.related.instances.get().results[0].hostname
-            hostname_to_instance_group[hostname] = group
+            if hostname == host:
+                assert len(group.related.instances.get().results) == 1
+                ig = group
+                break
+        else:
+            raise Exception('Failed to find instance group containing host {}'.format(host))
 
-        # create a long running job template for each host
-        job_templates = {}
-        for hostname in hosts:
-            host = factories.v2_host()
-            jt = factories.v2_job_template(playbook='sleep.yml',
-                                           extra_vars=dict(sleep_interval=600),
-                                           inventory=host.ds.inventory)
-            jt.add_instance_group(hostname_to_instance_group[hostname])
-            job_templates[hostname] = jt
+        # create a long running job template
+        jt = factories.v2_job_template(playbook='sleep.yml',
+                                       extra_vars=dict(sleep_interval=600))
+        jt.ds.inventory.add_host()
+        jt.add_instance_group(ig)
 
-        def fetch_node_not_matching_name(name):
-            online_hosts = [hostname for hostname in hosts if hostname != name]
-            return random.choice(online_hosts)
+        # Store the capacity of the group and instance for later verification
+        group_capacity = ig.capacity
+        instance_capacity = instance.capacity
 
-        for hostname in hosts:
-            # Store the capacity of the group and instance for later verification
-            ig = hostname_to_instance_group[hostname]
-            group_capacity = ig.capacity
-            instance_capacity = ig.related.instances.get().results.pop().capacity
+        def get_heartbeats():
+            """
+            return a dictionary of heartbeats of all ordinary nodes that are online
+            and the heartbeat of the offline node"""
+            instances = v2.ping.get().instances
+            heartbeats = {}
+            offline_heartbeat = None
+            for i in instances:
+                this_host = i['node']
+                this_heartbeat = i['heartbeat']
+                if this_host not in hosts and this_host != host:
+                    # ignore nodes not in the ordinary_instances group
+                    continue
+                if this_host == host:
+                    # this is the node we took offline
+                    offline_heartbeat = this_heartbeat
+                else:
+                    heartbeats[this_host] = this_heartbeat
+            return heartbeats, offline_heartbeat
 
-            online_hostname = fetch_node_not_matching_name(hostname)
+        # Start a long running job from the node we're going to take offline
+        long_job = jt.launch().wait_until_status('running')
 
-            def get_heartbeats():
-                """
-                return a dictionary of heartbeats of all ordinary nodes that are online
-                and the heartbeat of the offline node"""
-                instances = v2.ping.get().instances
-                heartbeats = {}
-                offline_heartbeat = None
-                for instance in instances:
-                    this_host = instance['node']
-                    this_heartbeat = instance['heartbeat']
-                    if this_host not in hosts:
-                        # ignore nodes not in the ordinary_instances group
-                        continue
-                    if this_host == hostname:
-                        # this is the node we took offline
-                        offline_heartbeat = this_heartbeat
-                    else:
-                        heartbeats[this_host] = this_heartbeat
-                return heartbeats, offline_heartbeat
+        # Stop the tower node.
+        stop, start = self.get_stop_and_start_funcs_for_node(admin_user, manager, host, v2)
+        with SafeStop(stop, start):
+            log.debug("Using online node {}".format(current_host))
 
-            connection = Connection('https://' + online_hostname)
-            connection.login(admin_user.username, admin_user.password)
-            with self.current_instance(connection, v2):
-                # Start a long running job from the node we're going to take offline
-                long_job = job_templates[hostname].launch().wait_until_status('running')
+            # Check that the heartbeat of all nodes except the stopped one advance
+            heartbeats, offline_heartbeat = get_heartbeats()
+            assert offline_heartbeat is not None
 
-                # Stop the tower node.
-                stop, start = self.get_stop_and_start_funcs_for_node(admin_user, manager, hostname, v2)
-                with SafeStop(stop, start):
-                    log.debug("Using online node {}".format(online_hostname))
+            def heartbeats_changed():
+                new_heartbeats, _ = get_heartbeats()
+                for host, beat in new_heartbeats.items():
+                    if heartbeats[host] == new_heartbeats[host]:
+                        return False
+                return True
 
-                    # Check that the heartbeat of all nodes except the stopped one advance
-                    heartbeats, offline_heartbeat = get_heartbeats()
-                    assert offline_heartbeat is not None
+            utils.poll_until(heartbeats_changed, interval=10, timeout=120)
+            _, current_offline_heartbeat = get_heartbeats()
+            # assert the offline heartbeat is unchanged
+            assert current_offline_heartbeat == offline_heartbeat
 
-                    def heartbeats_changed():
-                        new_heartbeats, _ = get_heartbeats()
-                        for host, beat in new_heartbeats.items():
-                            if heartbeats[host] == new_heartbeats[host]:
-                                return False
-                        return True
+            def check_group_capacity_zeroed():
+                ig.get()
+                return ig.capacity == 0
+            utils.poll_until(check_group_capacity_zeroed, interval=5, timeout=120)
+            assert instance.get().capacity == 0
 
-                    utils.poll_until(heartbeats_changed, interval=10, timeout=120)
-                    _, current_offline_heartbeat = get_heartbeats()
-                    # assert the offline heartbeat is unchanged
-                    assert current_offline_heartbeat == offline_heartbeat
+            # Check the job we started is marked as failed
+            long_job.wait_until_status(FAIL_STATUSES, interval=5, timeout=180, since_job_created=False)
 
-                    ig = hostname_to_instance_group[hostname]
-                    # we have to fetch the group from an online instance
-                    group = v2.instance_groups.get(id=ig.id).results.pop()
+            # Should fail with explanation:
+            explanation = "Task was marked as running in Tower but was not present in the job queue, so it has been marked as failed."
+            assert long_job.job_explanation == explanation
 
-                    def check_group_capacity_zeroed():
-                        group.get()
-                        return group.capacity == 0
-                    utils.poll_until(check_group_capacity_zeroed, interval=5, timeout=120)
-                    instance = group.related.instances.get().results.pop()
-                    assert instance.capacity == 0
+            # Start a new job against the offline node
+            jt = factories.v2_job_template()
+            jt.ds.inventory.add_host()
+            jt.add_instance_group(ig)
+            job = jt.launch()
 
-                    # Check the job we started is marked as failed
-                    long_job = v2.jobs.get(id=long_job.id).results[0]
-                    long_job.wait_until_status(FAIL_STATUSES, interval=5, timeout=180, since_job_created=False)
+            # Check it stays in pending
+            self.assert_job_stays_pending(job)
 
-                    # Should fail with explanation:
-                    explanation = "Task was marked as running in Tower but was not present in the job queue, so it has been marked as failed."
-                    assert long_job.job_explanation == explanation
+        # Capacity of the instance and the group should be restored
+        def check_group_capacity_restored():
+            ig.get()
+            return ig.capacity == group_capacity
+        utils.poll_until(check_group_capacity_restored, interval=5, timeout=120)
+        assert instance.get().capacity == instance_capacity
 
-                    # Start a new job against the offline node
-                    host = factories.v2_host()
-                    jt = factories.v2_job_template(inventory=host.ds.inventory)
-                    jt.add_instance_group(hostname_to_instance_group[hostname])
-                    job = jt.launch()
+        # Check that the waiting job is picked up and completes
+        job.wait_until_completed(since_job_created=False)
 
-                    # Check it stays in pending
-                    self.assert_job_stays_pending(job)
-
-                # Capacity of the instance and the group should be restored
-                group = v2.instance_groups.get(id=ig.id).results.pop()
-
-                def check_group_capacity_restored():
-                    group.get()
-                    return group.capacity == group_capacity
-                utils.poll_until(check_group_capacity_restored, interval=5, timeout=120)
-                instance = group.related.instances.get().results.pop()
-                assert instance.capacity == instance_capacity
-
-                # Check that the waiting job is picked up and completes
-                job.wait_until_completed(since_job_created=False)
-
-                # Check that we can run a new job against the node
-                job = jt.launch().wait_until_completed()
-                assert job.is_successful
+        # Check that we can run a new job against the node
+        job = jt.launch().wait_until_completed()
+        assert job.is_successful
 
     @pytest.mark.requires_isolation
     @pytest.mark.parametrize('run_on_isolated_group', [True, False], ids=['isolated group', 'regular instance group'])
