@@ -265,7 +265,7 @@ class TestApplicationTokens(APITest):
             assert entry.operation == 'create'
             assert entry.object1 == 'o_auth2_access_token'
             assert entry.related.actor == privileged_user.endpoint.replace('v1', 'v2')
-            assert entry.changes.id == str(token.id)
+            assert entry.changes.id == token.id
 
         with self.current_user(privileged_user):
             token = factories.access_token(oauth_2_application=None)
