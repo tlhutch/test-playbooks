@@ -187,6 +187,7 @@ class TestApplicationTokens(APITest):
     def test_options_validity(self, v2):
         options = v2.tokens.options()
         post = options.actions.POST
+        get = options.actions.GET
 
         application = post.application
         assert application.label == 'Application'
@@ -196,12 +197,12 @@ class TestApplicationTokens(APITest):
         scope = post.scope
         assert scope.label == 'Scope'
         assert scope.type == 'string'
-        assert scope.required is True
+        assert scope.required is False
+        assert scope.default == 'write'
 
-        expires = post.expires
+        expires = get.expires
         assert expires.label == 'Expires'
         assert expires.type == 'datetime'
-        assert expires.required is False
 
     def test_token_creation_without_required_fields(self, v2, factories):
         payload = factories.access_token.payload()
