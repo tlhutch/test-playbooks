@@ -58,7 +58,7 @@ def job_with_multi_ask_credential_and_password_in_payload(request, job_template_
     return jobs_pg.results[0]
 
 
-@pytest.fixture(scope="function", params=['project', 'inventory', 'credential'])
+@pytest.fixture(scope="function", params=['project', 'inventory'])
 def job_with_deleted_related(request, job_with_status_completed):
     """Creates and deletes an related attribute of a job"""
     related_pg = job_with_status_completed.get_related(request.param)
