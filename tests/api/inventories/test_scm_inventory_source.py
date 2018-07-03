@@ -586,30 +586,30 @@ class TestSCMInventorySource(Base_Api_Test):
 
         assert project.wait_until_completed().is_successful
 
-    @pytest.mark.parametrize('scm_url, source_path, expected_error',
-                             [('https://github.com/jlaska/ansible-playbooks.git', 'inventories/invalid_inventory.ini',
+    @pytest.mark.parametrize('scm_url, branch, source_path, expected_error',
+                             [('https://github.com/jlaska/ansible-playbooks.git', '', 'inventories/invalid_inventory.ini',
                                "Invalid section entry: '[syntax ?? error]'"),
-                              ('https://github.com/jlaska/ansible-playbooks.git',
+                              ('https://github.com/jlaska/ansible-playbooks.git', '',
                                'inventories/invalid_dyn_inventory.py',
                                'bad data for the host list'),
-                              ('https://github.com/jlaska/ansible-playbooks.git', 'not_a_source_path',
+                              ('https://github.com/jlaska/ansible-playbooks.git', '', 'not_a_source_path',
                                'Source does not exist'),
-                              ('https://github.com/ansible/ansible.git', 'contrib/inventory/ec2.py',
+                              ('https://github.com/ansible/ansible.git', 'stable-2.3', 'contrib/inventory/ec2.py',
                                'Check your credentials'),
-                              ('https://github.com/ansible/ansible.git', 'contrib/inventory/openstack.py',
+                              ('https://github.com/ansible/ansible.git', 'stable-2.3', 'contrib/inventory/openstack.py',
                                'Auth plugin requires parameters which were not given')],
                              ids=['invalid static', 'invalid dynamic', 'missing from project',
                                   'ec2 auth issue', 'OpenStack auth issue'])
-    def test_failing_scm_inv_source_update_error_reporting(self, request, factories, scm_url, source_path,
+    def test_failing_scm_inv_source_update_error_reporting(self, request, factories, scm_url, branch, source_path,
                                                            expected_error):
-        project = factories.v2_project(scm_url=scm_url)
+        project = factories.v2_project(scm_url=scm_url, scm_branch=branch)
         scm_inv_source = factories.v2_inventory_source(source='scm', project=project,
                                                        source_path=source_path, update_on_project_update=True)
         scm_inv_source.wait_until_completed()
         assert scm_inv_source.status == 'failed'
 
         inv_update = scm_inv_source.related.inventory_updates.get().results.pop()
-        assert expected_error in inv_update.result_stdout
+        assert expected_error in inv_update.result_stdout.replace('\n', ' ')
 
         project_updates = project.related.project_updates.get(launch_type='sync').results
         assert len(project_updates) == 1
