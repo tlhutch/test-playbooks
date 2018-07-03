@@ -14,7 +14,7 @@
   shell: 'ipa role-add-privilege "Tower - Read All" --privileges="Tower - Read All"'
 
 - name: Add the bind user to the role
-  shell: 'ipa role-add-member "Tower - Read All" --user="ldap_binder"'
+  shell: 'ipa role-add-member "Tower - Read All" --user="tower_all"'
 
 - name: Add group-based permissions
   shell: >
