@@ -552,13 +552,11 @@ class TestInventoryUpdate(Base_Api_Test):
         azure_cred = factories.v2_credential(kind='azure_rm', client='SomeClient', cloud_environment='SomeCloudEnvironment',
                                              password='SomePassword', secret='SomeSecret', subscription='SomeSubscription',
                                              tenant='SomeTenant', username='SomeUsername')
-        kwargs = {
-            'credential': azure_cred,
-            'inventory_source': inventory_source,
-        }
-        if inventory_source is None:
-            del kwargs['inventory_source']
-        azure = factories.v2_inventory_source(**kwargs)
+        if inventory_source:
+            azure = factories.v2_inventory_source(credential=azure_cred, inventory_source=inventory_source)
+        else:
+            # custom inventory script created when no inventory_source specified
+            azure = factories.v2_inventory_source(credential=azure_cred)
         update = azure.update().wait_until_completed()
         job_env = update.job_env
         assert job_env.AZURE_CLIENT_ID == 'SomeClient'
