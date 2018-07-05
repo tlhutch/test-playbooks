@@ -28,6 +28,7 @@
     --attrs=objectclass
     --attrs=displayname
     --attrs=givenName
+    --attrs=uid
     --attrs=sn
     --attrs=cn
     --attrs=mail'
