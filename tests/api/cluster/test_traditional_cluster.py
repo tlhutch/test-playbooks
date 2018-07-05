@@ -180,6 +180,14 @@ class TestTraditionalCluster(Base_Api_Test):
             assert len(instances) == len(group_mapping[group.name])
             assert set(instances) == set(group_mapping[group.name])
 
+    def test_instance_groups_do_not_include_isolated_instances(self, v2):
+        igs = [ig for ig in v2.instance_groups.get().results if not ig.controller]
+        isolated_instance_hostnames = [ig.hostname for ig in
+                                       v2.instances.get(rampart_groups__controller__isnull=False).results]
+        for ig in igs:
+            ig_hostnames = [i.hostname for i in ig.related.instances.get().results]
+            assert set(ig_hostnames) & set(isolated_instance_hostnames) == set()
+
     @pytest.mark.parametrize('resource', ['job_template', 'inventory', 'organization'])
     def test_job_template_executes_on_assigned_instance_group(self, v2, factories, resource):
         instance_groups = v2.instance_groups.get().results
