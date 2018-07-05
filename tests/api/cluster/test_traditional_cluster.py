@@ -186,7 +186,7 @@ class TestTraditionalCluster(Base_Api_Test):
                                        v2.instances.get(rampart_groups__controller__isnull=False).results]
         for ig in igs:
             ig_hostnames = [i.hostname for i in ig.related.instances.get().results]
-            assert set(ig_hostnames) & set(isolated_instance_hostnames) == set()
+            assert set(ig_hostnames).isdisjoint(set(isolated_instance_hostnames))
 
     @pytest.mark.parametrize('resource', ['job_template', 'inventory', 'organization'])
     def test_job_template_executes_on_assigned_instance_group(self, v2, factories, resource):
