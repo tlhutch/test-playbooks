@@ -224,73 +224,25 @@ class TestTraditionalCluster(Base_Api_Test):
             [instance.hostname for instance in ig.related.instances.get().results], \
             "Job should execute on a node in the 'isolated' instance group"
 
+    @pytest.mark.github('https://github.com/ansible/tower/issues/2394')
     def test_isolated_instance_cannot_be_added_to_instance_group(self, v2):
         iso_instances = v2.instances.get(rampart_groups__controller__isnull=False).results
-        instance_groups = [ig for ig in v2.instance_groups.get().results if not ig.controller]
+        instance_groups = [ig for ig in v2.instance_groups.get().results]
 
         for ig in instance_groups:
             for instance in iso_instances:
                 with pytest.raises(exc.Forbidden):
                     ig.add_instance(instance)
 
-    def test_isolated_instance_cannot_be_removed_from_instance_group(self, v2):
+    @pytest.mark.gethub('https://github.com/ansible/tower/issues/2390')
+    def test_isolated_instance_cannot_be_removed_from_isolated_group(self, v2):
         iso_instance_groups = [ig for ig in v2.instance_groups.get().results if ig.controller]
         for ig in iso_instance_groups:
             for instance in ig.related.instances.get().results:
                 with pytest.raises(exc.Forbidden):
                     ig.remove_instance(instance)
 
-    def test_isolated_instances_not_included_in_new_instance_group(self, v2, factories):
-        iso_hostnames = [i.hostname for i in v2.instances.get(rampart_groups__controller__isnull=False).results]
-        ig = factories.instance_group()
-
-        i = 0
-        while i < 15:
-            ig_hostnames = [instance.hostname for instance in ig.related.instances.get().results]
-            assert set(iso_hostnames) & set(ig_hostnames) == set()
-            i += 1
-            time.sleep(1)
-
-    def test_isolated_instances_not_included_in_instance_group_with_policy(self, v2, factories):
-        iso_instances = v2.instances.get(rampart_groups__controller__isnull=False).results
-        iso_hostnames = [i.hostname for i in iso_instances]
-        full_instances = v2.instances.get(rampart_groups__controller__isnull=True).results
-
-        pct_ig = factories.instance_group(policy_instance_percentage=100)
-        min_ig = factories.instance_group(policy_instance_minimum=len(full_instances) + len(iso_instances))
-        mixed_policy_ig = factories.instance_group(policy_instance_percentage=100,
-                                                   policy_instance_minimum=len(full_instances) + len(iso_instances))
-
-        i = 0
-        while i < 30:
-            for ig in (pct_ig, min_ig, mixed_policy_ig):
-                ig_hostnames = [instance.hostname for instance in ig.related.instances.get().results]
-                assert set(iso_hostnames) & set(ig_hostnames) == set()
-            i += 1
-            time.sleep(1)
-
-    def test_isolated_instances_not_included_in_instance_group_with_updated_policy(self, v2, factories):
-        iso_instances = v2.instances.get(rampart_groups__controller__isnull=False).results
-        iso_hostnames = [i.hostname for i in iso_instances]
-        full_instances = v2.instances.get(rampart_groups__controller__isnull=True).results
-
-        pct_ig = factories.instance_group()
-        min_ig = factories.instance_group()
-        mixed_policy_ig = factories.instance_group()
-
-        pct_ig.policy_instance_percentage = 100
-        min_ig.policy_instance_minimum = len(full_instances) + len(iso_instances)
-        mixed_policy_ig.policy_instance_percentage = 100
-        mixed_policy_ig.policy_instance_minimum = len(full_instances) + len(iso_instances)
-
-        i = 0
-        while i < 30:
-            for ig in (pct_ig, min_ig, mixed_policy_ig):
-                ig_hostnames = [instance.hostname for instance in ig.related.instances.get().results]
-                assert set(iso_hostnames) & set(ig_hostnames) == set()
-            i += 1
-            time.sleep(1)
-
+    @pytest.mark.github('https://github.com/ansible/tower/issues/2393')
     def test_cannot_delete_controller_instance_group(self, v2):
         controller_ig_names = [ig.controller for ig in v2.instance_groups.get().results if ig.controller]
         controller_igs = [v2.instance_groups.get(name=name).results.pop() for name in controller_ig_names]
@@ -305,23 +257,6 @@ class TestTraditionalCluster(Base_Api_Test):
         for ig in isolated_groups:
             with pytest.raises(exc.Forbidden):
                 ig.delete()
-
-    def test_instance_groups_do_not_include_isolated_instances(self, v2):
-        igs = [ig for ig in v2.instance_groups.get().results if not ig.controller]
-        isolated_instance_hostnames = [ig.hostname for ig in
-                                       v2.instances.get(rampart_groups__controller__isnull=False).results]
-        for ig in igs:
-            ig_hostnames = [i.hostname for i in ig.related.instances.get().results]
-            assert set(ig_hostnames) & set(isolated_instance_hostnames) == set()
-
-    def test_cannot_associate_isolated_instance_with_instance_group(self, v2):
-        isolated_instances = v2.instances.get(rampart_groups__controller__isnull=False).results
-        igs = [ig for ig in v2.instance_groups.get().results if not ig.controller]
-
-        for ig in igs:
-            for isolated_instance in isolated_instances:
-                with pytest.raises(exc.Forbidden):
-                    ig.add_instance(isolated_instance)
 
     @pytest.mark.requires_isolation
     @pytest.mark.parametrize('base_resource, parent_resource', [('job_template', 'inventory'), ('job_template', 'organization'), ('inventory', 'organization')])
