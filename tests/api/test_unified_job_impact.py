@@ -16,7 +16,7 @@ class TestUnifiedJobImpact(Base_Api_Test):
         ig.add_instance(instance)
         return ig
 
-    def unified_job_impact(self, unified_job_type, forks=None, num_hosts=None):
+    def unified_job_impact(self, unified_job_type, forks=0, num_hosts=0):
         if unified_job_type in ('job', 'ahc'):
             if forks == 0:
                 return min(num_hosts, 5) + 1
