@@ -9,10 +9,11 @@ import time
 import traceback
 
 import pytest
-
-from tests.api import Base_Api_Test
 from towerkit import utils
 from towerkit.api import Connection
+import towerkit.exceptions as exc
+
+from tests.api import Base_Api_Test
 
 log = logging.getLogger(__name__)
 
@@ -179,6 +180,14 @@ class TestTraditionalCluster(Base_Api_Test):
             assert len(instances) == len(group_mapping[group.name])
             assert set(instances) == set(group_mapping[group.name])
 
+    def test_instance_groups_do_not_include_isolated_instances(self, v2):
+        igs = [ig for ig in v2.instance_groups.get().results if not ig.controller]
+        isolated_instance_hostnames = [ig.hostname for ig in
+                                       v2.instances.get(rampart_groups__controller__isnull=False).results]
+        for ig in igs:
+            ig_hostnames = [i.hostname for i in ig.related.instances.get().results]
+            assert set(ig_hostnames).isdisjoint(set(isolated_instance_hostnames))
+
     @pytest.mark.parametrize('resource', ['job_template', 'inventory', 'organization'])
     def test_job_template_executes_on_assigned_instance_group(self, v2, factories, resource):
         instance_groups = v2.instance_groups.get().results
@@ -222,6 +231,40 @@ class TestTraditionalCluster(Base_Api_Test):
         assert job.execution_node in \
             [instance.hostname for instance in ig.related.instances.get().results], \
             "Job should execute on a node in the 'isolated' instance group"
+
+    @pytest.mark.github('https://github.com/ansible/tower/issues/2394')
+    def test_isolated_instance_cannot_be_added_to_instance_group(self, v2):
+        iso_instances = v2.instances.get(rampart_groups__controller__isnull=False).results
+        instance_groups = [ig for ig in v2.instance_groups.get().results]
+
+        for ig in instance_groups:
+            for instance in iso_instances:
+                with pytest.raises(exc.Forbidden):
+                    ig.add_instance(instance)
+
+    @pytest.mark.gethub('https://github.com/ansible/tower/issues/2390')
+    def test_isolated_instance_cannot_be_removed_from_isolated_group(self, v2):
+        iso_instance_groups = [ig for ig in v2.instance_groups.get().results if ig.controller]
+        for ig in iso_instance_groups:
+            for instance in ig.related.instances.get().results:
+                with pytest.raises(exc.Forbidden):
+                    ig.remove_instance(instance)
+
+    @pytest.mark.github('https://github.com/ansible/tower/issues/2393')
+    def test_cannot_delete_controller_instance_group(self, v2):
+        controller_ig_names = [ig.controller for ig in v2.instance_groups.get().results if ig.controller]
+        controller_igs = [v2.instance_groups.get(name=name).results.pop() for name in controller_ig_names]
+
+        for ig in controller_igs:
+            with pytest.raises(exc.Forbidden):
+                ig.delete()
+
+    def test_cannot_delete_isolated_group(self, v2):
+        isolated_groups = [ig for ig in v2.instance_groups.get().results if ig.controller]
+
+        for ig in isolated_groups:
+            with pytest.raises(exc.Forbidden):
+                ig.delete()
 
     @pytest.mark.requires_isolation
     @pytest.mark.parametrize('base_resource, parent_resource', [('job_template', 'inventory'), ('job_template', 'organization'), ('inventory', 'organization')])
