@@ -33,7 +33,7 @@ class Test_Copy_Inventory(Base_Api_Test):
         check_fields(old_host, new_host, identical_fields, unequal_fields)
 
     def test_copy_normal_inventory_with_variables(self, factories, copy_with_teardown):
-        inventory = factories.v2_inventory(variables='{"foo":"bar"}')
+        inventory = factories.v2_inventory(variables='{"foo": "bar"}')
         new_inventory = copy_with_teardown(inventory)
         check_fields(inventory, new_inventory, self.identical_fields, self.unequal_fields)
 
@@ -60,7 +60,7 @@ class Test_Copy_Inventory(Base_Api_Test):
         smart_inventory = factories.v2_inventory(organization=organization, kind='smart', host_filter='id__gt=0')
         assert smart_inventory.total_hosts == 1
 
-        new_inventory = smart_inventory.copy()
+        new_inventory = copy_with_teardown(smart_inventory)
         check_fields(smart_inventory, new_inventory, self.identical_fields, self.unequal_fields)
 
     def test_copy_inventory_hosts_and_groups(self, factories, copy_with_teardown):

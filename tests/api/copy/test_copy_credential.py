@@ -30,16 +30,15 @@ class Test_Copy_Credential(Base_Api_Test):
         check_fields(cred_with_extra_vars, copied_cred, self.identical_fields, self.unequal_fields)
 
         # Create a job template using the copied credential
-        inv = factories.v2_inventory()
-        factories.v2_host(inventory=inv)
-        job_template = factories.v2_job_template(inventory=inv, playbook="debug_extra_vars.yml")
+        host = factories.v2_host()
+        job_template = factories.v2_job_template(inventory=host.ds.inventory, playbook="debug_extra_vars.yml")
         job_template.add_credential(copied_cred)
 
         # Launch the job
         job = job_template.launch().wait_until_completed()
-        assert job.is_successful, "Job unsuccessful - %s." % job
+        assert job.is_successful, "Job unsuccessful - {}.".format(job)
 
         # Check the output of the job
         job.related.stdout.get(format='txt_download')
         stdout = job.result_stdout
-        assert var1_value in stdout, "Unexpected stdout - %s" % stdout
+        assert var1_value in stdout, "Unexpected stdout - {}".format(stdout)
