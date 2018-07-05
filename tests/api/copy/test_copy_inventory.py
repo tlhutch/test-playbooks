@@ -66,22 +66,21 @@ class Test_Copy_Inventory(Base_Api_Test):
     def test_copy_inventory_hosts_and_groups(self, factories, copy_with_teardown):
         # Create a DAG of groups and hosts
         inventory = factories.v2_inventory()
-        groups = [factories.v2_group(inventory=inventory, variables='{"foo":"bar"}') for _ in range(4)]
-        hosts = [factories.v2_host(inventory=inventory, enabled=gen_boolean(), variables='{"foo":"bar"}',
-                                    instance_id=gen_alpha()) for _ in range(3)]
+        groups = [factories.v2_group(inventory=inventory, variables='{"foo": "bar"}') for _ in range(4)]
+        hosts = [factories.v2_host(inventory=inventory, enabled=gen_boolean(), variables='{"foo": "bar"}',
+                                   instance_id=gen_alpha()) for _ in range(3)]
         groups[0].add_group(groups[1])
         groups[0].add_group(groups[2])
         groups[1].add_group(groups[2])
         groups[1].add_host(hosts[0])
         groups[2].add_host(hosts[0])
         groups[2].add_host(hosts[1])
-        inventory.get()
-        assert inventory.total_groups == len(groups)
+        assert inventory.get().total_groups == len(groups)
         assert inventory.total_hosts == len(hosts)
 
         # Make a copy
         old_inventory = inventory
-        new_inventory = inventory.copy()
+        new_inventory = copy_with_teardown(inventory)
         poll_until(lambda: check_fields(inventory, new_inventory.get(),
                                         self.identical_fields, self.unequal_fields, no_assert=True),
                    timeout=30)
@@ -114,7 +113,7 @@ class Test_Copy_Inventory(Base_Api_Test):
                 self.check_host_fields(old_hosts[i], new_hosts[i], old_inventory, new_inventory)
         assert not new_frontier
 
-    @pytest.mark.github('https://github.com/ansible/tower/issues/2303')
+    @pytest.mark.github('https://github.com/ansible/tower/issues/2679')
     def test_copy_inventory_with_sources(self, cloud_inventory, copy_with_teardown):
         assert cloud_inventory.get().has_inventory_sources
         new_inventory = copy_with_teardown(cloud_inventory)
@@ -123,26 +122,3 @@ class Test_Copy_Inventory(Base_Api_Test):
                    timeout=30)
 
     # TODO: test source from project
-    # TODO: test credential of sources
-
-    def test_copy_inventory_insights_credential_with_permission(self, factories, copy_with_teardown):
-        insights_cred = factories.v2_credential(kind='insights')
-        inventory = factories.v2_inventory(insights_credential=insights_cred.id)
-        assert inventory.insights_credential == insights_cred.id
-
-        new_inventory = copy_with_teardown(inventory)
-        check_fields(inventory, new_inventory, self.identical_fields, self.unequal_fields)
-        assert new_inventory.insights_credential == inventory.insights_credential
-
-    @pytest.mark.github('https://github.com/ansible/tower/issues/2263')
-    def test_copy_inventory_insights_credential_without_permission(self, factories, copy_with_teardown, set_test_roles):
-        insights_cred = factories.v2_credential(kind='insights')
-        organization = factories.v2_organization()
-        inventory = factories.v2_inventory(organization=organization, insights_credential=insights_cred.id)
-        user = factories.user()
-        set_test_roles(user, organization, 'user', 'admin')
-
-        with self.current_user(user):
-            new_inventory = copy_with_teardown(inventory)
-            check_fields(inventory, new_inventory, self.identical_fields, self.unequal_fields)
-            assert not new_inventory.insights_credential

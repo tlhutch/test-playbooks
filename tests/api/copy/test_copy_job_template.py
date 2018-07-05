@@ -1,4 +1,3 @@
-from fauxfactory import gen_boolean, gen_alpha, gen_choice, gen_integer, gen_alphanumeric
 from towerkit import exceptions as exc
 import pytest
 
@@ -21,15 +20,14 @@ class Test_Copy_Job_Template(Base_Api_Test):
 
     @pytest.mark.parametrize("same_org_proj", [True, False], ids=['same_org_proj', 'another_org_proj'])
     @pytest.mark.parametrize("same_org_inv", [True, False], ids=['same_org_inv', 'another_org_inv'])
-    def test_org_admin_can_copy(self, factories, copy_with_teardown, same_org_proj, same_org_inv, set_test_roles):
-        orgA = factories.v2_organization()
-        orgB = factories.v2_organization()
+    def test_org_admin_can_copy(self, factories, copy_with_teardown, same_org_proj, same_org_inv):
+        orgA, orgB = [factories.v2_organization() for _ in range(2)]
         project = factories.v2_project(organization=orgA if same_org_proj else orgB)
         inventory = factories.v2_inventory(organization=orgA if same_org_inv else orgB)
         jt = factories.v2_job_template(inventory=inventory, project=project)
         user = factories.user()
-        set_test_roles(user, orgA, 'user', 'admin')
-        set_test_roles(user, jt, 'user', 'admin')
+        orgA.set_object_roles(user, 'admin')
+        jt.set_object_roles(user, 'admin')
 
         with self.current_user(user):
             can_copy = same_org_proj and same_org_inv
@@ -39,76 +37,16 @@ class Test_Copy_Job_Template(Base_Api_Test):
                 copy_with_teardown(jt)
             else:
                 with pytest.raises(exc.Forbidden):
-                    jt.copy()
+                    copy_with_teardown(jt)
 
     def test_copy_normal(self, factories, copy_with_teardown):
         jt = factories.v2_job_template()
         new_jt = copy_with_teardown(jt)
         check_fields(jt, new_jt, self.identical_fields, self.unequal_fields)
 
-    def test_copy_jt_with_non_default_values(self, v2, factories, copy_with_teardown):
-        post_options = v2.job_templates.options().actions.POST
-        job_types = dict(post_options.job_type.choices).keys()
-        verbosities = dict(post_options.verbosity.choices).keys()
-
-        min_int32 = -1 << 31
-        max_int32 = 1 << 31 - 1
-
-        jt = factories.v2_job_template(job_type=gen_choice(job_types), limit=gen_alpha(), extra_vars='{"foo":"bar"}',
-                                       forks=gen_integer(min_value=0, max_value=max_int32),
-                                       verbosity=gen_choice(verbosities), job_tags=gen_alpha(),
-                                       force_handlers=gen_boolean(), skip_tags=gen_alpha(), start_at_task=gen_alpha(),
-                                       timeout=gen_integer(min_value=min_int32, max_value=max_int32),
-                                       use_fact_cache=gen_boolean(), host_config_key=gen_alphanumeric(length=32),
-                                       ask_diff_mode_on_launch=gen_boolean(), ask_variables_on_launch=gen_boolean(),
-                                       ask_limit_on_launch=gen_boolean(), ask_tags_on_launch=gen_boolean(),
-                                       ask_skip_tags_on_launch=gen_boolean(), ask_job_type_on_launch=gen_boolean(),
-                                       ask_verbosity_on_launch=gen_boolean(), ask_inventory_on_launch=gen_boolean(),
-                                       ask_credential_on_launch=gen_boolean(), survey_enabled=gen_boolean(),
-                                       become_enabled=gen_boolean(), diff_mode=gen_boolean(),
-                                       allow_simultaneous=gen_boolean())
-        new_jt = copy_with_teardown(jt)
-        check_fields(jt, new_jt, self.identical_fields, self.unequal_fields)
-
-    def test_copy_references_with_permission(self, factories, copy_with_teardown):
-        vault_cred = factories.v2_credential(kind='vault', vault_password=gen_alpha())
-        machine_cred = factories.v2_credential(kind='ssh')
-        jt = factories.v2_job_template(credential=machine_cred, vault_credential=vault_cred.id)
-        cred_ids = [cred.id for cred in jt.related.credentials.get().results]
-
-        assert jt.vault_credential == vault_cred.id
-        assert jt.credential == machine_cred.id
-        assert len(cred_ids) == 2
-        assert vault_cred.id in cred_ids
-        assert machine_cred.id in cred_ids
-
-        new_jt = copy_with_teardown(jt)
-        new_cred_ids = [cred.id for cred in new_jt.related.credentials.get().results]
-        check_fields(jt, new_jt, self.identical_fields, self.unequal_fields)
-        assert new_jt.vault_credential == jt.vault_credential
-        assert new_jt.credential == jt.credential
-        assert sorted(new_cred_ids) == sorted(cred_ids)
-
-    @pytest.mark.github('https://github.com/ansible/tower/issues/2263')
-    def test_copy_references_without_permission(self, factories, copy_with_teardown, set_test_roles):
-        orgA = factories.v2_organization()
-        orgB = factories.v2_organization()
-        vault_cred = factories.v2_credential(kind='vault', vault_password=gen_alpha(), organization=orgA)
-        machine_cred = factories.v2_credential(kind='ssh', organization=orgA)
-        project = factories.v2_project(organization=orgB)
-        inventory = factories.v2_inventory(organization=orgB)
-        jt = factories.v2_job_template(inventory=inventory, project=project, credential=machine_cred,
-                                       vault_credential=vault_cred.id)
-        user = factories.user()
-        set_test_roles(user, orgB, 'user', 'admin')
-
-        with self.current_user(user):
-            new_jt = copy_with_teardown(jt)
-            check_fields(jt, new_jt, self.identical_fields, self.unequal_fields)
-            new_cred_ids = [cred.id for cred in new_jt.related.credentials.get().results]
-            assert not new_jt.vault_credential
-            assert not new_jt.credential
-            assert len(new_cred_ids) == 0
+    def test_copy_jt_with_non_default_values(self, factories, job_template_with_random_attributes, copy_with_teardown):
+        new_jt = copy_with_teardown(job_template_with_random_attributes)
+        check_fields(job_template_with_random_attributes, new_jt, self.identical_fields, self.unequal_fields)
 
     def test_copy_jt_instance_groups(self, factories, copy_with_teardown):
         ig = factories.instance_group()

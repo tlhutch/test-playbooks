@@ -55,7 +55,7 @@ class Test_Copy_Workflow_Job_Template(Base_Api_Test):
                                            ask_tags_on_launch=gen_boolean(), ask_skip_tags_on_launch=gen_boolean(),
                                            ask_limit_on_launch=gen_boolean(), ask_verbosity_on_launch=gen_boolean(),
                                            ask_diff_mode_on_launch=gen_boolean())
-            extra_data = '{"foo":"bar"}' if jt.ask_variables_on_launch else ''
+            extra_data = '{"foo": "bar"}' if jt.ask_variables_on_launch else ''
             job_type = gen_choice(job_types) if jt.ask_job_type_on_launch else None
             job_tags = gen_alpha() if jt.ask_tags_on_launch else None
             skip_tags = gen_alpha() if jt.ask_skip_tags_on_launch else None
@@ -74,7 +74,7 @@ class Test_Copy_Workflow_Job_Template(Base_Api_Test):
         check_fields(wfjt, new_wfjt, self.identical_fields, self.unequal_fields)
 
     def test_copy_wfjt_with_non_default_values(self, factories, copy_with_teardown):
-        wfjt = factories.v2_workflow_job_template(extra_vars='{"foo":"bar"}', survey_enabled=gen_boolean(),
+        wfjt = factories.v2_workflow_job_template(extra_vars='{"foo": "bar"}', survey_enabled=gen_boolean(),
                                                   allow_simultaneous=gen_boolean(),
                                                   ask_variables_on_launch=gen_boolean())
         new_wfjt = copy_with_teardown(wfjt)
@@ -144,50 +144,3 @@ class Test_Copy_Workflow_Job_Template(Base_Api_Test):
             old_frontier.extend(sorted(self.get_node_children(old_node, old_nodes), key=lambda n: n.unified_job_template))
             new_frontier.extend(sorted(self.get_node_children(new_node, new_nodes), key=lambda n: n.unified_job_template))
         assert not new_frontier
-
-    def test_copy_wfjt_node_references_with_permission(self, factories, copy_with_teardown):
-        jt = factories.v2_job_template(ask_credential_on_launch=True, ask_inventory_on_launch=True)
-        wfjt = factories.v2_workflow_job_template()
-        wfjtn = factories.v2_workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt,
-                                                        credential=jt.ds.credential, inventory=jt.ds.inventory)
-        assert wfjtn.unified_job_template == jt.id
-        assert wfjtn.inventory == jt.ds.inventory.id
-        assert wfjtn.credential == jt.ds.credential.id
-
-        new_wfjt = copy_with_teardown(wfjt)
-        poll_until(lambda: new_wfjt.related.workflow_nodes.get().count == 1, timeout=30)
-        check_fields(wfjt, new_wfjt, self.identical_fields, self.unequal_fields)
-
-        new_wfjtn = new_wfjt.related.workflow_nodes.get().results[0]
-        self.check_node_fields(wfjtn, new_wfjtn, wfjt, new_wfjt)
-        assert wfjtn.unified_job_template == new_wfjtn.unified_job_template
-        assert wfjtn.inventory == new_wfjtn.inventory
-        assert wfjtn.credential == new_wfjtn.credential
-
-    def test_copy_wfjt_node_references_without_permission(self, factories, copy_with_teardown, set_test_roles):
-        orgA = factories.v2_organization()
-        orgB = factories.v2_organization()
-        cred = factories.v2_credential(kind='ssh', organization=orgA)
-        inv = factories.v2_inventory(organization=orgA)
-        jt = factories.v2_job_template(ask_credential_on_launch=True, ask_inventory_on_launch=True,
-                                       credential=cred, inventory=inv)
-        wfjt = factories.v2_workflow_job_template(organization=orgB)
-        wfjtn = factories.v2_workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt,
-                                                        credential=cred, inventory=inv)
-        assert wfjtn.unified_job_template == jt.id
-        assert wfjtn.inventory == inv.id
-        assert wfjtn.credential == cred.id
-
-        user = factories.user()
-        set_test_roles(user, orgB, 'user', 'admin')
-
-        with self.current_user(user):
-            new_wfjt = copy_with_teardown(wfjt)
-            poll_until(lambda: new_wfjt.related.workflow_nodes.get().count == 1, timeout=30)
-            check_fields(wfjt, new_wfjt, self.identical_fields, self.unequal_fields)
-
-            new_wfjtn = new_wfjt.related.workflow_nodes.get().results[0]
-            self.check_node_fields(wfjtn, new_wfjtn, wfjt, new_wfjt)
-            assert not new_wfjtn.unified_job_template
-            assert not new_wfjtn.credential
-            assert not new_wfjtn.inventory
