@@ -239,8 +239,9 @@ class TestTraditionalCluster(Base_Api_Test):
 
         for ig in instance_groups:
             for instance in iso_instances:
-                with pytest.raises(exc.Forbidden):
+                with pytest.raises(exc.BadRequest) as err:
                     ig.add_instance(instance)
+                assert 'Isolated instances may not be added or removed from instances groups via the API.' == err.value.message['error']
 
     @pytest.mark.gethub('https://github.com/ansible/tower/issues/2390')
     def test_isolated_instance_cannot_be_removed_from_isolated_group(self, v2):
