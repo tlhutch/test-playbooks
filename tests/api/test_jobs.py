@@ -314,6 +314,22 @@ class Test_Job(Base_Api_Test):
         assert relaunched_job.is_successful
         assert json.loads(relaunched_job.extra_vars) == {}
 
+    def test_relaunch_failed_hosts(self, factories):
+        jt = factories.v2_job_template(playbook='gen_host_status.yml')
+        hosts = [factories.v2_host(name=name, inventory=jt.ds.inventory, variables={}) for name in
+                 ('1_ok', '2_skipped', '3_changed', '4_failed', '5_ignored', '6_rescued', '7_unreachable')]
+        job = jt.launch().wait_until_completed()
+        assert not job.is_successful
+        assert job.related.relaunch.get().retry_counts.all == 7
+        assert job.related.relaunch.get().retry_counts.failed == 3
+
+        hosts = [host.patch(name=name) for host, name in
+                 zip(hosts, ('1_failed', '2_failed', '3_failed', '4_ok', '5_failed', '6_ok', '7_ok'))]
+        relaunched_job = job.relaunch(payload={'hosts': 'failed'}).wait_until_completed()
+        assert relaunched_job.is_successful
+        assert relaunched_job.related.relaunch.get().retry_counts.all == 3
+        assert relaunched_job.related.relaunch.get().retry_counts.failed == 0
+
     @pytest.mark.github('https://github.com/ansible/tower/issues/1112')
     def test_password_survey_launched_with_empty_extra_vars(self, factories):
         """Confirms that password surveys with defaults are displayed (and encrypted) when
