@@ -46,12 +46,21 @@ class TestJobTemplateExtraVars(Base_Api_Test):
 
     def test_confirm_invalid_extra_vars_rejected(self, factories):
         jt = factories.v2_job_template()
-        for invalid in ('"{"', ('a', 'b'), ('one=1', 'two=2'), 0, 0.1, True, [1, 2, 3],
-                        ['a', 'b', 'c'], '["a", "b", "c"]'):
+        for invalid, message in (
+                ('"{"', 'Input type `str` is not a dictionary'),
+                (('a', 'b'), 'No JSON object could be decoded'),
+                (('one=1', 'two=2'), 'No JSON object could be decoded'),
+                (0, 'Input type `int` is not a dictionary'),
+                (0.1, 'Input type `float` is not a dictionary'),
+                (True, 'Input type `bool` is not a dictionary'),
+                ([1, 2, 3], 'Input type `list` is not a dictionary'),
+                (['a', 'b', 'c'], 'Input type `list` is not a dictionary'),
+                ('["a", "b", "c"]', 'Input type `list` is not a dictionary')):
             with pytest.raises(towerkit.exceptions.BadRequest) as e:
                 print utils.to_str(invalid)
                 jt.extra_vars = utils.to_str(invalid)
-            assert e.value.message == {'extra_vars': ['Must be valid JSON or YAML.']}
+            assert 'extra_vars' in e.value.message
+            assert message in e.value.message['extra_vars'][0]
 
     @pytest.mark.github('https://github.com/ansible/tower/issues/1408')
     def test_confirm_recursive_extra_vars_rejected(self, factories):
