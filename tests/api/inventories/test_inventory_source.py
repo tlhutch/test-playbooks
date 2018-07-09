@@ -47,7 +47,7 @@ class TestInventorySource(Base_Api_Test):
 
         with pytest.raises(exc.Conflict) as e:
             inv_source.delete()
-        assert e.value[1] == {'conflict': 'Resource is being used by running jobs.', 'active_jobs': [{'type': 'inventory_update', u'id': inv_update.id}]}
+        assert e.value[1] == {'error': 'Resource is being used by running jobs.', 'active_jobs': [{'type': 'inventory_update', u'id': inv_update.id}]}
 
         assert inv_source.wait_until_completed().is_successful
         assert inv_update.get().is_successful
