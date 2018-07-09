@@ -30,7 +30,7 @@ class TestJobTemplateLaunchCredentials(Base_Api_Test):
         launch = job_template_no_credential.related.launch.get()
 
         assert launch.can_start_without_user_input
-        assert launch.ask_credential_on_launch
+        assert not launch.ask_credential_on_launch
         assert not launch.ask_variables_on_launch
         assert not launch.passwords_needed_to_start
         assert not launch.variables_needed_to_start
