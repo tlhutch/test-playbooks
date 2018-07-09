@@ -1,7 +1,7 @@
 from copy import deepcopy
 
 from towerkit.utils import random_title
-from towerkit import config
+from towerkit import config, exceptions
 import pytest
 
 from tests.api import Base_Api_Test
@@ -136,3 +136,72 @@ class TestLDAP(Base_Api_Test):
             assert sterling.related.organizations.get().count == 0
             assert sterling.related.teams.get().count == 0
         ldap_clean_users_orgs_teams(sterling)
+
+    def test_multi_ldap_user_can_authenticate_after_error_in_earlier_directory(self, v2, api_settings_ldap_pg, update_setting_pg, ldap_clean_users_orgs_teams):
+        '''In the event that an eariler directory becomes unavailable,
+            continue to attempt authenticating the user on other directories.'''
+        default_ldap_settings = deepcopy(self.base_ldap_settings)
+        default_ldap_settings['AUTH_LDAP_BIND_PASSWORD'] = 'Borked'
+        ldap_settings = [self.create_additional_directory_config(n, u) for n, u in [('1', 'tower_0'),
+                                                                                    ('2', 'tower_1')]]
+        update_setting_pg(api_settings_ldap_pg, default_ldap_settings)
+        [update_setting_pg(api_settings_ldap_pg, s) for s in ldap_settings]
+        with self.current_user('sarcher', self.ldap_password):
+            sterling = v2.me.get().results.pop()
+            assert sterling.first_name == 'Sterling'
+            assert sterling.last_name == 'Archer'
+            assert sterling.related.organizations.get().count == 0
+            assert sterling.related.teams.get().count == 0
+        ldap_clean_users_orgs_teams(sterling)
+
+    def test_ldap_user_attributes_are_changed_if_config_updated(self, v2, api_settings_ldap_pg, update_setting_pg, ldap_clean_users_orgs_teams):
+        ''' If the attribute map changes, make sure new values
+            are set on existing user accts on login'''
+        default_ldap_settings = deepcopy(self.base_ldap_settings)
+        default_ldap_settings['AUTH_LDAP_USER_ATTR_MAP'] = {'first_name':'foo',
+                                                            'last_name':'bar',
+                                                            'email':'bin'}
+        update_setting_pg(api_settings_ldap_pg, default_ldap_settings)
+        with self.current_user('sarcher', self.ldap_password):
+            v2.me.get().results.pop()
+        default_ldap_settings['AUTH_LDAP_USER_ATTR_MAP'] = self.base_ldap_settings['AUTH_LDAP_USER_ATTR_MAP']
+        update_setting_pg(api_settings_ldap_pg, default_ldap_settings)
+        with self.current_user('sarcher', self.ldap_password):
+            sterling = v2.me.get().results.pop()
+        ldap_clean_users_orgs_teams(sterling)
+        assert sterling.first_name == 'Sterling'
+        assert sterling.last_name == 'Archer'
+
+
+    @pytest.mark.github('https://github.com/ansible/tower/issues/2465')
+    def test_ldap_user_does_not_get_created_if_group_search_is_misconfigured(self, v2, api_settings_ldap_pg, update_setting_pg, ldap_clean_users_orgs_teams):
+        ''' if the LDAP directory is configured with the wrong attributes,
+        don't create the user'''
+        default_ldap_settings = deepcopy(self.base_ldap_settings)
+        default_ldap_settings['AUTH_LDAP_GROUP_SEARCH'] = []
+        update_setting_pg(api_settings_ldap_pg, default_ldap_settings)
+        with self.current_user('sarcher', self.ldap_password):
+            with pytest.raises(exceptions.Unauthorized):
+                v2.me.get().results.pop()
+        bad_config_count = len(v2.users.get(username='sarcher').results)
+        default_ldap_settings['AUTH_LDAP_GROUP_SEARCH'] = self.base_ldap_settings['AUTH_LDAP_GROUP_SEARCH']
+        update_setting_pg(api_settings_ldap_pg, default_ldap_settings)
+        with self.current_user('sarcher', self.ldap_password):
+            try:
+                sterling_valid_login = False
+                sterling_valid_login = v2.me.get().results.pop()
+            except:
+                pass
+        good_config_count = len(v2.users.get(username='sarcher').results)
+        try:
+            sterling = v2.users.get(username='sarcher').results.pop()
+            ldap_clean_users_orgs_teams(sterling)
+        except NameError:
+            pass
+        assert bad_config_count == 0
+        assert good_config_count == 0
+        assert sterling_valid_login
+
+
+
+
