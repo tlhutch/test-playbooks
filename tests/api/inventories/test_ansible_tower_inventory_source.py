@@ -99,4 +99,4 @@ class TestAnsibleTowerInventorySource(Base_Api_Test):
         update = tower_inv_src.update().wait_until_completed()
         assert update.failed
         assert update.status == 'failed'
-        assert "You do not have permission to perform this action." in update.result_stdout
+        assert "You do not have permission to perform this action." in update.result_stdout.replace('\n', ' ')
