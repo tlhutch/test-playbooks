@@ -26,9 +26,32 @@ openshift_pg_emptydir: yes
 ```
 ./setup_openshift -b -e @vars.yml -e openshift_password=your_password
 ```
-* Delete your resources and your inventory file.
+* Delete your resources.
 * Restore with:
 ```
 ./setup_openshift -r -e @vars.yml -e openshift_password=your_password
 ```
-* Check restored Tower resources and inventory file.
+* Check restored Tower resources.
+* Cluster topology should be restored. So for instance, if you had three Tower pods to begin with, you should end up with three Tower pods.
+
+To verify backup restore with an external database:
+* You are going to have to find a postgres instance to use. You can borrow one from the nightlies.
+* You are going to have to install Tower with the following variables:
+```
+pg_hostname=ec2-fake.amazonaws.com  
+#
+# Will use an emptyDir volume for the postgres pod.
+# Use for demos or testing purposes only
+# openshift_pg_emptydir=false
+# pg_pvc_name=postgresql
+pg_username=awx
+pg_password=Th1sP4ssd
+pg_database=awx
+pg_port=5432
+```
+* You are going to have to [enable](https://bosnadev.com/2015/12/15/allow-remote-connections-postgresql-database-server/) postgres to listen to remote connections.
+* Create some Tower resource and perform a backup.
+* Delete these resources, perform a restoration.
+* Tower resources should be restored as well as the number of Tower pods (if we started out with three, we should have three again).
+
+Written by [Christopher Wang](mailto:chrwang@redhat.com) (Github: simfarm) July 9, 2018.
