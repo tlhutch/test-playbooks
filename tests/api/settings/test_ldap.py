@@ -17,7 +17,7 @@ class TestLDAP(Base_Api_Test):
     user_base_dn = 'cn=users,cn=accounts,dc=testing,dc=ansible,dc=com'
     base_ldap_settings = dict(
         AUTH_LDAP_SERVER_URI='ldap://idp.testing.ansible.com',
-        AUTH_LDAP_BIND_DN='uid=tower_all,%s' % user_base_dn,
+        AUTH_LDAP_BIND_DN='uid=tower_all,{}'.format(user_base_dn),
         AUTH_LDAP_BIND_PASSWORD=ldap_password,
         AUTH_LDAP_USER_SEARCH=[
             'cn=users,cn=accounts,dc=testing,dc=ansible,dc=com',
@@ -38,17 +38,28 @@ class TestLDAP(Base_Api_Test):
         AUTH_LDAP_USER_FLAGS_BY_GROUP={}
     )
 
+    @pytest.fixture
+    def ldap_clean_users_orgs_teams(user, request):
+        def func(user):
+            def teardown():
+                [o.delete() for o in user.related.organizations.get().results
+                 if o.name != 'Default']
+                [t.delete() for t in user.related.teams.get().results]
+                user.delete()
+            request.addfinalizer(teardown)
+        return func
+
     def create_additional_directory_config(self, dir_number, bind_user):
         new_ldap_settings = dict()
         for k in deepcopy(self.base_ldap_settings):
             if k != 'AUTH_LDAP_BIND_DN':
                 new_ldap_settings.update(
-                    {"AUTH_{}_{}".format(dir_number, k[5:]): self.base_ldap_settings[k]})
+                    {"AUTH_LDAP_{}_{}".format(dir_number, k[10:]): self.base_ldap_settings[k]})
         new_ldap_settings.update(
-            {'AUTH_{}_LDAP_BIND_DN'.format(dir_number): 'uid={},{}'.format(bind_user, self.user_base_dn)})
+            {'AUTH_LDAP_{}_BIND_DN'.format(dir_number): 'uid={},{}'.format(bind_user, self.user_base_dn)})
         return new_ldap_settings
 
-    def test_ldap_user_creation(self, v2, api_settings_ldap_pg, update_setting_pg):
+    def test_ldap_user_creation(self, v2, api_settings_ldap_pg, update_setting_pg, ldap_clean_users_orgs_teams):
         update_setting_pg(api_settings_ldap_pg, self.base_ldap_settings)
         with self.current_user('bbelcher', self.ldap_password):
             bob = v2.me.get().results.pop()
@@ -56,9 +67,9 @@ class TestLDAP(Base_Api_Test):
             assert bob.last_name == 'Belcher'
             assert bob.related.organizations.get().count == 0
             assert bob.related.teams.get().count == 0
-        bob.delete()
+        ldap_clean_users_orgs_teams(bob)
 
-    def test_ldap_organization_creation_and_user_sourcing(self, v2, api_settings_ldap_pg, update_setting_pg):
+    def test_ldap_organization_creation_and_user_sourcing(self, v2, api_settings_ldap_pg, update_setting_pg, ldap_clean_users_orgs_teams):
         org_name = u'LDAP_Organization_{}'.format(random_title())
         ldap_settings = deepcopy(self.base_ldap_settings)
         ldap_settings['AUTH_LDAP_ORGANIZATION_MAP'] = {
@@ -66,6 +77,7 @@ class TestLDAP(Base_Api_Test):
                            users=['cn=bobsburgers,cn=groups,cn=accounts,dc=testing,dc=ansible,dc=com'],
                            remove_admins=False, remove_users=True)
         }
+
         update_setting_pg(api_settings_ldap_pg, ldap_settings)
         assert v2.organizations.get(name=org_name).count == 0
         with self.current_user('libelcher', self.ldap_password):
@@ -77,10 +89,9 @@ class TestLDAP(Base_Api_Test):
             admins = org.related.admins.get()
             assert admins.count == 1
             assert admins.results.pop().id == linda.id
-        linda.delete()
-        org.delete()
+        ldap_clean_users_orgs_teams(linda)
 
-    def test_ldap_team_creation_and_user_sourcing(self, v2, api_settings_ldap_pg, update_setting_pg):
+    def test_ldap_team_creation_and_user_sourcing(self, v2, api_settings_ldap_pg, update_setting_pg, ldap_clean_users_orgs_teams):
         org_name = u'Bobs Burgers {}'.format(random_title())
         team_name = u'Bobs Burgers Admin Club {}'.format(random_title())
         ldap_settings = deepcopy(self.base_ldap_settings)
@@ -98,11 +109,30 @@ class TestLDAP(Base_Api_Test):
         assert v2.teams.get(name=team_name).count == 0
         with self.current_user('libelcher', self.ldap_password):
             linda = v2.me.get().results.pop()
-            org = v2.organizations.get(name=org_name).results.pop()
             team = v2.teams.get(name=team_name).results.pop()
             users = team.related.users.get()
             assert users.count == 1
             assert users.results.pop().id == linda.id
-        linda.delete()
-        team.delete()
-        org.delete()
+        ldap_clean_users_orgs_teams(linda)
+
+    def test_multi_ldap_user_in_second_directory_can_authenticate(self, v2, api_settings_ldap_pg, update_setting_pg, ldap_clean_users_orgs_teams):
+        default_ldap_settings = deepcopy(self.base_ldap_settings)
+        # Required because of a known issue with multiple directories.
+        # This inserts a default configuration with a deliberately broken query.
+        # This doesn't cause an error, it just causes the queries to return nothing.
+        default_ldap_settings['AUTH_LDAP_USER_SEARCH'] = [
+            'cn=lusers,cn=accounts,dc=testing,dc=ansible,dc=com',
+            'SCOPE_SUBTREE',
+            '(uid=%(user)s)']
+        ldap_settings = [self.create_additional_directory_config(n, u) for n, u in [('1', 'tower_0'),
+                                                                                    ('2', 'tower_1')]]
+        update_setting_pg(api_settings_ldap_pg, default_ldap_settings)
+        [update_setting_pg(api_settings_ldap_pg, s) for s in ldap_settings]
+        # sarcher is only readable by the tower_1 user
+        with self.current_user('sarcher', self.ldap_password):
+            sterling = v2.me.get().results.pop()
+            assert sterling.first_name == 'Sterling'
+            assert sterling.last_name == 'Archer'
+            assert sterling.related.organizations.get().count == 0
+            assert sterling.related.teams.get().count == 0
+        ldap_clean_users_orgs_teams(sterling)
