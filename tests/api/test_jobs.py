@@ -322,8 +322,10 @@ class Test_Job(Base_Api_Test):
         survey = [dict(required=False,
                        question_name="{} - What's the password?".format(i),
                        variable='secret{}'.format(i),
-                       type='password',
-                       default='visible' if i % 2 else None) for i in range(10)]
+                       type='password') for i in range(10)]
+        for i in range(10):
+            if i % 2:
+                survey[i]['default'] = 'visible'
         jt = factories.job_template()
         jt.add_survey(spec=survey)
         job = jt.launch(dict(extra_vars={}))
