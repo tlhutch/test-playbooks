@@ -817,7 +817,7 @@ class Test_Cascade_Fail_Dependent_Jobs(Base_Api_Test):
         assert job.status == 'failed'
         assert job.failed
         assert job.job_explanation == 'Previous Task Failed: {"job_type": "inventory_update", "job_name": "%s", "job_id": "%s"}' \
-                                      % (inv_source.ds.inventory.name, inv_update.id)
+                                      % (inv_update.name, inv_update.id)
         assert jt.get().status == 'failed'
         assert jt.last_job_failed
 
