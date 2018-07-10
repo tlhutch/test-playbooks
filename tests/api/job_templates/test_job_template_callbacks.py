@@ -28,8 +28,7 @@ class TestJobTemplateCallbacks(Base_Api_Test):
 
     @pytest.fixture
     def job_template_with_host_config_key(self, factories, remote_hosts, host_config_key):
-        limits = ','.join(remote_hosts)
-        jt = factories.v2_job_template(host_config_key=host_config_key, limits=limits)
+        jt = factories.v2_job_template(host_config_key=host_config_key)
         map(lambda h: factories.v2_host(inventory=jt.ds.inventory,
                                         name=h,
                                         variables=dict(ansible_host=h, ansible_connection='local')), remote_hosts)
