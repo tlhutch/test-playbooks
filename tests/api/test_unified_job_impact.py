@@ -28,6 +28,7 @@ class TestUnifiedJobImpact(Base_Api_Test):
             return 5
         elif unified_job_type == 'workflow_job':
             return 0
+        raise RuntimeError("Job impact not calculatable for job type {}".format(unified_job_type))
 
     def assert_instance_reflects_zero_running_jobs(self, instance):
         assert instance.jobs_running == 0
@@ -293,12 +294,11 @@ class TestUnifiedJobImpact(Base_Api_Test):
         self.assert_instance_reflects_zero_running_jobs(instance.get())
         self.assert_instance_group_reflects_zero_running_jobs(tower_instance_group.get())
 
-    @pytest.mark.github('https://github.com/ansible/tower/issues/1108')
     def test_only_workflow_constituent_jobs_affect_capacity(self, factories, v2, tower_instance_group):
         host = factories.v2_host()
         wfjt = factories.v2_workflow_job_template()
         jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='sleep.yml',
-                                       extra_vars='{"sleep_interval": 60}')
+                                       extra_vars='{"sleep_interval": 30}')
         jt.add_instance_group(tower_instance_group)
         factories.v2_workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt)
 
@@ -309,11 +309,11 @@ class TestUnifiedJobImpact(Base_Api_Test):
 
         instance = v2.instances.get(hostname=jt.related.jobs.get().results.pop().execution_node).results.pop()
         utils.poll_until(lambda: instance.get().jobs_running == 1, interval=1, timeout=60)
-        assert instance.consumed_capacity == self.unified_job_impact('job', num_hosts=1)
+
+        assert self.unified_job_impact('job', num_hosts=1) == instance.consumed_capacity
         self.verify_resource_percent_capacity_remaining(instance)
 
-        utils.poll_until(lambda: tower_instance_group.get().jobs_running == 2, interval=1, timeout=60)
-        assert tower_instance_group.consumed_capacity == self.unified_job_impact('job', num_hosts=1)
+        assert tower_instance_group.get().consumed_capacity == self.unified_job_impact('job', num_hosts=1)
         self.verify_resource_percent_capacity_remaining(tower_instance_group)
 
         wfj.wait_until_completed()
