@@ -51,6 +51,11 @@ pg_port=5432
 ```
 * You are going to have to [enable](https://bosnadev.com/2015/12/15/allow-remote-connections-postgresql-database-server/) postgres to listen to remote connections.
 * Create some Tower resource and perform a backup.
+* Authenticate to your postgres server as the admin "postgres" user.
+* Grant the "awx" user adequate permissions:
+```
+ALTER USER awx CREATEDB;
+```
 * Delete these resources, perform a restoration.
 * Tower resources should be restored as well as the number of Tower pods (if we started out with three, we should have three again).
 
