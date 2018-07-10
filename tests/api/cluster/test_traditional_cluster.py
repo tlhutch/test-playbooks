@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import json
 import logging
 import os
@@ -266,6 +268,16 @@ class TestTraditionalCluster(Base_Api_Test):
         for ig in isolated_groups:
             with pytest.raises(exc.Forbidden):
                 ig.delete()
+
+    def test_job_with_unicode_successfully_runs_on_isolated_node(self, v2, factories):
+        ig = v2.instance_groups.get(name='protected').results.pop()
+
+        jt = factories.v2_job_template(playbook='utf-8-䉪ቒ칸ⱷꯔ噂폄蔆㪗輥.yml')
+        jt.add_instance_group(ig)
+        factories.v2_host(inventory=jt.ds.inventory)
+
+        job = jt.launch().wait_until_completed()
+        assert job.status == 'successful'
 
     @pytest.mark.requires_isolation
     @pytest.mark.parametrize('base_resource, parent_resource', [('job_template', 'inventory'), ('job_template', 'organization'), ('inventory', 'organization')])
