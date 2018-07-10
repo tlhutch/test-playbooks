@@ -28,7 +28,8 @@ class TestJobTemplateCallbacks(Base_Api_Test):
 
     @pytest.fixture
     def job_template_with_host_config_key(self, factories, remote_hosts, host_config_key):
-        jt = factories.v2_job_template(host_config_key=host_config_key)
+        limits = ','.join(remote_hosts)
+        jt = factories.v2_job_template(host_config_key=host_config_key, limits=limits)
         map(lambda h: factories.v2_host(inventory=jt.ds.inventory,
                                         name=h,
                                         variables=dict(ansible_host=h, ansible_connection='local')), remote_hosts)
@@ -557,6 +558,14 @@ class TestJobTemplateCallbacks(Base_Api_Test):
         assert custom_group.get_related('inventory_source').last_updated is None
 
     def test_provision_callback_user_relaunch_forbidden(self, v2, factories, job_template_with_host_config_key, host_config_key, remote_hosts):
+        """
+        Provision callback launched job implicitly uses the limit field. This
+        falls in the class of a "parameter" used to launch the job. Job's launched
+        with a parameter are not re-launchable by other users because of sensitive
+        data considerations. BUT, relaunching a provision callback job is an exception
+        because Tower can fully know that relaunch contains no sensitive data. Thus,
+        we allow relaunch in the case described.
+        """
         jt = job_template_with_host_config_key
         res = requests.post("{}{}".format(config.base_url, jt.related.callback),
                             data={'host_config_key': host_config_key})
@@ -572,7 +581,4 @@ class TestJobTemplateCallbacks(Base_Api_Test):
         jt.set_object_roles(user, 'execute')
 
         with self.current_user(user):
-            with pytest.raises(exc.Forbidden) as e:
-                job1.relaunch()
-
-        assert 'Job was launched with prompts provided by another user.' == e.value.message['detail']
+            job1.relaunch()
