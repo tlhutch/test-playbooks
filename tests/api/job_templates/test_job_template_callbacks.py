@@ -16,7 +16,7 @@ from tests.api import Base_Api_Test
 @pytest.mark.destructive
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestJobTemplateCallbacks(Base_Api_Test):
-    @pytest.fixture
+    @pytest.fixture(scope='class')
     def remote_hosts(self):
         hosts = ['gateway'] # Docker dev env remote
         hosts.append(socket.gethostbyname(socket.gethostname())) # Network Interface
