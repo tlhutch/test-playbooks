@@ -576,6 +576,7 @@ print json.dumps(inv, indent=2)
         ['email', 'email'],
     ])
     @pytest.mark.parametrize('prefix', ['awx', 'tower'])
+    @pytest.mark.mp_group('UpdateJobsSetting', 'serial')
     @pytest.mark.github('https://github.com/ansible/tower/issues/1076')
     def test_awx_metavars_for_adhoc_commands(self, v2, factories, host, update_setting_pg, extra_var, attr, prefix):
         admin_user = factories.v2_user(first_name='Joe', last_name='Admin', is_superuser=True)

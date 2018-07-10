@@ -1,10 +1,28 @@
 from contextlib import contextmanager
 import logging
+import sys
 
+from towerkit.tower.license import generate_license
+from towerkit.utils import poll_until
 import pytest
 
 
 log = logging.getLogger(__name__)
+
+
+# Occasionally, license does not become effective after being installed.
+# The following two helpers poll until the license is effective.
+# Refer to https://github.com/ansible/tower/issues/2375
+def apply_license_until_effective(config, license_info):
+    log.info('Applying {} license...'.format(license_info['license_type']))
+    config.post(license_info)
+    poll_until(lambda: config.get().license_info.license_key == license_info['license_key'], interval=1, timeout=90)
+
+
+def delete_license_until_effective(config):
+    log.info('Deleting current license...')
+    config.delete()
+    poll_until(lambda: not config.get().license_info, interval=1, timeout=90)
 
 
 @pytest.fixture(scope='session')
@@ -41,31 +59,43 @@ def apply_license(api, mp_trail, mp_message_board):
 
         initial_info_key = license_hash + '_initial_info'
 
+        node_name = request.node.name if request else "Unknown"
+        func_name = request._pyfuncitem.name if request else "Unknown"
+
         def teardown_license():
+            log.debug("{}::{} teardown license {}".format(node_name, func_name, license_hash))
             with mp_trail(license_hash, 'finish') as finish:
                 if finish:
                     config = api.current_version.get().config.get()
                     initial_info = mp_message_board[initial_info_key]
                     log.info('Restoring initial license.')
                     if not initial_info:
-                        config.delete()
+                        delete_license_until_effective(config)
                     else:
                         initial_info['eula_accepted'] = True
-                        config.post(initial_info)
+                        apply_license_until_effective(config, initial_info)
                     del mp_message_board[initial_info_key]
 
+                    log.debug(str(mp_message_board))
+
         try:
+            log.debug("{}::{} setup license {}".format(node_name, func_name, license_hash))
             with mp_trail(license_hash, 'start') as start:
                 if start:
                     config = api.current_version.get().config.get()
                     mp_message_board[initial_info_key] = config.license_info
 
                     if license_type is None:
-                        log.info('Deleting current license...')
-                        config.delete()
+                        delete_license_until_effective(config)
                     else:
-                        log.info('Applying {} license...'.format(license_type))
-                        config.install_license(license_type=license_type, days=days, **kwargs)
+                        instance_count = kwargs.pop('instance_count', sys.maxint)
+                        license_info = generate_license(instance_count=instance_count,
+                                                        days=days,
+                                                        license_type=license_type, **kwargs)
+                        apply_license_until_effective(config, license_info)
+
+                    log.debug(str(mp_message_board))
+
             if request:
                 # We need to explictly register teardowns instead of yield-driven
                 # teardown for class_factory teardown ordering
