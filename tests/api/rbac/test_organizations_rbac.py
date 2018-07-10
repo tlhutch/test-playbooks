@@ -262,7 +262,7 @@ class Test_Organization_RBAC(Base_Api_Test):
         assert role.id == organization.get_object_role('member_role').id, \
             "Unexpected user role returned (member role expected)."
 
-    @pytest.mark.parametrize('role', ['admin', 'auditor', 'member', 'read'])
+    @pytest.mark.parametrize('role', ['admin', 'member'])
     def test_organization_roles_not_allowed_with_teams(self, factories, role):
         """Test that an organization role association with a team raises a 400."""
         team = factories.team()
