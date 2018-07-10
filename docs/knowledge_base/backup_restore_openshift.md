@@ -54,6 +54,7 @@ pg_port=5432
 * Authenticate to your postgres server as the admin "postgres" user.
 * Grant the "awx" user adequate permissions:
 ```
+sudo -u postgres psql postgres
 ALTER USER awx CREATEDB;
 ```
 * Delete these resources, perform a restoration.
