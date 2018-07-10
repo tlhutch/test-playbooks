@@ -187,6 +187,10 @@ class TestGeneralSettings(Base_Api_Test):
         stdout gets truncated once 'STDOUT_MAX_BYTES_DISPLAY' gets set to zero. We check
         both uj.result_stdout and uj.related.stdout here.
         """
+        # Value should be the default, but set in case it began as another value
+        payload = dict(STDOUT_MAX_BYTES_DISPLAY=1048576)
+        update_setting_pg(api_settings_jobs_pg, payload)
+
         # check that by default that our unified job includes result_stdout
         assert unified_job_with_stdout.result_stdout, \
             "Unified job did not include result_stdout - %s." % unified_job_with_stdout
@@ -201,9 +205,15 @@ class TestGeneralSettings(Base_Api_Test):
         update_setting_pg(api_settings_jobs_pg, payload)
 
         # assert new job stdout truncated
+        if unified_job_with_stdout.type == "system_job":
+            stdout_page = unified_job_with_stdout.json['result_stdout']
+        else:
+            stdout_page = unified_job_with_stdout.connection.get(
+                unified_job_with_stdout.related.stdout, query_parameters={'format': 'json'}
+            ).json()['content']
         assert re.search('^Standard Output too large to display \(\d+ bytes\), only download supported for sizes over 0 bytes.$',
-                         unified_job_with_stdout.get().result_stdout), \
-            "Expected result_stdout error message not matched - %s." % unified_job_with_stdout.result_stdout
+                         stdout_page), \
+            "Expected result_stdout error message not matched - %s." % stdout_page
         if unified_job_with_stdout.type != "system_job":
             assert "Standard Output too large to display" in unified_job_with_stdout.connection.get(unified_job_with_stdout.related.stdout).text, \
                 "UJ related stdout censorship notice not displayed."
