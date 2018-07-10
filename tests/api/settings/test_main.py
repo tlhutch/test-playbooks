@@ -187,6 +187,10 @@ class TestGeneralSettings(Base_Api_Test):
         stdout gets truncated once 'STDOUT_MAX_BYTES_DISPLAY' gets set to zero. We check
         both uj.result_stdout and uj.related.stdout here.
         """
+        # Value should be the default, but set in case it began as another value
+        payload = dict(STDOUT_MAX_BYTES_DISPLAY=1048576)
+        update_setting_pg(api_settings_jobs_pg, payload)
+
         # check that by default that our unified job includes result_stdout
         assert unified_job_with_stdout.result_stdout, \
             "Unified job did not include result_stdout - %s." % unified_job_with_stdout
