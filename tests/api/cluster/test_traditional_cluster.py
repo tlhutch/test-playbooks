@@ -255,8 +255,8 @@ class TestTraditionalCluster(Base_Api_Test):
 
     @pytest.mark.github('https://github.com/ansible/tower/issues/2393')
     def test_cannot_delete_controller_instance_group(self, v2):
-        controller_ig_names = [ig.controller for ig in v2.instance_groups.get().results if ig.controller]
-        controller_igs = [v2.instance_groups.get(name=name).results.pop() for name in controller_ig_names]
+        controller_ig_ids = [ig.controller for ig in v2.instance_groups.get().results if ig.controller]
+        controller_igs = [v2.instance_groups.get(id=id).results.pop() for id in controller_ig_ids]
 
         for ig in controller_igs:
             with pytest.raises(exc.Forbidden):
