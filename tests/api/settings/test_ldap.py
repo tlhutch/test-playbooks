@@ -164,9 +164,9 @@ class TestLDAP(Base_Api_Test):
         ''' If the attribute map changes, make sure new values
             are set on existing user accts on login'''
         default_ldap_settings = deepcopy(self.base_ldap_settings)
-        default_ldap_settings['AUTH_LDAP_USER_ATTR_MAP'] = {'first_name':'foo',
-                                                            'last_name':'bar',
-                                                            'email':'bin'}
+        default_ldap_settings['AUTH_LDAP_USER_ATTR_MAP'] = {'first_name': 'foo',
+                                                            'last_name': 'bar',
+                                                            'email': 'bin'}
         update_setting_pg(v2.settings.get().get_endpoint(
             'ldap'), default_ldap_settings)
         with self.current_user('sarcher', self.ldap_password):
@@ -180,7 +180,6 @@ class TestLDAP(Base_Api_Test):
         assert sterling.first_name == 'Sterling'
         assert sterling.last_name == 'Archer'
 
-
     @pytest.mark.github('https://github.com/ansible/tower/issues/2465')
     def test_ldap_user_does_not_get_created_if_group_search_is_misconfigured(self, v2, update_setting_pg, ldap_clean_users_orgs_teams):
         ''' if the LDAP directory is configured with the wrong attributes,
@@ -189,13 +188,20 @@ class TestLDAP(Base_Api_Test):
         default_ldap_settings['AUTH_LDAP_GROUP_SEARCH'] = []
         update_setting_pg(v2.settings.get().get_endpoint(
             'ldap'), default_ldap_settings)
+
+        # Try a login with the "bad" configuration
         with self.current_user('sarcher', self.ldap_password):
-            with pytest.raises(exceptions.Unauthorized):
+            with pytest.raises(exceptions.Unauthorized) as e:
                 v2.me.get().results.pop()
+                assert e == "Unauthorized: {u'detail': u'Authentication credentials were not provided. To establish a login session, visit /api/login/.'}"
         bad_config_count = len(v2.users.get(username='sarcher').results)
+
+        # Fix the configuration
         default_ldap_settings['AUTH_LDAP_GROUP_SEARCH'] = self.base_ldap_settings['AUTH_LDAP_GROUP_SEARCH']
         update_setting_pg(v2.settings.get().get_endpoint(
             'ldap'), default_ldap_settings)
+
+        # Tru a login with a "good" configuration
         with self.current_user('sarcher', self.ldap_password):
             try:
                 sterling_valid_login = False
@@ -203,6 +209,7 @@ class TestLDAP(Base_Api_Test):
             except:
                 pass
         good_config_count = len(v2.users.get(username='sarcher').results)
+
         try:
             sterling = v2.users.get(username='sarcher').results.pop()
             ldap_clean_users_orgs_teams(sterling)
@@ -211,7 +218,3 @@ class TestLDAP(Base_Api_Test):
         assert bad_config_count == 0
         assert good_config_count == 0
         assert sterling_valid_login
-
-
-
-
