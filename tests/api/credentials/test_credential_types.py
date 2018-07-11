@@ -359,16 +359,16 @@ class TestCredentialTypes(Base_Api_Test):
     @pytest.mark.parametrize('injectors, expected',
                              [(dict(file={'template.exists': '123'},
                                     extra_vars=dict(extra_var_one='{{ tower.filename.does_not_exist }}')),
-                               "extra_var_one uses an undefined field ('awx.main.fields.TowerNamespace object' "
+                               "extra_var_one uses an undefined field ('awx.main.fields.ExplodingNamespace object' "
                                "has no attribute 'does_not_exist')"),
                               (dict(file={'template.exists': '123'},
                                     extra_vars=dict(extra_var_one='{{ tower.filename }}')),
-                               "extra_var_one uses an undefined field ('awx.main.fields.TowerNamespace object' "
-                               "has no attribute 'does_not_exist')"),
+                               "extra_var_one uses an undefined field (Must define unnamed file injector in order "
+                               "to reference `tower.filename`.)"),
                               (dict(file={'template.exists': '123', 'template.also_exists': '234'},
                                     extra_vars=dict(extra_var_one='{{ tower.filename }}')),
-                               "extra_var_one uses an undefined field ('awx.main.fields.TowerNamespace object' "
-                               "has no attribute 'does_not_exist')")],
+                               "extra_var_one uses an undefined field (Must define unnamed file injector in order "
+                               "to reference `tower.filename`.)")],
                              ids=('missing filename', 'tower.filename with multifile templates',
                                   'tower.filename with multifile templates'))
     def test_confirm_injector_sourced_tower_files_must_exist(self, factories, injectors, expected):
