@@ -76,25 +76,20 @@ class TestRelaunchAskRBAC(Base_Api_Test):
         else:
             relaunch_job_as_diff_user_allowed(job)
 
-    def test_relaunch_with_inventory_forbidden(self, factories, job_template, relaunch_job_as_diff_user_forbidden):
-        job_template.patch(ask_inventory_on_launch=True)
-        job = job_template.launch(dict(inventory=factories.v2_inventory().id)).wait_until_completed()
-        relaunch_job_as_diff_user_forbidden(job)
-
-    def test_relaunch_with_inventory_allowed(self, job_template, relaunch_job_as_diff_user_allowed):
-        job_template.patch(ask_inventory_on_launch=True)
-        job = job_template.launch().wait_until_completed()
-        relaunch_job_as_diff_user_allowed(job)
-
-    def test_relaunch_with_credential_forbidden(self, factories, job_template, relaunch_job_as_diff_user_forbidden):
-        job_template.patch(ask_credential_on_launch=True)
-        job = job_template.launch(dict(credential=factories.v2_credential().id)).wait_until_completed()
-        relaunch_job_as_diff_user_forbidden(job)
-
-    def test_relaunch_with_credential_allowed(self, job_template, relaunch_job_as_diff_user_allowed):
-        job_template.patch(ask_credential_on_launch=True)
-        job = job_template.launch().wait_until_completed()
-        relaunch_job_as_diff_user_allowed(job)
+    @pytest.mark.parametrize("patch_payload, resource", [
+        (dict(ask_inventory_on_launch=True), 'inventory'),
+        (dict(ask_credential_on_launch=True), 'credential'),
+    ])
+    @pytest.mark.parametrize("deny", ["True", "False"])
+    def test_relaunch_with_inventory_forbidden(self, factories, job_template, relaunch_job_as_diff_user_forbidden, relaunch_job_as_diff_user_allowed, patch_payload, resource, deny):
+        job_template.patch(**patch_payload)
+        payload = dict()
+        payload[resource] = getattr(factories, 'v2_' + resource)().id
+        job = job_template.launch(payload).wait_until_completed()
+        if deny:
+            relaunch_job_as_diff_user_forbidden(job)
+        else:
+            relaunch_job_as_diff_user_allowed(job)
 
     @pytest.mark.github('https://github.com/ansible/tower/issues/867')
     def test_relaunch_with_credentials_forbidden(self, v2, factories, job_template, relaunch_user, relaunch_job_as_diff_user_forbidden):
