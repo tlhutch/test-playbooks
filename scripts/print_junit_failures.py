@@ -1,9 +1,8 @@
 #!/usr/bin/env python
 
-from junitparser import JUnitXml
-
-
 import sys
+
+from junitparser import JUnitXml
 
 BLACK, RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, WHITE = range(8)
 
