@@ -138,8 +138,9 @@ class Test_Job_Template_RBAC(Base_Api_Test):
 
     @pytest.mark.parametrize('payload_resource_roles, response_codes', [
         (
+            # After multi-credential refactor, related credential use role not needed for no-op
             {'credential': ['read'], 'inventory': ['use'], 'project': ['use']},
-            {'PATCH': httplib.FORBIDDEN, 'PUT': httplib.FORBIDDEN}
+            {'PATCH': httplib.OK, 'PUT': httplib.OK}
         ),
         (
             {'credential': ['use'], 'inventory': ['read'], 'project': ['use']},
