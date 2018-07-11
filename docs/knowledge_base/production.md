@@ -59,6 +59,6 @@ Our Jenkins scripts add ssh public keys onto spawned EC2 instances. The list of 
 
 Lastly, if you want to spin up your own Tower instance, the setup tarballs are here:
 * For official releases, see [here](https://releases.ansible.com/ansible-tower/setup/).
-* For development releases, see [here](http://nightlies.testing.ansible.com/ansible-tower_nightlies_m8u16fz56qr6q7/).
+* For development release tarballs, see [here](http://nightlies.testing.ansible.com/ansible-tower_nightlies_m8u16fz56qr6q7/).
 
 Written by [Christopher Wang](mailto:chrwang@redhat.com) (Github: simfarm) July 11th, 2018.
