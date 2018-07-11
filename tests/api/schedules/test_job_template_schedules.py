@@ -369,3 +369,15 @@ class TestJobTemplateSchedules(SchedulesTest):
         assert job.wait_until_completed().is_successful
         assert json.loads(job.extra_vars) == {'var1': '$encrypted$'}
         assert '"var1": "survey"' in job.result_stdout
+
+    def test_scheduled_jobs_fail_with_deleted_inventory(self, factories):
+        jt = factories.v2_job_template()
+        schedule = jt.add_schedule(rrule=self.minutely_rrule())
+        jt.ds.inventory.delete().wait_until_deleted()
+
+        jobs = schedule.related.unified_jobs.get()
+        utils.poll_until(lambda: jobs.get().count == 1, interval=5, timeout=1.5 * 60)
+        job = jobs.results.pop().wait_until_completed()
+
+        assert job.failed
+        assert job.job_explanation == "Job could not start because it does not have a valid inventory."
