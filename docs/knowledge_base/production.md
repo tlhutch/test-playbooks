@@ -57,4 +57,8 @@ After you access Tower via its web address, you will need to:
 
 Our Jenkins scripts add ssh public keys onto spawned EC2 instances. The list of added public keys is [here](https://github.com/ansible/tower-qa/blob/master/playbooks/roles/auth_keys/defaults/main.yml#L2). If you want to be included on this list, ask a QE team member.
 
+Lastly, if you want to spin up your own Tower instance, the setup tarballs are here:
+* For official releases, see [here](https://releases.ansible.com/ansible-tower/setup/).
+* For development releases, see [here](http://nightlies.testing.ansible.com/ansible-tower_nightlies_m8u16fz56qr6q7/).
+
 Written by [Christopher Wang](mailto:chrwang@redhat.com) (Github: simfarm) July 11th, 2018.
