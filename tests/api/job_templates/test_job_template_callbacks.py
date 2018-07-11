@@ -2,6 +2,8 @@ from urlparse import urlparse
 import httplib
 import socket
 import json
+import requests
+import os
 
 from towerkit.config import config
 from towerkit import utils, exceptions as exc
@@ -14,6 +16,23 @@ from tests.api import Base_Api_Test
 @pytest.mark.destructive
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestJobTemplateCallbacks(Base_Api_Test):
+    @pytest.fixture(scope='class')
+    def remote_hosts(self):
+        hosts = ['gateway'] # Docker dev env remote
+        hosts.append(socket.gethostbyname(socket.gethostname())) # Network Interface
+        hosts.append(requests.get('https://api.ipify.org').text) # External IP
+        return hosts
+
+    def get_job_id_from_location_header(self, resp):
+        return os.path.basename(os.path.normpath(resp.headers['Location']))
+
+    @pytest.fixture
+    def job_template_with_host_config_key(self, factories, remote_hosts, host_config_key):
+        jt = factories.v2_job_template(host_config_key=host_config_key)
+        map(lambda h: factories.v2_host(inventory=jt.ds.inventory,
+                                        name=h,
+                                        variables=dict(ansible_host=h, ansible_connection='local')), remote_hosts)
+        return jt
 
     def test_assignment_of_host_config_key(self, job_template, host_config_key):
         """Confirm that when a job template's host config key is set, it is exposed through JT and callback endpoint"""
@@ -536,3 +555,30 @@ class TestJobTemplateCallbacks(Base_Api_Test):
         assert custom_group.get_related('hosts').count == 0
         assert custom_group.get_related('children').count == 0
         assert custom_group.get_related('inventory_source').last_updated is None
+
+    @pytest.mark.github('https://github.com/ansible/tower/issues/833')
+    def test_provision_callback_user_relaunch_forbidden(self, v2, factories, job_template_with_host_config_key, host_config_key, remote_hosts):
+        """
+        Provision callback launched job implicitly uses the limit field. This
+        falls in the class of a "parameter" used to launch the job. Job's launched
+        with a parameter are not re-launchable by other users because of sensitive
+        data considerations. BUT, relaunching a provision callback job is an exception
+        because Tower can fully know that relaunch contains no sensitive data. Thus,
+        we allow relaunch in the case described.
+        """
+        jt = job_template_with_host_config_key
+        res = requests.post("{}{}".format(config.base_url, jt.related.callback),
+                            data={'host_config_key': host_config_key})
+        assert res.status_code == 201, \
+                "Launching Job Template via provision callback failed. Remote host list {}".format(remote_hosts)
+
+        job_id = self.get_job_id_from_location_header(res)
+        job1 = v2.jobs.get(id=job_id).results[0]
+
+        user = factories.v2_user()
+        jt.ds.inventory.ds.organization.set_object_roles(user, 'member')
+        map(lambda resource: jt.ds[resource].set_object_roles(user, 'use'), ['credential', 'project', 'inventory'])
+        jt.set_object_roles(user, 'execute')
+
+        with self.current_user(user):
+            job1.relaunch()
