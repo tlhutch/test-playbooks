@@ -250,7 +250,7 @@ class TestTraditionalCluster(Base_Api_Test):
         iso_instance_groups = [ig for ig in v2.instance_groups.get().results if ig.controller]
         for ig in iso_instance_groups:
             for instance in ig.related.instances.get().results:
-                with pytest.raises(exc.Forbidden):
+                with pytest.raises(exc.BadRequest):
                     ig.remove_instance(instance)
 
     @pytest.mark.github('https://github.com/ansible/tower/issues/2393')
