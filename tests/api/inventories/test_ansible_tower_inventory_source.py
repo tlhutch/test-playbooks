@@ -38,6 +38,9 @@ class TestAnsibleTowerInventorySource(Base_Api_Test):
 
         update = tower_inv_src.update().wait_until_completed()
         assert update.is_successful
+        # Verify that default behavior is False when not giving verify_ssl input
+        # https://github.com/ansible/tower/issues/2038
+        assert update.job_env['TOWER_VERIFY_SSL'] == 'False'
 
         tower_hosts = tower_inv_src.related.hosts.get().results
         assert len(tower_hosts) == len(custom_hosts)
