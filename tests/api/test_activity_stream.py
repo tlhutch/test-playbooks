@@ -16,6 +16,66 @@ log = logging.getLogger(__name__)
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestActivityStream(Base_Api_Test):
 
+    @pytest.mark.github('https://github.com/ansible/tower/issues/2502')
+    @pytest.mark.github('https://github.com/ansible/tower/issues/2499')
+    @pytest.mark.parametrize('resource', ['schedule', 'survey', 'job_template', 'workflow_job_template', 'credential',
+                                          'credential_type', 'project', 'inventory', 'group', 'host', 'inventory_script',
+                                          'organization', 'user', 'team', 'instance_group'])
+    def test_deleted_resources_logged_as_deleted_user(self, v2, factories, resource):
+        if resource == 'schedule':
+            resource = factories.v2_job_template().add_schedule()
+        elif resource == 'survey':
+            resource = factories.v2_job_template().add_survey()
+        elif resource in ('credential_type', 'instance_group'):
+            resource = getattr(factories, resource)()
+        else:
+            resource = getattr(factories, 'v2_' + resource)()
+        superuser = factories.v2_user(is_superuser=True)
+
+        with self.current_user(superuser):
+            resource.delete()
+        superuser.delete()
+
+        as_entry = v2.activity_stream.get(deleted_actor__contains=superuser.username).results.pop()
+        assert as_entry.object1 == resource.type
+        assert not as_entry.object2
+        assert as_entry.operation == 'delete'
+        assert as_entry.summary_fields.actor.username == superuser.username
+        assert as_entry.summary_fields.actor.first_name == superuser.first_name
+        assert as_entry.summary_fields.actor.last_name == superuser.last_name
+
+    @pytest.mark.parametrize('fixture, method', [('job_template', 'launch'),
+                                                 ('workflow_job_template', 'launch'),
+                                                 ('ad_hoc_command', None),
+                                                 ('project', 'update'),
+                                                 ('custom_inventory_source', 'update'),
+                                                 ('cleanup_jobs_template', 'launch')],
+                             ids=['job', 'workflow job', 'ad hoc command', 'project_update',
+                                  'inventory_update', 'system job'])
+    def test_deleted_uj_logged_as_deleted_user(self, request, v2, factories, fixture, method):
+        superuser = factories.v2_user(is_superuser=True)
+
+        if method:
+            resource = request.getfixturevalue(fixture)
+            uj = getattr(resource, method)().wait_until_completed()
+        else:
+            uj = request.getfixturevalue(fixture).wait_until_completed()
+
+        with self.current_user(superuser):
+            uj.delete()
+        superuser.delete()
+
+        if uj.type in ('job', 'workflow_job', 'ad_hoc_command'):
+            as_entry = v2.activity_stream.get(deleted_actor__contains=superuser.username).results.pop()
+            assert as_entry.object1 == uj.type
+            assert not as_entry.object2
+            assert as_entry.operation == 'delete'
+            assert as_entry.summary_fields.actor.username == superuser.username
+            assert as_entry.summary_fields.actor.first_name == superuser.first_name
+            assert as_entry.summary_fields.actor.last_name == superuser.last_name
+        else:
+            assert v2.activity_stream.get(deleted_actor__contains=superuser.username).count == 0
+
     def test_limited_view_of_unprivileged_user(self, factories, api_activity_stream_pg, user_password):
         """Confirms that unprivileged users only see their creation details in activity stream"""
         activity = api_activity_stream_pg
