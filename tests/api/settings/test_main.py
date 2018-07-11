@@ -631,6 +631,9 @@ class TestGeneralSettings(Base_Api_Test):
         assert debug_event.event_data.res.ansible_env.SOME_TEST_ENV_VAR == desired_val
 
         project_update = jt.ds.project.related.project_updates.get().results[0]
+        # NOTE: fields like job_env are only present on detail view, and towerkit
+        # is not yet designed to auto-fetch these
+        project_update = project_update.get()
         assert project_update.job_env.SOME_TEST_ENV_VAR == desired_val
 
         ahc = factories.v2_ad_hoc_command(inventory=inventory, limit=host.name)
