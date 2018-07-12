@@ -273,21 +273,34 @@ class Test_Organization_RBAC(Base_Api_Test):
         with pytest.raises(towerkit.exceptions.BadRequest):
             organization.set_object_roles(team, role)
 
+    @staticmethod
+    def create_resource(factories, res_type, org):
+        if res_type == 'job_template':
+            # Would like to specify kwargs like 'project': (Project, {Organization: org})
+            # but something about the towerkit dependency store does not work for that
+            kwargs = {
+                'project': factories.v2_project(organization=org),
+                'inventory': factories.v2_inventory(organization=org),
+                'credential': factories.v2_credential(organization=org)
+            }
+        else:
+            kwargs = {'organization': org}
+        return getattr(factories, 'v2_{}'.format(res_type))(**kwargs)
+
     @pytest.mark.parametrize('resource_mapping', org_resource_admin_mappings, ids=mapping_id)
     @pytest.mark.parametrize('agent', ['user', 'team'])
     def test_organization_resource_admins_can_create_resources(self, factories, resource_mapping, agent, set_test_roles):
         org = factories.organization()
         resource_admin = factories.user()
         if resource_mapping.resource_role == 'Job Template Admin':
-            # Documented specicial behavior for job templates
+            # Documented specicial behavior for job template creation
             set_test_roles(resource_admin, org, agent, 'Inventory Admin')
             set_test_roles(resource_admin, org, agent, 'Project Admin')
             set_test_roles(resource_admin, org, agent, 'Credential Admin')
         else:
             set_test_roles(resource_admin, org, agent, resource_mapping.resource_role)
         with self.current_user(resource_admin):
-            getattr(
-                factories, 'v2_{}'.format(resource_mapping.resource_type))(organization=org)
+            self.create_resource(factories, resource_mapping.resource_type, org)
 
     @pytest.mark.parametrize('resource_mapping', org_resource_admin_mappings, ids=mapping_id)
     @pytest.mark.parametrize('agent', ['user', 'team'])
@@ -298,8 +311,7 @@ class Test_Organization_RBAC(Base_Api_Test):
 
         set_test_roles(resource_admin, org, agent, resource_mapping.resource_role)
 
-        resource = getattr(factories, 'v2_{}'.format(
-            resource_mapping.resource_type))(organization=org)
+        resource = self.create_resource(factories, resource_mapping.resource_type, org)
 
         with self.current_user(resource_admin):
             assert_response_raised(resource, httplib.OK)
@@ -315,8 +327,7 @@ class Test_Organization_RBAC(Base_Api_Test):
             organization=o) for o in (None, org)]
         set_test_roles(resource_admin, org, agent, resource_mapping.resource_role)
 
-        resource = getattr(
-            factories, 'v2_{}'.format(resource_mapping.resource_type))(organization=org)
+        resource = self.create_resource(factories, resource_mapping.resource_type, org)
 
         with self.current_user(resource_admin):
             resource.set_object_roles(user, 'admin')
@@ -332,8 +343,7 @@ class Test_Organization_RBAC(Base_Api_Test):
             organization=o) for o in (None, None)]
         set_test_roles(resource_admin, org, agent, resource_mapping.resource_role)
 
-        resource = getattr(factories, 'v2_{}'.format(
-            resource_mapping.resource_type))(organization=org)
+        resource = self.create_resource(factories, resource_mapping.resource_type, org)
 
         with self.current_user(resource_admin):
             if resource_mapping.resource_type == 'credential':
@@ -353,8 +363,7 @@ class Test_Organization_RBAC(Base_Api_Test):
 
         set_test_roles(resource_admin, org1, agent, resource_mapping.resource_role)
 
-        resource = getattr(
-            factories, 'v2_{}'.format(resource_mapping.resource_type))(organization=org2)
+        resource = self.create_resource(factories, resource_mapping.resource_type, org2)
 
         with self.current_user(resource_admin):
             if resource_mapping.resource_type != 'notification_template':
@@ -375,8 +384,7 @@ class Test_Organization_RBAC(Base_Api_Test):
             organization=org) for _ in range(2)]
         team = set_test_roles(resource_admin, org, agent, resource_mapping.resource_role)
 
-        resource = getattr(
-            factories, 'v2_{}'.format(resource_mapping.resource_type))(organization=org)
+        resource = self.create_resource(factories, resource_mapping.resource_type, org)
 
         set_test_roles(resource_admin, org, agent, resource_mapping.resource_role, team=team, disassociate=True)
         with self.current_user(resource_admin):
