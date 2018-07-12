@@ -20,7 +20,7 @@ ansible-vault decrypt --ask-vault-pass --output=config/credentials.yml config/cr
 ```
 * You will need to create a superuser in `tools_tower_1` with username "admin" and password "fo0m4nchU":
 ```
-docker exec -it tools_tower_1 bash
+docker exec -it tools_awx_1 bash
 
 awx-manage createsuperuser
 awx-manage create_preload_data
