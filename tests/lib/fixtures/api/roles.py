@@ -6,7 +6,7 @@ from tests.lib.helpers.rbac_utils import get_nt_endpoints
 @pytest.fixture
 def set_test_roles(factories):
     """Helper fixture used in creating the roles used in our RBAC tests."""
-    def func(user, resource, agent, role):
+    def func(user, resource, agent, role, team=None, **kwargs):
         """:param user: The api page model for a user
         :param resource: Test Tower resource (a job template for example)
         :param agent: Either "user" or "team"; used for test parametrization
@@ -15,16 +15,18 @@ def set_test_roles(factories):
         credentials.
         """
         if agent == "user":
-            resource.set_object_roles(user, role)
+            resource.set_object_roles(user, role, **kwargs)
         elif agent == "team":
-            # create our team in our user organization if applicable
-            organizations = user.related.organizations.get()
-            if organizations.results:
-                team = factories.team(organization=organizations.results[0])
-            else:
-                team = factories.team()
+            if not team:
+                # create our team in our user organization if applicable
+                organizations = user.related.organizations.get()
+                if organizations.results:
+                    team = factories.team(organization=organizations.results[0])
+                else:
+                    team = factories.team()
             team.set_object_roles(user, 'member')
-            resource.set_object_roles(team, role)
+            resource.set_object_roles(team, role, **kwargs)
+            return team
         else:
             raise ValueError("Unhandled 'agent' value.")
     return func

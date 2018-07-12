@@ -274,25 +274,29 @@ class Test_Organization_RBAC(Base_Api_Test):
             organization.set_object_roles(team, role)
 
     @pytest.mark.parametrize('resource_mapping', org_resource_admin_mappings, ids=mapping_id)
-    def test_organization_resource_admins_can_create_resources(self, factories, resource_mapping):
+    @pytest.mark.parametrize('agent', ['user', 'team'])
+    def test_organization_resource_admins_can_create_resources(self, factories, resource_mapping, agent, set_test_roles):
         org = factories.organization()
         resource_admin = factories.user()
-        org.set_object_roles(resource_admin, resource_mapping.resource_role)
         if resource_mapping.resource_role == 'Job Template Admin':
-            org.set_object_roles(resource_admin, 'Inventory Admin')
-            org.set_object_roles(resource_admin, 'Project Admin')
-            org.set_object_roles(resource_admin, 'Credential Admin')
+            # Documented specicial behavior for job templates
+            set_test_roles(resource_admin, org, agent, 'Inventory Admin')
+            set_test_roles(resource_admin, org, agent, 'Project Admin')
+            set_test_roles(resource_admin, org, agent, 'Credential Admin')
+        else:
+            set_test_roles(resource_admin, org, agent, resource_mapping.resource_role)
         with self.current_user(resource_admin):
             getattr(
                 factories, 'v2_{}'.format(resource_mapping.resource_type))(organization=org)
 
     @pytest.mark.parametrize('resource_mapping', org_resource_admin_mappings, ids=mapping_id)
-    def test_organization_resource_admins_can_modify_resources(self, factories, resource_mapping):
+    @pytest.mark.parametrize('agent', ['user', 'team'])
+    def test_organization_resource_admins_can_modify_resources(self, factories, resource_mapping, agent, set_test_roles):
         """Test that the resource admin can modify and delete for organization resources that they did not create."""
         org = factories.organization()
         resource_admin = factories.user()
 
-        org.set_object_roles(resource_admin, resource_mapping.resource_role)
+        set_test_roles(resource_admin, org, agent, resource_mapping.resource_role)
 
         resource = getattr(factories, 'v2_{}'.format(
             resource_mapping.resource_type))(organization=org)
@@ -304,11 +308,12 @@ class Test_Organization_RBAC(Base_Api_Test):
                              [m for m in org_resource_admin_mappings
                               if m.resource_type != 'notification_template'],
                              ids=mapping_id)
-    def test_organization_resource_admins_can_grant_permissions_to_internal_users(self, factories, resource_mapping):
+    @pytest.mark.parametrize('agent', ['user', 'team'])
+    def test_organization_resource_admins_can_grant_permissions_to_internal_users(self, factories, resource_mapping, agent, set_test_roles):
         org = factories.organization()
         resource_admin, user = [factories.v2_user(
             organization=o) for o in (None, org)]
-        org.set_object_roles(resource_admin, resource_mapping.resource_role)
+        set_test_roles(resource_admin, org, agent, resource_mapping.resource_role)
 
         resource = getattr(
             factories, 'v2_{}'.format(resource_mapping.resource_type))(organization=org)
@@ -320,11 +325,12 @@ class Test_Organization_RBAC(Base_Api_Test):
                              [m for m in org_resource_admin_mappings if
                               m.resource_type != 'notification_template'],
                              ids=mapping_id)
-    def test_organization_resource_admins_cannot_grant_permissions_to_external_users(self, factories, resource_mapping):
+    @pytest.mark.parametrize('agent', ['user', 'team'])
+    def test_organization_resource_admins_cannot_grant_permissions_to_external_users(self, factories, resource_mapping, agent, set_test_roles):
         org = factories.organization()
         resource_admin, user = [factories.v2_user(
             organization=o) for o in (None, None)]
-        org.set_object_roles(resource_admin, resource_mapping.resource_role)
+        set_test_roles(resource_admin, org, agent, resource_mapping.resource_role)
 
         resource = getattr(factories, 'v2_{}'.format(
             resource_mapping.resource_type))(organization=org)
@@ -339,12 +345,13 @@ class Test_Organization_RBAC(Base_Api_Test):
                     resource.set_object_roles(user, 'admin')
 
     @pytest.mark.parametrize('resource_mapping', org_resource_admin_mappings, ids=mapping_id)
-    def test_organization_resource_admins_cannot_modify_resources_in_other_orgs(self, factories, resource_mapping):
+    @pytest.mark.parametrize('agent', ['user', 'team'])
+    def test_organization_resource_admins_cannot_modify_resources_in_other_orgs(self, factories, resource_mapping, agent, set_test_roles):
         org1, org2 = [factories.v2_organization() for _ in range(2)]
         resource_admin, user = [factories.v2_user(
             organization=o) for o in (None, org2)]
 
-        org1.set_object_roles(resource_admin, resource_mapping.resource_role)
+        set_test_roles(resource_admin, org1, agent, resource_mapping.resource_role)
 
         resource = getattr(
             factories, 'v2_{}'.format(resource_mapping.resource_type))(organization=org2)
@@ -359,19 +366,19 @@ class Test_Organization_RBAC(Base_Api_Test):
     @pytest.mark.parametrize('resource_mapping',
                              org_resource_admin_mappings,
                              ids=mapping_id)
-    def test_resource_permissions_are_deescalated_after_disassociating(self, factories, resource_mapping):
+    @pytest.mark.parametrize('agent', ['user', 'team'])
+    def test_resource_permissions_are_deescalated_after_disassociating(self, factories, resource_mapping, agent, set_test_roles):
         """Grant a user resource admin rights, create a resource, remove user's role, and verify
         that they are not able to modify the resource"""
         org = factories.organization()
         resource_admin, user = [factories.v2_user(
             organization=org) for _ in range(2)]
-        org.set_object_roles(resource_admin, resource_mapping.resource_role)
+        team = set_test_roles(resource_admin, org, agent, resource_mapping.resource_role)
 
         resource = getattr(
             factories, 'v2_{}'.format(resource_mapping.resource_type))(organization=org)
 
-        org.set_object_roles(
-            resource_admin, resource_mapping.resource_role, disassociate=True)
+        set_test_roles(resource_admin, org, agent, resource_mapping.resource_role, team=team, disassociate=True)
         with self.current_user(resource_admin):
             if resource_mapping.resource_type != 'notification_template':
                 # Skip notification_templates because they do not have object-level permissions
