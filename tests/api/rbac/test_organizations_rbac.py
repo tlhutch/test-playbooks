@@ -31,6 +31,8 @@ class Test_Organization_RBAC(Base_Api_Test):
                         resource_type='credential'),
         ResourceMapping(resource_role='Workflow Admin',
                         resource_type='workflow_job_template'),
+        ResourceMapping(resource_role='Job Template Admin',
+                        resource_type='job_template'),
     ]
 
     def mapping_id(param):
@@ -276,6 +278,10 @@ class Test_Organization_RBAC(Base_Api_Test):
         org = factories.organization()
         resource_admin = factories.user()
         org.set_object_roles(resource_admin, resource_mapping.resource_role)
+        if resource_mapping.resource_role == 'Job Template Admin':
+            org.set_object_roles(resource_admin, 'Inventory Admin')
+            org.set_object_roles(resource_admin, 'Project Admin')
+            org.set_object_roles(resource_admin, 'Credential Admin')
         with self.current_user(resource_admin):
             getattr(
                 factories, 'v2_{}'.format(resource_mapping.resource_type))(organization=org)
