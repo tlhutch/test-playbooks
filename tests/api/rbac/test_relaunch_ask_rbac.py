@@ -1,6 +1,8 @@
 import pytest
 
 import towerkit
+from towerkit.config import config
+import towerkit.exceptions as exc
 
 from tests.api import Base_Api_Test
 
@@ -109,3 +111,16 @@ class TestRelaunchAskRBAC(Base_Api_Test):
                                                      organization=job_template.ds.project.organization) for i in [1, 2]]
         job = job_template.launch(dict(extra_credentials=[c.id for c in cloud_credentials])).wait_until_completed()
         relaunch_job_as_diff_user_forbidden(job)
+
+    def test_relaunch_with_no_ssh_password_provided_denied(self, v2, job_template, ssh_credential_ask):
+        """ Verify that relaunching a job w/ credential that has ask for password and password not provided
+        results in no new job
+        """
+        job_template.patch(credential=ssh_credential_ask.id)
+
+        job = job_template.launch(dict(ssh_password=config.credentials.ssh.password)).wait_until_completed()
+        with pytest.raises(exc.BadRequest) as e:
+            job.relaunch()
+
+        assert 'Missing passwords needed to start: ssh_password' in e.value.message['credential_passwords']
+        assert v2.jobs.get(status='new').count == 0
