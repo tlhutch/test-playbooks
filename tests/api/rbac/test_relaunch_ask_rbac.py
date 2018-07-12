@@ -112,13 +112,13 @@ class TestRelaunchAskRBAC(Base_Api_Test):
         job = job_template.launch(dict(extra_credentials=[c.id for c in cloud_credentials])).wait_until_completed()
         relaunch_job_as_diff_user_forbidden(job)
 
-    def test_relaunch_with_no_ssh_password_provided_denied(self, v2, job_template, ssh_credential_ask):
+    def test_relaunch_with_no_ssh_password_provided_denied(self, factories, ssh_credential_ask):
         """Verify that relaunching a job w/ credential that has ask for password and password not provided
         results in no new job
         """
-        job_template.patch(credential=ssh_credential_ask.id)
+        jt = factories.v2_job_template(credential=ssh_credential_ask)
 
-        job = job_template.launch(dict(ssh_password=config.credentials.ssh.password)).wait_until_completed()
+        job = jt.launch(dict(ssh_password=config.credentials.ssh.password)).wait_until_completed()
         with pytest.raises(exc.BadRequest) as e:
             job.relaunch()
 
@@ -126,4 +126,4 @@ class TestRelaunchAskRBAC(Base_Api_Test):
         """one-off assertion to provide coverage for https://github.com/ansible/tower/issues/964
         A new job would be created even when access is denied.
         """
-        assert job_template.related.jobs.get(status='new').count == 0
+        assert jt.related.jobs.get(status='new').count == 0
