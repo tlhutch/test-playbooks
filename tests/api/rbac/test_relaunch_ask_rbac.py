@@ -113,7 +113,7 @@ class TestRelaunchAskRBAC(Base_Api_Test):
         relaunch_job_as_diff_user_forbidden(job)
 
     def test_relaunch_with_no_ssh_password_provided_denied(self, v2, job_template, ssh_credential_ask):
-        """ Verify that relaunching a job w/ credential that has ask for password and password not provided
+        """Verify that relaunching a job w/ credential that has ask for password and password not provided
         results in no new job
         """
         job_template.patch(credential=ssh_credential_ask.id)
@@ -123,4 +123,7 @@ class TestRelaunchAskRBAC(Base_Api_Test):
             job.relaunch()
 
         assert 'Missing passwords needed to start: ssh_password' in e.value.message['credential_passwords']
-        assert v2.jobs.get(status='new').count == 0
+        """one-off assertion to provide coverage for https://github.com/ansible/tower/issues/964
+        A new job would be created even when access is denied.
+        """
+        assert job_template.related.jobs.get(status='new').count == 0
