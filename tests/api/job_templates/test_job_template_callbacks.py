@@ -568,7 +568,8 @@ class TestJobTemplateCallbacks(Base_Api_Test):
         """
         jt = job_template_with_host_config_key
         res = requests.post("{}{}".format(config.base_url, jt.related.callback),
-                            data={'host_config_key': host_config_key})
+                            data={'host_config_key': host_config_key},
+                            verify=False)
         assert res.status_code == 201, \
                 "Launching Job Template via provision callback failed. Remote host list {}".format(remote_hosts)
 
