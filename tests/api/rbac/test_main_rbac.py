@@ -52,6 +52,11 @@ class Test_Main_RBAC(Base_Api_Test):
 
         # grant admin_user resource-admin privileges
         resource.set_object_roles(admin_user, "admin")
+        if resource_name == 'organization':
+            # If associating to organization admin / member, requesting user
+            # must be admin of the user's organization too
+            # see: https://github.com/ansible/tower/issues/1189
+            organization.set_object_roles(admin_user, "admin")
 
         # verify that our resource admin may grant and revoke all resource roles
         role_names = get_resource_roles(resource)
