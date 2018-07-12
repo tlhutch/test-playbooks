@@ -284,6 +284,26 @@ class TestExecutionNodeAssignment(Base_Api_Test):
         assert inv_source.get().related.last_update.get().execution_node == instance.hostname
         assert project.get().related.last_update.get().execution_node == instance.hostname
 
+    @pytest.mark.requires_traditional_cluster
+    def test_jobs_distribute_among_isolated_instance_group_members(self, factories, v2):
+        ig = v2.instance_groups.get(name='protected').results.pop()
+        instances = ig.related.instances.get().results
+
+        jt = factories.v2_job_template(playbook='sleep.yml', allow_simultaneous=True,
+                                       extra_vars=dict(sleep_interval=60))
+        jt.ds.inventory.add_host()
+        jt.add_instance_group(ig)
+
+        num_jobs = self.find_num_jobs(instances)
+        for _ in range(num_jobs):
+            jt.launch()
+        jobs = jt.related.jobs.get()
+        utils.poll_until(lambda: len([job.execution_node for job in jobs.get().results
+                         if job.execution_node != '']) == num_jobs, interval=5, timeout=300)
+
+        job_execution_nodes = [job.execution_node for job in jobs.results]
+        assert set(job_execution_nodes) == set([instance.hostname for instance in instances])
+
     def test_single_instance_with_capacity_assigned_as_job_execution_node(self, factories, reset_instance,
                                                                           tower_instance_group):
         ig = factories.instance_group()
