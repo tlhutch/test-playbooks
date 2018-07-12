@@ -36,7 +36,10 @@ class TestActivityStream(Base_Api_Test):
             resource.delete()
         superuser.delete()
 
-        as_entry = v2.activity_stream.get(deleted_actor__contains=superuser.username).results.pop()
+        as_entries = v2.activity_stream.get(deleted_actor__contains=superuser.username).results
+        assert len(as_entries) == 1
+        as_entry = as_entries.pop()
+
         assert as_entry.object1 == resource.type
         assert not as_entry.object2
         assert as_entry.operation == 'delete'
