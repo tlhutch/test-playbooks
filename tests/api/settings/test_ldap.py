@@ -69,6 +69,20 @@ class TestLDAP(Base_Api_Test):
             assert bob.related.teams.get().count == 0
         ldap_clean_users_orgs_teams(bob)
 
+    def test_ldap_superuser_permissions(self, v2, update_setting_pg, ldap_clean_users_orgs_teams):
+        ldap_settings = deepcopy(self.base_ldap_settings)
+        ldap_settings['AUTH_LDAP_USER_FLAGS_BY_GROUP'] = {'is_superuser': [
+            'cn=bobsburgers_admins,cn=groups,cn=accounts,dc=testing,dc=ansible,dc=com',
+            'cn=planetexpress_admins,cn=groups,cn=accounts,dc=testing,dc=ansible,dc=com']}
+        update_setting_pg(v2.settings.get().get_endpoint(
+            'ldap'), ldap_settings)
+        superusers = ['hfarnsworth', 'libelcher']
+        for u in superusers:
+            with self.current_user(u, self.ldap_password):
+                superuser = v2.me.get().results.pop()
+                assert superuser.is_superuser
+        [ldap_clean_users_orgs_teams(v2.users.get(username=u).results.pop()) for u in superusers]
+
     def test_ldap_organization_creation_and_user_sourcing(self, v2, update_setting_pg, ldap_clean_users_orgs_teams):
         org_name = u'LDAP_Organization_{}'.format(random_title())
         ldap_settings = deepcopy(self.base_ldap_settings)
