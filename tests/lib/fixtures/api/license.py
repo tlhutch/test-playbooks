@@ -16,7 +16,8 @@ log = logging.getLogger(__name__)
 def apply_license_until_effective(config, license_info):
     log.info('Applying {} license...'.format(license_info['license_type']))
     config.post(license_info)
-    poll_until(lambda: config.get().license_info.license_key == license_info['license_key'], interval=1, timeout=90)
+    poll_until(lambda: config.get().license_info and config.license_info.license_key == license_info['license_key'],
+               interval=1, timeout=90)
 
 
 def delete_license_until_effective(config):
