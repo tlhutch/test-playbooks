@@ -63,11 +63,11 @@ class TestLDAP(Base_Api_Test):
         update_setting_pg(v2.settings.get().get_endpoint('ldap'), self.base_ldap_settings)
         with self.current_user('bbelcher', self.ldap_password):
             bob = v2.me.get().results.pop()
-            assert bob.first_name == 'Bob'
-            assert bob.last_name == 'Belcher'
-            assert bob.related.organizations.get().count == 0
-            assert bob.related.teams.get().count == 0
         ldap_clean_users_orgs_teams(bob)
+        assert bob.first_name == 'Bob'
+        assert bob.last_name == 'Belcher'
+        assert bob.related.organizations.get().count == 0
+        assert bob.related.teams.get().count == 0
 
     def test_ldap_superuser_permissions(self, v2, update_setting_pg, ldap_clean_users_orgs_teams):
         ldap_settings = deepcopy(self.base_ldap_settings)
@@ -96,14 +96,14 @@ class TestLDAP(Base_Api_Test):
         assert v2.organizations.get(name=org_name).count == 0
         with self.current_user('libelcher', self.ldap_password):
             linda = v2.me.get().results.pop()
-            org = v2.organizations.get(name=org_name).results.pop()
-            users = org.related.users.get()
-            assert users.count == 1
-            assert users.results.pop().id == linda.id
-            admins = org.related.admins.get()
-            assert admins.count == 1
-            assert admins.results.pop().id == linda.id
         ldap_clean_users_orgs_teams(linda)
+        org = v2.organizations.get(name=org_name).results.pop()
+        users = org.related.users.get()
+        assert users.count == 1
+        assert users.results.pop().id == linda.id
+        admins = org.related.admins.get()
+        assert admins.count == 1
+        assert admins.results.pop().id == linda.id
 
     def test_ldap_team_creation_and_user_sourcing(self, v2, update_setting_pg, ldap_clean_users_orgs_teams):
         org_name = u'Bobs Burgers {}'.format(random_title())
@@ -124,11 +124,11 @@ class TestLDAP(Base_Api_Test):
         assert v2.teams.get(name=team_name).count == 0
         with self.current_user('libelcher', self.ldap_password):
             linda = v2.me.get().results.pop()
-            team = v2.teams.get(name=team_name).results.pop()
-            users = team.related.users.get()
-            assert users.count == 1
-            assert users.results.pop().id == linda.id
         ldap_clean_users_orgs_teams(linda)
+        team = v2.teams.get(name=team_name).results.pop()
+        users = team.related.users.get()
+        assert users.count == 1
+        assert users.results.pop().id == linda.id
 
     def test_multi_ldap_user_in_second_directory_can_authenticate(self, v2, update_setting_pg, ldap_clean_users_orgs_teams):
         default_ldap_settings = deepcopy(self.base_ldap_settings)
@@ -139,43 +139,43 @@ class TestLDAP(Base_Api_Test):
             'cn=lusers,cn=accounts,dc=testing,dc=ansible,dc=com',
             'SCOPE_SUBTREE',
             '(uid=%(user)s)']
+        ldap_endpoint = v2.settings.get().get_endpoint('ldap')
         ldap_settings = [self.create_additional_directory_config(n, u) for n, u in [('1', 'tower_0'),
                                                                                     ('2', 'tower_1')]]
-        update_setting_pg(v2.settings.get().get_endpoint(
-            'ldap'), default_ldap_settings)
-        [update_setting_pg(v2.settings.get().get_endpoint('ldap'), s)
+        update_setting_pg(ldap_endpoint, default_ldap_settings)
+        [update_setting_pg(ldap_endpoint, s)
          for s in ldap_settings]
         # sarcher is only readable by the tower_1 user
         with self.current_user('sarcher', self.ldap_password):
             sterling = v2.me.get().results.pop()
-            assert sterling.first_name == 'Sterling'
-            assert sterling.last_name == 'Archer'
-            assert sterling.related.organizations.get().count == 0
-            assert sterling.related.teams.get().count == 0
         ldap_clean_users_orgs_teams(sterling)
+        assert sterling.first_name == 'Sterling'
+        assert sterling.last_name == 'Archer'
+        assert sterling.related.organizations.get().count == 0
+        assert sterling.related.teams.get().count == 0
 
     def test_multi_ldap_user_can_authenticate_after_error_in_earlier_directory(self, v2, update_setting_pg, ldap_clean_users_orgs_teams):
         '''In the event that an eariler directory becomes unavailable,
            continue to attempt authenticating the user on other directories.'''
         default_ldap_settings = deepcopy(self.base_ldap_settings)
         default_ldap_settings['AUTH_LDAP_BIND_PASSWORD'] = 'Borked'
+        ldap_endpoint = v2.settings.get().get_endpoint('ldap')
         ldap_settings = [self.create_additional_directory_config(n, u) for n, u in [('1', 'tower_0'),
                                                                                     ('2', 'tower_1')]]
-        update_setting_pg(v2.settings.get().get_endpoint(
-            'ldap'), default_ldap_settings)
-        [update_setting_pg(v2.settings.get().get_endpoint('ldap'), s)
+        update_setting_pg(ldap_endpoint, default_ldap_settings)
+        [update_setting_pg(ldap_endpoint, s)
          for s in ldap_settings]
         with self.current_user('sarcher', self.ldap_password):
             sterling = v2.me.get().results.pop()
-            assert sterling.first_name == 'Sterling'
-            assert sterling.last_name == 'Archer'
-            assert sterling.related.organizations.get().count == 0
-            assert sterling.related.teams.get().count == 0
         ldap_clean_users_orgs_teams(sterling)
+        assert sterling.first_name == 'Sterling'
+        assert sterling.last_name == 'Archer'
+        assert sterling.related.organizations.get().count == 0
+        assert sterling.related.teams.get().count == 0
 
     def test_ldap_user_attributes_are_changed_if_config_updated(self, v2, update_setting_pg, ldap_clean_users_orgs_teams):
         '''If the attribute map changes, make sure new values
-            are set on existing user accts on login'''
+           are set on existing user accts on login'''
         default_ldap_settings = deepcopy(self.base_ldap_settings)
         default_ldap_settings['AUTH_LDAP_USER_ATTR_MAP'] = {'first_name': 'foo',
                                                             'last_name': 'bar',
@@ -184,13 +184,13 @@ class TestLDAP(Base_Api_Test):
         update_setting_pg(ldap_endpoint, default_ldap_settings)
         with self.current_user('sarcher', self.ldap_password):
             sterling = v2.me.get().results.pop()
-            assert sterling.first_name == ''
-            assert sterling.last_name == ''
+        ldap_clean_users_orgs_teams(sterling)
+        assert sterling.first_name == ''
+        assert sterling.last_name == ''
         default_ldap_settings['AUTH_LDAP_USER_ATTR_MAP'] = self.base_ldap_settings['AUTH_LDAP_USER_ATTR_MAP']
         update_setting_pg(ldap_endpoint, default_ldap_settings)
         with self.current_user('sarcher', self.ldap_password):
             sterling = v2.me.get().results.pop()
-        ldap_clean_users_orgs_teams(sterling)
         assert sterling.first_name == 'Sterling'
         assert sterling.last_name == 'Archer'
 
@@ -215,7 +215,7 @@ class TestLDAP(Base_Api_Test):
         default_ldap_settings['AUTH_LDAP_GROUP_SEARCH'] = self.base_ldap_settings['AUTH_LDAP_GROUP_SEARCH']
         update_setting_pg(ldap_endpoint, default_ldap_settings)
 
-        # Tru a login with a "good" configuration
+        # Try a login with a "good" configuration
         with self.current_user('sarcher', self.ldap_password):
             try:
                 sterling_valid_login = v2.me.get().results.pop()
@@ -248,11 +248,11 @@ class TestLDAP(Base_Api_Test):
         update_setting_pg(ldap_endpoint, dir1_settings)
         with self.current_user('sarcher', self.ldap_password):
             sterling = v2.me.get().results.pop()
-            assert sterling.first_name == 'Archer'
-            assert sterling.last_name == 'Sterling'
-            assert sterling.related.organizations.get().count == 0
-            assert sterling.related.teams.get().count == 0
         ldap_clean_users_orgs_teams(sterling)
+        assert sterling.first_name == 'Archer'
+        assert sterling.last_name == 'Sterling'
+        assert sterling.related.organizations.get().count == 0
+        assert sterling.related.teams.get().count == 0
 
     def test_multi_ldap_disallowed_user_in_earlier_directory_can_auth(self, v2, update_setting_pg, ldap_clean_users_orgs_teams):
         '''This test verifies that a user who is present in the AUTH_LDAP_DENY_GROUP for an earlier
@@ -267,8 +267,8 @@ class TestLDAP(Base_Api_Test):
         update_setting_pg(ldap_endpoint, dir1_settings)
         with self.current_user('sarcher', self.ldap_password):
             sterling = v2.me.get().results.pop()
-            assert sterling.first_name == 'Sterling'
-            assert sterling.last_name == 'Archer'
-            assert sterling.related.organizations.get().count == 0
-            assert sterling.related.teams.get().count == 0
         ldap_clean_users_orgs_teams(sterling)
+        assert sterling.first_name == 'Sterling'
+        assert sterling.last_name == 'Archer'
+        assert sterling.related.organizations.get().count == 0
+        assert sterling.related.teams.get().count == 0
