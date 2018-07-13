@@ -487,16 +487,14 @@ class TestTraditionalCluster(Base_Api_Test):
             assert instance.get().capacity == 0
 
             # Check the job we started is marked as failed
-            long_job.wait_until_status(FAIL_STATUSES, interval=5, timeout=180, since_job_created=False)
+            long_job.wait_until_status(FAIL_STATUSES, interval=5, timeout=300, since_job_created=False)
 
-            # Should fail with explanation:
+            # Should fail with explanation
             explanation = "Task was marked as running in Tower but was not present in the job queue, so it has been marked as failed."
             assert long_job.job_explanation == explanation
 
             # Start a new job against the offline node
-            jt = factories.v2_job_template()
-            jt.ds.inventory.add_host()
-            jt.add_instance_group(ig)
+            jt.patch(extra_vars='', playbook='ping.yml')  # no longer need long-running job
             job = jt.launch()
 
             # Check it stays in pending
@@ -504,8 +502,7 @@ class TestTraditionalCluster(Base_Api_Test):
 
         # Capacity of the instance and the group should be restored
         def check_group_capacity_restored():
-            ig.get()
-            return ig.capacity == group_capacity
+            return ig.get().capacity == group_capacity
         utils.poll_until(check_group_capacity_restored, interval=5, timeout=120)
         assert instance.get().capacity == instance_capacity
 
