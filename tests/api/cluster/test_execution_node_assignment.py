@@ -285,21 +285,22 @@ class TestExecutionNodeAssignment(Base_Api_Test):
         assert project.get().related.last_update.get().execution_node == instance.hostname
 
     @pytest.mark.requires_traditional_cluster
-    def test_jobs_distribute_among_isolated_instance_group_members(self, factories, v2):
+    def test_jobs_distribute_among_isolated_instance_group_members(self, factories, v2, do_all_jobs_overlap):
         ig = v2.instance_groups.get(name='protected').results.pop()
         instances = ig.related.instances.get().results
 
         jt = factories.v2_job_template(playbook='sleep.yml', allow_simultaneous=True,
-                                       extra_vars=dict(sleep_interval=60))
+                                       extra_vars=dict(sleep_interval=10))
         jt.ds.inventory.add_host()
         jt.add_instance_group(ig)
 
-        num_jobs = self.find_num_jobs(instances)
+        num_jobs = len(instances)
         for _ in range(num_jobs):
             jt.launch()
         jobs = jt.related.jobs.get()
-        utils.poll_until(lambda: len([job.execution_node for job in jobs.get().results
-                         if job.execution_node != '']) == num_jobs, interval=5, timeout=300)
+
+        utils.poll_until(lambda: jobs.get(status='successful').count == num_jobs, interval=5, timeout=60)
+        assert do_all_jobs_overlap(jobs.results)
 
         job_execution_nodes = [job.execution_node for job in jobs.results]
         assert set(job_execution_nodes) == set([instance.hostname for instance in instances])
