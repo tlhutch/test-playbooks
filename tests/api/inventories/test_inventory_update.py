@@ -322,7 +322,7 @@ class TestInventoryUpdate(Base_Api_Test):
         assert inv_update.verbosity == inv_source.verbosity
         if verbosity == 0 and ansible_version_cmp('2.4.0') >= 1:
             # https://github.com/ansible/awx/issues/792
-            assert inv_update.result_stdout == 'stdout capture is missing'
+            assert inv_update.result_stdout == ''
         else:
             for line in stdout_lines:
                 assert line in inv_update.result_stdout
