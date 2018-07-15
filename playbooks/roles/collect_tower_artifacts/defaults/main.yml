@@ -1,0 +1,4 @@
+---
+
+tower_log_dir: /var/log/tower/
+local_tower_artifacts_dir: ./

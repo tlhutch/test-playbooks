@@ -1,0 +1,21 @@
+---
+- name: 'Clean up expired or excessive images'
+  hosts: local
+  roles:
+    - role: cleanup_ami
+
+- name: 'Collect tower artifacts'
+  hosts: tower
+  roles:
+    - role: collect_tower_artifacts
+
+- name: 'Create ec2 images'
+  hosts: local
+  roles:
+    - role: create_ami
+    - role: save_ami_info
+
+- name: 'Terminate ec2 instance'
+  hosts: local
+  roles:
+    - role: terminate_ec2
