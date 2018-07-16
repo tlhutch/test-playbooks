@@ -130,10 +130,10 @@ class TestApplications(APITest):
     def test_read_only_application_fields_have_forbidden_writes(self, factories, field):
         app = factories.application(organization=True, client_type='confidential')
         expected = app[field]
-        with pytest.raises(exc.Forbidden) as e:
-            setattr(app, field, 'SHOULD_BE_FORBIDDEN')
-        assert e.value.message == 'Cannot change this field.'
-        assert app[field] == expected
+        setattr(app, field, 'SHOULD_BE_FORBIDDEN')
+        modified_app = app.get()
+        assert modified_app[field] != 'SHOULD_BE_FORBIDDEN'
+        assert modified_app[field] == expected
 
     @pytest.mark.github('https://github.com/ansible/tower/issues/1125')
     def test_application_creation_in_activity_stream(self, v2, factories, privileged_user, organization):
