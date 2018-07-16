@@ -100,7 +100,9 @@ class TestRelaunchAskRBAC(Base_Api_Test):
                                                      user=relaunch_user,
                                                      organization=job_template.ds.project.organization) for i in [1, 2]]
 
-        job = job_template.launch(dict(credentials=[c.id for c in cloud_credentials])).wait_until_completed()
+        relaunch_creds = [c.id for c in cloud_credentials]
+        relaunch_creds.append(job_template.ds.credential.id)
+        job = job_template.launch(dict(credentials=relaunch_creds)).wait_until_completed()
         relaunch_job_as_diff_user_forbidden(job)
 
     @pytest.mark.github('https://github.com/ansible/tower/issues/1870')
