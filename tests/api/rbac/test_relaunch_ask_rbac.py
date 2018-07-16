@@ -104,12 +104,15 @@ class TestRelaunchAskRBAC(Base_Api_Test):
         relaunch_job_as_diff_user_forbidden(job)
 
     @pytest.mark.github('https://github.com/ansible/tower/issues/1870')
-    def test_relaunch_with_extra_credentials_forbidden(self, factories, job_template, relaunch_user, relaunch_job_as_diff_user_forbidden):
-        job_template.patch(ask_credential_on_launch=True)
+    def test_relaunch_with_extra_credentials_forbidden(self, factories, relaunch_user, relaunch_job_as_diff_user_forbidden):
+        job_template = factories.v2_job_template(ask_credential_on_launch=True)  # must be v2 type
         cloud_credentials = [factories.v2_credential(credential_type=factories.credential_type(),
                                                      user=relaunch_user,
                                                      organization=job_template.ds.project.organization) for i in [1, 2]]
-        job = job_template.launch(dict(extra_credentials=[c.id for c in cloud_credentials])).wait_until_completed()
+        cred_list = [c.id for c in cloud_credentials]
+        cred_list.append(job_template.ds.credential.id)
+        job = job_template.launch(dict(credentials=cred_list)).wait_until_completed()
+        assert job.related.extra_credentials.get().count == 2
         relaunch_job_as_diff_user_forbidden(job)
 
     def test_relaunch_with_no_ssh_password_provided_denied(self, factories, ssh_credential_ask):
