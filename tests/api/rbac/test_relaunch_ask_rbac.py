@@ -105,15 +105,27 @@ class TestRelaunchAskRBAC(Base_Api_Test):
 
     @pytest.mark.github('https://github.com/ansible/tower/issues/1870')
     def test_relaunch_with_extra_credentials_forbidden(self, factories, relaunch_user, relaunch_job_as_diff_user_forbidden):
-        job_template = factories.v2_job_template(ask_credential_on_launch=True)  # must be v2 type
+        """
+        User with only execute role should not be able to relaunch a job for which
+        `extra_credentials` were provided. This deprecated field cannot have its
+        prompts re-applied since it does not use the up-to-date credential merging logic.
+        """
+        job_template = factories.v2_job_template(ask_credential_on_launch=True, credential=None)  # must be v2 type
+        job_template.set_object_roles(relaunch_user, 'execute')
         cloud_credentials = [factories.v2_credential(credential_type=factories.credential_type(),
                                                      user=relaunch_user,
                                                      organization=job_template.ds.project.organization) for i in [1, 2]]
         cred_list = [c.id for c in cloud_credentials]
-        cred_list.append(job_template.ds.credential.id)
-        job = job_template.launch(dict(credentials=cred_list)).wait_until_completed()
-        assert job.related.extra_credentials.get().count == 2
-        relaunch_job_as_diff_user_forbidden(job)
+
+        with self.current_user(relaunch_user):
+            job = job_template.launch(dict(extra_credentials=cred_list)).wait_until_completed()
+            # Sanity check that credentials were actually used
+            assert job.related.extra_credentials.get().count == 2
+
+            with pytest.raises(towerkit.exceptions.Forbidden) as exc:
+                job.relaunch()
+        assert 'Job was launched with unknown prompted fields.' in exc.value.message['detail'], \
+            "Failed while checking relaunch Permissions"
 
     def test_relaunch_with_no_ssh_password_provided_denied(self, factories, ssh_credential_ask):
         """Verify that relaunching a job w/ credential that has ask for password and password not provided
