@@ -53,7 +53,7 @@ def modify_settings(api_settings_all_pg, update_setting_pg):
         requests.
         """
         # update Tower settings
-        payload = dict(AUTH_TOKEN_EXPIRATION=100000,  # /api/v1/settings/authtoken/
+        payload = dict(SESSION_COOKIE_AGE=100000,  # /api/v1/settings/authentication/
                        SOCIAL_AUTH_AZUREAD_OAUTH2_KEY="test",  # /api/v1/settings/azuread-oauth2/
                        SOCIAL_AUTH_GITHUB_KEY="test",  # /api/v1/settings/settings/github/
                        SOCIAL_AUTH_GITHUB_ORG_KEY="test",  # /api/v1/settings/settings/github-org/
