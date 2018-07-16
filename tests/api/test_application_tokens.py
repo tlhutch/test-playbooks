@@ -87,6 +87,23 @@ class TestApplications(APITest):
         assert list_item.redirect_uris == redirect_uris
         assert list_item.client_id == client_id
 
+    @pytest.mark.github('https://github.com/ansible/tower/issues/2507')
+    def test_application_organization_name_unique(self, v2, factories):
+        app = factories.application(
+            organization=True,
+            authorization_grant_type='password',
+            client_type='public'
+        )
+
+        with pytest.raises(exc.BadRequest) as e:
+            factories.application(
+                name=app['name'],
+                organization=app.ds.organization,
+                authorization_grant_type='password',
+                client_type='public'
+            )
+        assert e.value.message == {'__all__': ['Application with this Name and Organization already exists.']}
+
     def test_patch_modified_application_integrity(self, v2, factories):
         app = factories.application(organization=True, authorization_grant_type='password',
                                     client_Type='public')
