@@ -458,8 +458,14 @@ print json.dumps(inv, indent=2)
         with pytest.raises(exc.BadRequest):
             relaunch_pg.post(payload)
 
+    @pytest.mark.mp_group('Jinja2', 'isolated_serial')
     @pytest.mark.parametrize('extra_vars, exp_stdout', [("{'test': 'json'}", "json"), ("---\ntest: yaml", "yaml")])
-    def test_launch_ahc_with_extra_vars(self, factories, extra_vars, exp_stdout):
+    def test_launch_ahc_with_extra_vars(self, v2, factories, extra_vars, exp_stdout):
+        # Need to set this so that templating is allowed
+        api_settings_jobs_pg = v2.settings.get().get_endpoint('jobs')
+        payload = dict(ALLOW_JINJA_IN_EXTRA_VARS='always')
+        api_settings_jobs_pg.patch(**payload)
+
         host = factories.v2_host()
         ahc = factories.v2_ad_hoc_command(inventory=host.ds.inventory, module_name='shell', module_args='echo {{test}}',
                                           extra_vars=extra_vars).wait_until_completed()
