@@ -399,9 +399,10 @@ class TestCredentialTypes(Base_Api_Test):
             ct_payload.injectors[var_type][invalid_var] = '{{ input_one }}'
             with pytest.raises(exc.BadRequest) as e:
                 v2.credential_types.post(ct_payload)
-            assert e.value.message == {u'injectors': ["'%s' does not match any of the regexes: "
-                                                      "'^[a-zA-Z_]+[a-zA-Z0-9_]*$'"
-                                                      % invalid_var.encode('ascii', 'backslashreplace')]}
+            assert e.value.message == {'injectors': ["Schema validation error in relative path ['%s'] "
+                                                     "('%s' does not match any of the regexes: "
+                                                     "'^[a-zA-Z_]+[a-zA-Z0-9_]*$')"
+                                                     % (var_type, invalid_var.encode('ascii', 'backslashreplace'))]}
             del ct_payload.injectors[var_type][invalid_var]
 
     def test_confirm_inputs_persist_as_specified(self, factories):
