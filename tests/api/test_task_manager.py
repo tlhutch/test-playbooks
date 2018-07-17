@@ -221,6 +221,7 @@ class Test_Sequential_Jobs(Base_Api_Test):
         # check that we have overlapping jobs
         check_overlapping_jobs(jobs)
 
+    @pytest.mark.github('https://github.com/ansible/tower/issues/2564')
     def test_workflow_job_template(self, workflow_job_template, factories):
         """Launch several WFJs using the same WFJT. Check that:
         * No WFJs ran simultaneously.
