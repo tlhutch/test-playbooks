@@ -73,7 +73,6 @@ forbidden = (httplib.FORBIDDEN, 'forbidden')
 method_not_allowed = (httplib.METHOD_NOT_ALLOWED, 'method_not_allowed')
 payment_required = (httplib.PAYMENT_REQUIRED, 'payment_required')
 unauthorized = (httplib.UNAUTHORIZED, 'unauthorized')
-resource_created = (httplib.CREATED, 'created')
 
 
 @pytest.mark.api
@@ -170,7 +169,7 @@ def test_authenticated(connection, authtoken, no_license, resource, method):
                   'inventory_updates/': {'POST': method_not_allowed},
                   'job_events/': {'POST': method_not_allowed},
                   '/api/v2/jobs/': {'POST': method_not_allowed},
-                  '/api/v2/tokens/': {'POST': resource_created},
+                  '/api/v2/tokens/': {'POST': (httplib.CREATED, 'post')},
                   'me/': {'POST': method_not_allowed},
                   'notifications/': {'POST': method_not_allowed},
                   'organizations/': {'POST': payment_required},
