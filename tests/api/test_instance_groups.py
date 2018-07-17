@@ -27,12 +27,13 @@ class TestInstanceGroups(Base_Api_Test):
         return consumed_capacity
 
     def check_resource_is_being_used(self, error, unified_job):
-        assert error.value[1] == {
-                'active_jobs': [{
-                    u'type': unicode(unified_job.type),
-                    u'id': unified_job.id
-                }],
-                'error': u'Resource is being used by running jobs.'}
+        assert 'error' in error.value[1]
+        assert 'active_jobs' in error.value[1]
+        assert error.value[1]['error'] == u'Resource is being used by running jobs.'
+        assert {
+            u'type': unicode(unified_job.type),
+            u'id': unified_job.id
+        } in error.value[1]['active_jobs']
 
     def test_instance_group_capacity_should_be_sum_of_individual_instances(self, factories, tower_instance_group):
         tower_hostnames = [instance.hostname for instance in tower_instance_group.related.instances.get().results]
