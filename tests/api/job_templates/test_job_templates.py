@@ -399,7 +399,7 @@ print json.dumps(inv, indent=2)
     ], ids=['no timeout', 'under timeout', 'over timeout'])
     def test_launch_with_timeout(self, job_template, timeout, status, job_explanation):
         """Tests JTs with timeouts."""
-        job_template.patch(timeout=timeout)
+        job_template.patch(timeout=timeout, playbook='sleep.yml', extra_vars='sleep_interval: 10')
 
         # launch JT and assess spawned job
         job_pg = job_template.launch().wait_until_completed()
