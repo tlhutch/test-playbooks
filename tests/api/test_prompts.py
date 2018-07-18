@@ -146,7 +146,7 @@ class TestPrompts(Base_Api_Test):
         launch_ssh = factories.v2_credential()
         launch_creds = [launch_ssh, launch_aws, launch_vmware, launch_vault]
         launch_cred_ids = [cred.id for cred in launch_creds]
-        job = jt.launch(dict(credential=launch_cred_ids)).wait_until_completed()
+        job = jt.launch(dict(credentials=launch_cred_ids)).wait_until_completed()
         assert job.is_successful
 
         create_schedule = job.related.create_schedule.get()
