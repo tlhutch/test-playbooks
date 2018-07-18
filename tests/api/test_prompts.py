@@ -119,7 +119,7 @@ class TestPrompts(Base_Api_Test):
         cred_ids = [cred.id for cred in credentials]
 
         jt = factories.v2_job_template(ask_inventory_on_launch=True, ask_credential_on_launch=True)
-        job = jt.launch(dict(inventory=inventory.id, credential=cred_ids)).wait_until_completed()
+        job = jt.launch(dict(inventory=inventory.id, credentials=cred_ids)).wait_until_completed()
         assert job.is_successful
 
         create_schedule = job.related.create_schedule.get()
