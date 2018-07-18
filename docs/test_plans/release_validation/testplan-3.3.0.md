@@ -8,59 +8,64 @@
 ## Features Tested
 
 ### Parameters for Scheduled and Workflow Jobs (cwang)
-[Feature](https://github.com/ansible/tower/blob/devel/docs/prompting.md)
-[Test Plan](https://docs.google.com/document/d/1M_W0g5gPo4kuuMwIcA5Z7BookbPID8PqxBwCuIIwS2Y/edit)
+* [Feature](https://github.com/ansible/tower/blob/devel/docs/prompting.md)
+* [Test Plan](https://docs.google.com/document/d/1M_W0g5gPo4kuuMwIcA5Z7BookbPID8PqxBwCuIIwS2Y/edit)
 
 ### Revise capacity algorithm (cwang)
-[Feature](https://github.com/ansible/tower/blob/release_3.3.0/docs/capacity.md)
-[Test Plan](https://docs.google.com/document/d/1wr1IiwsP8pnZ-b-SiiQnh_jL_q4gtzOZQQN8oCvDi5s/edit)
+* [Feature](https://github.com/ansible/tower/blob/release_3.3.0/docs/capacity.md)
+* [Test Plan](https://docs.google.com/document/d/1wr1IiwsP8pnZ-b-SiiQnh_jL_q4gtzOZQQN8oCvDi5s/edit)
 
 ### More granular permissions
-[Feature]()
+* [Feature]()
 
 ### SAML/LDAP/etc hitlist catchall
-[Feature](https://github.com/ansible/tower/blob/release_3.3.0/docs/auth/saml.md)
-[Feature](https://github.com/ansible/tower/blob/release_3.3.0/docs/auth/ldap.md)
+* [Feature (saml)](https://github.com/ansible/tower/blob/release_3.3.0/docs/auth/saml.md)
+* [Feature (ldap)](https://github.com/ansible/tower/blob/release_3.3.0/docs/auth/ldap.md)
 
 ### Update GCP credentials
-[Feature]()
+* [Feature]()
 
 ### API-backed item copying
-[Feature](https://github.com/ansible/tower/blob/release_3.3.0/docs/resource_copy.md)
+* [Feature](https://github.com/ansible/tower/blob/release_3.3.0/docs/resource_copy.md)
 
 ### Multi-file support for Credential Types (cwang)
-[Feature](https://github.com/ansible/tower/blob/release_3.3.0/docs/multi_credential_assignment.md)
-[Test Plan](https://docs.google.com/document/d/1haYuCGYGqPbiUqig4rJoDYyKfLHgCXm_yzXCeSxoiEo/edit)
+* [Feature](https://github.com/ansible/tower/blob/release_3.3.0/docs/multi_credential_assignment.md)
+* [Test Plan](https://docs.google.com/document/d/1haYuCGYGqPbiUqig4rJoDYyKfLHgCXm_yzXCeSxoiEo/edit)
 
 ### Pendo Opt-Out in License Screen
-[Feature]()
+* [Feature]()
 
 ### Fact caching for isolated jobs (cwang)
-[Feature](https://github.com/ansible/awx/issues/198)
-[Test Plan](https://docs.google.com/document/d/1iddRSaS88L2bz10K1511PfKcDmVnm5M9LhqMh1ty6hE/edit)
+* [Feature](https://github.com/ansible/awx/issues/198)
+* [Test Plan](https://docs.google.com/document/d/1iddRSaS88L2bz10K1511PfKcDmVnm5M9LhqMh1ty6hE/edit)
 
 ### Containerized Tower as a product deliverable (cwang, jladd)
-[Feature](https://github.com/ansible/tower/blob/release_3.3.0/docs/clustering.md)
-[Test Plan](https://docs.google.com/document/d/1qaLCCXoGEcAIW0Be-JTvBOM-KoC1AOGBju1nM9b3WbU/edit)
+* [Feature](https://github.com/ansible/tower/blob/release_3.3.0/docs/clustering.md)
+* [Test Plan](https://docs.google.com/document/d/1qaLCCXoGEcAIW0Be-JTvBOM-KoC1AOGBju1nM9b3WbU/edit)
 
 ### Inventory & Network Visualization
-[Feature]()
+* [Feature]()
 
 ### Token-based authentication to Tower
-[Feature](https://github.com/ansible/tower/blob/release_3.3.0/docs/auth/session.md)
-[Feature](https://github.com/ansible/tower/blob/release_3.3.0/docs/auth/oauth.md)
+* [Feature (sessions)](https://github.com/ansible/tower/blob/release_3.3.0/docs/auth/session.md)
+* [Feature (oauth)](https://github.com/ansible/tower/blob/release_3.3.0/docs/auth/oauth.md)
 
 ### Retry on Failed Hosts
-[Feature]()
+* [Feature]()
 
-### Multiple venvs for ansible
-[Feature](https://github.com/ansible/tower/blob/release_3.3.0/docs/custom_virtualenvs.md)
+### Multiple venvs for ansible (jladd)
+* [Feature](https://github.com/ansible/tower/blob/release_3.3.0/docs/custom_virtualenvs.md)
+* [Test Plan](https://docs.google.com/document/d/1TKkdj1pdeh9p048_S-sIMxSpAUKZuX3T65kcVKT8odM/edit)
+
+### Multi-Credential (+ Multi-Vault) Assignment (jladd)
+* [Feature](https://docs.google.com/document/d/1H5cphm39UFqV91nRiipNJxjlshpoBMwAIkx2n5cg2lQ/edit)
+* [Test Plan](https://docs.google.com/document/d/1H5cphm39UFqV91nRiipNJxjlshpoBMwAIkx2n5cg2lQ/edit)
 
 ### Fix #823 (schedules timezone)
-[Feature](https://github.com/ansible/tower/blob/release_3.3.0/docs/schedules.md)
+* [Feature](https://github.com/ansible/tower/blob/release_3.3.0/docs/schedules.md)
 
 ### Event-ize all stdout + optimized multi-MB+ stdout + handle free/serial
-[Feature](https://github.com/ansible/tower/blob/release_3.3.0/docs/job_events.md)
+* [Feature](https://github.com/ansible/tower/blob/release_3.3.0/docs/job_events.md)
 
 ## Regression
 1. [ ] UI regression completed
