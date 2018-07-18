@@ -7,14 +7,13 @@
 
 ## Features Tested
 
-### Parameters for Scheduled and Workflow Jobs
-[Feature]()
+### Parameters for Scheduled and Workflow Jobs (cwang)
+[Feature](https://github.com/ansible/tower/blob/devel/docs/prompting.md)
+[Test Plan](https://docs.google.com/document/d/1M_W0g5gPo4kuuMwIcA5Z7BookbPID8PqxBwCuIIwS2Y/edit)
 
-### Enhanced isolated ansible-runner
-[Feature]()
-
-### Revise capacity algorithm
+### Revise capacity algorithm (cwang)
 [Feature](https://github.com/ansible/tower/blob/release_3.3.0/docs/capacity.md)
+[Test Plan](https://docs.google.com/document/d/1wr1IiwsP8pnZ-b-SiiQnh_jL_q4gtzOZQQN8oCvDi5s/edit)
 
 ### More granular permissions
 [Feature]()
@@ -29,57 +28,27 @@
 ### API-backed item copying
 [Feature](https://github.com/ansible/tower/blob/release_3.3.0/docs/resource_copy.md)
 
-### Multi-file support for Credential Types
+### Multi-file support for Credential Types (cwang)
 [Feature](https://github.com/ansible/tower/blob/release_3.3.0/docs/multi_credential_assignment.md)
-
-### Set up external translation infrastructure for AWX
-[Feature]()
+[Test Plan](https://docs.google.com/document/d/1haYuCGYGqPbiUqig4rJoDYyKfLHgCXm_yzXCeSxoiEo/edit)
 
 ### Pendo Opt-Out in License Screen
 [Feature]()
 
-### Fact caching for isolated jobs
-[Feature]()
+### Fact caching for isolated jobs (cwang)
+[Feature](https://github.com/ansible/awx/issues/198)
+[Test Plan](https://docs.google.com/document/d/1iddRSaS88L2bz10K1511PfKcDmVnm5M9LhqMh1ty6hE/edit)
 
-### Containerized Tower as a product deliverable
+### Containerized Tower as a product deliverable (cwang, jladd)
 [Feature](https://github.com/ansible/tower/blob/release_3.3.0/docs/clustering.md)
+[Test Plan](https://docs.google.com/document/d/1qaLCCXoGEcAIW0Be-JTvBOM-KoC1AOGBju1nM9b3WbU/edit)
 
-#### Generalized regression testing for traditional cluster Tower
-
-From 3.1.7:
-- [ ] Verify base upgrade scenario with same inventory.
-- [ ] Verify upgrade scenario with added instance in inventory.
-- [ ] Verify upgrade scenario with removed instance in inventory.
-- [ ] Verify upgrade scenario with added/removed instance group.
-
-From 3.2.5:
-- [ ] Verify base upgrade scenario with same inventory.
-- [ ] Verify upgrade scenario with added instance in inventory.
-- [ ] Verify upgrade scenario with removed instance in inventory.
-- [ ] Verify upgrade scenario with added/removed instance group.
-
-General:
-- [ ] Verify awx-manage provision/deprovision.
-- [ ] Verify isolated instances may not be added to instance groups.
-- [ ] Verify that isolated instances may not be removed from instance groups.
-- [ ] Verify that isolated instances are not sourced via IG creation with instance policy rules.
-- [ ] Verify that isolated instances are not sourced via IG update with instance policy rules.
-- [ ] Verify cannot delete controller IG.
-- [ ] Verify cannot delete isolated IG.
-- [ ] Verify cannot associate isolated instance with Tower group.
-- [ ] Verify Tower group excludes isolated instances.
-- [ ] Verify that instances automatically get added to instance groups with policy_instance_list with instance reboot.
-
-
-### "Ben's Stuff" - Inventory & Network Visualization
+### Inventory & Network Visualization
 [Feature]()
 
 ### Token-based authentication to Tower
 [Feature](https://github.com/ansible/tower/blob/release_3.3.0/docs/auth/session.md)
 [Feature](https://github.com/ansible/tower/blob/release_3.3.0/docs/auth/oauth.md)
-
-### CI and Test Suite for AWX
-[Feature]()
 
 ### Retry on Failed Hosts
 [Feature]()
@@ -87,45 +56,11 @@ General:
 ### Multiple venvs for ansible
 [Feature](https://github.com/ansible/tower/blob/release_3.3.0/docs/custom_virtualenvs.md)
 
-### Automatic API docs generation
-[Feature]()
-
-### Change license enforcement
-[Feature]()
-
 ### Fix #823 (schedules timezone)
 [Feature](https://github.com/ansible/tower/blob/release_3.3.0/docs/schedules.md)
 
 ### Event-ize all stdout + optimized multi-MB+ stdout + handle free/serial
 [Feature](https://github.com/ansible/tower/blob/release_3.3.0/docs/job_events.md)
-
-### Idle connection restart handler
-[Feature]()
-
-### Update tower/awx-cli and tower/awx modules
-[Feature]()
-
-### XSS Tests
-[Feature]()
-
-### Django 1.11 / Celery 4.0
-[Feature]()
-
-### Angular update and similar housekeeping
-[Feature]()
-
-### Upgrade angular-ui-router
-[Feature]()
-
-### Update social-auth-core/social-app-django
-[Feature]()
-
-### Move to asgi_rabbitmq
-[Feature]()
-
-### Figure out source packaging for Tower
-[Feature]()
-
 
 ## Regression
 1. [ ] UI regression completed
