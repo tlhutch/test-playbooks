@@ -397,9 +397,10 @@ print json.dumps(inv, indent=2)
         (60, 'successful', ''),
         (1, 'failed', 'Job terminated due to timeout'),
     ], ids=['no timeout', 'under timeout', 'over timeout'])
-    def test_launch_with_timeout(self, job_template, timeout, status, job_explanation):
+    def test_launch_with_timeout(self, factories, timeout, status, job_explanation):
         """Tests JTs with timeouts."""
-        job_template.patch(timeout=timeout, playbook='sleep.yml', extra_vars='sleep_interval: 10')
+        job_template = factories.job_template(timeout=timeout, playbook='sleep.yml', extra_vars='sleep_interval: 10')
+        factories.v2_host(inventory=job_template.ds.inventory)
 
         # launch JT and assess spawned job
         job_pg = job_template.launch().wait_until_completed()
