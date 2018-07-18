@@ -221,13 +221,6 @@ class TestApplicationTokens(APITest):
         assert expires.label == 'Expires'
         assert expires.type == 'datetime'
 
-    def test_token_creation_without_required_fields(self, v2, factories):
-        payload = factories.access_token.payload()
-        del payload['scope']
-        with pytest.raises(exc.BadRequest) as e:
-            v2.tokens.post(payload)
-        assert e.value.message == {'scope': ['This field is required.']}
-
     def test_created_token_item_and_list_integrity(self, v2, factories):
         payload = factories.access_token.payload(oauth_2_application=True)
         application = payload.ds.oauth_2_application.id
