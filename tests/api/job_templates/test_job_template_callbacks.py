@@ -198,14 +198,16 @@ class TestJobTemplateCallbacks(Base_Api_Test):
         assert result['json']['detail'] == 'You do not have permission to perform this action.'
 
     @pytest.mark.skip_openshift
-    def test_provision_failure_without_credential(self, ansible_runner, job_template_no_credential,
-                                                  host_with_default_ipv4_in_variables, host_config_key, callback_host):
-        """Verify launch failure when launching a job_template with no credentials"""
-        job_template_no_credential.host_config_key = host_config_key
+    @pytest.mark.github('https://github.com/ansible/tower/issues/2579')
+    def test_provision_failure_without_inventory(self, ansible_runner, job_template,
+                                                 host_with_default_ipv4_in_variables, host_config_key, callback_host):
+        """Verify launch failure when launching a job_template with no inventory"""
+        job_template.host_config_key = host_config_key
+        job_template.ds.inventory.delete()
 
         contacted = ansible_runner.uri(method="POST",
                                        status_code=httplib.CREATED,
-                                       url='{0}{1.related.callback}'.format(callback_host, job_template_no_credential),
+                                       url='{0}{1.related.callback}'.format(callback_host, job_template),
                                        body_format='json',
                                        body=dict(host_config_key=host_config_key),
                                        validate_certs=False)
