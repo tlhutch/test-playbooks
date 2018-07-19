@@ -3,6 +3,8 @@ from dateutil import rrule
 from datetime import datetime
 from dateutil.parser import parse
 from dateutil.relativedelta import relativedelta
+import traceback
+import StringIO
 
 import pytest
 from towerkit import exceptions as exc, config
@@ -292,15 +294,31 @@ class TestSchedules(SchedulesTest):
 
         expected_times = {offset: (expected_utc(offset), expected_local(offset)) for offset in offsets}
 
+        failed_zones = []
+        error_stream = StringIO.StringIO()
         for zone in zones:
-            rule = 'DTSTART;TZID={}:24000101T000001 RRULE:FREQ=HOURLY;INTERVAL=1;COUNT=1'.format(zone)
-            prev = schedules.preview(rule)
             try:
-                expected_offset = pytz.timezone(zone).localize(dt).strftime('%z')
-            except pytz.UnknownTimeZoneError:
-                continue
-            expected = expected_times[expected_offset]
-            assert prev.utc[0] == expected[0]
-            assert prev.local[0] == expected[1]
-            assert len(prev.utc) == 1
-            assert len(prev.local) == 1
+                rule = 'DTSTART;TZID={}:24000101T000001 RRULE:FREQ=HOURLY;INTERVAL=1;COUNT=1'.format(zone)
+                prev = schedules.preview(rule)
+                try:
+                    expected_offset = pytz.timezone(zone).localize(dt).strftime('%z')
+                except pytz.UnknownTimeZoneError:
+                    continue
+                expected = expected_times[expected_offset]
+                assert prev.utc[0] == expected[0]
+                assert prev.local[0] == expected[1]
+                assert len(prev.utc) == 1
+                assert len(prev.local) == 1
+            except Exception:
+                error_stream.write('Error testing zone "{}"'.format(zone))
+                traceback.print_exc(file=error_stream)
+                failed_zones.append(zone)
+        if failed_zones:
+            error_str = error_stream.getvalue()
+            error_stream.close()
+            raise Exception(
+                'Assertions for some time zones failed.\nFailed zones: {}\nErrors: {}'.format(
+                    failed_zones, error_str
+                )
+            )
+        error_stream.close()
