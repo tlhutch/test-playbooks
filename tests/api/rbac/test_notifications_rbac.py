@@ -11,7 +11,7 @@ class Test_Notifications_RBAC(Base_Api_Test):
 
     def test_notification_read_as_unprivileged_user(self, email_notification_template, unprivileged_user):
         """Test that unprivileged users cannot read notifications."""
-        notification_pg = email_notification_template.test().wait_until_completed()
+        notification_pg = email_notification_template.test()
 
         with self.current_user(username=unprivileged_user.username, password=unprivileged_user.password):
             with pytest.raises(towerkit.exceptions.Forbidden):
