@@ -53,6 +53,7 @@ class TestNamedURLs(Base_Api_Test):
         # backwards incompatible and needs to be checked (i.e. have url formats changed
         # unexpectedly).
         expected = {
+            u'applications': u'<name>++<organization.name>',
             u'credential_types': u'<name>+<kind>',
             u'credentials': u'<name>++<credential_type.name>+<credential_type.kind>++<organization.name>',
             u'groups': u'<name>++<inventory.name>++<organization.name>',
