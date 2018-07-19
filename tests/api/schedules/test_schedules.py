@@ -276,7 +276,7 @@ class TestSchedules(SchedulesTest):
         zones = [zi['name'] for zi in schedules.get_zoneinfo()]
         assert zones
 
-        dt = datetime(2400, 1, 1, 0, 0, 1)
+        dt = datetime(2035, 1, 1, 0, 0, 1)
 
         from towerkit.utils import UTC
         utc = UTC()
@@ -287,10 +287,10 @@ class TestSchedules(SchedulesTest):
                    '-1000', '-1100', '-1200']
 
         def expected_utc(offset):
-            return parse('2400 1 1 0:0:1 {}'.format(offset)).astimezone(utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+            return parse('2035 1 1 0:0:1 {}'.format(offset)).astimezone(utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
         def expected_local(offset):
-            return '2400-01-01T00:00:01{}:{}'.format(offset[:3], offset[3:]) if offset != '+0000' else '2400-01-01T00:00:01Z'
+            return '2035-01-01T00:00:01{}:{}'.format(offset[:3], offset[3:]) if offset != '+0000' else '2035-01-01T00:00:01Z'
 
         expected_times = {offset: (expected_utc(offset), expected_local(offset)) for offset in offsets}
 
@@ -298,7 +298,7 @@ class TestSchedules(SchedulesTest):
         error_stream = StringIO.StringIO()
         for zone in zones:
             try:
-                rule = 'DTSTART;TZID={}:24000101T000001 RRULE:FREQ=HOURLY;INTERVAL=1;COUNT=1'.format(zone)
+                rule = 'DTSTART;TZID={}:20350101T000001 RRULE:FREQ=HOURLY;INTERVAL=1;COUNT=1'.format(zone)
                 prev = schedules.preview(rule)
                 try:
                     expected_offset = pytz.timezone(zone).localize(dt).strftime('%z')
