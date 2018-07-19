@@ -160,11 +160,11 @@ class TestUnifiedJobImpact(Base_Api_Test):
                          launch_type='sync').count == 2, interval=5, timeout=60)
 
         utils.poll_until(lambda: instance.get().jobs_running == 2, interval=1, timeout=60)
-        assert instance.consumed_capacity == 2 * self.unified_job_impact('job', 1)
+        assert instance.get().consumed_capacity == 2 * self.unified_job_impact('job', num_hosts=1)
         self.verify_resource_percent_capacity_remaining(instance)
 
         utils.poll_until(lambda: ig_with_single_instance.get().jobs_running == 2, interval=1, timeout=60)
-        assert ig_with_single_instance.consumed_capacity == 2 * self.unified_job_impact('job', 1)
+        assert ig_with_single_instance.get().consumed_capacity == 2 * self.unified_job_impact('job', num_hosts=1)
         self.verify_resource_percent_capacity_remaining(ig_with_single_instance)
 
     @pytest.mark.requires_cluster
@@ -199,8 +199,8 @@ class TestUnifiedJobImpact(Base_Api_Test):
         inv_source.update()
 
         utils.poll_until(lambda: ig.get().jobs_running == 4, interval=1, timeout=120)
-        utils.poll_until(lambda: ig.get().consumed_capacity == self.unified_job_impact('job', 1) +
-                                 self.unified_job_impact('ahc', 1) + self.unified_job_impact('project_update') +
+        utils.poll_until(lambda: ig.get().consumed_capacity == self.unified_job_impact('job', num_hosts=1) +
+                                 self.unified_job_impact('ahc', num_hosts=1) + self.unified_job_impact('project_update') +
                                  self.unified_job_impact('inventory_update'), interval=1, timeout=120)
         self.verify_resource_percent_capacity_remaining(ig)
 
@@ -224,16 +224,16 @@ class TestUnifiedJobImpact(Base_Api_Test):
                          launch_type='sync').count == 1, interval=5, timeout=60)
 
         utils.poll_until(lambda: instance.get().jobs_running == 1, interval=1, timeout=60)
-        assert instance.consumed_capacity == self.unified_job_impact('job', 1)
+        assert instance.get().consumed_capacity == self.unified_job_impact('job', num_hosts=1)
         self.verify_resource_percent_capacity_remaining(instance)
 
         utils.poll_until(lambda: ig_with_single_instance.get().jobs_running == 1, interval=1, timeout=60)
-        assert ig_with_single_instance.consumed_capacity == self.unified_job_impact('job', 1)
+        assert ig_with_single_instance.get().consumed_capacity == self.unified_job_impact('job', num_hosts=1)
         self.verify_resource_percent_capacity_remaining(ig_with_single_instance)
 
         for ig in igs:
             assert ig.get().jobs_running == 0
-            assert ig.consumed_capacity == self.unified_job_impact('job', 1)
+            assert ig.consumed_capacity == self.unified_job_impact('job', num_hosts=1)
             self.verify_resource_percent_capacity_remaining(ig)
 
     def test_project_updates_have_an_impact_of_one(self, factories, v2, tower_instance_group):
