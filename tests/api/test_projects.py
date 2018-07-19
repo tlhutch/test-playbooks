@@ -278,7 +278,7 @@ class Test_Projects(Base_Api_Test):
 
         with pytest.raises(exc.Conflict) as e:
             project.delete()
-        assert e.value[1] == {'conflict': 'Resource is being used by running jobs.', 'active_jobs': [{'type': 'project_update', 'id': update.id}]}
+        assert e.value[1] == {'error': 'Resource is being used by running jobs.', 'active_jobs': [{'type': 'project_update', 'id': update.id}]}
 
         assert update.wait_until_completed().is_successful
         assert project.get().is_successful
