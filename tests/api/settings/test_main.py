@@ -4,7 +4,7 @@ import re
 import json
 
 from towerkit.tower.license import generate_license
-from towerkit.exceptions import BadRequest, WaitUntilTimeout
+from towerkit.exceptions import BadRequest, Forbidden, WaitUntilTimeout
 from towerkit.utils import poll_until
 import fauxfactory
 import pytest
@@ -496,6 +496,26 @@ class TestGeneralSettings(Base_Api_Test):
             assert matching_non_org_users.count == len(non_org_users), \
                 "An Org Admin is unable to see users (%s) outside the organization, despite the default setting " \
                 "ORG_ADMINS_CAN_SEE_ALL_USERS:True" % matching_non_org_users.count
+
+    def test_org_admins_can_see_all_teams(self, factories, org_admin,
+                                          api_settings_system_pg, update_setting_pg):
+        """ORG_ADMINS_CAN_SEE_ALL_USERS also allows viewing all teams."""
+        payload = dict(ORG_ADMINS_CAN_SEE_ALL_USERS=False)
+        update_setting_pg(api_settings_system_pg, payload)
+
+        other_org_team = factories.team()
+
+        # Without setting on, org_admin can not see other org teams
+        with self.current_user(username=org_admin.username, password=org_admin.password):
+            with pytest.raises(Forbidden):
+                other_org_team.get()
+
+        payload = dict(ORG_ADMINS_CAN_SEE_ALL_USERS=True)
+        update_setting_pg(api_settings_system_pg, payload)
+
+        # With setting on, org_admin can see other teams
+        with self.current_user(username=org_admin.username, password=org_admin.password):
+            other_org_team.get()
 
     def test_org_admins_cannot_see_all_users(self, org_users, non_org_users, org_admin, api_users_pg, user_password,
                                              api_settings_system_pg, update_setting_pg):
