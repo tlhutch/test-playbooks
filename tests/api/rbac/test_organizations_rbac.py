@@ -35,6 +35,52 @@ class Test_Organization_RBAC(Base_Api_Test):
                         resource_type='job_template'),
     ]
 
+    SubResourceMapping = namedtuple('SubResourceMapping', [
+        'resource_type', 'field', 'sub_resource'])
+
+    sub_resource_mappings = [
+        SubResourceMapping(resource_type='ad_hoc_command', field='credential',
+                           sub_resource=('credential', {})),
+        SubResourceMapping(resource_type='ad_hoc_command', field='inventory',
+                           sub_resource=('inventory', {})),
+        SubResourceMapping(resource_type='group', field='inventory',
+                           sub_resource=('inventory', {})),
+        SubResourceMapping(resource_type='host', field='inventory',
+                           sub_resource=('inventory', {})),
+        SubResourceMapping(resource_type='inventory', field='insights_credential',
+                           sub_resource=('credential', dict(kind='insights'))),
+        SubResourceMapping(resource_type='inventory_source', field='credential',
+                           sub_resource=('credential', dict(kind='aws'))),
+        SubResourceMapping(resource_type='inventory_source', field='inventory',
+                           sub_resource=('inventory', {})),
+        SubResourceMapping(resource_type='inventory_source', field='project',
+                           sub_resource=('project', {})),
+        SubResourceMapping(resource_type='job_template', field='credential',
+                           sub_resource=('credential', dict(kind='ssh'))),
+        SubResourceMapping(resource_type='job_template', field='inventory',
+                           sub_resource=('inventory', {})),
+        SubResourceMapping(resource_type='job_template', field='project',
+                           sub_resource=('project', {})),
+        SubResourceMapping(resource_type='job_template', field='vault_credential',
+                           sub_resource=('credential', dict(kind='vault', inputs=dict(vault_password='foo')))),
+        SubResourceMapping(resource_type='project', field='credential',
+                           sub_resource=('credential', dict(kind='scm'))),
+        SubResourceMapping(resource_type='workflow_job_template_node', field='credential',
+                           sub_resource=('credential', dict(kind='ssh'))),
+        SubResourceMapping(resource_type='workflow_job_template_node', field='inventory',
+                           sub_resource=('inventory', {})),
+        SubResourceMapping(resource_type='workflow_job_template_node', field='unified_job_template',
+                           sub_resource=('job_template', {})),
+        SubResourceMapping(resource_type='workflow_job_template_node', field='workflow_job_template',
+                           sub_resource=('workflow_job_template', {})),
+    ]
+
+    org_resource_admin_sub_resource_mappings = []
+    for i in org_resource_admin_mappings:
+        for j in sub_resource_mappings:
+            if i.resource_type == j.resource_type:
+                org_resource_admin_sub_resource_mappings.append((i, j))
+
     def mapping_id(param):
         return param.resource_role
 
@@ -274,18 +320,94 @@ class Test_Organization_RBAC(Base_Api_Test):
             organization.set_object_roles(team, role)
 
     @staticmethod
-    def create_resource(factories, res_type, org):
+    def create_resource(factories, res_type, org, **kwargs):
         if res_type == 'job_template':
             # Would like to specify kwargs like 'project': (Project, {Organization: org})
             # but something about the towerkit dependency store does not work for that
-            kwargs = {
-                'project': factories.v2_project(organization=org),
-                'inventory': factories.v2_inventory(organization=org),
-                'credential': factories.v2_credential(organization=org)
-            }
+            if not kwargs.get('project'):
+                kwargs['project'] = factories.v2_project(organization=org)
+            if not kwargs.get('inventory'):
+                kwargs['inventory'] = factories.v2_inventory(organization=org)
+            if not kwargs.get('credential'):
+                kwargs['credential'] = factories.v2_credential(organization=org)
         else:
-            kwargs = {'organization': org}
+            kwargs['organization'] = org
         return getattr(factories, 'v2_{}'.format(res_type))(**kwargs)
+
+    @pytest.mark.parametrize('resource_type', [item.resource_type for item in org_resource_admin_mappings])
+    def test_non_authorized_user_cannot_create_resources(self, factories, resource_type, non_superuser):
+        org = factories.organization()
+        with self.current_user(non_superuser):
+            with pytest.raises(towerkit.exceptions.Forbidden):
+                self.create_resource(factories, resource_type, org)
+
+    @pytest.mark.parametrize('resource_type', [item.resource_type for item in org_resource_admin_mappings])
+    def test_org_admin_can_create_resources(self, factories, resource_type):
+        org = factories.organization()
+        org_admin = factories.user()
+        org.add_admin(org_admin)
+        with self.current_user(org_admin):
+            self.create_resource(factories, resource_type, org)
+
+    @pytest.mark.parametrize('sub_resource_mapping', sub_resource_mappings,
+                            ids=lambda x: '{}.{}'.format(x.resource_type, x.field))
+    def test_org_admin_create_resources_with_sub_resource(self, factories, sub_resource_mapping):
+        orgA, orgB = [factories.organization() for _ in range(2)]
+        sub_resource = self.create_resource(factories, sub_resource_mapping.sub_resource[0], orgA,
+                                            **sub_resource_mapping.sub_resource[1])
+        user = factories.user()
+        orgB.add_admin(user)
+        if sub_resource_mapping.field in ['insights_credential', 'vault_credential']:
+            creation_kwargs = {sub_resource_mapping.field: sub_resource.id}
+        else:
+            creation_kwargs = {sub_resource_mapping.field: sub_resource}
+        if sub_resource_mapping.resource_type == 'workflow_job_template_node':
+            if sub_resource_mapping.field != 'workflow_job_template':
+                creation_kwargs['workflow_job_template'] = factories.v2_workflow_job_template(organization=orgB)
+            if sub_resource_mapping.field == 'inventory':
+                creation_kwargs['unified_job_template'] = self.create_resource(factories, 'job_template', orgB,
+                                                                               ask_inventory_on_launch=True)
+            if sub_resource_mapping.field == 'credential':
+                creation_kwargs['unified_job_template'] = self.create_resource(factories, 'job_template', orgB,
+                                                                               ask_credential_on_launch=True)
+        if sub_resource_mapping.resource_type == 'inventory_source':
+            if sub_resource_mapping.field != 'inventory':
+                creation_kwargs['inventory'] = factories.v2_inventory(organization=orgB)
+            if sub_resource_mapping.field == 'project':
+                creation_kwargs['source'] = 'scm'
+            if sub_resource_mapping.field == 'credential':
+                creation_kwargs['inventory_script'] = factories.v2_inventory_script(organization=orgB)
+        with self.current_user(user):
+            with pytest.raises(towerkit.exceptions.Forbidden):
+                self.create_resource(factories, sub_resource_mapping.resource_type, orgB, **creation_kwargs)
+        orgA.add_admin(user)
+        with self.current_user(user):
+            self.create_resource(factories, sub_resource_mapping.resource_type, orgB, **creation_kwargs)
+
+    @pytest.mark.parametrize('role_sub_resource_mapping', org_resource_admin_sub_resource_mappings,
+                             ids=lambda x: '{}-{}.{}'.format(x[0].resource_role, x[1].resource_type, x[1].field))
+    def test_organization_resource_admins_create_resources_with_sub_resource(self, factories, role_sub_resource_mapping):
+        resource_mapping, sub_resource_mapping = role_sub_resource_mapping
+        orgA, orgB = [factories.organization() for _ in range(2)]
+        sub_resource = self.create_resource(factories, sub_resource_mapping.sub_resource[0], orgA,
+                                            **sub_resource_mapping.sub_resource[1])
+        user = factories.user()
+        if resource_mapping.resource_role == 'Job Template Admin':
+            orgB.set_object_roles(user, 'Inventory Admin')
+            orgB.set_object_roles(user, 'Project Admin')
+            orgB.set_object_roles(user, 'Credential Admin')
+        else:
+            orgB.set_object_roles(user, resource_mapping.resource_role)
+        if sub_resource_mapping.field in ['insights_credential', 'vault_credential']:
+            creation_kwargs = {sub_resource_mapping.field: sub_resource.id}
+        else:
+            creation_kwargs = {sub_resource_mapping.field: sub_resource}
+        with self.current_user(user):
+            with pytest.raises(towerkit.exceptions.Forbidden):
+                self.create_resource(factories, sub_resource_mapping.resource_type, orgB, **creation_kwargs)
+        orgA.add_admin(user)
+        with self.current_user(user):
+            self.create_resource(factories, sub_resource_mapping.resource_type, orgB, **creation_kwargs)
 
     @pytest.mark.parametrize('resource_mapping', org_resource_admin_mappings, ids=mapping_id)
     @pytest.mark.parametrize('agent', ['user', 'team'])
