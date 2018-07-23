@@ -357,7 +357,7 @@ class Test_Organization_RBAC(Base_Api_Test):
                                             **sub_resource_mapping.sub_resource[1])
         user = factories.user()
         orgB.add_admin(user)
-        if sub_resource_mapping.field in ['insights_credential', 'vault_credential']:
+        if sub_resource_mapping.field == 'vault_credential':
             creation_kwargs = {sub_resource_mapping.field: sub_resource.id}
         else:
             creation_kwargs = {sub_resource_mapping.field: sub_resource}
@@ -398,7 +398,7 @@ class Test_Organization_RBAC(Base_Api_Test):
             orgB.set_object_roles(user, 'Credential Admin')
         else:
             orgB.set_object_roles(user, resource_mapping.resource_role)
-        if sub_resource_mapping.field in ['insights_credential', 'vault_credential']:
+        if sub_resource_mapping.field == 'vault_credential':
             creation_kwargs = {sub_resource_mapping.field: sub_resource.id}
         else:
             creation_kwargs = {sub_resource_mapping.field: sub_resource}
