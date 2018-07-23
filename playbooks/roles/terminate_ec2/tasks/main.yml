@@ -6,11 +6,11 @@
     aws_access_key: '{{ aws_access_key }}'
     aws_secret_key: '{{ aws_secret_key }}'
     region: '{{ ec2_region }}'
-    instance_type: '{{ ec2_instance_type }}'
+    instance_type: '{{ item.type|default(ec2_instance_type) }}'
     instance_tags:
         Name: '{{ec2_name_prefix}}-{{item.name}}'
         ANSIBLE_INSTALL_METHOD: '{{ansible_install_method|default("nightly")}}'
-    group: '{{ ec2_security_group }}'
+    group: '{{ item.security_group|default(ec2_security_group) }}'
     key_name: '{{ ec2_key_name }}'
     image: '{{ item.id }}'
     exact_count: 0

@@ -1,18 +1,59 @@
 ---
-# Tasks to create an AMI from a running instance
+# Tasks to create AMIs from running instances
+
+- name: collect ec2 instances info from ec2_create_vars
+  set_fact:
+    ec2_instances_info: '{{ ec2_instances_info|default([]) + [{"instance_id": item.tagged_instances[0].id,
+                                                               "name": item.tagged_instances[0].tags["Name"],
+                                                               "region": item.tagged_instances[0].region,
+                                                               "host": item.tagged_instances[0].public_dns_name}] }}'
+  with_items: '{{ ec2_create_vars.results }}'
+  when: ec2_create_vars is defined
+
+- name: collect ec2 instances facts through ec2_images
+  ec2_instance_facts:
+    aws_access_key: '{{ aws_access_key }}'
+    aws_secret_key: '{{ aws_secret_key }}'
+    region: '{{ ec2_region }}'
+    filters:
+      instance-state-name: running
+      key-name: '{{ ec2_key_name }}'
+      tag:ANSIBLE_INSTALL_METHOD: '{{ ansible_install_method|default("nightly") }}'
+      tag:Name: '{{ ec2_name_prefix }}-{{ item.name }}'
+      image-id: '{{ item.id }}'
+      instance-type: '{{ item.type }}'
+      instance.group-name: '{{ item.security_group }}'
+  with_items: '{{ ec2_images }}'
+  register: ec2_instance_facts_
+  when: ec2_create_vars is not defined
+
+- name: concat ec2 instances facts
+  set_fact:
+    ec2_instance_facts: '{{ ec2_instance_facts | default([]) }} + {{ item.instances }}'
+  with_items: '{{ ec2_instance_facts_.results }}'
+  when: ec2_create_vars is not defined
+
+- name: collect instances from info from facts
+  set_fact:
+    ec2_instances_info: '{{ ec2_instances_info|default([]) + [{"instance_id": item.instance_id,
+                                                               "name": item.tags["Name"],
+                                                               "region": ec2_region,
+                                                               "host": item.public_dns_name}] }}'
+  with_items: '{{ ec2_instance_facts }}'
+  when: ec2_create_vars is not defined
 
 - name: create ami
   ec2_ami:
     state: present
     aws_access_key: '{{ aws_access_key }}'
     aws_secret_key: '{{ aws_secret_key }}'
-    region: '{{ item.tagged_instances[0].region }}'
-    instance_id: '{{ item.tagged_instances[0].id }}'
-    name: '{{ec2_name_prefix}}-{{item.item.name}}'
+    region: '{{ item.region }}'
+    instance_id: '{{ item.instance_id }}'
+    name: '{{ item.name }}-{{ ansible_date_time.iso8601_basic_short }}'
     wait: yes
-  with_items: '{{ (ec2|default({})).results|default([]) }}'
+  with_items: '{{ ec2_instances_info }}'
   register: ec2_ami
-  when: ec2_images
+  when: ec2_instances_info
 
 # Display the AMI id
 - debug: var=ec2_ami.results[0].image_id

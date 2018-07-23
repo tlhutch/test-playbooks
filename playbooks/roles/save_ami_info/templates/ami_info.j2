@@ -1,0 +1,3 @@
+{% for ami in ec2_ami.results %}
+{{ ami.image_id }} : {{ ami.item.host }}
+{% endfor %}

@@ -1,0 +1,33 @@
+---
+# Tasks to clean up images based on name prefix
+
+- name: find images by name prefix
+  ec2_ami_facts:
+    aws_access_key: '{{ aws_access_key }}'
+    aws_secret_key: '{{ aws_secret_key }}'
+    region: '{{ ec2_region }}'
+    filters:
+      name: '{{ ec2_name_prefix }}-*'
+  register: ec2_ami_facts_found
+
+- name: get the date string
+  shell: 'python -c "import datetime; print((datetime.datetime.utcnow()-datetime.timedelta(seconds={{ max_preserving_time }})).isoformat())"'
+  register: oldest_image_allowed_timestamp
+
+- name: get the images beyond the latest {{max_preserving_number}}
+  set_fact:
+    images_to_delete_by_number: '{{ (ec2_ami_facts_found.images | sort(attribute="creation_date", reverse=True))[(max_preserving_number | int):] }}'
+
+- name: get expired images
+  set_fact:
+    images_to_delete_by_date: '{{ ec2_ami_facts_found.images | selectattr("creation_date", "lt", oldest_image_allowed_timestamp.stdout) | list }}'
+
+- name: destroy expired or excessive ec2 images
+  ec2_ami:
+    state: absent
+    aws_access_key: '{{ aws_access_key }}'
+    aws_secret_key: '{{ aws_secret_key }}'
+    region: '{{ ec2_region }}'
+    image_id: '{{ item.image_id }}'
+    delete_snapshot: yes
+  with_items: '{{ images_to_delete_by_number | union(images_to_delete_by_date) }}'
