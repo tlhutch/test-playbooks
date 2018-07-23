@@ -12,7 +12,7 @@ class TestUnifiedJobImpact(Base_Api_Test):
     @pytest.fixture
     def ig_with_single_instance(self, factories, v2):
         ig = factories.instance_group()
-        instance = v2.instances.get().results.pop()
+        instance = v2.instances.get(rampart_groups__controller__isnull=True).results.pop()
         ig.add_instance(instance)
         return ig
 
