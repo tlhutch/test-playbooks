@@ -1,4 +1,5 @@
 ---
 
 tower_log_dir: /var/log/tower/
+supervisor_log_dir: /var/log/supervisor/
 local_tower_artifacts_dir: ./

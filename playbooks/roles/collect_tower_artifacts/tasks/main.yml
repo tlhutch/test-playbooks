@@ -2,7 +2,7 @@
 
 - name: collect the name of log files
   find: 
-    paths: '{{ tower_log_dir }}'
+    paths: ['{{ tower_log_dir }}', '{{ supervisor_log_dir }}']
     recurse: no
   become: yes
   become_method: sudo
