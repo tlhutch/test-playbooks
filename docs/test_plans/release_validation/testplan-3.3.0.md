@@ -50,8 +50,9 @@
 * [Feature (sessions)](https://github.com/ansible/tower/blob/release_3.3.0/docs/auth/session.md)
 * [Feature (oauth)](https://github.com/ansible/tower/blob/release_3.3.0/docs/auth/oauth.md)
 
-### Retry on Failed Hosts
-* [Feature]()
+### Retry on Failed Hosts (guozhang)
+* [Feature](https://github.com/ansible/tower/blob/release_3.3.0/docs/retry_by_status.md)
+* [Test Plan](https://docs.google.com/document/d/113A8f4j1_fUIZda2XArZ3kwHZVsOvIe8lcWrozd3oz4/edit?usp=sharing)
 
 ### Multiple venvs for ansible (jladd)
 * [Feature](https://github.com/ansible/tower/blob/release_3.3.0/docs/custom_virtualenvs.md)
