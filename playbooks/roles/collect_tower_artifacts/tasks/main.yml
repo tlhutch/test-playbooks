@@ -1,17 +1,28 @@
 # Tasks to collect remote artifacts on tower server
 
-- name: collect the name of log files
+- name: Create a tmp directory for sosreport
+  tempfile:
+    prefix: sosreport_
+    state: directory
+  register: sosreport_tmpdir
+
+- name: Collect tower artifacts via sosreport
+  command: 'sosreport --batch -e tower -o tower --tmp-dir {{ sosreport_tmpdir.path }}'
+  become: yes
+  become_method: sudo
+
+- name: collect the name of sosreport files
   find: 
-    paths: ['{{ tower_log_dir }}', '{{ supervisor_log_dir }}']
+    paths: '{{ sosreport_tmpdir.path }}'
     recurse: no
   become: yes
   become_method: sudo
-  register: log_files_to_copy
+  register: sos_files_to_copy
 
-- name: fetch tower log files
+- name: fetch sosreport files
   fetch: 
     src: '{{ item.path }}'
     dest: '{{ local_tower_artifacts_dir }}/'
   become: yes
   become_method: sudo
-  with_items: '{{ log_files_to_copy.files }}'
+  with_items: '{{ sos_files_to_copy.files }}'
