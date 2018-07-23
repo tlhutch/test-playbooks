@@ -1,5 +1,7 @@
 import pytest
 
+from towerkit.config import config
+
 from tests.api import Base_Api_Test
 
 
@@ -10,7 +12,10 @@ class TestAnsibleTowerInventorySource(Base_Api_Test):
     @pytest.fixture
     def remote_tower_hostname(self, is_docker):
         # Will use the tower under test to simulate a remote tower instance.
-        return 'http://localhost:8013' if is_docker else 'https://localhost'
+        # This assumes is that the hostname reachable by tests is reachable
+        # by the task-system service running the inventory update, which is
+        # always subject to revision
+        return config.base_url
 
     @pytest.fixture
     def tower_cred(self, factories, admin_user, remote_tower_hostname):
