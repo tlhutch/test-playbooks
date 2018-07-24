@@ -47,11 +47,33 @@ def ws_client(request, v2, authtoken):
 @pytest.mark.api
 class TestInvalidWebSocketOrigin(ChannelsTest, Base_Api_Test):
 
-    @pytest.mark.parametrize('origin', ('http://example.org', ''))
-    def test_incorrect_origin(self, class_ws_client, origin):
-        class_ws_client.origin = origin
+    def test_empty_origin(self, class_ws_client):
+        class_ws_client.origin = ''
         with pytest.raises(WSClientException):
             class_ws_client.connect()
+
+    def test_invalid_origin(self, class_ws_client):
+        class_ws_client.origin = 'https://malicious.example.org'
+        with pytest.raises(WSClientException):
+            class_ws_client.connect()
+
+    def test_whitelisted_origin(self, v2, update_setting_pg, class_ws_client):
+        trusted = 'https://my.proxy.example.org'
+        jobs_settings = v2.settings.get().get_endpoint('system')
+        update_setting_pg(jobs_settings, dict(WEBSOCKET_ORIGIN_WHITELIST=[trusted]))
+
+        class_ws_client.origin = trusted
+        client = class_ws_client.connect()
+        assert client.session_id
+
+    def test_whitelisted_wildcard_origin(self, v2, update_setting_pg, class_ws_client):
+        trusted = 'https://.example.org'
+        jobs_settings = v2.settings.get().get_endpoint('system')
+        update_setting_pg(jobs_settings, dict(WEBSOCKET_ORIGIN_WHITELIST=[trusted]))
+
+        class_ws_client.origin = 'https://my.proxy.example.org'
+        client = class_ws_client.connect()
+        assert client.session_id
 
 
 @pytest.mark.api
