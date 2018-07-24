@@ -105,6 +105,7 @@ class TestTowerManageInventoryImport(Base_Api_Test):
             assert result['rc'] == 0, "awx-manage inventory_import failed." \
                 "\n[stdout]\n%s\n[stderr]\n%s" % (result['stdout'], result['stderr'])
 
+        assert inventory.get_related('inventory_sources').results[0].status == 'successful'
         assert inventory.get_related('groups').count == 13
         assert inventory.get_related('hosts').count == 10
 
@@ -117,6 +118,7 @@ class TestTowerManageInventoryImport(Base_Api_Test):
             assert result['rc'] == 0, "awx-manage inventory_import failed." \
                 "\n[stdout]\n%s\n[stderr]\n%s" % (result['stdout'], result['stderr'])
 
+        assert inventory.get_related('inventory_sources').results[0].status == 'successful'
         assert inventory.get_related('groups').count == 13
         assert inventory.get_related('hosts').count == 10
 
@@ -129,6 +131,7 @@ class TestTowerManageInventoryImport(Base_Api_Test):
             assert result['rc'] == 0, "awx-manage inventory_import failed." \
                 "\n[stdout]\n%s\n[stderr]\n%s" % (result['stdout'], result['stderr'])
 
+        assert inventory.get_related('inventory_sources').results[0].status == 'successful'
         assert inventory.get_related('groups').count == 13
         assert inventory.get_related('hosts').count == 10
 
