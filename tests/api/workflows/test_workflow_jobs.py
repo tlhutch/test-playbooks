@@ -11,8 +11,9 @@ from tests.lib.helpers.workflow_utils import (WorkflowTree, WorkflowTreeMapper)
 
 # Job results
 # [x] Single node success
-# [x] Single failing node
-# [x] Node fails, triggers successful node
+# [x] Single failing node, workflow failed
+# [x] Node fails, triggers failure node, workflow successful
+# [x] Node fails, triggers failure node, 1 failure node fails, workflow failed
 # [ ] Two branches, one node succeeds, other fails
 # [ ] Individual job encounters error
 # [ ] Workflow job encounters error
@@ -142,6 +143,51 @@ class Test_Workflow_Jobs(Base_Api_Test):
         assert len(wfjns) == 1, "Expected one workflow job node, found {}".format(len(wfjns))
         job = wfjns.pop().get_related('job')
         assert job.status == 'failed', "Job {} successful".format(job.id)
+
+    def test_workflow_job_successful_on_failed_when_failure_handler(self, factories):
+        """Workflow: (sucessful)
+         n1 (failed)       <--- failure
+          - (failure) n2
+         n2 (successful)
+        """
+
+        host = factories.host()
+        jt = factories.job_template(inventory=host.ds.inventory, allow_simultaneous=True)
+        failing_jt = factories.job_template(inventory=host.ds.inventory, playbook='fail_unless.yml', allow_simultaneous=True)
+
+        wfjt = factories.workflow_job_template()
+        n1 = factories.workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=failing_jt)
+        n1.related.failure_nodes.post(dict(unified_job_template=jt.id))
+
+        wfj = wfjt.launch().wait_until_completed()
+        assert wfj.is_successful, "Workflow job {} unsuccessful".format(wfjt.id)
+
+    def test_workflow_job_failed_on_failed_when_failed_failure_handler(self, factories):
+        """Workflow: (sucessful)
+         n1 (failed)       <--- failure
+          - (failure) n2
+          - (failure) n3
+          - (failure) n4
+          - (failure) n5
+         n2 (successful)
+         n3 (successful)
+         n4 (failed)
+         n5 (successful)
+        """
+
+        host = factories.host()
+        jt = factories.job_template(inventory=host.ds.inventory, allow_simultaneous=True)
+        failing_jt = factories.job_template(inventory=host.ds.inventory, playbook='fail_unless.yml', allow_simultaneous=True)
+
+        wfjt = factories.workflow_job_template()
+        n1 = factories.workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=failing_jt)
+        n1.related.failure_nodes.post(dict(unified_job_template=jt.id))
+        n1.related.failure_nodes.post(dict(unified_job_template=jt.id))
+        n1.related.failure_nodes.post(dict(unified_job_template=failing_jt.id))
+        n1.related.failure_nodes.post(dict(unified_job_template=jt.id))
+
+        wfj = wfjt.launch().wait_until_completed()
+        assert 'failed' == wfj.status, "Workflow job {} expected to be failed {}".format(wfjt.id, wfjt.status)
 
     @pytest.mark.ansible_integration
     def test_workflow_job_trigger_conditions(self, factories, api_workflow_job_nodes_pg):
@@ -282,7 +328,7 @@ class Test_Workflow_Jobs(Base_Api_Test):
         # Confirm job cancelled
         poll_until(lambda: getattr(job.get(), 'status') == 'canceled', timeout=60)
 
-        # Confirm WF job success
+        # Confirm WF job failed
         poll_until(lambda: wfj.get().failed, timeout=3 * 60)
 
     def test_cancel_job_in_workflow_with_downstream_jobs(self, factories, api_jobs_pg):
@@ -346,7 +392,7 @@ class Test_Workflow_Jobs(Base_Api_Test):
 
         poll_until(lambda: getattr(n1_job.get(), 'status') == 'canceled', timeout=60)
 
-        # Confirm workflow job completes successfully
+        # Confirm workflow job fails
         poll_until(lambda: wfj.get().failed, timeout=3 * 60)
 
         # Confirm remaining jobs in workflow completed successfully
