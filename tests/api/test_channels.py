@@ -1,5 +1,6 @@
 from towerkit.config import config as qe_config
 from towerkit import utils, WSClient
+from towerkit.ws import WSClientException
 import pytest
 
 from tests.lib.helpers.workflow_utils import WorkflowTree, WorkflowTreeMapper
@@ -41,6 +42,16 @@ def class_ws_client(request, v2_class, authtoken):
 @pytest.fixture
 def ws_client(request, v2, authtoken):
     return _ws_client(request, v2)
+
+
+@pytest.mark.api
+class TestInvalidWebSocketOrigin(ChannelsTest, Base_Api_Test):
+
+    @pytest.mark.parametrize('origin', ('http://example.org', ''))
+    def test_incorrect_origin(self, class_ws_client, origin):
+        class_ws_client.origin = origin
+        with pytest.raises(WSClientException):
+            class_ws_client.connect()
 
 
 @pytest.mark.api
