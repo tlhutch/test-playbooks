@@ -14,6 +14,8 @@ class TestUnifiedJobImpact(Base_Api_Test):
         ig = factories.instance_group()
         instance = v2.instances.get(rampart_groups__controller__isnull=True).results.pop()
         ig.add_instance(instance)
+        # need to refresh IG so that the policy_instance_list updates
+        ig = ig.get()
         return ig
 
     def unified_job_impact(self, unified_job_type, forks=0, num_hosts=0):
@@ -255,8 +257,10 @@ class TestUnifiedJobImpact(Base_Api_Test):
         self.assert_instance_reflects_zero_running_jobs(instance.get())
         self.assert_instance_group_reflects_zero_running_jobs(tower_instance_group.get())
 
-    def test_inventory_updates_have_an_impact_of_one(self, factories, ig_with_single_instance):
-        instance = ig_with_single_instance.related.instances.get().results.pop()
+    def test_inventory_updates_have_an_impact_of_one(self, factories, ig_with_single_instance, v2):
+        inst_hostname = ig_with_single_instance.policy_instance_list[0]
+        instance = v2.instances.get(hostname=inst_hostname).results.pop()
+
         aws_cred = factories.v2_credential(kind='aws')
         inv_source = factories.v2_inventory_source(source='ec2', credential=aws_cred)
         inv_source.ds.inventory.add_instance_group(ig_with_single_instance)
