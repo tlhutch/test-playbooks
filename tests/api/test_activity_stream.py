@@ -214,3 +214,18 @@ class TestActivityStream(Base_Api_Test):
         relaunched = job.relaunch().wait_until_completed()
         assert relaunched.related.activity_stream.get(operation='create').count == 1
         assert relaunched.related.activity_stream.get(operation='associate', object2='label').count == 0
+
+    @pytest.mark.github('https://github.com/ansible/tower/issues/2497')
+    @pytest.mark.parametrize('role', ['Admin', 'Read', 'Member', 'Execute', 'Notification Admin', 'Workflow Admin',
+                                      'Credential Admin', 'Job Template Admin', 'Project Admin', 'Inventory Admin',
+                                      'Auditor'])
+    def test_entry_generated_when_org_role_associated_with_user(self, factories, role):
+        org = factories.v2_organization()
+        user = factories.v2_user()
+        org.set_object_roles(user, role)
+
+        activity = org.related.activity_stream.get().results.pop()
+        assert activity.operation == 'associate'
+        assert set([activity.object1, activity.object2]) == set(['organization', 'user'])
+        assert set([activity.changes.object1_pk, activity.changes.object2_pk]) == set([user.id, org.id])
+        assert activity.object_association == 'role'
