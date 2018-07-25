@@ -87,9 +87,11 @@ class TestInstanceGroupPolicies(Base_Api_Test):
         assert set(ig_instance_hostnames) == set(tower_instance_hostnames)
 
         # verify instance disassociation
-        instances = v2.instances.get().results
+        instances = v2.instances.get(rampart_groups__controller__isnull=True).results
         for instance in instances:
             ig.remove_instance(instance)
+        # FIXME: the API will still add instances to apply the policy, this
+        # may not be supported by the API, triage these assertions
         utils.poll_until(lambda: ig.get().instances == 0, interval=1, timeout=30)
         assert ig_instances.get().count == 0
         assert ig.policy_instance_list == []
@@ -242,7 +244,7 @@ class TestInstanceGroupPolicies(Base_Api_Test):
             assert set(ig_instances) == set(tower_instance_hostnames)
 
     def test_manual_instance_association_updates_instance_group_attributes(self, factories, v2):
-        instance = v2.instances.get().results.pop()
+        instance = v2.instances.get(rampart_groups__controller__isnull=True).results.pop()
         ig = factories.instance_group()
         assert ig.instances == 0
 
@@ -259,7 +261,7 @@ class TestInstanceGroupPolicies(Base_Api_Test):
         ig = factories.instance_group(policy_instance_percentage=100)
         utils.poll_until(lambda: ig.get().instances == 5, interval=1, timeout=30)
 
-        instance = v2.instances.get().results.pop()
+        instance = v2.instances.get(rampart_groups__controller__isnull=True).results.pop()
         ig.remove_instance(instance)
         assert ig.get().instances == 4
 
@@ -279,7 +281,7 @@ class TestInstanceGroupPolicies(Base_Api_Test):
             utils.poll_until(lambda: igroup.get().instances == 5, interval=1, timeout=30)
 
         ig = factories.instance_group()
-        instance = v2.instances.get().results.pop()
+        instance = v2.instances.get(rampart_groups__controller__isnull=True).results.pop()
         ig.add_instance(instance)
 
         for igroup in (pct_ig, min_ig, mixed_policy_ig):
@@ -288,7 +290,7 @@ class TestInstanceGroupPolicies(Base_Api_Test):
 
     def test_manual_instance_disassociation_introduces_instance_for_consideration_to_other_igs(self, factories, v2):
         ig = factories.instance_group()
-        instance = v2.instances.get().results.pop()
+        instance = v2.instances.get(rampart_groups__controller__isnull=True).results.pop()
         ig.add_instance(instance)
 
         pct_ig = factories.instance_group(policy_instance_percentage=100)
@@ -323,7 +325,7 @@ class TestInstanceGroupPolicies(Base_Api_Test):
         assert tower_ig_instances.count == 5
 
         ig = factories.instance_group()
-        instance = v2.instances.get().results.pop()
+        instance = v2.instances.get(rampart_groups__controller__isnull=True).results.pop()
         ig.add_instance(instance)
         utils.poll_until(lambda: ig.get().instances == 1, interval=1, timeout=30)
 
