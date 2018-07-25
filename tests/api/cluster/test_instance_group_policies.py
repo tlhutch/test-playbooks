@@ -1,5 +1,6 @@
 from collections import Counter
 import random
+import threading
 
 from towerkit import utils
 import pytest
@@ -26,6 +27,36 @@ class TestInstanceGroupPolicies(Base_Api_Test):
     @pytest.fixture
     def tower_instance_hostnames(self, tower_instance_group):
         return [instance.hostname for instance in tower_instance_group.related.instances.get().results]
+
+    @pytest.mark.requires_isolation
+    @pytest.mark.github('https://github.com/ansible/tower/issues/2659')
+    def test_policy_intance_list_updated_with_manual_related_endpoint_association(self, v2, factories):
+        """If an instance is added to related instances of group, then the
+        instance hostname should be added to policy_instance_list
+        if multiple threads operate on this, it should still work
+        """
+        ig = factories.instance_group()
+        instances = v2.instances.get(rampart_groups__controller__isnull=True).results
+
+        def do_associate_instance(instance):
+            ig.add_instance(instance)
+
+        # Add all instances to newly created instance group, in parallel
+        threads = [threading.Thread(target=do_associate_instance, args=(inst,)) for inst in instances]
+        map(lambda t: t.start(), threads)
+        map(lambda t: t.join(), threads)
+
+        assert set(ig.get().policy_instance_list) == set(inst.hostname for inst in instances)
+
+        def do_disassociate_instance(instance):
+            ig.remove_instance(instance)
+
+        # Remove all instances from newly created instance group, in parallel
+        threads = [threading.Thread(target=do_disassociate_instance, args=(inst,)) for inst in instances]
+        map(lambda t: t.start(), threads)
+        map(lambda t: t.join(), threads)
+
+        assert ig.get().policy_instance_list == []
 
     @pytest.mark.github('https://github.com/ansible/tower/issues/881')
     @pytest.mark.parametrize('instance_percentage, expected_num_instances',
