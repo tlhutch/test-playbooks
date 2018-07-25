@@ -206,20 +206,22 @@ class TestUnifiedJobImpact(Base_Api_Test):
                                  self.unified_job_impact('inventory_update'), interval=1, timeout=120)
         self.verify_resource_percent_capacity_remaining(ig)
 
-    def test_all_groups_that_contain_job_execution_node_update_for_running_job(self, factories, v2,
-                                                                               ig_with_single_instance):
+    def test_all_groups_that_contain_job_execution_node_update_for_running_job(self, factories, v2):
         jt = factories.v2_job_template(playbook='sleep.yml', extra_vars='{"sleep_interval": 120}',
                                        allow_simultaneous=True)
-        jt.add_instance_group(ig_with_single_instance)
+
         factories.v2_host(inventory=jt.ds.inventory)
 
-        instance = v2.instances.get().results.pop()
-        igs = [factories.instance_group() for _ in range(3)]
+        instance = v2.instances.get(rampart_groups__controller__isnull=True).results.pop()
+        igs = [factories.instance_group() for _ in range(4)]
         for ig in igs:
             ig.add_instance(instance)
 
+        # JT submits to first IG, meaning that it will run on instance
+        jt.add_instance_group(igs[0])
+
         self.assert_instance_reflects_zero_running_jobs(instance.get())
-        self.assert_instance_group_reflects_zero_running_jobs(ig_with_single_instance.get())
+        self.assert_instance_group_reflects_zero_running_jobs(igs[0].get())
 
         jt.launch()
         utils.poll_until(lambda: jt.ds.project.related.project_updates.get(status='successful',
@@ -229,13 +231,17 @@ class TestUnifiedJobImpact(Base_Api_Test):
         assert instance.get().consumed_capacity == self.unified_job_impact('job', num_hosts=1)
         self.verify_resource_percent_capacity_remaining(instance)
 
-        utils.poll_until(lambda: ig_with_single_instance.get().jobs_running == 1, interval=1, timeout=60)
-        assert ig_with_single_instance.get().consumed_capacity == self.unified_job_impact('job', num_hosts=1)
-        self.verify_resource_percent_capacity_remaining(ig_with_single_instance)
+        this_job_impact = self.unified_job_impact('job', num_hosts=1)
 
-        for ig in igs:
+        # assertions about the IG that the JT was directly associated with
+        assert igs[0].get().jobs_running == 1
+        assert igs[0].get().consumed_capacity == this_job_impact
+        self.verify_resource_percent_capacity_remaining(igs[0])
+
+        # assertions about IGs that all share the instance the job runs on
+        for ig in igs[1:]:
             assert ig.get().jobs_running == 0
-            assert ig.consumed_capacity == self.unified_job_impact('job', num_hosts=1)
+            assert ig.consumed_capacity == this_job_impact
             self.verify_resource_percent_capacity_remaining(ig)
 
     def test_project_updates_have_an_impact_of_one(self, factories, v2, tower_instance_group):
