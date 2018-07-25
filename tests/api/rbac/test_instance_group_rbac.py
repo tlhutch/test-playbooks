@@ -23,7 +23,7 @@ class TestInstanceGroupRBAC(Base_Api_Test):
         * Delete instance groups.
         """
         ig = factories.instance_group()
-        instance = v2.instances.get(rampart_groups__controller__isnull=False).results.pop()
+        instance = v2.instances.get(rampart_groups__controller__isnull=True).results.pop()
         user = factories.v2_user()
 
         with self.current_user(user):
@@ -51,7 +51,7 @@ class TestInstanceGroupRBAC(Base_Api_Test):
         * Delete intance groups.
         """
         ig = factories.instance_group()
-        instance = random.sample(v2.instances.get(rampart_groups__controller__isnull=False).results, 1).pop()
+        instance = random.sample(v2.instances.get(rampart_groups__controller__isnull=True).results, 1).pop()
 
         excluded_ig = factories.instance_group()
 
