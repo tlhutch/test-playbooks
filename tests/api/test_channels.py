@@ -1,6 +1,7 @@
+import json
+
 from towerkit.config import config as qe_config
 from towerkit import utils, WSClient
-from towerkit.ws import WSClientException
 import pytest
 
 from tests.lib.helpers.workflow_utils import WorkflowTree, WorkflowTreeMapper
@@ -26,7 +27,10 @@ class ChannelsTest(object):
 
 def _ws_client(request, v2):
     if qe_config.use_sessions:
-        kwargs = dict(session_id=v2.connection.session_id)
+        kwargs = dict(
+            session_id=v2.connection.session_id,
+            csrftoken=v2.connection.session.cookies.get('csrftoken')
+        )
     else:
         kwargs = dict(token=v2.get_authtoken())
     ws = WSClient(**kwargs)
@@ -45,35 +49,36 @@ def ws_client(request, v2, authtoken):
 
 
 @pytest.mark.api
-class TestInvalidWebSocketOrigin(ChannelsTest, Base_Api_Test):
+class TestWebSocketRequestForgery(ChannelsTest, Base_Api_Test):
 
-    def test_empty_origin(self, class_ws_client):
-        class_ws_client.origin = ''
-        with pytest.raises(WSClientException):
-            class_ws_client.connect()
+    def test_missing_csrf_cookie(self, class_ws_client):
+        # if the originating browser doesn't have access to an authenticated
+        # user session, there will be no CSRF cookie set, and so
+        # subscriptions should reply with "denied"
+        class_ws_client.ws.cookie = 'sessionid={}'.format(class_ws_client.session_id)
+        ws = class_ws_client.connect()
+        ws.status_changes()
 
-    def test_invalid_origin(self, class_ws_client):
-        class_ws_client.origin = 'https://malicious.example.org'
-        with pytest.raises(WSClientException):
-            class_ws_client.connect()
+        utils.logged_sleep(3)
+        replies = iter(ws)
+        next(replies) # accept: True
+        assert next(replies) == {'error': 'access denied to channel'}
+        ws.unsubscribe()
 
-    def test_whitelisted_origin(self, v2, update_setting_pg, class_ws_client):
-        trusted = 'https://my.proxy.example.org'
-        jobs_settings = v2.settings.get().get_endpoint('system')
-        update_setting_pg(jobs_settings, dict(WEBSOCKET_ORIGIN_WHITELIST=[trusted]))
+    def test_incorrect_csrf_token(self, class_ws_client):
+        # if the browser sends an incorrect CSRF token on ws_receive,
+        # reply with "denied"
+        ws = class_ws_client.connect()
+        ws._send(json.dumps({
+            'groups': [{'jobs': 'status_changed'}],
+            'xrftoken': 'FORGED!'
+        }))
 
-        class_ws_client.origin = trusted
-        client = class_ws_client.connect()
-        assert client.session_id
-
-    def test_whitelisted_wildcard_origin(self, v2, update_setting_pg, class_ws_client):
-        trusted = 'https://.example.org'
-        jobs_settings = v2.settings.get().get_endpoint('system')
-        update_setting_pg(jobs_settings, dict(WEBSOCKET_ORIGIN_WHITELIST=[trusted]))
-
-        class_ws_client.origin = 'https://my.proxy.example.org'
-        client = class_ws_client.connect()
-        assert client.session_id
+        utils.logged_sleep(3)
+        replies = iter(ws)
+        next(replies) # accept: True
+        assert next(replies) == {'error': 'access denied to channel'}
+        ws.unsubscribe()
 
 
 @pytest.mark.api

@@ -12,7 +12,10 @@ def user_ws_client(request, v2):
     def _ws_client(user):
         if qe_config.use_sessions:
             user_api = Api().load_session(user.username, user.password)
-            kwargs = dict(session_id=user_api.connection.session_id)
+            kwargs = dict(
+                session_id=user_api.connection.session_id,
+                csrftoken=user_api.connection.session.cookies.get('csrftoken')
+            )
         else:
             kwargs = dict(token=v2.get_authtoken(user.username, user.password))
         ws = WSClient(**kwargs)
