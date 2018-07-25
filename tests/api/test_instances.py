@@ -16,7 +16,7 @@ class TestInstances(Base_Api_Test):
     @pytest.mark.github('https://github.com/ansible/tower/issues/1713')
     def test_jobs_should_not_run_on_disabled_instances(self, request, v2, factories):
         ig = factories.instance_group()
-        instance = v2.instances.get().results.pop()
+        instance = v2.instances.get(rampart_groups__controller__isnull=True).results.pop()
         ig.add_instance(instance)
         utils.poll_until(lambda: ig.get().instances == 1, interval=5, timeout=30)
 
@@ -34,7 +34,7 @@ class TestInstances(Base_Api_Test):
     @pytest.mark.github('https://github.com/ansible/tower/issues/1713')
     def test_jobs_should_resume_on_newly_enabled_instances(self, request, v2, factories):
         ig = factories.instance_group()
-        instance = v2.instances.get().results.pop()
+        instance = v2.instances.get(rampart_groups__controller__isnull=True).results.pop()
         ig.add_instance(instance)
         utils.poll_until(lambda: ig.get().instances == 1, interval=5, timeout=30)
 
@@ -56,7 +56,7 @@ class TestInstances(Base_Api_Test):
     def test_disabiling_instance_should_not_impact_currently_running_jobs(self, request, v2, factories,
                                                                           tower_version):
         ig = factories.instance_group()
-        instance = v2.instances.get().results.pop()
+        instance = v2.instances.get(rampart_groups__controller__isnull=True).results.pop()
         ig.add_instance(instance)
         utils.poll_until(lambda: ig.related.instances.get(version=tower_version).count == 1, timeout=30)
 
@@ -73,7 +73,7 @@ class TestInstances(Base_Api_Test):
 
     @pytest.mark.github('https://github.com/ansible/tower/issues/1713')
     def test_disabiling_instance_should_set_capacity_to_zero(self, request, v2, factories):
-        instance = v2.instances.get().results.pop()
+        instance = v2.instances.get(rampart_groups__controller__isnull=True).results.pop()
         initial_mem_capacity = instance.mem_capacity
         initial_cpu_capacity = instance.cpu_capacity
         request.addfinalizer(lambda: instance.patch(enabled=True))
@@ -94,14 +94,14 @@ class TestInstances(Base_Api_Test):
 
     @pytest.mark.parametrize('capacity_adjustment', ['0', '.25', '.5', '.75', '1'])
     def test_instance_capacity_updates_for_percent_capacity_remaining(self, request, v2, capacity_adjustment):
-        instance = v2.instances.get().results.pop()
+        instance = v2.instances.get(rampart_groups__controller__isnull=True).results.pop()
         request.addfinalizer(lambda: instance.patch(capacity_adjustment='1'))
         instance.capacity_adjustment = capacity_adjustment
 
         assert instance.capacity == self.find_expected_capacity(instance)
 
     def test_verify_instance_read_only_fields(self, v2):
-        instance = v2.instances.get().results.pop()
+        instance = v2.instances.get(rampart_groups__controller__isnull=True).results.pop()
         original_json = instance.json
 
         instance.uuid = '77777777-7777-7777-7777-777777777777'
