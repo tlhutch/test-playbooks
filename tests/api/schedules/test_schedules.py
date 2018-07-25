@@ -271,12 +271,13 @@ class TestSchedules(SchedulesTest):
             assert '03:30:00-05:00' in prev.local[2]
 
     @pytest.mark.github('https://github.com/ansible/tower/issues/892')
-    def test_schedule_preview_supports_all_zoneinfo_provided_zones(self, v2):
+    @pytest.mark.parametrize('month', (1, 6))  # Jan & June, to test DST
+    def test_schedule_preview_supports_all_zoneinfo_provided_zones(self, v2, month):
         schedules = v2.schedules.get()
         zones = [zi['name'] for zi in schedules.get_zoneinfo()]
         assert zones
 
-        dt = datetime(2035, 1, 1, 0, 0, 1)
+        dt = datetime(2035, month, 1, 0, 0, 1)
 
         from towerkit.utils import UTC
         utc = UTC()
@@ -287,27 +288,27 @@ class TestSchedules(SchedulesTest):
                    '-1000', '-1100', '-1200']
 
         def expected_utc(offset):
-            return parse('2035 1 1 0:0:1 {}'.format(offset)).astimezone(utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+            return parse('2035 {} 1 0:0:1 {}'.format(month, offset)).astimezone(utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
         def expected_local(offset):
-            return '2035-01-01T00:00:01{}:{}'.format(offset[:3], offset[3:]) if offset != '+0000' else '2035-01-01T00:00:01Z'
-
-        expected_times = {offset: (expected_utc(offset), expected_local(offset)) for offset in offsets}
+            return '2035-0{}-01T00:00:01{}:{}'.format(month, offset[:3], offset[3:]) if offset != '+0000' else '2035-0{}-01T00:00:01Z'.format(month)
 
         failed_zones = []
         error_stream = StringIO.StringIO()
         for zone in zones:
-            if zone == 'Asia/Pyongyang':
-                # Bug in dateutil, timezone not supported, exported restricted anyway
+            if zone in ['Asia/Pyongyang', 'Antarctica/Casey']:
+                # Bug in dateutil, timezone not supported, exported restricted or not important
                 continue
             try:
-                rule = 'DTSTART;TZID={}:20350101T000001 RRULE:FREQ=HOURLY;INTERVAL=1;COUNT=1'.format(zone)
+                rule = 'DTSTART;TZID={}:20350{}01T000001 RRULE:FREQ=HOURLY;INTERVAL=1;COUNT=1'.format(zone, month)
                 prev = schedules.preview(rule)
                 try:
                     expected_offset = pytz.timezone(zone).localize(dt).strftime('%z')
                 except pytz.UnknownTimeZoneError:
                     continue
-                expected = expected_times[expected_offset]
+                if month == 1:
+                    assert expected_offset in offsets
+                expected = (expected_utc(expected_offset), expected_local(expected_offset))
                 assert prev.utc[0] == expected[0]
                 assert prev.local[0] == expected[1]
                 assert len(prev.utc) == 1
