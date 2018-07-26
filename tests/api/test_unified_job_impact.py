@@ -263,25 +263,27 @@ class TestUnifiedJobImpact(Base_Api_Test):
         self.assert_instance_reflects_zero_running_jobs(instance.get())
         self.assert_instance_group_reflects_zero_running_jobs(tower_instance_group.get())
 
-    def test_inventory_updates_have_an_impact_of_one(self, factories, ig_with_single_instance, v2):
+    def test_inventory_updates_have_an_impact_of_one(
+            self, factories, inventory_script_code_with_sleep, ig_with_single_instance, v2):
         inst_hostname = ig_with_single_instance.policy_instance_list[0]
         instance = v2.instances.get(hostname=inst_hostname).results.pop()
 
-        aws_cred = factories.v2_credential(kind='aws')
-        inv_source = factories.v2_inventory_source(source='ec2', credential=aws_cred)
-        inv_source.ds.inventory.add_instance_group(ig_with_single_instance)
+        slow_inventory_source = factories.v2_inventory_source(
+            source_script=factories.v2_inventory_script(script=inventory_script_code_with_sleep(20))
+        )
+        slow_inventory_source.ds.inventory.add_instance_group(ig_with_single_instance)
 
-        inv_update = inv_source.update()
+        inv_update = slow_inventory_source.update()
 
         utils.poll_until(lambda: instance.get().jobs_running == 1, interval=1, timeout=60)
-        assert instance.consumed_capacity == self.unified_job_impact('inventory_update')
+        assert instance.get().consumed_capacity == self.unified_job_impact('inventory_update')
         self.verify_resource_percent_capacity_remaining(instance)
 
         utils.poll_until(lambda: ig_with_single_instance.get().jobs_running == 1, interval=1, timeout=60)
-        assert ig_with_single_instance.consumed_capacity == self.unified_job_impact('inventory_update')
+        assert ig_with_single_instance.get().consumed_capacity == self.unified_job_impact('inventory_update')
         self.verify_resource_percent_capacity_remaining(ig_with_single_instance)
 
-        inv_update.wait_until_completed()
+        inv_update.cancel().wait_until_completed()
         self.assert_instance_reflects_zero_running_jobs(instance.get())
         self.assert_instance_group_reflects_zero_running_jobs(ig_with_single_instance.get())
 
