@@ -298,7 +298,7 @@ class Test_Job(Base_Api_Test):
         job = jt.launch().wait_until_completed()
         assert job.is_successful
 
-        inv.delete()
+        inv.delete().wait_until_deleted()
         with pytest.raises(exc.BadRequest) as e:
             job.relaunch()
         assert e.value[1]['errors'] == ['Job Template Inventory is missing or undefined.']
