@@ -172,7 +172,7 @@ class TestUnifiedJobImpact(Base_Api_Test):
     @pytest.mark.requires_cluster
     def test_instance_group_updates_for_simultaneously_running_unified_jobs(self, factories, v2):
         ig = factories.instance_group()
-        instances = v2.instances.get().results
+        instances = v2.instances.get(rampart_groups__controller__isnull=True).results
         for instance in instances:
             ig.add_instance(instance)
 
