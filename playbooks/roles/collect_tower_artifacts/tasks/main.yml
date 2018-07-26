@@ -7,7 +7,7 @@
   register: sosreport_tmpdir
 
 - name: Collect tower artifacts via sosreport
-  command: 'sosreport --batch -e tower -o tower --tmp-dir {{ sosreport_tmpdir.path }}'
+  command: 'sosreport --batch -e tower -o tower --name {{ansible_host}} --tmp-dir {{ sosreport_tmpdir.path }}'
   become: yes
   become_method: sudo
 
