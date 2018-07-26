@@ -263,12 +263,13 @@ class TestGeneralSettings(Base_Api_Test):
     ], ids=['without JT timeout - with global timeout',
             'with JT timeout - with global timeout',
             'with negative JT timeout - with global timeout'])
-    def test_default_job_timeout(self, job_template, api_settings_jobs_pg, update_setting_pg, timeout, default_job_timeout,
+    def test_default_job_timeout(self, factories, api_settings_jobs_pg, update_setting_pg, timeout, default_job_timeout,
                                  status, job_explanation):
         """Tests DEFAULT_JOB_TIMEOUT. JT timeout value should override DEFAULT_JOB_TIMEOUT
         in instances where both timeout values are supplied.
         """
-        job_template.patch(timeout=timeout)
+        job_template = factories.job_template(timeout=timeout, playbook='sleep.yml', extra_vars='sleep_interval: 10')
+        factories.v2_host(inventory=job_template.ds.inventory)
 
         # update job timeout flag
         payload = dict(DEFAULT_JOB_TIMEOUT=default_job_timeout)
