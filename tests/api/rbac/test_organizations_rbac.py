@@ -554,3 +554,27 @@ class Test_Organization_RBAC(Base_Api_Test):
         with self.current_user(workflow_admin):
             wfnode.extra_data = dict(var1='parrot')
         assert wfnode.extra_data == dict(var1='parrot')
+
+    @pytest.mark.parametrize('resource_mapping', org_resource_admin_mappings, ids=mapping_id)
+    def test_normal_users_cannot_grant_roles(self, factories, resource_mapping):
+        org = factories.v2_organization()
+        user1, user2 = [factories.v2_user(organization=o) for o in (org, org)]
+        with self.current_user(user1):
+            with pytest.raises(towerkit.exceptions.Forbidden):
+                org.set_object_roles(user2, resource_mapping.resource_role)
+
+    @pytest.mark.parametrize('resource_mapping',
+                             [m for m in org_resource_admin_mappings
+                             if m.resource_type in ['credential', 'workflow_job_template']],
+                             ids=mapping_id)
+    @pytest.mark.parametrize('agent', ['user', 'team'])
+    def test_resource_admins_cannot_manage_unassociated_resources(self, factories, resource_mapping, agent, set_test_roles):
+        resource = self.create_resource(factories, resource_mapping.resource_type, None)
+        resource.organization = None
+        org = factories.v2_organization()
+        resource_admin, user = [factories.v2_user(
+            organization=o) for o in (org, None)]
+        set_test_roles(resource_admin, org, agent, resource_mapping.resource_role)
+        with self.current_user(resource_admin):
+            with pytest.raises(towerkit.exceptions.Forbidden):
+                resource.set_object_roles(user, 'admin')
