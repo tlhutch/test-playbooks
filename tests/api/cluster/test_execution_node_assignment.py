@@ -14,6 +14,8 @@ from tests.api import Base_Api_Test
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestExecutionNodeAssignment(Base_Api_Test):
 
+    MAX_JOBS_PER_INSTANCE = 3
+
     @pytest.fixture(autouse=True, scope='class')
     def prepare_openshift_environment(self, is_docker):
         if not is_docker:
@@ -27,7 +29,7 @@ class TestExecutionNodeAssignment(Base_Api_Test):
 
     def find_num_jobs(self, instances):
         # find number of jobs to distribute among a set of instances
-        return 3 * len(instances)
+        return self.MAX_JOBS_PER_INSTANCE * len(instances)
 
     def find_ig_overflow_jobs(self, ig, uj_impact):
         # find number of jobs such that a single IG is put over capacity
@@ -155,23 +157,31 @@ class TestExecutionNodeAssignment(Base_Api_Test):
         assert ahc.wait_until_completed().is_successful
         assert ahc.execution_node == instance.hostname
 
-    def test_ahcs_should_distribute_among_new_instance_group_members(self, factories, tower_ig_instances):
+    def test_ahcs_should_distribute_among_new_instance_group_members(self, factories, tower_ig_instances, v2):
         ig = factories.instance_group()
         instances = random.sample(tower_ig_instances, 2)
         for instance in instances:
             ig.add_instance(instance)
 
-        inv = factories.v2_inventory()
-        inv.add_instance_group(ig)
-
         num_jobs = self.find_num_jobs(instances)
         for _ in range(num_jobs):
-            factories.v2_ad_hoc_command(inventory=inv, module_name='ping')
-        ahcs = inv.related.ad_hoc_commands.get()
-        utils.poll_until(lambda: ahcs.get(status='successful').count == num_jobs, interval=5, timeout=300)
+            # inventory must be specific to each ad hoc command, otherwise
+            # they will block each other from running
+            inv = factories.v2_inventory()
+            host = factories.v2_host(inventory=inv)
+            inv.add_instance_group(ig)
+            factories.v2_ad_hoc_command(
+                inventory=inv, module_name='command', module_args="sleep 300",
+                limit=host.name
+            )
+        utils.poll_until(lambda: v2.ad_hoc_commands.get(status='running', instance_group=ig.id).count == num_jobs,
+                         interval=5, timeout=300)
 
-        ahc_execution_nodes = [ahc.execution_node for ahc in ahcs.results]
+        ahcs = v2.ad_hoc_commands.get(instance_group=ig.id).results
+        ahc_execution_nodes = [ahc.execution_node for ahc in ahcs]
         assert set(ahc_execution_nodes) == set([instance.hostname for instance in instances])
+        for instance in instances:
+            assert ahc_execution_nodes.count(instance.hostname) == self.MAX_JOBS_PER_INSTANCE
 
     def test_project_updates_run_on_target_instance_via_organization_ig_assignment(self, factories,
                                                                                    tower_ig_instances):
