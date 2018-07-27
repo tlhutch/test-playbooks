@@ -2,6 +2,7 @@ import json
 
 from towerkit import exceptions as exc
 import fauxfactory
+from towerkit.api import Connection
 import pytest
 
 from tests.api import Base_Api_Test
@@ -50,3 +51,27 @@ class TestUnifiedJobs(Base_Api_Test):
         relaunched_uj = uj.relaunch().wait_until_completed()
         assert relaunched_uj.is_successful
         assert relaunched_uj.extra_vars == json.dumps(dict(var="$encrypted$"))
+
+    uj_with_stdout = ['job_template',
+                      'adhoc',
+                      'inventory_source',
+                      'project']
+
+    @pytest.mark.parametrize('jobtype', uj_with_stdout)
+    def test_job_stdout_can_be_downloaded(self, jobtype, factories, request):
+        if jobtype == 'job_template':
+            job = factories.v2_job_template().launch().wait_until_completed()
+        if jobtype == 'adhoc':
+            job = factories.v2_ad_hoc_command().wait_until_completed()
+        if jobtype == 'inventory_source':
+            job = factories.v2_inventory_source().update().wait_until_completed()
+        if jobtype == 'project':
+            job = factories.v2_project().update().wait_until_completed()
+
+        connection = Connection(self.connections['root'].server)
+        connection.login(self.credentials.default['username'],
+                         self.credentials.default['password'])
+        stdout = connection.get(job.get().related.stdout,
+                                query_parameters='format=txt_download')
+        assert 'attachment; filename' in stdout.headers['Content-Disposition']
+        assert len(stdout.content) > 0
