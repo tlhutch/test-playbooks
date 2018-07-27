@@ -302,7 +302,8 @@ class TestInstanceGroupPolicies(Base_Api_Test):
         assert len(ig_instances.results) == 4
         assert instance.hostname not in ig_instance_hostnames
 
-    def test_manual_instance_association_removes_instance_from_consideration_from_other_igs(self, factories, v2):
+    def test_manual_instance_is_removed_from_consideration_from_other_igs(
+            self, factories, v2, reset_instance):
         pct_ig = factories.instance_group(policy_instance_percentage=100)
         min_ig = factories.instance_group(policy_instance_minimum=5)
         mixed_policy_ig = factories.instance_group(policy_instance_percentage=100,
@@ -313,16 +314,25 @@ class TestInstanceGroupPolicies(Base_Api_Test):
 
         ig = factories.instance_group()
         instance = v2.instances.get(rampart_groups__controller__isnull=True).results.pop()
+        reset_instance(instance)
+        assert instance.managed_by_policy  # expected default value
+        # Officially documented steps to make instance "manual"
         ig.add_instance(instance)
+        instance.patch(managed_by_policy=False)
 
         for igroup in (pct_ig, min_ig, mixed_policy_ig):
             utils.poll_until(lambda: igroup.get().instances == 4, interval=1, timeout=30)
             assert instance.hostname not in self.get_ig_instances(igroup)
 
-    def test_manual_instance_disassociation_introduces_instance_for_consideration_to_other_igs(self, factories, v2):
+    def test_manual_instance_release_introduces_instance_for_consideration_to_other_igs(
+            self, factories, v2, reset_instance):
         ig = factories.instance_group()
         instance = v2.instances.get(rampart_groups__controller__isnull=True).results.pop()
+        reset_instance(instance)
+        assert instance.managed_by_policy  # expected default value
+        # Officially documented steps to make instance "manual"
         ig.add_instance(instance)
+        instance.patch(managed_by_policy=False)
 
         pct_ig = factories.instance_group(policy_instance_percentage=100)
         min_ig = factories.instance_group(policy_instance_minimum=5)
@@ -333,7 +343,9 @@ class TestInstanceGroupPolicies(Base_Api_Test):
             utils.poll_until(lambda: igroup.get().instances == 4, interval=1, timeout=30)
             assert instance.hostname not in self.get_ig_instances(igroup)
 
+        # Undo officially documented steps to make instance "manual"
         ig.remove_instance(instance)
+        instance.patch(managed_by_policy=True)
 
         for igroup in (pct_ig, min_ig, mixed_policy_ig):
             utils.poll_until(lambda: igroup.get().instances == 5, interval=1, timeout=30)
