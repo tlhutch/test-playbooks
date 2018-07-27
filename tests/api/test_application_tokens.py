@@ -16,17 +16,16 @@ class TestApplications(APITest):
         post = options.actions.POST
 
         agt = post.authorization_grant_type
-        assert agt.label == 'Authorization grant type'
+        assert agt.label == 'Authorization Grant Type'
         assert agt.type == 'choice'
         expected_choices = {'authorization-code': 'Authorization code',
                             'implicit': 'Implicit',
-                            'password': 'Resource owner password-based',
-                            'client-credentials': 'Client credentials'}
+                            'password': 'Resource owner password-based'}
         assert {c[0]: c[1] for c in agt.choices} == expected_choices
         assert agt.required is True
 
         client_type = post.client_type
-        assert client_type.label == 'Client type'
+        assert client_type.label == 'Client Type'
         assert client_type.type == 'choice'
         expected_choices = {'confidential': 'Confidential',
                             'public': 'Public'}
@@ -34,12 +33,12 @@ class TestApplications(APITest):
         assert client_type.required is True
 
         uris = post.redirect_uris
-        assert uris.label == 'Redirect uris'
+        assert uris.label == 'Redirect URIs'
         assert uris.type == 'string'
         assert uris.required is False
 
         skip = post.skip_authorization
-        assert skip.label == 'Skip authorization'
+        assert skip.label == 'Skip Authorization'
         assert skip.type == 'boolean'
         assert skip.default is False
         assert skip.required is False
@@ -58,7 +57,7 @@ class TestApplications(APITest):
         assert e.value.message in ({missing: ['This field is required.']}, {missing: ['This field cannot be blank.']})
 
     @pytest.mark.parametrize('client_type', ('confidential', 'public'))
-    @pytest.mark.parametrize('agt', ('authorization-code', 'implicit', 'password', 'client-credentials'))
+    @pytest.mark.parametrize('agt', ('authorization-code', 'implicit', 'password'))
     def test_created_application_item_and_list_integrity(self, v2, factories, client_type, agt):
         redirect_uris = 'https://example.com'
         payload = factories.application.payload(authorization_grant_type=agt, client_type=client_type,
@@ -335,7 +334,7 @@ class TestApplicationTokens(APITest):
             assert me.username == user.username
 
     @pytest.mark.parametrize('ct', ('confidential', 'public'))
-    @pytest.mark.parametrize('agt', ('authorization-code', 'implicit', 'password', 'client-credentials'))
+    @pytest.mark.parametrize('agt', ('authorization-code', 'implicit', 'password'))
     def test_user_application_token_login_reflects_user(self, v2, factories, ct, agt):
         org = factories.v2_organization()
         user = factories.v2_user(organization=org)
