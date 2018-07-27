@@ -5,7 +5,6 @@ import pytest
 def reset_instance(request):
     def func(instance):
         def teardown():
-            instance.enabled = True
-            instance.patch(capacity_adjustment=1)
+            instance.patch(capacity_adjustment=1, enabled=True, managed_by_policy=True)
         request.addfinalizer(teardown)
     return func
