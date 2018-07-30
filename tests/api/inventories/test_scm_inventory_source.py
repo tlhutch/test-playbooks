@@ -1,5 +1,4 @@
 from towerkit import utils
-from towerkit.config import config
 import towerkit.exceptions as exc
 import pytest
 
@@ -252,32 +251,12 @@ class TestSCMInventorySource(Base_Api_Test):
         host = inv_source.ds.inventory.related.hosts.get(name='localhost').results.pop()
         assert host.variables.test_env == 'TEST_ENV_1'
 
-    @pytest.fixture(scope='class')
-    def write_access_git_credential(self, class_factories):
-        inputs = dict(fields=[dict(id='git_key', label='Git Key', format='ssh_private_key', secret=True)])
-        injectors = dict(file=dict(template="{{ git_key }}"),
-                         env=dict(GIT_AUTHOR_NAME='Tower Testing', GIT_AUTHOR_EMAIL='tower@qe.com',
-                                  GIT_COMMITTER_NAME='Tower Testing', GIT_COMMITTER_EMAIL='tower@qe.com',
-                                  GIT_KEY="{{tower.filename}}"))
-        cred_type = class_factories.credential_type(inputs=inputs, injectors=injectors)
-        pk = config.credentials.scm.rmfitzpatrick_ansible_playbooks.ssh_key_data
-        return class_factories.v2_credential(credential_type=cred_type, inputs=dict(git_key=pk))
-
-    @pytest.fixture()
-    def jt_that_writes_to_source(self, factories, write_access_git_credential):
-        project = factories.v2_project(scm_url='https://github.com/rmfitzpatrick/ansible-playbooks.git',
-                                       scm_branch='inventory_additions')
-        jt = factories.v2_job_template(inventory=factories.v2_host().ds.inventory, project=project,
-                                       playbook='utils/trigger_update.yml')
-        jt.add_extra_credential(write_access_git_credential)
-        return jt
-
     @pytest.mark.mp_group('ProjectUpdateWithSCMChange', 'serial')
     @pytest.mark.parametrize('source_path', ['inventories/inventory.ini', 'inventories/dyn_inventory.py'])
     def test_project_launch_using_update_on_project_update_with_scm_change(self, ansible_runner, factories, v2,
-                                                                           jt_that_writes_to_source, source_path):
+                                                                           job_template_that_writes_to_source, source_path):
         """Verifies that an scm inventory sync runs after running a job that commits code to its upstream repo"""
-        project = jt_that_writes_to_source.ds.project
+        project = job_template_that_writes_to_source.ds.project
         assert project.related.project_updates.get(launch_type='manual').count == 1
         assert project.related.project_updates.get(launch_type='sync').count == 0
 
@@ -288,7 +267,7 @@ class TestSCMInventorySource(Base_Api_Test):
         assert project.related.project_updates.get(launch_type='manual').count == 1
         assert project.related.project_updates.get(launch_type='sync').count == 1
 
-        assert jt_that_writes_to_source.launch().wait_until_completed().is_successful
+        assert job_template_that_writes_to_source.launch().wait_until_completed().is_successful
 
         assert project.related.project_updates.get(launch_type='manual').count == 1
         assert project.related.project_updates.get(launch_type='sync').count == 2  # addtl sync from job launch
@@ -479,10 +458,10 @@ class TestSCMInventorySource(Base_Api_Test):
 
     @pytest.mark.mp_group('ProjectUpdateWithSCMChange', 'serial')
     def test_scm_inv_source_with_update_on_project_update_synced_within_parent_project_update(self, factories,
-                                                                                              jt_that_writes_to_source):
-        assert jt_that_writes_to_source.launch().wait_until_completed().is_successful
+                                                                                              job_template_that_writes_to_source):
+        assert job_template_that_writes_to_source.launch().wait_until_completed().is_successful
 
-        project = jt_that_writes_to_source.ds.project
+        project = job_template_that_writes_to_source.ds.project
         scm_inv_source = factories.v2_inventory_source(source='scm', source_path='inventories/inventory.ini',
                                                        project=project)
         scm_inv_source.update_on_project_update = True
@@ -512,9 +491,9 @@ class TestSCMInventorySource(Base_Api_Test):
 
     @pytest.mark.mp_group('ProjectUpdateWithSCMChange', 'serial')
     def test_project_update_for_scm_inv_source_with_running_update_on_project_update(self, factories,
-                                                                                     jt_that_writes_to_source):
-        assert jt_that_writes_to_source.launch().wait_until_completed().is_successful
-        project = jt_that_writes_to_source.ds.project
+                                                                                     job_template_that_writes_to_source):
+        assert job_template_that_writes_to_source.launch().wait_until_completed().is_successful
+        project = job_template_that_writes_to_source.ds.project
         scm_inv_source = factories.v2_inventory_source(source='scm', source_path='inventories/inventory.ini',
                                                        project=project)
         scm_inv_source.update_on_project_update = True
@@ -588,9 +567,9 @@ class TestSCMInventorySource(Base_Api_Test):
         assert hostnames == self.inventory_hostnames
 
     @pytest.mark.mp_group('ProjectUpdateWithSCMChange', 'serial')
-    def test_canceled_inventory_update_during_project_update(self, factories, jt_that_writes_to_source):
-        assert jt_that_writes_to_source.launch().wait_until_completed().is_successful
-        project = jt_that_writes_to_source.ds.project
+    def test_canceled_inventory_update_during_project_update(self, factories, job_template_that_writes_to_source):
+        assert job_template_that_writes_to_source.launch().wait_until_completed().is_successful
+        project = job_template_that_writes_to_source.ds.project
         inv_source = factories.v2_inventory_source(source='scm', source_path='inventories/inventory.ini',
                                                    project=project)
         inv_source.update_on_project_update = True
