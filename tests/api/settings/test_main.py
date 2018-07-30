@@ -206,7 +206,7 @@ class TestGeneralSettings(Base_Api_Test):
 
         # assert new job stdout truncated
         if unified_job_with_stdout.type == "system_job":
-            stdout_page = unified_job_with_stdout.json['result_stdout']
+            stdout_page = unified_job_with_stdout.get()['result_stdout']
         else:
             stdout_page = unified_job_with_stdout.connection.get(
                 unified_job_with_stdout.related.stdout, query_parameters={'format': 'json'}
