@@ -22,6 +22,7 @@ class TestInventoryUpdate(Base_Api_Test):
         assert inv_update.is_successful
         assert inv_source.get().is_successful
 
+    @pytest.mark.ansible_integration
     def test_v2_update_inventory_source(self, cloud_inventory):
         """Verify successful inventory import using /api/v2/inventory_sources/N/update/."""
         inv_source = cloud_inventory.related.inventory_sources.get().results.pop()
