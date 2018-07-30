@@ -1,7 +1,7 @@
 import pytest
 
 from tests.api import Base_Api_Test
-from tests.lib.helpers.copy_utils import check_identical_fields, check_unequal_fields
+from tests.lib.helpers.copy_utils import check_fields
 
 
 @pytest.mark.api
@@ -14,5 +14,4 @@ class Test_Copy_Inventory_Script(Base_Api_Test):
     def test_copy_normal(self, copy_with_teardown, factories):
         v2_inventory_script = factories.v2_inventory_script()
         new_inventory_script = copy_with_teardown(v2_inventory_script)
-        check_identical_fields(v2_inventory_script, new_inventory_script, self.identical_fields)
-        check_unequal_fields(v2_inventory_script, new_inventory_script, self.unequal_fields)
+        check_fields(v2_inventory_script, new_inventory_script, self.identical_fields, self.unequal_fields)

@@ -262,3 +262,37 @@ def job_template_with_labels(factories, job_template):
         label = factories.label(organization=organization)
         job_template.add_label(dict(id=label.id))
     return job_template.get()
+
+
+@pytest.fixture(scope="function")
+def job_template_with_random_attributes(v2, factories, api_job_templates_options_json):
+    job_types = dict(api_job_templates_options_json.actions.POST.job_type.choices).keys()
+    verbosities = dict(api_job_templates_options_json.actions.POST.verbosity.choices).keys()
+    extra_vars = '{{"{}": "{}"}}'.format(fauxfactory.gen_alpha(), fauxfactory.gen_alpha())
+    max_int32 = 1 << 31 - 1
+
+    return factories.v2_job_template(job_type=fauxfactory.gen_choice(job_types),
+                                     limit=fauxfactory.gen_alpha(),
+                                     extra_vars=extra_vars,
+                                     forks=fauxfactory.gen_integer(min_value=0, max_value=max_int32),
+                                     verbosity=fauxfactory.gen_choice(verbosities),
+                                     job_tags=fauxfactory.gen_alpha(),
+                                     force_handlers=fauxfactory.gen_boolean(),
+                                     skip_tags=fauxfactory.gen_alpha(),
+                                     start_at_task=fauxfactory.gen_alpha(),
+                                     timeout=fauxfactory.gen_integer(min_value=-1, max_value=max_int32),
+                                     use_fact_cache=fauxfactory.gen_boolean(),
+                                     host_config_key=fauxfactory.gen_alphanumeric(length=32),
+                                     ask_diff_mode_on_launch=fauxfactory.gen_boolean(),
+                                     ask_variables_on_launch=fauxfactory.gen_boolean(),
+                                     ask_limit_on_launch=fauxfactory.gen_boolean(),
+                                     ask_tags_on_launch=fauxfactory.gen_boolean(),
+                                     ask_skip_tags_on_launch=fauxfactory.gen_boolean(),
+                                     ask_job_type_on_launch=fauxfactory.gen_boolean(),
+                                     ask_verbosity_on_launch=fauxfactory.gen_boolean(),
+                                     ask_inventory_on_launch=fauxfactory.gen_boolean(),
+                                     ask_credential_on_launch=fauxfactory.gen_boolean(),
+                                     survey_enabled=fauxfactory.gen_boolean(),
+                                     become_enabled=fauxfactory.gen_boolean(),
+                                     diff_mode=fauxfactory.gen_boolean(),
+                                     allow_simultaneous=fauxfactory.gen_boolean())
