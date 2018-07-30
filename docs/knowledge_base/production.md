@@ -67,7 +67,7 @@ If you want to spin up your own Tower instance, the setup tarballs are here:
 * For development release tarballs, see [here](http://nightlies.testing.ansible.com/ansible-tower_nightlies_m8u16fz56qr6q7/).
 
 About tearing down instances:
-* We have a reaper script that runs on an automated basis. This reaper script serves to kill instances that people leave lying around and forget about. If you want your instance to persist, enable `instance protection` for your instance in the EC2 console.
+* We have a [reaper script](https://tower.ansible.eng.rdu2.redhat.com/#/templates/job_template/1650/schedules/27?schedule_search=page_size:20;order_by:name) that runs on an automated basis every night at 2AM (EST). This reaper script serves to kill instances that people leave lying around and forget about. If you want your instance to persist, enable `instance protection` for your instance in the EC2 console.
 * When you're done with your instance, terminate your instance via the EC2 console.
   * Log into the EC2 console and find your instance.
   * Go to "actions" and then choose "terminate" under "instance state."
