@@ -596,3 +596,9 @@ print json.dumps(inv, indent=2)
             ahc = factories.v2_ad_hoc_command(inventory=host.ds.inventory, module_name='shell',
                                               module_args='echo "%s={{ %s }}"' % (attr, var_name)).wait_until_completed()
         assert "=".join([attr, value]) in ahc.result_stdout
+
+    def test_output_unicode(self, v2, factories):
+        host = factories.v2_host()
+        ahc = factories.v2_ad_hoc_command(inventory=host.ds.inventory, module_name='shell',
+                                          module_args="python -c 'print \"\xe8\xb5\xb7\xe5\x8b\x95\" * 1000000'").wait_until_completed()
+        assert ahc.is_successful
