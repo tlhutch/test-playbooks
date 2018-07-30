@@ -1,5 +1,7 @@
 import random
 import six
+import threading
+import datetime
 
 from towerkit import utils
 import pytest
@@ -373,6 +375,8 @@ class TestExecutionNodeAssignment(Base_Api_Test):
                                                                                                        tower_ig_instances,
                                                                                                        do_all_jobs_overlap):
         instances = random.sample(tower_ig_instances, max(3, len(tower_ig_instances)))
+        # sort list by hostname, because random.sample may not preserve ordering
+        instances = sorted(instances, key=lambda instance: instance.hostname)
 
         jobs_count = len(instances)
         forks = largest_capacity + 1
@@ -382,8 +386,16 @@ class TestExecutionNodeAssignment(Base_Api_Test):
         instances[index].capacity_adjustment = .5
 
         jt = jt_generator_for_consuming_given_capacity(forks)
-        jobs = [jt.launch() for i in xrange(0, jobs_count)]
-        jobs = [j.wait_until_completed() for j in jobs]
+
+        # Launch jobs quickly in order to get them in same task manager run
+        threads = [threading.Thread(target=jt.launch, args=()) for i in xrange(0, jobs_count)]
+        map(lambda t: t.start(), threads)
+        map(lambda t: t.join(), threads)
+
+        jobs = [j.wait_until_completed() for j in jt.related.jobs.get().results]
+
+        # sort jobs by created time
+        jobs = sorted(jobs, key=lambda job: datetime.datetime.strptime(job.created, '%Y-%m-%dT%H:%M:%S.%fZ'))
 
         # Refresh jobs for execution_node attribute
         jobs_execution_nodes = [j.get().execution_node for j in jobs]
@@ -393,6 +405,9 @@ class TestExecutionNodeAssignment(Base_Api_Test):
             "All jobs found to not be running at the same time {}" \
                 .format(["(%s, %s), " % (j.started, j.finished) for j in jobs])
 
+        # jobs_execution_nodes: ordered by creation
+        # instances: ordered by hostname
+        # task manager should dispatch corresponding to this ordering
         for (instance, execution_node) in zip(instances[:index], jobs_execution_nodes[:index]):
             assert execution_node == instance.hostname, \
                 "Job not run on expected instance"
