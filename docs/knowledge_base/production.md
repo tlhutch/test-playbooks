@@ -6,16 +6,20 @@ The Tower QE team currently spins up production instances in the following confi
 * In a clustered environment on multiple EC2 virtual machines, with multiple traditional instances and isolated instances. With this configuration, postgres lives on its own VM.
 * In a clustered environment in OpenShift, with multiple Tower pods. Our database here is in a separate ephemeral postgres pod.
 
-If you want to access to these nightlies, visit the following locations in Jenkins. You will need to be on the VPN to access Jenkins.
+If you want to build your own production instance, visit the following locations in Jenkins to kick off a new build job. You will need to be on the VPN to access Jenkins.
 * [For single instance production environment](http://jenkins.ansible.eng.rdu2.redhat.com/view/Tower/job/Test_Tower_Install/)
 * [For multiple instance clustered environment](http://jenkins.ansible.eng.rdu2.redhat.com/view/Tower/job/Test_Tower_Install_Cluster/)
 * [For multiple instance OpenShift environment](https://ansible-tower-web-svc-tower-qe.openshift.ansible.eng.rdu2.redhat.com/)
   * You need to be on the VPN to access our Tower OpenShift environment.
   
-If you access a production instance, sometimes things will be happening on their own. This is because:
-* Our automated tests are running on that instance (you may want to grab another instance).
-* Another Tower team member is using this instance (this is especially bad with our OpenShift environment).
-  * Try to coordinate as much as possible to avoid a chance of collision if you are using either of our clustered environments.
+To build a new Tower instance or cluster:
+* Click the `Build with Parameters` button.
+* Update `INSTANCE_NAME_PREFIX` to something unique (or else you may kill someone else's instance).
+* Update `AW_REPO_URL` to whatever Tower version you want.
+  * For Tower-3.3.0, use `http://nightlies.testing.ansible.com/ansible-tower_nightlies_m8u16fz56qr6q7/release_3.3.0`.
+  * For Tower-3.2.6, use `http://nightlies.testing.ansible.com/ansible-tower_nightlies_m8u16fz56qr6q7/release_3.2.6`.
+* If you want tests to run, keep `trigger` checked (you probably want to uncheck this).
+* For `Test_Tower_Install` only, scroll to the bottom to the matrix view section (currently a 5x7 matrix). Keep checked the platform and Ansible version combination that you want.
   
 For our production instances in EC2, we generate Ansible inventory files that contain a Tower web address and a username that you will need to ssh into that instance.
 * This is a Jenkins artifact produced by our Jenkins jobs.
