@@ -70,6 +70,6 @@ About tearing down instances:
 * We have a reaper script that runs on an automated basis. This reaper script serves to kill instances that people leave lying around and forget about. If you want your instance to persist, enable `instance protection` for your instance in the EC2 console.
 * When you're done with your instance, terminate your instance via the EC2 console.
   * Log into the EC2 console and find your instance.
-  * Go to `actions` and then choose `terminate` under `instance state`.
+  * Go to "actions" and then choose "terminate" under "instance state."
 
 Written by [Christopher Wang](mailto:chrwang@redhat.com) (Github: simfarm) July 11th, 2018.
