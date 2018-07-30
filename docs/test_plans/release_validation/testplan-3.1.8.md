@@ -2,7 +2,7 @@
 
 ## Overview
 
-* 3.1.8 issues available [here](https://github.com/ansible/tower/issues?q=is%3Aopen+is%3Aissue+milestone%3Arelease_3.1.8)
+* 3.1.8 issues available [here](https://github.com/ansible/tower/issues?q=is%3Aopen+is%3Aissue+milestone%3Arelease_3.1.8).
 
 ## Notes
 
@@ -16,11 +16,13 @@
 1. [ ] [UI regression completed](https://docs.google.com/document/d/1fCOn33OzpuSEa4R_b8MuFJzRBITqdAZlmfM0jUcziuc/edit)
 1. [ ] API regression completed - standalone
 1. [ ] API regression completed - cluster
-1. [ ] Tower social authentication regression completed
+1. [ ] ~Tower social authentication regression completed~
 1. [ ] Tower LDAP integration regression completed
-1. [ ] Tower SAML integration regression completed
-1. [ ] Tower RADIUS integration regression completed
-1. [ ] Backup/restore successful
+1. [ ] ~Tower SAML integration regression completed~
+1. [ ] ~Tower RADIUS integration regression completed~
+1. [ ] ~Backup/restore successful~
+* No changes to third-party authentication in this release. LDAP kept for due diligence.
+* No changes to backup-restore in this release.
 
 ### Installation
 1. Standalone installation completes successfully on all supported platforms
