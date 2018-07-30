@@ -9,13 +9,14 @@ The Tower QE team currently spins up production instances in the following confi
 If you want to build your own production instance, visit the following locations in Jenkins to kick off a new build job. You will need to be on the VPN to access Jenkins.
 * [For single instance production environment](http://jenkins.ansible.eng.rdu2.redhat.com/view/Tower/job/Test_Tower_Install/)
 * [For multiple instance clustered environment](http://jenkins.ansible.eng.rdu2.redhat.com/view/Tower/job/Test_Tower_Install_Cluster/)
-* [For multiple instance OpenShift environment](https://ansible-tower-web-svc-tower-qe.openshift.ansible.eng.rdu2.redhat.com/)
+
+For Tower in OpenShift, just click [here](https://ansible-tower-web-svc-tower-qe.openshift.ansible.eng.rdu2.redhat.com/).
   * You need to be on the VPN to access our Tower OpenShift environment.
   
 To build a new Tower instance or cluster:
 * Click the `Build with Parameters` button.
-* Update `INSTANCE_NAME_PREFIX` to something unique (or else you may kill someone else's instance).
-* Update `AW_REPO_URL` to whatever Tower version you want.
+* Update `INSTANCE_NAME_PREFIX` to something unique (or else you may kill someone else's instances).
+* Update `AW_REPO_URL` for whatever Tower version you want.
   * For Tower-3.3.0, use `http://nightlies.testing.ansible.com/ansible-tower_nightlies_m8u16fz56qr6q7/release_3.3.0`.
   * For Tower-3.2.6, use `http://nightlies.testing.ansible.com/ansible-tower_nightlies_m8u16fz56qr6q7/release_3.2.6`.
 * If you want tests to run, keep `trigger` checked (you probably want to uncheck this).
