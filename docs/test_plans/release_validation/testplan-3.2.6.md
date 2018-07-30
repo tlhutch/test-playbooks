@@ -20,10 +20,12 @@
 1. [ ] Tower LDAP integration regression completed
 1. [ ] Tower SAML integration regression completed
 1. [ ] Tower RADIUS integration regression completed
+1. [ ] ~Logging regression completed - standalone~
+1. [ ] ~Logging regression completed - cluster~
 1. [ ] ~Backup/restore successful - standalone~
 1. [ ] ~Backup/restore successful - cluster~
-* No changes to third-party authentication in this release. LDAP kept for due diligence.
 * No changes to backup-restore in this release.
+* No changes to third-party logging this release.
 
 ### Installation
 1. Standalone installation completes successfully on all [supported platforms](https://docs.ansible.com/ansible-tower/3.2.3/html/installandreference/requirements_refguide.html)
