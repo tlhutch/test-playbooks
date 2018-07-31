@@ -538,6 +538,23 @@ class TestSCMInventorySource(Base_Api_Test):
         assert parent_update.finished > inv_update.finished
         assert parent_update.finished < subsequent_update.started
 
+    @pytest.mark.github('https://github.com/ansible/tower/issues/2536')
+    def test_scm_inv_source_and_project_with_update_on_lauch(self, factories):
+        project = factories.v2_project(scm_type='git', scm_delete_on_update=True, scm_update_on_launch=True)
+        inv_source = factories.v2_inventory_source(
+            source='scm', source_path='inventories/inventory.ini',
+            update_on_launch=True, overwrite=True,
+            project=project
+        )
+        jt = factories.v2_job_template(inventory=inv_source.ds.inventory, project=project)
+        # Job launch triggers update of project-inv-src and project itself
+        job = jt.launch().wait_until_completed()
+        assert inv_source.related.inventory_updates.get().results[0].is_successful
+        # project spawns multiple updates
+        for pu in project.related.project_updates.get().results:
+            assert pu.is_successful
+        assert job.is_successful
+
     def test_scm_inv_source_update_on_project_update_with_project_update_on_launch(self, factories):
         scm_inv_source = factories.v2_inventory_source(source='scm', source_path='inventories/inventory.ini')
         project = scm_inv_source.ds.project
