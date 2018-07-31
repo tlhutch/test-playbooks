@@ -216,8 +216,8 @@ class TestCustomCredentials(Base_Api_Test):
         host = factories.v2_host()
 
         jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='ansible_env.yml')
-        job = jt.launch().wait_until_completed()
-        sample_job_env = job.job_env
+        sample_job_env = jt.launch().wait_until_completed().job_env
+
         jt.add_extra_credential(credential)
         job = jt.launch().wait_until_completed()
         assert job.is_successful
