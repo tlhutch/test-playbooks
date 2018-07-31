@@ -135,6 +135,7 @@ class TestTowerManageInventoryImport(Base_Api_Test):
         assert inventory.get_related('groups').count == 13
         assert inventory.get_related('hosts').count == 10
 
+    @pytest.mark.mp_group(group="test_import_license_exceeded", strategy="isolated_free")
     def test_import_license_exceeded(self, api_config_pg, ansible_runner, inventory):
         """Verify import fails if the number of imported hosts exceeds licensed host allowance."""
         api_config_pg.install_license(1000)
