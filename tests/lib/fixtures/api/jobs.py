@@ -1,6 +1,5 @@
 import pytest
 import datetime
-import itertools
 
 from towerkit import utils
 
@@ -49,15 +48,9 @@ def wait_for_jobs(v2):
 @pytest.fixture
 def do_all_jobs_overlap():
     def fn(jobs):
-        def overlap(start1, end1, start2, end2):
-            """Does the range (start1, end1) overlap with (start2, end2)?"""
-            return end1 >= start2 and end2 >= start1
-
-        for (j1, j2) in list(itertools.combinations(jobs, 2)):
-            if not overlap(datetime.datetime.strptime(j1.started, '%Y-%m-%dT%H:%M:%S.%fZ'),
-                           datetime.datetime.strptime(j1.finished, '%Y-%m-%dT%H:%M:%S.%fZ'),
-                           datetime.datetime.strptime(j2.started, '%Y-%m-%dT%H:%M:%S.%fZ'),
-                           datetime.datetime.strptime(j2.finished, '%Y-%m-%dT%H:%M:%S.%fZ')):
-                return False
-        return True
+        return max(
+            datetime.datetime.strptime(job.started, '%Y-%m-%dT%H:%M:%S.%fZ') for job in jobs
+        ) < min(
+            datetime.datetime.strptime(job.finished, '%Y-%m-%dT%H:%M:%S.%fZ') for job in jobs
+        )
     return fn
