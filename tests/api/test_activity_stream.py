@@ -16,8 +16,7 @@ log = logging.getLogger(__name__)
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestActivityStream(Base_Api_Test):
 
-    @pytest.mark.github('https://github.com/ansible/tower/issues/2502')
-    @pytest.mark.github('https://github.com/ansible/tower/issues/2499')
+    @pytest.mark.github('https://github.com/ansible/tower/issues/1774', ids=['survey'])
     @pytest.mark.parametrize('resource', ['schedule', 'survey', 'job_template', 'workflow_job_template', 'credential',
                                           'credential_type', 'project', 'inventory', 'group', 'host', 'inventory_script',
                                           'organization', 'user', 'team', 'instance_group'])
