@@ -543,7 +543,8 @@ class TestTraditionalCluster(Base_Api_Test):
             assert instance.get().capacity == 0
 
             # Check the job we started is marked as failed
-            long_job.wait_until_status(FAIL_STATUSES, interval=5, timeout=300, since_job_created=False)
+            long_job.wait_until_completed()
+            assert long_job.status in FAIL_STATUSES
 
             # Should fail with explanation
             explanation = "Task was marked as running in Tower but was not present in the job queue, so it has been marked as failed."
