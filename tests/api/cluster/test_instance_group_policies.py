@@ -304,30 +304,37 @@ class TestInstanceGroupPolicies(Base_Api_Test):
 
     def test_manual_instance_is_removed_from_consideration_from_other_igs(
             self, factories, v2, reset_instance):
+        instances = v2.instances.get(rampart_groups__controller__isnull=True, page_size=200).results
+        instance = instances[0]
+        reset_instance(instance)
+        instance_count = len(instances)
+
         pct_ig = factories.instance_group(policy_instance_percentage=100)
-        min_ig = factories.instance_group(policy_instance_minimum=5)
+        min_ig = factories.instance_group(policy_instance_minimum=instance_count)
         mixed_policy_ig = factories.instance_group(policy_instance_percentage=100,
-                                                   policy_instance_minimum=5)
+                                                   policy_instance_minimum=instance_count)
 
         for igroup in (pct_ig, min_ig, mixed_policy_ig):
-            utils.poll_until(lambda: igroup.get().instances == 5, interval=1, timeout=30)
+            utils.poll_until(lambda: igroup.get().instances == instance_count, interval=1, timeout=30)
 
         ig = factories.instance_group()
-        instance = v2.instances.get(rampart_groups__controller__isnull=True).results.pop()
-        reset_instance(instance)
         assert instance.managed_by_policy  # expected default value
         # Officially documented steps to make instance "manual"
         ig.add_instance(instance)
         instance.patch(managed_by_policy=False)
 
         for igroup in (pct_ig, min_ig, mixed_policy_ig):
-            utils.poll_until(lambda: igroup.get().instances == 4, interval=1, timeout=30)
+            utils.poll_until(lambda: igroup.get().instances == instance_count - 1, interval=1, timeout=30)
             assert instance.hostname not in self.get_ig_instances(igroup)
 
     def test_manual_instance_release_introduces_instance_for_consideration_to_other_igs(
             self, factories, v2, reset_instance):
+        instances_page = v2.instances.get(rampart_groups__controller__isnull=True)
+        instance = instances_page.results[0]
+        reset_instance(instance)
+        instance_count = instances_page.count
+
         ig = factories.instance_group()
-        instance = v2.instances.get(rampart_groups__controller__isnull=True).results.pop()
         reset_instance(instance)
         assert instance.managed_by_policy  # expected default value
         # Officially documented steps to make instance "manual"
@@ -335,12 +342,12 @@ class TestInstanceGroupPolicies(Base_Api_Test):
         instance.patch(managed_by_policy=False)
 
         pct_ig = factories.instance_group(policy_instance_percentage=100)
-        min_ig = factories.instance_group(policy_instance_minimum=5)
+        min_ig = factories.instance_group(policy_instance_minimum=instance_count)
         mixed_policy_ig = factories.instance_group(policy_instance_percentage=100,
-                                                   policy_instance_minimum=5)
+                                                   policy_instance_minimum=instance_count)
 
         for igroup in (pct_ig, min_ig, mixed_policy_ig):
-            utils.poll_until(lambda: igroup.get().instances == 4, interval=1, timeout=30)
+            utils.poll_until(lambda: igroup.get().instances == instance_count - 1, interval=1, timeout=30)
             assert instance.hostname not in self.get_ig_instances(igroup)
 
         # Undo officially documented steps to make instance "manual"
@@ -348,7 +355,7 @@ class TestInstanceGroupPolicies(Base_Api_Test):
         instance.patch(managed_by_policy=True)
 
         for igroup in (pct_ig, min_ig, mixed_policy_ig):
-            utils.poll_until(lambda: igroup.get().instances == 5, interval=1, timeout=30)
+            utils.poll_until(lambda: igroup.get().instances == instance_count, interval=1, timeout=30)
             assert instance.hostname in self.get_ig_instances(igroup)
 
     def test_instances_may_be_manually_associated_to_multiple_instance_groups(self, factories, tower_instance_group):
