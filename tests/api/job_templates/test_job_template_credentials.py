@@ -63,7 +63,7 @@ class TestJobTemplateLaunchCredentials(Base_Api_Test):
         """Verify the job launch endpoint allows launching a job template when providing a credential."""
         launch = job_template_prompt_for_credential.related.launch.get()
 
-        assert launch.can_start_without_user_input
+        assert not launch.can_start_without_user_input
         assert launch.ask_credential_on_launch
         assert not launch.ask_variables_on_launch
         assert not launch.passwords_needed_to_start
