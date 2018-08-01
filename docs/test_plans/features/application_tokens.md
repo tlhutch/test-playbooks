@@ -21,23 +21,22 @@ Tower 3.3.0 introduces the notion of authorized applications for delegated API a
 ### Test suites and cases
 * [ ] API
     * [ ] Application CRUD 
-        * [ ] Basic Functionality
+        * [x] Basic Functionality
         * [ ] RBAC
-        * [ ] Activity Stream
+        * [x] Activity Stream
         * [ ] Activity Stream - RBAC
     * [ ] Token CRUD
-        * [ ] Basic Functionality
+        * [x] Basic Functionality
         * [ ] RBAC
-        * [ ] Activity Stream
+        * [x] Activity Stream
         * [ ] Activity Stream - RBAC
     * [ ] Token usage
-        * [ ] OAuth2 functionality - /api/o/...
-        * [ ] Application Token
-        * [ ] Personal Access Token
-        * [ ] Token revocations
-        * [ ] Token expiration
-        * [ ] Token introspection
-        * [ ] Token introspection - RBAC
+        * [x] OAuth2 functionality - /api/o/...
+        * [x] Application Token
+        * [x] Personal Access Token
+        * [ ] Refreshing Tokens
+        * [x] Token revocations
+        * [x] Token expiration
         * [ ] Activity Stream for API usage
     * [ ] Token scopes
     * [ ] Session adoption
@@ -47,9 +46,9 @@ Tower 3.3.0 introduces the notion of authorized applications for delegated API a
             * [ ] Session expiration
             * [ ] Maximum concurrent sessions
             * [ ] Password changes
-        * [ ] Basic Auth regression tests
-        * [ ] Provisioning callbacks
-        * [ ] authtoken obsolesence
+        * [x] Basic Auth regression tests
+        * [x] Provisioning callbacks
+        * [x] authtoken obsolesence
 * [ ] UI (manual testing anticipated)
     * [ ] Application CRUD
     * [ ] Token CRUD 

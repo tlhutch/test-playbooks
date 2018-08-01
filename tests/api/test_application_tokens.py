@@ -1,5 +1,11 @@
 from copy import deepcopy
+from uuid import uuid4
+import time
 
+import dateutil
+from towerkit.api.client import Connection
+from towerkit.api import get_registered_page
+from towerkit.config import config as qe_config
 from towerkit.utils import random_title
 from towerkit import exceptions as exc
 import pytest
@@ -105,7 +111,7 @@ class TestApplications(APITest):
 
     def test_patch_modified_application_integrity(self, v2, factories):
         app = factories.application(organization=True, authorization_grant_type='password',
-                                    client_Type='public')
+                                    client_type='public')
         name = random_title(3)
         app.name = name
         assert app.get().name == name
@@ -124,7 +130,7 @@ class TestApplications(APITest):
 
     def test_put_modified_application_integrity(self, v2, factories):
         app = factories.application(organization=True, authorization_grant_type='password',
-                                    client_Type='public')
+                                    client_type='public')
         app_body = deepcopy(app.json)
         app_body['name'] = random_title(3)
         app.put(app_body)
@@ -141,6 +147,16 @@ class TestApplications(APITest):
         app_body['redirect_uris'] = 'http://example.com http://example.org'
         app.put(app_body)
         assert app.get().redirect_uris == app_body['redirect_uris']
+
+    def test_delete_application(self, v2, factories):
+        app = factories.application(organization=True, authorization_grant_type='password',
+                                    client_type='public')
+        apps = v2.applications.get(id=app.id)
+        assert apps.count == 1
+
+        app.delete()
+        apps = v2.applications.get(id=app.id)
+        assert apps.count == 0
 
     @pytest.mark.parametrize('field', ('client_id', 'client_secret', 'authorization_grant_type'))
     def test_read_only_application_fields_have_forbidden_writes(self, factories, field):
@@ -192,6 +208,20 @@ class TestApplications(APITest):
             assert_stream_validity(app, app_body, orig_body)
 
         assert_stream_validity(app, app_body, orig_body)
+
+    @pytest.mark.github('https://github.com/ansible/tower/issues/1125')
+    def test_application_deletion_in_activity_stream(self, v2, factories, privileged_user, organization):
+        with self.current_user(privileged_user):
+            app = factories.application(organization=organization)
+            app.delete()
+
+        entries = v2.activity_stream.get(actor=privileged_user.id)
+        assert entries.count == 2
+        entry = entries.results[-1]
+        assert entry.operation == 'delete'
+        assert entry.object1 == 'o_auth2_application'
+        assert entry.changes.name == app.name
+        assert entry.changes.description == app.description
 
 
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
@@ -265,6 +295,27 @@ class TestApplicationTokens(APITest):
         token.put(token_body)
         assert token.get().description == token_body['description']
         assert token.scope == 'read'
+
+    def test_delete_token(self, v2, factories):
+        token = factories.access_token(oauth_2_application=False)
+        tokens = v2.tokens.get(id=token.id)
+        assert tokens.count == 1
+
+        token.delete()
+        tokens = v2.tokens.get(id=token.id)
+        assert tokens.count == 0
+
+    def test_deleted_application_also_deletes_tokens(self, v2, factories):
+        payload = factories.access_token.payload(oauth_2_application=True)
+        application = payload.ds.oauth_2_application
+        token = v2.tokens.post(payload)
+
+        tokens = v2.tokens.get(id=token.id)
+        assert tokens.count == 1
+
+        application.delete()
+        tokens = v2.tokens.get(id=token.id)
+        assert tokens.count == 0
 
     @pytest.mark.github('https://github.com/ansible/tower/issues/1125')
     def test_token_creation_in_activity_stream(self, v2, factories, privileged_user, organization):
@@ -346,3 +397,155 @@ class TestApplicationTokens(APITest):
         with self.current_user(token):
             me = v2.me.get().results[0]
             assert me.username == user.username
+
+
+class TestTokenAuthenticationBase(APITest):
+
+    def me(self, token):
+        conn = Connection(qe_config.base_url)
+        conn.login(token=token, auth_type="Bearer")
+        return get_registered_page('/api/v2/me/')(conn, endpoint='/api/v2/me/').get()
+
+
+@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+class TestTokenAuthentication(TestTokenAuthenticationBase):
+
+    def test_authenticate_with_invalid_access_token(self, v2, factories):
+        with pytest.raises(exc.Unauthorized) as e:
+            self.me(str(uuid4()))
+            assert 'Authentication credentials were not provided. To establish a login session, visit /api/login/.' in str(e)
+
+    def test_authenticate_with_access_token(self, v2, factories):
+        org = factories.v2_organization()
+        user = factories.v2_user(organization=org)
+        app = factories.application(organization=org,
+                                    client_type='confidential',
+                                    authorization_grant_type='password',
+                                    redirect_uris='https://example.com')
+        with self.current_user(user):
+            token = factories.access_token(oauth_2_application=app)
+
+        res = self.me(token.token)
+        assert res.results.pop().username == user.username
+
+    def test_authenticate_with_personal_access_token(self, v2, factories):
+        user = factories.v2_user(organization=factories.v2_organization())
+        with self.current_user(user):
+            token = user.related.personal_tokens.post()
+        res = self.me(token.token)
+        assert res.results.pop().username == user.username
+
+    def test_access_token_revocation(self, v2, factories):
+        user = factories.v2_user(organization=factories.v2_organization())
+        with self.current_user(user):
+            token = user.related.personal_tokens.post()
+
+        res = self.me(token.token)
+        assert res.results.pop().username == user.username
+
+        token.delete()
+        with pytest.raises(exc.Unauthorized) as e:
+            res = self.me(token.token)
+            assert 'Authentication credentials were not provided. To establish a login session, visit /api/login/.' in str(e)
+
+    def test_access_token_expiration(self, v2, update_setting_pg, factories):
+        auth_settings = v2.settings.get().get_endpoint('authentication')
+        payload = {
+            'OAUTH2_PROVIDER': {
+                'ACCESS_TOKEN_EXPIRE_SECONDS': 1
+            }
+        }
+        update_setting_pg(auth_settings, payload)
+
+        user = factories.v2_user(organization=factories.v2_organization())
+        with self.current_user(user):
+            token = user.related.personal_tokens.post()
+            # the difference between the created and expiration dates
+            # should be _just under_ one second
+            assert (dateutil.parser.parse(token.expires) - dateutil.parser.parse(token.created)).seconds == 0
+            time.sleep(3)
+
+        with pytest.raises(exc.Unauthorized) as e:
+            self.me(token.token)
+            assert 'Authentication credentials were not provided. To establish a login session, visit /api/login/.' in str(e)
+
+
+@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+class TestDjangoOAuthToolkitTokenManagement(TestTokenAuthenticationBase):
+    """
+    Used to test the `/api/o/` endpoint
+    """
+
+    @pytest.mark.parametrize('scope', ['read', 'write'])
+    @pytest.mark.parametrize('password, expected_status', [
+        (qe_config.credentials.users.admin.password, 200),
+        (str(uuid4()), 401)
+    ])
+    def test_token_creation(self, factories, scope, password, expected_status):
+        app = factories.application(organization=factories.v2_organization(),
+                                    client_type='confidential',
+                                    authorization_grant_type='password',
+                                    redirect_uris='https://example.com')
+        conn = Connection(qe_config.base_url)
+        conn.session.auth = (app.client_id, app.client_secret)
+        username = qe_config.credentials.users.admin.username
+        resp = conn.post(
+            '/api/o/token/',
+            headers={'Content-Type': 'application/x-www-form-urlencoded'},
+            data={
+                'username': username,
+                'password': password,
+                'grant_type': 'password',
+                'scope': scope
+            }
+        )
+        assert resp.status_code == expected_status
+
+        if expected_status == 200:
+            json = resp.json()
+            assert json['access_token']
+            assert json['refresh_token']
+            assert json['token_type'] == 'Bearer'
+            assert json['scope'] == scope
+            token = resp.json()['access_token']
+            res = self.me(token)
+            assert res.results.pop().username == username
+        else:
+            assert 'Invalid credentials given.' in str(resp.content)
+
+    def test_token_revocation(self, factories):
+        app = factories.application(organization=factories.v2_organization(),
+                                    client_type='confidential',
+                                    authorization_grant_type='password',
+                                    redirect_uris='https://example.com')
+
+        # Create a token and ensure it works
+        conn = Connection(qe_config.base_url)
+        username = qe_config.credentials.users.admin.username
+        conn.session.auth = (app.client_id, app.client_secret)
+        resp = conn.post(
+            '/api/o/token/',
+            headers={'Content-Type': 'application/x-www-form-urlencoded'},
+            data={
+                'username': username,
+                'password': qe_config.credentials.users.admin.password,
+                'grant_type': 'password',
+                'scope': 'write'
+            }
+        )
+        token = resp.json()['access_token']
+        res = self.me(token)
+        assert res.results.pop().username == username
+
+        # Revoke the token
+        resp = conn.post(
+            '/api/o/revoke_token/',
+            headers={'Content-Type': 'application/x-www-form-urlencoded'},
+            data={'token': token}
+        )
+        assert resp.status_code == 200
+
+        # Assert that the token no longer works
+        with pytest.raises(exc.Unauthorized) as e:
+            self.me(token)
+            assert 'Authentication credentials were not provided. To establish a login session, visit /api/login/.' in str(e)
