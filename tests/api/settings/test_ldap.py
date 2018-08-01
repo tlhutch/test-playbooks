@@ -194,7 +194,6 @@ class TestLDAP(Base_Api_Test):
         assert sterling.first_name == 'Sterling'
         assert sterling.last_name == 'Archer'
 
-    @pytest.mark.github('https://github.com/ansible/tower/issues/2465')
     def test_ldap_user_does_not_get_created_if_group_search_is_misconfigured(self, v2, update_setting_pg, ldap_clean_users_orgs_teams):
         '''if the LDAP directory is configured with the wrong attributes,
            don't create the user'''
