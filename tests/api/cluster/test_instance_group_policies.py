@@ -121,8 +121,10 @@ class TestInstanceGroupPolicies(Base_Api_Test):
         instances = v2.instances.get(rampart_groups__controller__isnull=True).results
         for instance in instances:
             ig.remove_instance(instance)
-        # FIXME: the API will still add instances to apply the policy, this
-        # may not be supported by the API, triage these assertions
+        ig.patch(
+            policy_instance_percentage=0,
+            policy_instance_minimum=0
+        )
         utils.poll_until(lambda: ig.get().instances == 0, interval=1, timeout=30)
         assert ig_instances.get().count == 0
         assert ig.policy_instance_list == []
