@@ -228,7 +228,7 @@ class TestLDAP(Base_Api_Test):
         except NameError:
             pass
         assert bad_config_count == 0
-        assert good_config_count == 0
+        assert good_config_count == 1
         assert sterling_valid_login
 
     def test_multi_ldap_first_match_wins(self, v2, update_setting_pg, ldap_clean_users_orgs_teams):
