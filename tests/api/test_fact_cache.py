@@ -239,9 +239,9 @@ class TestFactCache(Base_Api_Test):
         for file_path in [f.path for f in files]:
             assert any([file_path.startswith(path) for path in scan_file_paths])
 
-    @pytest.mark.requires_isolation
     @pytest.mark.requires_single_instance
     @pytest.mark.ansible_integration
+    @pytest.mark.mp_group(group="pytest_mark_requires_isolation", strategy="isolated_serial")
     def test_scan_file_paths_are_traversed(self, v2, request, ansible_runner, scan_facts_job_template):
         test_dir = '/tmp/test{}'.format(fauxfactory.gen_alphanumeric())
         request.addfinalizer(lambda: ansible_runner.file(path=test_dir, state='absent'))

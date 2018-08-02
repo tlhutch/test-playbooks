@@ -12,7 +12,7 @@ from tests.api import Base_Api_Test
 
 @pytest.mark.api
 @pytest.mark.requires_cluster
-@pytest.mark.mp_group('ExecutionNodeAssignment', 'serial')
+@pytest.mark.mp_group('ExecutionNodeAssignment', 'isolated_serial')
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestExecutionNodeAssignment(Base_Api_Test):
 

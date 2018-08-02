@@ -279,7 +279,7 @@ class TestTraditionalCluster(Base_Api_Test):
         job = jt.launch().wait_until_completed()
         assert job.status == 'successful'
 
-    @pytest.mark.requires_isolation
+    @pytest.mark.mp_group(group="pytest_mark_requires_isolation", strategy="isolated_serial")
     @pytest.mark.parametrize('base_resource, parent_resource', [('job_template', 'inventory'), ('job_template', 'organization'), ('inventory', 'organization')])
     def test_instance_group_hierarchy(self, v2, factories, base_resource, parent_resource):
         assert not len(v2.jobs.get(status='running').results), "Test requires Tower to not have any running jobs"
@@ -309,7 +309,7 @@ class TestTraditionalCluster(Base_Api_Test):
         assert parent_instance_group.get().consumed_capacity > \
             base_instance_group.capacity - base_instance_group.consumed_capacity
 
-    @pytest.mark.requires_isolation
+    @pytest.mark.mp_group(group="pytest_mark_requires_isolation", strategy="isolated_serial")
     def test_job_run_against_isolated_node_ensure_viewable_from_all_nodes(self, hosts_in_group, factories,
                                                                           admin_user, user_password, v2,
                                                                           hostvars_for_host):
@@ -350,7 +350,7 @@ class TestTraditionalCluster(Base_Api_Test):
                 stdout = [line for line in job.get().result_stdout.splitlines() if line]
                 assert stdout == canonical_stdout
 
-    @pytest.mark.requires_isolation
+    @pytest.mark.mp_group(group="pytest_mark_requires_isolation", strategy="isolated_serial")
     @pytest.mark.parametrize('run_on_isolated_group', [True, False], ids=['isolated group', 'regular instance group'])
     def test_running_jobs_consume_capacity(self, factories, v2, run_on_isolated_group):
         ig_filter = dict(name='protected') if run_on_isolated_group else dict(not__name='protected')
@@ -376,7 +376,7 @@ class TestTraditionalCluster(Base_Api_Test):
             assert instance.get().consumed_capacity > 0
             assert instance.percent_capacity_remaining == round(float(instance.capacity - instance.consumed_capacity) * 100 / instance.capacity, 2)
 
-    @pytest.mark.requires_isolation
+    @pytest.mark.mp_group(group="pytest_mark_requires_isolation", strategy="isolated_serial")
     def test_controller_removal(self, admin_user, hosts_in_group, hostvars_for_host, factories, user_password, v2):
         """
         Test that shutting down tower services on both controller nodes prevents us from launching
@@ -444,7 +444,7 @@ class TestTraditionalCluster(Base_Api_Test):
             job = jt.launch().wait_until_completed()
             assert job.is_successful
 
-    @pytest.mark.requires_isolation
+    @pytest.mark.mp_group(group="pytest_mark_requires_isolation", strategy="isolated_serial")
     def test_instance_removal(self, connection, admin_user, hosts_in_group, hostvars_for_host, factories, user_password, v2):
         """
         This test checks a full node's ability to recover when its tower services are stopped and restarted
@@ -568,7 +568,7 @@ class TestTraditionalCluster(Base_Api_Test):
         job = jt.launch().wait_until_completed()
         assert job.is_successful
 
-    @pytest.mark.requires_isolation
+    @pytest.mark.mp_group(group="pytest_mark_requires_isolation", strategy="isolated_serial")
     @pytest.mark.parametrize('run_on_isolated_group', [True, False], ids=['isolated group', 'regular instance group'])
     @pytest.mark.parametrize('scm_type', ['git', 'svn', 'hg'])
     def test_project_copied_to_separate_instance_on_job_run(self, v2, factories, run_on_isolated_group, scm_type):
@@ -601,7 +601,7 @@ class TestTraditionalCluster(Base_Api_Test):
 
     @pytest.mark.last
     @pytest.mark.requires_ha
-    @pytest.mark.requires_isolation
+    @pytest.mark.mp_group(group="pytest_mark_requires_isolation", strategy="isolated_serial")
     def test_network_partition(self, ansible_adhoc, hosts_in_group, v2, factories, admin_user):
         """
         Tests tower's ability to recover from a network partition using the following steps:

@@ -11,7 +11,7 @@ from tests.api import Base_Api_Test
 
 @pytest.mark.api
 @pytest.mark.requires_cluster
-@pytest.mark.mp_group('InstanceGroupPolicies', 'serial')
+@pytest.mark.mp_group('InstanceGroupPolicies', 'isolated_serial')
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestInstanceGroupPolicies(Base_Api_Test):
 
@@ -28,7 +28,6 @@ class TestInstanceGroupPolicies(Base_Api_Test):
     def tower_instance_hostnames(self, tower_instance_group):
         return [instance.hostname for instance in tower_instance_group.related.instances.get().results]
 
-    @pytest.mark.requires_isolation
     @pytest.mark.github('https://github.com/ansible/tower/issues/2659')
     def test_policy_intance_list_updated_with_manual_related_endpoint_association(self, v2, factories):
         """If an instance is added to related instances of group, then the
