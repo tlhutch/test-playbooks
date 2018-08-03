@@ -28,12 +28,12 @@
 
 ### Installation
 1. Standalone installation completes successfully on all supported platforms
-    * [ ] ubuntu-14.04
-    * [ ] ubuntu-16.04
-    * [ ] rhel-7.4
-    * [ ] rhel-7.5
-    * [ ] centos-7.latest
-    * [ ] ol-7.latest
+    * [x] ubuntu-14.04
+    * [x] ubuntu-16.04
+    * [x] rhel-7.4
+    * [x] rhel-7.5
+    * [x] centos-7.latest
+    * [x] ol-7.latest
 1. Standalone installation completes successfully using supported ansible releases
     * [x] ansible-2.4
     * [x] ansible-2.3
