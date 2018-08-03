@@ -40,10 +40,10 @@
     * [x] ansible-2.2
     * [x] ansible-2.1
 1. Cluster installation completes successfully using supported ansible releases
-    * [ ] ansible-2.4
-    * [ ] ansible-2.3
-    * [ ] ansible-2.2
-    * [ ] ansible-2.1
+    * [x] ansible-2.4
+    * [x] ansible-2.3
+    * [x] ansible-2.2
+    * [x] ansible-2.1
 1. Installation completes successfully on supported images
     * [ ] AMI (unlicensed)
 1. Bundled installation completes successfully on all supported platforms
