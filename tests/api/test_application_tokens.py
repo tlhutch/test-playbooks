@@ -401,10 +401,13 @@ class TestApplicationTokens(APITest):
 
 class TestTokenAuthenticationBase(APITest):
 
-    def me(self, token):
+    def get_page(self, token, endpoint):
         conn = Connection(qe_config.base_url)
         conn.login(token=token, auth_type="Bearer")
-        return get_registered_page('/api/v2/me/')(conn, endpoint='/api/v2/me/').get()
+        return get_registered_page(endpoint)(conn, endpoint=endpoint).get()
+
+    def me(self, token):
+        return self.get_page(token, '/api/v2/me/')
 
 
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
@@ -469,6 +472,125 @@ class TestTokenAuthentication(TestTokenAuthenticationBase):
             self.me(token.token)
             assert 'Authentication credentials were not provided. To establish a login session, visit /api/login/.' in str(e)
 
+    @pytest.mark.github('https://github.com/ansible/tower/issues/2759')
+    @pytest.mark.parametrize('scope, forbidden', [
+        ('read', True),
+        ('write', False)
+    ])
+    def test_read_scope_cannot_create(self, v2, factories, scope, forbidden):
+        user = factories.v2_user(organization=factories.v2_organization())
+        token = v2.tokens.post({'scope': scope})
+
+        username = random_title(3, non_ascii=False)
+        page = self.get_page(token.token, v2.users.endpoint)
+        if forbidden:
+            with pytest.raises(exc.Forbidden):
+                page.post({'username': username, 'password': 'secret'})
+        else:
+            user = page.post({'username': username, 'password': 'secret'})
+            assert user.get().username == username
+            user.delete()
+
+    @pytest.mark.github('https://github.com/ansible/tower/issues/2759')
+    @pytest.mark.parametrize('scope, forbidden', [
+        ('read', True),
+        ('write', False)
+    ])
+    def test_read_scope_cannot_edit(self, v2, factories, scope, forbidden):
+        user = factories.v2_user(organization=factories.v2_organization())
+        token = v2.tokens.post({'scope': scope})
+
+        page = self.get_page(token.token, user.endpoint)
+        assert page.get().id == user.id
+
+        if forbidden:
+            with pytest.raises(exc.Forbidden):
+                page.patch(first_name='Goofus')
+        else:
+            page.patch(first_name='Gallant')
+            assert page.get().first_name == 'Gallant'
+
+    @pytest.mark.github('https://github.com/ansible/tower/issues/2759')
+    @pytest.mark.parametrize('scope, forbidden', [
+        ('read', True),
+        ('write', False)
+    ])
+    def test_read_scope_cannot_delete(self, v2, factories, scope, forbidden):
+        user = factories.v2_user(organization=factories.v2_organization())
+        token = v2.tokens.post({'scope': scope})
+
+        page = self.get_page(token.token, user.endpoint)
+        assert page.get().id == user.id
+
+        if forbidden:
+            with pytest.raises(exc.Forbidden):
+                page.delete()
+        else:
+            page.delete()
+            with pytest.raises(exc.NotFound):
+                page.get()
+
+    @pytest.mark.github('https://github.com/ansible/tower/issues/2759')
+    @pytest.mark.parametrize('scope, forbidden', [
+        ('read', True),
+        ('write', False)
+    ])
+    def test_read_scope_cannot_launch(self, v2, job_template_ping, scope, forbidden):
+        token = v2.tokens.post({'scope': scope})
+        page = self.get_page(token.token, job_template_ping.related.launch.endpoint)
+        assert job_template_ping.related.jobs.get().count == 0
+
+        if forbidden:
+            with pytest.raises(exc.Forbidden):
+                page.post()
+            assert job_template_ping.related.jobs.get().count == 0
+        else:
+            page.post()
+            assert job_template_ping.related.jobs.get().count == 1
+
+    @pytest.mark.github('https://github.com/ansible/tower/issues/2759')
+    @pytest.mark.parametrize('scope, forbidden', [
+        ('read', True),
+        ('write', False)
+    ])
+    def test_read_scope_cannot_attach_detach(self, v2, factories, scope, forbidden):
+        token = v2.tokens.post({'scope': scope})
+        jt = factories.v2_job_template()
+        page = self.get_page(token.token, jt.related.credentials.endpoint)
+        assert page.count == 1
+        credential_pk = page.get().results.pop().id
+
+        if forbidden:
+            with pytest.raises(exc.Forbidden):
+                page.post({'disassociate': True, 'id': credential_pk})
+            assert page.get().count == 1
+            with pytest.raises(exc.Forbidden):
+                page.post({'associate': True, 'id': credential_pk})
+            assert page.get().count == 1
+        else:
+            with pytest.raises(exc.NoContent):
+                page.post({'disassociate': True, 'id': credential_pk})
+                assert page.get().count == 0
+            with pytest.raises(exc.NoContent):
+                page.post({'associate': True, 'id': credential_pk})
+                assert page.get().count == 1
+
+    @pytest.mark.github('https://github.com/ansible/tower/issues/2759')
+    @pytest.mark.parametrize('scope, forbidden', [
+        ('read', True),
+        ('write', False)
+    ])
+    def test_read_scope_cannot_copy(self, v2, factories, scope, forbidden):
+        token = v2.tokens.post({'scope': scope})
+        jt = factories.v2_job_template()
+        page = self.get_page(token.token, jt.get_related('copy').endpoint)
+
+        if forbidden:
+            with pytest.raises(exc.Forbidden):
+                page.post({'name': 'My OAuth2 Copy'})
+        else:
+            page.post({'name': 'My OAuth2 Copy'})
+
 
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestDjangoOAuthToolkitTokenManagement(TestTokenAuthenticationBase):
@@ -513,7 +635,9 @@ class TestDjangoOAuthToolkitTokenManagement(TestTokenAuthenticationBase):
         else:
             assert 'Invalid credentials given.' in str(resp.content)
 
-    def test_token_revocation(self, factories):
+    @pytest.mark.github('https://github.com/ansible/tower/issues/2637')
+    @pytest.mark.parametrize('scope', ['read', 'write'])
+    def test_token_revocation(self, factories, scope):
         app = factories.application(organization=factories.v2_organization(),
                                     client_type='confidential',
                                     authorization_grant_type='password',
@@ -530,14 +654,15 @@ class TestDjangoOAuthToolkitTokenManagement(TestTokenAuthenticationBase):
                 'username': username,
                 'password': qe_config.credentials.users.admin.password,
                 'grant_type': 'password',
-                'scope': 'write'
+                'scope': scope,
             }
         )
         token = resp.json()['access_token']
+        refresh_token = resp.json()['refresh_token']
         res = self.me(token)
         assert res.results.pop().username == username
 
-        # Revoke the token
+        # Revoke the access token
         resp = conn.post(
             '/api/o/revoke_token/',
             headers={'Content-Type': 'application/x-www-form-urlencoded'},
@@ -549,3 +674,64 @@ class TestDjangoOAuthToolkitTokenManagement(TestTokenAuthenticationBase):
         with pytest.raises(exc.Unauthorized) as e:
             self.me(token)
             assert 'Authentication credentials were not provided. To establish a login session, visit /api/login/.' in str(e)
+
+        # Revoke the refresh token
+        resp = conn.post(
+            '/api/o/revoke_token/',
+            headers={'Content-Type': 'application/x-www-form-urlencoded'},
+            data={'token': refresh_token}
+        )
+        assert resp.status_code == 200
+
+    @pytest.mark.github('https://github.com/ansible/tower/issues/2637')
+    @pytest.mark.parametrize('scope', ['read', 'write'])
+    def test_refresh_token(self, factories, scope):
+        app = factories.application(organization=factories.v2_organization(),
+                                    client_type='confidential',
+                                    authorization_grant_type='password',
+                                    redirect_uris='https://example.com')
+
+        # Create a token and ensure it works
+        conn = Connection(qe_config.base_url)
+        username = qe_config.credentials.users.admin.username
+        conn.session.auth = (app.client_id, app.client_secret)
+        resp = conn.post(
+            '/api/o/token/',
+            headers={'Content-Type': 'application/x-www-form-urlencoded'},
+            data={
+                'username': username,
+                'password': qe_config.credentials.users.admin.password,
+                'grant_type': 'password',
+                'scope': scope,
+            }
+        )
+        assert resp.json()['scope'] == scope
+        old_token = resp.json()['access_token']
+        refresh_token = resp.json()['refresh_token']
+        res = self.me(old_token)
+        assert res.results.pop().username == username
+
+        # refresh to get a new access token
+        resp = conn.post(
+            '/api/o/token/',
+            headers={'Content-Type': 'application/x-www-form-urlencoded'},
+            data={
+                'refresh_token': refresh_token,
+                'grant_type': 'refresh_token',
+                'client_id': app.client_id,
+                'client_secret': app.client_secret
+            }
+        )
+        assert resp.status_code == 200
+        assert resp.json()['scope'] == scope
+        new_token = resp.json()['access_token']
+        assert old_token != new_token
+
+        # assert that the old token no longer works
+        with pytest.raises(exc.Unauthorized) as e:
+            self.me(old_token)
+            assert 'Authentication credentials were not provided. To establish a login session, visit /api/login/.' in str(e)
+
+        # assert that the _new_ token _does_ work
+        res = self.me(new_token)
+        assert res.results.pop().username == username
