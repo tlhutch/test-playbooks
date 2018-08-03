@@ -3,6 +3,7 @@
 ## Overview
 
 * 3.1.8 issues available [here](https://github.com/ansible/tower/issues?q=is%3Aopen+is%3Aissue+milestone%3Arelease_3.1.8).
+* Delegation of responsibilities detailed [here](https://docs.google.com/document/d/1p5ohyf0zK-WVAflE1RgQx0GGnOFLBeEJ3EJldZSlv20/edit#).
 
 ## Notes
 
