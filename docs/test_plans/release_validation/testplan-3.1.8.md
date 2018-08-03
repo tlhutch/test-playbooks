@@ -33,13 +33,14 @@
     * [ ] rhel-7.2
     * [ ] rhel-7.3
     * [ ] rhel-7.4
+    * [ ] rhel-7.5
     * [ ] centos-7.latest
     * [ ] ol-7.latest
 1. Standalone installation completes successfully using supported ansible releases
-    * [ ] ansible-2.4
-    * [ ] ansible-2.3
-    * [ ] ansible-2.2
-    * [ ] ansible-2.1
+    * [x] ansible-2.4
+    * [x] ansible-2.3
+    * [x] ansible-2.2
+    * [x] ansible-2.1
 1. Cluster installation completes successfully using supported ansible releases
     * [ ] ansible-2.4
     * [ ] ansible-2.3
@@ -50,9 +51,10 @@
 1. Bundled installation completes successfully on all supported platforms
     * [ ] rhel-7.2
     * [ ] rhel-7.3
-    * [ ] rhel-7.4
-    * [ ] centos-7.latest
-    * [ ] ol-7.latest
+    * [x] rhel-7.4
+    * [x] rhel-7.5
+    * [x] centos-7.latest
+    * [x] ol-7.latest
 
 ### Upgrades
 1. [ ] Upgrade completes on all supported platforms from Tower-3.0.4.
