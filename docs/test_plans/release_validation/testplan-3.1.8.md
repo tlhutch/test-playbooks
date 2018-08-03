@@ -18,8 +18,8 @@
 1. [ ] API regression completed - standalone
 1. [ ] API regression completed - cluster
 1. [ ] Tower social authentication regression completed
-1. [ ] Tower LDAP integration regression completed
-1. [ ] Tower SAML integration regression completed
+1. [x] Tower LDAP integration regression completed
+1. [x] Tower SAML integration regression completed
 1. [x] Tower RADIUS integration regression completed
 1. [ ] ~Logging regression completed - standalone~
 1. [ ] ~Logging regression completed - cluster~
