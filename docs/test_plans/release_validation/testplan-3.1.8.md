@@ -30,8 +30,6 @@
 1. Standalone installation completes successfully on all supported platforms
     * [ ] ubuntu-14.04
     * [ ] ubuntu-16.04
-    * [ ] rhel-7.2
-    * [ ] rhel-7.3
     * [ ] rhel-7.4
     * [ ] rhel-7.5
     * [ ] centos-7.latest
@@ -49,8 +47,6 @@
 1. Installation completes successfully on supported images
     * [ ] AMI (unlicensed)
 1. Bundled installation completes successfully on all supported platforms
-    * [ ] rhel-7.2
-    * [ ] rhel-7.3
     * [x] rhel-7.4
     * [x] rhel-7.5
     * [x] centos-7.latest
