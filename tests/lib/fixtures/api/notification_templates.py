@@ -1,7 +1,8 @@
 import pytest
 
 
-@pytest.fixture(scope="function", params=["email", "hipchat", "irc", "pagerduty", "slack", "twilio", "webhook"])
+@pytest.fixture(scope="function", params=["email", "hipchat", "irc", "mattermost", "pagerduty", "slack", "twilio",
+                                          "webhook"])
 def notification_template(request):
     """All notification templates"""
     if request.param == 'twilio':
@@ -50,3 +51,9 @@ def webhook_notification_template(factories):
     """Webhook notification template"""
     headers = {'key1': 'value1', 'key2': 'value2'}   # TODO: Use fauxfactory to generate keys / values
     return factories.notification_template(notification_type='webhook', headers=headers)
+
+
+@pytest.fixture(scope="function")
+def mattermost_notification_template(factories):
+    """Mattermost notification template"""
+    return factories.notification_template(notification_type="mattermost")
