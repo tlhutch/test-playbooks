@@ -197,3 +197,37 @@ class TestCustomCredentials(Base_Api_Test):
             stream = to_str(stream_endpoint.get())
             for secret in ('FieldOneVal', 'FieldTwoVal', 'md5'):
                 assert secret not in stream
+
+    def test_credential_blacklisted_env_injector(self, factories):
+        blacklist_keys = ['VIRTUAL_ENV', 'PATH', 'PYTHONPATH', 'PROOT_TMP_DIR', 'JOB_ID',
+            'INVENTORY_ID', 'INVENTORY_SOURCE_ID', 'INVENTORY_UPDATE_ID',
+            'AD_HOC_COMMAND_ID', 'REST_API_URL', 'REST_API_TOKEN', 'MAX_EVENT_RES',
+            'CALLBACK_QUEUE', 'CALLBACK_CONNECTION', 'CACHE',
+            'JOB_CALLBACK_DEBUG', 'INVENTORY_HOSTVARS', 'FACT_QUEUE',
+            'AWX_HOST', 'PROJECT_REVISION']
+        ok_keys = ['FOO', 'PIE']
+        inputs = dict(fields=[dict(id='field_one', label='FieldOne', secret=False)])
+        injectors = dict(env={k: "{{ field_one }}" for k in blacklist_keys + ok_keys})
+        credential_type = factories.credential_type(inputs=inputs, injectors=injectors)
+
+        credential = factories.v2_credential(credential_type=credential_type,
+                                             inputs=dict(field_one='foobar'))
+
+        host = factories.v2_host()
+
+        jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='ansible_env.yml')
+        sample_job_env = jt.launch().wait_until_completed().job_env
+
+        jt.add_extra_credential(credential)
+        job = jt.launch().wait_until_completed()
+        assert job.is_successful
+
+        for k in blacklist_keys:
+            if k in sample_job_env:
+                assert job.job_env[k] != 'foobar'
+            else:
+                assert k not in job.job_env
+
+        for k in ok_keys:
+            assert k in job.job_env
+            assert 'foobar' == job.job_env[k]
