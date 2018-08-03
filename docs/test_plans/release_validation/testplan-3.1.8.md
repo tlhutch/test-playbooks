@@ -18,11 +18,11 @@
 1. [ ] API regression completed - standalone
 1. [ ] API regression completed - cluster
 - [ ] Tower social authentication regression completed
-  - [ ] Google OAuth
+  - [x] Google OAuth
   - [ ] GitHub 
   - [ ] GitHub Org
   - [ ] GitHub Team
-  - [ ] Azure OAuth
+  - [x] Azure OAuth
 1. [x] Tower LDAP integration regression completed
 1. [x] Tower SAML integration regression completed
 1. [x] Tower RADIUS integration regression completed
