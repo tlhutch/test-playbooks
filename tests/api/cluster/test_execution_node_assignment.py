@@ -1,7 +1,6 @@
 import random
 import six
 import threading
-import datetime
 
 from towerkit import utils
 import pytest
@@ -375,23 +374,16 @@ class TestExecutionNodeAssignment(Base_Api_Test):
         assert job.wait_until_completed(timeout=300).is_successful
         assert job.execution_node == instance.hostname
 
-    def test_jobs_larger_than_max_instance_capacity_assigned_to_instances_with_greatest_capacity_first(self, v2,
-                                                                                                       largest_capacity,
-                                                                                                       jt_generator_for_consuming_given_capacity,
-                                                                                                       reset_instance,
-                                                                                                       tower_instance_group,
-                                                                                                       tower_ig_instances,
-                                                                                                       do_all_jobs_overlap):
-        instances = random.sample(tower_ig_instances, max(3, len(tower_ig_instances)))
-        # sort list by hostname, because random.sample may not preserve ordering
-        instances = sorted(instances, key=lambda instance: instance.hostname)
+    @pytest.mark.github('https://github.com/ansible/tower/issues/2761')
+    def test_dispatch_ordering_is_by_hostname(
+            self, v2, largest_capacity, jt_generator_for_consuming_given_capacity,
+            tower_instance_group, do_all_jobs_overlap):
+        # sort instances by hostname
+        instances = tower_instance_group.related.instances.get(order_by='hostname').results
+        assert all([instance.jobs_running == 0 for instance in instances])
 
         jobs_count = len(instances)
         forks = largest_capacity + 1
-        index = len(instances) / 2
-
-        reset_instance(instances[index])
-        instances[index].capacity_adjustment = .5
 
         jt = jt_generator_for_consuming_given_capacity(forks)
 
@@ -400,13 +392,22 @@ class TestExecutionNodeAssignment(Base_Api_Test):
         map(lambda t: t.start(), threads)
         map(lambda t: t.join(), threads)
 
-        jobs = [j.wait_until_completed() for j in jt.related.jobs.get().results]
+        # Wait for jobs to obtain running state
+        utils.poll_until(lambda: all([
+            job.status not in ['pending', 'waiting'] for job in jt.related.jobs.get().results
+        ]), interval=5, timeout=300)
 
-        # sort jobs by created time
-        jobs = sorted(jobs, key=lambda job: datetime.datetime.strptime(job.created, '%Y-%m-%dT%H:%M:%S.%fZ'))
+        # get and sort the jobs, assure that they were all dispatched
+        jobs = jt.related.jobs.get(order_by='created').results
+        assert all([job.status == 'running' for job in jobs])
+        assert all([job.instance_group == tower_instance_group.id for job in jobs])
+        assert all([job.execution_node != '' for job in jobs])
+        jobs_execution_nodes = [j.execution_node for j in jobs]
 
-        # Refresh jobs for execution_node attribute
-        jobs_execution_nodes = [j.get().execution_node for j in jobs]
+        # assure that instances have their capacity fully consumed by the jobs
+        instances = tower_instance_group.related.instances.get(order_by='hostname').results
+        assert [instance.consumed_capacity for instance in instances] == [forks + 1 for i in range(len(instances))]
+        assert all([instance.consumed_capacity > instance.capacity for instance in instances])
 
         # Verify all jobs ran overlapping
         assert do_all_jobs_overlap(jobs), \
@@ -416,17 +417,77 @@ class TestExecutionNodeAssignment(Base_Api_Test):
         # jobs_execution_nodes: ordered by creation
         # instances: ordered by hostname
         # task manager should dispatch corresponding to this ordering
-        for (instance, execution_node) in zip(instances[:index], jobs_execution_nodes[:index]):
-            assert execution_node == instance.hostname, \
-                "Job not run on expected instance"
+        for i in range(len(instances) - 1):
+            # sanity check that these are actually alphabetical
+            assert instances[i].hostname < instances[i + 1].hostname
+        assert jobs_execution_nodes == [instance.hostname for instance in instances], \
+            ("Execution node of jobs ordered by creation time does not match the system "
+             "instances ordered by hostname, which is the intended task manager behavior.")
 
-        # Smallest idle node chosen last when a job is too big
+    @pytest.mark.github('https://github.com/ansible/tower/issues/2763')
+    def test_jobs_larger_than_max_instance_capacity_assigned_to_instances_with_greatest_capacity_first(self, v2,
+                                                                                                       largest_capacity,
+                                                                                                       jt_generator_for_consuming_given_capacity,
+                                                                                                       reset_instance,
+                                                                                                       tower_instance_group,
+                                                                                                       do_all_jobs_overlap):
+        # sort list by hostname
+        instances = tower_instance_group.related.instances.get(order_by='hostname').results
+        assert all([instance.jobs_running == 0 for instance in instances])
+
+        jobs_count = len(instances)
+        forks = largest_capacity + 1
+        index = len(instances) / 2
+
+        reset_instance(instances[index])
+        # this one instance will have less capacity than the others
+        instances[index].capacity_adjustment = .5
+
+        jt = jt_generator_for_consuming_given_capacity(forks)
+
+        # Launch jobs quickly in order to get them in same task manager run
+        threads = [threading.Thread(target=jt.launch, args=()) for i in xrange(0, jobs_count)]
+        map(lambda t: t.start(), threads)
+        map(lambda t: t.join(), threads)
+
+        # Wait for jobs to obtain running state
+        utils.poll_until(lambda: all([
+            job.status not in ['pending', 'waiting'] for job in jt.related.jobs.get().results
+        ]), interval=5, timeout=300)
+
+        # get and sort the jobs, assure that they were all dispatched
+        jobs = jt.related.jobs.get(order_by='created').results
+        assert all([job.status == 'running' for job in jobs])
+        assert all([job.instance_group == tower_instance_group.id for job in jobs])
+        assert all([job.execution_node != '' for job in jobs])
+        jobs_execution_nodes = [j.execution_node for j in jobs]
+
+        # assure that what API reports as consumed capacity is what is expected
+        # otherwise the assertions about execution_node will be based on false assumptions
+        instances = tower_instance_group.related.instances.get(order_by='hostname').results
+        assert [instance.consumed_capacity for instance in instances] == [forks + 1 for i in range(len(instances))]
+        assert all([instance.consumed_capacity > instance.capacity for instance in instances])
+        # assert target instance is lower capacity than others
+        assert instances[index].capacity < min([instance.capacity for i, instance in enumerate(instances) if i != index])
+
+        # Verify all jobs ran overlapping
+        assert do_all_jobs_overlap(jobs), \
+            "All jobs found to not be running at the same time {}" \
+                .format(["(%s, %s), " % (j.started, j.finished) for j in jobs])
+
+        # not checking the distribution of jobs on full-capacity instances,
+        # that is done via `test_dispatch_ordering_is_by_hostname`
+        # here, we only test that the _last_ job submitted is on the
+        # instance which is _under capacity_
+        assert set(jobs_execution_nodes) == set([instance.hostname for instance in instances]), \
+            ("Jobs did not distribute among all instances where {} instance was free "
+             "but lower capacity than others.".format(instances[index].hostname))
+        hostname_capacity = {}
+        for instance in instances:
+            hostname_capacity[instance.hostname] = instance.capacity
         assert jobs_execution_nodes[-1] == instances[index].hostname, \
-            "Last job not run on smallest capacity Instance"
-
-        for (instance, execution_node) in zip(instances[index + 1:], jobs_execution_nodes[index:-1]):
-            assert execution_node == instance.hostname, \
-                "Job not run on expected instance"
+            ("Last job not run on smallest capacity Instance. Order in which instance "
+             "capacity was consumed: {}".format([hostname_capacity.get(hostname) for hostname in jobs_execution_nodes]))
 
     def test_job_distribution_group_spill_over(self, v2,
                                                factories,
