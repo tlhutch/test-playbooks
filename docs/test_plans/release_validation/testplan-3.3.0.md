@@ -1,7 +1,8 @@
 # Tower 3.3.0 Release Test Plan
 
 ## Resources
-* 5 full-time automation engineers - cwang/jladd/jhill/mfoord/rfitzpat
+* 5 full-time automation engineers - cwang/jladd/one-t/jhill/guozhang
+* Left company halfway through release - rfitzpatrick.
 
 ## Features Not Tested
 
@@ -15,17 +16,17 @@
 * [Feature](https://github.com/ansible/tower/blob/release_3.3.0/docs/capacity.md)
 * [Test Plan](https://docs.google.com/document/d/1wr1IiwsP8pnZ-b-SiiQnh_jL_q4gtzOZQQN8oCvDi5s/edit)
 
-### More granular permissions
+### More granular permissions (mwilson)
 * [Feature]()
 
-### SAML/LDAP/etc hitlist catchall
+### SAML/LDAP/etc hitlist catchall (mwilson)
 * [Feature (saml)](https://github.com/ansible/tower/blob/release_3.3.0/docs/auth/saml.md)
 * [Feature (ldap)](https://github.com/ansible/tower/blob/release_3.3.0/docs/auth/ldap.md)
 
 ### Update GCP credentials
 * [Feature]()
 
-### API-backed item copying
+### API-backed item copying (guozhang)
 * [Feature](https://github.com/ansible/tower/blob/release_3.3.0/docs/resource_copy.md)
 
 ### Multi-file support for Credential Types (cwang)
@@ -43,10 +44,10 @@
 * [Feature](https://github.com/ansible/tower/blob/release_3.3.0/docs/clustering.md)
 * [Test Plan](https://docs.google.com/document/d/1qaLCCXoGEcAIW0Be-JTvBOM-KoC1AOGBju1nM9b3WbU/edit)
 
-### Inventory & Network Visualization
-* [Feature]()
+### ~Inventory & Network Visualization~
+* This feature never made Tower-3.3.0.
 
-### Token-based authentication to Tower
+### Token-based authentication to Tower (mwilson, rpetrello)
 * [Feature (sessions)](https://github.com/ansible/tower/blob/release_3.3.0/docs/auth/session.md)
 * [Feature (oauth)](https://github.com/ansible/tower/blob/release_3.3.0/docs/auth/oauth.md)
 
@@ -62,7 +63,7 @@
 * [Feature](https://docs.google.com/document/d/1H5cphm39UFqV91nRiipNJxjlshpoBMwAIkx2n5cg2lQ/edit)
 * [Test Plan](https://docs.google.com/document/d/1H5cphm39UFqV91nRiipNJxjlshpoBMwAIkx2n5cg2lQ/edit)
 
-### Fix #823 (schedules timezone)
+### Fix #823 (schedules timezone) (rfitzpatrick)
 * [Feature](https://github.com/ansible/tower/blob/release_3.3.0/docs/schedules.md)
 
 ### Event-ize all stdout + optimized multi-MB+ stdout + handle free/serial
@@ -73,19 +74,23 @@
 1. [ ] API regression completed - standalone
 1. [ ] API regression completed - traditional cluster
 1. [ ] API regression completed - OpenShift cluster
-1. [ ] Tower cluster installation regression completed
-1. [ ] Tower LDAP Integration regression completed
-1. [ ] Tower RADIUS Integration regression completed
-1. [ ] Social authentication regression completed
-1. [ ] SAML authentication
-1. [ ] Verify logging (incl. clusters)
-1. [ ] Backup/restore successful
+1. [ ] Tower social authentication regression completed (vm)
+1. [ ] Tower SAML integration regression completed (vm)
+1. [ ] Tower RADIUS integration regression completed (vm)
+1. [ ] Tower social authentication regression completed (OpenShift)
+1. [ ] Tower SAML integration regression completed (OpenShift)
+1. [ ] Tower RADIUS integration regression completed (OpenShift)
+1. [ ] Logging regression completed - standalone
+1. [ ] Logging regression completed - cluster
+1. [ ] Backup/restore successful - standalone
+1. [ ] Backup/restore successful - traditional cluster
+1. [ ] Backup/restore successful - OpenShift cluster
 
 ### Installation
-1. Installation completes successfully on all [supported platforms](https://docs.ansible.com/ansible-tower/3.2.3/html/installandreference/requirements_refguide.html)
+1. Installation completes successfully on all supported platforms
     * [ ] ubuntu-14.04
     * [ ] ubuntu-16.04
-    * [ ] rhel-7.4 (latest)
+    * [ ] rhel-7.5
     * [ ] centos-7.latest
     * [ ] ol-7.latest
 1. Installation completes successfully using supported ansible releases
@@ -94,21 +99,28 @@
     * [ ] ansible-2.5
     * [ ] ansible-2.4
     * [ ] ansible-2.3
-1. Bundled installation completes successfully on all [supported platforms](https://docs.ansible.com/ansible-tower/3.2.3/html/installandreference/tower_installer.html#bundled-install)
-    * [ ] rhel-7.latest
+    * [ ] ansible-2.2
+1. Cluster installation completes successfully using supported ansible releases
+    * [ ] ansible-2.7 (devel)
+    * [ ] ansible-2.6
+    * [ ] ansible-2.5
+    * [ ] ansible-2.4
+    * [ ] ansible-2.3
+    * [ ] ansible-2.2
+1. Bundled installation completes successfully on all supported platforms
+    * [ ] rhel-7.4
+    * [ ] rhel-7.5
     * [ ] centos-7.latest
     * [ ] ol-7.latest
-1. [ ] Installation completes successfully for cluster deployment (RHEL-7.4)
-1. [ ] Bundled installation completes successfully for cluster deployment
+1. [ ] Bundled installation completes successfully for clustered deployment
 
 ### Upgrades
-1. [ ] Successful migrations from `3.0.0` - `3.0.4`
-1. [ ] Successful migrations from `3.1.0` - `3.1.5`
-1. [ ] Successful upgrades on all supported platforms from `3.0.4` - standalone
-1. [ ] Successful upgrades on all supported platforms from `3.1.5` - standalone
-1. [ ] Successful upgrades on all supported platforms from `3.2.0` - `3.2.4` - standalone
-1. [ ] Successful upgrades on all supported platforms from `3.2.0` - `3.2.4` - cluster
-
+1. [ ] Successful migrations from `3.1.0` - `3.1.8`
+1. [ ] Successful migrations from `3.2.0` - `3.2.6`
+1. [ ] Successful upgrades on all supported platforms from `3.1.0 - 3.1.8` - standalone
+1. [ ] Successful upgrades on all supported platforms from `3.2.0` - `3.2.6` - standalone
+1. [ ] Successful upgrades on all supported platforms from `3.2.0` - `3.2.6` - cluster
+1. [ ] Verify migration path from 330 VM cluster to 330 cluster in OpenShift
 * Verify the following functionality after upgrade
     * Resource migrations
     * Launch project_updates for existing projects
