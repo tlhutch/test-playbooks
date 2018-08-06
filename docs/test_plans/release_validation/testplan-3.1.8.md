@@ -16,7 +16,7 @@
 
 ## Regression
 1. [ ] [UI regression completed](https://docs.google.com/document/d/1fCOn33OzpuSEa4R_b8MuFJzRBITqdAZlmfM0jUcziuc/edit)
-1. [ ] API regression completed - standalone
+1. [x] API regression completed - standalone
 1. [ ] ~API regression completed - cluster~
 * No changes to cluster-specific behavior this release.
 - [x] Tower social authentication regression completed
