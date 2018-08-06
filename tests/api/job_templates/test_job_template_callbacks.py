@@ -82,7 +82,7 @@ class TestJobTemplateCallbacks(Base_Api_Test):
         assert len(callback.matching_hosts) == 0
 
     @pytest.fixture(scope='class')
-    def callback_host(self, ansible_module_cls, is_docker):
+    def callback_host(self, is_docker):
         base_url = urlparse(config.base_url)
         port = '' if base_url.port is None else ':{0.port}'.format(base_url)
         scheme = 'http' if base_url.scheme is None else base_url.scheme

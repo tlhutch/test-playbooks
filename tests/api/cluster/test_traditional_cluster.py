@@ -107,8 +107,8 @@ class TestTraditionalCluster(Base_Api_Test):
                     return first[0], second[0]
         pytest.skip("Unable to find two mutually exclusive instance groups")
 
-    def get_stop_and_start_funcs_for_node(self, admin_user, manager, hostname, v2):
-        username = manager.get_host(hostname).get_vars()['ansible_user']
+    def get_stop_and_start_funcs_for_node(self, admin_user, hostvars_for_host, hostname, v2):
+        username = hostvars_for_host(hostname)['ansible_user']
         # "-t" (twice) gives us a tty which is needed for sudo
         ssh_template = "ssh -o StrictHostKeyChecking=no -t -t {} 'sudo ansible-tower-service {}' 1>&2"
         ssh_invocation = "{}@{}".format(username, hostname)
@@ -310,14 +310,14 @@ class TestTraditionalCluster(Base_Api_Test):
             base_instance_group.capacity - base_instance_group.consumed_capacity
 
     @pytest.mark.requires_isolation
-    def test_job_run_against_isolated_node_ensure_viewable_from_all_nodes(self, ansible_module_cls, factories,
-                                                                          admin_user, user_password, v2):
-        manager = ansible_module_cls.inventory_manager
-        hosts = manager.get_group_dict()['instance_group_ordinary_instances']
-        managed = manager.get_group_dict().get('managed_hosts')[0]
+    def test_job_run_against_isolated_node_ensure_viewable_from_all_nodes(self, hosts_in_group, factories,
+                                                                          admin_user, user_password, v2,
+                                                                          hostvars_for_host):
+        hosts = hosts_in_group('instance_group_ordinary_instances')
+        managed = hosts_in_group('managed_hosts')[0]
         protected = v2.instance_groups.get(name='protected').results[0]
 
-        username = manager.get_host(managed).get_vars().get('ansible_user')
+        username = hostvars_for_host(managed).get('ansible_user')
         cred = factories.v2_credential(username=username, password=user_password)
         host = factories.host(name=managed, variables=dict(ansible_host=managed))
         jt = factories.v2_job_template(inventory=host.ds.inventory, credential=cred)
@@ -377,14 +377,13 @@ class TestTraditionalCluster(Base_Api_Test):
             assert instance.percent_capacity_remaining == round(float(instance.capacity - instance.consumed_capacity) * 100 / instance.capacity, 2)
 
     @pytest.mark.requires_isolation
-    def test_controller_removal(self, admin_user, ansible_module_cls, factories, user_password, v2):
+    def test_controller_removal(self, admin_user, hosts_in_group, hostvars_for_host, factories, user_password, v2):
         """
         Test that shutting down tower services on both controller nodes prevents us from launching
         jobs against an isolated node. This also tests that a cluster can successfully recover after
         shutting down more than one node simultaneously."""
-        manager = ansible_module_cls.inventory_manager
-        hosts = manager.get_group_dict()['instance_group_ordinary_instances']
-        controllers = manager.get_group_dict()['instance_group_controller']
+        hosts = hosts_in_group('instance_group_ordinary_instances')
+        controllers = hosts_in_group('instance_group_controller')
 
         online_hostname = None
         stoppers, starters = [], []
@@ -392,7 +391,7 @@ class TestTraditionalCluster(Base_Api_Test):
             if host not in controllers:
                 online_hostname = host
                 continue
-            stop, start = self.get_stop_and_start_funcs_for_node(admin_user, manager, host, v2)
+            stop, start = self.get_stop_and_start_funcs_for_node(admin_user, hostvars_for_host, host, v2)
             starters.append(start)
             stoppers.append(stop)
 
@@ -446,7 +445,7 @@ class TestTraditionalCluster(Base_Api_Test):
             assert job.is_successful
 
     @pytest.mark.requires_isolation
-    def test_instance_removal(self, connection, admin_user, ansible_module_cls, factories, user_password, v2):
+    def test_instance_removal(self, connection, admin_user, hosts_in_group, hostvars_for_host, factories, user_password, v2):
         """
         This test checks a full node's ability to recover when its tower services are stopped and restarted
 
@@ -463,8 +462,7 @@ class TestTraditionalCluster(Base_Api_Test):
         """
         current_host = connection.server.split('/')[-1]
 
-        manager = ansible_module_cls.inventory_manager
-        hosts = manager.get_group_dict()['instance_group_ordinary_instances']
+        hosts = hosts_in_group('instance_group_ordinary_instances')
         hosts.remove(current_host)
         host = random.choice(hosts)
         instance = v2.instances.get(hostname=host).results.pop()
@@ -516,7 +514,7 @@ class TestTraditionalCluster(Base_Api_Test):
         long_job = jt.launch().wait_until_status('running')
 
         # Stop the tower node.
-        stop, start = self.get_stop_and_start_funcs_for_node(admin_user, manager, host, v2)
+        stop, start = self.get_stop_and_start_funcs_for_node(admin_user, hostvars_for_host, host, v2)
         with SafeStop(stop, start):
             log.debug("Using online node {}".format(current_host))
 
@@ -604,7 +602,7 @@ class TestTraditionalCluster(Base_Api_Test):
     @pytest.mark.last
     @pytest.mark.requires_ha
     @pytest.mark.requires_isolation
-    def test_network_partition(self, ansible_module_cls, v2, factories, admin_user):
+    def test_network_partition(self, ansible_adhoc, hosts_in_group, v2, factories, admin_user):
         """
         Tests tower's ability to recover from a network partition using the following steps:
 
@@ -624,9 +622,8 @@ class TestTraditionalCluster(Base_Api_Test):
             assert instance.capacity > 0
 
         # Launch job across partition
-        inventory_file = ansible_module_cls.inventory
-        manager = ansible_module_cls.inventory_manager
-        instance_hostname = manager.get_group_dict().get('instance_group_partition_1')[0]
+        inventory_file = ansible_adhoc().options['inventory']
+        instance_hostname = hosts_in_group('instance_group_partition_1')[0]
         ig = v2.instance_groups.get(name='partition_2').results.pop()
 
         connection = Connection('https://' + instance_hostname)
@@ -647,10 +644,10 @@ class TestTraditionalCluster(Base_Api_Test):
             assert rc == 0, "Received non-zero response code from '{}'".format(cmd)
 
             # Confirm rabbitmq shows drop in number of running nodes
-            num_ordinary_instances = len(manager.get_group_dict()['instance_group_ordinary_instances'])
+            num_ordinary_instances = len(hosts_in_group('instance_group_ordinary_instances'))
             for partition in ('instance_group_partition_1', 'instance_group_partition_2'):
                 def decrease_in_rabbitmq_nodes():
-                    hosts = manager.get_group_dict().get(partition)
+                    hosts = hosts_in_group(partition)
                     cmd = "ANSIBLE_BECOME=true ansible {} -i {} -m shell -a 'rabbitmqctl cluster_status'".format(hosts[0], inventory_file)
                     proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
                     stdout, stderr = proc.communicate()
@@ -674,7 +671,7 @@ class TestTraditionalCluster(Base_Api_Test):
             assert rc == 0, "Received non-zero response code from '{}'".format(cmd)
 
             # Confirm no partitions detected
-            for host in manager.get_group_dict()['instance_group_ordinary_instances']:
+            for host in hosts_in_group('instance_group_partition_1'):
                 cmd = "ANSIBLE_BECOME=true ansible {} -i {} -m shell -a 'curl -s http://tower:tower@localhost:15672/api/nodes?columns=partitions'".format(host, inventory_file)
                 proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
                 stdout, stderr = proc.communicate()
@@ -683,14 +680,17 @@ class TestTraditionalCluster(Base_Api_Test):
                 assert 'partitions' in stdout, 'Failed to receive status from rabbitmq console'
                 assert 'rabbitmq@' not in stdout, 'rabbitmq console listed partitioned node'
 
-            for host in manager.get_group_dict()['instance_group_ordinary_instances']:
+            for host in hosts_in_group('instance_group_ordinary_instances'):
                 def tower_serving_homepage():
-                    contacted = ansible_module_cls.uri(url='https://' + host + '/api', validate_certs='no')
+                    ansible_result = ansible_adhoc()[host].uri(url='https://' + host + '/api', validate_certs='no')
+                    # even though we only operate on 1 host, result comes in form of list of hosts...
+                    for _host, result in ansible_result.items():
+                        contacted = result
                     return contacted.values()[0]['status'] == 200
                 utils.poll_until(tower_serving_homepage, interval=10, timeout=60)
 
         # Confirm that new jobs can be launched on each instance
-        for index, hostname in enumerate(manager.get_group_dict()['instance_group_ordinary_instances'], start=1):
+        for index, hostname in enumerate(hosts_in_group('instance_group_ordinary_instances'), start=1):
             connection = Connection('https://' + hostname)
             connection.login(admin_user.username, admin_user.password)
             with self.current_instance(connection, v2):
@@ -716,7 +716,7 @@ class TestTraditionalCluster(Base_Api_Test):
         assert jt_before_partition.get().get_related('last_job').id == job_before_partition.id
 
     @pytest.mark.parametrize('setting_endpoint', ['all', 'jobs'])
-    def test_ensure_awx_isolated_key_fields_are_read_only(self, ansible_module_cls, factories, admin_user, user_password, v2, setting_endpoint):
+    def test_ensure_awx_isolated_key_fields_are_read_only(self, factories, admin_user, user_password, v2, setting_endpoint):
         settings = v2.settings.get().get_endpoint(setting_endpoint)
         assert settings.AWX_ISOLATED_PUBLIC_KEY != '$encrypted$' and len(settings.AWX_ISOLATED_PUBLIC_KEY)
         assert settings.AWX_ISOLATED_PRIVATE_KEY == '$encrypted$'

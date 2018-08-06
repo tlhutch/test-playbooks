@@ -12,7 +12,7 @@ protobuf
 pysphere
 pytest
 git+ssh://git@github.com/ansible/pytest-mp.git
-git+ssh://git@github.com/rmfitzpatrick/pytest-ansible.git@handle_ansible_vars_restructuring
+git+ssh://git@github.com/ansible/pytest-ansible.git
 pytest-cache
 pytest-cov
 # Pull from github until a new release is cut (https://github.com/jlaska/pytest-github/pull/11)
