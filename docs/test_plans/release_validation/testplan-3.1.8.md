@@ -62,9 +62,9 @@
 
 ### Upgrades
 1. [ ] Upgrade completes on all supported platforms from Tower-3.0.4.
-1. [ ] Upgrade completes on all supported platforms from Tower-3.1.7.
-1. [ ] Verify the following functions work as intended after upgrade
-    * [ ] Launch project_updates for existing projects
-    * [ ] Launch inventory_updates for existing inventory_source
-    * [ ] Launch, and relaunch, existing job_templates
-    * [ ] Migrations were successful
+1. [x] Upgrade completes on all supported platforms from Tower-3.1.7.
+1. [x] Verify the following functions work as intended after upgrade
+    * [x] Launch project_updates for existing projects
+    * [x] Launch inventory_updates for existing inventory_source
+    * [x] Launch, and relaunch, existing job_templates
+    * [x] Migrations were successful
