@@ -2,7 +2,7 @@
 
 ## Resources
 * 5 full-time automation engineers - cwang/jladd/one-t/jhill/guozhang
-* Left company halfway through release - rfitzpatrick.
+* Left company halfway through release - rfitzpatrick
 
 ## Features Not Tested
 
@@ -73,7 +73,7 @@
 1. [ ] UI regression completed
 1. [ ] API regression completed - standalone
 1. [ ] API regression completed - traditional cluster
-1. [ ] API regression completed - OpenShift cluster
+1. [ ] API regression completed - OpenShift
 1. [ ] Tower social authentication regression completed (vm)
 1. [ ] Tower SAML integration regression completed (vm)
 1. [ ] Tower RADIUS integration regression completed (vm)
@@ -84,7 +84,7 @@
 1. [ ] Logging regression completed - cluster
 1. [ ] Backup/restore successful - standalone
 1. [ ] Backup/restore successful - traditional cluster
-1. [ ] Backup/restore successful - OpenShift cluster
+1. [ ] Backup/restore successful - OpenShift
 
 ### Installation
 1. Installation completes successfully on all supported platforms
