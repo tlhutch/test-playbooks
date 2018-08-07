@@ -1,6 +1,9 @@
 from base64 import b64decode
 import os
 import logging
+from pkg_resources import parse_version
+
+from ansible import __version__ as ansible_version
 
 import fauxfactory
 import pytest
@@ -61,15 +64,46 @@ def get_pg_dump(request, ansible_runner, skip_docker):
     return _pg_dump
 
 
-@pytest.fixture(scope='class')
-def is_docker(ansible_module_cls):
-    try:
-        manager = ansible_module_cls.inventory_manager
-        groups_dict = manager.get_group_dict() if hasattr(manager, 'get_group_dict') else manager.get_groups_dict()
-        tower_hosts = groups_dict.get('tower')
-        return manager.get_host(tower_hosts[0]).get_vars().get('ansible_connection') == 'docker'
-    except (TypeError, IndexError):
-        return False
+@pytest.fixture(scope='function')
+def hostvars_for_host(ansible_adhoc):
+    """Returns a generator that takes a host name in the inventory file
+    and returns variables for that host
+    """
+    manager = ansible_adhoc().options['inventory_manager']
+
+    def gimme_hostvars(host_name):
+        if parse_version(ansible_version) < parse_version('2.3'):
+            raise RuntimeError('Local version of Ansible is so old {}'.format(ansible_version))
+        else:
+            return manager.get_host(host_name).get_vars()
+
+    return gimme_hostvars
+
+
+@pytest.fixture(scope='function')
+def hosts_in_group(ansible_adhoc):
+    """Returns a generator that takes group name of a group in the inventory
+    file and returns a list of instance hostnames in that group
+    """
+    manager = ansible_adhoc().options['inventory_manager']
+
+    def gimme_hosts(group_name):
+        if parse_version(ansible_version) < parse_version('2.3'):
+            raise RuntimeError('Local version of Ansible is so old {}'.format(ansible_version))
+        elif parse_version(ansible_version) < parse_version('2.4'):
+            groups_dict = manager.get_group_dict() if hasattr(manager, 'get_group_dict') else manager.get_groups_dict()
+            return groups_dict.get(group_name)
+        else:
+            return [host.name for host in manager.groups[group_name].get_hosts()]
+
+    return gimme_hosts
+
+
+# scoped to function because the ansible_module fixture is function-scoped
+@pytest.fixture(scope='function')
+def is_docker(hosts_in_group, hostvars_for_host):
+    tower_hosts = hosts_in_group('tower')
+    return hostvars_for_host(tower_hosts[0]).get('ansible_connection') == 'docker'
 
 
 docker_skip_msg = "Test doesn't support dev container"
