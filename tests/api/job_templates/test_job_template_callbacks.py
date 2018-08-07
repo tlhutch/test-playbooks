@@ -48,6 +48,11 @@ class TestJobTemplateCallbacks(Base_Api_Test):
         ifs = all_interfaces()
 
         hosts = [requests.get('https://api.ipify.org').text] # External IP
+        # OpenShift does unexpected routing. When these tests are running from
+        # a container in openshift and Tower is running in a container in OpenShift,
+        # the requesting host is seen to be the Node.
+        for i in xrange(0, 20):
+            hosts.append('openshift-node-{}.ansible.eng.rdu2.redhat.com'.format(i))
         for i in ifs:
             hosts.append(i[0])
             hosts.append(format_ip(i[1]))
