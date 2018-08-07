@@ -35,7 +35,10 @@ class TestExecutionNodeAssignment(Base_Api_Test):
 
     def find_ig_overflow_jobs(self, ig, uj_impact):
         # find number of jobs such that a single IG is put over capacity
-        capacity = sum([instance.capacity for instance in ig.related.instances.get().results])
+        instances = ig.related.instances.get().results
+        capacity = sum([instance.capacity for instance in instances])
+        if any([uj_impact > instance.capacity for instance in instances]):
+            raise RuntimeError('Method not valid for cases where jobs exceed instance capacity')
         return capacity / uj_impact + 1
 
     @pytest.fixture
@@ -102,22 +105,27 @@ class TestExecutionNodeAssignment(Base_Api_Test):
         ig2.add_instance(instances[1])
         for ig in (ig1, ig2):
             ig.add_instance(instances[2])
-        utils.poll_until(lambda: ig1.get().instances == 2 and ig2.get().instances == 2, interval=5,
-                         timeout=300)
 
         jt = factories.v2_job_template(playbook='sleep.yml', allow_simultaneous=True,
                                        extra_vars='{"sleep_interval": 60}')
-        for _ in range(3):
+        task_impact = 2
+        for _ in range(task_impact - 1):
             factories.v2_host(inventory=jt.ds.inventory)
         for ig in (ig1, ig2):
             jt.add_instance_group(ig)
 
-        num_jobs = self.find_ig_overflow_jobs(ig1, 4)
+        num_jobs = self.find_ig_overflow_jobs(ig1, task_impact)
+        assert num_jobs >= len(instances)
+        assert all([instance.get().capacity >= task_impact for instance in instances])
         for _ in range(num_jobs):
             jt.launch()
         jobs = jt.related.jobs.get()
         utils.poll_until(lambda: len([job.execution_node for job in jobs.get().results
                          if job.execution_node != '']) == num_jobs, interval=5, timeout=300)
+
+        jobs = jobs.get()
+        assert all([job.status == 'running' for job in jobs.results])
+        assert set([ig1.id, ig2.id]) == set(job.instance_group for job in jobs.results)
 
         job_execution_nodes = [job.execution_node for job in jobs.results]
         assert set(job_execution_nodes) == set([instance.hostname for instance in instances])
