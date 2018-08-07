@@ -61,7 +61,7 @@
     * [x] ol-7.latest
 
 ### Upgrades
-1. [ ] Upgrade completes on all supported platforms from Tower-3.0.4.
+1. [x] Upgrade completes on all supported platforms from Tower-3.0.4.
 1. [x] Upgrade completes on all supported platforms from Tower-3.1.7.
 1. [x] Verify the following functions work as intended after upgrade
     * [x] Launch project_updates for existing projects
