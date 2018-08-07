@@ -28,6 +28,7 @@
 
 ### API-backed item copying (guozhang)
 * [Feature](https://github.com/ansible/tower/blob/release_3.3.0/docs/resource_copy.md)
+* [Test Plan](https://docs.google.com/document/d/1EXi_w2JWkZ_PzhHIK4hJ1GOJAVT8jjYwMsFz59OkC9E/edit?usp=sharing)
 
 ### Multi-file support for Credential Types (cwang)
 * [Feature](https://github.com/ansible/tower/blob/release_3.3.0/docs/multi_credential_assignment.md)
