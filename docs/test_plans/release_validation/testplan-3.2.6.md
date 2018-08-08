@@ -8,6 +8,7 @@
 
 * Only running upgrades from latest point releases due to low risk / return.
 * Other traditional regressions checks were skipped and are struckthrough with reasoning below.
+* 3.2.6 code changes: [tower](https://github.com/ansible/tower/compare/release_3.2.5...release_3.2.6), [tower-packaging](https://github.com/ansible/tower-packaging/compare/release_3.2.5...release_3.2.6)
 
 ## Resources
 * 5 full-time automation engineers - cwang/jladd/one-t/jhill/guozhang
