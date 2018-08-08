@@ -113,6 +113,22 @@ class Test_Copy_Inventory(Base_Api_Test):
                 self.check_host_fields(old_hosts[i], new_hosts[i], old_inventory, new_inventory)
         assert not new_frontier
 
+    def test_host_fact_is_not_copied(self, factories, copy_with_teardown):
+        host = factories.v2_host()
+        inventory = host.ds.inventory.get()
+        jt = factories.v2_job_template(playbook='gather_facts.yml', inventory=inventory, use_fact_cache=True)
+        jt.launch().wait_until_completed()
+        facts = host.get_related('ansible_facts')
+        assert facts.json
+
+        new_inventory = copy_with_teardown(inventory)
+        poll_until(lambda: check_fields(inventory, new_inventory.get(),
+                                        self.identical_fields, self.unequal_fields, no_assert=True),
+                   timeout=30)
+        assert new_inventory.total_hosts == 1
+        new_facts = new_inventory.get_related('hosts').results.pop().get_related('ansible_facts')
+        assert not new_facts.json
+
     @pytest.mark.github('https://github.com/ansible/tower/issues/2679')
     def test_copy_inventory_with_sources(self, cloud_inventory, copy_with_teardown):
         assert cloud_inventory.get().has_inventory_sources
