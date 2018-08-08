@@ -41,13 +41,11 @@
     * [x] ansible-2.5
     * [x] ansible-2.4
     * [x] ansible-2.3
-    * [x] ansible-2.2
 1. Cluster installation completes successfully using supported ansible releases
-    * [ ] ansible-2.6
-    * [ ] ansible-2.5
-    * [ ] ansible-2.4
-    * [ ] ansible-2.3
-    * [ ] ansible-2.2
+    * [x] ansible-2.6
+    * [x] ansible-2.5
+    * [x] ansible-2.4
+    * [x] ansible-2.3
 1. Bundled installation completes successfully on all [supported platforms](https://docs.ansible.com/ansible-tower/3.2.3/html/installandreference/tower_installer.html#bundled-install)
     * [ ] rhel-7.4
     * [ ] rhel-7.5
