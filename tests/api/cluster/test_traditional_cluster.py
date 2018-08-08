@@ -280,7 +280,11 @@ class TestTraditionalCluster(Base_Api_Test):
         assert job.status == 'successful'
 
     @pytest.mark.mp_group(group="pytest_mark_requires_isolation", strategy="isolated_serial")
-    @pytest.mark.parametrize('base_resource, parent_resource', [('job_template', 'inventory'), ('job_template', 'organization'), ('inventory', 'organization')])
+    @pytest.mark.parametrize('base_resource, parent_resource', [
+        ('job_template', 'inventory'),
+        ('job_template', 'organization'),
+        ('inventory', 'organization')
+    ])
     def test_instance_group_hierarchy(self, v2, factories, base_resource, parent_resource):
         assert not len(v2.jobs.get(status='running').results), "Test requires Tower to not have any running jobs"
 
@@ -300,7 +304,9 @@ class TestTraditionalCluster(Base_Api_Test):
                                            for instance_group in instance_groups}
         while True:
             job = jt.launch()
-            utils.poll_until(lambda: getattr(job.get(), 'execution_node') != '', interval=10, timeout=120)
+            utils.poll_until(lambda: job.get().status not in ['pending', 'waiting'], interval=10, timeout=120)
+            assert job.status == 'running', "Job failed with stdout:\n{}\njob_explanation:{}".format(
+                job.result_stdout, job.job_explanation)
             if job.execution_node in instance_group_to_hostnames_map[base_instance_group.id]:
                 assert base_instance_group.get().percent_capacity_remaining >= 0
             else:
