@@ -473,18 +473,10 @@ class TestTraditionalCluster(Base_Api_Test):
         host = random.choice(hosts)
         instance = v2.instances.get(hostname=host).results.pop()
 
-        # fetch the instance group containing the host being removed
-        # we name the instance groups 1...n where n is the number of ordinary nodes in the cluster
-        ig = None
-        for index in range(1, len(hosts) + 1):
-            group = v2.instance_groups.get(name=str(index)).results[0]
-            hostname = group.related.instances.get().results[0].hostname
-            if hostname == host:
-                assert len(group.related.instances.get().results) == 1
-                ig = group
-                break
-        else:
-            raise Exception('Failed to find instance group containing host {}'.format(host))
+        # Create an instance group with only the target instance
+        ig = factories.instance_group(name='for_testing_instance_removal')
+        ig.add_instance(instance)
+        ig = ig.get()  # needed for accurate capacity value
 
         # create a long running job template
         jt = factories.v2_job_template(playbook='sleep.yml',
@@ -518,10 +510,13 @@ class TestTraditionalCluster(Base_Api_Test):
 
         # Start a long running job from the node we're going to take offline
         long_job = jt.launch().wait_until_status('running')
+        assert long_job.execution_node == host
 
         # Stop the tower node.
         stop, start = self.get_stop_and_start_funcs_for_node(admin_user, hostvars_for_host, host, v2)
         with SafeStop(stop, start):
+            # Sanity check that start of context did not change web request URL
+            assert current_host in self.connections['root'].server
             log.debug("Using online node {}".format(current_host))
 
             # Check that the heartbeat of all nodes except the stopped one advance
@@ -547,7 +542,7 @@ class TestTraditionalCluster(Base_Api_Test):
             assert instance.get().capacity == 0
 
             # Check the job we started is marked as failed
-            long_job.wait_until_completed()
+            long_job.wait_until_completed()  # failure here means job runs too long, does not get reaped
             assert long_job.status in FAIL_STATUSES
 
             # Should fail with explanation
