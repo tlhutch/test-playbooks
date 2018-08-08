@@ -102,8 +102,11 @@ def hosts_in_group(ansible_adhoc):
 # scoped to function because the ansible_module fixture is function-scoped
 @pytest.fixture(scope='function')
 def is_docker(hosts_in_group, hostvars_for_host):
-    tower_hosts = hosts_in_group('tower')
-    return hostvars_for_host(tower_hosts[0]).get('ansible_connection') == 'docker'
+    try:
+        tower_hosts = hosts_in_group('tower')
+        return hostvars_for_host(tower_hosts[0]).get('ansible_connection') == 'docker'
+    except (TypeError, IndexError):
+        return False
 
 
 docker_skip_msg = "Test doesn't support dev container"
