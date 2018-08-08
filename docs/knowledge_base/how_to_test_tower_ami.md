@@ -80,7 +80,7 @@ export AWS_ACCESS_KEY_ID=...
 Finally, run the playbook:
 * In the root folder, run `ansible-playbook -i playbooks/inventory -e tower_ami_id=<INSERT-ID-HERE> playbooks/deploy-tower-ami.yml`, substituting in the value of the AMI ID found earlier.
 * After the playbook run finishes, the FQDN of the deployed instance will be listed in the summary details of the run. Point your browser to this address.
-* The playbook configures the tower instance to use the following login credentials - `admin` / `ch@m3m3`. Use this to log into tower.
+* The playbook configures the tower instance to use the following login credentials - [admin / ch@ng3m3](https://github.com/ansible/tower-qa/blob/master/playbooks/deploy-tower-ami.yml#L134). Use this to log into tower.
 
 ## Performing a sanity check
 
