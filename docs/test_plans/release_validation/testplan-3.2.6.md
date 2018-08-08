@@ -57,7 +57,7 @@
 
 ### Upgrades
 1. [ ] Upgrade completes on all supported platforms from Tower-3.1.7 - standalone
-1. [ ] Upgrade completes on all supported platforms from Tower-3.2.5 - standalone
+1. [x] Upgrade completes on all supported platforms from Tower-3.2.5 - standalone
 1. [ ] Upgrade completes on all supported platforms from Tower-3.2.5 - cluster
 * Verify the following functionality after upgrade
     * Resource migrations
