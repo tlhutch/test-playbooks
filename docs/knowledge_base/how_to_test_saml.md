@@ -1,10 +1,13 @@
 ## Quickstarts: SAML Authentication in Tower
 
-The following is a quickstarts guide to getting SAML and Tower working together. This guide is current as of Tower-3.0.2.
+The following is a quickstarts guide to getting SAML and Tower working together. This guide is current as of Tower-3.2.6.
 
 #### Step 1: Set Up OneLogin
-* We currently can get a SAML server through OneLogin. To get started, you will need an account with OneLogin and [Graham Mainwarning](mailto:gmainwar@redhat.com) can assist with this. You will need admin permissions with your user so be sure to ask when having your account created.
-* We are now going to create a new SAML app. To do this, go [here](https://admin.us.onelogin.com/apps/find). Select “SAML Test Connector (IdP w/attr)”. Hit “Save” to create your app.
+* We are now going to create a new SAML app to authenticate with Tower.
+* To do this, go [here](https://admin.us.onelogin.com/apps/find).
+  * For `domain`, submit `ansible.redhat`.
+  * For username, submit `test-user`. For its password, ask a Tower QE member.
+* Select “SAML Test Connector (IdP w/attr)”. Hit “Save” to create your app.
 * We are now going to configure our SAML server via the OneLogin portal. First, go to the “Configuration” tab. We are going to fill out four fields here. We want the following for our fields:
   * For "Audience" put in the address of your Tower server. So for instance, `https://ec2-something.compute-1.amazonaws.com`.
   * For "Recipient" and "ACS" put in the address of your Tower server too and also shove in `/sso/complete/saml/` at the end. In total, you should have something like `https://ec2-something.compute-1.amazonaws.com/sso/complete/saml/`.
