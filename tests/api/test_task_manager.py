@@ -52,6 +52,23 @@ def wait_for_jobs_to_finish(jobs):
             entry.wait_until_completed()
 
 
+def wait_for_jobs_to_run(jobs):
+    """Helper function that waits for all jobs to run.
+
+    :jobs: A list whose elements are either unified jobs or a list containing
+    unified jobs.
+    """
+    # wait for jobs to run
+    for entry in jobs:
+        if isinstance(entry, list):
+            for uj in entry:
+                uj.wait_until_status(['running'] + uj.completed_statuses)
+                assert uj.status == 'running'
+        else:
+            entry.wait_until_status(['running'] + entry.completed_statuses)
+            assert entry.status == 'running'
+
+
 def construct_time_series(jobs):
     """Helper function used to create time-series data for job sequence testing.
     Create a list whose elements are a list of the start and end times of either:
@@ -246,19 +263,26 @@ class Test_Sequential_Jobs(Base_Api_Test):
         overlapping WFJs and WFJN jobs.
         """
         wfjt = factories.workflow_job_template(allow_simultaneous=True)
-        jt = factories.job_template(allow_simultaneous=True)
+        host = factories.host()
+        jt = factories.job_template(allow_simultaneous=True, inventory=host.ds.inventory,
+                                    playbook='sleep.yml', extra_vars=dict(sleep_interval=300))
         factories.workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt)
 
         # launch two workflow jobs
         ordered_wfjs = [wfjt.launch() for _ in range(2)]
-        wait_for_jobs_to_finish(ordered_wfjs)
 
         wfj1_nodes, wfj2_nodes = [wfj.related.workflow_nodes.get() for wfj in ordered_wfjs]
+        utils.poll_until(lambda: hasattr(wfj1_nodes.get().results.pop().related, 'job'), interval=1, timeout=60)
+        utils.poll_until(lambda: hasattr(wfj2_nodes.get().results.pop().related, 'job'), interval=1, timeout=60)
+
         ordered_node_jobs = [wfj_nodes.results.pop().related.job.get() for wfj_nodes in (wfj1_nodes, wfj2_nodes)]
+        wait_for_jobs_to_run(ordered_node_jobs)
 
         # confirm unified jobs ran as expected
-        check_overlapping_jobs(ordered_wfjs)
-        check_overlapping_jobs(ordered_node_jobs)
+        assert ordered_wfjs[0].get().status == 'running'
+        assert ordered_wfjs[1].get().status == 'running'
+        assert ordered_node_jobs[0].get().status == 'running'
+        assert ordered_node_jobs[1].get().status == 'running'
 
     def test_sequential_ad_hoc_commands(self, request, v1):
         """Launch three ad hoc commands on the same inventory. Check that:
