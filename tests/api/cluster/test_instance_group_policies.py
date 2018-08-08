@@ -3,6 +3,7 @@ import random
 import threading
 
 from towerkit import utils
+import towerkit.exceptions as exc
 import pytest
 
 from tests.lib.helpers import openshift_utils
@@ -352,15 +353,22 @@ class TestInstanceGroupPolicies(Base_Api_Test):
             utils.poll_until(lambda: igroup.get().instances == 5, interval=1, timeout=30)
             assert instance.hostname in self.get_ig_instances(igroup)
 
+    @pytest.mark.github('https://github.com/ansible/tower/issues/2772')
     def test_instances_may_be_manually_associated_to_multiple_instance_groups(self, factories, tower_instance_group):
         instances = tower_instance_group.related.instances.get().results
 
         ig1, ig2 = [factories.instance_group() for _ in range(2)]
         for ig in (ig1, ig2):
             for instance in instances:
+                assert instance.enabled
+                assert instance.managed_by_policy
                 ig.add_instance(instance)
         for ig in (ig1, ig2):
-            utils.poll_until(lambda: ig.get().instances == len(instances), interval=1, timeout=30)
+            try:
+                utils.poll_until(lambda: ig.get().instances == len(instances), interval=1, timeout=30)
+            except exc.WaitUntilTimeout:
+                raise Exception(("Instance groups ig1:\n{}\nand ig2:\n{} had {} instances assigned, but "
+                                 "count did not match for at least one of them.").format(ig1, ig2, len(instances)))
 
     def test_tower_ig_unaffected_by_manual_instance_association_and_disassociation_in_other_igs(self, factories, v2,
                                                                                                 tower_instance_group):
