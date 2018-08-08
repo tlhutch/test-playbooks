@@ -53,7 +53,7 @@
     * [ ] rhel-7.5
     * [ ] centos-7.latest
     * [ ] ol-7.latest
-1. [ ] Bundled installation completes successfully for clustered deployment
+1. [x] Bundled installation completes successfully for clustered deployment
 
 ### Upgrades
 1. [ ] Upgrade completes on all supported platforms from Tower-3.1.7 - standalone
