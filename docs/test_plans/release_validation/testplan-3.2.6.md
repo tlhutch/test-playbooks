@@ -66,4 +66,4 @@
 ### Provided Images
 1. Installation completes successfully on supported images
     * [x] AMI (unlicensed)
-    * [ ] Vagrant
+    * [x] Vagrant
