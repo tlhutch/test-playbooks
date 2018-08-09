@@ -47,7 +47,6 @@ As a basic test of tower services, confirm that you can run the Demo Job Templat
 ## Cleaning up deployed vm
 
 * `cd ~/Vagrant/tower`
-* `vagrant halt`
 * `vagrant destroy`
 
 ## Checking status of deployed vm
