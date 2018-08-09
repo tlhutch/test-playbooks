@@ -41,6 +41,16 @@ def project_with_galaxy_requirements(request, authtoken, organization):
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class Test_Projects(Base_Api_Test):
 
+    def get_project_update_galaxy_update_task(self, project, job_type='run'):
+        task_icontains = "fetch galaxy roles from requirements.yml"
+        res = project.related.project_updates.get(job_type=job_type, order_by='-created') \
+                                             .results[0].related.events \
+                                             .get(task__icontains=task_icontains, event__startswith='runner_on_', order_by='created')
+        assert 2 == res.count, \
+                "Expected to find 2 job events matching task={},event__startswith={} for project update {}".format(
+                        task_icontains, 'runner_on_', project.related.last_update)
+        return (res.results)
+
     @pytest.mark.requires_single_instance
     def test_manual_project(self, project_ansible_playbooks_manual):
         """Verify tower can successfully creates a manual project (scm_type='').
@@ -313,6 +323,55 @@ class Test_Projects(Base_Api_Test):
         for result in contacted.values():
             assert result['stat']['exists'], "The expected galaxy role requirement was not found (%s)." % \
                 expected_role_path
+
+    def test_project_with_galaxy_requirements_processed_on_scm_change(self, factories, job_template_that_writes_to_source):
+        project_with_requirements = factories.v2_project(scm_url='https://github.com/jlaska/ansible-playbooks.git',
+                                                         scm_branch='inventory_additions')
+        jt_with_requirements = factories.v2_job_template(project=project_with_requirements)
+
+        assert jt_with_requirements.launch().wait_until_completed().is_successful, \
+            "First job template run for a project always triggers the processing of requirements.yml"
+        assert job_template_that_writes_to_source.launch().wait_until_completed().is_successful, \
+            "Failed to update remote repository with a commit. This is needed to trigger processing of requirements.yml"
+        assert project_with_requirements.update().wait_until_completed().is_successful, \
+            "Project update that pulls down newly written SCM commits failed."
+
+        assert jt_with_requirements.launch().wait_until_completed().is_successful, \
+            "Job Template that triggers SCM update that processes requirements.yml failed"
+        (event_unforced, event_forced) = self.get_project_update_galaxy_update_task(project_with_requirements)
+        assert 'runner_on_ok' == event_unforced.event, \
+            "Since scm_revision has changed, processing of requirements.yml should happen"
+        assert False is event_unforced.changed, \
+            "Although scm_revision has changed, upstream role has not changed"
+        assert 'runner_on_skipped' == event_forced.event
+
+    @pytest.mark.parametrize("scm_params", [
+        dict(scm_clean=False, scm_delete_on_update=False),
+        dict(scm_clean=True, scm_delete_on_update=False),
+        dict(scm_clean=False, scm_delete_on_update=True),
+    ], ids=('first_time', 'scm_clean', 'scm_delete_on_update'))
+    def test_project_with_galaxy_requirements_updated_when(self, factories, scm_params):
+        project = factories.v2_project(scm_url='https://github.com/jlaska/ansible-playbooks.git',
+                                       scm_branch='with_requirements',
+                                       scm_update_on_launch=False,
+                                       **scm_params)
+
+        (event_unforced, event_forced) = self.get_project_update_galaxy_update_task(project, job_type='check')
+        assert False is event_unforced.changed, \
+            "Project update of type check should never process requirements.yml"
+        assert False is event_forced.changed, \
+            "Project update of type check should never process requirements.yml"
+
+        jt = factories.v2_job_template(project=project, playbook='debug.yml')
+
+        assert jt.launch().wait_until_completed().is_successful, \
+            "Job Template that triggers SCM update that processes requirements.yml failed"
+        (event_unforced, event_forced) = self.get_project_update_galaxy_update_task(project)
+        assert 'runner_on_ok' == event_unforced.event, \
+            "Empty project directory expected to trigger the processing of requirements.yml"
+        assert True is event_unforced.changed, \
+            "Empty project directory expected to trigger the processing of requirements.yml"
+        assert 'runner_on_skipped' == event_forced.event
 
     @pytest.mark.requires_single_instance
     @pytest.mark.ansible_integration
