@@ -18,7 +18,7 @@
 1. [ ] [UI regression completed](https://docs.google.com/document/d/1fCOn33OzpuSEa4R_b8MuFJzRBITqdAZlmfM0jUcziuc/edit)
 1. [ ] API regression completed - standalone
 1. [ ] API regression completed - cluster
-1. [ ] Tower social authentication regression completed
+1. [x] Tower social authentication regression completed
 1. [x] Tower LDAP integration regression completed
 1. [x] Tower SAML integration regression completed
 1. [x] Tower RADIUS integration regression completed
