@@ -64,12 +64,23 @@ def get_pg_dump(request, ansible_runner, skip_docker):
     return _pg_dump
 
 
-@pytest.fixture(scope='function')
-def hostvars_for_host(ansible_adhoc):
+@pytest.fixture(scope='class')
+def modified_ansible_adhoc(request):
+    # HACK: re-implement ansible_adhoc fixture from pytest-ansible
+    # becuase that is the only way to do this class-scoped
+    plugin = request.config.pluginmanager.getplugin("ansible")
+
+    def init_host_mgr(**kwargs):
+        return plugin.initialize(request.config, request, **kwargs)
+    return init_host_mgr
+
+
+@pytest.fixture(scope='class')
+def hostvars_for_host(modified_ansible_adhoc):
     """Returns a generator that takes a host name in the inventory file
     and returns variables for that host
     """
-    manager = ansible_adhoc().options['inventory_manager']
+    manager = modified_ansible_adhoc().options['inventory_manager']
 
     def gimme_hostvars(host_name):
         if parse_version(ansible_version) < parse_version('2.3'):
@@ -80,12 +91,12 @@ def hostvars_for_host(ansible_adhoc):
     return gimme_hostvars
 
 
-@pytest.fixture(scope='function')
-def hosts_in_group(ansible_adhoc):
+@pytest.fixture(scope='class')
+def hosts_in_group(modified_ansible_adhoc):
     """Returns a generator that takes group name of a group in the inventory
     file and returns a list of instance hostnames in that group
     """
-    manager = ansible_adhoc().options['inventory_manager']
+    manager = modified_ansible_adhoc().options['inventory_manager']
 
     def gimme_hosts(group_name):
         if parse_version(ansible_version) < parse_version('2.3'):
@@ -99,8 +110,7 @@ def hosts_in_group(ansible_adhoc):
     return gimme_hosts
 
 
-# scoped to function because the ansible_module fixture is function-scoped
-@pytest.fixture(scope='function')
+@pytest.fixture(scope='class')
 def is_docker(hosts_in_group, hostvars_for_host):
     try:
         tower_hosts = hosts_in_group('tower')
@@ -112,7 +122,7 @@ def is_docker(hosts_in_group, hostvars_for_host):
 docker_skip_msg = "Test doesn't support dev container"
 
 
-@pytest.fixture(scope='class')
+@pytest.fixture
 def skip_docker(is_docker):
     if is_docker:
         pytest.skip(docker_skip_msg)
