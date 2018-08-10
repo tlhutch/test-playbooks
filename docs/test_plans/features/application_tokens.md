@@ -30,11 +30,11 @@ Tower 3.3.0 introduces the notion of authorized applications for delegated API a
         * [ ] RBAC
         * [x] Activity Stream
         * [ ] Activity Stream - RBAC
-    * [ ] Token usage
+    * [x] Token usage
         * [x] OAuth2 functionality - /api/o/...
         * [x] Application Token
         * [x] Personal Access Token
-        * [ ] Refreshing Tokens
+        * [x] Refreshing Tokens
         * [x] Token revocations
         * [x] Token expiration
         * [x] Activity Stream for API usage
