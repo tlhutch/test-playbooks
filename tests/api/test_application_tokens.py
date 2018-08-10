@@ -399,6 +399,47 @@ class TestApplicationTokens(APITest):
             me = v2.me.get().results[0]
             assert me.username == user.username
 
+    @pytest.mark.parametrize('ct', ('confidential', 'public'))
+    @pytest.mark.parametrize('agt', ('authorization-code', 'implicit', 'password'))
+    def test_users_cannot_read_other_user_tokens(self, v2, factories, ct, agt):
+        org = factories.v2_organization()
+        user1, user2 = [factories.v2_user(organization=org) for _ in range(2)]
+        app = factories.application(organization=org, client_type=ct, authorization_grant_type=agt,
+                                    redirect_uris='https://example.com')
+        with self.current_user(user1):
+            token = factories.access_token(oauth_2_application=app)
+
+        with self.current_user(user2):
+            user1_token = v2.tokens.get(id=token.id)
+            with pytest.raises(exc.Forbidden):
+                token.get()
+            assert v2.applications.get(id=app.id).results.pop().related.tokens.get().count == 0
+        assert user1_token.count == 0
+
+    @pytest.mark.parametrize('ct', ('confidential', 'public'))
+    @pytest.mark.parametrize('agt', ('authorization-code', 'implicit', 'password'))
+    def test_users_cannot_modify_other_user_tokens(self, v2, factories, ct, agt):
+        org = factories.v2_organization()
+        user1, user2 = [factories.v2_user(organization=org) for _ in range(2)]
+        app = factories.application(organization=org, client_type=ct, authorization_grant_type=agt,
+                                    redirect_uris='https://example.com')
+        with self.current_user(user1):
+            token = factories.access_token(oauth_2_application=app)
+
+        with self.current_user(user2):
+            with pytest.raises(exc.Forbidden):
+                token.patch(description='this should fail')
+        assert token.get().description != 'this should fail'
+
+        with self.current_user(user2):
+            with pytest.raises(exc.Forbidden):
+                token.put()
+
+        with self.current_user(user2):
+            with pytest.raises(exc.Forbidden):
+                token.delete()
+        assert token.get()
+
 
 class TestTokenAuthenticationBase(APITest):
 
