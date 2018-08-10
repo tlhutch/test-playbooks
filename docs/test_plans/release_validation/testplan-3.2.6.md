@@ -9,7 +9,7 @@
 
 * Only running upgrades from latest point releases due to low risk / return.
 * Other traditional regressions checks were skipped and are struckthrough with reasoning below.
-* 3.2.6 code changes: [tower](https://github.com/ansible/tower/compare/release_3.2.5...release_3.2.6), [tower-packaging](https://github.com/ansible/tower-packaging/compare/release_3.2.5...release_3.2.6)
+* 3.2.6 code changes: [tower](https://github.com/ansible/tower/compare/release_3.2.5...release_3.2.6), [tower-packaging](https://github.com/ansible/tower-packaging/compare/release_3.2.5...release_3.2.6).
 
 ## Resources
 * 5 full-time automation engineers - cwang/jladd/one-t/jhill/guozhang
@@ -18,7 +18,12 @@
 1. [x] [UI regression completed](https://docs.google.com/document/d/1fCOn33OzpuSEa4R_b8MuFJzRBITqdAZlmfM0jUcziuc/edit)
 1. [x] API regression completed - standalone
 1. [x] API regression completed - cluster ([testing notes](https://docs.google.com/spreadsheets/d/1Gn6YoEVKhs1QEBthJ1ORvxms9ACl7ySHbadh6Pz1mAY/edit?usp=sharing))
-1. [x] Tower social authentication regression completed
+- [x] Tower social authentication regression completed
+  - [x] Google OAuth
+  - [x] GitHub
+  - [x] GitHub Org
+  - [x] GitHub Team
+  - [x] Azure OAuth
 1. [x] Tower LDAP integration regression completed
 1. [x] Tower SAML integration regression completed
 1. [x] Tower RADIUS integration regression completed
