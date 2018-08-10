@@ -37,8 +37,8 @@ Tower 3.3.0 introduces the notion of authorized applications for delegated API a
         * [ ] Refreshing Tokens
         * [x] Token revocations
         * [x] Token expiration
-        * [ ] Activity Stream for API usage
-    * [ ] Token scopes
+        * [x] Activity Stream for API usage
+    * [x] Token scopes
     * [ ] Session adoption
         * [ ] Sessions basic functionality
             * [ ] API access - implicit in integration testing
