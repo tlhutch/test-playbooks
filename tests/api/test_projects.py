@@ -41,6 +41,10 @@ def project_with_galaxy_requirements(request, authtoken, organization):
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class Test_Projects(Base_Api_Test):
 
+    def check_secret_fields(self, string_to_check, *secrets):
+        for secret in secrets:
+            assert secret not in string_to_check
+
     def get_project_update_galaxy_update_task(self, project, job_type='run'):
         task_icontains = "fetch galaxy roles from requirements.yml"
         res = project.related.project_updates.get(job_type=job_type, order_by='-created') \
@@ -372,6 +376,26 @@ class Test_Projects(Base_Api_Test):
         assert True is event_unforced.changed, \
             "Empty project directory expected to trigger the processing of requirements.yml"
         assert 'runner_on_skipped' == event_forced.event
+
+    @pytest.mark.parametrize("scm_url, use_credential",
+                             [('https://github.com/ansible/tower.git', True),
+                              ('https://github.com/jlaska/ansible-playbooks.git', True),
+                              ('https://foobar:barfoo@github.com/ansible/tower.git', False)],
+                             ids=['invalid_cred', 'valid_cred', 'cred_in_url'])
+    def test_project_update_results_do_not_leak_credential(self, factories, scm_url, use_credential):
+        if use_credential:
+            cred = factories.v2_credential(kind='scm', username='foobar', password='barfoo')
+        else:
+            cred = None
+        project = factories.v2_project(credential=cred, scm_url=scm_url)
+        pu = project.related.project_updates.get().results.pop()
+        assert pu.is_completed
+
+        self.check_secret_fields(pu.result_stdout, 'foobar', 'barfoo')
+        events = pu.related.events.get(page_size=200).results
+        for event in events:
+            self.check_secret_fields(event.stdout, 'foobar', 'barfoo')
+            self.check_secret_fields(str(event.event_data), 'foobar', 'barfoo')
 
     @pytest.mark.requires_single_instance
     @pytest.mark.ansible_integration
