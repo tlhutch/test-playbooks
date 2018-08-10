@@ -359,3 +359,12 @@ class Test_Job_Events(Base_Api_Test):
         assert job.is_successful
 
         assert job.related.job_events.get(event='warning').count == 0
+
+    def test_playbook_on_notify(self, factories, ansible_version_cmp):
+        if ansible_version_cmp('2.5.0.0') < 0:
+            pytest.skip('playbook_on_notify does not work _at all_ prior to Ansible 2.5')
+        host = factories.v2_host()
+        jt = factories.v2_job_template(playbook='handler.yml', inventory=host.ds.inventory)
+        job = jt.launch().wait_until_completed()
+        assert job.is_successful
+        assert job.related.job_events.get(event='playbook_on_notify').count == 1
