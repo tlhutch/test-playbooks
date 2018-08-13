@@ -330,6 +330,20 @@ class Test_Job(Base_Api_Test):
         assert relaunched_job.limit == 'foobar'
         assert relaunched_job.job_tags == 'bar,foo'
 
+    def test_other_users_cannot_relaunch_orphan_jobs(self, factories, non_superuser):
+        jt = factories.v2_job_template()
+        jt.set_object_roles(non_superuser, 'admin')
+
+        with self.current_user(non_superuser):
+            job = jt.launch().wait_until_completed()
+        assert job.is_successful
+
+        jt.delete()
+
+        with self.current_user(non_superuser):
+            with pytest.raises(exc.Forbidden):
+                job.relaunch()
+
     def test_relaunch_failed_hosts(self, factories):
         jt = factories.v2_job_template(playbook='gen_host_status.yml')
         hosts = [factories.v2_host(name=name, inventory=jt.ds.inventory, variables={}) for name in
