@@ -28,6 +28,8 @@ class TestFactCache(Base_Api_Test):
         assert jt.launch().wait_until_completed().is_successful
 
         self.assert_updated_facts(ansible_facts.get())
+        assert "foo" not in ansible_facts
+        assert "bar" not in ansible_facts
 
     @pytest.fixture
     def scan_facts_job_template(self, factories):
@@ -303,3 +305,15 @@ print json.dumps(inv)""".format(random_title(non_ascii=False))
         host = inv_src.ds.inventory.related.hosts.get().results.pop()
         facts = host.related.ansible_facts.get()
         assert facts.string == "abc"
+
+    def test_cachable_custom_fact(self, factories):
+        host = factories.v2_host()
+        jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='gather_facts.yml',
+                                       use_fact_cache=True, extra_vars=dict(set_fact_cacheable=True))
+        job = jt.launch().wait_until_completed()
+        assert job.is_successful
+
+        facts = host.related.ansible_facts.get()
+        self.assert_updated_facts(facts)
+        assert facts.foo == "bar"
+        assert facts.bar.a.b == ["c", "d"]
