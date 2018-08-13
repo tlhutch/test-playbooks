@@ -161,6 +161,7 @@ class TestApplications(APITest):
     @pytest.mark.parametrize('field', ('client_id', 'client_secret', 'authorization_grant_type'))
     def test_read_only_application_fields_have_forbidden_writes(self, factories, field):
         app = factories.application(organization=True, client_type='confidential')
+        app = app.get()
         expected = app[field]
         setattr(app, field, 'SHOULD_BE_FORBIDDEN')
         modified_app = app.get()
