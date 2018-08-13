@@ -70,7 +70,8 @@ def another_inventory(factories, organization):
 def custom_inventory_update_with_status_completed(custom_inventory_source):
     """Launches an inventory sync."""
     update = custom_inventory_source.update().wait_until_completed()
-    assert update.is_successful
+    assert update.is_successful, 'Custom inventory update fixture not successful, stdout:\n{}'.format(
+        update.result_stdout)
     return update
 
 
