@@ -17,7 +17,8 @@ class TestBasicAuth(APITest):
         resp = conn.get('/api/v2/me/')
         assert resp.json()['count'] == 1
         assert resp.status_code == 200
-        assert len(resp.cookies) == 0
+        assert 'sessionid' not in resp.headers.get('Set-Cookie', '')
+        assert 'csrftoken' not in resp.headers.get('Set-Cookie', '')
 
     @pytest.mark.github('https://github.com/ansible/tower/issues/2339')
     def test_basic_auth_disabled(self, factories, v2, update_setting_pg):
