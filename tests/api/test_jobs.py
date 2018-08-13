@@ -303,16 +303,46 @@ class Test_Job(Base_Api_Test):
             job.relaunch()
         assert e.value[1]['errors'] == ['Job Template Inventory is missing or undefined.']
 
-    def test_relaunched_jobs_are_based_on_job_itself_and_not_source_template(self, factories):
-        jt = factories.v2_job_template()
-        job = jt.launch().wait_until_completed()
+    def test_relaunched_jobs_are_based_on_source_template_with_prompts(self, factories):
+        jt = factories.v2_job_template(ask_limit_on_launch=True)
+        job = jt.launch(payload=dict(limit='foobar')).wait_until_completed()
         assert job.is_successful
         assert json.loads(job.extra_vars) == {}
 
         jt.extra_vars = '{"key": "value"}'
         relaunched_job = job.relaunch().wait_until_completed()
         assert relaunched_job.is_successful
-        assert json.loads(relaunched_job.extra_vars) == {}
+        assert json.loads(relaunched_job.extra_vars) == {"key": "value"}
+        assert relaunched_job.limit == "foobar"
+
+    def test_superuser_can_relaunch_orphan_jobs(self, factories):
+        jt = factories.v2_job_template(
+            limit='foobar',
+            job_tags='bar,foo'
+        )
+        job = jt.launch().wait_until_completed()
+        assert job.is_successful
+
+        jt.delete()
+
+        relaunched_job = job.relaunch().wait_until_completed()
+        assert relaunched_job.is_successful
+        assert relaunched_job.limit == 'foobar'
+        assert relaunched_job.job_tags == 'bar,foo'
+
+    def test_other_users_cannot_relaunch_orphan_jobs(self, factories, non_superuser):
+        jt = factories.v2_job_template()
+        jt.set_object_roles(non_superuser, 'admin')
+
+        with self.current_user(non_superuser):
+            job = jt.launch().wait_until_completed()
+        assert job.is_successful
+
+        jt.delete()
+
+        with self.current_user(non_superuser):
+            with pytest.raises(exc.Forbidden):
+                job.relaunch()
 
     def test_relaunch_failed_hosts(self, factories):
         jt = factories.v2_job_template(playbook='gen_host_status.yml')
