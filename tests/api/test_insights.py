@@ -16,25 +16,25 @@ class TestInsights(Base_Api_Test):
     unregistered_machine_id = "aaaabbbb-cccc-dddd-eeee-ffffgggghhhh"
 
     @pytest.fixture(scope="class")
-    def insights_inventory(self, request, class_factories, ansible_adhoc, is_docker):
+    def insights_inventory(self, request, class_factories, modified_ansible_adhoc, is_docker):
         inventory = class_factories.v2_inventory()
         for name in ('registered_host', 'unregistered_host'):
             class_factories.v2_host(name=name, inventory=inventory)
 
-        ansible_adhoc().tower.file(path='/etc/redhat-access-insights', state="directory")
-        request.addfinalizer(lambda: ansible_adhoc().tower.file(path='/etc/redhat-access-insights', state="absent"))
+        modified_ansible_adhoc().tower.file(path='/etc/redhat-access-insights', state="directory")
+        request.addfinalizer(lambda: modified_ansible_adhoc().tower.file(path='/etc/redhat-access-insights', state="absent"))
 
         project = class_factories.v2_project(scm_url="https://github.com/ansible/awx-facts-playbooks", wait=True)
         jt = class_factories.v2_job_template(project=project, inventory=inventory, playbook='scan_facts.yml',
                                              use_fact_cache=True, limit="registered_host")
 
         # update registered host with registered machine ID
-        ansible_adhoc().tower.shell('echo -n {0} > /etc/redhat-access-insights/machine-id'.format(self.registered_machine_id))
+        modified_ansible_adhoc().tower.shell('echo -n {0} > /etc/redhat-access-insights/machine-id'.format(self.registered_machine_id))
         assert jt.launch().wait_until_completed().is_successful
 
         # update unregistered host with unregistered machine ID
         jt.limit = "unregistered_host"
-        ansible_adhoc().tower.shell('echo -n {0} > /etc/redhat-access-insights/machine-id'.format(self.unregistered_machine_id))
+        modified_ansible_adhoc().tower.shell('echo -n {0} > /etc/redhat-access-insights/machine-id'.format(self.unregistered_machine_id))
         assert jt.launch().wait_until_completed().is_successful
 
         return inventory
