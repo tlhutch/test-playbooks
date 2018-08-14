@@ -392,13 +392,11 @@ class TestExecutionNodeAssignment(Base_Api_Test):
         map(lambda t: t.start(), threads)
         map(lambda t: t.join(), threads)
 
-        # Wait for jobs to obtain running state
-        utils.poll_until(lambda: all([
-            job.status not in ['pending', 'waiting'] for job in jt.related.jobs.get().results
-        ]), interval=5, timeout=300)
-
-        # get and sort the jobs, assure that they were all dispatched
+        # Wait for jobs to obtain running state, note jobs list is ordered
         jobs = jt.related.jobs.get(order_by='created').results
+        jobs = [job.wait_until_status(['running'] + job.completed_statuses) for job in jobs]
+
+        # assure that they were all dispatched
         assert all([job.status == 'running' for job in jobs])
         assert all([job.instance_group == tower_instance_group.id for job in jobs])
         assert all([job.execution_node != '' for job in jobs])
@@ -438,10 +436,11 @@ class TestExecutionNodeAssignment(Base_Api_Test):
         jobs_count = len(instances)
         forks = largest_capacity + 1
         index = len(instances) / 2
+        small_instance = instances[index]
 
-        reset_instance(instances[index])
+        reset_instance(small_instance)
         # this one instance will have less capacity than the others
-        instances[index].capacity_adjustment = .5
+        small_instance.capacity_adjustment = .5
 
         jt = jt_generator_for_consuming_given_capacity(forks)
 
@@ -450,15 +449,13 @@ class TestExecutionNodeAssignment(Base_Api_Test):
         map(lambda t: t.start(), threads)
         map(lambda t: t.join(), threads)
 
-        # Wait for jobs to obtain running state
-        utils.poll_until(lambda: all([
-            job.status not in ['pending', 'waiting'] for job in jt.related.jobs.get().results
-        ]), interval=5, timeout=300)
-
-        # get and sort the jobs, assure that they were all dispatched
+        # Wait for jobs to obtain running state, note jobs list is ordered
         jobs = jt.related.jobs.get(order_by='created').results
-        assert all([job.status == 'running' for job in jobs])
-        assert all([job.instance_group == tower_instance_group.id for job in jobs])
+        jobs = [job.wait_until_status(['running'] + job.completed_statuses) for job in jobs]
+
+        # assure that they were all dispatched
+        assert [job.status for job in jobs] == ['running' for job in jobs]
+        assert [job.instance_group for job in jobs] == [tower_instance_group.id for job in jobs]
         assert all([job.execution_node != '' for job in jobs])
         jobs_execution_nodes = [j.execution_node for j in jobs]
 
@@ -468,7 +465,7 @@ class TestExecutionNodeAssignment(Base_Api_Test):
         assert [instance.consumed_capacity for instance in instances] == [forks + 1 for i in range(len(instances))]
         assert all([instance.consumed_capacity > instance.capacity for instance in instances])
         # assert target instance is lower capacity than others
-        assert instances[index].capacity < min([instance.capacity for i, instance in enumerate(instances) if i != index])
+        assert small_instance.capacity < min([inst.capacity for inst in instances if inst.id != small_instance.id])
 
         # Verify all jobs ran overlapping
         assert do_all_jobs_overlap(jobs), \
@@ -481,11 +478,11 @@ class TestExecutionNodeAssignment(Base_Api_Test):
         # instance which is _under capacity_
         assert set(jobs_execution_nodes) == set([instance.hostname for instance in instances]), \
             ("Jobs did not distribute among all instances where {} instance was free "
-             "but lower capacity than others.".format(instances[index].hostname))
+             "but lower capacity than others.".format(small_instance.hostname))
         hostname_capacity = {}
         for instance in instances:
             hostname_capacity[instance.hostname] = instance.capacity
-        assert jobs_execution_nodes[-1] == instances[index].hostname, \
+        assert jobs_execution_nodes[-1] == small_instance.hostname, \
             ("Last job not run on smallest capacity Instance. Order in which instance "
              "capacity was consumed: {}".format([hostname_capacity.get(hostname) for hostname in jobs_execution_nodes]))
 
