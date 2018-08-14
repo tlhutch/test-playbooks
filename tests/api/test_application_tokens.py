@@ -224,6 +224,61 @@ class TestApplications(APITest):
         assert entry.changes.name == app.name
         assert entry.changes.description == app.description
 
+    def test_org_admins_cannot_read_or_modify_applications_in_other_orgs(self, v2, factories):
+        org1, org2 = [factories.organization() for _ in range(2)]
+        app = factories.application(organization=org1)
+        org2_admin = factories.v2_user(organization=org2)
+        org2.set_object_roles(org2_admin, 'Admin')
+
+        with self.current_user(org2_admin):
+            with pytest.raises(exc.Forbidden):
+                app.get()
+
+            with pytest.raises(exc.Forbidden):
+                app.put()
+
+            with pytest.raises(exc.Forbidden):
+                app.patch(description='This should not work')
+            assert app.description != 'This should not work'
+
+            with pytest.raises(exc.Forbidden):
+                app.delete()
+        app.get()
+
+    def test_org_admins_can_manage_applications_in_their_org(self, v2, factories):
+        org = factories.organization()
+        app = factories.application(organization=org)
+        org_admin = factories.v2_user(organization=org)
+        org.set_object_roles(org_admin, 'Admin')
+
+        with self.current_user(org_admin):
+            app.get()
+            app.put()
+            app.patch(description='This should work')
+            assert app.description == 'This should work'
+            app.delete()
+            with pytest.raises(exc.NotFound):
+                app.get()
+
+    def test_non_admin_users_cannot_modify_applications(self, v2, factories):
+        org = factories.organization()
+        app = factories.application(organization=org)
+        org_user = factories.v2_user(organization=org)
+
+        with self.current_user(org_user):
+            app.get()
+
+            with pytest.raises(exc.Forbidden):
+                app.put()
+
+            with pytest.raises(exc.Forbidden):
+                app.patch(description='This should not work')
+            assert app.description != 'This should not work'
+
+            with pytest.raises(exc.Forbidden):
+                app.delete()
+        app.get()
+
 
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestApplicationTokens(APITest):
