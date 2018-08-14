@@ -343,11 +343,16 @@ class Test_Projects(Base_Api_Test):
         assert jt_with_requirements.launch().wait_until_completed().is_successful, \
             "Job Template that triggers SCM update that processes requirements.yml failed"
         (event_unforced, event_forced) = self.get_project_update_galaxy_update_task(project_with_requirements)
-        assert 'runner_on_ok' == event_unforced.event, \
-            "Since scm_revision has changed, processing of requirements.yml should happen"
-        assert False is event_unforced.changed, \
-            "Although scm_revision has changed, upstream role has not changed"
-        assert 'runner_on_skipped' == event_forced.event
+
+        if 'runner_on_ok' == event_unforced.event:
+            assert False is event_unforced.changed, \
+                "Although scm_revision has changed, upstream role has not changed"
+        elif 'runner_on_ok' == event_forced.event:
+            assert True is event_forced.changed, \
+                "Forced processing of requirements.yml implies that the implicit project update ran on a node with a 'clean'" \
+                "project directory. This is fine, but we expect the task to have registered a change."
+        else:
+            raise RuntimeError("Expected event_unforced {} or event_forced {} to have ran.".format(event_unforced, event_forced))
 
     @pytest.mark.parametrize("scm_params", [
         dict(scm_clean=False, scm_delete_on_update=False),
