@@ -279,6 +279,23 @@ class TestApplications(APITest):
                 app.delete()
         app.get()
 
+    def test_app_in_activity_stream_for_org_users(self, v2, factories):
+        org = factories.organization()
+        app = factories.application(organization=org)
+        org_user = factories.v2_user(organization=org)
+
+        with self.current_user(org_user):
+            assert app.related.activity_stream.get().count == 1
+
+    def test_app_not_in_activity_stream_for_non_org_users(self, v2, factories):
+        org1, org2 = [factories.organization() for _ in range(2)]
+        app = factories.application(organization=org1)
+        org2_user = factories.v2_user(organization=org2)
+        activity_stream_entry = app.related.activity_stream.get().results.pop()
+
+        with self.current_user(org2_user):
+            assert v2.activity_stream.get(id=activity_stream_entry.id).count == 0
+
 
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestApplicationTokens(APITest):
@@ -494,6 +511,43 @@ class TestApplicationTokens(APITest):
             with pytest.raises(exc.Forbidden):
                 token.delete()
         assert token.get()
+
+    def test_token_creation_not_in_activity_stream_for_non_org_users(self, v2, factories):
+        org1, org2 = [factories.organization() for _ in range(2)]
+        app = factories.application(organization=org1)
+        org1_user = factories.v2_user(organization=org1)
+        org2_user = factories.v2_user(organization=org2)
+        with self.current_user(org1_user):
+            token = factories.access_token(oauth_2_application=app)
+
+        activity_stream_entry = token.related.activity_stream.get().results.pop()
+
+        with self.current_user(org2_user):
+            assert v2.activity_stream.get(id=activity_stream_entry.id).count == 0
+
+    def test_token_creation_not_in_activity_stream_for_other_org_users(self, v2, factories):
+        org = factories.organization()
+        app = factories.application(organization=org)
+        org_user1 = factories.v2_user(organization=org)
+        org_user2 = factories.v2_user(organization=org)
+        with self.current_user(org_user1):
+            token = factories.access_token(oauth_2_application=app)
+        activity_stream_entry = token.related.activity_stream.get().results.pop()
+        with self.current_user(org_user2):
+            assert v2.activity_stream.get(id=activity_stream_entry.id).count == 0
+
+    def test_token_creation_in_activity_stream_for_org_admin(self, v2, factories):
+        org = factories.organization()
+        app = factories.application(organization=org)
+        org_user = factories.v2_user(organization=org)
+        org_admin = factories.v2_user(organization=org)
+        org.set_object_roles(org_admin, 'Admin')
+        with self.current_user(org_user):
+            token = factories.access_token(oauth_2_application=app)
+            assert token.related.activity_stream.get().count == 1
+
+        with self.current_user(org_admin):
+            assert token.related.activity_stream.get().count == 1
 
 
 class TestTokenAuthenticationBase(APITest):
