@@ -24,7 +24,7 @@ def class_subrequest(request):
 
 
 @pytest.fixture
-def get_pg_dump(request, ansible_runner, skip_docker):
+def get_pg_dump(request, ansible_runner, skip_docker, hostvars_for_host):
 
     def _pg_dump():
         inv_path = os.environ.get('TQA_INVENTORY_FILE_PATH', '/tmp/setup/inventory')
@@ -35,8 +35,11 @@ def get_pg_dump(request, ansible_runner, skip_docker):
         for res in contacted.values():
             assert res.get('changed') and not res.get('failed')
 
-        user = ansible_runner.options['user'] \
-               or ansible_runner.inventory_manager.get_host(ansible_runner.options['host_pattern']).get_vars()['ansible_user']
+        user = ansible_runner.options['user']
+        if not user:
+            host_pattern = ansible_runner.options['host_pattern']
+            this_host_vars = hostvars_for_host(host_pattern)
+            user = this_host_vars['ansible_user']
         pg_dump_path = '/home/{0}/{1}'.format(user, dump_filename)
         request.addfinalizer(lambda: ansible_runner.file(path=pg_dump_path, state='absent'))
 
