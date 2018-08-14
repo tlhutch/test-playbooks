@@ -105,7 +105,10 @@ def hosts_in_group(modified_ansible_adhoc):
             groups_dict = manager.get_group_dict() if hasattr(manager, 'get_group_dict') else manager.get_groups_dict()
             return groups_dict.get(group_name)
         else:
-            return [host.name for host in manager.groups[group_name].get_hosts()]
+            group = manager.groups.get(group_name)
+            if group is None:
+                return []
+            return [host.name for host in group.get_hosts()]
 
     return gimme_hosts
 
