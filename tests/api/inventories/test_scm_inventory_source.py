@@ -622,3 +622,37 @@ class TestSCMInventorySource(Base_Api_Test):
             with pytest.raises(exc.BadRequest) as e:
                 forbidden()
             assert e.value.message == {'detail': ['Cannot set {} if not SCM type.'.format(field)]}
+
+    @pytest.mark.github('https://github.com/ansible/tower/issues/1357')
+    def test_scm_inv_parent_sym_links(self, factories):
+        """This test asserts that symlinks inside of a project source tree will
+        be accessible for the ansible-inventory command in the inventory update.
+        The inventory file is next to a group_vars/ directory that contains
+        a symlink to a directory one higher than the directory that the
+        inventory file is in.
+        """
+        project = factories.v2_project(scm_url='https://github.com/AlanCoding/Ansible-inventory-file-examples.git')
+        inventory = factories.v2_inventory(organization=project.ds.organization)
+        inv_src = factories.v2_inventory_source(
+            source='scm', inventory=inventory, project=project,
+            source_path='scripts/symlinks/parent/foogroup.py'
+        )
+
+        inv_update = inv_src.update().wait_until_completed()
+        assert inv_update.is_successful
+
+        groups = inv_src.related.groups.get()
+        assert groups['count'] == 1
+
+        # Expectation is that the result matches the Ansible core CLI result
+        # ansible-inventory -i scripts/symlinks/parent/foogroup.py --list --export
+        # "foo": {
+        #     "hosts": [
+        #         "afoo"
+        #     ],
+        #     "vars": {
+        #         "foovar": "fooval"  # from symlink in parent dir
+        #     }
+        # },
+        group = groups.results[0]
+        assert group.variables == {'foovar': 'fooval'}
