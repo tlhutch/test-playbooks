@@ -25,6 +25,10 @@ def class_subrequest(request):
 
 @pytest.fixture
 def get_pg_dump(request, ansible_runner, skip_docker, hostvars_for_host):
+    """Returns the dump of Tower's Postgres DB as a string.
+    It may consume a lot of memory if the db is big. Thus we should mark all tests using this fixture with:
+    @pytest.mark.mp_group(group="get_pg_dump", strategy="serial")
+    """
 
     def _pg_dump():
         inv_path = os.environ.get('TQA_INVENTORY_FILE_PATH', '/tmp/setup/inventory')
