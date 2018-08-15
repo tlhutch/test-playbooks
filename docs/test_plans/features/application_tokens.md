@@ -20,16 +20,16 @@ Tower 3.3.0 introduces the notion of authorized applications for delegated API a
 
 ### Test suites and cases
 * [ ] API
-    * [ ] Application CRUD 
+    * [x] Application CRUD 
         * [x] Basic Functionality
         * [x] RBAC
         * [x] Activity Stream
-        * [ ] Activity Stream - RBAC
-    * [ ] Token CRUD
+        * [x] Activity Stream - RBAC
+    * [x] Token CRUD
         * [x] Basic Functionality
         * [x] RBAC
         * [x] Activity Stream
-        * [ ] Activity Stream - RBAC
+        * [x] Activity Stream - RBAC
     * [x] Token usage
         * [x] OAuth2 functionality - /api/o/...
         * [x] Application Token
