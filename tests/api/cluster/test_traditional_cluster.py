@@ -683,10 +683,7 @@ class TestTraditionalCluster(Base_Api_Test):
 
             for host in hosts_in_group('instance_group_ordinary_instances'):
                 def tower_serving_homepage():
-                    ansible_result = ansible_adhoc()[host].uri(url='https://' + host + '/api', validate_certs='no')
-                    # even though we only operate on 1 host, result comes in form of list of hosts...
-                    for _host, result in ansible_result.items():
-                        contacted = result
+                    contacted = ansible_adhoc()[host].uri(url='https://' + host + '/api', validate_certs='no')
                     return contacted.values()[0]['status'] == 200
                 utils.poll_until(tower_serving_homepage, interval=10, timeout=60)
 
