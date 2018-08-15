@@ -115,7 +115,8 @@ class Test_Copy_Inventory(Base_Api_Test):
 
     def test_host_fact_is_not_copied(self, factories, copy_with_teardown):
         host = factories.v2_host()
-        inventory = host.ds.inventory.get()
+        inventory = host.ds.inventory
+        poll_until(lambda: inventory.get().total_hosts == 1, timeout=30)
         jt = factories.v2_job_template(playbook='gather_facts.yml', inventory=inventory, use_fact_cache=True)
         jt.launch().wait_until_completed()
         facts = host.get_related('ansible_facts')
