@@ -128,6 +128,8 @@ class TestInstanceGroups(Base_Api_Test):
         project = factories.v2_project(scm_url='https://github.com/ansible/ansible.git', scm_delete_on_update=True)
         project.ds.organization.add_instance_group(ig)
 
+        assert ig.related.instances.get().count == 1  # test flake due to github.com/ansible/tower/issues/2772
+
         pu = project.update()
 
         utils.poll_until(lambda: pu.get().status == 'running', interval=5, timeout=60)
