@@ -382,6 +382,16 @@ class Test_Projects(Base_Api_Test):
             "Empty project directory expected to trigger the processing of requirements.yml"
         assert 'runner_on_skipped' == event_forced.event
 
+        if 'runner_on_ok' == event_unforced.event:
+            assert True is event_unforced.changed, \
+                "Empty project directory expected to trigger the processing of requirements.yml"
+        elif 'runner_on_ok' == event_forced.event:
+            assert True is event_forced.changed, \
+                "Forced processing of requirements.yml implies that the implicit project update ran on a node with a 'clean'" \
+                "project directory. This is fine, but we expect the task to have registered a change."
+        else:
+            raise RuntimeError("Expected event_unforced {} or event_forced {} to have ran.".format(event_unforced, event_forced))
+
     @pytest.mark.parametrize("scm_url, use_credential",
                              [('https://github.com/ansible/tower.git', True),
                               ('https://github.com/jlaska/ansible-playbooks.git', True),
