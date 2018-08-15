@@ -294,6 +294,7 @@ class TestJobTemplateSurveys(Base_Api_Test):
         assert json.loads(job_activity_stream.changes.extra_vars)['secret'] == "$encrypted$"
 
     @pytest.mark.requires_single_instance
+    @pytest.mark.mp_group(group="get_pg_dump", strategy="serial")
     @pytest.mark.parametrize('template', ['job', 'workflow_job'])
     def test_confirm_no_plaintext_survey_passwords_in_db(self, v2, factories, get_pg_dump, template):
         resource = getattr(factories, 'v2_' + template + '_template')()

@@ -268,6 +268,7 @@ class TestCredentials(Base_Api_Test):
         assert 'NoAuthHandlerFound' in update.result_stdout
 
     @pytest.mark.requires_single_instance
+    @pytest.mark.mp_group(group="get_pg_dump", strategy="serial")
     def test_confirm_no_plaintext_secrets_in_db(self, v2, factories, get_pg_dump):
         cred_payloads = [factories.v2_credential.payload(kind=k) for k in ('aws', 'azure_rm', 'gce', 'net', 'ssh')]
         secrets = set()
@@ -291,6 +292,7 @@ class TestCredentials(Base_Api_Test):
             pytest.fail('Found plaintext secret in db: {}'.format(locations))
 
     @pytest.mark.requires_single_instance
+    @pytest.mark.mp_group(group="get_pg_dump", strategy="serial")
     def test_confirm_desired_encryption_schemes_in_db(self, v2, factories, get_pg_dump):
         for kind in ('aws', 'azure_rm', 'gce', 'net', 'ssh'):
             factories.v2_credential(kind=kind)
