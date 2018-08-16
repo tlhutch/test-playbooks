@@ -304,7 +304,7 @@ class TestInventoryUpdate(Base_Api_Test):
 
     @pytest.mark.parametrize('verbosity, stdout_lines',
                              [(0, ['Re-calling script for hostvars individually.']),
-                              (1, ['Loaded 1 groups, 5 hosts', 'Inventory variables unmodified',
+                              (1, ['Loaded 1 groups, 5 hosts',
                                    'Inventory import completed']),
                               (2, ['Reading Ansible inventory source',
                                    'Finished loading from source',
