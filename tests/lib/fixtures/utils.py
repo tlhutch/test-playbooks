@@ -1,5 +1,6 @@
 from base64 import b64decode
 import os
+import gc
 import logging
 from pkg_resources import parse_version
 
@@ -31,6 +32,10 @@ def get_pg_dump(request, ansible_runner, skip_docker, hostvars_for_host):
     """
 
     def _pg_dump():
+        # Run full garbage collection to release memory
+        gc.collect()
+        request.addfinalizer(gc.collect)
+
         inv_path = os.environ.get('TQA_INVENTORY_FILE_PATH', '/tmp/setup/inventory')
         dump_filename = 'pg_{}.txt'.format(fauxfactory.gen_alphanumeric())
         contacted = ansible_runner.shell("""PGPASSWORD=`grep {} -e "pg_password=.*" """
