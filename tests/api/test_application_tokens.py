@@ -744,6 +744,31 @@ class TestTokenAuthentication(TestTokenAuthenticationBase):
 
 
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+class TestTokenUsage(TestTokenAuthenticationBase):
+    """
+    Used to test Tower operations while using token auth
+    """
+    @pytest.mark.parametrize('ct', ('confidential', 'public'))
+    @pytest.mark.parametrize('agt', ('authorization-code', 'implicit', 'password'))
+    def test_password_can_be_changed_while_using_authtoken(self, factories, v2, agt, ct):
+        org = factories.v2_organization()
+        user = factories.v2_user(organization=org)
+        app = factories.application(organization=org,
+                                    client_type=ct,
+                                    authorization_grant_type=agt,
+                                    redirect_uris='https://example.com')
+        with self.current_user(user):
+            token = factories.access_token(oauth_2_application=app)
+
+        with self.current_user(token):
+            user.patch(password='NEW_PASSWORD')
+
+        with self.current_user(user.username, 'NEW_PASSWORD'):
+            res = v2.me.get().results.pop()
+        assert res.username == user.username
+
+
+@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestDjangoOAuthToolkitTokenManagement(TestTokenAuthenticationBase):
     """
     Used to test the `/api/o/` endpoint
