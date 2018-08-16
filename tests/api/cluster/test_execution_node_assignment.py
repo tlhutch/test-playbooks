@@ -154,6 +154,7 @@ class TestExecutionNodeAssignment(Base_Api_Test):
         ig = factories.instance_group()
         instance = random.sample(tower_ig_instances, 1).pop()
         ig.add_instance(instance)
+        assert ig.related.instances.get().count == 1  # test flake due to github.com/ansible/tower/issues/2772
 
         inv = factories.v2_inventory()
 
