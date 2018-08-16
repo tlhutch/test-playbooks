@@ -41,7 +41,7 @@ Tower 3.3.0 introduces the notion of authorized applications for delegated API a
     * [x] Token scopes
     * [ ] Session adoption
         * [ ] Sessions basic functionality
-            * [ ] API access - implicit in integration testing
+            * [x] API access - implicit in integration testing
             * [ ] WS client
             * [ ] Session expiration
             * [ ] Maximum concurrent sessions
