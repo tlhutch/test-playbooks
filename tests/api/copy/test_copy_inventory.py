@@ -113,6 +113,7 @@ class Test_Copy_Inventory(Base_Api_Test):
                 self.check_host_fields(old_hosts[i], new_hosts[i], old_inventory, new_inventory)
         assert not new_frontier
 
+    @pytest.mark.github('https://github.com/ansible/tower/issues/2846')
     def test_host_fact_is_not_copied(self, factories, copy_with_teardown):
         host = factories.v2_host()
         inventory = host.ds.inventory
