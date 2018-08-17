@@ -79,3 +79,18 @@ class TestBasicAuth(APITest):
         responses = [s.get('/api/v2/me/').status_code for s in sessions]
         assert responses.count(200) == max_logins
         assert responses.count(401) == invalid_logins
+
+    def test_authtoken_maximum_concurrent_sessions_does_not_kick_other_users(self, factories, v2, update_setting_pg):
+        update_setting_pg(v2.settings.get().get_endpoint(
+            'authentication'), {'SESSIONS_PER_USER': 1})
+        org = factories.v2_organization()
+        user1, user2 = [factories.v2_user(organization=org) for _ in range(2)]
+
+        sessions = []
+        session1, _ = self.spawn_session(user1)
+        sessions.append(session1)
+        session2, _ = self.spawn_session(user2)
+        sessions.append(session2)
+
+        responses = [s.get('/api/v2/me/').status_code for s in sessions]
+        assert responses.count(200) == 2
