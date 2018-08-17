@@ -1,5 +1,7 @@
 from towerkit.api.client import Connection
+from towerkit.ws import WSClient
 from towerkit.config import config as qe_config
+from towerkit import utils
 import pytest
 
 from tests.api import APITest
@@ -36,3 +38,59 @@ class TestBasicAuth(APITest):
         # Don't send back headers that will cause the browser to prompt for
         # basic auth credentials
         assert resp.headers['WWW-Authenticate'] == 'Bearer realm=api authorization_url=/api/o/authorize/'
+
+    def spawn_session(self, user):
+        session = Connection(self.connections['root'].server)
+        session.get_session_requirements()
+        session.login(username=user.username, password=user.password, next='/')
+        ws = WSClient(
+              session_id=session.session_id,
+              csrftoken=session.session.cookies.get('csrftoken')
+              ).connect()
+        reply = next(iter(ws))
+        assert reply['user'] == user.id
+        assert reply['accept'] is True
+        ws.subscribe(control=['limit_reached_{}'.format(user.id)])
+        return session, ws
+
+    @pytest.mark.parametrize('max_logins', range(1, 4))
+    def test_authtoken_maximum_concurrent_sessions(self, factories, v2, update_setting_pg, max_logins):
+        total = 3
+        update_setting_pg(v2.settings.get().get_endpoint(
+            'authentication'), {'SESSIONS_PER_USER': max_logins})
+        org = factories.v2_organization()
+        user = factories.v2_user(organization=org)
+
+        sessions = []
+        ws_clients = []
+        for _ in range(total):
+            session, ws = self.spawn_session(user)
+            sessions.append(session)
+            ws_clients.append(ws)
+            utils.logged_sleep(3)
+
+        # every *invalid* Websocket client should get a logout notification
+        invalid_logins = total - max_logins
+        for ws in ws_clients[:invalid_logins]:
+            reply = next(iter(ws))
+            assert reply['group_name'] == 'control'
+            assert reply['reason'] == 'limit_reached'
+
+        responses = [s.get('/api/v2/me/').status_code for s in sessions]
+        assert responses.count(200) == max_logins
+        assert responses.count(401) == invalid_logins
+
+    def test_authtoken_maximum_concurrent_sessions_does_not_kick_other_users(self, factories, v2, update_setting_pg):
+        update_setting_pg(v2.settings.get().get_endpoint(
+            'authentication'), {'SESSIONS_PER_USER': 1})
+        org = factories.v2_organization()
+        user1, user2 = [factories.v2_user(organization=org) for _ in range(2)]
+
+        sessions = []
+        session1, _ = self.spawn_session(user1)
+        sessions.append(session1)
+        session2, _ = self.spawn_session(user2)
+        sessions.append(session2)
+
+        responses = [s.get('/api/v2/me/').status_code for s in sessions]
+        assert responses.count(200) == 2

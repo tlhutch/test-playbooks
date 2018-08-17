@@ -6,7 +6,7 @@ Tower 3.3.0 introduces the notion of authorized applications for delegated API a
 ### Related information
 * [Feature request](https://github.com/ansible/awx/issues/21)
 * [Initial PR](https://github.com/ansible/awx/pull/904)
-* [Updated awx changes](https://github.com/rooftopcellist/awx/commit/e13469f03ab7933fefa015780b2f9e68f335d0ee) 
+* [Updated awx changes](https://github.com/rooftopcellist/awx/commit/e13469f03ab7933fefa015780b2f9e68f335d0ee)
 * [RFC 6749 - OAuth2](https://tools.ietf.org/html/rfc6749)
 * [Docs PR](https://github.com/ansible/product-docs/pull/308)
 
@@ -20,7 +20,7 @@ Tower 3.3.0 introduces the notion of authorized applications for delegated API a
 
 ### Test suites and cases
 * [ ] API
-    * [x] Application CRUD 
+    * [x] Application CRUD
         * [x] Basic Functionality
         * [x] RBAC
         * [x] Activity Stream
@@ -44,11 +44,11 @@ Tower 3.3.0 introduces the notion of authorized applications for delegated API a
             * [x] API access - implicit in integration testing
             * [ ] WS client
             * [ ] Session expiration
-            * [ ] Maximum concurrent sessions
-            * [ ] Password changes
+            * [x] Maximum concurrent sessions
+            * [x] Password changes
         * [x] Basic Auth regression tests
         * [x] Provisioning callbacks
         * [x] authtoken obsolesence
 * [ ] UI (manual testing anticipated)
     * [ ] Application CRUD
-    * [ ] Token CRUD 
+    * [ ] Token CRUD
