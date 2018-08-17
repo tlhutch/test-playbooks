@@ -5,7 +5,6 @@ from dateutil.parser import parse
 from towerkit.utils import load_json_or_yaml
 from towerkit import exceptions as exc
 import pytest
-import six
 
 from tests.api import Base_Api_Test
 
@@ -606,7 +605,7 @@ class TestInventoryUpdate(Base_Api_Test):
         ec2_source = factories.v2_inventory_source(source='ec2', credential=aws_cred)
         inv_update = ec2_source.update().wait_until_completed()
         assert inv_update.related.events.get().count > 0
-        assert inv_update.related.events.get(search='added to group').count > 0
+        assert inv_update.related.events.get(search='Updating inventory').count > 0
         assert inv_update.related.events.get(search='SOME RANDOM STRING THAT IS NOT PRESENT').count == 0
 
     def test_tower_inventory_sync_success(self, factories):
@@ -628,7 +627,10 @@ class TestInventoryUpdate(Base_Api_Test):
         inv_update = tower_source.update().wait_until_completed()
         assert inv_update.is_successful
         assert 'Loaded 0 groups, 1 hosts' in inv_update.result_stdout
-        assert six.text_type('"{}" added'.format(target_host.name)) in inv_update.result_stdout.decode('utf-8')
+
+        loaded_hosts = tower_source.ds.inventory.related.hosts.get()
+        assert loaded_hosts.count == 1
+        assert loaded_hosts.results[0].name == target_host.name
 
     def test_tower_inventory_incorrect_password(self, factories):
         tower_cred = factories.v2_credential(
