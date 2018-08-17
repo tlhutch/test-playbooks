@@ -375,54 +375,6 @@ class TestExecutionNodeAssignment(Base_Api_Test):
         assert job.wait_until_completed(timeout=300).is_successful
         assert job.execution_node == instance.hostname
 
-    @pytest.mark.github('https://github.com/ansible/tower/issues/2761')
-    def test_dispatch_ordering_is_by_hostname(
-            self, v2, largest_capacity, jt_generator_for_consuming_given_capacity,
-            tower_instance_group, do_all_jobs_overlap):
-        # sort instances by hostname
-        instances = tower_instance_group.related.instances.get(order_by='hostname').results
-        assert all([instance.jobs_running == 0 for instance in instances])
-
-        jobs_count = len(instances)
-        forks = largest_capacity + 1
-
-        jt = jt_generator_for_consuming_given_capacity(forks)
-
-        # Launch jobs quickly in order to get them in same task manager run
-        threads = [threading.Thread(target=jt.launch, args=()) for i in xrange(0, jobs_count)]
-        map(lambda t: t.start(), threads)
-        map(lambda t: t.join(), threads)
-
-        # Wait for jobs to obtain running state, note jobs list is ordered
-        jobs = jt.related.jobs.get(order_by='created').results
-        jobs = [job.wait_until_status(['running'] + job.completed_statuses) for job in jobs]
-
-        # assure that they were all dispatched
-        assert all([job.status == 'running' for job in jobs])
-        assert all([job.instance_group == tower_instance_group.id for job in jobs])
-        assert all([job.execution_node != '' for job in jobs])
-        jobs_execution_nodes = [j.execution_node for j in jobs]
-
-        # assure that instances have their capacity fully consumed by the jobs
-        instances = tower_instance_group.related.instances.get(order_by='hostname').results
-        assert [instance.consumed_capacity for instance in instances] == [forks + 1 for i in range(len(instances))]
-        assert all([instance.consumed_capacity > instance.capacity for instance in instances])
-
-        # Verify all jobs ran overlapping
-        assert do_all_jobs_overlap(jobs), \
-            "All jobs found to not be running at the same time {}" \
-                .format(["(%s, %s), " % (j.started, j.finished) for j in jobs])
-
-        # jobs_execution_nodes: ordered by creation
-        # instances: ordered by hostname
-        # task manager should dispatch corresponding to this ordering
-        for i in range(len(instances) - 1):
-            # sanity check that these are actually alphabetical
-            assert instances[i].hostname < instances[i + 1].hostname
-        assert jobs_execution_nodes == [instance.hostname for instance in instances], \
-            ("Execution node of jobs ordered by creation time does not match the system "
-             "instances ordered by hostname, which is the intended task manager behavior.")
-
     @pytest.mark.github('https://github.com/ansible/tower/issues/2763')
     def test_jobs_larger_than_max_instance_capacity_assigned_to_instances_with_greatest_capacity_first(self, v2,
                                                                                                        largest_capacity,
