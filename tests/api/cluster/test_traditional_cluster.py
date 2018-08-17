@@ -382,6 +382,7 @@ class TestTraditionalCluster(Base_Api_Test):
             assert instance.get().consumed_capacity > 0
             assert instance.percent_capacity_remaining == round(float(instance.capacity - instance.consumed_capacity) * 100 / instance.capacity, 2)
 
+    @pytest.mark.github('https://github.com/ansible/tower/issues/743')
     @pytest.mark.mp_group(group="pytest_mark_requires_isolation", strategy="isolated_serial")
     def test_controller_removal(self, admin_user, hosts_in_group, hostvars_for_host, factories, user_password, v2):
         """
