@@ -39,12 +39,10 @@ class TestBasicAuth(APITest):
         # basic auth credentials
         assert resp.headers['WWW-Authenticate'] == 'Bearer realm=api authorization_url=/api/o/authorize/'
 
-
-
     def spawn_session(self, user):
         session = Connection(self.connections['root'].server)
         session.get_session_requirements()
-        resp = session.login(username=user.username, password=user.password, next='/')
+        session.login(username=user.username, password=user.password, next='/')
         ws = WSClient(
               session_id=session.session_id,
               csrftoken=session.session.cookies.get('csrftoken')
@@ -66,17 +64,17 @@ class TestBasicAuth(APITest):
         sessions = []
         ws_clients = []
         for _ in range(total):
-             session, ws = self.spawn_session(user)
-             sessions.append(session)
-             ws_clients.append(ws)
-             utils.logged_sleep(3)
+            session, ws = self.spawn_session(user)
+            sessions.append(session)
+            ws_clients.append(ws)
+            utils.logged_sleep(3)
 
         # every *invalid* Websocket client should get a logout notification
         invalid_logins = total - max_logins
         for ws in ws_clients[:invalid_logins]:
             reply = next(iter(ws))
-        assert reply['group_name'] == 'control'
-        assert reply['reason'] == 'limit_reached'
+            assert reply['group_name'] == 'control'
+            assert reply['reason'] == 'limit_reached'
 
         responses = [s.get('/api/v2/me/').status_code for s in sessions]
         assert responses.count(200) == max_logins
