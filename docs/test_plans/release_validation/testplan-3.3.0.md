@@ -10,11 +10,13 @@
 
 ### Parameters for Scheduled and Workflow Jobs (cwang)
 * [Feature](https://github.com/ansible/tower/blob/devel/docs/prompting.md)
-* [Test Plan](https://docs.google.com/document/d/1M_W0g5gPo4kuuMwIcA5Z7BookbPID8PqxBwCuIIwS2Y/edit)
+* [API Test Plan](https://docs.google.com/document/d/1M_W0g5gPo4kuuMwIcA5Z7BookbPID8PqxBwCuIIwS2Y/edit)
+* [UI Test Plan](https://docs.google.com/document/d/13cjewq7eat2vMT-QuwGMtCl94aj9O_ljkFNncVDaXO8/edit)
 
 ### Revise capacity algorithm (cwang)
 * [Feature](https://github.com/ansible/tower/blob/release_3.3.0/docs/capacity.md)
-* [Test Plan](https://docs.google.com/document/d/1wr1IiwsP8pnZ-b-SiiQnh_jL_q4gtzOZQQN8oCvDi5s/edit)
+* [API Test Plan](https://docs.google.com/document/d/1wr1IiwsP8pnZ-b-SiiQnh_jL_q4gtzOZQQN8oCvDi5s/edit)
+* [UI Test Plan](https://docs.google.com/document/d/1v-OGERQSQZJTyzDa1gYlLp74qm-YwNtf0dst2OfdG9s/edit)
 
 ### More granular permissions (mwilson)
 * [Feature]()
@@ -22,6 +24,7 @@
 ### SAML/LDAP/etc hitlist catchall (mwilson)
 * [Feature (saml)](https://github.com/ansible/tower/blob/release_3.3.0/docs/auth/saml.md)
 * [Feature (ldap)](https://github.com/ansible/tower/blob/release_3.3.0/docs/auth/ldap.md)
+* [UI Testplan](
 
 ### Update GCP credentials
 * [Feature]()
@@ -34,7 +37,7 @@
 * [Feature](https://github.com/ansible/tower/blob/release_3.3.0/docs/multi_credential_assignment.md)
 * [Test Plan](https://docs.google.com/document/d/1haYuCGYGqPbiUqig4rJoDYyKfLHgCXm_yzXCeSxoiEo/edit)
 
-### Pendo Opt-Out in License Screen
+### Pendo Opt-Out in License Screen (johill)
 * [Feature]()
 
 ### Fact caching for isolated jobs (cwang)
@@ -46,7 +49,7 @@
 * [Test Plan](https://docs.google.com/document/d/1qaLCCXoGEcAIW0Be-JTvBOM-KoC1AOGBju1nM9b3WbU/edit)
 
 ### ~Inventory & Network Visualization~
-* This feature never made Tower-3.3.0.
+* This feature never made Tower-3.3.0. :(
 
 ### Token-based authentication to Tower (mwilson, rpetrello)
 * [Feature (sessions)](https://github.com/ansible/tower/blob/release_3.3.0/docs/auth/session.md)
@@ -67,7 +70,7 @@
 ### Fix #823 (schedules timezone) (rfitzpatrick)
 * [Feature](https://github.com/ansible/tower/blob/release_3.3.0/docs/schedules.md)
 
-### Event-ize all stdout + optimized multi-MB+ stdout + handle free/serial
+### Event-ize all stdout + optimized multi-MB+ stdout + handle free/serial (johill)
 * [Feature](https://github.com/ansible/tower/blob/release_3.3.0/docs/job_events.md)
 
 ## Regression
