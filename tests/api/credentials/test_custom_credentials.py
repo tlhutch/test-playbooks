@@ -172,7 +172,7 @@ class TestCustomCredentials(Base_Api_Test):
         job = jt.launch().wait_until_completed()
         assert job.is_successful
 
-        job_events = job.related.job_events.get(host=host.id, task='debug')
+        job_events = job.related.job_events.get(host=host.id, task='debug', order_by='counter')
         assert job_events.results[0].event_data.res.cat1.stdout == one_contents
         assert job_events.results[1].event_data.res.cat2.stdout == two_contents
 
