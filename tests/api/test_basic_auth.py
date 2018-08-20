@@ -3,6 +3,7 @@ from towerkit.ws import WSClient
 from towerkit.config import config as qe_config
 from towerkit import utils
 import pytest
+import time
 
 from tests.api import APITest
 
@@ -94,3 +95,32 @@ class TestBasicAuth(APITest):
 
         responses = [s.get('/api/v2/me/').status_code for s in sessions]
         assert responses.count(200) == 2
+
+    def get_cookie_expiry(self, cookiejar):
+        cookies = [c for c in cookiejar if c.name == 'sessionid']
+        assert len(cookies) == 1
+        return cookies[0].expires
+
+    def test_session_cookie_age_is_applied(self, factories, v2, update_setting_pg):
+        user = factories.v2_user()
+        update_setting_pg(v2.settings.get().get_endpoint(
+            'authentication'), {'SESSION_COOKIE_AGE': 1000})
+        session, _ = self.spawn_session(user)
+        session.get('/api/v2/me/')
+        assert 995 < self.get_cookie_expiry(
+            session.session.cookies) - time.time() < 1000
+
+    @pytest.mark.github('https://github.com/ansible/tower/issues/2907')
+    def test_session_cookie_age_change_affects_active_sessions(self, factories, v2, update_setting_pg):
+        user = factories.v2_user()
+        session, _ = self.spawn_session(user)
+
+        session.get('/api/v2/me/')
+        assert 1790 < self.get_cookie_expiry(
+            session.session.cookies) - time.time() < 1800
+
+        update_setting_pg(v2.settings.get().get_endpoint(
+            'authentication'), {'SESSION_COOKIE_AGE': 60 * 60 * 24})
+        session.get('/api/v2/me/')
+        assert 86350 < self.get_cookie_expiry(
+            session.session.cookies) - time.time() < 86400
