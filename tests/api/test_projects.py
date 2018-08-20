@@ -153,60 +153,19 @@ class Test_Projects(Base_Api_Test):
         assert update_pg.timeout == project.timeout, \
             "Update_pg has a different timeout value ({0}) than its project ({1}).".format(update_pg.timeout, project.timeout)
 
-    @pytest.mark.parametrize(
-        "attr,value",
-        [
-            ("scm_type", 'hg'),
-            ("scm_url", 'https://bitbucket.org/jlaska/ansible-helloworld'),
-        ]
-    )
-    def test_scm_delete_on_next_update(self, project_ansible_playbooks_git, attr, value):
-        """Verify changing the scm_type or the scm_url causes tower to enable
-        scm_delete_on_next_update.
+    @pytest.mark.parametrize("scm_type,mod_kwargs", [
+        ('hg', {'scm_branch': '09e81486069b4e38e62c24d7d7a529fc975d4a31'}),
+        ('git', {'scm_branch': 'with_requirements'}),
+        ('hg', {'scm_type': 'git', 'scm_url': 'https://github.com/jlaska/ansible-playbooks.git'}),
+        ('git', {'scm_url': 'https://github.com/alancoding/ansible-playbooks.git'})
+    ], ids=['hg-branch', 'git-branch', 'scm_type', 'git-url'])
+    def test_auto_update_on_modification_of_scm_fields(self, factories, scm_type, mod_kwargs):
+        project = factories.v2_project(scm_type=scm_type)
+        assert project.related.project_updates.get().count == 1
 
-        Also assert that after subsequently updating the project, the field
-        scm_delete_on_next_update is disabled.
-        """
-        # assert scm_delete_on_update == False
-        assert not project_ansible_playbooks_git.scm_delete_on_update, \
-            "Unable to test scm_delete_on_next_update when scm_delete_on_update==True"
-
-        # assert scm_delete_on_next_update == False
-        assert not project_ansible_playbooks_git.scm_delete_on_next_update, \
-            "Before changing '%s', the value of 'scm_delete_on_next_update' is unexpected (%s != False)" % \
-            (attr, project_ansible_playbooks_git.scm_delete_on_next_update)
-
-        # change+restore the attribute value
-        orig_value = getattr(project_ansible_playbooks_git, attr)
-        project_ansible_playbooks_git.patch(**{attr: value})
-        project_ansible_playbooks_git = project_ansible_playbooks_git.patch(**{attr: orig_value})
-
-        # assert scm_delete_on_next_update == True
-        assert project_ansible_playbooks_git.scm_delete_on_next_update, \
-            "After changing '%s', the value of 'scm_delete_on_next_update' is unexpected (%s != True)" % \
-            (attr, project_ansible_playbooks_git.scm_delete_on_next_update)
-
-        # update the project
-        update_pg = project_ansible_playbooks_git.get_related('update')
-        result = update_pg.post()
-        updates_pg = project_ansible_playbooks_git.get_related('project_updates', id=result.json['project_update'])
-        assert updates_pg.count == 1, 'No project update matching id:%s found' % result.json['project_update']
-
-        # wait for update to complete
-        project_ansible_playbooks_git = project_ansible_playbooks_git.wait_until_completed()
-
-        # assert project_update was successful
-        assert project_ansible_playbooks_git.is_successful, \
-            "Project update unsuccesful - %s" % project_ansible_playbooks_git
-
-        # FIXME - verify that the project *was* deleted before updating
-        # TASK: [delete project directory before update] ********************************
-        # changed: [localhost] => {"changed": true, "path": "/var/lib/awx/projects/_3811__ansible_examplesgit_git", "state": "absent"}
-
-        # assert scm_delete_on_next_update == False
-        assert not project_ansible_playbooks_git.scm_delete_on_next_update, \
-            "After completing a project_update, the value of 'scm_delete_on_next_update' is unexpected (%s != False)" % \
-            (project_ansible_playbooks_git.scm_delete_on_next_update)
+        # verify that changing update-relevant parameters causes new update
+        project.patch(**mod_kwargs)
+        assert project.related.project_updates.get().count == 2
 
     def test_cancel_queued_update(self, project_ansible_git_nowait):
         """Verify the project->current_update->cancel endpoint behaves as expected when canceling a
