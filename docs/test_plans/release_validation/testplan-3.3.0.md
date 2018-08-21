@@ -64,6 +64,7 @@
 ### Multiple venvs for ansible (jladd)
 * [Feature](https://github.com/ansible/tower/blob/release_3.3.0/docs/custom_virtualenvs.md)
 * [Test Plan](https://docs.google.com/document/d/1TKkdj1pdeh9p048_S-sIMxSpAUKZuX3T65kcVKT8odM/edit)
+* [UI Test Plan](https://docs.google.com/document/d/1TKkdj1pdeh9p048_S-sIMxSpAUKZuX3T65kcVKT8odM/edit#bookmark=id.ouul149hfpe6)
 
 ### Multi-Credential (+ Multi-Vault) Assignment (jladd)
 * [Feature](https://docs.google.com/document/d/1H5cphm39UFqV91nRiipNJxjlshpoBMwAIkx2n5cg2lQ/edit)
