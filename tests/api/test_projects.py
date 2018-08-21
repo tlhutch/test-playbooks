@@ -49,7 +49,7 @@ class Test_Projects(Base_Api_Test):
         task_icontains = "fetch galaxy roles from requirements.yml"
         res = project.related.project_updates.get(job_type=job_type, order_by='-created') \
                                              .results[0].related.events \
-                                             .get(task__icontains=task_icontains, event__startswith='runner_on_', order_by='created')
+                                             .get(task__icontains=task_icontains, event__startswith='runner_on_', order_by='counter')
         assert 2 == res.count, \
                 "Expected to find 2 job events matching task={},event__startswith={} for project update {}".format(
                         task_icontains, 'runner_on_', project.related.last_update)
