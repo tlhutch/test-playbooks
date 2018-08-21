@@ -234,6 +234,21 @@ class TestTraditionalCluster(Base_Api_Test):
             [instance.hostname for instance in ig.related.instances.get().results], \
             "Job should execute on a node in the 'isolated' instance group"
 
+    def test_isolated_artifacts(self, v2, factories, artifacts_from_stats_playbook):
+        # Create JT that does set_stats
+        host = factories.v2_host()
+        set_stats_jt = factories.v2_job_template(
+            playbook='test_set_stats.yml', inventory=host.ds.inventory
+        )
+
+        # Launch and finish isolated job
+        ig = v2.instance_groups.get(name='protected').results[0]
+        set_stats_jt.add_instance_group(ig)
+        stats_job = set_stats_jt.launch().wait_until_completed()
+        assert stats_job.is_successful
+
+        assert stats_job.artifacts == artifacts_from_stats_playbook
+
     @pytest.mark.github('https://github.com/ansible/tower/issues/2394')
     def test_isolated_instance_cannot_be_added_to_instance_group(self, v2):
         iso_instances = v2.instances.get(rampart_groups__controller__isnull=False).results

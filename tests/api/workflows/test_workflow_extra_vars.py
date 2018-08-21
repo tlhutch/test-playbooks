@@ -418,7 +418,7 @@ class TestWorkflowExtraVars(Base_Api_Test):
         assert json.loads(wfj.extra_vars) == dict(var1='launch', var2='$encrypted$', var3='launch')
         assert json.loads(job.extra_vars) == dict(var1='launch', var2='$encrypted$', var3='launch')
 
-    def test_wfjt_nodes_source_variables_with_set_stats(self, factories):
+    def test_wfjt_nodes_source_variables_with_set_stats(self, factories, artifacts_from_stats_playbook):
         host = factories.v2_host()
         set_stats_jt = factories.v2_job_template(playbook='test_set_stats.yml')
         success_jt = factories.v2_job_template()
@@ -432,18 +432,18 @@ class TestWorkflowExtraVars(Base_Api_Test):
         wfj = wfjt.launch().wait_until_completed()
         assert wfj.is_successful
         assert wfj.extra_vars == '{}'
-        assert set_stats_jt.get().related.last_job.get().extra_vars == '{}'
 
+        # verify jobs spawned as expected
+        assert success_jt.related.jobs.get().count == 2
+        assert failure_jt.related.jobs.get().count == 1
+
+        # the root job produces the artifacts
+        root_job = set_stats_jt.get().related.last_job.get()
+        assert root_job.is_successful
+        assert root_job.extra_vars == '{}'
+        assert root_job.artifacts == artifacts_from_stats_playbook
+
+        # downstram jobs consume those artifacts
         for job in success_jt.related.jobs.get().results + failure_jt.related.jobs.get().results:
             sourced_vars = json.loads(job.extra_vars)
-            assert sourced_vars['string'] == 'abc'
-            assert sourced_vars['unicode'] == u'\u7af3\u466d\u97fd'
-            assert sourced_vars['float'] == 1.0
-            assert sourced_vars['integer'] == 123
-            assert sourced_vars['boolean']
-            assert not sourced_vars['none']
-            assert sourced_vars['list'] == ['abc', 123, 1.0, u'\u7af3\u466d\u97fd', True, None, [], {}]
-            assert sourced_vars['object'] == dict(string='abc', unicode=u'\u7af3\u466d\u97fd', float=1.0, integer=123, boolean=True,
-                                                  none=None, list=[], object={})
-            assert sourced_vars['empty_list'] == []
-            assert sourced_vars['empty_object'] == {}
+            assert sourced_vars == artifacts_from_stats_playbook

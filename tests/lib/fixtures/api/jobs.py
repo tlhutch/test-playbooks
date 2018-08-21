@@ -1,5 +1,7 @@
+# -*- coding: utf-8 -*-
 import pytest
 import datetime
+import yaml
 
 from towerkit import utils
 
@@ -23,6 +25,39 @@ def json_launch_time_vars():
 @pytest.fixture(scope="function")
 def yaml_launch_time_vars():
     return "---\njob_var: 0\nintersection: launch-time"
+
+
+@pytest.fixture
+def artifacts_from_stats_playbook():
+    # data from the test_set_stats.yml playbook verbatum
+    return yaml.load('\n'.join([
+        "---",
+        "string: 'abc'",
+        "integer: 123",
+        "float: 1.0",
+        "unicode: '竳䙭韽'",
+        "boolean: true",
+        "none: null",
+        "list:",
+        "  - 'abc'",
+        "  - 123",
+        "  - 1.0",
+        "  - '竳䙭韽'",
+        "  - true",
+        "  - null",
+        "  - []",
+        "  - {}",
+        "object:",
+        "  string: 'abc'",
+        "  integer: 123",
+        "  float: 1.0",
+        "  unicode: '竳䙭韽'",
+        "  boolean: true",
+        "  none: null",
+        "  list: []",
+        "  object: {}",
+        "empty_list: []",
+        "empty_object: {}"]))
 
 
 @pytest.fixture(scope="function")
