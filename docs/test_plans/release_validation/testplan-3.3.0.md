@@ -24,7 +24,7 @@
 ### SAML/LDAP/etc hitlist catchall (mwilson)
 * [Feature (saml)](https://github.com/ansible/tower/blob/release_3.3.0/docs/auth/saml.md)
 * [Feature (ldap)](https://github.com/ansible/tower/blob/release_3.3.0/docs/auth/ldap.md)
-* [UI Testplan](
+* [UI Testplan]()
 
 ### Update GCP credentials
 * [Feature]()
@@ -32,13 +32,15 @@
 ### API-backed item copying (guozhang)
 * [Feature](https://github.com/ansible/tower/blob/release_3.3.0/docs/resource_copy.md)
 * [Test Plan](https://docs.google.com/document/d/1EXi_w2JWkZ_PzhHIK4hJ1GOJAVT8jjYwMsFz59OkC9E/edit?usp=sharing)
+* [UI Test Plan](https://docs.google.com/document/d/1-foEZGWngVQY5NVkctq-AHqMdl70MWnh5517Q29P1Rk/edit)
 
 ### Multi-file support for Credential Types (cwang)
 * [Feature](https://github.com/ansible/tower/blob/release_3.3.0/docs/multi_credential_assignment.md)
 * [Test Plan](https://docs.google.com/document/d/1haYuCGYGqPbiUqig4rJoDYyKfLHgCXm_yzXCeSxoiEo/edit)
 
 ### Pendo Opt-Out in License Screen (johill)
-* [Feature]()
+* [Feature](https://github.com/ansible/ansible-tower/issues/7812)
+* [UI Test Plan](https://docs.google.com/document/d/19haH5aTRhIdAsmpjKx9chOQI1po_gMRaVYoQf681aJQ/edit)
 
 ### Fact caching for isolated jobs (cwang)
 * [Feature](https://github.com/ansible/awx/issues/198)
@@ -72,6 +74,7 @@
 
 ### Event-ize all stdout + optimized multi-MB+ stdout + handle free/serial (johill)
 * [Feature](https://github.com/ansible/tower/blob/release_3.3.0/docs/job_events.md)
+* [Test Plan](https://docs.google.com/document/d/1Fju6pAJ5kbK8xEeCSsse3RHwhhYpdMRMnMYxscs1B8Q/edit)
 
 ## Regression
 1. [ ] UI regression completed
