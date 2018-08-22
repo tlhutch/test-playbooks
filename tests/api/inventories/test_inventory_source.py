@@ -40,6 +40,79 @@ class TestInventorySource(Base_Api_Test):
                 inv_source.credential = cred.id
             assert e.value[1] == error
 
+    @pytest.mark.ansible_integration
+    def test_inventory_source_with_vaulted_vars(self, factories, ansible_version_cmp):
+        # Feature was introduced in Ansible 2.6
+        if ansible_version_cmp("2.6") < 0:
+            pytest.skip("Not supported on Ansible versions predating 2.6.")
+
+        # this is the string "artemis" encrypted with ansible-vault
+        # direct output from:
+        # ansible-vault encrypt_string --vault-id alan@prompt 'artemis'
+        # (on prompt provide "password" for the vault password)
+        # this command will give different numbers every time
+        # so this exact string cannot be reproduced
+        encrypted_content = (
+            '$ANSIBLE_VAULT;1.2;AES256;alan\n'  # line break required, non-obvious Ansible-ism
+            '61346130303231633133646133646639626338323565396239396633333736653630633938323733'
+            '6235323735363362346632353132386466396232343133340a356330376131383637393535376236'
+            '31383561616533643835336266366263346630666335336265306139316138666561626531313864'
+            '3161633532623966380a333433303064383831613630366137656330353833383233353561626635'
+            '3832'
+        )
+
+        # Create inventory source that puts the encrypted content in hostvars
+        inventory = factories.v2_inventory()
+        org = inventory.ds.organization
+        inv_script = factories.v2_inventory_script(
+            organization=org,
+            script=('\n'.join([
+                '#!/usr/bin/env python',
+                '# -*- coding: utf-8 -*-',
+                'import json',
+                '',
+                '',
+                'print json.dumps({',
+                '    "_meta": {',
+                '        "hostvars": {',
+                '            "foobar": {',
+                '                "encrypted_var": {',  # JSON object hooks used by Ansible
+                '                    "__ansible_vault": """{}"""'.format(encrypted_content),
+                '                }',
+                '            }',
+                '        }',
+                '    },',
+                '    "ungrouped": {',
+                '        "hosts": ["foobar"]',
+                '    }',
+                '})'
+            ]))
+        )
+        inv_src = factories.v2_inventory_source(inventory=inventory, inventory_script=inv_script)
+
+        # Run the inventory update
+        inv_update = inv_src.update().wait_until_completed()
+        assert inv_update.is_successful
+        inv_hosts = inventory.related.hosts.get()
+        assert inv_hosts.count == 1
+        host = inv_hosts.results.pop()
+        assert 'encrypted_var' in host.variables
+        assert host.variables.encrypted_var['__ansible_vault'] == encrypted_content
+
+        # Decrypt vault secret by running a playbook
+        vault_cred = factories.v2_credential(
+            kind='vault', organization=org,
+            inputs=dict(
+                vault_password='password',
+                vault_id='alan'
+            )
+        )
+        jt = factories.v2_job_template(playbook='debug_hostvars.yml', inventory=inventory)
+        jt.add_credential(vault_cred)
+        job = jt.launch().wait_until_completed()
+        assert job.is_successful
+        assert '"encrypted_var": "artemis"' in job.result_stdout
+
     @pytest.mark.github('https://github.com/ansible/tower/issues/837')
     def test_conflict_exception_with_running_inventory_update(self, factories):
         inv_source = factories.v2_inventory_source()
