@@ -309,7 +309,10 @@ class TestInventoryUpdate(Base_Api_Test):
                                    'Finished loading from source',
                                    'Loaded 1 groups, 5 hosts',
                                    'Inventory variables unmodified',
-                                   'Inventory import completed'])], ids=['0-warning', '1-info', '2-debug'])
+                                   'Inventory import completed',
+                                   'Adding host host_', ' to group group-',
+                                   'Adding child group group-', ' to parent all'])],
+                             ids=['0-warning', '1-info', '2-debug'])
     def test_update_verbosity(self, is_docker, ansible_version_cmp, factories, verbosity, stdout_lines):
         """Verify inventory source verbosity."""
         if is_docker and verbosity == 0:
