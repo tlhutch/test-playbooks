@@ -1,11 +1,8 @@
 ---
 authorized_keys:
-    - 'https://github.com/abadger.keys'
     - 'https://github.com/ansible-jenkins.keys'
-    - 'https://github.com/cchurch.keys'
     - 'https://github.com/chrismeyersfsu.keys'
     - 'https://github.com/jaredevantabor.keys'
-    - 'https://github.com/jimi-c.keys'
     - 'https://github.com/jlaska.keys'
     - 'https://github.com/matburt.keys'
     - 'https://github.com/simfarm.keys'
@@ -19,8 +16,6 @@ authorized_keys:
     - 'https://github.com/ryanpetrello.keys'
     - 'https://github.com/wenottingham.keys'
     - 'https://github.com/unlikelyzero.keys'
-    - 'https://github.com/thedoubl3j.keys'
-    - 'https://github.com/sangongs.keys'
     - 'https://github.com/one-t.keys'
     - 'https://github.com/kialam.keys'
     - 'https://github.com/benthomasson.keys'
