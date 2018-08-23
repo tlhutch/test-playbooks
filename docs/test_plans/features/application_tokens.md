@@ -14,9 +14,9 @@ Tower 3.3.0 introduces the notion of authorized applications for delegated API a
 * [x] Towerkit REST client session adoption
 * [x] Towerkit WS client session adoption
 * [x] Towerkit Application objects
-* [ ] ~~Towerkit Application schemas~~
+* [x] Towerkit Application schemas
 * [x] Towerkit Token objects
-* [ ] ~~Towerkit Token schemas~~
+* [x] Towerkit Token schemas
 
 ### Test suites and cases
 * [x] API

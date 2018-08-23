@@ -54,6 +54,7 @@ class TestBasicAuth(APITest):
         ws.subscribe(control=['limit_reached_{}'.format(user.id)])
         return session, ws
 
+    @pytest.mark.mp_group('AWX_PROOT_ENABLED', 'isolated_serial')
     @pytest.mark.parametrize('max_logins', range(1, 4))
     def test_authtoken_maximum_concurrent_sessions(self, factories, v2, update_setting_pg, max_logins):
         total = 3
