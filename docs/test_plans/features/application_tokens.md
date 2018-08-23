@@ -49,6 +49,4 @@ Tower 3.3.0 introduces the notion of authorized applications for delegated API a
         * [x] Basic Auth regression tests
         * [x] Provisioning callbacks
         * [x] authtoken obsolesence
-* [ ] UI (manual testing anticipated)
-    * [ ] Application CRUD
-    * [ ] Token CRUD
+* [ ] UI (https://docs.google.com/document/d/1uMSSYQdItLt9GKpq54LtBcbFKXE47qEIyJVTjpiiX_A/edit)
