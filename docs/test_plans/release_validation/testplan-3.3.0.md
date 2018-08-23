@@ -56,6 +56,7 @@
 ### Token-based authentication to Tower (mwilson, rpetrello)
 * [Feature (sessions)](https://github.com/ansible/tower/blob/release_3.3.0/docs/auth/session.md)
 * [Feature (oauth)](https://github.com/ansible/tower/blob/release_3.3.0/docs/auth/oauth.md)
+* [UI Testplan](https://docs.google.com/document/d/1uMSSYQdItLt9GKpq54LtBcbFKXE47qEIyJVTjpiiX_A/edit)
 
 ### Retry on Failed Hosts (guozhang)
 * [Feature](https://github.com/ansible/tower/blob/release_3.3.0/docs/retry_by_status.md)
