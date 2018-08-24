@@ -14,12 +14,12 @@ Tower 3.3.0 introduces the notion of authorized applications for delegated API a
 * [x] Towerkit REST client session adoption
 * [x] Towerkit WS client session adoption
 * [x] Towerkit Application objects
-* [ ] Towerkit Application schemas
+* [x] Towerkit Application schemas
 * [x] Towerkit Token objects
-* [ ] Towerkit Token schemas
+* [x] Towerkit Token schemas
 
 ### Test suites and cases
-* [ ] API
+* [x] API
     * [x] Application CRUD
         * [x] Basic Functionality
         * [x] RBAC
@@ -39,11 +39,11 @@ Tower 3.3.0 introduces the notion of authorized applications for delegated API a
         * [x] Token expiration
         * [x] Activity Stream for API usage
     * [x] Token scopes
-    * [ ] Session adoption
-        * [ ] Sessions basic functionality
+    * [x] Session adoption
+        * [x] Sessions basic functionality
             * [x] API access - implicit in integration testing
-            * [ ] WS client
-            * [ ] Session expiration
+            * [x] WS client
+            * [x] Session expiration
             * [x] Maximum concurrent sessions
             * [x] Password changes
         * [x] Basic Auth regression tests
