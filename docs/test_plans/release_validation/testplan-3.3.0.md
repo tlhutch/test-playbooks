@@ -20,6 +20,7 @@
 
 ### More granular permissions (mwilson)
 * [Feature]()
+* [UI Test Plan](https://docs.google.com/document/d/153--RdyViwK1g2_qNEyo78q28i1X8C9MdwNHeA7sOjM/edit#)
 
 ### SAML/LDAP/etc hitlist catchall (mwilson)
 * [Feature (saml)](https://github.com/ansible/tower/blob/release_3.3.0/docs/auth/saml.md)
@@ -56,7 +57,7 @@
 ### Token-based authentication to Tower (mwilson, rpetrello)
 * [Feature (sessions)](https://github.com/ansible/tower/blob/release_3.3.0/docs/auth/session.md)
 * [Feature (oauth)](https://github.com/ansible/tower/blob/release_3.3.0/docs/auth/oauth.md)
-* [UI Testplan](https://docs.google.com/document/d/1uMSSYQdItLt9GKpq54LtBcbFKXE47qEIyJVTjpiiX_A/edit)
+* [UI Test Plan](https://docs.google.com/document/d/1uMSSYQdItLt9GKpq54LtBcbFKXE47qEIyJVTjpiiX_A/edit)
 
 ### Retry on Failed Hosts (guozhang)
 * [Feature](https://github.com/ansible/tower/blob/release_3.3.0/docs/retry_by_status.md)
