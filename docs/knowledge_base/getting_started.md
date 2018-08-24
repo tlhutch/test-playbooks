@@ -3,40 +3,55 @@
 Welcome to `tower-qa`! Herein lies our beloved API integration tests, playbooks, and scripts.
 
 ##### Getting Started with API Tests 
+Clone the `tower-qa` repo with:
+```
+$ git clone git@github.com:ansible/tower-qa.git tower-qa
+```
+
+If you will be running tests or using tower's client utility, `tkit`, against multple versions of tower, you may want to create a `tower-qa` checkout for each branch:
+```
+$ git clone git@github.com:ansible/tower-qa.git tower-qa-(branch_name)
+$ cd tower-qa-(branch_name)
+$ git checkout (branch_name)
+```
+where `branch_name` is `master`, `release_3.2`, `release_3.1`, etc.
+
 We recommend using virtual environments to manage dependencies:
 * [virtualenv](https://virtualenv.pypa.io/en/stable/installation/)
 * [virtualenvwrapper](https://virtualenvwrapper.readthedocs.io/en/latest/install.html)
 
-Create virtualenv and install requirements:
+After installing virtualenv and virtualenvwrapper, you can create a virtualenv with:
 ```
-Simfarm@ovpn-127-13:~/Git/tower-qa$ mkvirtualenv tower-qa
-(tower-qa) Simfarm@ovpn-127-13:~/Git/tower-qa$ pip install -r requirements.txt
+$ mkvirtualenv tower-qa
+(tower-qa) $ pip install -U -r requirements.txt
 ```
+
+If you have different `tower-qa` checkouts, you should create a different virtualenv for each checkout. Note that different versions of `tower-qa` often have different dependencies!
 
 To run tests:
 * You will need to decrypt `config/credentials.vault`. For vault password, ask a QE member.
 ```
-ansible-vault decrypt --ask-vault-pass --output=config/credentials.yml config/credentials.vault
+$ ansible-vault decrypt --ask-vault-pass --output=config/credentials.yml config/credentials.vault
 ```
-* You will need to create a superuser in `tools_tower_1` with username "admin" and password "fo0m4nchU":
+* If running tests against Tower running in Docker, You will need to create a superuser in `tools_tower_1` with username "admin" and password "fo0m4nchU":
 ```
-docker exec -it tools_awx_1 bash
+$ docker exec -it tools_awx_1 bash
 
-awx-manage createsuperuser
-awx-manage create_preload_data
+$ awx-manage createsuperuser
+$ awx-manage create_preload_data
 ```
-* You will need to clone the license writer inside `tools_tower_1`:
+* The Docker environment also requires cloning the license writer inside `tools_tower_1`:
 ```
-git clone https://github.com/ansible/tower-license
+$ git clone https://github.com/ansible/tower-license
 
-cd tower-license
-. /venv/awx/bin/activate
-pip install .
+$ cd tower-license
+$ . /venv/awx/bin/activate
+$ pip install .
 ```
 
-Run tests with:
+Run tests against Tower in Docker with:
 ```
-py.test --ansible-host-pattern=127.0.0.1 --base-url http://127.0.0.1:8013 --api-destructive --api-credentials=config/credentials.yml --ansible-sudo --pdb -vs -k test_labels.py 
+$ py.test --ansible-host-pattern=127.0.0.1 --base-url http://127.0.0.1:8013 --api-destructive --api-credentials=config/credentials.yml --ansible-sudo --pdb -vs -k test_labels.py 
 ```
 * If the test fails, it will drop into a `pdb` session with `--pdb`.
 * `-vs` will give you a REST log.
@@ -44,7 +59,7 @@ py.test --ansible-host-pattern=127.0.0.1 --base-url http://127.0.0.1:8013 --api-
 
 Run tests with four processes to increase speed:
 ```
-py.test --ansible-host-pattern=127.0.0.1 --base-url http://127.0.0.1:8013 --api-destructive --api-credentials=config/credentials.yml --ansible-sudo -vs --mp --np 4 -k test_labels.py
+$ py.test --ansible-host-pattern=127.0.0.1 --base-url http://127.0.0.1:8013 --api-destructive --api-credentials=config/credentials.yml --ansible-sudo -vs --mp --np 4 -k test_labels.py
 ```
 
 ##### Getting Started with Playbooks
@@ -97,7 +112,7 @@ The Ansible ec2 inventory script needs the following environment variables:
 
 Invoke playbook with:
 ```
-(tower-qa) Simfarm@ovpn-127-13:~/Git/tower-qa/playbooks$ ansible-playbook -i inventory deploy-tower.yml -e @images-ec2.yml -e @vars.yml
+(tower-qa) ~/git/tower-qa/playbooks$ ansible-playbook -i inventory deploy-tower.yml -e @images-ec2.yml -e @vars.yml
 ```
 
 Written by [Christopher Wang](mailto:chrwang@redhat.com) (Github: simfarm) May 10, 2018.
