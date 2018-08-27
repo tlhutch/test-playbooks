@@ -1,6 +1,7 @@
 import pytest
 
 from towerkit import utils
+from towerkit import exceptions as exc
 
 from tests.api import Base_Api_Test
 
@@ -92,13 +93,20 @@ class TestInstances(Base_Api_Test):
         assert instance.cpu_capacity == initial_cpu_capacity
         assert instance.capacity == max(instance.mem_capacity, instance.cpu_capacity)
 
-    @pytest.mark.parametrize('capacity_adjustment', ['0', '.25', '.5', '.75', '1'])
+    @pytest.mark.parametrize('capacity_adjustment', ['0', '.25', '.5', '.75', '1', '1.5', '3'])
     def test_instance_capacity_updates_for_percent_capacity_remaining(self, request, v2, capacity_adjustment):
         instance = v2.instances.get(rampart_groups__controller__isnull=True).results.pop()
         request.addfinalizer(lambda: instance.patch(capacity_adjustment='1'))
         instance.capacity_adjustment = capacity_adjustment
 
         assert instance.capacity == self.find_expected_capacity(instance)
+
+    @pytest.mark.parametrize('capacity_adjustment', ['-1', '-5.0', 'dog', None, []])
+    def test_instance_invalid_capacity_adjustment(self, request, v2, capacity_adjustment):
+        instance = v2.instances.get(rampart_groups__controller__isnull=True).results.pop()
+        request.addfinalizer(lambda: instance.patch(capacity_adjustment='1'))
+        with pytest.raises(exc.BadRequest):
+            instance.capacity_adjustment = capacity_adjustment
 
     def test_verify_instance_read_only_fields(self, v2):
         instance = v2.instances.get(rampart_groups__controller__isnull=True).results.pop()
