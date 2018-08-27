@@ -466,6 +466,13 @@ class TestApplicationTokens(APITest):
                                     redirect_uris='https://example.com')
         with self.current_user(user):
             token = factories.access_token(oauth_2_application=app)
+
+        # implicit apps don't give you a refresh token
+        if agt == 'implicit':
+            assert token.refresh_token is None
+        else:
+            assert token.refresh_token is not None
+
         assert v2.me.get().results[0].username != user.username
         with self.current_user(token):
             me = v2.me.get().results[0]
