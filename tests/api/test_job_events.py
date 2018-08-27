@@ -368,3 +368,16 @@ class Test_Job_Events(Base_Api_Test):
         job = jt.launch().wait_until_completed()
         assert job.is_successful
         assert job.related.job_events.get(event='playbook_on_notify').count == 1
+
+    @pytest.mark.github('https://github.com/ansible/tower/issues/1775')
+    def test_long_task_name_is_truncated(self, factories, ansible_version_cmp):
+        # Our event models support a max of 1024 characters; we should truncate after that
+        host = factories.v2_host()
+        jt = factories.v2_job_template(playbook='long_task_name.yml', inventory=host.ds.inventory)
+        job = jt.launch().wait_until_completed()
+        assert job.is_successful
+        on_ok = job.related.job_events.get(event='runner_on_ok')
+        assert on_ok.count == 1
+        task = on_ok.results.pop()['task']
+        assert len(task) == 1024
+        assert task.endswith('...')
