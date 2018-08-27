@@ -44,15 +44,7 @@ class TestBasicAuth(APITest):
         session = Connection(self.connections['root'].server)
         session.get_session_requirements()
         session.login(username=user.username, password=user.password, next='/')
-        ws = WSClient(
-              session_id=session.session_id,
-              csrftoken=session.session.cookies.get('csrftoken')
-              ).connect()
-        reply = next(iter(ws))
-        assert reply['user'] == user.id
-        assert reply['accept'] is True
-        ws.subscribe(control=['limit_reached_{}'.format(user.id)])
-        return session, ws
+        return session
 
     @pytest.mark.mp_group('OAUTH_CONCURRENT_SESSIONS', 'isolated_serial')
     @pytest.mark.parametrize('max_logins', range(1, 4))
@@ -66,8 +58,16 @@ class TestBasicAuth(APITest):
         sessions = []
         ws_clients = []
         for _ in range(total):
-            session, ws = self.spawn_session(user)
+            session = self.spawn_session(user)
             sessions.append(session)
+            ws = WSClient(
+                session_id=session.session_id,
+                csrftoken=session.session.cookies.get('csrftoken')
+            ).connect()
+            reply = next(iter(ws))
+            assert reply['user'] == user.id
+            assert reply['accept'] is True
+            ws.subscribe(control=['limit_reached_{}'.format(user.id)])
             ws_clients.append(ws)
             utils.logged_sleep(3)
 
@@ -89,9 +89,9 @@ class TestBasicAuth(APITest):
         user1, user2 = [factories.v2_user(organization=org) for _ in range(2)]
 
         sessions = []
-        session1, _ = self.spawn_session(user1)
+        session1 = self.spawn_session(user1)
         sessions.append(session1)
-        session2, _ = self.spawn_session(user2)
+        session2 = self.spawn_session(user2)
         sessions.append(session2)
 
         responses = [s.get('/api/v2/me/').status_code for s in sessions]
@@ -111,7 +111,7 @@ class TestBasicAuth(APITest):
         user = factories.v2_user()
         update_setting_pg(v2.settings.get().get_endpoint(
             'authentication'), {'SESSION_COOKIE_AGE': 1000})
-        session, _ = self.spawn_session(user)
+        session = self.spawn_session(user)
         session.get('/api/v2/me/')
         assert 995 < self.get_cookie_expiry(
             session.session.cookies) - time.time() < 1000
@@ -119,7 +119,7 @@ class TestBasicAuth(APITest):
     @pytest.mark.github('https://github.com/ansible/tower/issues/2907')
     def test_session_cookie_age_change_affects_active_sessions(self, factories, v2, update_setting_pg):
         user = factories.v2_user()
-        session, _ = self.spawn_session(user)
+        session = self.spawn_session(user)
 
         session.get('/api/v2/me/')
         assert 1795 < self.get_cookie_expiry(
