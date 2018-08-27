@@ -391,6 +391,28 @@ class TestSCMInventorySource(Base_Api_Test):
             inv_source.source_project = project_ansible_playbooks_manual.id
         assert e.value.message == desired_error
 
+    def test_scm_inventory_disallows_vault_credentials(self, factories):
+        project = factories.v2_project(scm_type='git')
+        vault_credential = factories.v2_credential(kind='vault', vault_password='abc123')
+        desired_error = 'Credentials of type insights and vault are disallowed for scm inventory sources.'
+
+        with pytest.raises(exc.BadRequest) as e:
+            factories.v2_inventory_source(
+                source='scm', source_path='inventories/inventory.ini',
+                project=project, credential=vault_credential
+            )
+        assert e.value.message == {'credential': [desired_error]}
+
+        with pytest.raises(exc.BadRequest) as e:
+            iu = factories.v2_inventory_source(
+                source='scm', source_path='inventories/inventory.ini',
+                project=project
+            )
+            iu.related.credentials.post({
+                'associate': True, 'id': vault_credential.id
+            })
+        assert e.value.message == {'msg': desired_error}
+
     def test_scm_inv_source_is_schedulable_without_update_on_project_update(self, factories):
         scm_inv_source = factories.v2_inventory_source(source='scm', source_path='inventories/inventory.ini')
         scm_inv_source.add_schedule()
