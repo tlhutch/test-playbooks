@@ -2,7 +2,7 @@ import json
 
 from towerkit.config import config
 from dateutil.parser import parse
-from towerkit.utils import load_json_or_yaml
+from towerkit.utils import load_json_or_yaml, poll_until
 from towerkit import exceptions as exc
 import pytest
 
@@ -610,6 +610,26 @@ class TestInventoryUpdate(Base_Api_Test):
         assert inv_update.related.events.get().count > 0
         assert inv_update.related.events.get(search='Updating inventory').count > 0
         assert inv_update.related.events.get(search='SOME RANDOM STRING THAT IS NOT PRESENT').count == 0
+
+    @pytest.mark.ansible_integration
+    def test_inventory_hosts_cannot_be_deleted_during_sync(self, factories):
+        aws_cred = factories.v2_credential(kind='aws')
+        aws_inventory_source = factories.v2_inventory_source(kind='ec2', credential=aws_cred, verbosity=2)
+
+        inv_update = aws_inventory_source.update().wait_until_completed()
+        assert inv_update.is_successful
+
+        inv_update = aws_inventory_source.update()
+        poll_until(
+            lambda: inv_update.get().status == 'running',
+            interval=1,
+            timeout=15
+        )
+
+        hosts = aws_inventory_source.ds.inventory.related.hosts.get()
+        host = hosts.results.pop()
+        with pytest.raises(exc.Conflict):
+            host.delete()
 
     def test_tower_inventory_sync_success(self, factories):
         target_host = factories.v2_host()
