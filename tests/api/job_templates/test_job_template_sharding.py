@@ -70,6 +70,31 @@ class TestJobTemplateSharding(Base_Api_Test):
             else:
                 assert job.get().host_status_counts['ok'] == 1
 
+    def test_job_template_shard_properties(self, factories, v2, gce_credential):
+        """Tests that JT properties are used in jobs that sharded
+        workflow launches
+        """
+        ct = 3
+        jt = factories.v2_job_template(
+            job_shard_count=ct, allow_simultaneous=True,
+            verbosity=3,
+            timeout=45
+        )
+        inventory = jt.ds.inventory
+        hosts = [
+            inventory.related.hosts.post(payload=dict(name='foo{}'.format(i)))
+            for i in range(ct)
+        ]
+        workflow_job = jt.launch()
+        workflow_job.wait_until_completed()
+        for node in workflow_job.related.workflow_nodes.get().results:
+            assert node.verbosity == None
+            assert node.related.credentials.get().count == 0
+            job = node.related.job.get()
+            assert job.related.create_schedule.get()['prompts'] == {}
+            assert job.verbosity == 3
+            assert job.timeout == 45
+
     def test_job_template_shard_prompts(self, factories, v2, gce_credential):
         """Tests that prompts applied on launch fan out to shards
         """
@@ -93,14 +118,13 @@ class TestJobTemplateSharding(Base_Api_Test):
         workflow_job.wait_until_completed()
         for node in workflow_job.related.workflow_nodes.get().results:
             assert node.limit == 'foobar'
-            assert (
-                set(cred.id for cred in node.related.credentials.get().results) ==
-                set([gce_credential.id, jt.ds.credential.id])
-            )
+            assert [cred.id for cred in node.related.credentials.get().results] == [gce_credential.id]
             job = node.related.job.get()
             prompts = job.related.create_schedule.get()['prompts']
             assert prompts['limit'] == 'foobar'
-            assert prompts['credentials'] == [gce_credential.id]
+            assert [cred['id'] for cred in prompts['credentials']] == [gce_credential.id]
+            assert set(cred.id for cred in job.related.credentials.get().results) == set([
+                gce_credential.id, jt.ds.credential.id])
 
 
     def test_job_template_shard_schedule(self, factories, v2, gce_credential):
