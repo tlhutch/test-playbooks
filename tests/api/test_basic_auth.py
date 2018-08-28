@@ -82,6 +82,7 @@ class TestBasicAuth(APITest):
         assert responses.count(200) == max_logins
         assert responses.count(401) == invalid_logins
 
+    @pytest.mark.mp_group('OAUTH_CONCURRENT_SESSIONS', 'isolated_serial')
     def test_authtoken_maximum_concurrent_sessions_does_not_kick_other_users(self, factories, v2, update_setting_pg):
         update_setting_pg(v2.settings.get().get_endpoint(
             'authentication'), {'SESSIONS_PER_USER': 1})
