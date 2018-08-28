@@ -203,6 +203,18 @@ class TestTraditionalCluster(Base_Api_Test):
             assert any(execution_host in instance.hostname for instance in instances), \
                 "Job not run on instance in assigned instance group"
 
+    @pytest.mark.mp_group(group="check_instance_stats_during_quiet_period", strategy="isolated_serial")
+    @pytest.mark.github('https://github.com/ansible/tower/issues/2310')
+    def test_default_instance_attributes(self, v2):
+        for instance in v2.instances.get().results:
+            assert instance.enabled
+            assert instance.cpu > 0
+            assert instance.memory > 0
+            assert instance.cpu_capacity > 0
+            assert instance.mem_capacity > 0
+            assert instance.capacity == max(instance.cpu_capacity, instance.mem_capacity)
+            assert instance.capacity_adjustment == '1.00'
+
     def test_isolated_instance_control_node(self, v2, factories):
         ig = v2.instance_groups.get(name='protected').results[0]
 
