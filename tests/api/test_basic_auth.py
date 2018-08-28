@@ -64,23 +64,30 @@ class TestBasicAuth(APITest):
                 session_id=session.session_id,
                 csrftoken=session.session.cookies.get('csrftoken')
             ).connect()
-            reply = next(iter(ws))
-            assert reply['user'] == user.id
-            assert reply['accept'] is True
             ws.subscribe(control=['limit_reached_{}'.format(user.id)])
             ws_clients.append(ws)
             utils.logged_sleep(3)
 
-        # every *invalid* Websocket client should get a logout notification
         invalid_logins = total - max_logins
-        for ws in ws_clients[:invalid_logins]:
-            reply = next(iter(ws))
-            assert reply['group_name'] == 'control'
-            assert reply['reason'] == 'limit_reached'
-
         responses = [s.get('/api/v2/me/').status_code for s in sessions]
         assert responses.count(200) == max_logins
         assert responses.count(401) == invalid_logins
+
+        # every *invalid* Websocket client should get a logout notification
+        for _ in range(invalid_logins):
+            replies = list(ws_clients.pop(0))
+            assert len(replies), replies
+            assert replies[0].get('user') == user.id, replies
+            assert replies[0].get('accept') is True, replies
+            assert replies[1].get('group_name') == 'control', replies
+            assert replies[1].get('reason') == 'limit_reached', replies
+
+        # every *remaining* Websocket client is valid
+        for ws in ws_clients:
+            replies = list(ws)
+            assert len(replies), replies
+            assert replies[0].get('user') == user.id, replies
+            assert replies[0].get('accept') is True, replies
 
     @pytest.mark.mp_group('OAUTH_CONCURRENT_SESSIONS', 'isolated_serial')
     def test_authtoken_maximum_concurrent_sessions_does_not_kick_other_users(self, factories, v2, update_setting_pg):
