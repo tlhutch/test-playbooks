@@ -25,7 +25,7 @@
 ### SAML/LDAP/etc hitlist catchall (mwilson)
 * [Feature (saml)](https://github.com/ansible/tower/blob/release_3.3.0/docs/auth/saml.md)
 * [Feature (ldap)](https://github.com/ansible/tower/blob/release_3.3.0/docs/auth/ldap.md)
-* [UI Testplan]()
+* [UI Testplan](https://docs.google.com/document/d/1uMSSYQdItLt9GKpq54LtBcbFKXE47qEIyJVTjpiiX_A/edit#heading=h.8i4wtrisc5i0)
 
 ### Update GCP credentials
 * [Feature]()
@@ -57,7 +57,7 @@
 ### Token-based authentication to Tower (mwilson, rpetrello)
 * [Feature (sessions)](https://github.com/ansible/tower/blob/release_3.3.0/docs/auth/session.md)
 * [Feature (oauth)](https://github.com/ansible/tower/blob/release_3.3.0/docs/auth/oauth.md)
-* [UI Test Plan](https://docs.google.com/document/d/1uMSSYQdItLt9GKpq54LtBcbFKXE47qEIyJVTjpiiX_A/edit)
+* [UI Test Plan](https://docs.google.com/document/d/1lgkSJ9DkcWqKnMGixH5lzsrZcbmzHZ5VnJqxPFXMx_E/edit#heading=h.hkbs3jiy0ie)
 
 ### Retry on Failed Hosts (guozhang)
 * [Feature](https://github.com/ansible/tower/blob/release_3.3.0/docs/retry_by_status.md)
