@@ -8,6 +8,7 @@ import time
 from tests.api import APITest
 
 
+@pytest.mark.mp_group('SESSIONS', 'isolated_serial')
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestBasicAuth(APITest):
 
@@ -46,7 +47,6 @@ class TestBasicAuth(APITest):
         session.login(username=user.username, password=user.password, next='/')
         return session
 
-    @pytest.mark.mp_group('OAUTH_CONCURRENT_SESSIONS', 'isolated_serial')
     @pytest.mark.parametrize('max_logins', range(1, 4))
     def test_authtoken_maximum_concurrent_sessions(self, factories, v2, update_setting_pg, max_logins):
         total = 3
@@ -89,7 +89,6 @@ class TestBasicAuth(APITest):
             assert replies[0].get('user') == user.id, replies
             assert replies[0].get('accept') is True, replies
 
-    @pytest.mark.mp_group('OAUTH_CONCURRENT_SESSIONS', 'isolated_serial')
     def test_authtoken_maximum_concurrent_sessions_does_not_kick_other_users(self, factories, v2, update_setting_pg):
         update_setting_pg(v2.settings.get().get_endpoint(
             'authentication'), {'SESSIONS_PER_USER': 1})
