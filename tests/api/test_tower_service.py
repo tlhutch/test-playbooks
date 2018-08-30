@@ -10,6 +10,7 @@ log = logging.getLogger(__name__)
 @pytest.mark.api
 @pytest.mark.destructive
 @pytest.mark.second_to_last
+@pytest.mark.skip_openshift
 @pytest.mark.mp_group('AnsibleTowerService', 'isolated_serial')
 class Test_Ansible_Tower_Service(Base_Api_Test):
     """Executes ansible-tower-service commands and checks process statuses.
@@ -21,7 +22,6 @@ class Test_Ansible_Tower_Service(Base_Api_Test):
     * On Ubuntu systems, rapidly restarting supervisor can leave your system
     in an indeterminate state.
     """
-
     pytestmark = pytest.mark.usefixtures('authtoken')
 
     @pytest.mark.parametrize("command, expected_process_status", [
