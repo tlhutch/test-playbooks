@@ -251,6 +251,7 @@ class TestSCMInventorySource(Base_Api_Test):
         host = inv_source.ds.inventory.related.hosts.get(name='localhost').results.pop()
         assert host.variables.test_env == 'TEST_ENV_1'
 
+    @pytest.mark.skip_openshift
     @pytest.mark.mp_group('ProjectUpdateWithSCMChange', 'serial')
     @pytest.mark.parametrize('source_path', ['inventories/inventory.ini', 'inventories/dyn_inventory.py'])
     def test_project_launch_using_update_on_project_update_with_scm_change(self, ansible_runner, factories, v2,

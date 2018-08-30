@@ -181,6 +181,7 @@ class TestHostFilter(Base_Api_Test):
         response = v2.hosts.get(host_filter=host_filter.format(**inventory_item_names), page_size=200)
         assert find_hosts(response) == test_hosts
 
+    @pytest.mark.skip_openshift
     @pytest.mark.mp_group('HostFactSearch', 'serial')
     def test_list_fact_search(self, v2, loaded_inventory, populate_ansible_facts, inventory_item_names,
                               find_hosts, test_hosts):
