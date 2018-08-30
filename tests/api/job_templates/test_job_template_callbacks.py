@@ -47,7 +47,7 @@ class TestJobTemplateCallbacks(Base_Api_Test):
 
         ifs = all_interfaces()
 
-        hosts = [requests.get('https://api.ipify.org').text] # External IP
+        hosts = [requests.get('https://api.ipify.org').text]  # External IP
         # OpenShift does unexpected routing. When these tests are running from
         # a container in openshift and Tower is running in a container in OpenShift,
         # the requesting host is seen to be the Node.
@@ -417,8 +417,7 @@ class TestJobTemplateCallbacks(Base_Api_Test):
     def test_provision_failure_with_currently_running_and_simultaneous_disallowed(
             self, api_jobs_url, ansible_runner, job_template,
             host_with_default_ipv4_in_variables, host_config_key,
-            callback_host
-        ):
+            callback_host):
         """Verify that issuing a callback, while a callback job from the same host is already running, fails."""
         job_template.patch(host_config_key=host_config_key,
                            playbook='sleep.yml',
@@ -459,7 +458,7 @@ class TestJobTemplateCallbacks(Base_Api_Test):
 
     @pytest.mark.skip_openshift
     def test_synced_host_provision_with_inventory_update_on_launch(self, ansible_runner, factories, host_config_key,
-                                                                    ansible_default_ipv4, callback_host):
+                                                                   ansible_default_ipv4, callback_host):
         """Confirms that when a provisioning host is loaded from an update_on_launch-generated inventory sync
         the job runs successfully against that host.
         """
@@ -508,7 +507,7 @@ class TestJobTemplateCallbacks(Base_Api_Test):
 
     @pytest.mark.skip_openshift
     def test_member_host_provision_with_inventory_update_on_launch(self, ansible_runner, factories, host_config_key,
-                                                                    ansible_default_ipv4, callback_host):
+                                                                   ansible_default_ipv4, callback_host):
         """Confirms that when a provisioning host is already in an inventory an update_on_launch inventory sync
         still runs and the job runs successfully against that host.
         """
@@ -608,7 +607,7 @@ class TestJobTemplateCallbacks(Base_Api_Test):
                             data={'host_config_key': host_config_key},
                             verify=False)
         assert 201 == res.status_code, \
-                "Launching Job Template via provision callback failed. Remote host list {}".format(remote_hosts)
+            "Launching Job Template via provision callback failed. Remote host list {}".format(remote_hosts)
 
         job_id = self.get_job_id_from_location_header(res)
         job1 = v2.jobs.get(id=job_id).results[0]
@@ -620,3 +619,22 @@ class TestJobTemplateCallbacks(Base_Api_Test):
 
         with self.current_user(user):
             job1.relaunch()
+
+    @pytest.mark.requires_single_instance
+    def test_job_triggered_by_callback_sources_venv(self, v2, factories, create_venv, job_template_with_host_config_key,
+                                                    host_config_key, remote_hosts, venv_path):
+        folder_name = utils.random_title(non_ascii=False)
+        with create_venv(folder_name):
+            assert venv_path(folder_name) in v2.config.get().custom_virtualenvs
+            jt = job_template_with_host_config_key
+            jt.custom_virtualenv = venv_path(folder_name)
+
+            res = requests.post("{}{}".format(config.base_url, jt.related.callback),
+                                data={'host_config_key': host_config_key}, verify=False)
+            assert res.status_code == 201, \
+                "Launching Job Template via provision callback failed. Remote host list {}".format(remote_hosts)
+
+            job_id = os.path.basename(os.path.normpath(res.headers['Location']))
+            job = v2.jobs.get(id=job_id).results[0]
+            assert job.wait_until_completed().is_successful
+            assert job.job_env['VIRTUAL_ENV'] == venv_path(folder_name)

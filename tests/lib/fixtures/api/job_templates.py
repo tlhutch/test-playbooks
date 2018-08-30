@@ -6,6 +6,22 @@ import pytest
 
 
 @pytest.fixture(scope="function")
+def get_resource_from_jt():
+    def _get_resource_from_jt(jt, resource_type):
+        if resource_type == 'organization':
+            return jt.related.project.get().related.organization.get()
+        elif resource_type == 'project':
+            return jt.related.project.get()
+        elif resource_type == 'inventory':
+            return jt.related.inventory.get()
+        elif resource_type == 'job_template':
+            return jt
+        else:
+            raise ValueError("Unsupported resource: {}".format(resource_type))
+    return _get_resource_from_jt
+
+
+@pytest.fixture(scope="function")
 def job_template_prompt_for_credential(factories, organization, project, host_local):
     """job_template with no machine credential and ask_credential_on_launch set to True"""
     return factories.job_template(description="job_template without credentials and "

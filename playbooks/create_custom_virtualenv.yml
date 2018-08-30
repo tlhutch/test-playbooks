@@ -1,0 +1,45 @@
+- hosts: all
+  tasks:
+    - block:
+        - name: Install virtualenv (EL-*)
+          yum:
+            name: python-virtualenv
+            state: present
+          when: ansible_pkg_mgr == 'yum'
+
+        - name: Install virtualenv (ubuntu-14)
+          apt:
+            pkg: python-virtualenv
+            state: present
+          when: ansible_pkg_mgr == 'apt' and ansible_distribution_major_version == '14'
+
+        - name: Install virtualenv (ubuntu - all other versions)
+          apt:
+            pkg: virtualenv
+            state: present
+          when: ansible_pkg_mgr == 'apt' and ansible_distribution_major_version != '14'
+
+        - name: Create custom virtualenv
+          command: virtualenv /var/lib/awx/venv/{{ venv_folder_name|default('custom-venv') }}
+
+        - name: Print packages to install
+          debug:
+            msg: "Packages to install in venv: {{ venv_packages|default('python-memcached psutil (default packages)') }}"
+
+        - name: Install gcc (required by psutil) (yum)
+          yum:
+            name: gcc
+            state: present
+          when: ansible_pkg_mgr == 'yum'
+
+        - name: Pip install required packages
+          command: /var/lib/awx/venv/{{ venv_folder_name|default('custom-venv') }}/bin/pip install {{ venv_packages|default("python-memcached psutil") }}
+      become: true
+      when: not remove_virtualenv|default(false)
+
+    - name: Remove custom virtualenv
+      file:
+        path: /var/lib/awx/venv/{{ venv_folder_name|default('custom-venv') }}
+        state: absent
+      become: true
+      when: remove_virtualenv|default(false)

@@ -14,6 +14,7 @@ import pytest
 from towerkit import utils
 from towerkit.api import Connection
 import towerkit.exceptions as exc
+from towerkit.utils import random_title
 
 from tests.api import Base_Api_Test
 
@@ -86,17 +87,6 @@ class SafeStop(object):
 @pytest.mark.requires_traditional_cluster
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestTraditionalCluster(Base_Api_Test):
-
-    @staticmethod
-    def get_resource(jt, resource):
-        if resource == 'job_template':
-            return jt
-        elif resource == 'inventory':
-            return jt.ds.inventory
-        elif resource == 'organization':
-            return jt.ds.inventory.ds.organization
-        else:
-            raise ValueError("Unsupported resource: {0}".format(resource))
 
     def mutually_exclusive_instance_groups(self, instance_groups):
         instance_group_to_instances_map = [(instance_group, set([instance.id for instance in instance_group.get_related('instances').results]))
@@ -191,12 +181,12 @@ class TestTraditionalCluster(Base_Api_Test):
             assert set(ig_hostnames).isdisjoint(set(isolated_instance_hostnames))
 
     @pytest.mark.parametrize('resource', ['job_template', 'inventory', 'organization'])
-    def test_job_template_executes_on_assigned_instance_group(self, v2, factories, resource):
+    def test_job_template_executes_on_assigned_instance_group(self, v2, factories, resource, get_resource_from_jt):
         instance_groups = v2.instance_groups.get().results
         job_template_to_instance_group_map = []
         for ig in instance_groups:
             jt = factories.v2_job_template()
-            self.get_resource(jt, resource).add_instance_group(ig)
+            get_resource_from_jt(jt, resource).add_instance_group(ig)
             job_template_to_instance_group_map.append((jt, ig))
 
         for jt, _ in job_template_to_instance_group_map:
@@ -300,7 +290,7 @@ class TestTraditionalCluster(Base_Api_Test):
         ('job_template', 'organization'),
         ('inventory', 'organization')
     ])
-    def test_instance_group_hierarchy(self, v2, factories, base_resource, parent_resource):
+    def test_instance_group_hierarchy(self, v2, factories, base_resource, parent_resource, get_resource_from_jt):
         assert not len(v2.jobs.get(status='running').results), "Test requires Tower to not have any running jobs"
 
         instance_groups = sorted(v2.instance_groups.get().results, key=lambda x: x.instances)
@@ -312,8 +302,8 @@ class TestTraditionalCluster(Base_Api_Test):
         jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='sleep.yml', extra_vars=dict(sleep_interval=600), allow_simultaneous=True)
         factories.v2_host(inventory=jt.ds.inventory)
 
-        self.get_resource(jt, base_resource).add_instance_group(base_instance_group)
-        self.get_resource(jt, parent_resource).add_instance_group(parent_instance_group)
+        get_resource_from_jt(jt, base_resource).add_instance_group(base_instance_group)
+        get_resource_from_jt(jt, parent_resource).add_instance_group(parent_instance_group)
 
         instance_group_to_hostnames_map = {instance_group.id: [instance.hostname for instance in instance_group.get_related('instances').results]
                                            for instance_group in instance_groups}
@@ -771,3 +761,23 @@ class TestTraditionalCluster(Base_Api_Test):
                 break
         else:
             pytest.fail('Failed to find job event with hostvar information')
+
+    def test_venv_on_regular_instance(self, v2, factories, create_venv, venv_path):
+        folder_name = random_title(non_ascii=False)
+        with create_venv(folder_name, cluster=True):
+            assert venv_path(folder_name) in v2.config.get().custom_virtualenvs
+            jt = factories.v2_job_template()
+            jt.ds.inventory.add_host()
+            jt.custom_virtualenv = venv_path(folder_name)
+
+            # To facilitate testing, each instance in the traditional Tower cluster
+            # is assigned to its own instance group. The instance groups are named
+            # 1, 2, .. n, where n is the total number of regular instances in the cluster
+            ig_ordinary_instances = v2.instance_groups.get(name='ordinary_instances').results.pop()
+            i = random.randint(1, ig_ordinary_instances.related.instances.get().count)
+            ig = v2.instance_groups.get(name=str(i)).results.pop()
+            jt.add_instance_group(ig)
+
+            job = jt.launch().wait_until_completed()
+            assert job.is_successful
+            assert job.job_env['VIRTUAL_ENV'] == venv_path(folder_name)
