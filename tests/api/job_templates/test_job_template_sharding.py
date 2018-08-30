@@ -20,12 +20,13 @@ log = logging.getLogger(__name__)
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestJobTemplateSharding(Base_Api_Test):
 
-    def test_job_template_shard_run(self, factories, v2):
+    @pytest.mark.mp_group('JobTemplateSharding', 'isolated_serial')
+    def test_job_template_shard_run(self, factories, v2, do_all_jobs_overlap):
         """Tests that a job template is split into multiple jobs
         and that those run against a 1/3rd subset of the inventory
         """
         ct = 3
-        jt = factories.v2_job_template(job_shard_count=ct, allow_simultaneous=True)
+        jt = factories.v2_job_template(job_shard_count=ct)
         inventory = jt.ds.inventory
         hosts = []
         for i in range(ct):
@@ -33,6 +34,16 @@ class TestJobTemplateSharding(Base_Api_Test):
                 name='foo{}'.format(i),
                 variables='ansible_connection: local'
             )))
+
+        instance = v2.instances.get(
+            rampart_groups__controller__isnull=True,
+            capacity__gt=0
+        ).results.pop()
+        assert instance.capacity > ct + 1, 'Cluster instances not large enough to run this test'
+        ig = factories.instance_group()
+        ig.add_instance(instance)
+        jt.add_instance_group(ig)
+
         workflow_job = jt.launch()
         workflow_job.wait_until_completed()
         assert workflow_job.is_successful
@@ -40,14 +51,18 @@ class TestJobTemplateSharding(Base_Api_Test):
         # The obvious test that sharding worked - that all hosts have only 1 job
         assert [host.related.job_host_summaries.get().count for host in hosts] == [1 for i in range(ct)]
 
+        jobs = []
         for job in v2.unified_jobs.get(unified_job_node__workflow_job=workflow_job.id).results:
             assert job.get().host_status_counts['ok'] == 1
+            jobs.append(job)
+
+        assert do_all_jobs_overlap(jobs)
 
     def test_job_template_shard_remainder_hosts(self, factories, v2):
         """Test the logic for when the host count (= 4) does not match the
         shard count (= 3)
         """
-        jt = factories.v2_job_template(job_shard_count=3, allow_simultaneous=True)
+        jt = factories.v2_job_template(job_shard_count=3)
         inventory = jt.ds.inventory
         hosts = []
         for i in range(5):
@@ -76,7 +91,7 @@ class TestJobTemplateSharding(Base_Api_Test):
         """
         ct = 3
         jt = factories.v2_job_template(
-            job_shard_count=ct, allow_simultaneous=True,
+            job_shard_count=ct,
             verbosity=3,
             timeout=45
         )
@@ -100,7 +115,7 @@ class TestJobTemplateSharding(Base_Api_Test):
         """
         ct = 3
         jt = factories.v2_job_template(
-            job_shard_count=ct, allow_simultaneous=True,
+            job_shard_count=ct,
             ask_limit_on_launch=True,
             ask_credential_on_launch=True
         )
@@ -131,7 +146,7 @@ class TestJobTemplateSharding(Base_Api_Test):
         """Test that schedule runs will work with sharded jobs
         """
         ct = 3
-        jt = factories.v2_job_template(job_shard_count=ct, allow_simultaneous=True)
+        jt = factories.v2_job_template(job_shard_count=ct)
         inventory = jt.ds.inventory
         hosts = []
         for i in range(ct):
@@ -144,9 +159,28 @@ class TestJobTemplateSharding(Base_Api_Test):
         )
         poll_until(lambda: schedule.related.unified_jobs.get().count == 1, interval=15, timeout=60)
         workflow_job = schedule.related.unified_jobs.get().results.pop()
+        # teardown does not delete schedules created in v2
+        schedule.delete()
 
         assert workflow_job.type == 'workflow_job'
         assert workflow_job.job_template == jt.id
         assert workflow_job.related.workflow_nodes.get().count == 3
+
+    def test_job_template_shard_job_long_name(self, factories, v2):
+        jt = factories.v2_job_template(
+            name='f'*512,
+            job_shard_count=2
+        )
+        inventory = jt.ds.inventory
+        hosts = []
+        for i in range(2):
+            hosts.append(inventory.related.hosts.post(payload=dict(name='foo{}'.format(i))))
+
+        workflow_job = jt.launch()
+        workflow_job.wait_until_completed()
+        assert workflow_job.is_successful
+
+        for job in v2.unified_jobs.get(unified_job_node__workflow_job=workflow_job.id).results:
+            assert job.is_successful
 
     # TODO: (some kind of test for actual clusters, probably in job execution node assignment)
