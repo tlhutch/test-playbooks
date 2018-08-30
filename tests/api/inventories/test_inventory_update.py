@@ -301,6 +301,40 @@ class TestInventoryUpdate(Base_Api_Test):
         assert inv_update.is_successful
         assert "TEST" in inv_update.result_stdout
 
+    def test_update_with_custom_credential(self, factories, ansible_version_cmp):
+        if ansible_version_cmp('2.4.0') >= 1 and ansible_version_cmp('2.5.1') < 1:
+            # this doesn't work with ansible-inventory from 2.4 through 2.5.1
+            pytest.skip('https://github.com/ansible/ansible/issues/33776')
+        credential_type = factories.credential_type(
+            inputs={
+                'fields': [{
+                    'id': 'password',
+                    'type': 'string',
+                    'label': 'Password',
+                    'secret': True
+                }]
+            },
+            injectors={
+                'file': {'template': '[secrets]\npassword={{ password }}'},
+                'env': {'AWX_CUSTOM_INI': '{{ tower.filename }}'}
+            }
+        )
+        inv_script = factories.v2_inventory_script(
+            script=("#!/usr/bin/env python\n"
+                    "from __future__ import print_function\nimport os, sys\n"
+                    "print(open(os.environ['AWX_CUSTOM_INI']).read(), file=sys.stderr)\nprint('{}')")
+        )
+        inv_source = factories.v2_inventory_source(
+            inventory_script=inv_script,
+            credential=factories.v2_credential(
+                credential_type=credential_type,
+                inputs={'password': 'SECRET123'}
+            ),
+            verbosity=2
+        )
+        inv_update = inv_source.update().wait_until_completed()
+        assert 'password=SECRET123' in inv_update.result_stdout
+
     @pytest.mark.parametrize('verbosity, stdout_lines',
                              [(0, ['Re-calling script for hostvars individually.']),
                               (1, ['Loaded 1 groups, 5 hosts',
