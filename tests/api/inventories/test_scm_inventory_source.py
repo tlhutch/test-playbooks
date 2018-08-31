@@ -254,7 +254,7 @@ class TestSCMInventorySource(Base_Api_Test):
     @pytest.mark.skip_openshift
     @pytest.mark.mp_group('ProjectUpdateWithSCMChange', 'serial')
     @pytest.mark.parametrize('source_path', ['inventories/inventory.ini', 'inventories/dyn_inventory.py'])
-    def test_project_launch_using_update_on_project_update_with_scm_change(self, ansible_runner, factories, v2,
+    def test_project_launch_using_update_on_project_update_with_scm_change(self, factories, v2,
                                                                            job_template_that_writes_to_source, source_path):
         """Verifies that an scm inventory sync runs after running a job that commits code to its upstream repo"""
         project = job_template_that_writes_to_source.ds.project
@@ -302,7 +302,7 @@ class TestSCMInventorySource(Base_Api_Test):
         assert project.related.project_updates.get(launch_type='sync').count == 1
         assert inv_source.related.inventory_updates.get().count == 1
 
-    def test_inventory_update_using_update_on_project_update_without_scm_change(self, ansible_runner, factories, v2,
+    def test_inventory_update_using_update_on_project_update_without_scm_change(self, factories, v2,
                                                                                 write_access_git_credential):
         """Verifies that an scm inventory sync runs even without changes to scm"""
         inv_source = factories.v2_inventory_source(source='scm', source_path='inventories/inventory.ini',
