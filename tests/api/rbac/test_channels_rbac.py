@@ -72,7 +72,7 @@ class TestChannelsRBAC(Base_Api_Test):
             received = [m for m in ws]
             filtered_received = [{k: message[k] for k in set(message) - not_of_interest} for message in received]
             expected_status_changes = []
-            for status in ('pending', 'waiting', 'running', 'successful'):
+            for status in ('waiting', 'running', 'successful'):
                 expected_msg = dict(status=status, group_name='jobs', unified_job_id=ahc.id)
                 if status == 'waiting':
                     expected_msg['instance_group_name'] = 'tower'
@@ -110,7 +110,7 @@ class TestChannelsRBAC(Base_Api_Test):
             update_id = group.related.inventory_source.get().update().wait_until_completed().id
             base_status_change = dict(group_name='jobs', group_id=group.id, unified_job_id=update_id)
             expected_status_changes = []
-            for status in ('pending', 'waiting', 'running', 'successful'):
+            for status in ('waiting', 'running', 'successful'):
                 expected_msg = dict(status=status, **base_status_change)
                 if status == 'waiting':
                     expected_msg['instance_group_name'] = 'tower'
@@ -163,7 +163,7 @@ class TestChannelsRBAC(Base_Api_Test):
 
             base_status_change = dict(group_name='jobs', unified_job_id=job.id)
             expected_status_changes = []
-            for status in ('pending', 'waiting', 'running', 'successful'):
+            for status in ('waiting', 'running', 'successful'):
                 expected_msg = dict(status=status, **base_status_change)
                 if status == 'waiting':
                     expected_msg['instance_group_name'] = 'tower'
@@ -200,7 +200,7 @@ class TestChannelsRBAC(Base_Api_Test):
             update_id = project.update().wait_until_completed().id
             base_status_change = dict(group_name='jobs', project_id=project.id, unified_job_id=update_id)
             expected_status_changes = []
-            for status in ('pending', 'waiting', 'running', 'successful'):
+            for status in ('waiting', 'running', 'successful'):
                 expected_msg = dict(status=status, **base_status_change)
                 if status == 'waiting':
                     expected_msg['instance_group_name'] = 'tower'
@@ -270,13 +270,13 @@ class TestChannelsRBAC(Base_Api_Test):
 
             expected = []
             for workflow_node_id, job_id in zip((mapper[root.id], mapper[success.id]), success_job_ids):
-                for status in ('pending', 'waiting', 'running', 'successful'):
+                for status in ('waiting', 'running', 'successful'):
                     expected_msg = dict(status=status, workflow_node_id=workflow_node_id,
                                         unified_job_id=job_id, **base_workflow_event)
                     if status == 'waiting':
                         expected_msg['instance_group_name'] = 'tower'
                     expected.append(expected_msg)
-            for status in ('pending', 'waiting', 'running', 'failed'):
+            for status in ('waiting', 'running', 'failed'):
                 expected_msg = dict(status=status, workflow_node_id=mapper[failure.id],
                                     unified_job_id=failure_job_id, **base_workflow_event)
                 if status == 'waiting':
