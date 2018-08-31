@@ -70,6 +70,36 @@ class TestJobTemplateSharding(Base_Api_Test):
 
         assert do_all_jobs_overlap(jobs)
 
+    @pytest.mark.mp_group('JobTemplateSharding', 'isolated_serial')
+    @pytest.mark.parametrize('allow_sim', (True, False))
+    def test_job_template_shard_allow_simultaneous(self, factories, v2, do_all_jobs_overlap,
+                                                   sharded_jt_factory, allow_sim):
+        jt = sharded_jt_factory(2, jt_kwargs=dict(allow_simultaneous=allow_sim))
+
+        instance = v2.instances.get(
+            rampart_groups__controller__isnull=True,
+            capacity__gt=0
+        ).results.pop()
+        assert instance.capacity > 5, 'Cluster instances not large enough to run this test'
+        ig = factories.instance_group()
+        ig.add_instance(instance)
+        jt.add_instance_group(ig)
+
+        workflow_jobs = [jt.launch(), jt.launch()]
+        for workflow_job in workflow_jobs:
+            workflow_job.wait_until_completed()
+            assert workflow_job.is_successful
+
+        # The sharded workflow container has configurable allow_simultaneous
+        assert do_all_jobs_overlap(workflow_jobs) == allow_sim
+
+        for workflow_job in workflow_jobs:
+            jobs = []
+            for node in workflow_job.related.workflow_nodes.get().results:
+                jobs.append(node.related.job.get())
+            # The shards themselves should _always_ be simultaneous
+            assert do_all_jobs_overlap(jobs)
+
     def test_job_template_shard_remainder_hosts(self, factories, sharded_jt_factory):
         """Test the logic for when the host count (= 5) does not match the
         shard count (= 3)
