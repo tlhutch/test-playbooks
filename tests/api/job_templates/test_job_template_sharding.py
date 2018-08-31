@@ -21,26 +21,36 @@ log = logging.getLogger(__name__)
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestJobTemplateSharding(Base_Api_Test):
 
+    @pytest.fixture
+    def sharded_jt_factory(self, factories):
+        def r(ct, jt_kwargs=None, host_ct=None):
+            if not jt_kwargs:
+                jt_kwargs = {}
+            if not host_ct:
+                host_ct = ct
+            jt = factories.v2_job_template(job_shard_count=ct, **jt_kwargs)
+            inventory = jt.ds.inventory
+            hosts = []
+            for i in range(host_ct):
+                hosts.append(inventory.related.hosts.post(payload=dict(
+                    name='foo{}'.format(i),
+                    variables='ansible_connection: local'
+                )))
+            return jt
+        return r
+
     @pytest.mark.mp_group('JobTemplateSharding', 'isolated_serial')
-    def test_job_template_shard_run(self, factories, v2, do_all_jobs_overlap):
+    def test_job_template_shard_run(self, factories, v2, do_all_jobs_overlap, sharded_jt_factory):
         """Tests that a job template is split into multiple jobs
         and that those run against a 1/3rd subset of the inventory
         """
-        ct = 3
-        jt = factories.v2_job_template(job_shard_count=ct)
-        inventory = jt.ds.inventory
-        hosts = []
-        for i in range(ct):
-            hosts.append(inventory.related.hosts.post(payload=dict(
-                name='foo{}'.format(i),
-                variables='ansible_connection: local'
-            )))
+        jt = sharded_jt_factory(3)
 
         instance = v2.instances.get(
             rampart_groups__controller__isnull=True,
             capacity__gt=0
         ).results.pop()
-        assert instance.capacity > ct + 1, 'Cluster instances not large enough to run this test'
+        assert instance.capacity > 4, 'Cluster instances not large enough to run this test'
         ig = factories.instance_group()
         ig.add_instance(instance)
         jt.add_instance_group(ig)
@@ -50,7 +60,8 @@ class TestJobTemplateSharding(Base_Api_Test):
         assert workflow_job.is_successful
 
         # The obvious test that sharding worked - that all hosts have only 1 job
-        assert [host.related.job_host_summaries.get().count for host in hosts] == [1 for i in range(ct)]
+        hosts = jt.ds.inventory.related.hosts.get().results
+        assert [host.related.job_host_summaries.get().count for host in hosts] == [1 for i in range(3)]
 
         jobs = []
         for job in v2.unified_jobs.get(unified_job_node__workflow_job=workflow_job.id).results:
@@ -59,82 +70,60 @@ class TestJobTemplateSharding(Base_Api_Test):
 
         assert do_all_jobs_overlap(jobs)
 
-    def test_job_template_shard_remainder_hosts(self, factories, v2):
-        """Test the logic for when the host count (= 4) does not match the
+    def test_job_template_shard_remainder_hosts(self, factories, sharded_jt_factory):
+        """Test the logic for when the host count (= 5) does not match the
         shard count (= 3)
         """
-        jt = factories.v2_job_template(job_shard_count=3)
-        inventory = jt.ds.inventory
-        hosts = []
-        for i in range(5):
-            hosts.append(inventory.related.hosts.post(payload=dict(
-                name='foo{}'.format(i),
-                variables='ansible_connection: local'
-            )))
+        jt = sharded_jt_factory(3, host_ct=5)
         workflow_job = jt.launch()
         workflow_job.wait_until_completed()
         assert workflow_job.is_successful
 
         # The obvious test that sharding worked - that all hosts have only 1 job
+        hosts = jt.ds.inventory.related.hosts.get().results
         assert [host.related.job_host_summaries.get().count for host in hosts] == [1 for i in range(5)]
 
         # It must be deterministic which jobs run which hosts
-        for i, node in enumerate(workflow_job.related.workflow_nodes.get(order_by='created').results):
+        job_okays = []
+        for node in workflow_job.related.workflow_nodes.get(order_by='created').results:
             job = node.related.job.get()
-            if i in (0, 1):
-                assert job.get().host_status_counts['ok'] == 2
-            else:
-                assert job.get().host_status_counts['ok'] == 1
+            job_okays.append(job.get().host_status_counts['ok'])
+        assert job_okays == [2, 2, 1]
 
-    def test_job_template_shard_properties(self, factories, v2, gce_credential):
+    def test_job_template_shard_properties(self, factories, gce_credential, sharded_jt_factory):
         """Tests that JT properties are used in jobs that sharded
         workflow launches
         """
-        ct = 3
-        jt = factories.v2_job_template(
-            job_shard_count=ct,
-            verbosity=3,
-            timeout=45
-        )
-        inventory = jt.ds.inventory
-        hosts = [
-            inventory.related.hosts.post(payload=dict(name='foo{}'.format(i)))
-            for i in range(ct)
-        ]
+        jt = sharded_jt_factory(3, jt_kwargs=dict(verbosity=3, timeout=45))
         workflow_job = jt.launch()
-        workflow_job.wait_until_completed()
+
         for node in workflow_job.related.workflow_nodes.get().results:
             assert node.verbosity == None
-            assert node.related.credentials.get().count == 0
+
+            poll_until(lambda: node.get().job, interval=1, timeout=30)
             job = node.related.job.get()
             assert job.related.create_schedule.get()['prompts'] == {}
             assert job.verbosity == 3
             assert job.timeout == 45
 
-    def test_job_template_shard_prompts(self, factories, v2, gce_credential):
+    def test_job_template_shard_prompts(self, gce_credential, sharded_jt_factory):
         """Tests that prompts applied on launch fan out to shards
         """
-        ct = 3
-        jt = factories.v2_job_template(
-            job_shard_count=ct,
+        jt = sharded_jt_factory(3, jt_kwargs=dict(
             ask_limit_on_launch=True,
             ask_credential_on_launch=True
-        )
-        inventory = jt.ds.inventory
-        hosts = []
-        for i in range(ct):
-            hosts.append(inventory.related.hosts.post(payload=dict(
-                name='foo{}'.format(i),
-                variables='ansible_connection: local'
-            )))
+        ))
         workflow_job = jt.launch(payload=dict(
             limit='foobar',
             credentials=[jt.ds.credential.id, gce_credential.id]
         ))
-        workflow_job.wait_until_completed()
+
         for node in workflow_job.related.workflow_nodes.get().results:
-            assert node.limit == None  # design decision is to not save prompts on nodes
-            assert [cred.id for cred in node.related.credentials.get().results] == [gce_credential.id]
+            # design decision is to not save prompts on nodes
+            assert node.limit == None
+            assert node.related.credentials.get().count == 0
+
+            poll_until(lambda: node.get().job, interval=1, timeout=30)
             job = node.related.job.get()
             prompts = job.related.create_schedule.get()['prompts']
             assert prompts['limit'] == 'foobar'
@@ -142,19 +131,31 @@ class TestJobTemplateSharding(Base_Api_Test):
             assert set(cred.id for cred in job.related.credentials.get().results) == set([
                 gce_credential.id, jt.ds.credential.id])
 
+    def test_sharded_job_from_workflow(self, factories, sharded_jt_factory):
+        wfjt = factories.workflow_job_template()
+        jt = sharded_jt_factory(3)
+        node = factories.workflow_job_template_node(
+            workflow_job_template=wfjt,
+            unified_job_template=jt
+        )
+        first_wj = wfjt.launch()
+        first_wj_node = first_wj.related.workflow_nodes.get().results.pop()
+        poll_until(lambda: first_wj_node.get().job, interval=1, timeout=30)
+        sharded_job = first_wj_node.related.job.get()
+        assert sharded_job.type == 'workflow_job'
+        nodes = sharded_job.related.workflow_nodes.get()
+        assert nodes.count == 3
 
-    def test_job_template_shard_schedule(self, factories, v2, gce_credential):
+        # better check that we didn't get recursion...
+        for node in nodes.results:
+            poll_until(lambda: node.get().job, interval=1, timeout=30)
+            job = node.related.job.get()
+            assert job.type == 'job'
+
+    def test_job_template_shard_schedule(self, sharded_jt_factory):
         """Test that schedule runs will work with sharded jobs
         """
-        ct = 3
-        jt = factories.v2_job_template(job_shard_count=ct)
-        inventory = jt.ds.inventory
-        hosts = []
-        for i in range(ct):
-            hosts.append(inventory.related.hosts.post(payload=dict(
-                name='foo{}'.format(i),
-                variables='ansible_connection: local'
-            )))
+        jt = sharded_jt_factory(3)
         schedule = jt.add_schedule(
             rrule=RRule(rrule.MINUTELY, dtstart=datetime.utcnow() + relativedelta(minutes=-1, seconds=+30))
         )
@@ -167,18 +168,10 @@ class TestJobTemplateSharding(Base_Api_Test):
         assert workflow_job.job_template == jt.id
         assert workflow_job.related.workflow_nodes.get().count == 3
 
-    def test_job_template_shard_job_long_name(self, factories, v2):
+    def test_job_template_shard_job_long_name(self, sharded_jt_factory, v2):
         uuid_str = str(uuid.uuid4())
         unique_512_name = 'f'*(512-len(uuid_str)) + uuid_str
-        jt = factories.v2_job_template(
-            name=unique_512_name,
-            job_shard_count=2,
-            extra_vars='ansible_connection: local'
-        )
-        inventory = jt.ds.inventory
-        hosts = []
-        for i in range(2):
-            hosts.append(inventory.related.hosts.post(payload=dict(name='foo{}'.format(i))))
+        jt = sharded_jt_factory(2, jt_kwargs=dict(name=unique_512_name))
 
         workflow_job = jt.launch()
         workflow_job.wait_until_completed()
