@@ -305,6 +305,8 @@ class TestInventoryUpdate(Base_Api_Test):
         if ansible_version_cmp('2.4.0') >= 1 and ansible_version_cmp('2.5.1') < 1:
             # this doesn't work with ansible-inventory from 2.4 through 2.5.1
             pytest.skip('https://github.com/ansible/ansible/issues/33776')
+        org = factories.organization()
+        inv = factories.v2_inventory(organization=org)
         credential_type = factories.credential_type(
             inputs={
                 'fields': [{
@@ -320,11 +322,13 @@ class TestInventoryUpdate(Base_Api_Test):
             }
         )
         inv_script = factories.v2_inventory_script(
+            organization=org,
             script=("#!/usr/bin/env python\n"
                     "from __future__ import print_function\nimport os, sys\n"
                     "print(open(os.environ['AWX_CUSTOM_INI']).read(), file=sys.stderr)\nprint('{}')")
         )
         inv_source = factories.v2_inventory_source(
+            inventory=inv,
             inventory_script=inv_script,
             credential=factories.v2_credential(
                 credential_type=credential_type,
