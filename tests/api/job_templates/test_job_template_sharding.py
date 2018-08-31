@@ -1,4 +1,5 @@
 import logging
+import uuid
 
 import pytest
 
@@ -132,7 +133,7 @@ class TestJobTemplateSharding(Base_Api_Test):
         ))
         workflow_job.wait_until_completed()
         for node in workflow_job.related.workflow_nodes.get().results:
-            assert node.limit == 'foobar'
+            assert node.limit == None  # design decision is to not save prompts on nodes
             assert [cred.id for cred in node.related.credentials.get().results] == [gce_credential.id]
             job = node.related.job.get()
             prompts = job.related.create_schedule.get()['prompts']
@@ -167,9 +168,12 @@ class TestJobTemplateSharding(Base_Api_Test):
         assert workflow_job.related.workflow_nodes.get().count == 3
 
     def test_job_template_shard_job_long_name(self, factories, v2):
+        uuid_str = str(uuid.uuid4())
+        unique_512_name = 'f'*(512-len(uuid_str)) + uuid_str
         jt = factories.v2_job_template(
-            name='f'*512,
-            job_shard_count=2
+            name=unique_512_name,
+            job_shard_count=2,
+            extra_vars='ansible_connection: local'
         )
         inventory = jt.ds.inventory
         hosts = []
