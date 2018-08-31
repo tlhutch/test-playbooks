@@ -1,3 +1,4 @@
+from itertools import ifilter
 import logging
 
 from towerkit.notification_services import (confirm_notification, can_confirm_notification)
@@ -186,17 +187,20 @@ class Test_Notifications(Base_Api_Test):
         job = system_job_template.launch().wait_until_completed()
         assert job.is_successful, "Job unsuccessful - %s" % job
 
-        # Check notification in job
-        notifications_pg = job.get_related('notifications', order_by='-notification_template') \
-            .wait_until_count(notifications_expected)
+        # Find the notification that matches the expected template
+        notifications_pg = job.get_related('notifications').wait_until_count(notifications_expected)
+        notification_pg = next(
+            ifilter(lambda x: x.notification_template == notification_template.id, notifications_pg.results),
+            None
+        )
+
         assert notifications_pg.count == notifications_expected, \
             "Expected job to have %s notifications, found %s" % (notifications_expected, notifications_pg.count)
         if job_result in ('any', 'success'):
-            notification_pg = notifications_pg.results[0].wait_until_completed()
+            assert notification_pg is not None, \
+                "Expected notification to be associated with notification template %s" % notification_template.id
+            notification_pg.wait_until_completed()
             tower_msg = expected_job_notification(config.base_url, notification_template, job, job_result, tower_message=True)
-            assert notification_pg.notification_template == notification_template.id, \
-                "Expected notification to be associated with notification template %s, found %s" % \
-                (notification_template.id, notification_pg.notification_template)
             assert notification_pg.subject == tower_msg, \
                 "Expected most recent notification to be (%s), found (%s)" % (tower_msg, notification_pg.subject)
             assert notification_pg.is_successful, "Notification was unsuccessful - %s" % notification_pg
