@@ -95,32 +95,32 @@
 1. [ ] Backup/restore successful - OpenShift
 
 ### Installation
-1. Installation completes successfully on all supported platforms
-    * [ ] ubuntu-14.04
+1. Installation completes successfully on all supported platforms (automated)
+    * [x] ubuntu-14.04
+    * [x] ubuntu-16.04
+    * [x] rhel-7.5
+    * [x] centos-7.latest
+    * [x] ol-7.latest
+1. Installation completes successfully using supported ansible releases (automated)
+    * [x] ansible-2.7 (devel)
+    * [x] ansible-2.6
+    * [x] ansible-2.5
+    * [x] ansible-2.4
+    * [x] ansible-2.3
+1. Cluster installation completes successfully on all supported platforms (automated)
     * [ ] ubuntu-16.04
-    * [ ] rhel-7.5
-    * [ ] centos-7.latest
-    * [ ] ol-7.latest
-1. Installation completes successfully using supported ansible releases
-    * [ ] ansible-2.7 (devel)
-    * [ ] ansible-2.6
-    * [ ] ansible-2.5
-    * [ ] ansible-2.4
-    * [ ] ansible-2.3
-1. Cluster installation completes successfully on all supported platforms
-    * [ ] ubuntu-16.04
-    * [ ] rhel-7.5
-1. Cluster installation completes successfully using supported ansible releases
-    * [ ] ansible-2.7 (devel)
-    * [ ] ansible-2.6
-    * [ ] ansible-2.5
-    * [ ] ansible-2.4
-    * [ ] ansible-2.3
-1. Bundled installation completes successfully on all supported platforms
-    * [ ] rhel-7.4
-    * [ ] rhel-7.5
-    * [ ] centos-7.latest
-    * [ ] ol-7.latest
+    * [x] rhel-7.5
+1. Cluster installation completes successfully using supported ansible releases (automated)
+    * [x] ansible-2.7 (devel)
+    * [x] ansible-2.6
+    * [x] ansible-2.5
+    * [x] ansible-2.4
+    * [x] ansible-2.3
+1. Bundled installation completes successfully on all supported platforms (automated)
+    * [x] rhel-7.4
+    * [x] rhel-7.5
+    * [x] centos-7.latest
+    * [x] ol-7.latest
 1. [ ] Bundled installation completes successfully for clustered deployment
 
 ### Upgrades
