@@ -129,6 +129,7 @@
 1. [x] Successful upgrades on all supported platforms from `3.1.0` - `3.1.8` - standalone
 1. [x] Successful upgrades on all supported platforms from `3.2.0` - `3.2.6` - standalone
 1. [ ] Successful upgrades on all supported platforms from `3.2.0` - `3.2.6` - cluster
+1. [ ] Verify upgrades between two different image IDs in OpenShift
 1. [ ] Verify migration path from 330 VM cluster to 330 cluster in OpenShift
 * Verify the following functionality after upgrade
     * Resource migrations
