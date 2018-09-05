@@ -53,7 +53,7 @@
     permanent: true
     immediate: true
   when: inventory_hostname in groups['isolated_group_protected']
-  with_items: "{{ groups['instance_group_controller'] }}"
+  with_items: "{{ groups['instance_group_controller'] + groups['instance_group_future_controller'] }}"
 
 - name: On managed hosts, enable ssh traffic from isolated_group_protected
   firewalld:
