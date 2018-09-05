@@ -56,6 +56,10 @@ def assert_response(connection, resource, method, response_code=httplib.OK, resp
     # Assert api response code matches expected
     assert r.status_code == response_code
 
+    # HTTP HEAD _never_ has a response body, so there's nothing to validate
+    if method == 'head':
+        return
+
     # Extract JSON response
     try:
         json = r.json()
