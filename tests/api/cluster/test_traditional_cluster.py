@@ -239,6 +239,15 @@ class TestTraditionalCluster(Base_Api_Test):
 
         assert stats_job.artifacts == artifacts_from_stats_playbook
 
+    def test_full_instances_cannot_be_added_to_an_isolated_instance_group(self, v2):
+        full_instances = v2.instances.get(rampart_groups__controller__isnull=True).results
+        protected_ig = v2.instance_groups.get(name='protected').results.pop()
+
+        for full_instance in full_instances:
+            with pytest.raises(exc.BadRequest) as err:
+                protected_ig.add_instance(full_instance)
+            assert 'Isolated instance group membership may not be managed via the API.' == err.value.message['error']
+
     @pytest.mark.github('https://github.com/ansible/tower/issues/2394')
     def test_isolated_instance_cannot_be_added_to_instance_group(self, v2):
         iso_instances = v2.instances.get(rampart_groups__controller__isnull=False).results
