@@ -41,6 +41,11 @@ class TestJobTemplateLaunchCredentials(Base_Api_Test):
         assert job.is_successful
         assert job.credential is None
 
+        job_template_no_credential.ask_credential_on_launch = True
+        job = job_template_no_credential.launch().wait_until_completed()
+        assert job.is_successful
+        assert job.credential is None
+
     def test_launch_with_linked_credential(self, job_template_prompt_for_credential, ssh_credential):
         """Verify the job template launch endpoint requires user input when using a linked credential and
         `ask_credential_on_launch`.
@@ -175,6 +180,23 @@ class TestJobTemplateLaunchCredentials(Base_Api_Test):
             assert job.is_successful
             assert job.credential == team_ssh_credential.id
 
+    def test_launch_with_multiple_credentials(self, v2, factories, custom_cloud_credentials, custom_network_credentials):
+        machine_cred = factories.v2_credential()
+        vault_cred1 = factories.v2_credential(kind='vault', vault_password='tower', vault_id='vault1')
+        vault_cred2 = factories.v2_credential(kind='vault', vault_password='tower', vault_id='vault2')
+
+        creds = [machine_cred, vault_cred1, vault_cred2]
+        creds.extend([c for c in custom_cloud_credentials])
+        creds.extend([c for c in custom_network_credentials])
+        jt = factories.v2_job_template(credential=None, ask_credential_on_launch=True)
+        jt.ds.inventory.add_host()
+        job = jt.launch(dict(credentials=[c.id for c in creds]))
+        assert job.wait_until_completed().is_successful
+
+        job_creds = job.related.credentials.get().results
+        assert set(c.id for c in job_creds) == set(c.id for c in creds)
+        assert len(job_creds) == len(creds)
+
 
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestJobTemplateVaultCredentials(Base_Api_Test):
@@ -237,6 +259,57 @@ class TestJobTemplateVaultCredentials(Base_Api_Test):
         debug_tasks = job.related.job_events.get(host_name=host.name, task='debug').results
         assert len(debug_tasks) == 1
         assert debug_tasks[0].event_data.res.hostvars.keys() == [host.name]
+
+    def test_decrypt_vaulted_playbook_with_multiple_vault_credentials(self, factories):
+        host = factories.v2_host()
+        jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='multivault.yml')
+
+        vault_cred1 = factories.v2_credential(kind='vault', vault_password='secret1', vault_id='first')
+        vault_cred2 = factories.v2_credential(kind='vault', vault_password='secret2', vault_id='second')
+        jt.add_credential(vault_cred1)
+        jt.add_credential(vault_cred2)
+
+        job = jt.launch().wait_until_completed()
+        assert job.is_successful
+
+        debug_tasks = job.related.job_events.get(host_name=host.name, task='debug').results
+        assert len(debug_tasks) == 2
+        assert any('First!' in task.stdout for task in debug_tasks)
+        assert any('Second!' in task.stdout for task in debug_tasks)
+
+    def test_decrypt_vaulted_playbook_with_multiple_ask_on_launch_vault_credentials(self, factories):
+        host = factories.v2_host()
+        jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='multivault.yml')
+
+        vault_cred1 = factories.v2_credential(kind='vault', vault_password='ASK', vault_id='first')
+        vault_cred2 = factories.v2_credential(kind='vault', vault_password='ASK', vault_id='second')
+        jt.add_credential(vault_cred1)
+        jt.add_credential(vault_cred2)
+
+        with pytest.raises(exc.BadRequest) as e:
+            jt.launch().wait_until_completed()
+        assert set(e.value.message['passwords_needed_to_start']) == set(['vault_password.first', 'vault_password.second'])
+        assert len(e.value.message['passwords_needed_to_start']) == 2
+
+        payload = {'vault_password.first': 'secret1',
+                   'vault_password.second': 'secret2'}
+
+        job = jt.launch(payload).wait_until_completed()
+        assert job.is_successful
+
+        debug_tasks = job.related.job_events.get(host_name=host.name, task='debug').results
+        assert len(debug_tasks) == 2
+        assert any('First!' in task.stdout for task in debug_tasks)
+        assert any('Second!' in task.stdout for task in debug_tasks)
+
+    def test_cannot_assign_multiple_vault_credentials_with_same_vault_id(self, factories):
+        jt = factories.v2_job_template()
+        vault_cred1 = factories.v2_credential(kind='vault', vault_password='secret1', vault_id='foo')
+        vault_cred2 = factories.v2_credential(kind='vault', vault_password='secret2', vault_id='foo')
+        jt.add_credential(vault_cred1)
+        with pytest.raises(exc.BadRequest) as e:
+            jt.add_credential(vault_cred2)
+        assert e.value.message == {'error': 'Cannot assign multiple Vault (id=foo) credentials.'}
 
 
 @pytest.fixture(scope='class')
