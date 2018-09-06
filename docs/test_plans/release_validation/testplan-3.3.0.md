@@ -3,6 +3,7 @@
 ## Resources
 * 5 full-time automation engineers - cwang/jladd/one-t/jhill/guozhang
 * Left company halfway through release - rfitzpatrick
+* Delegation of responsibilities detailed [here](https://docs.google.com/document/d/1hhTGiWETu2tvQPEYojn1ZTpxDQvPseeJB4sI_b6zNZM/edit)
 
 ## Features Not Tested
 
