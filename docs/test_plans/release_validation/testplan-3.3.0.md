@@ -108,7 +108,7 @@
     * [x] ansible-2.4
     * [x] ansible-2.3
 1. Cluster installation completes successfully on all supported platforms (automated)
-    * [ ] ubuntu-16.04
+    * [x] ubuntu-16.04
     * [x] rhel-7.5
 1. Cluster installation completes successfully using supported ansible releases (automated)
     * [x] ansible-2.7 (devel)
