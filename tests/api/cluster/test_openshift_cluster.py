@@ -117,9 +117,7 @@ class TestOpenShiftCluster(Base_Api_Test):
         utils.poll_until(lambda: job.get().execution_node, interval=1, timeout=60)
 
         openshift_utils.delete_pod(job.execution_node)
-        # FIXME: Tower is doing the right thing, but test is running into problems with wait_until_completed here.
-        # We need to fix this test.
-        assert job.wait_until_completed(timeout=600).status == 'failed'
+        assert job.poll_until(lambda: job.get().status == 'failed', timeout=600)
         assert job.job_explanation == 'Task was marked as running in Tower but was not present in the job queue, ' \
                                       'so it has been marked as failed.'
 
