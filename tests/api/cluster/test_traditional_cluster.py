@@ -424,10 +424,11 @@ class TestTraditionalCluster(Base_Api_Test):
         with self.current_instance(connection, v2):
             # Store original controller group capacity for later verification
             controller_group = v2.instance_groups.get(name="controller").results[0]
-            original_capacity = controller_group.capacity
+            original_capacity_controller_ig = controller_group.capacity
 
             # Start a long running job against the isolated node
             protected_group = v2.instance_groups.get(name="protected").results[0]
+            original_capacity_protected_ig = protected_group.capacity
 
             host = factories.v2_host()
             jt = factories.v2_job_template(playbook='sleep.yml',
@@ -440,6 +441,7 @@ class TestTraditionalCluster(Base_Api_Test):
             with SafeStop(stoppers, starters):
                 # Wait until controller group capacity is set to zero
                 utils.poll_until(lambda: controller_group.get().capacity == 0, interval=5, timeout=120)
+                utils.poll_until(lambda: protected_group.get().capacity == 0, interval=5, timeout=120)
 
                 # Check the long running job fails
                 long_job.wait_until_status(FAIL_STATUSES, interval=5, timeout=180, since_job_created=False)
@@ -457,7 +459,8 @@ class TestTraditionalCluster(Base_Api_Test):
                 self.assert_job_stays_pending(job)
 
             # Check group capacity is restored
-            utils.poll_until(lambda: controller_group.get().capacity == original_capacity, interval=5, timeout=120)
+            utils.poll_until(lambda: controller_group.get().capacity == original_capacity_controller_ig, interval=5, timeout=120)
+            utils.poll_until(lambda: protected_group.get().capacity == original_capacity_protected_ig, interval=5, timeout=120)
 
             # Check the pending job is picked up
             job.wait_until_completed(since_job_created=False)
