@@ -121,7 +121,7 @@
     * [x] rhel-7.5
     * [x] centos-7.latest
     * [x] ol-7.latest
-1. [ ] Bundled installation completes successfully for clustered deployment
+1. [x] Bundled installation completes successfully for clustered deployment
 
 ### Upgrades
 1. [x] Successful migrations from `3.1.0` - `3.1.8`
