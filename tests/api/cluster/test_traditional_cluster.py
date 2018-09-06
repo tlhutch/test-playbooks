@@ -260,7 +260,52 @@ class TestTraditionalCluster(Base_Api_Test):
                 protected_ig.add_instance(full_instance)
             assert 'Isolated instance group membership may not be managed via the API.' == err.value.message['error']
 
-    @pytest.mark.github('https://github.com/ansible/tower/issues/2394')
+    def test_can_add_or_remove_instance_to_control_group(self, v2, factories, hosts_in_group, hostvars_for_host,
+                                                         user_password):
+        managed = hosts_in_group('managed_hosts')[0]
+        username = hostvars_for_host(managed).get('ansible_user')
+        cred = factories.v2_credential(username=username, password=user_password)
+        host = factories.host(name=managed, variables=dict(ansible_host=managed))
+
+        jt = factories.v2_job_template(allow_simultaneous=True, inventory=host.ds.inventory, credential=cred)
+        protected_ig = v2.instance_groups.get(name='protected').results.pop()
+        jt.add_instance_group(protected_ig)
+
+        controller_group = v2.instance_groups.get(name='controller').results.pop()
+        new_controller = v2.instance_groups.get(name='future_controller').results.pop().related.instances\
+                           .get().results.pop()
+
+        try:
+            controller_group.add_instance(new_controller)
+            controller_group_instances = controller_group.related.instances.get().results
+            assert new_controller.id in [i.id for i in controller_group_instances]
+
+            num_jobs = 3 * len(controller_group_instances)
+            for _ in range(num_jobs):
+                jt.launch()
+            jobs = jt.related.jobs
+            utils.poll_until(lambda: jobs.get(status='successful', order_by='id').count == num_jobs, interval=5, timeout=300)
+            last_job = jt.related.jobs.get(order_by='id').results[-1].id
+
+            job_controller_nodes = [job.controller_node for job in jt.related.jobs.get().results]
+            assert set(job_controller_nodes) == set([instance.hostname for instance
+                                                    in controller_group_instances])
+        finally:
+            controller_group.remove_instance(new_controller)
+
+        controller_group_instances = controller_group.related.instances.get().results
+        assert new_controller.id not in [i.id for i in controller_group_instances]
+
+        num_jobs = 3 * len(controller_group_instances)
+        for _ in range(num_jobs):
+            jt.launch()
+        jobs = jt.related.jobs
+        utils.poll_until(lambda: jobs.get(id__gt=last_job, status='successful').count == num_jobs, interval=5, timeout=300)
+
+        job_controller_nodes = [job.controller_node for job in jt.related.jobs.get(id__gt=last_job).results]
+        assert set(job_controller_nodes) == set([instance.hostname for instance
+                                                in controller_group_instances])
+
     def test_isolated_instance_cannot_be_added_to_instance_group(self, v2):
         iso_instances = v2.instances.get(rampart_groups__controller__isnull=False).results
         instance_groups = [ig for ig in v2.instance_groups.get().results]
@@ -271,7 +316,6 @@ class TestTraditionalCluster(Base_Api_Test):
                     ig.add_instance(instance)
                 assert 'Isolated instances may not be added or removed from instances groups via the API.' == err.value.message['error']
 
-    @pytest.mark.gethub('https://github.com/ansible/tower/issues/2390')
     def test_isolated_instance_cannot_be_removed_from_isolated_group(self, v2):
         iso_instance_groups = [ig for ig in v2.instance_groups.get().results if ig.controller]
         for ig in iso_instance_groups:
@@ -279,7 +323,6 @@ class TestTraditionalCluster(Base_Api_Test):
                 with pytest.raises(exc.BadRequest):
                     ig.remove_instance(instance)
 
-    @pytest.mark.github('https://github.com/ansible/tower/issues/2393')
     def test_cannot_delete_controller_instance_group(self, v2):
         controller_ig_ids = [ig.controller for ig in v2.instance_groups.get().results if ig.controller]
         controller_igs = [v2.instance_groups.get(id=id).results.pop() for id in controller_ig_ids]
