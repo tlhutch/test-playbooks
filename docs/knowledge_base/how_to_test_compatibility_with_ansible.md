@@ -31,6 +31,14 @@ The [Test_Tower_Upgrade](http://jenkins.ansible.eng.rdu2.redhat.com/view/Tower/j
 
 The [Ansible Core / Tower Compatibility Test](http://jenkins.ansible.eng.rdu2.redhat.com/job/Ansible_Tower_Integration_Test/#) tests the _latest release of Tower_ against each supported version of Ansible.
 
+## Providing Core with instructions for running the compatibility test
+
+The Ansible Core team maintains a block of instructions on how to kick off and review the results for the compatibility test. Those instructions can be found in a release engineering document located [here](https://github.com/ansible/community/wiki/RelEng:-ReleaseProcess#release-procedure).
+
+If this document is out-of-date, contact a member of the core team in #testing, and offer to edit the wiki page's instructions so that it's current. The wiki page can be edited in place.
+
+After making changes, click on the `X Revisions` link (just underneath the title of the page at top), select your change and the change immediately preceding that, and click Compare Revisions. Copy the link to the following page showing the changes and paste it in #testing so members of the core team can see / review the changes.
+
 ## Updating Jenkins jobs to include new Ansible releases
 
 When the Ansible team creates a new `stable-*` branch, use the following checklist to ensure that all jobs are updated to include the new branch:
