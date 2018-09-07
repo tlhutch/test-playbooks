@@ -197,6 +197,59 @@ class TestJobTemplateLaunchCredentials(Base_Api_Test):
         assert set(c.id for c in job_creds) == set(c.id for c in creds)
         assert len(job_creds) == len(creds)
 
+    def test_launch_with_multiple_credentials_but_ask_credential_on_launch_false(self, v2, factories,
+                                                                                 custom_cloud_credentials,
+                                                                                 custom_network_credentials):
+        machine_cred = factories.v2_credential()
+        vault_cred1 = factories.v2_credential(kind='vault', vault_password='tower', vault_id='vault1')
+        vault_cred2 = factories.v2_credential(kind='vault', vault_password='tower', vault_id='vault2')
+
+        creds = [machine_cred, vault_cred1, vault_cred2]
+        creds.extend([c for c in custom_cloud_credentials])
+        creds.extend([c for c in custom_network_credentials])
+        jt = factories.v2_job_template(credential=None)
+        jt.ds.inventory.add_host()
+        job = jt.launch(dict(credentials=[c.id for c in creds]))
+        assert job.wait_until_completed().is_successful
+        assert job.related.credentials.get().count == 0
+
+    def test_provide_additional_vault_credential_on_launch(self, v2, factories):
+        jt = factories.v2_job_template(credential=None, ask_credential_on_launch=True)
+        jt.ds.inventory.add_host()
+
+        vault_cred1 = factories.v2_credential(kind='vault', vault_password='tower', vault_id='vault1')
+        vault_cred2 = factories.v2_credential(kind='vault', vault_password='tower', vault_id='vault2')
+        jt.add_credential(vault_cred1)
+
+        with pytest.raises(exc.BadRequest) as e:
+            jt.launch(dict(credentials=[vault_cred2.id]))
+        error_msg = (u'Removing Vault (id={0.inputs.vault_id}) credential at launch time without replacement '
+                     'is not supported. Provided list lacked credential(s): {0.name}-{0.id}.').format(vault_cred1)
+        assert e.value.message == {'credentials': [error_msg]}
+
+        job = jt.launch(dict(credentials=[vault_cred1.id, vault_cred2.id]))
+        assert job.wait_until_completed().is_successful
+
+        job_creds = job.related.credentials.get().results
+        assert set(c.id for c in job_creds) == set([vault_cred1.id, vault_cred2.id])
+        assert job.related.credentials.get().count == 2
+
+    def test_cannot_mix_old_and_new_launch_params_for_credentials(self, v2, factories, custom_cloud_credentials, custom_network_credentials):
+        jt = factories.v2_job_template(credential=None, ask_credential_on_launch=True)
+        jt.ds.inventory.add_host()
+
+        machine_cred = factories.v2_credential()
+        vault_cred1 = factories.v2_credential(kind='vault', vault_password='secret1', vault_id='vault1')
+        vault_cred2 = factories.v2_credential(kind='vault', vault_password='secret2', vault_id='vault2')
+        bad_payloads = [dict(credential=machine_cred.id, credentials=[vault_cred1.id]),
+                        dict(vault_credential=vault_cred1.id, credentials=[vault_cred2.id]),
+                        dict(extra_credentials=[c.id for c in custom_cloud_credentials], credentials=[machine_cred.id]),
+                        dict(extra_credentials=[c.id for c in custom_network_credentials], credentials=[machine_cred.id])]
+        for payload in bad_payloads:
+            with pytest.raises(exc.BadRequest) as e:
+                jt.launch(payload)
+            assert e.value.message == {'error': "'credentials' cannot be used in combination with 'credential', 'vault_credential', or 'extra_credentials'."}
+
 
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestJobTemplateVaultCredentials(Base_Api_Test):
