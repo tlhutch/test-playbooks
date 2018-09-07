@@ -268,7 +268,8 @@ class TestSCMInventorySource(Base_Api_Test):
         assert project.related.project_updates.get(launch_type='manual').count == 1
         assert project.related.project_updates.get(launch_type='sync').count == 1
 
-        assert job_template_that_writes_to_source.launch().wait_until_completed().is_successful
+        job = job_template_that_writes_to_source.launch()
+        assert job.wait_until_completed().is_successful, job.result_stdout
 
         assert project.related.project_updates.get(launch_type='manual').count == 1
         assert project.related.project_updates.get(launch_type='sync').count == 2  # addtl sync from job launch
