@@ -103,7 +103,8 @@
     * [x] centos-7.latest
     * [x] ol-7.latest
 1. Installation completes successfully using supported ansible releases (automated)
-    * [x] ansible-2.7 (devel)
+    * [ ] devel
+    * [x] ansible-2.7
     * [x] ansible-2.6
     * [x] ansible-2.5
     * [x] ansible-2.4
@@ -112,7 +113,8 @@
     * [x] ubuntu-16.04
     * [x] rhel-7.5
 1. Cluster installation completes successfully using supported ansible releases (automated)
-    * [x] ansible-2.7 (devel)
+    * [ ] devel
+    * [x] ansible-2.7
     * [x] ansible-2.6
     * [x] ansible-2.5
     * [x] ansible-2.4
