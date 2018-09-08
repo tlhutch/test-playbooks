@@ -289,8 +289,9 @@ class Test_Projects(Base_Api_Test):
 
     def test_project_with_galaxy_requirements_processed_on_scm_change(self, factories, job_template_that_writes_to_source):
         project_with_requirements = factories.v2_project(scm_url='https://github.com/jlaska/ansible-playbooks.git',
-                                                         scm_branch='inventory_additions')
-        jt_with_requirements = factories.v2_job_template(project=project_with_requirements)
+                                                         scm_branch='with_requirements')
+        jt_with_requirements = factories.v2_job_template(project=project_with_requirements,
+                                                         playbook='debug.yml')
 
         assert jt_with_requirements.launch().wait_until_completed().is_successful, \
             "First job template run for a project always triggers the processing of requirements.yml"
