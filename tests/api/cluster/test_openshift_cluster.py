@@ -70,7 +70,7 @@ class TestOpenShiftCluster(Base_Api_Test):
     def test_tower_web_service_should_be_able_to_recover_from_zero_tower_pods(self, factories, v2, tower_instance_group,
                                                                               tower_version, tower_ig_contains_all_instances):
         openshift_utils.scale_dc(dc='ansible-tower', replicas=0)
-        utils.poll_until(lambda: len(openshift_utils.get_tower_pods()) == 0, interval=5, timeout=180)
+        utils.poll_until(lambda: len(openshift_utils.get_tower_pods()) == 0, interval=5, timeout=300)
 
         openshift_utils.scale_dc(dc='ansible-tower', replicas=1)
         utils.poll_until(lambda: len(openshift_utils.get_tower_pods()) == 1, interval=5, timeout=180)
