@@ -133,7 +133,6 @@
 1. [x] Successful upgrades on all supported platforms from `3.2.0` - `3.2.6` - standalone
 * Successful upgrades from `3.2.0` - `3.2.6` - cluster
     * [x] RHEL-7.4
-    * [ ] Ubuntu 14
     * [ ] Ubuntu 16
 1. [x] Verify upgrades between two different image IDs in OpenShift
 1. [x] Verify migration path from 330 VM cluster to 330 cluster in OpenShift
