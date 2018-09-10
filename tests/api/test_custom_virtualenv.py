@@ -51,9 +51,9 @@ class TestCustomVirtualenv(APITest):
 
         with create_venv(folder_names[0]):
             with create_venv(folder_names[1]):
-                custom_venvs = v2.config.get().custom_virtualenvs
-                assert all([path in custom_venvs for path in (venv_path(folder_names[0]),
-                                                              venv_path(folder_names[1]))])
+                poll_until(lambda: all([path in v2.config.get().custom_virtualenvs
+                                        for path in (venv_path(folder_names[0]), venv_path(folder_names[1]))]),
+                           interval=1, timeout=15)
                 for resource_type in ('job_template', 'project', 'organization'):
                     resource = get_resource_from_jt(jt, resource_type)
                     for path in malformed_venvs:
@@ -69,7 +69,7 @@ class TestCustomVirtualenv(APITest):
         jt = factories.v2_job_template()
 
         with create_venv(folder_name):
-            assert venv_path(folder_name) in v2.config.get().custom_virtualenvs
+            poll_until(lambda: venv_path(folder_name) in v2.config.get().custom_virtualenvs, interval=1, timeout=15)
             for resource_type in ('job_template', 'project', 'organization'):
                 resource = get_resource_from_jt(jt, resource_type)
                 for path in valid_venvs:
@@ -78,7 +78,7 @@ class TestCustomVirtualenv(APITest):
     def test_run_job_using_venv_with_required_packages(self, v2, factories, create_venv, venv_path):
         folder_name = random_title(non_ascii=False)
         with create_venv(folder_name):
-            assert venv_path(folder_name) in v2.config.get().custom_virtualenvs
+            poll_until(lambda: venv_path(folder_name) in v2.config.get().custom_virtualenvs, interval=1, timeout=15)
             jt = factories.v2_job_template()
             jt.ds.inventory.add_host()
             assert jt.custom_virtualenv is None
@@ -94,9 +94,9 @@ class TestCustomVirtualenv(APITest):
         folder_names = [random_title(non_ascii=False) for _ in range(2)]
         with create_venv(folder_names[0]):
             with create_venv(folder_names[1]):
-                custom_venvs = v2.config.get().custom_virtualenvs
-                assert all([path in custom_venvs for path in (venv_path(folder_names[0]),
-                                                              venv_path(folder_names[1]))])
+                poll_until(lambda: all([path in v2.config.get().custom_virtualenvs
+                                        for path in (venv_path(folder_names[0]), venv_path(folder_names[1]))]),
+                           interval=1, timeout=15)
                 jt = factories.v2_job_template()
                 jt.ds.inventory.add_host()
 
@@ -113,7 +113,7 @@ class TestCustomVirtualenv(APITest):
     def test_venv_with_ansible(self, v2, factories, create_venv, ansible_version, venv_path):
         folder_name = random_title(non_ascii=False)
         with create_venv(folder_name, 'python-memcached psutil ansible=={}'.format(ansible_version)):
-            assert venv_path(folder_name) in v2.config.get().custom_virtualenvs
+            poll_until(lambda: venv_path(folder_name) in v2.config.get().custom_virtualenvs, interval=1, timeout=15)
             jt = factories.v2_job_template(playbook='run_command.yml', extra_vars='{"command": "ansible --version"}')
             jt.ds.inventory.add_host()
             assert jt.custom_virtualenv is None
@@ -132,7 +132,7 @@ class TestCustomVirtualenv(APITest):
     def test_venv_with_missing_requirements(self, v2, factories, create_venv, ansible_version, venv_path):
         folder_name = random_title(non_ascii=False)
         with create_venv(folder_name, ''):
-            assert venv_path(folder_name) in v2.config.get().custom_virtualenvs
+            poll_until(lambda: venv_path(folder_name) in v2.config.get().custom_virtualenvs, interval=1, timeout=15)
             jt = factories.v2_job_template()
             jt.ds.inventory.add_host()
             assert jt.custom_virtualenv is None
@@ -146,7 +146,7 @@ class TestCustomVirtualenv(APITest):
     def test_relaunched_jobs_use_venv_specified_on_jt_at_launch_time(self, v2, factories, create_venv, venv_path):
         folder_name = random_title(non_ascii=False)
         with create_venv(folder_name):
-            assert venv_path(folder_name) in v2.config.get().custom_virtualenvs
+            poll_until(lambda: venv_path(folder_name) in v2.config.get().custom_virtualenvs, interval=1, timeout=15)
             jt = factories.v2_job_template()
             jt.ds.inventory.add_host()
             jt.custom_virtualenv = venv_path(folder_name)
@@ -167,12 +167,12 @@ class TestCustomVirtualenv(APITest):
     def test_relaunched_jobs_fail_when_venv_no_longer_exists(self, v2, factories, create_venv, venv_path):
         folder_name = random_title(non_ascii=False)
         with create_venv(folder_name):
-            assert venv_path(folder_name) in v2.config.get().custom_virtualenvs
+            poll_until(lambda: venv_path(folder_name) in v2.config.get().custom_virtualenvs, interval=1, timeout=15)
             jt = factories.v2_job_template()
             jt.ds.inventory.add_host()
             jt.custom_virtualenv = venv_path(folder_name)
 
-        assert venv_path(folder_name) not in v2.config.get().custom_virtualenvs
+        poll_until(lambda: venv_path(folder_name) not in v2.config.get().custom_virtualenvs, interval=1, timeout=15)
         assert jt.get().custom_virtualenv == venv_path(folder_name)
         job = jt.launch().wait_until_completed()
         assert job.status == 'error'
@@ -183,7 +183,7 @@ class TestCustomVirtualenv(APITest):
     def test_workflow_job_node_sources_venv(self, v2, factories, create_venv, venv_path):
         folder_name = random_title(non_ascii=False)
         with create_venv(folder_name):
-            assert venv_path(folder_name) in v2.config.get().custom_virtualenvs
+            poll_until(lambda: venv_path(folder_name) in v2.config.get().custom_virtualenvs, interval=1, timeout=15)
             jt = factories.v2_job_template()
             jt.ds.inventory.add_host()
             jt.custom_virtualenv = venv_path(folder_name)
@@ -205,7 +205,7 @@ class TestCustomVirtualenv(APITest):
         """
         folder_name = random_title(non_ascii=False)
         with create_venv(folder_name):
-            assert venv_path(folder_name) in v2.config.get().custom_virtualenvs
+            poll_until(lambda: venv_path(folder_name) in v2.config.get().custom_virtualenvs, interval=1, timeout=15)
             jt = factories.v2_job_template()
             jt.ds.inventory.add_host()
             jt_with_venv = factories.v2_job_template()
@@ -238,7 +238,7 @@ class TestCustomVirtualenv(APITest):
     def test_scheduled_job_uses_venv_associated_with_resource(self, v2, factories, create_venv, venv_path):
         folder_name = random_title(non_ascii=False)
         with create_venv(folder_name):
-            assert venv_path(folder_name) in v2.config.get().custom_virtualenvs
+            poll_until(lambda: venv_path(folder_name) in v2.config.get().custom_virtualenvs, interval=1, timeout=15)
             jt = factories.v2_job_template()
             jt.ds.inventory.add_host()
             jt.custom_virtualenv = venv_path(folder_name)
@@ -259,7 +259,7 @@ class TestCustomVirtualenv(APITest):
                                                venv_path, get_resource_from_jt):
         folder_name = random_title(non_ascii=False)
         with create_venv(folder_name):
-            assert venv_path(folder_name) in v2.config.get().custom_virtualenvs
+            poll_until(lambda: venv_path(folder_name) in v2.config.get().custom_virtualenvs, interval=1, timeout=15)
             jt = factories.v2_job_template()
             jt.ds.inventory.add_host()
             resource = get_resource_from_jt(jt, resource_type)
