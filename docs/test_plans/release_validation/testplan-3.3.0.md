@@ -85,15 +85,15 @@
 1. [ ] API regression completed - standalone
 1. [ ] API regression completed - traditional cluster
 1. [ ] API regression completed - OpenShift
-1. [ ] Tower social authentication regression completed (vm)
+1. [x] Tower social authentication regression completed (vm)
 1. [x] Tower SAML integration regression completed (vm)
 1. [x] Tower social authentication regression completed (OpenShift)
 1. [x] Tower SAML integration regression completed (OpenShift)
 1. [x] Logging regression completed - standalone
-1. [ ] Logging regression completed - cluster
+1. [x] Logging regression completed - cluster
 1. [x] Backup/restore successful - standalone
 1. [ ] Backup/restore successful - traditional cluster
-1. [ ] Backup/restore successful - OpenShift
+1. [x] Backup/restore successful - OpenShift
 
 ### Installation
 1. Installation completes successfully on all supported platforms (automated)
