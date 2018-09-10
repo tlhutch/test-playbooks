@@ -7,15 +7,15 @@
             state: present
           when: ansible_pkg_mgr == 'yum'
 
-        - name: Install virtualenv (ubuntu-14)
+        - name: Install virtualenv (Ubuntu-14)
           apt:
-            pkg: python-virtualenv
+            name: python-virtualenv
             state: present
           when: ansible_pkg_mgr == 'apt' and ansible_distribution_major_version == '14'
 
-        - name: Install virtualenv (ubuntu - all other versions)
+        - name: Install virtualenv (Ubuntu - all other versions)
           apt:
-            pkg: virtualenv
+            name: virtualenv
             state: present
           when: ansible_pkg_mgr == 'apt' and ansible_distribution_major_version != '14'
 
@@ -26,14 +26,29 @@
           debug:
             msg: "Packages to install in venv: {{ venv_packages|default('python-memcached psutil (default packages)') }}"
 
-        - name: Install gcc (required by psutil) (yum)
+        - name: Install gcc (required by psutil) (EL-*)
           yum:
             name: gcc
             state: present
           when: ansible_pkg_mgr == 'yum'
 
+        - name: Pip install latest setuptools (Ubuntu)
+          command: /var/lib/awx/venv/{{ venv_folder_name|default('custom-venv') }}/bin/pip install -I -U setuptools
+          when: ansible_pkg_mgr == 'apt'
+
+        - name: Install header files required by Ansible (Ubuntu)
+          apt:
+            name: "{{ packages }}"
+            state: present
+          vars:
+            packages:
+            - libssl-dev
+            - libffi-dev
+          when: ansible_pkg_mgr == 'apt'
+
         - name: Pip install required packages
-          command: /var/lib/awx/venv/{{ venv_folder_name|default('custom-venv') }}/bin/pip install {{ venv_packages|default("python-memcached psutil") }}
+          command: /var/lib/awx/venv/{{ venv_folder_name|default('custom-venv') }}/bin/pip install -I -U {{ venv_packages|default("python-memcached psutil") }}
+          when: venv_packages != ''
       become: true
       when: not remove_virtualenv|default(false)
 
