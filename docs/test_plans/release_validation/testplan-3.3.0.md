@@ -135,8 +135,8 @@
     * [x] RHEL-7.4
     * [ ] Ubuntu 14
     * [ ] Ubuntu 16
-1. [ ] Verify upgrades between two different image IDs in OpenShift
-1. [ ] Verify migration path from 330 VM cluster to 330 cluster in OpenShift
+1. [x] Verify upgrades between two different image IDs in OpenShift
+1. [x] Verify migration path from 330 VM cluster to 330 cluster in OpenShift
 * Verify the following functionality after upgrade
     * Resource migrations
     * Launch project_updates for existing projects
