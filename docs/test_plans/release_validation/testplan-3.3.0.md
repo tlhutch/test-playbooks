@@ -91,7 +91,7 @@
 1. [x] Tower SAML integration regression completed (OpenShift)
 1. [x] Logging regression completed - standalone
 1. [ ] Logging regression completed - cluster
-1. [ ] Backup/restore successful - standalone
+1. [x] Backup/restore successful - standalone
 1. [ ] Backup/restore successful - traditional cluster
 1. [ ] Backup/restore successful - OpenShift
 
