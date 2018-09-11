@@ -81,7 +81,7 @@
 * [Test Plan](https://docs.google.com/document/d/1Fju6pAJ5kbK8xEeCSsse3RHwhhYpdMRMnMYxscs1B8Q/edit)
 
 ## Regression
-1. [ ] UI regression completed
+1. [x] UI regression completed
 1. [x] API regression completed - standalone
 1. [ ] API regression completed - traditional cluster
 1. [x] API regression completed - OpenShift
