@@ -53,7 +53,7 @@
 * [Test Plan](https://docs.google.com/document/d/1qaLCCXoGEcAIW0Be-JTvBOM-KoC1AOGBju1nM9b3WbU/edit)
 
 ### ~Inventory & Network Visualization~
-* This feature never made Tower-3.3.0. :(
+* This feature never made Tower-3.3.0.
 
 ### Token-based authentication to Tower (mwilson, rpetrello)
 * [Feature (sessions)](https://github.com/ansible/tower/blob/release_3.3.0/docs/auth/session.md)
@@ -103,7 +103,7 @@
     * [x] centos-7.latest
     * [x] ol-7.latest
 1. Installation completes successfully using supported ansible releases (automated)
-    * [ ] devel
+    * [ ] ~devel~ (Ansible builds are failing)
     * [x] ansible-2.7
     * [x] ansible-2.6
     * [x] ansible-2.5
@@ -113,7 +113,7 @@
     * [x] ubuntu-16.04
     * [x] rhel-7.5
 1. Cluster installation completes successfully using supported ansible releases (automated)
-    * [ ] devel
+    * [ ] ~devel~ (Ansible builds are failing)
     * [x] ansible-2.7
     * [x] ansible-2.6
     * [x] ansible-2.5
