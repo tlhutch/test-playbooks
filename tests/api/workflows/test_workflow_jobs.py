@@ -277,7 +277,7 @@ class Test_Workflow_Jobs(APITest):
     def test_cancel_workflow_job_pre_spawn(self, factories):
         host = factories.host()
         jt_sleep = factories.job_template(inventory=host.ds.inventory, playbook='sleep.yml')  # Longer-running job
-        jt_sleep.extra_vars = '{"sleep_interval": 20}'
+        jt_sleep.extra_vars = '{"sleep_interval": 120}'
         wfjt = factories.workflow_job_template()
         factories.workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt_sleep)
 
@@ -292,6 +292,9 @@ class Test_Workflow_Jobs(APITest):
         if job_node.job is None:
             return  # cancel happened before nodes spawned, this is fine
         job = job_node.get_related('job')
+        # If job does not cancel within 1 min, that means that cancel
+        # was never propagated from the workflow job
+        poll_until(lambda: job.get().status == 'canceled', timeout=60)
         assert job.created < wfj.finished
 
     def test_cancel_workflow_job(self, factories):
@@ -321,9 +324,7 @@ class Test_Workflow_Jobs(APITest):
         poll_until(lambda: getattr(wfj.get(), 'status') == 'canceled', timeout=3 * 60)
 
         # Confirm job spawned by workflow job was canceled
-        # TODO: in Tower 3.4, the API should wait until job was canceled
-        # before marking workflow job as canceled, so change poll to assertion
-        poll_until(lambda: getattr(job.get(), 'status') == 'canceled', timeout=60)
+        assert job.get().status == 'canceled'
 
     def test_cancel_job_spawned_by_workflow_job(self, factories):
         """Cancel job spawned by workflow job. Confirm workflow job finishes and is marked successful.
