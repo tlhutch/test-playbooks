@@ -128,7 +128,7 @@ class TestJobTemplateSharding(Base_Api_Test):
         workflow_job = jt.launch()
 
         for node in workflow_job.related.workflow_nodes.get().results:
-            assert node.verbosity == None
+            assert node.verbosity is None
 
             poll_until(lambda: node.get().job, interval=1, timeout=30)
             job = node.related.job.get()
@@ -150,7 +150,7 @@ class TestJobTemplateSharding(Base_Api_Test):
 
         for node in workflow_job.related.workflow_nodes.get().results:
             # design decision is to not save prompts on nodes
-            assert node.limit == None
+            assert node.limit is None
             assert node.related.credentials.get().count == 0
 
             poll_until(lambda: node.get().job, interval=1, timeout=30)
@@ -200,7 +200,7 @@ class TestJobTemplateSharding(Base_Api_Test):
 
     def test_job_template_shard_job_long_name(self, sharded_jt_factory, v2):
         uuid_str = str(uuid.uuid4())
-        unique_512_name = 'f'*(512-len(uuid_str)) + uuid_str
+        unique_512_name = 'f' * (512 - len(uuid_str)) + uuid_str
         jt = sharded_jt_factory(2, jt_kwargs=dict(name=unique_512_name))
 
         workflow_job = jt.launch()
