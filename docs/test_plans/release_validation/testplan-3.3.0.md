@@ -92,7 +92,7 @@
 1. [x] Logging regression completed - standalone
 1. [x] Logging regression completed - cluster
 1. [x] Backup/restore successful - standalone
-1. [ ] Backup/restore successful - traditional cluster
+1. [x] Backup/restore successful - traditional cluster (RHEL-7.4, Ubuntu-16)
 1. [x] Backup/restore successful - OpenShift
 
 ### Installation
