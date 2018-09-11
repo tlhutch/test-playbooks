@@ -225,7 +225,7 @@ class TestJobChannels(ChannelsTest, Base_Api_Test):
 class TestWorkflowChannels(ChannelsTest, Base_Api_Test):
 
         @pytest.mark.ansible_integration
-        def test_workflow_events(self, factories, ws_client):
+        def test_workflow_events(self, factories, ws_client, v2):
             ws = ws_client.connect()
             inventory = factories.v2_host().ds.inventory
             success_jt = factories.v2_job_template(inventory=inventory, playbook='debug.yml')
@@ -238,8 +238,15 @@ class TestWorkflowChannels(ChannelsTest, Base_Api_Test):
             ws.status_changes()
             self.sleep_and_clear_messages(ws)
 
-            wfj = wfjt.launch()
-            ws.workflow_events(wfj.id)
+            # Do not call wfjt.launc() directly since it invokes multiple requests
+            # Multiple requests are problematic because we want to listen to workflow
+            # events as quick as possible so that we don't miss events
+            wfj_id = wfjt.get_related('launch').post({})['id']
+
+            # Note: We can still subscribe to events too late to get all events
+            ws.workflow_events(wfj_id)
+
+            wfj = v2.workflow_jobs.get(id=wfj_id)['results'][0]
             wfj.wait_until_completed()
 
             mapper = WorkflowTreeMapper(WorkflowTree(wfjt), WorkflowTree(wfj)).map()
@@ -264,8 +271,11 @@ class TestWorkflowChannels(ChannelsTest, Base_Api_Test):
                     expected_msg['instance_group_name'] = 'tower'
                 expected.append(expected_msg)
 
-            for message in expected:
-                assert message in messages
+            for counter, message in enumerate(expected):
+                assert message in messages, \
+                    ("Event {} with status {} expected to be found. "
+                     "If this is the first couple of events we might have "
+                     "subscribed to the websocket too late.".format(counter, message['status']))
 
             ws.unsubscribe()
             self.sleep_and_clear_messages(ws)
