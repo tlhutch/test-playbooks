@@ -1,9 +1,10 @@
 # Tower 3.3.0 Release Test Plan
 
 ## Resources
-* 5 full-time automation engineers - cwang/jladd/one-t/jhill/guozhang
-* Left company halfway through release - rfitzpatrick
-* Delegation of responsibilities detailed [here](https://docs.google.com/document/d/1hhTGiWETu2tvQPEYojn1ZTpxDQvPseeJB4sI_b6zNZM/edit)
+* 5 full-time automation engineers - cwang/jladd/one-t/jhill/guozhang.
+* Left company halfway through release - rfitzpatrick.
+* Delegation of responsibilities detailed [here](https://docs.google.com/document/d/1hhTGiWETu2tvQPEYojn1ZTpxDQvPseeJB4sI_b6zNZM/edit).
+* Historical [record](https://docs.google.com/document/d/11-nOFQdq0DYK9oKSljIDJqvscQ61bhmQfEryEeZ5iSo/edit) of failing integration tests at time of release.
 
 ## Features Not Tested
 
