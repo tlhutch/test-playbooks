@@ -323,13 +323,13 @@ class TestHostFilter(Base_Api_Test):
             assert response.count == 1
             assert response.results.pop().id == host.id
 
-    def test_nested_list_password_search(self, v2, inventory_item_names):
+    def test_nested_list_password_search(self, v2):
         host_filters = ['created_by__password__icontains=pas3w3rd',
                         'search=foo or created_by__password__icontains=pas3w3rd',
                         'created_by__password__icontains=passw3rd or search=foo']
         for host_filter in host_filters:
             with pytest.raises(towerkit.exceptions.BadRequest) as e:
-                v2.hosts.get(host_filter=host_filter.format(**inventory_item_names), page_size=200)
+                v2.hosts.get(host_filter=host_filter, page_size=200)
             assert "Filtering on password is not allowed." in str(e)
 
     def test_unicode_search(self, v2, factories):
