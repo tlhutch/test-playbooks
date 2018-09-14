@@ -41,6 +41,41 @@ class TestInventorySource(Base_Api_Test):
             assert e.value[1] == error
 
     @pytest.mark.ansible_integration
+    @pytest.mark.github('https://github.com/ansible/awx/issues/2240')
+    def test_imported_host_ordering(self, factories):
+        inventory = factories.v2_inventory()
+        org = inventory.ds.organization
+        inv_script = factories.v2_inventory_script(
+            organization=org,
+            script=('\n'.join([
+                '#!/usr/bin/env python',
+                '# -*- coding: utf-8 -*-',
+                'import json',
+                '',
+                '',
+                'print json.dumps({',
+                '    "_meta": {',
+                '        "hostvars": {',
+                '            "h01": {}, "h02": {}, "h03": {}',
+                '        }',
+                '    },',
+                '    "agroup": {',
+                '        "hosts": ["h01", "h02", "h03"]',
+                '    }',
+                '})'
+            ]))
+        )
+        inv_src = factories.v2_inventory_source(inventory=inventory, inventory_script=inv_script)
+
+        # Run the inventory update
+        inv_update = inv_src.update().wait_until_completed()
+        assert inv_update.is_successful
+        inv_hosts = inventory.related.hosts.get()
+        assert inv_hosts.count == 3
+        script_data = inventory.get_related('script')
+        assert script_data['agroup']['hosts'] == ['h01', 'h02', 'h03']
+
+    @pytest.mark.ansible_integration
     def test_inventory_source_with_vaulted_vars(self, factories, ansible_version_cmp):
         # Feature was introduced in Ansible 2.6
         if ansible_version_cmp("2.6") < 0:
