@@ -100,6 +100,41 @@ class TestJobTemplateSharding(Base_Api_Test):
             # The shards themselves should _always_ be simultaneous
             assert do_all_jobs_overlap(jobs)
 
+    def test_job_template_shard_relaunch(self, factories, v2, sharded_jt_factory):
+        """Tests relaunch for jobs which are sharded, including:
+        * relaunch of the workflow job container for sharded jobs
+        * relaunch of job that ran on a particular shard
+        """
+        jt = sharded_jt_factory(2)
+
+        workflow_job = jt.launch().get()  # .get() due to towerkit using list view
+
+        # Relaunch overall job
+        relaunched_wj = workflow_job.relaunch()
+        assert relaunched_wj.type == 'workflow_job'
+        assert relaunched_wj.get_related('workflow_nodes').count == 2
+        orig_data = workflow_job.json.copy()
+        relaunch_data = relaunched_wj.json
+        non_static_fields = (
+            'created', 'id', 'url', 'modified', 'related', 'launch_type',
+            'started', 'status', 'elapsed'
+        )
+        for data in (orig_data, relaunch_data):
+            for fd in non_static_fields:
+                data.pop(fd)
+        assert orig_data == relaunch_data
+
+        node = workflow_job.get_related('workflow_nodes').results.pop()
+        poll_until(lambda: node.get().job, interval=1, timeout=30)
+        job = node.get_related('job')
+
+        # Relaunch job shard
+        relaunched_job = job.relaunch()
+        assert relaunched_job.type == 'job'
+        relaunched_job.wait_until_completed()
+        assert relaunched_job.get().host_status_counts['ok'] == 1  # only ran on 1 host
+        assert relaunched_job.summary_fields.internal_limit == job.summary_fields.internal_limit
+
     def test_job_template_shard_remainder_hosts(self, factories, sharded_jt_factory):
         """Test the logic for when the host count (= 5) does not match the
         shard count (= 3)
