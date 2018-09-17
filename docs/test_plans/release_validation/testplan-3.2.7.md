@@ -55,7 +55,7 @@ single API-side change, only upgrades and install tests and integration are need
     * [x] rhel-7.4
     * [x] rhel-7.5
     * [x] centos-7.latest
-    * [ ] ol-7.latest
+    * [x] ol-7.latest
 1. [ ] ~Bundled installation completes successfully for clustered deployment~
 
 ### Upgrades
