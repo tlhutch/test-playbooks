@@ -59,9 +59,9 @@ single API-side change, only upgrades and install tests and integration are need
 1. [ ] ~Bundled installation completes successfully for clustered deployment~
 
 ### Upgrades
-1. [ ] Upgrade completes on all supported platforms from Tower-3.1.8 - standalone
-1. [ ] Upgrade completes on all supported platforms from Tower-3.2.6 - standalone
-1. [ ] Upgrade completes on all supported platforms from Tower-3.2.6 - cluster
+1. [x] Upgrade completes on all supported platforms from Tower-3.1.8 - standalone
+1. [x] Upgrade completes on all supported platforms from Tower-3.2.6 - standalone
+1. [x] Upgrade completes on all supported platforms from Tower-3.2.6 - cluster
 * Verify the following functionality after upgrade
     * Resource migrations
     * Launch project_updates for existing projects
