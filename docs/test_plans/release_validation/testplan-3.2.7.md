@@ -62,7 +62,6 @@ single API-side change, only upgrades and install tests and integration are need
 1. [x] Upgrade completes on all supported platforms from Tower-3.1.8 - standalone
 1. [x] Upgrade completes on all supported platforms from Tower-3.2.6 - standalone
 1. [x] Upgrade completes from RHEL 7.4 from Tower-3.2.6 - cluster
->>>>>>> 3.2.7 - standalone testing, cluster upgrade testing complete
 * Verify the following functionality after upgrade
     * Resource migrations
     * Launch project_updates for existing projects
