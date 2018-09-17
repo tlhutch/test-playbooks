@@ -70,5 +70,5 @@ single API-side change, only upgrades and install tests and integration are need
 
 ### Provided Images
 1. Installation completes successfully on supported images
-    * [ ] AMI (unlicensed)
+    * [x] AMI (unlicensed)
     * [ ] Vagrant
