@@ -18,7 +18,7 @@ single API-side change, only upgrades and install tests and integration are need
 ## Regression
 1. [ ] ~UI regression completed~
 1. [x] API regression completed - standalone (only ran test_nested_list_password_search)
-1. [ ] API regression completed - cluster
+1. [x] API regression completed - cluster (only ran test_nested_list_password_search)
 - [ ] ~Tower social authentication regression completed~
   - [ ] ~Google OAuth~
   - [ ] ~GitHub~
