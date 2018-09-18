@@ -471,7 +471,7 @@ class Test_Job(Base_Api_Test):
 
     @pytest.mark.requires_single_instance
     @pytest.mark.ansible_integration
-    @pytest.mark.mp_group(group="pytest_mark_requires_isolation", strategy="isolated_serial")
+    @pytest.mark.mp_group(group="job_with_status_pending", strategy="isolated_serial")
     def test_cancel_pending_job(self, job_with_status_pending):
         """Verify the job->cancel endpoint behaves as expected when canceling a
         pending/queued job
