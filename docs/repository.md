@@ -16,7 +16,6 @@ Welcome to the `tower-qa` repository.  Here you'll find playbooks, scripts, docu
 The `tower-qa` repository uses [git subtree](https://blogs.atlassian.com/2013/05/alternatives-to-git-submodule-git-subtree/) for managing external repository dependencies.  The `tower-qa` repository currently uses the following subtree modules.
 
 * bennojoy.openldap_server - https://github.com/bennojoy/openldap_server.git (push)
-* chrismeyersfsu.install_mongod - [git@github.com:chrismeyersfsu/role-install_mongod.git](https://github.com/chrismeyersfsu/role-install_mongod) (fetch)
 * chrismeyersfsu.iptables - [git@github.com:chrismeyersfsu/role-iptables.git](https://github.com/chrismeyersfsu/role-iptables) (fetch)
 * chrismeyersfsu.required_vars - [git@github.com:chrismeyersfsu/role-required_vars.git](https://github.com/chrismeyersfsu/role-required_vars) (push)
 * jlaska.ntp - [git@github.com:jlaska/ntp.git](https://github.com/jlaska/ntp) (push)

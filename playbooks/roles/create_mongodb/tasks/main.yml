@@ -1,7 +1,0 @@
----
-
-- debug:
-    var: mongo_images
-
-- debug:
-    var: ec2_images

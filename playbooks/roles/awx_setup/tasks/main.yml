@@ -33,24 +33,6 @@
     owner: 'root'
     group: 'root'
 
-# Certain setup playbooks (>= 2.1.0, < 3.0.0) require running ./configure first
-- name: determine if a configure script exists
-  stat:
-    path: /tmp/setup/configure
-  register: configure_script
-
-- name: create tower_setup_conf.yml file
-  template:
-    src: tower_setup_conf.yml.j2
-    dest: /tmp/setup/tower_setup_conf.yml
-  when: configure_script.stat.exists == True and (not is_awx_installed.stat.exists or awx_upgrade)
-
-- name: run configure script
-  command: ./configure --options-file tower_setup_conf.yml --no-secondary-prompt
-  args:
-    chdir: /tmp/setup
-  when: configure_script.stat.exists == True and (not is_awx_installed.stat.exists or awx_upgrade)
-
 - name: create inventory file
   template:
     src: inventory.j2

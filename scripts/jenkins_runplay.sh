@@ -168,16 +168,6 @@ if [ -n "${AWX_RABBITMQ_PASSWORD}" ]; then
     echo "rabbitmq_password: ${AWX_RABBITMQ_PASSWORD}" >> ${PLAYBOOK_DIR}/vars.yml
 fi
 
-AWX_MUNIN_PASSWORD=${AWX_MUNIN_PASSWORD-$(gen_passwd)}
-if [ -n "${AWX_MUNIN_PASSWORD}" ]; then
-    echo "munin_password: ${AWX_MUNIN_PASSWORD}" >> ${PLAYBOOK_DIR}/vars.yml
-fi
-
-AWX_REDIS_PASSWORD=${AWX_REDIS_PASSWORD-$(gen_passwd)}
-if [ -n "${AWX_REDIS_PASSWORD}" ]; then
-    echo "redis_password: ${AWX_REDIS_PASSWORD}" >> ${PLAYBOOK_DIR}/vars.yml
-fi
-
 # Add custom ssh pubkeys
 if [ -n "${AUTHORIZED_KEYS}" ]; then
     echo "authorized_keys: " >> ${PLAYBOOK_DIR}/vars.yml

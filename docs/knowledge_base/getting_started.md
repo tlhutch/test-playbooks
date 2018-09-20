@@ -97,8 +97,6 @@ cluster_install: false
 
 admin_password: fo0m4nchU
 pg_password: fo0m4nchU
-munin_password: fo0m4nchU
-redis_password: fo0m4nchU
 rds_username: 'tower'
 rds_password: 'fo0m4nchU'
 ```
