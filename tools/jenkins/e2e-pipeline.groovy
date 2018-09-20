@@ -1,0 +1,159 @@
+pipeline {
+    agent {
+        label 'jenkins-jnlp-agent'
+    }
+    triggers {
+        pollSCM('H */2 * * *')
+    }
+    options {
+        disableConcurrentBuilds()
+        timeout(time: 2, unit: 'HOURS')
+        timestamps()
+    }
+    stages {
+        stage('Build in parallel') {
+            failFast true
+            parallel {
+                stage('Checkout Tower 3.3') {
+                    steps {
+                        checkout([
+                            $class: 'GitSCM',
+                            branches: [
+                                [ name: 'release_3.3.0' ]
+                            ],
+                            doGenerateSubmoduleConfigurations: false,
+                            extensions: [],
+                            submoduleCfg: [],
+                            userRemoteConfigs: [
+                                [
+                                    credentialsId: 'd2d4d16b-dc9a-461b-bceb-601f9515c98a',
+                                    url: 'git@github.com:ansible/tower.git'
+                                ]
+                            ]
+                        ])
+                    }
+                }
+                stage('Trigger Build_Tower_RPM Job') {
+                    steps {
+                        build(
+                            job: 'Build_Tower_RPM',
+                            parameters: [
+                                booleanParam(name: 'TRIGGER', value: false),
+                                string(name: 'OFFICIAL', value: 'no'),
+                                string(name: 'TOWER_PACKAGING_BRANCH', value: 'origin/release_3.3.0'),
+                            ]
+                        )
+                    }
+                }
+                // stage('Trigger Build_Tower_E2E_Container_Image') {
+                //     steps {
+                //         build(job: 'Build_Tower_E2E_Container_Image')
+                //     }
+                // }
+            }
+        }
+        stage('Create Tower Instance') {
+            steps {
+                ansibleTower(
+                    towerServer: 'Internal',
+                    templateType: 'workflow',
+                    jobTemplate: '2334',
+                    importTowerLogs: true,
+                    inventory: '',
+                    jobTags: '',
+                    limit: '',
+                    removeColor: true,
+                    verbose: true,
+                    credential: '',
+                    extraVars: '{"instance_names": "launched-by-jenkins", "deployment_type": "release_3.3.0"}',
+                )
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: 'e9c2894b-a17c-4982-a26b-ad5d9a992f9a',
+                        passwordVariable: 'TOWER_PASSWORD',
+                        usernameVariable: 'TOWER_USERNAME'
+                    )
+                ])
+                {
+                    sh '''#!/bin/bash
+                    set +e
+                    TARGET_HOST=$(curl -s -f -k -L \\
+                        -u "${TOWER_USERNAME}":"${TOWER_PASSWORD}" \\
+                        -H "Content-Type: application/json" \\
+                        -X GET \\
+                        http://tower.ansible.eng.rdu2.redhat.com/api/v2/inventories/144/hosts/\\?name\\=launched-by-jenkins \\
+                        | python -c \'import sys, json; print json.loads(json.load(sys.stdin)["results"][0]["variables"])["gce_public_ip"]\')
+                    AWX_E2E_URL=https://${TARGET_HOST}
+                    curl --fail ${AWX_E2E_URL}
+                    echo ${AWX_E2E_URL} > AWX_E2E_URL.properties'''
+                }
+                stash('AWX_E2E_URL.properties')
+            }
+        }
+        stage('Run E2E Tests') {
+            steps{
+                unstash('AWX_E2E_URL.properties')
+                script {
+                    AWX_E2E_URL = readFile 'AWX_E2E_URL.properties'
+                }
+                echo "Running e2e tests against ${AWX_E2E_URL}"
+                retry(2) {
+                    build(
+                        job: 'Test_Tower_E2E',
+                        parameters: [
+                            string(name: 'AWX_E2E_URL', value: "${AWX_E2E_URL}"),
+                            string(name: 'TOWER_BRANCH', value: 'origin/release_3.3.0')
+                        ]
+                    )
+                }
+            }
+            post {
+                always {
+                    copyArtifacts(
+                        filter: 'awx/ui/test/e2e/reports/*.xml',
+                        fingerprintArtifacts: true,
+                        projectName: "Test_Tower_E2E",
+                        selector: lastCompleted()
+                    )
+                    junit('awx/ui/test/e2e/reports/*.xml')
+                }
+            }
+        }
+    }
+    post {
+        success {
+            slackSend(
+                color: "good",
+                teamDomain: "ansible",
+                channel: "#e2e-test-resuts",
+                message: "<$JENKINS_BLUE_URL$JOB_NAME/detail/$JOB_NAME/$BUILD_NUMBER|Success!>"
+            )
+        }
+        failure {
+            slackSend(
+                color: "bad",
+                teamDomain: "ansible",
+                channel: "#ui-talk",
+                message: "<$JENKINS_BLUE_URL$JOB_NAME/detail/$JOB_NAME/$BUILD_NUMBER|SHAME!>"
+            )
+        }
+        fixed {
+            slackSend(
+                color: "good",
+                teamDomain: "ansible",
+                channel: "#ui-talk",
+                message: "<$JENKINS_BLUE_URL$JOB_NAME/detail/$JOB_NAME/$BUILD_NUMBER|Back to Success>"
+            )
+        }
+        always {
+            step([$class: 'InfluxDbPublisher', jenkinsEnvParameterTag: 'job_name=${JOB_NAME}', target: 'openshift'])
+            slackSend(
+                color: "good",
+                teamDomain: "ansible",
+                channel: "#e2e-test-resuts",
+                message: "<$JENKINS_BLUE_URL$JOB_NAME/detail/$JOB_NAME/$BUILD_NUMBER|Back to Success> /n ${AWX_E2E_URL}"
+            )
+        }
+    }
+}
+
