@@ -20,7 +20,7 @@
 - name: run script to configure ad domain services
   script: deploy_ad_ds.ps1 -safeModeAdministratorPassword {{ win_ad_safe_mode_administrator_password|quote }} -domainName {{ win_ad_domain_name|quote }} -netbiosName {{ win_ad_netbios_name|quote }}
   register: deploy_ad_ds_result
-  failed_when: deploy_ad_ds_result|failed or deploy_ad_ds_result.stderr
+  failed_when: deploy_ad_ds_result is failed or deploy_ad_ds_result.stderr
   changed_when: "'DCPromo' in deploy_ad_ds_result.stdout"
 
 - name: add test users to ad
