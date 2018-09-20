@@ -39,7 +39,7 @@ cd ../tower-qa
 virtualenv ~/venvs/tower-qa
 pip install -r requirements.txt
 ansible-vault decrypt config/credentials.vault --output=config/credentials.yml
-py.test -c config/docker.cfg --base-url='http://localhost:8013'
+py.test -c config/docker.cfg --base-url='https://localhost:8043'
 ```
 
 ### Rebuilding Fresh Images
