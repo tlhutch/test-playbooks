@@ -32,5 +32,5 @@ if [[ $TEST_NOTIFICATION == true ]]; then
 fi
 
 if [ ${SKIP} != true ] || [[ $TEST_NOTIFICATION == true ]]; then
-  python integration_bot.py
+  python tools/bots/integration_bot.py
 fi
