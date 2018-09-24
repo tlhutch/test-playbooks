@@ -10,4 +10,4 @@ else
   export SLACK_CHANNEL="#ship_it"
 fi
 
-python issue_bot.py
+python tools/bots/issue_bot.py
