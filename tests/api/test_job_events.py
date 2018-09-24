@@ -3,7 +3,7 @@ import json
 
 import pytest
 
-from tests.api import Base_Api_Test
+from tests.api import APITest
 
 
 # from https://github.com/ansible/ansible-tower/blob/release_3.1.0/awx/main/models/jobs.py
@@ -40,7 +40,7 @@ JOB_EVENT_TYPES = ['playbook_on_start',  # (once for each playbook file)
 @pytest.mark.api
 @pytest.mark.destructive
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
-class Test_Job_Events(Base_Api_Test):
+class Test_Job_Events(APITest):
 
     def get_job_events(self, job, query=None):
         query = query if query else {}

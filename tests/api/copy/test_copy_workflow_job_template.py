@@ -2,13 +2,13 @@ from fauxfactory import gen_boolean, gen_alpha, gen_choice
 from towerkit.utils import poll_until
 import pytest
 
-from tests.api import Base_Api_Test
+from tests.api import APITest
 from tests.lib.helpers.copy_utils import check_fields
 
 
 @pytest.mark.api
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
-class Test_Copy_Workflow_Job_Template(Base_Api_Test):
+class Test_Copy_Workflow_Job_Template(APITest):
 
     identical_fields = ['type', 'description', 'extra_vars', 'organization', 'survey_enabled', 'allow_simultaneous',
                         'ask_variables_on_launch']

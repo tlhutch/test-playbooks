@@ -1,13 +1,13 @@
 import towerkit.exceptions as exc
 import pytest
 
-from tests.api import Base_Api_Test
+from tests.api import APITest
 
 
 @pytest.mark.api
 @pytest.mark.rbac
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
-class TestJobTemplateCredentialsRBAC(Base_Api_Test):
+class TestJobTemplateCredentialsRBAC(APITest):
 
     @pytest.mark.parametrize('version', ('v1', 'v2'))
     def test_job_template_creation_request_without_credential_access_forbidden(self, request, factories, version):

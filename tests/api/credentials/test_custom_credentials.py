@@ -2,12 +2,12 @@ import towerkit.exceptions as exc
 from towerkit.utils import to_str, random_title
 import pytest
 
-from tests.api import Base_Api_Test
+from tests.api import APITest
 
 
 @pytest.mark.api
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
-class TestCustomCredentials(Base_Api_Test):
+class TestCustomCredentials(APITest):
 
     @pytest.mark.parametrize('field_type', ['string', 'boolean'])
     def test_unprovided_required_input_field(self, factories, field_type):

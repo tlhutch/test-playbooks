@@ -3,14 +3,14 @@ import os
 import towerkit.exceptions as exc
 import pytest
 
-from tests.api import Base_Api_Test
+from tests.api import APITest
 
 
 @pytest.mark.api
 @pytest.mark.destructive
 @pytest.mark.mp_group('Insights', 'serial')
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
-class TestInsights(Base_Api_Test):
+class TestInsights(APITest):
 
     registered_machine_id = "84baf1a3-eee5-4f92-b5ee-42609e89a2cd"
     unregistered_machine_id = "aaaabbbb-cccc-dddd-eeee-ffffgggghhhh"

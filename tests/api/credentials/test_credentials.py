@@ -5,13 +5,13 @@ import towerkit.exceptions as exc
 import fauxfactory
 import pytest
 
-from tests.api import Base_Api_Test
+from tests.api import APITest
 
 
 @pytest.mark.api
 @pytest.mark.destructive
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
-class TestCredentials(Base_Api_Test):
+class TestCredentials(APITest):
 
     def test_credential_creation_attempt_with_invalid_kind(self, v1, factories):
         payload = factories.credential.payload()

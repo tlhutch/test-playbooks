@@ -1,13 +1,13 @@
 from towerkit import exceptions as exc
 import pytest
 
-from tests.api import Base_Api_Test
+from tests.api import APITest
 from tests.lib.helpers.copy_utils import check_fields
 
 
 @pytest.mark.api
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
-class Test_Copy_Job_Template(Base_Api_Test):
+class Test_Copy_Job_Template(APITest):
 
     identical_fields = ['type', 'description', 'job_type', 'inventory', 'project', 'playbook', 'forks', 'limit',
                         'verbosity', 'extra_vars', 'job_tags', 'force_handlers', 'skip_tags', 'start_at_task',

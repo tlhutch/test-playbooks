@@ -5,7 +5,7 @@ import towerkit.exceptions as exc
 import fauxfactory
 import pytest
 
-from tests.api import Base_Api_Test
+from tests.api import APITest
 
 
 def user_payload(**kwargs):
@@ -25,7 +25,7 @@ def user_payload(**kwargs):
 @pytest.mark.api
 @pytest.mark.destructive
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
-class Test_Users(Base_Api_Test):
+class Test_Users(APITest):
 
     def test_duplicate_users_disallowed(self, factories):
         user = factories.v2_user()

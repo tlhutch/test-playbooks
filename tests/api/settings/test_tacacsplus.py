@@ -5,7 +5,7 @@ from towerkit.config import config
 from towerkit import utils
 import pytest
 
-from tests.api import Base_Api_Test
+from tests.api import APITest
 
 
 @pytest.fixture(scope="function")
@@ -26,7 +26,7 @@ def enable_tacacs_auth(update_setting_pg, api_settings_tacacsplus_pg):
 @pytest.mark.destructive
 @pytest.mark.mp_group('TACACSPlus', 'isolated_serial')
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
-class TestTACACSPlus(Base_Api_Test):
+class TestTACACSPlus(APITest):
 
     @pytest.mark.parametrize('protocol', ['ascii', 'pap'])
     def test_login_as_new_user(self, request, protocol, enable_tacacs_auth, v1, api_me_pg):

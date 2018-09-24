@@ -6,7 +6,7 @@ from towerkit.config import config
 import towerkit.exceptions as exc
 import pytest
 
-from tests.api import Base_Api_Test
+from tests.api import APITest
 
 
 log = logging.getLogger(__name__)
@@ -138,7 +138,7 @@ def _expected_webhook_job_notification(tower_url, notification_template_pg, job_
 
 @pytest.mark.api
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
-class Test_Notification_Templates(Base_Api_Test):
+class Test_Notification_Templates(APITest):
 
     def test_duplicate_notification_templates_disallowed_by_organization(self, factories):
         nt_a = factories.v2_notification_template(name='SharedName')
@@ -153,7 +153,7 @@ class Test_Notification_Templates(Base_Api_Test):
 @pytest.mark.api
 @pytest.mark.destructive
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
-class Test_Notifications(Base_Api_Test):
+class Test_Notifications(APITest):
     """Notification tests"""
 
     def test_test_notification(self, request, notification_template):

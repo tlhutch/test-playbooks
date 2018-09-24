@@ -4,7 +4,7 @@ from towerkit import utils
 from dateutil.parser import parse as du_parse
 import pytest
 
-from tests.api import Base_Api_Test
+from tests.api import APITest
 
 
 @pytest.fixture
@@ -176,7 +176,7 @@ def check_chain_canceled_job_explanation(canceled_job, chain_canceled_jobs):
 @pytest.mark.api
 @pytest.mark.destructive
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
-class Test_Sequential_Jobs(Base_Api_Test):
+class Test_Sequential_Jobs(APITest):
 
     def test_project_update(self, project):
         """Test a project may only have one project update running at a time. Here, we launch
@@ -382,7 +382,7 @@ class Test_Sequential_Jobs(Base_Api_Test):
 @pytest.mark.api
 @pytest.mark.destructive
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
-class Test_Autospawned_Jobs(Base_Api_Test):
+class Test_Autospawned_Jobs(APITest):
 
     @pytest.mark.github('https://github.com/ansible/tower/issues/806')
     def test_v1_inventory(self, cloud_inventory_job_template, cloud_group):
@@ -670,7 +670,7 @@ class Test_Autospawned_Jobs(Base_Api_Test):
 @pytest.mark.api
 @pytest.mark.destructive
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
-class Test_Cascade_Fail_Dependent_Jobs(Base_Api_Test):
+class Test_Cascade_Fail_Dependent_Jobs(APITest):
 
     def test_canceling_inventory_update_should_cascade_cancel_dependent_job(self, factories, sleeping_inventory_script):
         inv_source = factories.v2_inventory_source(inventory_script=sleeping_inventory_script, update_on_launch=True)

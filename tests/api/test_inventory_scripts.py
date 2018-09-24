@@ -4,7 +4,7 @@ import towerkit.exceptions as exc
 import fauxfactory
 import pytest
 
-from tests.api import Base_Api_Test
+from tests.api import APITest
 
 
 bad_scripts = [
@@ -49,7 +49,7 @@ def custom_inventory_source_with_vars(request, custom_inventory_source, custom_i
 @pytest.mark.api
 @pytest.mark.destructive
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
-class Test_Inventory_Scripts(Base_Api_Test):
+class Test_Inventory_Scripts(APITest):
     """Verifies basic CRUD operations against the /inventory_scripts endpoint"""
 
     def test_post_as_privileged_user(self, request, script_source, organization, api_inventory_scripts_pg, privileged_user, user_password):

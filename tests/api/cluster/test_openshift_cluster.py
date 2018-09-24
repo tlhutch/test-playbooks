@@ -2,14 +2,14 @@ from towerkit import utils
 import pytest
 
 from tests.lib.helpers import openshift_utils
-from tests.api import Base_Api_Test
+from tests.api import APITest
 
 
 @pytest.mark.api
 @pytest.mark.requires_openshift_cluster
 @pytest.mark.mp_group('OpenShiftCluster', 'isolated_serial')
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
-class TestOpenShiftCluster(Base_Api_Test):
+class TestOpenShiftCluster(APITest):
 
     @pytest.fixture(autouse=True)
     def setup(self):

@@ -5,7 +5,7 @@ from towerkit import utils
 import fauxfactory
 import pytest
 
-from tests.api import Base_Api_Test
+from tests.api import APITest
 
 
 # Ansible inventory variations for testing 'root' group removal
@@ -201,7 +201,7 @@ def variation(request, authtoken, inventory, ansible_runner):
 @pytest.mark.api
 @pytest.mark.destructive
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
-class TestGroup(Base_Api_Test):
+class TestGroup(APITest):
     """Verify DELETE and POST (disassociate) behaves as expected for groups and their hosts
 
     Top-level group

@@ -2,7 +2,7 @@ import fauxfactory
 import pytest
 import json
 
-from tests.api import Base_Api_Test
+from tests.api import APITest
 
 
 # Actual ec2.out.txt observed in AC-847 ... don't judge!
@@ -876,7 +876,7 @@ inventory_dict = {
 @pytest.mark.nondestructive
 @pytest.mark.skip_openshift
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
-class Test_AC_847(Base_Api_Test):
+class Test_AC_847(APITest):
 
     def test_import(self, request, ansible_runner, tmpdir, inventory):
         """Invoke an inventory import for a *large* dataset.  Verify the

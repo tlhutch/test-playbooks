@@ -2,12 +2,12 @@ from towerkit import exceptions as exc
 import fauxfactory
 import pytest
 
-from tests.api import Base_Api_Test
+from tests.api import APITest
 
 
 @pytest.mark.api
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
-class TestUnifiedJobTemplates(Base_Api_Test):
+class TestUnifiedJobTemplates(APITest):
 
     @pytest.mark.parametrize('ujt_type, ujt_type_name',
                              [('v2_job_template', 'JobTemplate'),

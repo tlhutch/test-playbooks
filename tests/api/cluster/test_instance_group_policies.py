@@ -7,14 +7,14 @@ import towerkit.exceptions as exc
 import pytest
 
 from tests.lib.helpers import openshift_utils
-from tests.api import Base_Api_Test
+from tests.api import APITest
 
 
 @pytest.mark.api
 @pytest.mark.requires_cluster
 @pytest.mark.mp_group('InstanceGroupPolicies', 'isolated_serial')
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
-class TestInstanceGroupPolicies(Base_Api_Test):
+class TestInstanceGroupPolicies(APITest):
 
     def get_ig_instances(self, ig):
         return [instance.hostname for instance in ig.related.instances.get().results]

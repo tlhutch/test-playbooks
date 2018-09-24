@@ -2,7 +2,7 @@ from towerkit import utils
 import towerkit.exceptions as exc
 import pytest
 
-from tests.api import Base_Api_Test
+from tests.api import APITest
 
 
 def hostnames_from_group_prefixes(prefixes, start=1, finish=5):
@@ -17,7 +17,7 @@ def hostnames_from_group_prefixes(prefixes, start=1, finish=5):
 
 @pytest.mark.api
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
-class TestSCMInventorySource(Base_Api_Test):
+class TestSCMInventorySource(APITest):
 
     inventory_hostnames = hostnames_from_group_prefixes(['ungrouped', 'group_one', 'group_one_and_two',
                                                          'group_one_two_and_three', 'group_two',

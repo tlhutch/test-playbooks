@@ -2,14 +2,14 @@ from towerkit import exceptions as exc
 import towerkit.utils as utils
 import pytest
 
-from tests.api import Base_Api_Test
+from tests.api import APITest
 
 
 @pytest.mark.api
 @pytest.mark.rbac
 @pytest.mark.destructive
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
-class TestWorkflowJobTemplateNodeRBAC(Base_Api_Test):
+class TestWorkflowJobTemplateNodeRBAC(APITest):
     def test_credential_association_requires_wfjt_admin_and_jt_execute(self, factories):
         wfjt = factories.v2_workflow_job_template()
         jt = factories.v2_job_template(ask_credential_on_launch=True)

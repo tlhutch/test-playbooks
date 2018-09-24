@@ -6,14 +6,14 @@ from towerkit import utils
 import pytest
 
 from tests.lib.helpers import openshift_utils
-from tests.api import Base_Api_Test
+from tests.api import APITest
 
 
 @pytest.mark.api
 @pytest.mark.requires_cluster
 @pytest.mark.mp_group('ExecutionNodeAssignment', 'isolated_serial')
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
-class TestExecutionNodeAssignment(Base_Api_Test):
+class TestExecutionNodeAssignment(APITest):
 
     MAX_JOBS_PER_INSTANCE = 3
 

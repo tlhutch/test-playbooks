@@ -4,12 +4,12 @@ import towerkit
 from towerkit.config import config
 import towerkit.exceptions as exc
 
-from tests.api import Base_Api_Test
+from tests.api import APITest
 
 
 @pytest.mark.api
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
-class TestRelaunchAskRBAC(Base_Api_Test):
+class TestRelaunchAskRBAC(APITest):
 
     def give_user_relaunch_access(self, user, job):
         jt = job.related.job_template.get()

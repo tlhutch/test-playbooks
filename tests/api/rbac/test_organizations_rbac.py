@@ -9,13 +9,13 @@ from tests.lib.helpers.rbac_utils import (
     check_read_access,
     check_user_capabilities
 )
-from tests.api import Base_Api_Test
+from tests.api import APITest
 
 
 @pytest.mark.api
 @pytest.mark.rbac
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
-class Test_Organization_RBAC(Base_Api_Test):
+class Test_Organization_RBAC(APITest):
 
     ResourceMapping = namedtuple('ResourceMapping', [
         'resource_role', 'resource_type'])

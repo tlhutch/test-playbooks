@@ -1,13 +1,13 @@
 import pytest
 
-from tests.api import Base_Api_Test
+from tests.api import APITest
 
 
 @pytest.mark.github('https://github.com/ansible/tower/issues/1573')
 @pytest.mark.api
 @pytest.mark.mp_group('Jinja2', 'isolated_serial')
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
-class TestJinja2(Base_Api_Test):
+class TestJinja2(APITest):
 
     target_text = 'TARGET_TEXT'
     jinja2_text = '"var1": "{{ \'target_text\'|upper }}"'

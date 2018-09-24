@@ -12,7 +12,7 @@ error_pattern = re.compile('SchemaValidationError\:.*\n')
 
 
 @pytest.mark.api
-class Base_Api_Test(object):
+class APITest(object):
     """Base class"""
 
     @classmethod
@@ -110,6 +110,3 @@ class Base_Api_Test(object):
             self.connections['root'] = previous_connection
             if v:
                 v.connection = previous_v_connection
-
-
-APITest = Base_Api_Test

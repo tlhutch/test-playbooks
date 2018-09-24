@@ -1,13 +1,13 @@
 from towerkit import exceptions as exc
 import pytest
 
-from tests.api import Base_Api_Test
+from tests.api import APITest
 
 
 @pytest.mark.api
 @pytest.mark.destructive
 @ pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
-class TestInventorySource(Base_Api_Test):
+class TestInventorySource(APITest):
 
     def test_v1_post_disallowed(self, api_inventory_sources_pg):
         with pytest.raises(exc.MethodNotAllowed):

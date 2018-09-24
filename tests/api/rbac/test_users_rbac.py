@@ -7,13 +7,13 @@ from tests.lib.helpers.rbac_utils import (
     check_user_capabilities,
     check_role_association
 )
-from tests.api import Base_Api_Test
+from tests.api import APITest
 
 
 @pytest.mark.api
 @pytest.mark.rbac
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
-class Test_User_RBAC(Base_Api_Test):
+class Test_User_RBAC(APITest):
 
     def test_user_capabilities_as_superuser(self, factories, api_users_pg):
         """Tests 'user_capabilities' with a superuser."""

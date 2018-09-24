@@ -7,13 +7,13 @@ from tests.lib.helpers.rbac_utils import (
     check_read_access,
     check_user_capabilities
 )
-from tests.api import Base_Api_Test
+from tests.api import APITest
 
 
 @pytest.mark.api
 @pytest.mark.rbac
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
-class TestInventoryRBAC(Base_Api_Test):
+class TestInventoryRBAC(APITest):
 
     def test_unprivileged_user(self, factories):
         """An unprivileged user should not be able to:

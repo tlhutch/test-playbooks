@@ -4,13 +4,13 @@ import towerkit.exceptions as exc
 import fauxfactory
 import pytest
 
-from tests.api import Base_Api_Test
+from tests.api import APITest
 
 
 @pytest.mark.api
 @pytest.mark.destructive
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
-class Test_Labels(Base_Api_Test):
+class Test_Labels(APITest):
 
     def test_duplicate_labels_disallowed_by_organization(self, factories):
         label = factories.v2_label()

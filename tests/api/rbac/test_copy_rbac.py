@@ -3,13 +3,13 @@ from towerkit import exceptions as exc
 from towerkit.utils import poll_until
 import pytest
 
-from tests.api import Base_Api_Test
+from tests.api import APITest
 
 
 @pytest.mark.api
 @pytest.mark.rbac
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
-class Test_Copy_RBAC(Base_Api_Test):
+class Test_Copy_RBAC(APITest):
 
     copiable_resource_names = ('v2_job_template', 'v2_project', 'v2_inventory', 'v2_workflow_job_template',
                                'v2_credential', 'v2_notification_template', 'v2_inventory_script')

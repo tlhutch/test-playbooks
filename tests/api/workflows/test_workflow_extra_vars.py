@@ -4,12 +4,12 @@ import copy
 from towerkit import utils
 import pytest
 
-from tests.api import Base_Api_Test
+from tests.api import APITest
 
 
 @pytest.mark.api
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
-class TestWorkflowExtraVars(Base_Api_Test):
+class TestWorkflowExtraVars(APITest):
 
     def test_launch_with_workflow_extra_vars(self, factories, workflow_job_template_with_extra_vars):
         """Verify that WFJs and WFN jobs inherit WFJT extra_vars."""

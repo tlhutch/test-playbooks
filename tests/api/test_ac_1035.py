@@ -4,7 +4,7 @@ from towerkit.exceptions import BadRequest
 import fauxfactory
 import pytest
 
-from tests.api import Base_Api_Test
+from tests.api import APITest
 
 
 @pytest.fixture(scope="function")
@@ -120,7 +120,7 @@ def job_templates_yaml(request, authtoken, api_job_templates_pg, project, ssh_cr
 @pytest.mark.api
 @pytest.mark.nondestructive
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
-class Test_AC_1035(Base_Api_Test):
+class Test_AC_1035(APITest):
     """For API objects that support a 'variables' (or 'extra_vars') attribute,
     verify they support storing and retrieving JSON/YAML data.
     """

@@ -6,13 +6,13 @@ from towerkit.utils import load_json_or_yaml, poll_until
 from towerkit import exceptions as exc
 import pytest
 
-from tests.api import Base_Api_Test
+from tests.api import APITest
 
 
 @pytest.mark.api
 @pytest.mark.destructive
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
-class TestInventoryUpdate(Base_Api_Test):
+class TestInventoryUpdate(APITest):
 
     def test_v1_update_inventory_source(self, cloud_group):
         """Verify successful inventory import using /api/v1/inventory_sources/N/update/."""

@@ -5,14 +5,14 @@ import towerkit.exceptions as exc
 import pytest
 
 
-from tests.api import Base_Api_Test
+from tests.api import APITest
 
 
 @pytest.mark.api
 @pytest.mark.nondestructive
 @pytest.mark.mp_group('InstanceGroups', 'isolated_serial')
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
-class TestInstanceGroups(Base_Api_Test):
+class TestInstanceGroups(APITest):
 
     def find_expected_capacity(self, ig):
         capacity = 0

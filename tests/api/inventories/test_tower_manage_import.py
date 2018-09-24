@@ -5,7 +5,7 @@ from towerkit import utils
 import fauxfactory
 import pytest
 
-from tests.api import Base_Api_Test
+from tests.api import APITest
 
 
 def get_ec2_inventory():
@@ -74,7 +74,7 @@ def get_ec2_inventory():
 @pytest.mark.destructive
 @pytest.mark.skip_openshift
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
-class TestTowerManageInventoryImport(Base_Api_Test):
+class TestTowerManageInventoryImport(APITest):
 
     def test_unrecognized_id(self, ansible_runner, inventory):
         """Verify failed import with unrecognized '--inventory-id' value."""

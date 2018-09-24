@@ -1,13 +1,13 @@
 import towerkit.exceptions as exc
 import pytest
 
-from tests.api import Base_Api_Test
+from tests.api import APITest
 
 
 @pytest.mark.api
 @pytest.mark.nondestructive
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
-class TestHost(Base_Api_Test):
+class TestHost(APITest):
 
     def test_duplicate_hosts_disallowed_in_same_inventory(self, factories):
         host = factories.v2_host()

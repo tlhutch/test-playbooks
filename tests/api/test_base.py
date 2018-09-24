@@ -4,13 +4,13 @@ from towerkit.api.schema.schema import validate
 import fauxfactory
 import pytest
 
-from tests.api import Base_Api_Test
+from tests.api import APITest
 
 
 @pytest.mark.api
 @pytest.mark.nondestructive
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
-class Test_Api_Basics(Base_Api_Test):
+class Test_Api_Basics(APITest):
 
     def test_get_200(self, connection):
         r = connection.get('/api/')
@@ -67,7 +67,7 @@ class Test_Api_Basics(Base_Api_Test):
 
 @pytest.mark.api
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
-class TestResourceBasics(Base_Api_Test):
+class TestResourceBasics(APITest):
 
     @pytest.mark.parametrize('resource', ['credential_type', 'v2_credential', 'v2_group',
                                           'v2_host', 'v2_inventory', 'v2_inventory_script',

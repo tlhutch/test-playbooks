@@ -5,12 +5,12 @@ import towerkit.exceptions
 import fauxfactory
 import pytest
 
-from tests.api import Base_Api_Test
+from tests.api import APITest
 
 
 @pytest.mark.api
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
-class TestHostFilter(Base_Api_Test):
+class TestHostFilter(APITest):
 
     @pytest.fixture(scope='class')
     def inventory_item_names(self):

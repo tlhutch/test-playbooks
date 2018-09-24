@@ -2,7 +2,7 @@ import pytest
 import logging
 
 from tests.lib.helpers.rbac_utils import check_user_capabilities
-from tests.api import Base_Api_Test
+from tests.api import APITest
 
 from towerkit.exceptions import Forbidden
 
@@ -29,7 +29,7 @@ log = logging.getLogger(__name__)
 @pytest.mark.api
 @pytest.mark.rbac
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
-class Test_Workflow_Job_Template_RBAC(Base_Api_Test):
+class Test_Workflow_Job_Template_RBAC(APITest):
 
     @pytest.mark.parametrize('wfjt_state', ['wfjt_has_org', 'wfjt_org_null'])
     def test_system_admin_access(self, factories, wfjt_state):

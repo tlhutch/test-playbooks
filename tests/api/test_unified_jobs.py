@@ -5,12 +5,12 @@ import fauxfactory
 from towerkit.api import Connection
 import pytest
 
-from tests.api import Base_Api_Test
+from tests.api import APITest
 
 
 @pytest.mark.api
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
-class TestUnifiedJobs(Base_Api_Test):
+class TestUnifiedJobs(APITest):
 
     @pytest.mark.parametrize('fixture, method', [('job_template', 'launch'),
                                                  ('workflow_job_template', 'launch'),

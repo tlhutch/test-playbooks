@@ -6,13 +6,13 @@ import towerkit.exceptions as exc
 import fauxfactory
 import pytest
 
-from tests.api import Base_Api_Test
+from tests.api import APITest
 
 
 log = logging.getLogger(__name__)
 
 
-class LicenseTest(Base_Api_Test):
+class LicenseTest(APITest):
 
     REBRANDING_FLAGS = ["CUSTOM_LOGIN_INFO", "CUSTOM_LOGO"]
     ACTIVITY_STREAM_FLAGS = ["ACTIVITY_STREAM_ENABLED", "ACTIVITY_STREAM_ENABLED_FOR_INVENTORY_SYNC"]

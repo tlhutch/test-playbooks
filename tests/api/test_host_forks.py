@@ -6,7 +6,7 @@ import time
 import datetime
 import fauxfactory
 
-from tests.api import Base_Api_Test
+from tests.api import APITest
 
 
 NUM_HOSTS = 100
@@ -94,7 +94,7 @@ pytestmark = [pytest.mark.performance]
 
 @pytest.mark.api
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
-class Test_Host_Fork(Base_Api_Test):
+class Test_Host_Fork(APITest):
 
     @pytest.mark.usefixtures('authtoken')
     def test_awx_job_launch(self, api_jobs_pg, job_template):

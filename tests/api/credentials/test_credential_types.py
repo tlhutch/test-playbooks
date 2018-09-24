@@ -3,12 +3,12 @@ from towerkit import exceptions as exc
 import fauxfactory
 import pytest
 
-from tests.api import Base_Api_Test
+from tests.api import APITest
 
 
 @pytest.mark.api
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
-class TestCredentialTypes(Base_Api_Test):
+class TestCredentialTypes(APITest):
 
     def test_v2_credential_types_options(self, v2):
         """confirms that OPTIONS for credential types provides desired information for type creation and retrieval"""
@@ -447,7 +447,7 @@ class TestCredentialTypes(Base_Api_Test):
 
 @pytest.mark.api
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
-class TestCredentialTypesActivityStream(Base_Api_Test):
+class TestCredentialTypesActivityStream(APITest):
 
     def test_credential_type_activity_stream_create(self, factories):
         cred_type = factories.credential_type()

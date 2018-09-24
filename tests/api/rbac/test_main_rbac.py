@@ -6,13 +6,13 @@ from tests.lib.helpers.rbac_utils import (
     check_role_disassociation,
     get_resource_roles
 )
-from tests.api import Base_Api_Test
+from tests.api import APITest
 
 
 @pytest.mark.api
 @pytest.mark.rbac
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
-class Test_Main_RBAC(Base_Api_Test):
+class Test_Main_RBAC(APITest):
 
     @pytest.mark.parametrize('endpoint', ['related_users', 'related_roles'])
     @pytest.mark.parametrize(

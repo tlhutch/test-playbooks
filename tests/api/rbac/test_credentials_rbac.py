@@ -8,13 +8,13 @@ from tests.lib.helpers.rbac_utils import (
     check_user_capabilities,
     get_resource_roles
 )
-from tests.api import Base_Api_Test
+from tests.api import APITest
 
 
 @pytest.mark.api
 @pytest.mark.rbac
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
-class Test_Credential_RBAC(Base_Api_Test):
+class Test_Credential_RBAC(APITest):
 
     def test_unprivileged_user(self, factories):
         """An unprivileged user/team should not be able to:

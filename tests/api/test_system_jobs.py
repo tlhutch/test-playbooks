@@ -1,7 +1,7 @@
 import pytest
 import towerkit.tower.inventory
 import towerkit.exceptions
-from tests.api import Base_Api_Test
+from tests.api import APITest
 
 
 def convert_to_camelcase(s):
@@ -48,7 +48,7 @@ def multiple_jobs_with_status_completed(cleanup_jobs_with_status_completed,
 @pytest.mark.destructive
 @pytest.mark.first
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
-class Test_System_Jobs(Base_Api_Test):
+class Test_System_Jobs(APITest):
     """Verify actions with system_job_templates"""
 
     @pytest.mark.fixture_args(days=1000, granularity='1y', older_than='1y')

@@ -5,7 +5,7 @@ from towerkit.config import config
 import towerkit.exceptions as exc
 import pytest
 
-from tests.api import Base_Api_Test
+from tests.api import APITest
 
 
 log = logging.getLogger(__name__)
@@ -13,7 +13,7 @@ log = logging.getLogger(__name__)
 
 @pytest.mark.api
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
-class TestJobTemplateCredentials(Base_Api_Test):
+class TestJobTemplateCredentials(APITest):
 
     def test_job_template_creation_without_credential(self, request, v2, factories):
         payload = factories.v2_job_template.payload()
@@ -23,7 +23,7 @@ class TestJobTemplateCredentials(Base_Api_Test):
 
 
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
-class TestJobTemplateLaunchCredentials(Base_Api_Test):
+class TestJobTemplateLaunchCredentials(APITest):
 
     def test_launch_without_credential(self, job_template_no_credential):
         """Verify the job launch endpoint allows launching a job template without a credential."""
@@ -252,7 +252,7 @@ class TestJobTemplateLaunchCredentials(Base_Api_Test):
 
 
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
-class TestJobTemplateVaultCredentials(Base_Api_Test):
+class TestJobTemplateVaultCredentials(APITest):
 
     def test_job_template_creation_with_lone_vault_credential(self, request, v2, factories):
         payload = factories.v2_job_template.payload()
@@ -383,7 +383,7 @@ def custom_extra_credentials(request):
 
 
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
-class TestJobTemplateExtraCredentials(Base_Api_Test):
+class TestJobTemplateExtraCredentials(APITest):
 
     def test_job_template_with_added_and_removed_custom_extra_credentials(self, factories, custom_extra_credentials):
         ssh_cred = factories.v2_credential()
@@ -536,7 +536,7 @@ class TestJobTemplateExtraCredentials(Base_Api_Test):
 
 
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
-class TestJobTemplateRelatedCredentials(Base_Api_Test):
+class TestJobTemplateRelatedCredentials(APITest):
 
     def test_add_machine_creds_check_backwards_compatibility(self, factories, v1, job_template_no_credential):
         jt = job_template_no_credential

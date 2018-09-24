@@ -1,13 +1,13 @@
 from fauxfactory import gen_boolean, gen_integer
 import pytest
 
-from tests.api import Base_Api_Test
+from tests.api import APITest
 from tests.lib.helpers.copy_utils import check_fields
 
 
 @pytest.mark.api
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
-class Test_Copy_Project(Base_Api_Test):
+class Test_Copy_Project(APITest):
 
     identical_fields = ['type', 'description', 'organization', 'scm_type', 'scm_url', 'scm_branch', 'scm_clean',
                         'scm_delete_on_update', 'scm_update_on_launch', 'scm_update_cache_timeout', 'custom_virtualenv',

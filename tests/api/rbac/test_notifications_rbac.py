@@ -1,13 +1,13 @@
 import pytest
 
 import towerkit.exceptions
-from tests.api import Base_Api_Test
+from tests.api import APITest
 
 
 @pytest.mark.api
 @pytest.mark.rbac
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
-class Test_Notifications_RBAC(Base_Api_Test):
+class Test_Notifications_RBAC(APITest):
 
     def test_notification_read_as_unprivileged_user(self, email_notification_template, unprivileged_user):
         """Test that unprivileged users cannot read notifications."""

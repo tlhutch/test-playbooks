@@ -2,13 +2,13 @@ import random
 
 import pytest
 
-from tests.api import Base_Api_Test
+from tests.api import APITest
 
 
 @pytest.mark.api
 @pytest.mark.requires_cluster
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
-class TestClusterCommon(Base_Api_Test):
+class TestClusterCommon(APITest):
 
     def test_jobs_should_be_able_to_run_on_all_full_instances(self, v2, factories):
         instances = v2.instances.get(rampart_groups__controller__isnull=True).results

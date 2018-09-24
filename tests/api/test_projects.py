@@ -9,7 +9,7 @@ import towerkit.exceptions as exc
 import pytest
 import fauxfactory
 
-from tests.api import Base_Api_Test
+from tests.api import APITest
 
 
 @pytest.fixture(scope="function")
@@ -39,7 +39,7 @@ def project_with_galaxy_requirements(request, authtoken, organization):
 @pytest.mark.api
 @pytest.mark.destructive
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
-class Test_Projects(Base_Api_Test):
+class Test_Projects(APITest):
 
     def check_secret_fields(self, string_to_check, *secrets):
         for secret in secrets:

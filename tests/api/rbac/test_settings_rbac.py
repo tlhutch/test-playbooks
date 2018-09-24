@@ -1,13 +1,13 @@
 from towerkit import exceptions as exc
 import pytest
 
-from tests.api import Base_Api_Test
+from tests.api import APITest
 
 
 @pytest.mark.api
 @pytest.mark.rbac
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
-class TestSettingsRBAC(Base_Api_Test):
+class TestSettingsRBAC(APITest):
 
     def test_get_main_endpoint_as_non_superuser(self, non_superuser, api_settings_pg):
         exp_settings_count = api_settings_pg.get().count

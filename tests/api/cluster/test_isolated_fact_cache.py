@@ -1,12 +1,12 @@
 import pytest
 
-from tests.api import Base_Api_Test
+from tests.api import APITest
 
 
 @pytest.mark.api
 @pytest.mark.requires_traditional_cluster
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
-class TestIsolatedFactCache(Base_Api_Test):
+class TestIsolatedFactCache(APITest):
 
     @pytest.fixture
     def isolated_instance_group(self, v2):

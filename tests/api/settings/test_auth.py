@@ -1,6 +1,6 @@
 import pytest
 
-from tests.api import Base_Api_Test
+from tests.api import APITest
 
 
 def find_settings(setting_pg, substrings):
@@ -16,7 +16,7 @@ def find_settings(setting_pg, substrings):
 @pytest.mark.destructive
 @pytest.mark.mp_group('TestAuth', 'isolated_serial')
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
-class Test_Auth(Base_Api_Test):
+class Test_Auth(APITest):
 
     @pytest.mark.github('https://github.com/ansible/tower/issues/807')
     def test_default_entries(self, v1):

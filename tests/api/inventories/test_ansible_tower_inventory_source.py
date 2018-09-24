@@ -2,12 +2,12 @@ import pytest
 
 from towerkit.config import config
 
-from tests.api import Base_Api_Test
+from tests.api import APITest
 
 
 @pytest.mark.api
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
-class TestAnsibleTowerInventorySource(Base_Api_Test):
+class TestAnsibleTowerInventorySource(APITest):
 
     @pytest.fixture
     def remote_tower_hostname(self, is_docker):

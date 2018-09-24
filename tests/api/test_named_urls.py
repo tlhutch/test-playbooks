@@ -4,7 +4,7 @@ import pytest
 
 import towerkit
 from towerkit.api.resources import resources
-from tests.api import Base_Api_Test
+from tests.api import APITest
 
 
 log = logging.getLogger(__name__)
@@ -24,7 +24,7 @@ def make_api_url(resource_name, format_string, *params):
 
 @pytest.mark.api
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
-class TestNamedURLs(Base_Api_Test):
+class TestNamedURLs(APITest):
 
     def assert_resource_available_by_name(self, resource, named_url):
         # refetch the resource to get the latest vesrsion.

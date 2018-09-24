@@ -3,7 +3,7 @@ import towerkit.exceptions as exc
 import fauxfactory
 import pytest
 
-from tests.api import Base_Api_Test
+from tests.api import APITest
 
 
 @pytest.fixture(scope="function")
@@ -41,7 +41,7 @@ def team_payload(**kwargs):
 @pytest.mark.api
 @pytest.mark.destructive
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
-class Test_Teams(Base_Api_Test):
+class Test_Teams(APITest):
 
     def test_duplicate_teams_disallowed_by_organization(self, factories):
         team = factories.v2_team()

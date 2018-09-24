@@ -16,7 +16,7 @@ from towerkit.api import Connection
 import towerkit.exceptions as exc
 from towerkit.utils import random_title
 
-from tests.api import Base_Api_Test
+from tests.api import APITest
 
 log = logging.getLogger(__name__)
 
@@ -86,7 +86,7 @@ class SafeStop(object):
 @pytest.mark.api
 @pytest.mark.requires_traditional_cluster
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
-class TestTraditionalCluster(Base_Api_Test):
+class TestTraditionalCluster(APITest):
 
     def mutually_exclusive_instance_groups(self, instance_groups):
         instance_group_to_instances_map = [(instance_group, set([instance.id for instance in instance_group.get_related('instances').results]))

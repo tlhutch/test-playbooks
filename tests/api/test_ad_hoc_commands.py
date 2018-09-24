@@ -5,7 +5,7 @@ from towerkit.config import config
 import fauxfactory
 import pytest
 
-from tests.api import Base_Api_Test
+from tests.api import APITest
 
 
 @pytest.fixture(scope="function", params=['inventory', 'ssh_credential'])
@@ -44,7 +44,7 @@ def ad_hoc_command_with_multi_ask_credential_and_password_in_payload(request, ho
 @pytest.mark.api
 @pytest.mark.destructive
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
-class Test_Ad_Hoc_Commands_Inventory(Base_Api_Test):
+class Test_Ad_Hoc_Commands_Inventory(APITest):
 
     def test_get_as_superuser(self, inventory):
         """Verify that a superuser account is able to GET from the ad_hoc_commands endpoint."""
@@ -73,7 +73,7 @@ class Test_Ad_Hoc_Commands_Inventory(Base_Api_Test):
 @pytest.mark.api
 @pytest.mark.destructive
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
-class Test_Ad_Hoc_Commands_Group(Base_Api_Test):
+class Test_Ad_Hoc_Commands_Group(APITest):
 
     def test_get_as_superuser(self, group):
         """Verify that a superuser account is able to GET from the ad_hoc_commands endpoint."""
@@ -101,7 +101,7 @@ class Test_Ad_Hoc_Commands_Group(Base_Api_Test):
 @pytest.mark.api
 @pytest.mark.destructive
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
-class Test_Ad_Hoc_Commands_Host(Base_Api_Test):
+class Test_Ad_Hoc_Commands_Host(APITest):
 
     def test_get_as_superuser(self, host):
         """Verify that a superuser account is able to GET from the ad_hoc_commands endpoint."""
@@ -129,7 +129,7 @@ class Test_Ad_Hoc_Commands_Host(Base_Api_Test):
 @pytest.mark.api
 @pytest.mark.destructive
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
-class Test_Ad_Hoc_Commands_Main(Base_Api_Test):
+class Test_Ad_Hoc_Commands_Main(APITest):
 
     def test_get(self, api_ad_hoc_commands_pg, all_users, user_password):
         """Verify that privileged users are able to GET from the ad_hoc_commands endpoint."""

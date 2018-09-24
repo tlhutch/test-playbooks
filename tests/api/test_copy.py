@@ -1,13 +1,13 @@
 import pytest
 import towerkit.exceptions as exc
 
-from tests.api import Base_Api_Test
+from tests.api import APITest
 
 
 @pytest.mark.api
 @pytest.mark.destructive
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
-class TestCopying(Base_Api_Test):
+class TestCopying(APITest):
 
     @pytest.mark.parametrize('obj', [
         'job_template',

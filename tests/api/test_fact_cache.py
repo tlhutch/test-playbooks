@@ -5,12 +5,12 @@ from towerkit.utils import random_title, to_str
 import fauxfactory
 import pytest
 
-from tests.api import Base_Api_Test
+from tests.api import APITest
 
 
 @pytest.mark.api
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
-class TestFactCache(Base_Api_Test):
+class TestFactCache(APITest):
 
     def assert_updated_facts(self, ansible_facts):
         """Perform basic validation on host details ansible_facts."""

@@ -9,7 +9,7 @@ from towerkit import exceptions as exc
 import fauxfactory
 import pytest
 
-from tests.api import Base_Api_Test
+from tests.api import APITest
 
 
 log = logging.getLogger(__name__)
@@ -151,7 +151,7 @@ def azure_type(azure_credential):
 @pytest.mark.api
 @pytest.mark.destructive
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
-class Test_Job(Base_Api_Test):
+class Test_Job(APITest):
 
     @pytest.mark.github('https://github.com/ansible/tower/issues/806')
     @pytest.mark.ansible_integration
@@ -593,7 +593,7 @@ class Test_Job(Base_Api_Test):
 
 @pytest.mark.api
 @pytest.mark.destructive
-class Test_Job_Env(Base_Api_Test):
+class Test_Job_Env(APITest):
     """Verify that credentials are properly passed to playbooks as
     environment variables ('job_env').
     """

@@ -5,7 +5,7 @@ from towerkit import utils, WSClient
 import pytest
 
 from tests.lib.helpers.workflow_utils import WorkflowTree, WorkflowTreeMapper
-from tests.api import Base_Api_Test
+from tests.api import APITest
 
 
 class ChannelsTest(object):
@@ -49,7 +49,7 @@ def ws_client(request, v2, authtoken):
 
 
 @pytest.mark.api
-class TestWebSocketRequestForgery(ChannelsTest, Base_Api_Test):
+class TestWebSocketRequestForgery(ChannelsTest, APITest):
 
     def test_missing_csrf_cookie(self, class_ws_client):
         # if the originating browser doesn't have access to an authenticated
@@ -83,7 +83,7 @@ class TestWebSocketRequestForgery(ChannelsTest, Base_Api_Test):
 
 @pytest.mark.api
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
-class TestAdHocCommandChannels(ChannelsTest, Base_Api_Test):
+class TestAdHocCommandChannels(ChannelsTest, APITest):
 
         @pytest.fixture(scope='class')
         def ahc_and_ws_events(self, class_factories, class_ws_client):
@@ -153,7 +153,7 @@ class TestAdHocCommandChannels(ChannelsTest, Base_Api_Test):
 
 @pytest.mark.api
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
-class TestJobChannels(ChannelsTest, Base_Api_Test):
+class TestJobChannels(ChannelsTest, APITest):
 
         @pytest.fixture(scope='class')
         def job_and_ws_events(self, class_factories, class_ws_client):
@@ -222,7 +222,7 @@ class TestJobChannels(ChannelsTest, Base_Api_Test):
 
 @pytest.mark.api
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
-class TestWorkflowChannels(ChannelsTest, Base_Api_Test):
+class TestWorkflowChannels(ChannelsTest, APITest):
 
         @pytest.mark.ansible_integration
         def test_workflow_events(self, factories, ws_client, v2):
@@ -286,7 +286,7 @@ class TestWorkflowChannels(ChannelsTest, Base_Api_Test):
 
 @pytest.mark.api
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
-class TestInventoryChannels(ChannelsTest, Base_Api_Test):
+class TestInventoryChannels(ChannelsTest, APITest):
 
         @pytest.fixture(scope='class')
         def inv_update_and_ws_events(self, class_factories, class_ws_client):
@@ -355,7 +355,7 @@ class TestInventoryChannels(ChannelsTest, Base_Api_Test):
 
 @pytest.mark.api
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
-class TestProjectUpdateChannels(ChannelsTest, Base_Api_Test):
+class TestProjectUpdateChannels(ChannelsTest, APITest):
 
         @pytest.fixture(scope='class')
         def project_update_and_ws_events(self, class_factories, class_ws_client):

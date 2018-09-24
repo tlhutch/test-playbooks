@@ -2,13 +2,13 @@ from towerkit import exceptions as exc
 import pytest
 
 from tests.lib.helpers.rbac_utils import check_user_capabilities
-from tests.api import Base_Api_Test
+from tests.api import APITest
 
 
 @pytest.mark.api
 @pytest.mark.rbac
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
-class TestSystemJobRBAC(Base_Api_Test):
+class TestSystemJobRBAC(APITest):
 
     @pytest.mark.fixture_args(days=1000, granularity='1y', older_than='1y')
     def test_get_detail_view_as_superuser(self, system_job):

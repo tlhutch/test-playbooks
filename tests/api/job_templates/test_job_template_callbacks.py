@@ -12,13 +12,13 @@ from towerkit.config import config
 from towerkit import utils, exceptions as exc
 import pytest
 
-from tests.api import Base_Api_Test
+from tests.api import APITest
 
 
 @pytest.mark.api
 @pytest.mark.destructive
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
-class TestJobTemplateCallbacks(Base_Api_Test):
+class TestJobTemplateCallbacks(APITest):
     @pytest.fixture(scope='class')
     def remote_hosts(self):
         def all_interfaces():

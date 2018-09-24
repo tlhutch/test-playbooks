@@ -1,13 +1,13 @@
 from towerkit import exceptions as exc
 import pytest
 
-from tests.api import Base_Api_Test
+from tests.api import APITest
 
 
 @pytest.mark.api
 @pytest.mark.rbac
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
-class TestJobsRBAC(Base_Api_Test):
+class TestJobsRBAC(APITest):
 
     @pytest.mark.github('https://github.com/ansible/tower/issues/824')
     def test_v1_launch_as_superuser(self, job_template, api_jobs_pg):

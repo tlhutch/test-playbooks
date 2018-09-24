@@ -3,13 +3,13 @@ import fauxfactory
 import pytest
 import six
 
-from tests.api import Base_Api_Test
+from tests.api import APITest
 
 
 @pytest.mark.api
 @pytest.mark.destructive
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
-class TestInventory(Base_Api_Test):
+class TestInventory(APITest):
 
     def test_inventory_names(self, factories):
         """Test that we can have inventories with the same name in different organizations."""

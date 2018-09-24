@@ -6,13 +6,13 @@ import towerkit.exceptions as exc
 import pytest
 
 from tests.lib.helpers.rbac_utils import assert_response_raised, check_read_access
-from tests.api import Base_Api_Test
+from tests.api import APITest
 
 
 @pytest.mark.api
 @pytest.mark.rbac
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
-class TestInstanceGroupRBAC(Base_Api_Test):
+class TestInstanceGroupRBAC(APITest):
 
     def test_unprivileged_user(self, v2, factories):
         """An unprivileged user should not be able to:
@@ -84,7 +84,7 @@ class TestInstanceGroupRBAC(Base_Api_Test):
 @pytest.mark.rbac
 @pytest.mark.mp_group('InstanceGroupAssignmentRBAC', 'isolated_serial')
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
-class TestInstanceGroupAssignmentRBAC(Base_Api_Test):
+class TestInstanceGroupAssignmentRBAC(APITest):
 
     @pytest.mark.parametrize('resource_type', ['job_template', 'inventory', 'organization'])
     def test_superuser(self, v2, factories, resource_type):

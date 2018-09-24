@@ -6,7 +6,7 @@ import towerkit.exceptions
 import pytest
 import six
 
-from tests.api import Base_Api_Test
+from tests.api import APITest
 
 
 log = logging.getLogger(__name__)
@@ -14,7 +14,7 @@ log = logging.getLogger(__name__)
 
 @pytest.mark.api
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
-class TestActivityStream(Base_Api_Test):
+class TestActivityStream(APITest):
 
     @pytest.mark.github('https://github.com/ansible/tower/issues/1774', ids=['survey'])
     @pytest.mark.parametrize('resource', ['schedule', 'survey', 'job_template', 'workflow_job_template', 'credential',

@@ -2,13 +2,13 @@ from towerkit import exceptions as exc
 import fauxfactory
 import pytest
 
-from tests.api import Base_Api_Test
+from tests.api import APITest
 
 
 @pytest.mark.api
 @pytest.mark.destructive
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
-class TestSmartInventory(Base_Api_Test):
+class TestSmartInventory(APITest):
 
     def test_host_sourced_by_ansible_facts(self, factories):
         host = factories.v2_host()

@@ -1,10 +1,10 @@
 import pytest
-from tests.api import Base_Api_Test
+from tests.api import APITest
 
 
 @pytest.mark.api
 @pytest.mark.destructive
-class Test_Tower_Prepopulation(Base_Api_Test):
+class Test_Tower_Prepopulation(APITest):
 
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 

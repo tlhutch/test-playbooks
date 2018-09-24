@@ -4,13 +4,13 @@ import towerkit.exceptions as exc
 import pytest
 
 from tests.lib.helpers.rbac_utils import assert_response_raised, check_read_access
-from tests.api import Base_Api_Test
+from tests.api import APITest
 
 
 @pytest.mark.api
 @pytest.mark.rbac
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
-class TestSmartInventoryRBAC(Base_Api_Test):
+class TestSmartInventoryRBAC(APITest):
 
     def check_host_filter_edit(self, smart_inventory, allowed=False):
         new_filter = "name=new_host_filter"

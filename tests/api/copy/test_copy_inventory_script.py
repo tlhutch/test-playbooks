@@ -1,12 +1,12 @@
 import pytest
 
-from tests.api import Base_Api_Test
+from tests.api import APITest
 from tests.lib.helpers.copy_utils import check_fields
 
 
 @pytest.mark.api
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
-class Test_Copy_Inventory_Script(Base_Api_Test):
+class Test_Copy_Inventory_Script(APITest):
 
     identical_fields = ['type', 'description', 'script', 'organization']
     unequal_fields = ['id', 'created', 'modified']

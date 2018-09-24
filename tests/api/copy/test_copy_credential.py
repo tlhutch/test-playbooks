@@ -1,13 +1,13 @@
 from fauxfactory import gen_uuid
 import pytest
 
-from tests.api import Base_Api_Test
+from tests.api import APITest
 from tests.lib.helpers.copy_utils import check_fields
 
 
 @pytest.mark.api
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited', 'credential_kind_choices')
-class Test_Copy_Credential(Base_Api_Test):
+class Test_Copy_Credential(APITest):
 
     identical_fields = ['type', 'description', 'organization', 'credential_type', 'inputs']
     unequal_fields = ['id', 'created', 'modified']

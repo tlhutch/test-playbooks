@@ -7,7 +7,7 @@ import towerkit.tower.inventory
 import towerkit.exceptions
 import pytest
 
-from tests.api import Base_Api_Test
+from tests.api import APITest
 
 
 log = logging.getLogger(__name__)
@@ -15,7 +15,7 @@ log = logging.getLogger(__name__)
 
 @pytest.mark.api
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
-class TestJobTemplateExtraVars(Base_Api_Test):
+class TestJobTemplateExtraVars(APITest):
 
     def get_required_survey_vars(self, survey_spec):
         required_vars = []

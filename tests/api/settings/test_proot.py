@@ -3,14 +3,14 @@ import json
 from dateutil.parser import parse as du_parse
 import pytest
 
-from tests.api import Base_Api_Test
+from tests.api import APITest
 
 
 @pytest.mark.api
 @pytest.mark.destructive
 @pytest.mark.mp_group('Proot', 'isolated_serial')
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
-class Test_Proot(Base_Api_Test):
+class Test_Proot(APITest):
     """Tests to assert correctness while running with AWX_PROOT_ENABLED=True"""
 
     @pytest.mark.requires_single_instance

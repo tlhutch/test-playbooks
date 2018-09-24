@@ -9,7 +9,7 @@ import towerkit.tower.inventory
 import towerkit.exceptions
 import pytest
 
-from tests.api import Base_Api_Test
+from tests.api import APITest
 
 
 log = logging.getLogger(__name__)
@@ -26,7 +26,7 @@ def job_template_with_deleted_related(request, job_template):
 @pytest.mark.api
 @pytest.mark.destructive
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
-class TestJobTemplates(Base_Api_Test):
+class TestJobTemplates(APITest):
 
     @pytest.mark.ansible_integration
     def test_launch(self, job_template_ping):

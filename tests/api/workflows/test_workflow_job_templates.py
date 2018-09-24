@@ -3,7 +3,7 @@ import logging
 
 from towerkit.exceptions import BadRequest, NotFound
 
-from tests.api import Base_Api_Test
+from tests.api import APITest
 from tests.lib.helpers.workflow_utils import WorkflowTree
 
 log = logging.getLogger(__name__)
@@ -41,7 +41,7 @@ log = logging.getLogger(__name__)
 @pytest.mark.api
 @pytest.mark.destructive
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
-class Test_Workflow_Job_Templates(Base_Api_Test):
+class Test_Workflow_Job_Templates(APITest):
 
     # Graph Topology Validation
     # Graphs should not (1) converge (2) contain cycles or

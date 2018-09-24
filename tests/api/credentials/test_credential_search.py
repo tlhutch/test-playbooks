@@ -1,12 +1,12 @@
 import fauxfactory
 import pytest
 
-from tests.api import Base_Api_Test
+from tests.api import APITest
 
 
 @pytest.mark.api
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
-class TestCredentialSearch(Base_Api_Test):
+class TestCredentialSearch(APITest):
 
     related_search_fields = set(['ad_hoc_commands__search', 'created_by__search', 'credential_type__search',
                                  'insights_inventories__search', 'joblaunchconfigs__search',

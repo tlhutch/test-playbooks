@@ -4,7 +4,7 @@ from towerkit.api import Api
 import pytest
 
 from tests.lib.helpers.workflow_utils import WorkflowTree, WorkflowTreeMapper
-from tests.api import Base_Api_Test
+from tests.api import APITest
 
 
 @pytest.fixture
@@ -27,7 +27,7 @@ def user_ws_client(request, v2):
 @pytest.mark.api
 @pytest.mark.rbac
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
-class TestChannelsRBAC(Base_Api_Test):
+class TestChannelsRBAC(APITest):
 
         def sleep_and_clear_messages(self, ws):
             utils.logged_sleep(3)

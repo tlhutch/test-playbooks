@@ -4,14 +4,14 @@ from towerkit.utils import random_title
 from towerkit import config, exceptions
 import pytest
 
-from tests.api import Base_Api_Test
+from tests.api import APITest
 
 
 @pytest.mark.api
 @pytest.mark.ldap
 @pytest.mark.mp_group('LDAP', 'isolated_serial')
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
-class TestLDAP(Base_Api_Test):
+class TestLDAP(APITest):
 
     ldap_password = config.credentials.freeipa.ldap_password
     user_base_dn = 'cn=users,cn=accounts,dc=testing,dc=ansible,dc=com'

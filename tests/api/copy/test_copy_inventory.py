@@ -2,13 +2,13 @@ from fauxfactory import gen_boolean, gen_alpha
 from towerkit.utils import poll_until
 import pytest
 
-from tests.api import Base_Api_Test
+from tests.api import APITest
 from tests.lib.helpers.copy_utils import check_fields
 
 
 @pytest.mark.api
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
-class Test_Copy_Inventory(Base_Api_Test):
+class Test_Copy_Inventory(APITest):
 
     identical_fields = ['type', 'description', 'organization', 'kind', 'host_filter', 'variables', 'total_hosts',
                         'total_groups', 'has_inventory_sources', 'total_inventory_sources']

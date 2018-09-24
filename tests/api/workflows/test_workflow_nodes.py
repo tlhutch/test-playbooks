@@ -4,7 +4,7 @@ import json
 from towerkit.exceptions import BadRequest
 import pytest
 
-from tests.api import Base_Api_Test
+from tests.api import APITest
 
 
 log = logging.getLogger(__name__)
@@ -27,7 +27,7 @@ log = logging.getLogger(__name__)
 @pytest.mark.api
 @pytest.mark.destructive
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
-class Test_Workflow_Nodes(Base_Api_Test):
+class Test_Workflow_Nodes(APITest):
 
     select_jt_fields = ('inventory', 'project', 'credential', 'playbook', 'job_type')
     promptable_fields = ('inventory', 'credential', 'job_type', 'job_tags', 'skip_tags', 'verbosity', 'diff_mode', 'limit')

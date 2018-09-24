@@ -1,13 +1,13 @@
 import towerkit.exceptions as exc
 import pytest
 
-from tests.api import Base_Api_Test
+from tests.api import APITest
 
 
 @pytest.mark.api
 @pytest.mark.rbac
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
-class TestSCMInventorySourceRBAC(Base_Api_Test):
+class TestSCMInventorySourceRBAC(APITest):
 
     @pytest.mark.parametrize('role', ['admin', 'read', 'use', 'update'])
     def test_scm_inventory_source_project_with_update_on_project_update(self, factories, role):

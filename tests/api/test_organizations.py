@@ -1,6 +1,6 @@
 import pytest
 import towerkit.exceptions
-from tests.api import Base_Api_Test
+from tests.api import APITest
 
 
 @pytest.fixture(scope="function", params=['job_template',
@@ -18,7 +18,7 @@ def related_organization_object(request):
 @pytest.mark.api
 @pytest.mark.destructive
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
-class Test_Organizations(Base_Api_Test):
+class Test_Organizations(APITest):
     """Verify the /users endpoint displays the expected information based on the current user"""
 
     def test_duplicate_organizations_disallowed(self, factories):
