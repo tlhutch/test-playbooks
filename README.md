@@ -1,8 +1,20 @@
+## Dependencies
+
+You will need:
+
+* `docker`
+* `gcloud`
+  * (quickstart for linux)[https://cloud.google.com/sdk/docs/quickstart-linux]
+* python 2.7
+
 ## Tower Integration Tests
 
-In order to run integration tests you'll need a working Tower or AWX install to run tests against. The following steps describe building and configuring the Tower dev containers and running tests against them.
+In order to run integration tests you'll need a working Tower or AWX install to
+run tests against. The following steps describe building and configuring the
+Tower dev containers and running tests against them.
 
-To run tests you'll need an appropriate config file and inventory. tower-qa ships with several useful examples.
+To run tests you'll need an appropriate config file and inventory. tower-qa
+ships with several useful examples.
 
 ```
 git clone https://github.com/ansible/tower
@@ -11,32 +23,35 @@ cd tower
 # Note: if you want anything other than devel you'll need to checkout the right tower branch as well as setting the compose tag in order to get the right local_settings.py
 # Note: you may want to create a separate virtualenv for tower
 cp awx/settings/local_settings.py.docker_compose awx/settings/local_settings.py
- 
+
 gcloud auth login
 gcloud config set project ansible-tower-engineering
 export COMPOSE_TAG=devel
 export GCLOUD_AUTH=`gcloud auth print-access-token`
 export IMAGE_REPOSITORY_AUTH=$GCLOUD_AUTH
-gcloud docker -- pull gcr.io/ansible-tower-engineering/awx_devel:devel
+gcloud auth configure-docker
+docker pull gcr.io/ansible-tower-engineering/awx_devel:devel
 make docker-compose
 make ui-devel
- 
+
 docker exec -it tools_awx_1 bash
- 
+
 # Inside the dev container:
 
 awx-manage createsuperuser --noinput --username admin --email admin@example.com
 awx-manage update_password --username admin --password XXXX
 awx-manage create_preload_data
 
+# Still inside the container ...
 # For tower rather than awx you need the tower-license installed
-. /venv/awx/bin/activate
+source /venv/awx/bin/activate
 git clone https://github.com/ansible/tower-license
 pip install tower-license/
- 
+
+# back in your box, not in the container
 cd ../tower-qa
 # Tweak the location of the virtualenv to taste
-virtualenv ~/venvs/tower-qa
+virtualenv -p $(which python2.7) ~/venvs/tower-qa
 pip install -r requirements.txt
 ansible-vault decrypt config/credentials.vault --output=config/credentials.yml
 py.test -c config/docker.cfg --base-url='https://localhost:8043'

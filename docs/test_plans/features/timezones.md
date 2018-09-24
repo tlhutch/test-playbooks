@@ -20,4 +20,4 @@ Tower 3.3.0 corrects and improves upon a number of scheduling and time zone bugs
     * [x] Schedule preview invalid input handling
 * [ ] UI (manual testing anticipated)
     * [ ] Schedule CRUD
-    * [ ] Edgce case schedule creation
+    * [ ] Edge case schedule creation
