@@ -69,8 +69,7 @@ if [[ -e "./run_integration_tests" ]]; then
     # Run Tests
     #
     
-    pip install -r requirements.txt
-    pip install -U git+https://github.com/rmfitzpatrick/pytest-ansible.git@handle_ansible_vars_restructuring
+    pip install -U -r requirements.txt
     
     # extract tower hostname
     ANSIBLE_INVENTORY=playbooks/inventory.log
