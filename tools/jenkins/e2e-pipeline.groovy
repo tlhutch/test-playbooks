@@ -19,7 +19,7 @@ pipeline {
                         checkout([
                             $class: 'GitSCM',
                             branches: [
-                                [ name: 'release_3.3.0' ]
+                                [ name: 'release_3.3.1' ]
                             ],
                             doGenerateSubmoduleConfigurations: false,
                             extensions: [],
@@ -40,16 +40,11 @@ pipeline {
                             parameters: [
                                 booleanParam(name: 'TRIGGER', value: false),
                                 string(name: 'OFFICIAL', value: 'no'),
-                                string(name: 'TOWER_PACKAGING_BRANCH', value: 'origin/release_3.3.0'),
+                                string(name: 'TOWER_PACKAGING_BRANCH', value: 'origin/release_3.3.1'),
                             ]
                         )
                     }
                 }
-                // stage('Trigger Build_Tower_E2E_Container_Image') {
-                //     steps {
-                //         build(job: 'Build_Tower_E2E_Container_Image')
-                //     }
-                // }
             }
         }
         stage('Create Tower Instance') {
@@ -65,15 +60,8 @@ pipeline {
                     removeColor: true,
                     verbose: true,
                     credential: '',
-                    extraVars: '{"instance_names": "launched-by-jenkins", "deployment_type": "release_3.3.0"}',
+                    extraVars: '{"instance_names": "launched-by-jenkins", "deployment_type": "release_3.3.1"}',
                 )
-                withCredentials([
-                    usernamePassword(
-                        credentialsId: 'e9c2894b-a17c-4982-a26b-ad5d9a992f9a',
-                        passwordVariable: 'TOWER_PASSWORD',
-                        usernameVariable: 'TOWER_USERNAME'
-                    )
-                ])
                 {
                     sh '''#!/bin/bash
                     set +e
@@ -102,7 +90,7 @@ pipeline {
                         job: 'Test_Tower_E2E',
                         parameters: [
                             string(name: 'AWX_E2E_URL', value: "${AWX_E2E_URL}"),
-                            string(name: 'TOWER_BRANCH', value: 'origin/release_3.3.0')
+                            string(name: 'TOWER_BRANCH', value: 'origin/release_3.3.1')
                         ]
                     )
                 }
@@ -151,7 +139,7 @@ pipeline {
                 color: "good",
                 teamDomain: "ansible",
                 channel: "#e2e-test-resuts",
-                message: "<$JENKINS_BLUE_URL$JOB_NAME/detail/$JOB_NAME/$BUILD_NUMBER|Back to Success> /n ${AWX_E2E_URL}"
+                message: "<$JENKINS_BLUE_URL$JOB_NAME/detail/$JOB_NAME/$BUILD_NUMBER|Job Dun>"
             )
         }
     }
