@@ -14,11 +14,9 @@
     ec2_public_key: "{{ lookup('file', '~/.ssh/id_rsa.pub') }}"
     instance_name_prefix: ansible-tower
     ec2_images:
-        - {'name': 'centos-6.5-x86_64',   'user': 'root',        'id': 'ami-eb6b0182', 'type': 'm3.large' }
-        - {'name': 'rhel-6.5-x86_64',     'user': 'ec2-user',    'id': 'ami-63b6910a', 'type': 'm3.large' }
-        #- {'name': 'rhel-7.0-x86_64',     'user': 'ec2-user',    'id': 'ami-785bae10', 'type': 'm3.large' }
-        - {'name': 'ubuntu-12.04-x86_64', 'user': 'ubuntu',      'id': 'ami-5db4a934', 'type': 'm3.large' }
-        - {'name': 'ubuntu-14.04-x86_64', 'user': 'ubuntu',      'id': 'ami-018c9568', 'type': 'm3.large' }
+        - {'name': 'rhel-7.5-x86_64',     'user': 'ec2-user',    'id': 'ami-0d70a070', 'type': 'm5.large' }
+        - {'name': 'ubuntu-12.04-x86_64', 'user': 'ubuntu',      'id': 'ami-5db4a934', 'type': 'm5.large' }
+        - {'name': 'ubuntu-14.04-x86_64', 'user': 'ubuntu',      'id': 'ami-018c9568', 'type': 'm5.large' }
 
   roles:
     - role: create_ec2
