@@ -1,0 +1,17 @@
+
+        digraph g {
+        rankdir = LR
+        RUN_successful_360 [color = green]
+RUN_failed_359 [color = red]
+RUN_successful_358 [color = green]
+RUN_successful_356 [color = green]
+RUN_failed_354 [color = red]
+RUN_successful_355 [color = green]
+DNR_NA_357 [color = black]
+RUN_successful_355 -> RUN_successful_356 [ label="success_nodes" ];
+RUN_successful_355 -> DNR_NA_357 [ label="failure_nodes" ];
+RUN_successful_356 -> RUN_successful_360 [ label="always_nodes" ];
+RUN_failed_354 -> RUN_failed_359 [ label="always_nodes" ];
+RUN_successful_355 -> RUN_successful_358 [ label="always_nodes" ];
+DNR_NA_357 -> RUN_successful_360 [ label="always_nodes" ];
+}

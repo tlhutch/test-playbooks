@@ -1,0 +1,45 @@
+
+        digraph g {
+        rankdir = LR
+        DNR_NA_378 [color = black]
+DNR_NA_379 [color = black]
+DNR_NA_380 [color = black]
+DNR_NA_381 [color = black]
+DNR_NA_385 [color = black]
+DNR_NA_386 [color = black]
+DNR_NA_389 [color = black]
+DNR_NA_390 [color = black]
+DNR_NA_391 [color = black]
+RUN_successful_376 [color = green]
+RUN_successful_375 [color = green]
+RUN_successful_382 [color = green]
+RUN_successful_383 [color = green]
+RUN_successful_377 [color = green]
+RUN_successful_384 [color = green]
+RUN_successful_387 [color = green]
+RUN_failed_392 [color = red]
+RUN_failed_388 [color = red]
+RUN_successful_393 [color = green]
+RUN_successful_394 [color = green]
+DNR_NA_378 -> DNR_NA_385 [ label="success_nodes" ];
+RUN_successful_376 -> RUN_successful_382 [ label="success_nodes" ];
+RUN_successful_376 -> RUN_successful_383 [ label="success_nodes" ];
+RUN_successful_375 -> RUN_successful_377 [ label="success_nodes" ];
+RUN_successful_377 -> RUN_successful_384 [ label="success_nodes" ];
+RUN_successful_384 -> RUN_successful_387 [ label="success_nodes" ];
+DNR_NA_380 -> DNR_NA_386 [ label="failure_nodes" ];
+DNR_NA_385 -> DNR_NA_389 [ label="failure_nodes" ];
+DNR_NA_385 -> RUN_failed_388 [ label="failure_nodes" ];
+DNR_NA_386 -> DNR_NA_390 [ label="failure_nodes" ];
+DNR_NA_386 -> DNR_NA_391 [ label="failure_nodes" ];
+RUN_successful_375 -> DNR_NA_378 [ label="failure_nodes" ];
+RUN_successful_375 -> DNR_NA_379 [ label="failure_nodes" ];
+RUN_successful_375 -> DNR_NA_380 [ label="failure_nodes" ];
+RUN_successful_375 -> DNR_NA_381 [ label="failure_nodes" ];
+RUN_successful_375 -> DNR_NA_385 [ label="failure_nodes" ];
+RUN_failed_392 -> RUN_failed_388 [ label="failure_nodes" ];
+RUN_failed_388 -> RUN_successful_393 [ label="failure_nodes" ];
+RUN_failed_388 -> RUN_successful_394 [ label="failure_nodes" ];
+DNR_NA_379 -> DNR_NA_385 [ label="always_nodes" ];
+RUN_successful_387 -> RUN_failed_392 [ label="always_nodes" ];
+}

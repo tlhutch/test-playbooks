@@ -40,7 +40,7 @@ def parse_args():
     return (opts, args)
 
 
-if __name__ == '__main__':
+if __name__ == '__main__': # noqa C901
     (opts, args) = parse_args()
 
     config.base_url = args[0]
