@@ -121,7 +121,7 @@ pipeline {
             slackSend(
                 color: "bad",
                 teamDomain: "ansible",
-                channel: "#ui-talk",
+                channel: "#e2e-test-resuts",
                 message: "<$JENKINS_BLUE_URL$JOB_NAME/detail/$JOB_NAME/$BUILD_NUMBER|SHAME!>"
             )
         }
