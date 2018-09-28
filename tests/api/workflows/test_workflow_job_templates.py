@@ -378,3 +378,54 @@ class Test_Workflow_Job_Templates(APITest):
             pytest.fail('Intermediate node should still exist after deleting leaf node')
         n1_always_nodes = n1.get_related('always_nodes').results
         assert len(n1_always_nodes) == 0, 'Intermediate node should no longer point to leaf node:\n{0}'.format(n1_always_nodes)
+
+    # tests for WFJT-level prompts
+    @pytest.mark.parametrize('source', (
+        'workflow',  # test that inventory set on WFJT takes effects in spawned jobs
+        'prompt',    # test that inventory provided on launch takes effect
+        'rejected'   # test that if JT does not prompt for inventory, does not take effect
+    ))
+    def test_launch_with_workflow_inventory(self, factories, source):
+        inventory = factories.inventory()
+        if source == 'prompt':
+            wfjt = factories.workflow_job_template(ask_inventory_on_launch=True)
+        else:
+            wfjt = factories.workflow_job_template(inventory=inventory)
+            assert wfjt.inventory is not None
+
+        if source == 'rejected':
+            jt = factories.job_template()
+        else:
+            jt = factories.job_template(ask_inventory_on_launch=True)
+        assert jt.inventory != wfjt.inventory
+
+        factories.workflow_job_template_node(
+            workflow_job_template=wfjt,
+            unified_job_template=jt
+        )
+
+        if source == 'prompt':
+            wfj = wfjt.launch(payload={'inventory': inventory.id})
+        else:
+            wfj = wfjt.launch()
+        assert wfj.inventory == inventory.id
+        node = wfj.get_related('workflow_nodes').results.pop()
+        node.wait_for_job()
+
+        job = node.get_related('job')
+        if source == 'rejected':
+            job.inventory == jt.inventory
+        else:
+            assert job.inventory == inventory.id
+
+    def test_workflow_reject_inventory_on_launch(self, factories):
+        """While the prompts test assert behavior about the JTs launched inside
+        the workflow, this test checks that the workflow JT itself will reject
+        an inventory it is not set to prompt for inventory.
+        """
+        inventory = factories.inventory()
+        wfjt = factories.workflow_job_template()
+        with pytest.raises(BadRequest) as e:
+            wfjt.get_related('launch').post({'inventory': inventory.id})
+
+        assert e.value.message == {'inventory': ['Field is not configured to prompt on launch.']}
