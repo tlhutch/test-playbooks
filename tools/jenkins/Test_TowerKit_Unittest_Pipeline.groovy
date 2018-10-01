@@ -24,8 +24,7 @@ pipeline {
         stage('Execute Shell Script') {
             steps {
                 sh returnStdout: true, script: '''cd towerkit
-                bash -xe ../tower-qa/tools/jenkins/scripts/Test_Towerkit_Unittest.sh
-                ls -latr'''
+                bash -xe ../tower-qa/tools/jenkins/scripts/Test_Towerkit_Unittest.sh'''
             }
         }
         stage('PyLint') {
