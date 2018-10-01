@@ -380,9 +380,7 @@ class Test_Workflow_Job_Templates(APITest):
         assert len(n1_always_nodes) == 0, 'Intermediate node should no longer point to leaf node:\n{0}'.format(n1_always_nodes)
 
     # tests for WFJT-level prompts
-    # other possible cases:
-    # using inventory that is pending deletion
-    # RBAC for provided inventory
+    # trying to use inventory that is pending deletion has some coverage in unit tests
     @pytest.mark.parametrize('source', (
         'workflow',  # test that inventory set on WFJT takes effects in spawned jobs
         'prompt',    # test that inventory provided on launch takes effect

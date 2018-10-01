@@ -208,6 +208,30 @@ class Test_Workflow_Job_Template_RBAC(APITest):
             with pytest.raises(Forbidden):
                 other_wfjt.delete()
 
+    @pytest.mark.parametrize('source', (
+        'workflow',  # tests use role needed for applying inventory to WFJT
+        'prompt',    # tests use role needed for launching
+    ))
+    def test_prompts_access(self, factories, source):
+        inventory = factories.inventory()
+        if source == 'prompt':
+            wfjt = factories.workflow_job_template(ask_inventory_on_launch=True)
+        else:
+            wfjt = factories.workflow_job_template()
+
+        # set permission to WFJT and inventory
+        user = factories.user()
+        wfjt.set_object_roles(user, 'Admin')
+        inventory.set_object_roles(user, 'Read')  # not sufficient
+
+        with self.current_user(user.username, user.password):
+            with pytest.raises(Forbidden):
+                if source == 'prompt':
+                    wfjt.launch(payload={'inventory': inventory.id})
+                else:
+                    wfjt.inventory = inventory.id
+
+    @pytest.mark.github('https://github.com/ansible/tower/issues/895')
     @pytest.mark.parametrize('role', ['admin', 'execute', 'read'])
     def test_user_capabilities(self, factories, api_workflow_job_templates_pg, role):
         """Test user_capabilities given each WFJT role."""
