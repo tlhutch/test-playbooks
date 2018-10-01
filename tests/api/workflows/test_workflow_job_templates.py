@@ -1,5 +1,6 @@
 import pytest
 import logging
+import json
 
 from towerkit.exceptions import BadRequest, NotFound
 
@@ -66,6 +67,74 @@ class Test_Workflow_Job_Templates(APITest):
             triggered_nodes = n2.get_related(condition + '_nodes').results
             assert not len(triggered_nodes), \
                 'Found nodes listed, expected none. (Creates converging path in workflow):\n{0}'.format(triggered_nodes)
+
+    def test_workflow_node(self, factories):
+        """Tests successful use of workflows in workflows"""
+        wfjt_outer = factories.workflow_job_template(
+            extra_vars={'outer_var': 'foo'}
+        )
+        wfjt_inner = factories.workflow_job_template(
+            extra_vars={'inner_var': 'bar'},
+            ask_variables_on_launch=True
+        )
+        jt = factories.job_template()
+        factories.workflow_job_template_node(
+            workflow_job_template=wfjt_inner,
+            unified_job_template=jt
+        )
+        node = factories.workflow_job_template_node(workflow_job_template=wfjt_outer)
+        node.unified_job_template = wfjt_inner.id
+        # HACK: unified_job_template does not work with the dependency store
+
+        wfj = wfjt_outer.launch()
+        node = wfj.get_related('workflow_nodes').results.pop().wait_for_job()
+        job = node.get_related('job')
+        job.wait_until_completed()
+        assert job.type == 'workflow_job'
+        assert job.workflow_job_template == wfjt_inner.id
+        assert job.status == 'successful'
+        assert json.loads(job.extra_vars) == {'inner_var': 'bar', 'outer_var': 'foo'}
+
+        # check contents of inner workflow
+        inner_nodes = job.get_related('workflow_nodes')
+        assert inner_nodes.count == 1
+        jt_node = inner_nodes.results.pop().wait_for_job()
+        jt_job = jt_node.get_related('job')
+        assert jt_job.job_template == jt.id
+        assert json.loads(jt_job.extra_vars) == {'inner_var': 'bar', 'outer_var': 'foo'}
+
+    def test_workflow_node_rejected_prompts(self, factories):
+        # TODO: update to include prompted inventory when branches merge
+        wfjt_outer = factories.workflow_job_template(
+            extra_vars={'outer_var': 'foo'}  # inner WFJT does not prompt, should not use these
+        )
+        wfjt_inner = factories.workflow_job_template(
+            extra_vars={'inner_var': 'bar'}
+        )
+        node = factories.workflow_job_template_node(workflow_job_template=wfjt_outer)
+        node.unified_job_template = wfjt_inner.id
+
+        wfj = wfjt_outer.launch()
+        node = wfj.get_related('workflow_nodes').results.pop().wait_for_job()
+        job = node.get_related('job')
+        assert job.type == 'workflow_job'
+        assert job.workflow_job_template == wfjt_inner.id
+        assert json.loads(job.extra_vars) == {'inner_var': 'bar'}
+
+    def test_workflow_node_recursion_error(self, factories):
+        wfjt = factories.workflow_job_template()
+        node = factories.workflow_job_template_node(workflow_job_template=wfjt)
+        node.unified_job_template = wfjt.id  # uh oh
+
+        wfj = wfjt.launch()
+        node = wfj.get_related('workflow_nodes').results.pop().wait_for_job()
+        job = node.get_related('job')
+        assert job.type == 'workflow_job'
+        assert job.workflow_job_template == wfjt.id
+        assert job.status == 'failed'
+        assert job.job_explanation.startswith(
+            'Workflow Job spawned from workflow could not start because it would result in recursion'
+        )
 
     def test_single_node_references_itself(self, factories):
         """Confirms that a node cannot trigger itself"""
