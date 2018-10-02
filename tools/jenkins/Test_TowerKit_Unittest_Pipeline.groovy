@@ -2,7 +2,11 @@ pipeline {
     agent {
         label 'jenkins-jnlp-agent'
     }
+    parameters {
+        string(name: 'sha1', defaultValue: 'origin/master', description: 'Specify the refspec to build')
+    }
     options {
+        buildDiscarder(logRotator(numToKeepStr: '60'))
         timeout(time: 1, unit: 'HOURS')
         timestamps()
     }
@@ -16,9 +20,10 @@ pipeline {
                   }
                 }
                 stage('Checkout towerkit') {
-                  steps {
-                    checkout([$class: 'GitSCM', branches: [[name: '*/master']], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: 'towerkit']], submoduleCfg: [], userRemoteConfigs: [[credentialsId: '55b638c7-3ef3-4679-9020-fa09e411a74d', url: 'https://github.com/ansible/towerkit']]])}
-                }
+                    steps {
+                        checkout([$class: 'GitSCM', branches: [[name: '${sha1}']], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: 'towerkit']], submoduleCfg: [], userRemoteConfigs: [[credentialsId: '55b638c7-3ef3-4679-9020-fa09e411a74d', name: 'origin', refspec: '+refs/heads/*:refs/remotes/origin/* +refs/pull/*:refs/remotes/origin/pr/*', url: 'https://github.com/ansible/towerkit.git']]])
+                    }
+                }    
             }
         }
         stage('Execute Shell Script') {
