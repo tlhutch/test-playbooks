@@ -7,6 +7,6 @@
   with_items: '{{ authorized_keys }}'
   when: authorized_keys is defined
   register: authorized_key
-  until: authorized_key is success
+  until: authorized_key|success
   retries: 10
   delay: 15

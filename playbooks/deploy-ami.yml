@@ -41,17 +41,17 @@
     - name: reset admin_password
       shell: echo "from django.contrib.auth.models import User; usr = User.objects.get(username='admin'); usr.set_password('{{ admin_password }}'); usr.save();" | awx-manage shell
       sudo_user: awx
-      when: is_awx_installed is success
+      when: is_awx_installed|success
 
     - name: restart awx-celeryd
       supervisorctl: name=awx-celeryd state=restarted
-      when: is_awx_installed is success
+      when: is_awx_installed|success
 
     - name: restart awx-callback-receiver
       supervisorctl: name=awx-callback-receiver state=restarted
-      when: is_awx_installed is success
+      when: is_awx_installed|success
 
     - name: restart apache2
       service: name=apache2 state=restarted
-      when: is_awx_installed is success
+      when: is_awx_installed|success
 
