@@ -422,9 +422,10 @@ class Test_Workflow_Job_Templates(APITest):
     def test_workflow_reject_inventory_on_launch(self, factories):
         """While the prompts test assert behavior about the JTs launched inside
         the workflow, this test checks that the workflow JT itself will reject
-        an inventory it is not set to prompt for inventory.
+        an inventory if it is not set to prompt for inventory.
         """
         inventory = factories.inventory()
+        # By default, WFJTs do not prompt for inventory
         wfjt = factories.workflow_job_template()
         with pytest.raises(BadRequest) as e:
             wfjt.get_related('launch').post({'inventory': inventory.id})
