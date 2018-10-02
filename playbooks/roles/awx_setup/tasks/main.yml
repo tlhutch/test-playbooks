@@ -4,7 +4,7 @@
 - name: download ansible-tower-setup tarball
   get_url:
     url: '{{aw_repo_url}}/{{awx_setup_path}}'
-    dest: /tmp
+    dest: '/tmp/{{ awx_setup_path | basename }}'
     mode: 0640
   register: tarball
 
