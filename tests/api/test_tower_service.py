@@ -40,7 +40,7 @@ class Test_Ansible_Tower_Service(APITest):
         # issue ansible-tower-service command
         contacted = ansible_runner.command('ansible-tower-service ' + command)
         result = contacted.values()[0]
-        assert result['rc'] == 0, "ansible-tower-service %s failed. Command stderr: \n%s" % (command, result['stderr'])
+        assert result['rc'] == 0, "ansible-tower-service {0} failed. Command stderr: \n{1}".format(command, result['stderr'])
 
         # determine expected_processes
         contacted = ansible_runner.shell('cat /etc/sysconfig/ansible-tower')
@@ -50,7 +50,8 @@ class Test_Ansible_Tower_Service(APITest):
 
         # assess process statuses
         for process in processes:
-            contacted = ansible_runner.command('systemctl status %s' % process)
+            contacted = ansible_runner.command('systemctl status {}'.format(process))
             result = contacted.values()[0]
             assert expected_process_status in result['stdout'], \
-                "Unexpected process status for process %s after executing ansible-tower-service %s" % (process, command)
+                u"Unexpected process status for process {0} after executing ansible-tower-service {1}\n\nstdout:\n{2}"\
+                    .format(process, command, result['stdout'])
