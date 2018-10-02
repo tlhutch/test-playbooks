@@ -249,3 +249,24 @@ class Test_Main_RBAC(APITest):
             assert query_results.results[0].endpoint == admin_resource.endpoint, \
                 "Incorrect Tower resource returned.\n\nExpected: {0}\nReceived {1}.".format(
                     admin_resource.endpoint, query_results.results[0].endpoint)
+
+    @pytest.mark.parametrize('resource_name', ['job_template', 'workflow_job_template'])
+    def test_admin_role_filter_polymorphic(self, factories, resource_name, api_unified_job_templates_pg):
+        """To a limited extent, tower also supports query filters of the following form:
+        /api/v1/unified_job_template/?role_level=admin_role.
+        """
+        user = factories.user()
+        admin_resource = getattr(factories, resource_name)()
+        getattr(factories, resource_name)()
+
+        admin_resource.set_object_roles(user, 'admin')
+
+        with self.current_user(username=user.username, password=user.password):
+            query_results = api_unified_job_templates_pg.get(role_level='admin_role')
+            # only one of our two resources should get returned
+            assert query_results.count == 1, \
+                "Unexpected number of query results returned. Expected one, received {0}.".format(query_results.count)
+            # assert that our query filter returns the correct resource
+            assert query_results.results[0].endpoint == admin_resource.endpoint, \
+                "Incorrect Tower resource returned.\n\nExpected: {0}\nReceived {1}.".format(
+                    admin_resource.endpoint, query_results.results[0].endpoint)
