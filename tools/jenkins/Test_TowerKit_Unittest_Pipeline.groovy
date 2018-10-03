@@ -16,7 +16,7 @@ pipeline {
             parallel {
                 stage('Checkout tower-qa') {
                   steps {
-                    checkout([$class: 'GitSCM', branches: [[name: '*/master']], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: 'tower-qa']], submoduleCfg: [], userRemoteConfigs: [[credentialsId: '55b638c7-3ef3-4679-9020-fa09e411a74d', url: 'https://github.com/ansible/tower-qa.git']]])  
+                    checkout changelog: false, poll: false, scm: [$class: 'GitSCM', branches: [[name: '*/master']], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: 'tower-qa']], submoduleCfg: [], userRemoteConfigs: [[credentialsId: '55b638c7-3ef3-4679-9020-fa09e411a74d', url: 'https://github.com/ansible/tower-qa.git']]]  
                   }
                 }
                 stage('Checkout towerkit') {
