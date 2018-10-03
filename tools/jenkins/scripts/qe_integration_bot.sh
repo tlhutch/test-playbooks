@@ -7,7 +7,7 @@ SKIP="false"
 export SLACK_CHANNEL="#ship_it"
 if [[ ${JOB_NAME} == Test_Tower_Integration ]]; then
   export MATRIX_JOB="True"
-  export BUILD_LABEL="rhel-7.5-x86_64 / stable-2.6"
+  export BUILD_LABEL="rhel-7.5-x86_64 / stable-2.7"
   export SHOW_BUTTON_OWNER="True"
 elif [[ ${JOB_NAME} == Test_Tower_Integration_Patch ]]; then
   export MATRIX_JOB="True"
