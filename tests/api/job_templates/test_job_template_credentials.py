@@ -133,6 +133,22 @@ class TestJobTemplateLaunchCredentials(APITest):
         assert job.wait_until_completed().is_successful
         assert job.credential == ssh_credential_ask.id
 
+    def test_launch_split_JT_with_ask_credential_and_passwords_in_payload(self, job_template_prompt_for_credential,
+                                                                          factories, ssh_credential_ask):
+        """Verify functionality of providing credential & passwords with a split JT
+        """
+        factories.host(inventory=job_template_prompt_for_credential.ds.inventory)
+        assert job_template_prompt_for_credential.ds.inventory.get_related('hosts').count == 2
+        job_template_prompt_for_credential.job_shard_count = 2
+        wfj = job_template_prompt_for_credential.launch(dict(credential=ssh_credential_ask.id,
+                                                        ssh_password=config.credentials.ssh.password,
+                                                        ssh_key_unlock=config.credentials.ssh.encrypted.ssh_key_unlock,
+                                                        become_password=config.credentials.ssh.become_password))
+        assert wfj.wait_until_completed().is_successful
+        job = wfj.get_related('workflow_nodes').results.pop().get_related('job')
+        assert job.credential == ssh_credential_ask.id
+        assert job.is_successful
+
     @pytest.mark.ansible_integration
     @pytest.mark.skip_openshift
     def test_launch_with_unencrypted_ssh_credential(self, ansible_runner, job_template,
