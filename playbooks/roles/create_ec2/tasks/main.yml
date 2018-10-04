@@ -82,35 +82,6 @@
   when: item.eip is defined
   with_items: '{{ ec2_images }}'
 
-# NOTE(spredzy): The ec2_remote_facts has been removed in 2.8
-- name: ensure public dns name provided by aws
-  ec2_remote_facts:
-    aws_access_key: '{{ aws_access_key }}'
-    aws_secret_key: '{{ aws_secret_key }}'
-    region: '{{ ec2_region }}'
-    filters:
-      'tag:Name': '{{ name_to_tagged_name.values()|list }}'
-      instance-state-name: ['pending', 'running']
-  register: ec2_instance_vars
-  until: "{{ ec2_images|length }} == {{ ec2_instance_vars.instances|length }} and {{ ec2_instance_vars.instances|selectattr('public_dns_name', 'match', '^.+$')|list|length }} == {{ ec2_instance_vars.instances|length }}"
-  retries: 60
-  delay: 15
-  when: ansible_version.full | version_compare('2.4', '<')
-
-- name: ensure public dns name provided by aws
-  ec2_instance_facts:
-    aws_access_key: '{{ aws_access_key }}'
-    aws_secret_key: '{{ aws_secret_key }}'
-    region: '{{ ec2_region }}'
-    filters:
-      'tag:Name': '{{ name_to_tagged_name.values()|list }}'
-      instance-state-name: ['pending', 'running']
-  register: ec2_instance_vars
-  until: "{{ ec2_images|length }} == {{ ec2_instance_vars.instances|length }} and {{ ec2_instance_vars.instances|selectattr('public_dns_name', 'match', '^.+$')|list|length }} == {{ ec2_instance_vars.instances|length }}"
-  retries: 60
-  delay: 15
-  when: ansible_version.full | version_compare('2.4', '>=')
-
 - name: extract helpful ec2_create_vars
   set_fact:
     instance_id_to_public_dns: '{{ instance_id_to_public_dns|default({}) | combine({item.tagged_instances[0].id: item.tagged_instances[0].public_dns_name}) }}'
@@ -121,10 +92,16 @@
                                                       'controller': item.tagged_instances[0].tags['controller']|default('') }] }}"
   with_items: '{{ ec2_create_vars.results }}'
 
-- name: store public dns for all created instances
-  set_fact:
-    instance_id_to_public_dns: '{{ instance_id_to_public_dns | combine({item.id: item.public_dns_name}) }}'
-  with_items: '{{ ec2_instance_vars.instances|default([]) }}'
+- block:
+  - include: public_dns_pre24.yml
+    static: false
+  when: ansible_version.full | version_compare('2.4', '<')
+
+
+- block:
+  - include: public_dns_post24.yml
+    static: false
+  when: ansible_version.full | version_compare('2.4', '>=')
 
 - name: debug instance_id_to_public_dns
   debug: msg='{{ instance_id_to_public_dns }}'
