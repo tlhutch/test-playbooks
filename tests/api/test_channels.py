@@ -383,6 +383,7 @@ class TestProjectUpdateChannels(ChannelsTest, APITest):
                 desired_msg['instance_group_name'] = 'tower'
             assert desired_msg in events
 
+        @pytest.mark.github('https://github.com/ansible/tower-qa/issues/2212')
         @pytest.mark.ansible_integration
         @pytest.mark.mp_group('TestProjectUpdateChannelsSerial', 'serial')
         def test_project_update_events_subscribe(self, project_update_and_ws_events):
