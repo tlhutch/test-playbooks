@@ -46,6 +46,11 @@ def get_test_results():
     found_first_result = False
     for id in build_ids:
         build = job.get_build(id)
+        output = build.get_console()
+        if 'Started by timer' not in output:
+            user = re.search('Started by user ([\w ]+)', output).group(1)
+            print 'Skipping {} (manually launched by {})'.format(build.name, user)
+            continue
         runs = []
         if matrix_job.lower() == 'true':
             runs = build.get_matrix_runs()
@@ -53,6 +58,7 @@ def get_test_results():
             runs = [build]
 
         for run in runs:
+            url = run.baseurl
             desc = run.get_description()
             if not desc:
                 continue
@@ -72,21 +78,21 @@ def get_test_results():
             if results['passed']:
                 if not found_first_result:
                     if result_from_past_day(run):
-                        return (0, 0)
-                    return (-1, 0)
+                        return (0, None, 0)
+                    return (-1, None, 0)
                 else:
                     # Test was passing, now failing
-                    return (failure_history[0], failure_history[0])
+                    return (failure_history[0][0], failure_history[0][1], failure_history[1][0])
 
             total_failures = results['failed'] + results['error']
-            failure_history.append(total_failures)
+            failure_history.append([total_failures, url])
             if not found_first_result and len(failure_history) == 1:
                 found_first_result = True
                 if not result_from_past_day(build):
-                    return (-1, None)
+                    return (-1, None, None)
 
             if len(failure_history) == 2:
-                return failure_history[0], (failure_history[0] - failure_history[1])
+                return failure_history[0][0], failure_history[0][1], (failure_history[0][0] - failure_history[1][0])
 
     return (-2, None)
 
@@ -96,10 +102,10 @@ def post_slack_msg(text):
 
 
 def create_test_update():
-    total_failures, change = get_test_results()
+    total_failures, url, change = get_test_results()
 
     if total_failures == 0:
-        post_slack_msg(':green_ball: *{0}* is green! :green_ball:'.format(job_name))
+        post_slack_msg(':green_ball: *{0}* ({1}) is green! :green_ball:'.format(job_name, url))
         return
 
     if total_failures == -1:
@@ -124,12 +130,12 @@ def create_test_update():
             break
 
     if change > 0:
-        description = '*{0}* has {1} more failures'.format(job_name, change)
+        description = '*{0}* ({1}) has {2} more failures'.format(job_name, url, change)
     elif change == 0:
-        description = '*{0}* has the same number of failures'.format(job_name)
+        description = '*{0}* ({1}) has the same number of failures'.format(job_name, url)
     else:
         change = -change
-        description = '*{0}* has {1} fewer failures'.format(job_name, change)
+        description = '*{0}* ({1}) has {2} fewer failures'.format(job_name, url, change)
 
     day_of_the_week = datetime.today().weekday()
     button_owner_map = {0: 'spredzy',
