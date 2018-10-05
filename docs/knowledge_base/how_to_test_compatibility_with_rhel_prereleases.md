@@ -171,11 +171,10 @@ The Ansible Tower QE team has confirmed that all supported versions of Tower can
 ```
 
 # Reference
+* RHEL Layered Product Interoperability Testing Information Session - ([Slides](https://docs.google.com/presentation/d/14T38IbMMMC6JBBbhKcFf7RXTu7xT2mBPZeQ7NM34rZg/edit#slide=id.gb6f3e2d2d_2_207)) ([Recording](https://bluejeans.com/s/DhW@w))
+* [RHEL 6, 7, 8 Interoperability testing spreadsheet (Test Status)](https://docs.google.com/spreadsheets/d/1nLRLxubSlctsyVIlkW6Kbob0kSqQYDNxbbx30rwg82w/edit#gid=1416156808)
+* [RHEL 8.0 Interop Dashboard (Confluence)](https://docs.engineering.redhat.com/display/PIT/RHEL+8.0+Interop+Dashboard)
+* [RHEL Layered Product Interoperability Testing (Confluence)](https://docs.engineering.redhat.com/display/PIT/RHEL+Layered+Product+Interoperability+Testing)
+* [QE Product Interop Testing Group (Mojo)](https://mojo.redhat.com/groups/qe-product-interop-testing)
 
-* [RHEL 6, 7 and 8 Interoperability testing spreadsheet (read-only)](https://docs.google.com/spreadsheets/d/1nLRLxubSlctsyVIlkW6Kbob0kSqQYDNxbbx30rwg82w/edit#gid=552753690)
-* [Sample Layered Product Testing Sign-off Request (RHEL 7.6))](https://vault.engineering.redhat.com/showRequest?requestid=2879)
-* [Sample Test Schedule (RHEL 7.6)](https://pp.engineering.redhat.com/pp/schedules/rhel-7-6) (Sign-in with LDAP)
-* [QE Product Interop Testing Group](https://mojo.redhat.com/groups/qe-product-interop-testing) ([Introductory Blog Post](https://mojo.redhat.com/docs/DOC-1062489))
-* [Interoperability Testing Coordinator - Jeff Needle](https://mojo.redhat.com/people/jneedle)
-
-Written by [Jim Ladd](mailto:jladd@redhat.com) (Github: jladdjr) Aug 20, 2018.
+Written by [Jim Ladd](mailto:jladd@redhat.com) (Github: jladdjr) Oct 5, 2018.
