@@ -447,6 +447,44 @@ class Test_Workflow_Job_Templates(APITest):
         assert job.inventory == jt.inventory
 
     @pytest.mark.github('https://github.com/ansible/awx/issues/2256')
+    @pytest.mark.parametrize('source', (
+        'creation',
+        'prompt',
+    ))
+    def test_workflow_inventory_is_used_when_job_has_no_default(self, factories, source):
+        inv_vars = {'amazing': 'cow', 'foo': 'bar'}
+        inventory = factories.inventory(variables=inv_vars)
+        if source == 'prompt':
+            wfjt = factories.workflow_job_template(ask_inventory_on_launch=True)
+        else:
+            wfjt = factories.workflow_job_template(inventory=inventory)
+            assert wfjt.inventory is not None
+        jt = factories.job_template(ask_inventory_on_launch=True)
+
+        factories.workflow_job_template_node(
+            workflow_job_template=wfjt,
+            unified_job_template=jt
+        )
+
+        # At this time, we cannot create nodes that use a job template with
+        # no inventory. So we create the node and then delete the inventory
+        # related to the job template
+        jt.related.inventory.delete()
+        jt = jt.get()
+        assert jt.inventory is None
+
+        if source == 'prompt':
+            wfj = wfjt.launch(payload={'inventory': inventory.id})
+        else:
+            wfj = wfjt.launch()
+
+        node = wfj.get_related('workflow_nodes').results.pop()
+        node.wait_for_job()
+        job = node.get_related('job')
+        assert job.inventory == inventory.id
+        assert job.related.inventory.get().variables == inv_vars
+
+    @pytest.mark.github('https://github.com/ansible/awx/issues/2256')
     def test_workflow_reject_inventory_on_launch(self, factories):
         """While the prompts test assert behavior about the JTs launched inside
         the workflow, this test checks that the workflow JT itself will reject
