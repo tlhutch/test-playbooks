@@ -381,6 +381,7 @@ class Test_Workflow_Job_Templates(APITest):
 
     # tests for WFJT-level prompts
     # trying to use inventory that is pending deletion has some coverage in unit tests
+    @pytest.mark.github('https://github.com/ansible/awx/issues/2256')
     @pytest.mark.parametrize('source', (
         'workflow',  # test that inventory set on WFJT takes effects in spawned jobs
         'prompt',    # test that inventory provided on launch takes effect
@@ -419,6 +420,33 @@ class Test_Workflow_Job_Templates(APITest):
         else:
             assert job.inventory == inventory.id
 
+    @pytest.mark.github('https://github.com/ansible/awx/issues/2256')
+    def test_deleted_workflow_inventory_has_no_effect(self, factories):
+        inventory = factories.inventory()
+        wfjt = factories.workflow_job_template(inventory=inventory)
+        assert wfjt.inventory is not None
+        jt = factories.job_template(ask_inventory_on_launch=True)
+        assert jt.inventory != wfjt.inventory
+
+        factories.workflow_job_template_node(
+            workflow_job_template=wfjt,
+            unified_job_template=jt
+        )
+
+        # now, delete inventory and when we launch the WFJT, the JT should use
+        # its default inventory
+        inventory.delete()
+        wfjt = wfjt.get()
+        with pytest.raises(NotFound):
+            inventory.get()
+        assert wfjt.inventory is None
+        wfj = wfjt.launch()
+        node = wfj.get_related('workflow_nodes').results.pop()
+        node.wait_for_job()
+        job = node.get_related('job')
+        assert job.inventory == jt.inventory
+
+    @pytest.mark.github('https://github.com/ansible/awx/issues/2256')
     def test_workflow_reject_inventory_on_launch(self, factories):
         """While the prompts test assert behavior about the JTs launched inside
         the workflow, this test checks that the workflow JT itself will reject

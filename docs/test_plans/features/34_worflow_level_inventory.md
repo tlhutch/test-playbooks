@@ -17,11 +17,11 @@ launch" set.
 ### Test suites and cases
 * [x] API
   * That workflow level inventory
-    - [ ] .. is not set, does not take effect
+    - [x] .. is not set, does not take effect
   * That workfow level inventory IS NOT applied if:
     - [x] .. the job has an inventory assigned and no “prompt on launch”
     - [x] .. the workflow JT has an inventory assigned and no “prompt on launch”
-    - [ ] .. If inventory is assigned to workflow, then deleted, that inventory is cleared, workflow can run, and deleted inventory has no effect on workflow
+    - [x] .. If inventory is assigned to workflow, then deleted, that inventory is cleared, workflow can run, and deleted inventory has no effect on workflow
   * That workflow level inventory IS APPLIED
     - [ ] .. if job is set to prompt for inventory (and doesn't have a default set)
     - [x] .. if job is set to prompt for inventory (and does have a default set)
