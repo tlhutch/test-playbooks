@@ -37,7 +37,6 @@ stage('Build Tower') {
           string(name: 'TOWER_REPO', value: "git@github.com:${params.TOWER_FORK}/${params.PRODUCT}.git"),
           string(name: 'TOWER_PACKAGING_BRANCH', value: "origin/${TOWER_PACKAGING_BRANCH_NAME}"),
           string(name: 'TOWER_BRANCH', value: "origin/${TOWER_BRANCH_NAME}"),
-          string(name: 'GITHUB_USERNAME', value: "${params.GITHUB_USERNAME}"),
           string(name: 'NIGHTLY_REPO_DIR', value: NIGHTLY_REPO_DIR)
         ]
       )
@@ -53,7 +52,6 @@ stage('Build Tower') {
           string(name: 'TOWER_REPO', value: "git@github.com:${params.TOWER_FORK}/${params.PRODUCT}.git"),
           string(name: 'TOWER_PACKAGING_BRANCH', value: "origin/${TOWER_PACKAGING_BRANCH_NAME}"),
           string(name: 'TOWER_BRANCH', value: "origin/${TOWER_BRANCH_NAME}"),
-          string(name: 'GITHUB_USERNAME', value: "${params.GITHUB_USERNAME}"),
           string(name: 'NIGHTLY_REPO_DIR', value: NIGHTLY_REPO_DIR),
           booleanParam(name: 'TRIGGER', value: false),
         ]
