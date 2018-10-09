@@ -12,7 +12,9 @@ launch" set.
 
 ### Test case prerequisites
 
-    N/A
+* Patch Towerkit for new feature [*towerkit PR*](https://github.com/ansible/towerkit/pull/487/)
+  - [x] provide inventory to WFJT
+  - [x] "prompt on launch" flag
 
 ### Test suites and cases
 * [x] API
@@ -28,11 +30,6 @@ launch" set.
           The inventory is correctly applied if the job template's inventory is deleted after workflow node creation is completed, but
           the api disallows created a workflow job template node with a job template that has no inventory.
     - [x] .. if job is set to prompt for inventory (and does have a default set)
-  * That all possible types of inventories can be sourced
-    - [ ] Static
-    - [ ] SCM
-    - [ ] Smart-inventory
-    - [ ] Dynamic inventory
   * Other inventory items to consider:
     - [x] Source inventory with unicode name. Groups and hosts should have unicode names as well.
     - [x] Sourcing inventory without any hosts.
@@ -43,4 +40,5 @@ launch" set.
     - [x] Users that have only "read" permissions on inventory cannot use them in WFJT
     - [x] Workflow JT Admin role is the only one that can set static inventory or “prompt on launch”
     - [x] That a user authorized to launch a workflow (but not assigned any permissions related to the inventory), can still launch the workflow (and that the workflow job is successful)
+
 * [ ] [UI]()
