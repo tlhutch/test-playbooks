@@ -77,7 +77,7 @@ stage('Install Tower') {
             name: 'config',
             description: '',
             combinations: [
-              'ANSIBLE_NIGHTLY_BRANCH=stable-2.6,PLATFORM=rhel-7.5-x86_64,label=jenkins-jnlp-agent'
+              "ANSIBLE_NIGHTLY_BRANCH=stable-2.6,PLATFORM=${params.PLATFORM},label=jenkins-jnlp-agent"
             ],
           ]
         ]
@@ -104,7 +104,7 @@ stage('Test Tower') {
             name: 'config',
             description: '',
             combinations: [
-              'ANSIBLE_NIGHTLY_BRANCH=stable-2.6,PLATFORM=rhel-7.5-x86_64,label=jenkins-jnlp-agent'
+              "ANSIBLE_NIGHTLY_BRANCH=stable-2.6,PLATFORM=${params.PLATFORM},label=jenkins-jnlp-agent"
             ],
           ]
         ]
