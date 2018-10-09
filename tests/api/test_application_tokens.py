@@ -922,10 +922,10 @@ class TestDjangoOAuthToolkitTokenManagement(TestTokenAuthenticationBase):
 
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestDeprecatedAuthTokenCompatability(TestTokenAuthenticationBase):
-
+    @pytest.mark.parametrize('auth_header_string', ['Token '], ids=['Token'])
     @pytest.mark.parametrize('version', ('v1', 'v2'))
     @pytest.mark.parametrize('content_type', ('application/x-www-form-urlencoded', 'application/json'))
-    def test_authtoken_successful_creation(self, version, content_type):
+    def test_authtoken_successful_creation(self, version, content_type, auth_header_string):
         conn = Connection(qe_config.base_url)
         username = qe_config.credentials.users.admin.username
         password = qe_config.credentials.users.admin.password
@@ -949,6 +949,20 @@ class TestDeprecatedAuthTokenCompatability(TestTokenAuthenticationBase):
 
         res = self.me(token)
         assert res.results.pop().username == username
+        auth_header_string = '{}{}'.format(auth_header_string, token)
+        auth_response = conn.get('/api/{}/config/'.format(version),
+                                          headers={
+                                              'Authorization': auth_header_string
+                                          })
+        assert auth_response.status_code == 200
+        json = auth_response.json()
+        assert 'eula' in json.keys()
+        bad_auth_header_string = '{}{}'.format(auth_header_string, 'invalidtoken')
+        no_auth_response = conn.get('/api/{}/config/'.format(version),
+                                          headers={
+                                              'Authorization': bad_auth_header_string
+                                          })
+        assert no_auth_response.status_code == 401
 
     @pytest.mark.parametrize('version', ('v1', 'v2'))
     def test_authtoken_with_incorrect_json_credentials(self, version):
