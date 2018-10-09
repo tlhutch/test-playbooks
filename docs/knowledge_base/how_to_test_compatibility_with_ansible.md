@@ -23,7 +23,6 @@ Those that focus on major and minor releases:
 
 * [Test_Tower_Integration_Patch](http://jenkins.ansible.eng.rdu2.redhat.com/job/Test_Tower_Integration_Patch/) - tests standalone Tower
 * [Test_Tower_Cluster_Patch](http://jenkins.ansible.eng.rdu2.redhat.com/view/Tower/job/Test_Tower_Integration_Cluster_Patch/) - tests the traditional Tower cluster
-* [Test_Tower_Integration_Patch_3.1.x](http://jenkins.ansible.eng.rdu2.redhat.com/job/Test_Tower_Integration_Patch_3.1.x/) - tests standalone Tower for 3.1.x patch releases, specifically
 
 The [Test_Tower_Upgrade](http://jenkins.ansible.eng.rdu2.redhat.com/view/Tower/job/Test_Tower_Upgrade/) test also runs against every supported version of Ansible.
 
@@ -51,7 +50,7 @@ When the Ansible team creates a new `stable-*` branch, use the following checkli
 * Update [Test_Tower_Upgrade](http://jenkins.ansible.eng.rdu2.redhat.com/view/Tower/job/Test_Tower_Upgrade/configure)'s `ANSIBLE_BRANCH` parameter to include the new branch.
 * Update [Ansible Version Bump](http://jenkins.ansible.eng.rdu2.redhat.com/job/Ansible%20Version%20Bump/configure)'s `GIT_REFSPEC` parameter to include the new branch.
 
-Note: When upgrading patch install / integration jobs, especially versions that are pinned to specific, older releases (e.g. [Test_Tower_Integration_Patch_3.1.x](http://jenkins.ansible.eng.rdu2.redhat.com/view/Tower/job/Test_Tower_Integration_Patch_3.1.x/)), make sure that the versions of tower that will be installed / tested using the job support the new version of Ansible. You can confirm this by checking [this knowledge base article](https://access.redhat.com/articles/3382771). Note that you must be logged in to access.redhat.com to see all of the information on the page.
+Note: When upgrading patch install / integration jobs, make sure that the versions of tower that will be installed / tested using the job support the new version of Ansible. You can confirm this by checking [this knowledge base article](https://access.redhat.com/articles/3382771). Note that you must be logged in to access.redhat.com to see all of the information on the page.
 
 ## Alerting the team to new Ansible releases
 

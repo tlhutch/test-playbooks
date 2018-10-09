@@ -12,14 +12,7 @@ For all other parameters, the defaults can safely be used.
 
 Note that the nightly pipeline (triggered by Nightly_Tower or Nightly_Tower_Patch) triggers the TAR and RPM build jobs but _will not_ currently trigger the VirtualBox image build.
 
-Building the tower TAR and RPM artifacts requires different jobs for different releases:
-
-### 3.1.x
-
-* Open http://jenkins.ansible.eng.rdu2.redhat.com/view/Tower/job/_Legacy_Tower_Jobs/
-* Build Build_Tower_TAR_Old_Repo and Build_Tower_RPM_Old_Repo
-
-### 3.2.x or later
+Building the tower TAR and RPM artifacts requires different jobs:
 
 * Open http://jenkins.ansible.eng.rdu2.redhat.com/view/Tower/
 * Build Build_Tower_TAR and Build_Tower_RPM

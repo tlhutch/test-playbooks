@@ -12,14 +12,7 @@ For all other parameters, the defaults can safely be used.
 
 Note that if the nightly pipeline (triggered by Nightly_Tower or Nightly_Tower_Patch) has run recently, this will trigger the above jobs. In this case, an AMI should already be available.
 
-Building the tower TAR, RPM, and AMI requires different jobs for different releases:
-
-### 3.1.x
-
-* Open http://jenkins.ansible.eng.rdu2.redhat.com/view/Tower/job/_Legacy_Tower_Jobs/
-* Build Build_Tower_TAR_Old_Repo, Build_Tower_RPM_Old_Repo, and Build_Tower_Image_Old_Repo (in that order)
-
-### 3.2.x or later
+Building the tower TAR, RPM, and AMI requires different jobs:
 
 * Open http://jenkins.ansible.eng.rdu2.redhat.com/view/Tower/
 * Build Build_Tower_TAR, Build_Tower_RPM, and Build_Tower_Image (in that order)
