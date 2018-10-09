@@ -6,14 +6,6 @@ cp $PUBLIC_KEY ~/.ssh/id_rsa.pub
 # Enable junit XML output
 # export ANSIBLE_CALLBACK_PLUGINS="playbooks/library/callbacks"
 
-# If installing Ansible 1.9.x using yum, will need
-# to install ansible19 package (instead of ansible),
-# otherwise, newer version of ansible in EPEL repo 
-# will get installed
-if [[ "${ANSIBLE_NIGHTLY_BRANCH}" == stable-1.9 && "${PLATFORM}" != Ubuntu* ]]; then
-    ANSIBLE_PACKAGE_NAME="ansible1.9"
-fi
-
 pip install pip==9.0.2 # temp workaround for pip 10
 pip install -U setuptools #pip
 pip install -U setuptools pbr
