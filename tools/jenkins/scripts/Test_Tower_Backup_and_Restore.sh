@@ -18,6 +18,7 @@ ansible-vault decrypt --vault-password-file="${VAULT_FILE}" config/credentials.v
 
 export ANSIBLE_HOST_KEY_CHECKING=False
 export ANSIBLE_TIMEOUT=30
+export ANSIBLE_PACKAGE_NAME="ansible"
 export PYTHONUNBUFFERED=1
 
 
@@ -25,17 +26,6 @@ if [[ "${VERBOSE}" == true ]]; then
     VERBOSITY="-vvvv"
 else
     VERBOSITY="-v"
-fi
-
-
-if [[ ${ANSIBLE_BRANCH} == stable-1.9 ]]; then
-    if [[ ${PLATFORM} == ubuntu* ]]; then
-        export ANSIBLE_PACKAGE_NAME="ansible=1.9.*"
-    else
-        export ANSIBLE_PACKAGE_NAME="ansible1.9"
-    fi
-else
-    export ANSIBLE_PACKAGE_NAME="ansible"
 fi
 
 
@@ -112,7 +102,7 @@ rsync tower-backup-latest.tar.gz ${INSTALL_USER}@${INSTALL_HOSTNAME}:/tmp/setup/
 
 
 echo "### RUN RESTORE ###"
-ansible ${TOWER_GROUP} -i playbooks/inventory.log -a "chdir=/tmp/setup ./setup.sh -r -e @vars.yml" -e ansible_become=true | tee 06-restore.log 
+ansible ${TOWER_GROUP} -i playbooks/inventory.log -a "chdir=/tmp/setup ./setup.sh -r -e @vars.yml" -e ansible_become=true | tee 06-restore.log
 
 
 if [ "${VERIFY_RESOURCES}" = true ]; then

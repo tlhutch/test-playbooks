@@ -17,6 +17,7 @@ ansible-vault decrypt --vault-password-file="${VAULT_FILE}" config/credentials.v
 
 export ANSIBLE_HOST_KEY_CHECKING=False
 export ANSIBLE_TIMEOUT=30
+export ANSIBLE_PACKAGE_NAME="ansible"
 export PYTHONUNBUFFERED=1
 
 
@@ -25,18 +26,6 @@ if [[ "${VERBOSE}" == true ]]; then
 else
     VERBOSITY="-v"
 fi
-
-
-if [[ ${ANSIBLE_BRANCH} == stable-1.9 ]]; then
-    if [[ ${PLATFORM} == ubuntu* ]]; then
-        export ANSIBLE_PACKAGE_NAME="ansible=1.9.*"
-    else
-        export ANSIBLE_PACKAGE_NAME="ansible1.9"
-    fi
-else
-    export ANSIBLE_PACKAGE_NAME="ansible"
-fi
-
 
 if [[ ${INSTALL_AWX_SETUP_PATH} =~ .*setup-(3\.[1-3]\.[0-9])|latest ]]; then 
     INSTALL_FILTER_GROUPS="--groups tower"
