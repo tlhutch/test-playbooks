@@ -27,12 +27,6 @@ else
     VERBOSITY="-v"
 fi
 
-if [[ ${INSTALL_AWX_SETUP_PATH} =~ .*setup-(3\.[1-3]\.[0-9])|latest ]]; then 
-    INSTALL_FILTER_GROUPS="--groups tower"
-else
-    INSTALL_FILTER_GROUPS="--groups primary"
-fi
-
 
 env
 
@@ -51,7 +45,7 @@ delete_on_start: ${DELETE_ON_INSTALL}
 create_ec2_assign_public_ip: true
 create_ec2_vpc_id: vpc-552da032
 create_ec2_vpc_subnet_id: subnet-9cdddbb0
-ec2_images: `scripts/image_deploy_vars.py --cloud_provider ${CLOUD_PROVIDER} --platform ${PLATFORM} --ansible_version ${ANSIBLE_BRANCH} ${INSTALL_FILTER_GROUPS}`
+ec2_images: `scripts/image_deploy_vars.py --cloud_provider ${CLOUD_PROVIDER} --platform ${PLATFORM} --ansible_version ${ANSIBLE_BRANCH} --groups tower`
 instance_name_prefix: ${INSTANCE_NAME_PREFIX}-ansible-${ANSIBLE_BRANCH}
 minimum_var_space: 0
 pg_password: ${AWX_PG_PASSWORD}
@@ -83,13 +77,6 @@ if [ "$LOAD_TOWER" = true ]; then
 fi
 
 
-if [[ ${UPGRADE_AWX_SETUP_PATH} =~ .*setup-(3\.[1-3]\.[0-9])|latest ]]; then
-    UPGRADE_FILTER_GROUPS="--groups tower"
-else
-    UPGRADE_FILTER_GROUPS="--groups primary"
-fi
-
-
 cat << EOF > upgrade_vars.yml
 ---
 admin_password: ${AWX_ADMIN_PASSWORD}
@@ -100,7 +87,7 @@ aw_repo_url: ${UPGRADE_AW_REPO_URL}
 awx_setup_path: ${UPGRADE_AWX_SETUP_PATH}
 awx_upgrade: true
 delete_on_start: false
-ec2_images: `scripts/image_deploy_vars.py --cloud_provider ${CLOUD_PROVIDER} --platform ${PLATFORM} --ansible_version ${ANSIBLE_BRANCH} ${UPGRADE_FILTER_GROUPS}`
+ec2_images: `scripts/image_deploy_vars.py --cloud_provider ${CLOUD_PROVIDER} --platform ${PLATFORM} --ansible_version ${ANSIBLE_BRANCH} --groups tower`
 instance_name_prefix: ${INSTANCE_NAME_PREFIX}-ansible-${ANSIBLE_BRANCH}
 minimum_var_space: 0
 out_of_box_os: true

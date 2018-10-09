@@ -4,12 +4,6 @@ localhost ansible_connection=local
 {# {{ inventory_hostname }} ansible_user={{ hostvars[inventory_hostname]['ansible_user'] }} ansible_host={{ hostvars[inventory_hostname]['ansible_host'] }} #}
 {% endif %}
 
-{% if 'primary' in groups %}
-[primary]
-localhost ansible_connection=local
-{# {{ inventory_hostname }} ansible_user={{ hostvars[inventory_hostname]['ansible_user'] }} ansible_host={{ hostvars[inventory_hostname]['ansible_host'] }} #}
-{% endif %}
-
 {% if 'database' in groups %}
 [database]
 {% for host in groups['database'] %}
@@ -39,7 +33,7 @@ pg_username="{{ pg_username }}"
 pg_password="{{ pg_password }}"
 {% endif %}
 
-{% if 'tower' in groups %} 
+{% if 'tower' in groups %}
 rabbitmq_port='{{ rabbitmq_port }}'
 rabbitmq_vhost='{{ rabbitmq_vhost }}'
 rabbitmq_username='{{ rabbitmq_username }}'

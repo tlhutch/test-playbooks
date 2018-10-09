@@ -8,23 +8,23 @@
       my_inventory_file: '{{inventory_dir}}/inventory.cluster'
 
 - name: 'Add authorized keys on non-installer instances'
-  hosts: 'tower:instance_group_*:database:haproxy:managed_hosts:secondary:!cluster_installer'
+  hosts: 'tower:instance_group_*:database:haproxy:managed_hosts:!cluster_installer'
   roles:
     - role: auth_keys
 
 - name: 'Group hosts by distribution_major_version'
-  hosts: 'tower,instance_group_*,primary,secondary'
+  hosts: 'tower,instance_group_*'
   tasks:
    - name: group hosts by distribution_major_version
      action: group_by key="{{ansible_distribution}}-{{ansible_distribution_major_version}}"
 
 - name: 'Configure cluster ssh keys'
-  hosts: 'tower:instance_group_*:isolated_group_*:primary:secondary:database'
+  hosts: 'tower:instance_group_*:isolated_group_*:database'
   roles:
-    - { role: cluster_key_config, install_group: "{{ 'cluster_installer' if 'cluster_installer' in groups else 'primary' }}" }
+    - { role: cluster_key_config, install_group: cluster_installer }
 
 - name: 'Install cluster tower on installer instance'
-  hosts: 'cluster_installer,primary'
+  hosts: 'cluster_installer'
   gather_facts: no
   become: true
   become_method: sudo

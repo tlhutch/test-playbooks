@@ -17,22 +17,6 @@
 {% endfor %}
 {% endif %}
 
-{% if 'secondary' in groups %}
-[primary]
-{% for host in groups['primary'] %}
-{{ host }} ansible_user={{ hostvars[host]['ansible_user'] }} ansible_host={{ hostvars[host]['ansible_host'] }}
-{% endfor %}
-
-[secondary]
-{% for host in groups['secondary'] %}
-{% if host == '127.0.0.1' %}
-{{ host }} ansible_python_interpreter='/usr/bin/env python'
-{% else %}
-{{ host }} ansible_user={{ hostvars[host]['ansible_user'] }} ansible_host={{ hostvars[host]['ansible_host'] }}
-{% endif %}
-{% endfor %}
-{% endif %}
-
 {% if 'database' in groups %}
 [database]
 {% for host in groups['database'] %}
@@ -61,7 +45,7 @@ pg_username="{{ pg_username }}"
 pg_password="{{ pg_password }}"
 {% endif %}
 
-{% if 'tower' in groups %} 
+{% if 'tower' in groups %}
 rabbitmq_port='{{ rabbitmq_port }}'
 rabbitmq_vhost='{{ rabbitmq_vhost }}'
 rabbitmq_username='{{ rabbitmq_username }}'

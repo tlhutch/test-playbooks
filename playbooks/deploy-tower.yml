@@ -10,7 +10,7 @@
     - role: auth_keys
 
 - name: 'Dynamically create host groups'
-  hosts: 'tower,primary'
+  hosts: 'tower'
   tasks:
    - name: group hosts by distribution_major_version
      group_by:
@@ -18,7 +18,7 @@
      changed_when: false
 
 - name: 'Install Tower'
-  hosts: 'tower,primary'
+  hosts: 'tower'
   gather_facts: no
   become: true
   become_method: sudo

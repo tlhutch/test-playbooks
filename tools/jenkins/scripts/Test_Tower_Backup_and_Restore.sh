@@ -29,14 +29,6 @@ else
 fi
 
 
-if [[ ${AWX_SETUP_PATH} =~ .*setup-(3\.[1-3]\.[1-9])|latest ]]; then
-    TOWER_GROUP="tower"
-else
-    TOWER_GROUP="primary"
-fi
-FILTER_GROUPS="--groups ${TOWER_GROUP}"
-
-
 env
 
 
@@ -52,7 +44,7 @@ create_ec2_wait_upon_creation: false
 create_ec2_assign_public_ip: true
 create_ec2_vpc_id: vpc-552da032
 create_ec2_vpc_subnet_id: subnet-9cdddbb0
-ec2_images: `scripts/image_deploy_vars.py --cloud_provider ${CLOUD_PROVIDER} --platform ${PLATFORM} --ansible_version ${ANSIBLE_BRANCH} ${FILTER_GROUPS}`
+ec2_images: `scripts/image_deploy_vars.py --cloud_provider ${CLOUD_PROVIDER} --platform ${PLATFORM} --ansible_version ${ANSIBLE_BRANCH} --groups tower`
 instance_name_prefix: ${INSTANCE_NAME_PREFIX}-ansible-${ANSIBLE_BRANCH}
 minimum_var_space: 0
 munin_password: ${AWX_MUNIN_PASSWORD}
@@ -81,12 +73,12 @@ if [ "${LOAD_RESOURCES}" = true ]; then
 fi
 
 echo "### BACKUP TOWER ###"
-ansible ${TOWER_GROUP} -i playbooks/inventory.log -a "chdir=/tmp/setup ./setup.sh -b -e @vars.yml" -e ansible_become=true | tee 03-backup.log
+ansible tower -i playbooks/inventory.log -a "chdir=/tmp/setup ./setup.sh -b -e @vars.yml" -e ansible_become=true | tee 03-backup.log
 
 
 echo "### TRANSFER BACKUP TO AGENT ###"
-INSTALL_HOSTNAME=$(ansible ${TOWER_GROUP} -i playbooks/inventory.log --list-hosts | tail -n 1 | awk 'NR==1{print $1}')
-INSTALL_USER=$(ansible ${TOWER_GROUP} -i playbooks/inventory.log -m debug -a "msg={{ ansible_ssh_user }}" | tail -n 2 | awk 'NR==1{print $2}' | sed -e 's/"//g')
+INSTALL_HOSTNAME=$(ansible tower -i playbooks/inventory.log --list-hosts | tail -n 1 | awk 'NR==1{print $1}')
+INSTALL_USER=$(ansible tower -i playbooks/inventory.log -m debug -a "msg={{ ansible_ssh_user }}" | tail -n 2 | awk 'NR==1{print $2}' | sed -e 's/"//g')
 rsync -L ${INSTALL_USER}@${INSTALL_HOSTNAME}:/tmp/setup/tower-backup-latest.tar.gz .
 
 
@@ -95,14 +87,14 @@ ansible-playbook ${VERBOSITY} -i playbooks/inventory -e @install_vars.yml playbo
 
 
 echo "### TRANSFER BACKUP TO INSTANCE ###"
-INSTALL_HOSTNAME=$(ansible ${TOWER_GROUP} -i playbooks/inventory.log --list-hosts | tail -n 1 | awk 'NR==1{print $1}')
-INSTALL_USER=$(ansible ${TOWER_GROUP} -i playbooks/inventory.log -m debug -a "msg={{ ansible_ssh_user }}" | tail -n 2 | awk 'NR==1{print $2}' | sed -e 's/"//g')
-ansible ${TOWER_GROUP} -i playbooks/inventory.log -a "chmod a+w /tmp /tmp/setup" -e ansible_become=true
+INSTALL_HOSTNAME=$(ansible tower -i playbooks/inventory.log --list-hosts | tail -n 1 | awk 'NR==1{print $1}')
+INSTALL_USER=$(ansible tower -i playbooks/inventory.log -m debug -a "msg={{ ansible_ssh_user }}" | tail -n 2 | awk 'NR==1{print $2}' | sed -e 's/"//g')
+ansible tower -i playbooks/inventory.log -a "chmod a+w /tmp /tmp/setup" -e ansible_become=true
 rsync tower-backup-latest.tar.gz ${INSTALL_USER}@${INSTALL_HOSTNAME}:/tmp/setup/
 
 
 echo "### RUN RESTORE ###"
-ansible ${TOWER_GROUP} -i playbooks/inventory.log -a "chdir=/tmp/setup ./setup.sh -r -e @vars.yml" -e ansible_become=true | tee 06-restore.log
+ansible tower -i playbooks/inventory.log -a "chdir=/tmp/setup ./setup.sh -r -e @vars.yml" -e ansible_become=true | tee 06-restore.log
 
 
 if [ "${VERIFY_RESOURCES}" = true ]; then

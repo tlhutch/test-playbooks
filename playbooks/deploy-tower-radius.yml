@@ -17,7 +17,7 @@
       my_inventory_file: '{{inventory_dir}}/inventory.radius'
 
 - name: 'Install tower'
-  hosts: 'tower,primary'
+  hosts: 'tower'
   gather_facts: yes
   become: true
   become_method: sudo
