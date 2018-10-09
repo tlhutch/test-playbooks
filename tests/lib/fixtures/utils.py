@@ -145,5 +145,5 @@ def skip_docker(is_docker):
 
 @pytest.fixture(autouse=True)
 def _skip_docker(request, is_docker):
-    if request.node.get_marker('skip_docker') and is_docker:
+    if request.node.get_closest_marker('skip_docker') and is_docker:
         pytest.skip(docker_skip_msg)
