@@ -261,7 +261,7 @@ class Test_Main_RBAC(APITest):
 
         admin_resource.set_object_roles(user, 'admin')
 
-        with self.current_user(username=user.username, password=user.password):
+        with self.current_user(user):
             query_results = api_unified_job_templates_pg.get(role_level='admin_role')
             # only one of our two resources should get returned
             assert query_results.count == 1, \
