@@ -12,7 +12,7 @@ When executed, Tower will execute a variation on a workflow job. The nodes of th
 Each node represents a subset of the inventory. These are all submitted to the queue for execution.
 Slices do not share any information with each other, so stateful playbooks will not work in this paradigm.
 
-Sliced Job Verification Criteria
+Sliced Job Verification Criteria (API)
 ---------------------
 - [ ] Can be created
 - [ ] Job Template Parameters are applied to all slices
