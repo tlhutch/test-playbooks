@@ -23,6 +23,7 @@ Sliced Job Verification Criteria
     - [ ] Projects
     - [ ] Credential Passwords
     - [ ] Survey Responses
+    - [ ] Custom Virtualenv
   - [ ] Extra Vars
   - [ ] Credentials
   - [ ] Forks
