@@ -90,7 +90,8 @@ pipeline {
                         job: 'Test_Tower_E2E',
                         parameters: [
                             string(name: 'AWX_E2E_URL', value: "${AWX_E2E_URL}"),
-                            string(name: 'TOWER_BRANCH', value: 'origin/release_3.3.1')
+                            string(name: 'TOWER_REPO', value: 'git@github.com:ansible/tower.git')
+                            string(name: 'TOWER_BRANCH_NAME', value: 'release_3.3.1')
                         ]
                     )
                 }
