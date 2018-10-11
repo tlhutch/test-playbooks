@@ -156,6 +156,7 @@ class Test_Notification_Templates(APITest):
 class Test_Notifications(APITest):
     """Notification tests"""
 
+    @pytest.mark.github('https://github.com/ansible/tower-qa/issues/2294')
     def test_test_notification(self, request, notification_template):
         """Generate test notifications for each notification type"""
         # Trigger test notification

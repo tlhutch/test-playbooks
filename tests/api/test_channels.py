@@ -131,6 +131,7 @@ class TestAdHocCommandChannels(ChannelsTest, APITest):
             for expected in expected_ahc_events:
                 assert expected in filtered_ws_events
 
+        @pytest.mark.github('https://github.com/ansible/tower-qa/issues/2299')
         def test_ad_hoc_command_events_unsubscribe(self, factories, ws_client):
             host = factories.v2_host()
 

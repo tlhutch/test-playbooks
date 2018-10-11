@@ -673,6 +673,7 @@ class TestTraditionalCluster(APITest):
         assert job.execution_node in ig2_hostnames
         assert job.is_successful
 
+    @pytest.mark.github('https://github.com/ansible/tower-qa/issues/2298')
     @pytest.mark.last
     @pytest.mark.requires_ha
     @pytest.mark.mp_group(group="pytest_mark_requires_isolation", strategy="isolated_serial")

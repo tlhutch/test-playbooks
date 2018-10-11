@@ -96,6 +96,7 @@ class TestSCMInventorySource(APITest):
                                          group_three_host_01.related.variable_data.get()]:
             assert group_three_host_01_vars.group_three_host_01_has_this_var
 
+    @pytest.mark.github('https://github.com/ansible/tower-qa/issues/2301')
     @pytest.mark.ansible_integration
     def test_scm_inventory_groups_and_group_vars(self, scm_inv_source_with_group_and_host_var_dirs, uses_group_vars):
         inv_source = scm_inv_source_with_group_and_host_var_dirs
@@ -174,6 +175,7 @@ class TestSCMInventorySource(APITest):
             hosts = related_hosts.get(page_size=200).results
             assert set([host.name for host in hosts]) == self.more_inventory_hostnames
 
+    @pytest.mark.github('https://github.com/ansible/tower-qa/issues/2297')
     @pytest.mark.parametrize('source_paths',
                              [('inventories/inventory.ini', 'inventories/more_inventories/inventory.ini',
                                'inventories/more_inventories/even_more_inventories/inventory.ini'),
@@ -251,6 +253,7 @@ class TestSCMInventorySource(APITest):
         host = inv_source.ds.inventory.related.hosts.get(name='localhost').results.pop()
         assert host.variables.test_env == 'TEST_ENV_1'
 
+    @pytest.mark.github('https://github.com/ansible/tower-qa/issues/2296')
     @pytest.mark.skip_openshift
     @pytest.mark.mp_group('ProjectUpdateWithSCMChange', 'serial')
     @pytest.mark.parametrize('source_path', ['inventories/inventory.ini', 'inventories/dyn_inventory.py'])

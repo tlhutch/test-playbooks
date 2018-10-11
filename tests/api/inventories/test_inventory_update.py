@@ -29,6 +29,7 @@ class TestInventoryUpdate(APITest):
         assert inv_update.is_successful
         assert inv_source.get().is_successful
 
+    @pytest.mark.github('https://github.com/ansible/tower-qa/issues/2302')
     def test_v2_update_all_inventory_sources_with_functional_sources(self, factories):
         """Verify behavior when inventory has functional inventory sources."""
         inventory = factories.v2_inventory()

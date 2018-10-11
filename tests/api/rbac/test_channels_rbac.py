@@ -52,6 +52,7 @@ class TestChannelsRBAC(APITest):
                 if msg != denied_error:
                     assert msg['group_name'] == 'jobs'
 
+        @pytest.mark.github('https://github.com/ansible/tower-qa/issues/2303')
         @pytest.mark.parametrize('role', ['ad hoc', 'admin', 'read', 'update', 'use'])
         def test_ad_hoc_command_events_with_allowed_role(self, factories, user_ws_client, role):
             """Confirm that a user is only alerted of ad hoc events when provided an allowed role"""
