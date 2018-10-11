@@ -868,26 +868,3 @@ class Test_Cascade_Fail_Dependent_Jobs(APITest):
 
         assert sync_update.status == 'failed'
         assert sync_update.failed
-
-    @pytest.mark.github('https://github.com/ansible/tower/issues/797')
-    def test_canceling_job_should_cascade_cancel_sync_project_update(self, factories):
-        project = factories.v2_project(scm_type='git', scm_url='https://github.com/ansible/ansible.git',
-                                       scm_delete_on_update=True, scm_update_on_launch=True)
-        jt = factories.v2_job_template(project=project, playbook='test/integration/targets/unicode/unicode.yml')
-
-        job = jt.launch().cancel().wait_until_completed()
-
-        assert project.wait_until_completed().status == 'canceled'
-        assert project.last_job_failed
-        assert project.last_update_failed
-
-        project_update = job.get().related.project_update.get()
-        assert project_update.launch_type == 'sync'
-        assert project_update.status == 'canceled'
-        assert project_update.job_explanation == 'Previous Task Canceled: {"job_type": "%s", "job_name": "%s", "job_id": "%s"}' \
-                                                 % (job.type, job.name, job.id)
-        assert project_update.failed
-
-        assert job.get().status == 'canceled'
-        assert job.failed
-        assert job.job_explanation == ""

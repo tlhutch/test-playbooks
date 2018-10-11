@@ -24,14 +24,14 @@ class Test_Ansible_Tower_Service(APITest):
     """
     pytestmark = pytest.mark.usefixtures('authtoken')
 
-    @pytest.mark.parametrize("command, expected_process_status", [
-        ("start", "Active: active (running)"),
-        ("stop", "Active: inactive (dead)"),
-        ("restart", "Active: active (running)"),
-        ("status", "Active: active (running)")
+    @pytest.mark.parametrize("command, active", [
+        ("start", True),
+        ("stop", False),
+        ("restart", True),
+        ("status", True)
     ], ids=['ansible-tower-service start', 'ansible-tower-service stop', 'ansible-tower-service restart', 'ansible-tower-service status'])
     def test_tower_status_on_el7(self, ansible_runner, ansible_os_family, ansible_distribution_major_version,
-                                 restart_tower_on_teardown, command, expected_process_status):
+                                 restart_tower_on_teardown, command, active):
         """Execute ansible-tower-service commands and check process statuses."""
         # check that Tower is running on an EL7 system
         if not (ansible_os_family == 'RedHat' and ansible_distribution_major_version == '7'):
@@ -52,6 +52,6 @@ class Test_Ansible_Tower_Service(APITest):
         for process in processes:
             contacted = ansible_runner.command('systemctl status {}'.format(process))
             result = contacted.values()[0]
-            assert expected_process_status in result['stdout'], \
+            assert ("Active: active (running)" in result['stdout']) is active, \
                 u"Unexpected process status for process {0} after executing ansible-tower-service {1}\n\nstdout:\n{2}"\
                     .format(process, command, result['stdout'])
