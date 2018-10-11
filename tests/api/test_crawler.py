@@ -150,7 +150,6 @@ def test_authenticated(connection, authtoken, no_license, resource, method):
                   'ping/': {'POST': method_not_allowed},
                   'project_updates/': {'POST': method_not_allowed},
                   'roles/': {'POST': method_not_allowed},
-                  'schedules/': {'POST': method_not_allowed},
                   'settings/': {'POST': method_not_allowed},
                   'system_job_templates/': {'POST': method_not_allowed},
                   'unified_jobs/': {'POST': method_not_allowed},
