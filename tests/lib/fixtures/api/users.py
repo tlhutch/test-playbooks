@@ -142,3 +142,15 @@ def unprivileged_users(org_user, anonymous_user):
 def unprivileged_user(request):
     """Return the fixture for the specified request.param"""
     return request.getfuncargvalue(request.param)
+
+
+@pytest.fixture(scope="function")
+def clean_user_orgs_and_teams(request, user=None):
+    def func(user):
+        def teardown():
+            [o.delete() for o in user.related.organizations.get().results
+                if o.name != 'Default']
+            [t.delete() for t in user.related.teams.get().results]
+            user.delete()
+        request.addfinalizer(teardown)
+    return func
