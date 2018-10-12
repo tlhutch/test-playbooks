@@ -370,3 +370,14 @@ class TestJobTemplateExtraVars(APITest):
             with pytest.raises(towerkit.exceptions.BadRequest) as e:
                 j = jt.launch(dict(extra_vars=dict())).wait_until_completed()
             assert "variables_needed_to_start" in e.value.message
+
+    @pytest.mark.github('https://github.com/ansible/tower/issues/3043')
+    def test_included_extra_vars_with_vault_content(self, factories):
+        cred = factories.v2_credential(kind='vault', vault_password='password')
+        jt = factories.v2_job_template(playbook='custom_json.yml')
+        jt.vault_credential = cred.id
+        job = jt.launch().wait_until_completed(interval=1, timeout=30)
+        assert job.is_successful, "Job unsuccessful - %s." % job
+
+        assert "people run into some space aliens and they end up fighting them" in job.result_stdout
+        assert "{{ unsafe }}" in job.result_stdout
