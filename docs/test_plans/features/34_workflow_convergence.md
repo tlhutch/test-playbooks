@@ -19,8 +19,8 @@
 
 ### Passing data between jobs
 
-- [ ] Confirm jt_extra_vars, extra_vars, set_stats vars are inherited correctly by the 'convergence node' (for all possible types of jobs that the converge job can take - project update, inventory sync, regular job, possible ad hoc command if that is supported in 3.4)
-- [ ] That jt_extra_vars, extra_vars, and set_stats variables are correctly received by a convergence job..
+- [ ] Confirm set_stats vars are [inherited correctly](https://gist.github.com/jladdjr/fa7acf58f937f4ff5d9475dc31340ade) by the 'convergence node' (for all possible types of jobs that the converge job can take - project update, inventory sync, regular job, possible ad hoc command if that is supported in 3.4)
+- [ ] That set_stats variables are correctly received by a convergence job..
 	- [ ] when some nodes pass and others fail
 	- [ ] when the path to the 'convergence node' involves a single node along some paths and multiple nodes along other paths
 	- [ ] when some jobs involved in the convergence experience an error
