@@ -196,6 +196,8 @@ class Test_Workflow_Jobs(APITest):
         Workflow:                        Should run?
          - n1+                           Yes
           - (always) n2                    Yes
+          - (failure) nf                   No
+          - (success) ns                   Yes
          - n3-                           Yes
           - (always) n4                    Yes
           - (always) n5*                   Yes
@@ -220,7 +222,11 @@ class Test_Workflow_Jobs(APITest):
         wfjt = factories.workflow_job_template()
         node_payload = dict(unified_job_template=jt.id)
         n1 = factories.workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt)
+        # Confirms that always nodes can be run in conjunction with success and failure nodes
+        # see https://github.com/ansible/awx/issues/2255
         n2 = n1.related.always_nodes.post(node_payload)
+        nf = n1.related.failure_nodes.post(node_payload)
+        ns = n1.related.success_nodes.post(node_payload)
 
         n3 = factories.workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=failing_jt)
         n4 = n3.related.always_nodes.post(node_payload)
@@ -245,11 +251,11 @@ class Test_Workflow_Jobs(APITest):
         assert mapping, "Failed to map WFJT to WFJ.\n\nWFJT:\n{0}\n\nWFJ:\n{1}".format(tree, job_tree)
 
         # Confirm only expected jobs ran
-        should_run_ids = [str(mapping[node.id]) for node in [n1, n2, n3, n4, n5, n6, n7, n10, n12]]
+        should_run_ids = [str(mapping[node.id]) for node in [n1, n2, ns, n3, n4, n5, n6, n7, n10, n12]]
         should_run_nodes = api_workflow_job_nodes_pg.get(id__in=','.join(should_run_ids)).results
         assert all([node.job for node in should_run_nodes]), \
             "Found node(s) missing job: {0}".format(node for node in should_run_nodes if not node.job)
-        should_not_run_ids = [str(mapping[node.id]) for node in [n8, n9, n11]]
+        should_not_run_ids = [str(mapping[node.id]) for node in [nf, n8, n9, n11]]
         should_not_run_nodes = api_workflow_job_nodes_pg.get(id__in=','.join(should_not_run_ids)).results
         assert not any([node.job for node in should_not_run_nodes]), \
             "Found node(s) with job: {0}".format(node for node in should_not_run_nodes if node.job)
