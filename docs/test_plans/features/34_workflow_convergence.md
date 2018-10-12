@@ -19,11 +19,11 @@
 
 ### Passing data between jobs
 
-- [ ] Confirm jt_extra_vars, extra_vars, set_stats vars are inherited correctly by the 'convergence node'
-	- [ ] When some nodes pass and others fail
-	- [ ] When the path to the 'convergence node' involves a single node along some paths and multiple nodes along other paths
-	- [ ] When some jobs involved in the convergence experience an error
-- [ ] That jt_extra_vars, extra_vars, and set_stats variables are correctly received by a convergence job for all possible types of jobs that the converge job can take (project update, inventory sync, regular job, possible ad hoc command if that is supported in 3.4)
+- [ ] Confirm jt_extra_vars, extra_vars, set_stats vars are inherited correctly by the 'convergence node' (for all possible types of jobs that the converge job can take - project update, inventory sync, regular job, possible ad hoc command if that is supported in 3.4)
+- [ ] That jt_extra_vars, extra_vars, and set_stats variables are correctly received by a convergence job..
+	- [ ] when some nodes pass and others fail
+	- [ ] when the path to the 'convergence node' involves a single node along some paths and multiple nodes along other paths
+	- [ ] when some jobs involved in the convergence experience an error
 
 ### Error conditions
 
@@ -36,10 +36,10 @@
 
 ### Path execution
 
-- [ ] Confirm that convergence job does not start running until all nodes leading into convergence node have completed
+- [ ] Confirm that convergence job does not start running until all nodes leading into convergence node have completed or been marked with [new `do_not_run` field](https://github.com/ansible/awx/pull/2389/files#diff-a81324c523b41de7296fdd5ff9063d10R3867)
 - [ ] Confirm that convergence node can be triggered by parent node by way of all three trigger conditions (always, success, failure)
 - [ ] Confirm that convergence node does not start if final running node is in waiting, pending, or running state
-- [ ] Confirm that convergence mode runs even if final node experiences an error
+- [ ] Confirm that convergence node runs even if final remaining parent node to the convergence node experiences an error
 - [ ] Confirm that workflows with convergence nodes behave correctly when re-launched (this test is a little more than just path execution)
 
 ### Deep / complex workflows
