@@ -11,6 +11,7 @@ pip install -U -I junit-xml
 
 export ANSIBLE_TIMEOUT=30
 export ANSIBLE_RETRY_FILES_ENABLED=False
+export CLUSTER_SETUP=True
 
 staging_repo_regex=".*releases-master.ansible.com.*"
 release_branch_regex=".*release_([0-9]\.[0-9]\.[1-9])"

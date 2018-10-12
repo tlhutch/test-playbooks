@@ -88,6 +88,7 @@
     ec2_host_vars: "{{  ec2_host_vars|default([]) + [{'id': item.tagged_instances[0].id,
                                                       'name': item.item.name,
                                                       'groups': item.item.groups,
+                                                      'public_ip': item.tagged_instances[0].public_ip,
                                                       'user': item.item.user,
                                                       'controller': item.tagged_instances[0].tags['controller']|default('') }] }}"
   with_items: '{{ ec2_create_vars.results }}'
@@ -122,7 +123,7 @@
     name: '{{ instance_id_to_public_dns[item.id] }}'
     groups: 'cloud,ec2,{{ item.name }},{{item.groups|default("")}}'
     ansible_user: '{{ item.user }}'
-    ansible_host: '{{ instance_id_to_public_dns[item.id] }}'
+    ansible_host: '{{ item.public_ip }}'
     controller: '{{item.controller|default("")}}'
     # ansible_ssh_private_key_file: '{{ ec2_keypair_private }}'
   with_items: '{{ ec2_host_vars|default([]) }}'
