@@ -148,28 +148,6 @@ class Test_Workflow_Job_Templates(APITest):
             assert not len(triggered_nodes), \
                 'Found nodes listed, expected none. (Creates cycle in workflow):\n{0}'.format(triggered_nodes)
 
-    def test_node_triggers_should_be_mutually_exclusive(self, factories):
-        """Confirms that if a node is listed under `always_nodes`, it cannot also be
-        listed under `{success, failure}_nodes`.
-        """
-        # Create two nodes. First node set to _always_ trigger second node.
-        wfjt = factories.workflow_job_template()
-        n1 = factories.workflow_job_template_node(workflow_job_template=wfjt)
-        jt = n1.related.unified_job_template.get()  # Reuse job template from first node
-        n2 = n1.related.always_nodes.post(dict(unified_job_template=jt.id))
-
-        # First node set to trigger second node using success / failure
-        for condition in ('success', 'failure'):
-            with pytest.raises(BadRequest) as exception:
-                n1.get_related(condition + '_nodes').post(dict(id=n2.id))
-            error_msg = 'Cannot associate {}_nodes when always_nodes have been associated.'.format(condition)
-            assert error_msg in str(exception.value)
-
-            # Confirm nodes were not linked
-            triggered_nodes = n1.get_related(condition + '_nodes').results
-            assert not len(triggered_nodes), \
-                'Found nodes listed, expected none. (Creates triggers that should be mutually exclusive):\n{0}'.format(triggered_nodes)
-
     # Deleting workflow job templates
 
     def test_delete_workflow_job_template_with_single_node(self, factories):
