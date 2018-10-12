@@ -104,6 +104,24 @@ class Test_Workflow_Nodes(APITest):
         with pytest.raises(BadRequest):
             wfjt.related.workflow_nodes.post(dict(unified_job_template=wfjt.id))
 
+    @pytest.mark.github('https://github.com/ansible/awx/issues/2255')
+    @pytest.mark.parametrize('add_methods', ['add_success_node',
+                                             'add_failure_node',
+                                             'add_always_node',
+                                             'add_failure_node add_success_node add_always_node'],
+                             ids=['success_node', 'failure_node', 'always_node', 'all_type_nodes']
+                             )
+    def test_workflow_job_nodes_can_have_always_nodes_with_other_nodes(self, factories, add_methods):
+        """Assert that a workflow job template node can have an always node mixed with other children nodes."""
+        jt = factories.v2_job_template()
+        wfjt = factories.v2_workflow_job_template()
+        parent_node = factories.v2_workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt)
+        parent_node.add_always_node(unified_job_template=jt)
+        # add additional child nodes with a variety of conditions
+        for add_method in add_methods.split(' '):
+            add_node_method = getattr(parent_node, add_method)
+            add_node_method(unified_job_template=jt)
+
     def test_workflow_job_template_nodes_can_contain_system_job_templates(self, factories, api_system_job_templates_pg):
         wfjt = factories.workflow_job_template()
         system_jts = api_system_job_templates_pg.get()

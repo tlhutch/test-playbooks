@@ -100,8 +100,53 @@ class Test_Workflow_Job_Templates(APITest):
             assert not len(triggered_nodes), \
                 'Found nodes listed, expected none. (Creates cycle in workflow):\n{0}'.format(triggered_nodes)
 
-    # TODO: Add more advaced test for cyclic graphs (e.g. testing graph with depth, braches, usage
-    #      of different types of edges)
+    @pytest.mark.github('https://github.com/ansible/awx/issues/2255')
+    @pytest.mark.parametrize('add_method', ['add_always_node', 'add_failure_node', 'add_success_node'])
+    def test_cyclic_graph_with_multiple_branches(self, factories, add_method):
+        """Confirms that a graph containing always and success or failure branches cannot contain cycles.
+
+           +------------+
+           | Node1      |+       Always         +------------+
+           |------------|+--------------------->| Node2      |
+           |            |          E1           |------------|
+           |            |                       |            |
+           |            |    Not allowed        |            |
+           +------------+ <--xxxxxxxxxxx-+      |            |
+                    +                    x      +---------+--+
+                    |                    x                |
+                    |                    x E5             |
+                  E2|Failure             x                |
+                    |or Success          +              E4|
+                    |or Always        +------------+      |Always
+                    v                 | Node4      |      |
+               +------------+   E3    |------------|      |
+               | Node3      |+------->|            |      |
+               |------------|+Success |            |<-----+
+               |            |         |            |
+               |            |         +------------+
+               |            |
+               +------------+
+        """
+        # Create two nodes. First node triggers second node.
+        wfjt = factories.workflow_job_template()
+        n1 = factories.workflow_job_template_node(workflow_job_template=wfjt)
+        jt = n1.related.unified_job_template.get()  # Reuse job template from first node
+        n2 = n1.add_always_node(unified_job_template=jt)
+        edge2_add_method = getattr(n2, add_method)
+        n3 = edge2_add_method(unified_job_template=jt)
+        n4 = n3.add_success_node(unified_job_template=jt)
+        n2.get_related('always_nodes').post({'id': n4.id})
+
+        # Attempt to create 5th edge from 4th node to 1st node should fail
+        for condition in ('always', 'success', 'failure'):
+            with pytest.raises(BadRequest) as exception:
+                n4.get_related(condition + '_nodes').post(dict(id=n1.id))
+            assert 'Cycle detected.' in str(exception.value)
+
+            # Confirm nodes were not linked
+            triggered_nodes = n2.get_related(condition + '_nodes').results
+            assert not len(triggered_nodes), \
+                'Found nodes listed, expected none. (Creates cycle in workflow):\n{0}'.format(triggered_nodes)
 
     def test_node_triggers_should_be_mutually_exclusive(self, factories):
         """Confirms that if a node is listed under `always_nodes`, it cannot also be
