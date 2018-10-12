@@ -189,6 +189,7 @@ class Test_Workflow_Jobs(APITest):
         wfj = wfjt.launch().wait_until_completed()
         assert 'failed' == wfj.status, "Workflow job {} expected to be failed {}".format(wfjt.id, wfjt.status)
 
+    @pytest.mark.github('https://github.com/ansible/awx/issues/2255')
     @pytest.mark.ansible_integration
     def test_workflow_job_trigger_conditions(self, factories, api_workflow_job_nodes_pg):
         """Confirm that workflow with all possible triggering scenarios executes jobs appropriately.
