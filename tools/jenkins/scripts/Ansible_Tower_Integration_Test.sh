@@ -3,18 +3,10 @@
 pip install -U setuptools pbr
 pip install -r requirements.txt
 
-if [[ "${ANSIBLE_INSTALL_METHOD}" == nightly ]]; then
-    pip uninstall --yes ansible
-    pip install "${ANSIBLE_NIGHTLY_REPO}/${ANSIBLE_NIGHTLY_BRANCH}/tar/ansible-latest.tar.gz"
-else
-    pip install ansible
-fi
-
 # extract tower hostname from upstream build artifact
 ANSIBLE_INVENTORY=playbooks/inventory.log
 INVENTORY_GROUP="${PLATFORM}:&${CLOUD_PROVIDER}"
 INVENTORY_HOST=$(ansible -i ${ANSIBLE_INVENTORY} --list-hosts ${INVENTORY_GROUP} | tail -n 1 | awk 'NR==1{print $1}')
-
 
 # decrypt credentials
 ansible-vault decrypt --vault-password-file="${VAULT_FILE}" config/credentials.vault --output=config/credentials.yml

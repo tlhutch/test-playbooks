@@ -13,15 +13,6 @@ pip install -U -I pyrax boto boto3 botocore azure apache-libcloud
 pip install -U -I argparse # required by pyrax -> novaclient, but not explicitly listed
 pip install -U -I junit-xml
 
-pip uninstall -y ansible
-
-if [[ "${ANSIBLE_INSTALL_METHOD}" == nightly ]]; then
-    pip install -U -I "${ANSIBLE_NIGHTLY_REPO}/${ANSIBLE_NIGHTLY_BRANCH}/tar/ansible-latest.tar.gz"
-else
-    pip install -U -I ansible
-fi
-
-
 # Increase ssh timeout
 export ANSIBLE_TIMEOUT=30
 
