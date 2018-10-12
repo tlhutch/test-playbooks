@@ -100,7 +100,6 @@ class Test_Workflow_Job_Templates(APITest):
             assert not len(triggered_nodes), \
                 'Found nodes listed, expected none. (Creates cycle in workflow):\n{0}'.format(triggered_nodes)
 
-    @pytest.mark.github('https://github.com/ansible/awx/issues/2255')
     @pytest.mark.parametrize('add_method', ['add_always_node', 'add_failure_node', 'add_success_node'])
     def test_cyclic_graph_with_multiple_branches(self, factories, add_method):
         """Confirms that a graph containing always and success or failure branches cannot contain cycles.
@@ -119,9 +118,9 @@ class Test_Workflow_Job_Templates(APITest):
                     |or Success          +              E4|
                     |or Always        +------------+      |Always
                     v                 | Node4      |      |
-               +------------+   E3    |------------|      |
-               | Node3      |+------->|            |      |
-               |------------|+Success |            |<-----+
+               +------------+         |------------|      |
+               | Node3      |         |            |      |
+               |------------|         |            |<-----+
                |            |         |            |
                |            |         +------------+
                |            |
@@ -132,10 +131,9 @@ class Test_Workflow_Job_Templates(APITest):
         n1 = factories.workflow_job_template_node(workflow_job_template=wfjt)
         jt = n1.related.unified_job_template.get()  # Reuse job template from first node
         n2 = n1.add_always_node(unified_job_template=jt)
-        edge2_add_method = getattr(n2, add_method)
-        n3 = edge2_add_method(unified_job_template=jt)
-        n4 = n3.add_success_node(unified_job_template=jt)
-        n2.get_related('always_nodes').post({'id': n4.id})
+        edge2_add_method = getattr(n1, add_method)
+        n3 = edge2_add_method(unified_job_template=jt) # noqa F841
+        n4 = n2.add_always_node(unified_job_template=jt)
 
         # Attempt to create 5th edge from 4th node to 1st node should fail
         for condition in ('always', 'success', 'failure'):
@@ -144,9 +142,8 @@ class Test_Workflow_Job_Templates(APITest):
             assert 'Cycle detected.' in str(exception.value)
 
             # Confirm nodes were not linked
-            triggered_nodes = n2.get_related(condition + '_nodes').results
-            assert not len(triggered_nodes), \
-                'Found nodes listed, expected none. (Creates cycle in workflow):\n{0}'.format(triggered_nodes)
+            triggered_nodes = n4.get_related(condition + '_nodes').results
+            assert len(triggered_nodes) == 0, 'node4 was related to node1, creating a cycle!'
 
     # Deleting workflow job templates
 
