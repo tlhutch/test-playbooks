@@ -1,4 +1,4 @@
-Job Splitting
+Job Slicing
 -------------
 
 See:
@@ -62,3 +62,6 @@ Sliced Job Verification Criteria (API)
   - [ ] 5000
   - [ ] 10000
   - [ ] 20000
+- [ ] Inventory Group membership is reflected in slices
+- [ ] Smart Inventories can be sliced
+- [ ] Slices are consistent between runs
