@@ -12,6 +12,11 @@
 	- [ ] .. the final node in a workflow job
 	- [ ] .. an intermediate node in a workflow job
 
+### Modified workflows
+
+- [ ] Confirm that when an intermediate node that triggers a convergence node is deleted, that (a) all other nodes that previously triggered the convergence node still trigger the convergence node and (b) the parent of the deleted node *does not* trigger the convergence node.
+
+
 ### Illegal workflows
 
 - [ ] Confirm that a convergence node cannot trigger itself using any possible trigger event (success, failure, always)
