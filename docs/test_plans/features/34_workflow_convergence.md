@@ -36,6 +36,7 @@
 
 ### Path execution
 
+- [ ] Confirm that workflow job nodes have the new `do_no_run` field set correctly for a variety of workflow topologies
 - [ ] Confirm that convergence job does not start running until all nodes leading into convergence node have completed or been marked with [new `do_not_run` field](https://github.com/ansible/awx/pull/2389/files#diff-a81324c523b41de7296fdd5ff9063d10R3867)
 - [ ] Confirm that convergence node can be triggered by parent node by way of all three trigger conditions (always, success, failure)
 - [ ] Confirm that convergence node does not start if final running node is in waiting, pending, or running state
