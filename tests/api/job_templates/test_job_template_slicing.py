@@ -7,7 +7,7 @@ from dateutil import rrule
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 
-from tests.api import Base_Api_Test
+from tests.api import APITest
 
 from towerkit.rrule import RRule
 from towerkit.utils import poll_until
@@ -19,16 +19,16 @@ log = logging.getLogger(__name__)
 @pytest.mark.api
 @pytest.mark.destructive
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
-class TestJobTemplateSharding(Base_Api_Test):
+class TestJobTemplateSlicing(APITest):
 
     @pytest.fixture
-    def sharded_jt_factory(self, factories):
+    def sliced_jt_factory(self, factories):
         def r(ct, jt_kwargs=None, host_ct=None):
             if not jt_kwargs:
                 jt_kwargs = {}
             if not host_ct:
                 host_ct = ct
-            jt = factories.v2_job_template(job_shard_count=ct, **jt_kwargs)
+            jt = factories.v2_job_template(job_slice_count=ct, **jt_kwargs)
             inventory = jt.ds.inventory
             hosts = []
             for i in range(host_ct):
@@ -40,11 +40,11 @@ class TestJobTemplateSharding(Base_Api_Test):
         return r
 
     @pytest.mark.mp_group('JobTemplateSharding', 'isolated_serial')
-    def test_job_template_shard_run(self, factories, v2, do_all_jobs_overlap, sharded_jt_factory):
+    def test_job_template_slice_run(self, factories, v2, do_all_jobs_overlap, sliced_jt_factory):
         """Tests that a job template is split into multiple jobs
         and that those run against a 1/3rd subset of the inventory
         """
-        jt = sharded_jt_factory(3)
+        jt = sliced_jt_factory(3)
 
         instance = v2.instances.get(
             rampart_groups__controller__isnull=True,
@@ -56,10 +56,11 @@ class TestJobTemplateSharding(Base_Api_Test):
         jt.add_instance_group(ig)
 
         workflow_job = jt.launch()
+        assert workflow_job.type == 'workflow_job'
         workflow_job.wait_until_completed()
         assert workflow_job.is_successful
 
-        # The obvious test that sharding worked - that all hosts have only 1 job
+        # The obvious test that slicing worked - that all hosts have only 1 job
         hosts = jt.ds.inventory.related.hosts.get().results
         assert [host.related.job_host_summaries.get().count for host in hosts] == [1 for i in range(3)]
 
@@ -72,9 +73,9 @@ class TestJobTemplateSharding(Base_Api_Test):
 
     @pytest.mark.mp_group('JobTemplateSharding', 'isolated_serial')
     @pytest.mark.parametrize('allow_sim', (True, False))
-    def test_job_template_shard_allow_simultaneous(self, factories, v2, do_all_jobs_overlap,
-                                                   sharded_jt_factory, allow_sim):
-        jt = sharded_jt_factory(2, jt_kwargs=dict(allow_simultaneous=allow_sim))
+    def test_job_template_slice_allow_simultaneous(self, factories, v2, do_all_jobs_overlap,
+                                                   sliced_jt_factory, allow_sim):
+        jt = sliced_jt_factory(2, jt_kwargs=dict(allow_simultaneous=allow_sim))
 
         instance = v2.instances.get(
             rampart_groups__controller__isnull=True,
@@ -87,25 +88,26 @@ class TestJobTemplateSharding(Base_Api_Test):
 
         workflow_jobs = [jt.launch(), jt.launch()]
         for workflow_job in workflow_jobs:
+            assert workflow_job.type == 'workflow_job'
             workflow_job.wait_until_completed()
             assert workflow_job.is_successful
 
-        # The sharded workflow container has configurable allow_simultaneous
+        # The sliced workflow container has configurable allow_simultaneous
         assert do_all_jobs_overlap(workflow_jobs) == allow_sim
 
         for workflow_job in workflow_jobs:
             jobs = []
             for node in workflow_job.related.workflow_nodes.get().results:
                 jobs.append(node.related.job.get())
-            # The shards themselves should _always_ be simultaneous
+            # The slices themselves should _always_ be simultaneous
             assert do_all_jobs_overlap(jobs)
 
-    def test_job_template_shard_relaunch(self, factories, v2, sharded_jt_factory):
-        """Tests relaunch for jobs which are sharded, including:
-        * relaunch of the workflow job container for sharded jobs
-        * relaunch of job that ran on a particular shard
+    def test_job_template_slice_relaunch(self, factories, v2, sliced_jt_factory):
+        """Tests relaunch for jobs which are sliced, including:
+        * relaunch of the workflow job container for sliced jobs
+        * relaunch of job that ran on a particular slice
         """
-        jt = sharded_jt_factory(2)
+        jt = sliced_jt_factory(2)
 
         workflow_job = jt.launch().get()  # .get() due to towerkit using list view
 
@@ -127,24 +129,31 @@ class TestJobTemplateSharding(Base_Api_Test):
         node = workflow_job.get_related('workflow_nodes').results.pop()
         poll_until(lambda: node.get().job, interval=1, timeout=30)
         job = node.get_related('job')
+        job.wait_until_completed()
+        assert job.job_slice_count == 2
+        assert job.event_processing_finished
+        status_counts = job.get().host_status_counts
+        assert 'ok' in status_counts  # ran on at least 1 host
+        assert status_counts['ok'] == 1  # only ran on 1 host
 
-        # Relaunch job shard
+        # Relaunch job slice
         relaunched_job = job.relaunch()
         assert relaunched_job.type == 'job'
+        assert relaunched_job.job_slice_count == 2
+        assert relaunched_job.job_slice_number == job.job_slice_number
         relaunched_job.wait_until_completed()
         assert relaunched_job.get().host_status_counts['ok'] == 1  # only ran on 1 host
-        assert relaunched_job.summary_fields.internal_limit == job.summary_fields.internal_limit
 
-    def test_job_template_shard_remainder_hosts(self, factories, sharded_jt_factory):
+    def test_job_template_slice_remainder_hosts(self, factories, sliced_jt_factory):
         """Test the logic for when the host count (= 5) does not match the
-        shard count (= 3)
+        slice count (= 3)
         """
-        jt = sharded_jt_factory(3, host_ct=5)
+        jt = sliced_jt_factory(3, host_ct=5)
         workflow_job = jt.launch()
         workflow_job.wait_until_completed()
         assert workflow_job.is_successful
 
-        # The obvious test that sharding worked - that all hosts have only 1 job
+        # The obvious test that slicing worked - that all hosts have only 1 job
         hosts = jt.ds.inventory.related.hosts.get().results
         assert [host.related.job_host_summaries.get().count for host in hosts] == [1 for i in range(5)]
 
@@ -155,11 +164,11 @@ class TestJobTemplateSharding(Base_Api_Test):
             job_okays.append(job.get().host_status_counts['ok'])
         assert job_okays == [2, 2, 1]
 
-    def test_job_template_shard_properties(self, factories, gce_credential, sharded_jt_factory):
-        """Tests that JT properties are used in jobs that sharded
+    def test_job_template_slice_properties(self, factories, gce_credential, sliced_jt_factory):
+        """Tests that JT properties are used in jobs that sliced
         workflow launches
         """
-        jt = sharded_jt_factory(3, jt_kwargs=dict(verbosity=3, timeout=45))
+        jt = sliced_jt_factory(3, jt_kwargs=dict(verbosity=3, timeout=45))
         workflow_job = jt.launch()
 
         for node in workflow_job.related.workflow_nodes.get().results:
@@ -171,10 +180,10 @@ class TestJobTemplateSharding(Base_Api_Test):
             assert job.verbosity == 3
             assert job.timeout == 45
 
-    def test_job_template_shard_prompts(self, gce_credential, sharded_jt_factory):
-        """Tests that prompts applied on launch fan out to shards
+    def test_job_template_slice_prompts(self, gce_credential, sliced_jt_factory):
+        """Tests that prompts applied on launch fan out to slices
         """
-        jt = sharded_jt_factory(3, jt_kwargs=dict(
+        jt = sliced_jt_factory(3, jt_kwargs=dict(
             ask_limit_on_launch=True,
             ask_credential_on_launch=True
         ))
@@ -196,9 +205,9 @@ class TestJobTemplateSharding(Base_Api_Test):
             assert set(cred.id for cred in job.related.credentials.get().results) == set([
                 gce_credential.id, jt.ds.credential.id])
 
-    def test_sharded_job_from_workflow(self, factories, sharded_jt_factory):
+    def test_sliced_job_from_workflow(self, factories, sliced_jt_factory):
         wfjt = factories.workflow_job_template()
-        jt = sharded_jt_factory(3)
+        jt = sliced_jt_factory(3)
         node = factories.workflow_job_template_node(
             workflow_job_template=wfjt,
             unified_job_template=jt
@@ -206,9 +215,9 @@ class TestJobTemplateSharding(Base_Api_Test):
         first_wj = wfjt.launch()
         first_wj_node = first_wj.related.workflow_nodes.get().results.pop()
         poll_until(lambda: first_wj_node.get().job, interval=1, timeout=30)
-        sharded_job = first_wj_node.related.job.get()
-        assert sharded_job.type == 'workflow_job'
-        nodes = sharded_job.related.workflow_nodes.get()
+        sliced_job = first_wj_node.related.job.get()
+        assert sliced_job.type == 'workflow_job'
+        nodes = sliced_job.related.workflow_nodes.get()
         assert nodes.count == 3
 
         # better check that we didn't get recursion...
@@ -217,10 +226,10 @@ class TestJobTemplateSharding(Base_Api_Test):
             job = node.related.job.get()
             assert job.type == 'job'
 
-    def test_job_template_shard_schedule(self, sharded_jt_factory):
-        """Test that schedule runs will work with sharded jobs
+    def test_job_template_slice_schedule(self, sliced_jt_factory):
+        """Test that schedule runs will work with sliced jobs
         """
-        jt = sharded_jt_factory(3)
+        jt = sliced_jt_factory(3)
         schedule = jt.add_schedule(
             rrule=RRule(rrule.MINUTELY, dtstart=datetime.utcnow() + relativedelta(minutes=-1, seconds=+30))
         )
@@ -232,17 +241,5 @@ class TestJobTemplateSharding(Base_Api_Test):
         assert workflow_job.type == 'workflow_job'
         assert workflow_job.job_template == jt.id
         assert workflow_job.related.workflow_nodes.get().count == 3
-
-    def test_job_template_shard_job_long_name(self, sharded_jt_factory, v2):
-        uuid_str = str(uuid.uuid4())
-        unique_512_name = 'f' * (512 - len(uuid_str)) + uuid_str
-        jt = sharded_jt_factory(2, jt_kwargs=dict(name=unique_512_name))
-
-        workflow_job = jt.launch()
-        workflow_job.wait_until_completed()
-        assert workflow_job.is_successful
-
-        for job in v2.unified_jobs.get(unified_job_node__workflow_job=workflow_job.id).results:
-            assert job.is_successful
 
     # TODO: (some kind of test for actual clusters, probably in job execution node assignment)
