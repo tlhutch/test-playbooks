@@ -128,3 +128,11 @@ class TestInstances(APITest):
         for field in ('uuid', 'hostname', 'version', 'capacity', 'consumed_capacity', 'percent_capacity_remaining',
                       'jobs_running', 'cpu', 'memory', 'cpu_capacity', 'mem_capacity'):
             assert getattr(instance, field) == original_json[field]
+
+    @pytest.mark.github('https://github.com/ansible/tower/issues/3007')
+    def test_instances_registered_proper_version(self, request, v2):
+        assert '' not in [instance['version'] for instance in v2.ping.get().instances]
+
+    @pytest.mark.github('https://github.com/ansible/tower/issues/3007')
+    def test_instances_registered_proper_capacity(self, request, v2):
+        assert 0 not in [instance['capacity'] for instance in v2.ping.get().instances]
