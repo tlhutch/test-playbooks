@@ -10,6 +10,7 @@ from tests.api import APITest
 
 from towerkit.rrule import RRule
 from towerkit.utils import poll_until
+from towerkit.exceptions import BadRequest
 
 
 log = logging.getLogger(__name__)
@@ -101,10 +102,9 @@ class TestJobTemplateSlicing(APITest):
             # The slices themselves should _always_ be simultaneous
             assert do_all_jobs_overlap(jobs)
 
-    def test_job_template_slice_relaunch(self, factories, v2, sliced_jt_factory):
+    def test_job_template_slice_workflow_job_relaunch(self, factories, v2, sliced_jt_factory):
         """Tests relaunch for jobs which are sliced, including:
         * relaunch of the workflow job container for sliced jobs
-        * relaunch of job that ran on a particular slice
         """
         jt = sliced_jt_factory(2)
 
@@ -135,13 +135,53 @@ class TestJobTemplateSlicing(APITest):
         assert 'ok' in status_counts  # ran on at least 1 host
         assert status_counts['ok'] == 1  # only ran on 1 host
 
+    def test_job_template_slice_job_relaunch(self, factories, v2, sliced_jt_factory):
+        """Tests relaunch for jobs which are sliced, including:
+        * relaunch of job that ran on a particular slice
+        """
+        jt = sliced_jt_factory(2)
+
+        workflow_job = jt.launch().get()  # .get() due to towerkit using list view
+
+        node = workflow_job.get_related('workflow_nodes').results.pop()
+        poll_until(lambda: node.get().job, interval=1, timeout=30)
+        job = node.get_related('job')
+        job.wait_until_completed()
+        assert job.job_slice_count == 2
+        assert job.event_processing_finished
+        status_counts = job.get().host_status_counts
+        assert 'ok' in status_counts  # ran on at least 1 host
+        assert status_counts['ok'] == 1  # only ran on 1 host
+
         # Relaunch job slice
         relaunched_job = job.relaunch()
         assert relaunched_job.type == 'job'
         assert relaunched_job.job_slice_count == 2
         assert relaunched_job.job_slice_number == job.job_slice_number
         relaunched_job.wait_until_completed()
+        assert 'ok' in status_counts  # ran on at least 1 host
         assert relaunched_job.get().host_status_counts['ok'] == 1  # only ran on 1 host
+
+    def test_job_template_slice_relaunch_orphans(self, factories, v2, sliced_jt_factory):
+        jt = sliced_jt_factory(2)
+
+        workflow_job = jt.launch().get()  # .get() due to towerkit using list view
+        workflow_job.wait_until_completed()
+        node = workflow_job.get_related('workflow_nodes').results.pop()
+        job = node.get_related('job')
+
+        jt.delete()
+
+        # Relaunch overall job
+        with pytest.raises(BadRequest) as exc:
+            relaunched_wj = workflow_job.relaunch()
+        assert exc.value.message == {'detail': 'Cannot relaunch slice workflow job orphaned from job template.'}
+        # Relaunch joblet
+        relaunched_job = job.relaunch()
+        assert relaunched_job.job_slice_count == job.job_slice_count
+        assert relaunched_job.job_slice_number == job.job_slice_number
+        relaunched_job.wait_until_completed()
+        assert job.host_status_counts == relaunched_job.host_status_counts
 
     def test_job_template_slice_remainder_hosts(self, factories, sliced_jt_factory):
         """Test the logic for when the host count (= 5) does not match the
