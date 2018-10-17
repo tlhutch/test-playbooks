@@ -148,7 +148,6 @@ class TestInventorySource(APITest):
         assert job.is_successful
         assert '"encrypted_var": "artemis"' in job.result_stdout
 
-    @pytest.mark.github('https://github.com/ansible/tower/issues/837')
     def test_conflict_exception_with_running_inventory_update(self, factories):
         inv_source = factories.v2_inventory_source()
         inv_update = inv_source.update()

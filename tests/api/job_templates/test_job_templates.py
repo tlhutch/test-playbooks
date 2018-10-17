@@ -46,7 +46,6 @@ class TestJobTemplates(APITest):
         # assert success
         assert job_pg.is_successful, "Job unsuccessful - %s" % job_pg
 
-    @pytest.mark.github('https://github.com/ansible/tower/issues/1529')
     def test_modified_by_unaffected_by_launch(self, v2, factories, job_template_ping):
         admin_user = factories.v2_user(first_name='Joe', last_name='Admin', is_superuser=True)
         assert job_template_ping.summary_fields.modified_by['username'] == config.credentials.users.admin.username
@@ -493,7 +492,6 @@ print json.dumps(inv, indent=2)
         assert matching_job_events.count == 1, \
             "Unexpected number of matching job events (%s != 1)" % matching_job_events.count
 
-    @pytest.mark.github('https://github.com/ansible/tower/issues/1225')
     def test_tower_host_undefined_for_job(self, v2, factories):
         # AWX_HOST should still work
         jt = factories.v2_job_template(
@@ -519,7 +517,6 @@ print json.dumps(inv, indent=2)
         ['email', 'email'],
     ])
     @pytest.mark.parametrize('prefix', ['awx', 'tower'])
-    @pytest.mark.github('https://github.com/ansible/tower/issues/1076')
     def test_awx_metavars_for_jobs(self, v2, factories, update_setting_pg, extra_var, attr, prefix):
         admin_user = factories.v2_user(first_name='Joe', last_name='Admin', is_superuser=True)
         value = str(getattr(admin_user, attr))

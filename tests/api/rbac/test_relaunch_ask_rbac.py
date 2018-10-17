@@ -93,7 +93,6 @@ class TestRelaunchAskRBAC(APITest):
         else:
             relaunch_job_as_diff_user_allowed(job)
 
-    @pytest.mark.github('https://github.com/ansible/tower/issues/867')
     def test_relaunch_with_credentials_forbidden(self, v2, factories, job_template, relaunch_user, relaunch_job_as_diff_user_forbidden):
         job_template.patch(ask_credential_on_launch=True)
         cloud_credentials = [factories.v2_credential(credential_type=factories.credential_type(),
@@ -105,7 +104,6 @@ class TestRelaunchAskRBAC(APITest):
         job = job_template.launch(dict(credentials=relaunch_creds)).wait_until_completed()
         relaunch_job_as_diff_user_forbidden(job)
 
-    @pytest.mark.github('https://github.com/ansible/tower/issues/1870')
     def test_relaunch_with_extra_credentials_forbidden(self, factories, relaunch_user, relaunch_job_as_diff_user_forbidden):
         """
         User with only execute role should not be able to relaunch a job for which

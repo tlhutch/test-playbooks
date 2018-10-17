@@ -369,7 +369,6 @@ class Test_Job_Events(APITest):
         assert job.is_successful
         assert job.related.job_events.get(event='playbook_on_notify').count == 1
 
-    @pytest.mark.github('https://github.com/ansible/tower/issues/1775')
     def test_long_task_name_is_truncated(self, factories, ansible_version_cmp):
         # Our event models support a max of 1024 characters; we should truncate after that
         host = factories.v2_host()

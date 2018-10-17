@@ -14,7 +14,6 @@ class TestInstances(APITest):
         return int(float(instance.capacity_adjustment) * abs(instance.mem_capacity - instance.cpu_capacity) +
                min(instance.mem_capacity, instance.cpu_capacity))
 
-    @pytest.mark.github('https://github.com/ansible/tower/issues/1713')
     def test_jobs_should_not_run_on_disabled_instances(self, request, v2, factories):
         ig = factories.instance_group()
         instance = v2.instances.get(rampart_groups__controller__isnull=True).results.pop()
@@ -32,7 +31,6 @@ class TestInstances(APITest):
         utils.logged_sleep(30)
         assert job.get().status == 'pending'
 
-    @pytest.mark.github('https://github.com/ansible/tower/issues/1713')
     def test_jobs_should_resume_on_newly_enabled_instances(self, request, v2, factories):
         ig = factories.instance_group()
         instance = v2.instances.get(rampart_groups__controller__isnull=True).results.pop()
@@ -53,7 +51,6 @@ class TestInstances(APITest):
         instance.enabled = True
         assert job.wait_until_completed(timeout=120).is_successful
 
-    @pytest.mark.github('https://github.com/ansible/tower/issues/1713')
     def test_disabiling_instance_should_not_impact_currently_running_jobs(self, request, v2, factories,
                                                                           tower_version):
         ig = factories.instance_group()
@@ -72,7 +69,6 @@ class TestInstances(APITest):
         instance.enabled = False
         assert job.wait_until_completed().is_successful
 
-    @pytest.mark.github('https://github.com/ansible/tower/issues/1713')
     def test_disabiling_instance_should_set_capacity_to_zero(self, request, v2, factories):
         instance = v2.instances.get(rampart_groups__controller__isnull=True).results.pop()
         initial_mem_capacity = instance.mem_capacity
@@ -129,10 +125,8 @@ class TestInstances(APITest):
                       'jobs_running', 'cpu', 'memory', 'cpu_capacity', 'mem_capacity'):
             assert getattr(instance, field) == original_json[field]
 
-    @pytest.mark.github('https://github.com/ansible/tower/issues/3007')
     def test_instances_registered_proper_version(self, request, v2):
         assert '' not in [instance['version'] for instance in v2.ping.get().instances]
 
-    @pytest.mark.github('https://github.com/ansible/tower/issues/3007')
     def test_instances_registered_proper_capacity(self, request, v2):
         assert 0 not in [instance['capacity'] for instance in v2.ping.get().instances]

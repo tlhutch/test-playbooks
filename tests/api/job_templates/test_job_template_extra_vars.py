@@ -62,7 +62,6 @@ class TestJobTemplateExtraVars(APITest):
             assert 'extra_vars' in e.value.message
             assert message in e.value.message['extra_vars'][0]
 
-    @pytest.mark.github('https://github.com/ansible/tower/issues/1408')
     def test_confirm_recursive_extra_vars_rejected(self, factories):
         jt = factories.v2_job_template()
         with pytest.raises(towerkit.exceptions.BadRequest) as e:

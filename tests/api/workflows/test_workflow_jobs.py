@@ -431,7 +431,6 @@ class Test_Workflow_Jobs(APITest):
         assert job.job_explanation == 'Job spawned from workflow could not start because it was missing a related resource ' \
                                       'such as project or inventory'
 
-    @pytest.mark.github('https://github.com/ansible/tower/issues/910')
     def test_awx_metavars_for_workflow_jobs(self, v2, factories, update_setting_pg):
         update_setting_pg(
             v2.settings.get().get_endpoint('jobs'),

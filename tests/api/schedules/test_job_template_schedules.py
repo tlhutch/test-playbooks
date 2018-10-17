@@ -163,7 +163,6 @@ class TestJobTemplateSchedules(SchedulesTest):
             template.add_schedule(rrule=self.minutely_rrule())
         assert e.value[1] == e.value[1] == {'variables_needed_to_start': ["'var1' value missing", "'var2' value missing"]}
 
-    @pytest.mark.github('https://github.com/ansible/tower/issues/2182')
     @pytest.mark.parametrize('ujt_type', ['job_template', 'workflow_job_template'])
     def test_can_create_schedule_when_required_survey_questions_answered(self, factories, ujt_type):
         jt = factories.v2_job_template(playbook='debug_extra_vars.yml')
@@ -222,7 +221,6 @@ class TestJobTemplateSchedules(SchedulesTest):
         schedule = template.add_schedule(rrule=self.minutely_rrule())
         assert schedule.extra_data == {}
 
-    @pytest.mark.github('https://github.com/ansible/tower/issues/2186')
     @pytest.mark.parametrize('ujt_type', ['job_template', 'workflow_job_template'])
     def test_can_create_schedule_when_defaults_are_supplied_with_required_survey_questions_with_defaults(self, factories,
                                                                                                          ujt_type):

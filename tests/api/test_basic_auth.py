@@ -24,7 +24,6 @@ class TestBasicAuth(APITest):
         assert 'sessionid' not in resp.headers.get('Set-Cookie', '')
         assert 'csrftoken' not in resp.headers.get('Set-Cookie', '')
 
-    @pytest.mark.github('https://github.com/ansible/tower/issues/2339')
     def test_basic_auth_disabled(self, factories, v2, update_setting_pg):
         auth_settings = v2.settings.get().get_endpoint('authentication')
         update_setting_pg(auth_settings, {'AUTH_BASIC_ENABLED': False})
@@ -123,7 +122,6 @@ class TestBasicAuth(APITest):
         assert 995 < self.get_cookie_expiry(
             session.session.cookies) - time.time() < 1000
 
-    @pytest.mark.github('https://github.com/ansible/tower/issues/2907')
     def test_session_cookie_age_change_affects_active_sessions(self, factories, v2, update_setting_pg):
         user = factories.v2_user()
         session = self.spawn_session(user)

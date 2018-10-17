@@ -244,7 +244,6 @@ class Test_Projects(APITest):
         assert api_project_updates_pg.get(project=project_id).count == 0, \
             "Unexpected number of project updates after deleting project. Expected zero updates."
 
-    @pytest.mark.github('https://github.com/ansible/tower/issues/837')
     def test_conflict_exception_with_running_project_update(self, factories):
         project = factories.v2_project()
         update = project.update()

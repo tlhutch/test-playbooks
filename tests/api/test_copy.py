@@ -18,7 +18,6 @@ class TestCopying(APITest):
         'workflow_job_template',
         'notification_template',
     ])
-    @pytest.mark.github('https://github.com/ansible/tower/issues/1978')
     def test_v1_copy_is_not_allowed(self, factories, v1, obj):
         assert 'copy' in getattr(factories, 'v2_{}'.format(obj))().related
         x = getattr(factories, obj)()

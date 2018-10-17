@@ -80,7 +80,6 @@ class TestJobTemplateLaunchCredentials(APITest):
         assert job.is_successful
         assert job.credential == ssh_credential.id
 
-    @pytest.mark.github('https://github.com/ansible/tower/issues/809')
     def test_launch_with_invalid_credential_in_payload(self, job_template_prompt_for_credential):
         """Verify the job launch endpoint throws 400 error when launching with invalid credential id"""
         invalid_and_error = [('one', "Incorrect type. Expected pk value, received unicode."),
