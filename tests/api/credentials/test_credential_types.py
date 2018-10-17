@@ -355,7 +355,6 @@ class TestCredentialTypes(APITest):
             factories.credential_type(injectors=malformed)
         assert expected in e.value.message['injectors'][0]
 
-    @pytest.mark.github('https://github.com/ansible/tower/issues/1265')
     @pytest.mark.parametrize('injectors, expected',
                              [(dict(file={'template.exists': '123'},
                                     extra_vars=dict(extra_var_one='{{ tower.filename.does_not_exist }}')),

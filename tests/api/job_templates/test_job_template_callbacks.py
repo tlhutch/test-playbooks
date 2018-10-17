@@ -137,7 +137,6 @@ class TestJobTemplateCallbacks(APITest):
         assert result.get('failed', True)
         assert result['json']['msg'] == 'No matching host could be found!'
 
-    @pytest.mark.github('https://github.com/ansible/tower/issues/958')
     def test_provision_failure_with_null_inventory(self, host_config_key, job_template):
         """Verify launch failure when called on a job template has no associated inventory"""
         job_template.host_config_key = host_config_key
@@ -592,7 +591,6 @@ class TestJobTemplateCallbacks(APITest):
         assert custom_group.get_related('children').count == 0
         assert custom_group.get_related('inventory_source').last_updated is None
 
-    @pytest.mark.github('https://github.com/ansible/tower/issues/833')
     def test_provision_callback_user_relaunch_forbidden(self, v2, factories, job_template_with_host_config_key, host_config_key, remote_hosts):
         """
         Provision callback launched job implicitly uses the limit field. This

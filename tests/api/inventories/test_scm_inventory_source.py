@@ -545,7 +545,6 @@ class TestSCMInventorySource(APITest):
         assert parent_update.finished > inv_update.finished
         assert parent_update.finished < subsequent_update.started
 
-    @pytest.mark.github('https://github.com/ansible/tower/issues/2536')
     def test_scm_inv_source_and_project_with_update_on_lauch(self, factories):
         project = factories.v2_project(scm_type='git', scm_delete_on_update=True, scm_update_on_launch=True)
         inv_source = factories.v2_inventory_source(
@@ -651,7 +650,6 @@ class TestSCMInventorySource(APITest):
                 forbidden()
             assert e.value.message == {'detail': ['Cannot set {} if not SCM type.'.format(field)]}
 
-    @pytest.mark.github('https://github.com/ansible/tower/issues/1357')
     def test_scm_inv_parent_sym_links(self, factories):
         """This test asserts that symlinks inside of a project source tree will
         be accessible for the ansible-inventory command in the inventory update.

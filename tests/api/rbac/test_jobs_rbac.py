@@ -9,7 +9,6 @@ from tests.api import APITest
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestJobsRBAC(APITest):
 
-    @pytest.mark.github('https://github.com/ansible/tower/issues/824')
     def test_v1_launch_as_superuser(self, job_template, api_jobs_pg):
         """Verify job creation via /api/v1/jobs/ and job start via /api/v2/jobs/N/start/."""
         job = api_jobs_pg.post(job_template.json)

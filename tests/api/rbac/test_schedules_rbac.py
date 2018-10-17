@@ -95,7 +95,6 @@ class Test_Schedules_RBAC(APITest):
             with pytest.raises(exc.Forbidden):
                 schedule.patch(unified_job_template=cleanup_jobs_template.id)
 
-    @pytest.mark.github('https://github.com/ansible/tower/issues/811')
     @pytest.mark.parametrize('role', ['admin', 'execute', 'read'])
     def test_create_schedule_with_jt_job(self, factories, role):
         jt = factories.v2_job_template()

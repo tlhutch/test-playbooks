@@ -153,7 +153,6 @@ def azure_type(azure_credential):
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class Test_Job(APITest):
 
-    @pytest.mark.github('https://github.com/ansible/tower/issues/806')
     @pytest.mark.ansible_integration
     def test_utf8(self, utf8_template):
         """Verify that a playbook full of UTF-8 successfully works through Tower"""
@@ -360,7 +359,6 @@ class Test_Job(APITest):
         assert relaunched_job.related.relaunch.get().retry_counts.all == 3
         assert relaunched_job.related.relaunch.get().retry_counts.failed == 0
 
-    @pytest.mark.github('https://github.com/ansible/tower/issues/1112')
     def test_password_survey_launched_with_empty_extra_vars(self, factories):
         """Confirms that password surveys with defaults are displayed (and encrypted) when
         job template is launched with empty extra_vars, and those without defaults are not.

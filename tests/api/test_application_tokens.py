@@ -16,7 +16,6 @@ from tests.api import APITest
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestApplications(APITest):
 
-    @pytest.mark.github('https://github.com/ansible/tower/issues/1289')
     def test_options_validity(self, v2):
         options = v2.applications.options()
         post = options.actions.POST
@@ -92,7 +91,6 @@ class TestApplications(APITest):
         assert list_item.redirect_uris == redirect_uris
         assert list_item.client_id == client_id
 
-    @pytest.mark.github('https://github.com/ansible/tower/issues/2507')
     def test_application_organization_name_unique(self, v2, factories):
         app = factories.application(
             organization=True,
@@ -168,7 +166,6 @@ class TestApplications(APITest):
         assert modified_app[field] != 'SHOULD_BE_FORBIDDEN'
         assert modified_app[field] == expected
 
-    @pytest.mark.github('https://github.com/ansible/tower/issues/1125')
     def test_application_creation_in_activity_stream(self, v2, factories, privileged_user, organization):
         def assert_stream_validity(app):
             activity_stream = app.related.activity_stream.get()
@@ -185,7 +182,6 @@ class TestApplications(APITest):
 
         assert_stream_validity(app)
 
-    @pytest.mark.github('https://github.com/ansible/tower/issues/1125')
     def test_application_modification_in_activity_stream(self, v2, factories, privileged_user, organization):
         def assert_stream_validity(app, app_body, orig_body):
             activity_stream = app.related.activity_stream.get()
@@ -210,7 +206,6 @@ class TestApplications(APITest):
 
         assert_stream_validity(app, app_body, orig_body)
 
-    @pytest.mark.github('https://github.com/ansible/tower/issues/1125')
     def test_application_deletion_in_activity_stream(self, v2, factories, privileged_user, organization):
         with self.current_user(privileged_user):
             app = factories.application(organization=organization)
@@ -302,7 +297,6 @@ class TestApplicationTokens(APITest):
 
     censored = '************'
 
-    @pytest.mark.github('https://github.com/ansible/tower/issues/1291')
     def test_options_validity(self, v2):
         options = v2.tokens.options()
         post = options.actions.POST
@@ -390,7 +384,6 @@ class TestApplicationTokens(APITest):
         tokens = v2.tokens.get(id=token.id)
         assert tokens.count == 0
 
-    @pytest.mark.github('https://github.com/ansible/tower/issues/1125')
     def test_token_creation_in_activity_stream(self, v2, factories, privileged_user, organization):
         def assert_stream_validity(token):
             activity_stream = token.related.activity_stream.get()
@@ -414,7 +407,6 @@ class TestApplicationTokens(APITest):
 
         assert_stream_validity(token)
 
-    @pytest.mark.github('https://github.com/ansible/tower/issues/1125')
     def test_token_modification_in_activity_stream(self, v2, factories, privileged_user, organization):
         def assert_stream_validity(app, app_body, orig_body):
             activity_stream = app.related.activity_stream.get()
@@ -630,7 +622,6 @@ class TestTokenAuthentication(TestTokenAuthenticationBase):
             self.me(token.token)
             assert 'Authentication credentials were not provided. To establish a login session, visit /api/login/.' in str(e)
 
-    @pytest.mark.github('https://github.com/ansible/tower/issues/2759')
     @pytest.mark.parametrize('scope, forbidden', [
         ('read', True),
         ('write', False)
@@ -649,7 +640,6 @@ class TestTokenAuthentication(TestTokenAuthenticationBase):
             assert user.get().username == username
             user.delete()
 
-    @pytest.mark.github('https://github.com/ansible/tower/issues/2759')
     @pytest.mark.parametrize('scope, forbidden', [
         ('read', True),
         ('write', False)
@@ -668,7 +658,6 @@ class TestTokenAuthentication(TestTokenAuthenticationBase):
             page.patch(first_name='Gallant')
             assert page.get().first_name == 'Gallant'
 
-    @pytest.mark.github('https://github.com/ansible/tower/issues/2759')
     @pytest.mark.parametrize('scope, forbidden', [
         ('read', True),
         ('write', False)
@@ -688,7 +677,6 @@ class TestTokenAuthentication(TestTokenAuthenticationBase):
             with pytest.raises(exc.NotFound):
                 page.get()
 
-    @pytest.mark.github('https://github.com/ansible/tower/issues/2759')
     @pytest.mark.parametrize('scope, forbidden', [
         ('read', True),
         ('write', False)
@@ -706,7 +694,6 @@ class TestTokenAuthentication(TestTokenAuthenticationBase):
             page.post()
             assert job_template_ping.related.jobs.get().count == 1
 
-    @pytest.mark.github('https://github.com/ansible/tower/issues/2759')
     @pytest.mark.parametrize('scope, forbidden', [
         ('read', True),
         ('write', False)
@@ -733,7 +720,6 @@ class TestTokenAuthentication(TestTokenAuthenticationBase):
                 page.post({'associate': True, 'id': credential_pk})
                 assert page.get().count == 1
 
-    @pytest.mark.github('https://github.com/ansible/tower/issues/2759')
     @pytest.mark.parametrize('scope, forbidden', [
         ('read', True),
         ('write', False)
@@ -818,7 +804,6 @@ class TestDjangoOAuthToolkitTokenManagement(TestTokenAuthenticationBase):
         else:
             assert 'Invalid credentials given.' in str(resp.content)
 
-    @pytest.mark.github('https://github.com/ansible/tower/issues/2637')
     @pytest.mark.parametrize('scope', ['read', 'write'])
     def test_token_revocation(self, factories, scope):
         app = factories.application(organization=factories.v2_organization(),
@@ -866,7 +851,6 @@ class TestDjangoOAuthToolkitTokenManagement(TestTokenAuthenticationBase):
         )
         assert resp.status_code == 200
 
-    @pytest.mark.github('https://github.com/ansible/tower/issues/2637')
     @pytest.mark.parametrize('scope', ['read', 'write'])
     def test_refresh_token(self, factories, scope):
         app = factories.application(organization=factories.v2_organization(),

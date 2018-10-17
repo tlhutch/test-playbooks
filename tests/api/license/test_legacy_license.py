@@ -57,7 +57,6 @@ class TestLegacyLicense(LicenseTest):
         assert conf.license_info['features'] == default_features, \
             "Unexpected features returned for legacy license: %s." % conf.license_info
 
-    @pytest.mark.github('https://github.com/ansible/tower/issues/806')
     def test_job_launch(self, job_template):
         """Verify that job templates can be launched."""
         job_template.launch_job().wait_until_completed()
@@ -257,7 +256,6 @@ class TestLegacyLicenseGracePeriod(LicenseTest):
             "Incorrect license_type returned. Expected 'legacy,' " \
             "returned %s." % conf.license_info['license_type']
 
-    @pytest.mark.github('https://github.com/ansible/tower/issues/806')
     def test_job_launch(self, api_config_pg, job_template):
         """Verify that job_templates can be launched while there are remaining free_instances"""
         conf = api_config_pg.get()
@@ -324,7 +322,6 @@ class TestLegacyLicenseExpired(LicenseTest):
 @pytest.mark.usefixtures('authtoken', 'install_legacy_license_expired')
 class TestLegacyLicenseExpiredSerial(LicenseTest):
 
-    @pytest.mark.github('https://github.com/ansible/tower/issues/806')
     def test_job_launch(self, request, factories, apply_generated_license):
         """Verify that job_templates cannot be launched"""
         with apply_generated_license(self.legacy_license_json()):

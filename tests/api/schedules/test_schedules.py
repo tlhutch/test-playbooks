@@ -212,7 +212,6 @@ class TestSchedules(SchedulesTest):
         assert job.wait_until_completed().is_successful
         assert schedule.get().next_run is None
 
-    @pytest.mark.github('https://github.com/ansible/tower/issues/1541')
     def test_modified_by_unaffected_by_launch(self, v2, job_template_ping):
         assert job_template_ping.summary_fields.modified_by['username'] == config.credentials.users.admin.username
         schedule = job_template_ping.add_schedule(rrule=self.minutely_rrule())
@@ -222,7 +221,6 @@ class TestSchedules(SchedulesTest):
         tmpl = v2.job_templates.get(id=job_template_ping.id).results.pop()
         assert tmpl.summary_fields.get('modified_by', {}).get('username') == config.credentials.users.admin.username
 
-    @pytest.mark.github('https://github.com/ansible/tower/issues/910')
     def test_awx_metavars_for_scheduled_jobs(self, v2, factories, update_setting_pg):
         update_setting_pg(
             v2.settings.get().get_endpoint('jobs'),
@@ -270,7 +268,6 @@ class TestSchedules(SchedulesTest):
             assert '02:30:00-05:00' in prev.local[1]
             assert '03:30:00-05:00' in prev.local[2]
 
-    @pytest.mark.github('https://github.com/ansible/tower/issues/892')
     @pytest.mark.parametrize('month', (1, 6))  # Jan & June, to test DST
     def test_schedule_preview_supports_all_zoneinfo_provided_zones(self, v2, month):
         schedules = v2.schedules.get()

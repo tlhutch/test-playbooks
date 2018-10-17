@@ -165,7 +165,6 @@ class TestActivityStream(APITest):
         assert activity.operation == 'delete'
         assert activity.object_association == ''
 
-    @pytest.mark.github('https://github.com/ansible/tower/issues/1722')
     def test_copying_jt_with_labels_should_not_create_activity_stream_entries_for_each_label(self, factories, admin_user):
         label_name = fauxfactory.gen_alphanumeric()
         org = factories.v2_organization()
@@ -183,8 +182,6 @@ class TestActivityStream(APITest):
         assert copied.related.activity_stream.get(operation='create').count == 1
         assert copied.related.activity_stream.get(operation='associate', object2='label').count == 0
 
-    @pytest.mark.github('https://github.com/ansible/tower/issues/1614')
-    @pytest.mark.github('https://github.com/ansible/tower/issues/1616')
     @pytest.mark.parametrize('_type', ['job_template', 'workflow_job_template'])
     def test_launching_template_with_labels_should_not_create_activity_stream_entries_for_each_label(self, factories, admin_user, _type):
         label_name = fauxfactory.gen_alphanumeric()
@@ -214,7 +211,6 @@ class TestActivityStream(APITest):
         assert relaunched.related.activity_stream.get(operation='create').count == 1
         assert relaunched.related.activity_stream.get(operation='associate', object2='label').count == 0
 
-    @pytest.mark.github('https://github.com/ansible/tower/issues/2497')
     @pytest.mark.parametrize('role', ['Admin', 'Read', 'Member', 'Execute', 'Notification Admin', 'Workflow Admin',
                                       'Credential Admin', 'Job Template Admin', 'Project Admin', 'Inventory Admin',
                                       'Auditor'])
