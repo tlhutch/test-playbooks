@@ -41,7 +41,7 @@ launch" set.
     - [x] Workflow JT Admin role is the only one that can set static inventory or “prompt on launch”
     - [x] That a user authorized to launch a workflow (but not assigned any permissions related to the inventory), can still launch the workflow (and that the workflow job is successful)
 
-UI]()
+* [x] UI
 
   WFJT = Workflow Job Template
   WFLI = Workflow-Level Inventory
