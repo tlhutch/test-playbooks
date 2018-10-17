@@ -41,4 +41,29 @@ launch" set.
     - [x] Workflow JT Admin role is the only one that can set static inventory or “prompt on launch”
     - [x] That a user authorized to launch a workflow (but not assigned any permissions related to the inventory), can still launch the workflow (and that the workflow job is successful)
 
-* [ ] [UI]()
+* [x] UI
+
+  WFJT = Workflow Job Template
+  WFLI = Workflow-Level Inventory
+  - [ ] Ensure the new WF lookup field is visible and prompt on launch works correctly, as well as the tooltip.
+  - [ ] Ensure the WF visualizer button is now the proper icon.
+  - [ ] Ensure that saving the visualizer results in navigation to the templates list.
+On adding/editing of workflow nodes
+  - [ ] If WFJT PROMPT = True, ensure PROMPT button is visible and selectable, and that on click inventory tab is visible and selectable.
+  - [ ] If template is a WFJT + WFLI is set + PROMPT = True, ensure message saying that WFLI will override prompted inventory.
+  - [ ] If template is a WFJT + WFLI = set + PROMPT = False, ensure that message says that WFLI will not override default inventory.
+  If WFLI is set:
+  - [ ] If Node JT prompts, WFLI will override prompted inventory
+  - [ ] If Node JT does not have prompting set, message says WFLI will not override default.
+  - [ ] Ensure that launch prompt modal for WF explains inventory selection impact.
+Templates list WF view
+  - [ ] Ensure that inventory is displayed in JT style if default inventory is specified.
+  - [ ] Ensure that the icon to go to visualizer works correctly.
+Jobs list view
+  - [ ] Ensure if WFLI was specified at run-time, inventory label and name will be visible.
+WF results tab
+  - [ ] Ensure if WFLI was specified at run-time, inventory label and name are visible in details pane
+Creating/editing WF
+  - [ ] On successful save, ensure that the user is directed to the visualizer page
+  - [ ] Ensure lookup modal for WF inventory has a static explanation that makes sense.
+
