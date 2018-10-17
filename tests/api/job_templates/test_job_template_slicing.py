@@ -174,7 +174,7 @@ class TestJobTemplateSlicing(APITest):
 
         # Relaunch overall job
         with pytest.raises(BadRequest) as exc:
-            relaunched_wj = workflow_job.relaunch()
+            workflow_job.relaunch()
         assert exc.value.message == {'detail': 'Cannot relaunch slice workflow job orphaned from job template.'}
         # Relaunch joblet
         relaunched_job = job.relaunch()
