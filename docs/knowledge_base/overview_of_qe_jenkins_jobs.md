@@ -86,3 +86,35 @@ Used after the Openshift Integration runs
 Soon: Used post-upgrade pipeline
 
 Written by [Jim Ladd](mailto:jladd@redhat.com) (Github: jladdjr) Oct 15, 2018.
+
+## FAQ
+
+* _When is the last time we were testing Tower version X.Y.Z with Ansible version X.Y.Z on OS X version Z and what were the results_
+    * This is actually difficult to do! Jenkins only stores test results for 30 days.
+    * Remediation: Archive results for each release and link to them from the release plan.
+* _If I want to trigger a test of Tower version X.Y.Z with Ansible Version X.Y.Z on OS X version Z, how do I do that?_
+    * Use the [YOLO](http://jenkins.ansible.eng.rdu2.redhat.com/job/Test_Tower_Yolo_Express/) job
+    * As of writing, does not let you choose ansible version -- see [RFE for anisble version selection](https://github.com/ansible/tower-qa/issues/2331)
+    * You can specify the platform and branch of TowerQA and TowerKit to use as well as the branch of Tower
+* _`Test_Tower_Integration` doesn’t run full integration on all Ansible versions, right?_
+    * No, Full integration is run with latest ansible version on each OS. So, right now, ansible stable-2.7 on each OS ( a whole column of matrix ).
+    * The rest run `-m test_crawler or ansible_integration`. `test_crawler` hits each endpoint to make sure it is responsive. `ansible_integration` is a marker that marks any tests that specifically test how Tower uses ansible
+* Are there plans to run API schema validation on more of the test matrix than Oracle Linux?
+    * What is schema?
+	* schema represents how the data is presented in the api (string, list, dictionary, etc) along with if fields are required or optional.
+    * Long story short: No. Current schema validation that is done with towerkit is broken. We are looking into schema validation in pre-merge checks on the AWX side.
+
+* _How do you find results?_
+    * _How do you tell when it was a nightly run versus a YOLO run?_
+	* Look at the timestamp! 7:35 ish pm is best way right now :'(
+        * Look at the triggers for the job -- if it was triggered by a YOLO Express run, it is not what you want.
+
+* _How do I tell how many times a test has failed in the nightly runs?_
+    * The # in the test results is calculated based on job #’s  -- can be misleading
+      Example: will say “failing for 25 builds” but actually it is only last night and tonight
+      Because other jobs happened in between, incrementing the job #’s, but these were not runs from the nightly pipeline
+      For a more accurate view, look at the particular test and then inspect the history (button on left when in detail view)
+* _How can I inspect the health of a current feature in the test results?_
+    * Expand “all test results” and click through the tree. Tests are organized by module and/or folder, each associated with a feature or function.
+
+FAQ written by [Elijah DeLee](mailto:kdelee@redhat.com) (Github: kdelee) Oct 17, 2018.
