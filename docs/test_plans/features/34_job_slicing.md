@@ -12,9 +12,39 @@ When executed, Tower will execute a variation on a workflow job. The nodes of th
 Each node represents a subset of the inventory. These are all submitted to the queue for execution.
 Slices do not share any information with each other, so stateful playbooks will not work in this paradigm.
 
-Sliced Job Verification Criteria (API)
----------------------
-- [ ] Can be created
+# Sliced Job Verification Criteria (API)
+
+## Basic CRUD Operations
+
+- [ ] Slice parameter can be set on job templates
+- [ ] Sliced job results can be deleted
+- [ ] Job results for slices can be deleted
+- [ ] Search Results
+  - [ ] Slices
+  - [ ] Sliced Jobs
+- [ ] Sliced Job Results can be viewed
+- [ ] Sliced Job Results can only be viewed by people with appropriate permissions
+
+## Inventory
+
+- [ ] Script Endpoint
+  - [ ] Arbitrary slices can be created with the script endpoint (`/api/v2/inventories/N/script/?hostvars=1&subset=split2of3`)
+  - [ ] Inventory Group membership is reflected in slices
+  - [ ] Smart Inventories can be sliced
+  - [ ] Slices are consistent between runs
+- [ ] Sliced jobs work with large inventories
+  - [ ] 5000
+  - [ ] 10000
+  - [ ] 20000
+- [ ] Hosts will not appear in more than one slice
+
+## Workflows
+
+- [ ] Sliced Job Templates can be used as part of a Workflow Job Template
+- [ ] Workflow Jobs using a sliced job template can be cancelled
+- [ ] Workflow Jobs using a sliced job template can be relaunched
+
+## Execution
 - [ ] Job Template Parameters are applied to all slices
   - [ ] Prompts
     - [ ] Credentials
@@ -30,18 +60,12 @@ Sliced Job Verification Criteria (API)
   - [ ] Show Changes
   - [ ] Verbosity
   - [ ] Allow Simultaneous
-- [ ] Hosts will not appear in more than one slice
 - [ ] Callback Provisioning
   - [ ] Works
   - [ ] Does not create a workflow job
 - [ ] Simultaneous execution
   - [ ] Can run simultaneously
   - [ ] Won't run simultaneously if that is disabled
-- [ ] Cancellation
-  - [ ] Cancelling the sliced job cancels all slices
-  - [ ] Canceling a slice does not cancel the entire job
-- [ ] Can be executed as part of a workflow
-- [ ] Can be scheduled
 - [ ] Notification templates only fire for the whole sliced job, as opposed to the slices
 - [ ] Relaunching
   - [ ] Slices can be relaunced individually
@@ -57,11 +81,12 @@ Sliced Job Verification Criteria (API)
   - [ ] Organization
   - [ ] Inventory
   - [ ] Job Template
-- [ ] Job details for slices are only viewable by users with permission
-- [ ] Sliced jobs work with large inventories
-  - [ ] 5000
-  - [ ] 10000
-  - [ ] 20000
-- [ ] Inventory Group membership is reflected in slices
-- [ ] Smart Inventories can be sliced
-- [ ] Slices are consistent between runs
+- [ ] Sliced jobs can be executed with a custom virtualenv
+- [ ] When a job template is set to 0 or 1 slice, it launches as a regular job template
+- [ ] Auditors can view job results for sliced jobs
+- [ ] Cancellation
+  - [ ] Cancelling the sliced job cancels all slices
+  - [ ] Canceling a slice does not cancel the entire job
+- [ ] Can be executed as part of a workflow
+- [ ] Can be scheduled
+
