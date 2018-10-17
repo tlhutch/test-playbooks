@@ -324,6 +324,7 @@ class TestSCMInventorySource(APITest):
         assert project.related.project_updates.get(launch_type='sync').count == 2
         assert inv_source.related.inventory_updates.get().count == 2
 
+    @pytest.mark.github('https://github.com/ansible/tower-qa/issues/2326')
     @pytest.mark.mp_group('ProjectUpdateWithSCMChange', 'serial')
     def test_cancel_shared_parent_project_update_after_source_change(self, factories, write_access_git_credential):
         project = factories.v2_project(scm_url='https://github.com/rmfitzpatrick/ansible-playbooks.git',
