@@ -22,18 +22,4 @@ https://github.com/ansible/awx/issues/2333 - Ability to search for sliced jobs
 
 
 ## Test Cases
-### Sliced Job Template Creation/Editing
-- [ ] Ensure sliced JT can be created and that the slice value is saved.
-- [ ] Ensure that a slice value of 0 results in an error specifying that a minimum slice of 1 must be defined.
-- [ ] Ensure that the field is optional.
-### Workflows
-- [ ] Ensure sliced JTs can be launched from the JT list
-- [ ] Ensure that sliced JTs without prompt fields send the user to the WF job viewer on successful launch.
-- [ ] Ensure that sliced JTs with prompts and/or extra variables work the same as normal JTs when it comes to prompting, with all variables and limits being applied to the entire set of slice jobs in the resulting workflow job.
-- [ ] Default JT launch and prompt behavior is restored when slice = 1 or set to blank.
-- [ ] Ensure sliced jobs can be canceled individually or as an entire workflow job either from the jobs list or WF job details view. 
-- [ ] If JT slice is turned off during a job, ensure that expected behavior continues to work and UI remains intact.
-- [ ] Ensure sliced jobs can be relaunched...same as above
-- [ ] Ensure WF job view is loaded on launch for sliced JTs
-- [ ] WF jobs from sliced JTs are marked as slice jobs in job lists
-- [ ] Playbook job view is loaded if slice value is set to 1 and job is reverted to non-sliced job.
+[UI Testcases here](https://docs.google.com/document/d/1zZZwzq3gggQtlmuxoTFFUC8UldPC84AKc2CQB1H-0Zs/edit)
