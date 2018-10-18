@@ -61,9 +61,6 @@ TOWER_URL=`python scripts/ansible_inventory_to_json.py --inventory ${INVENTORY_F
 TOWER_VERSION=`curl -ks https://${TOWER_URL}/api/v1/ping/ | jq -r .version | cut -d . -f 1-3`
 echo ${TOWER_VERSION}
 
-if [[ ${TOWER_VERSION} =~ 3\.2\.[1-9].* ]]; then
-    TRIGGER_FILE=".trigger_patch"
-else TRIGGER_FILE=".trigger"
-fi
+TRIGGER_FILE=".trigger"
 
 if [[ $TRIGGER == true ]]; then mv .downstream_build_params ${TRIGGER_FILE}; fi;
