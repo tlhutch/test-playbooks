@@ -35,4 +35,11 @@ When the feature is complete, then the tester can make the final PR of
 sensible history, this can be done at this time.
 
 ## Release Branches
-#TODO: Update this section
+
+`ansible/tower-qa` follows the same branching convention as `ansible/tower`.
+
+Main development branch of `ansible/tower-qa` is `devel`.
+Then each minor releases have their own branch `release_3.3.1`, `release_3.2.8`, etc...
+As soon as a new minor release is actually released a new branch is created `release X.Y.z+1`.
+
+When making a PR to `ansible/tower-qa` please think about if this contribution makes sense to be backported to currently active release branches.
