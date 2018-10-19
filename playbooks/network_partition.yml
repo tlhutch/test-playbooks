@@ -111,7 +111,7 @@
 - hosts: instance_group_partition_1
   tasks:
     - name: In first partition, ensure no connectivity to second partition
-      command: nc -v -w 15 "{{ hostvars[item].ansible_default_ipv4.address }}" 22
+      command: nc -v -i 15 -w 15 "{{ hostvars[item].ansible_default_ipv4.address }}" 22
       with_items: "{{ groups['instance_group_partition_2'] }}"
       become: true
       register: nc
@@ -121,7 +121,7 @@
 - hosts: instance_group_partition_2
   tasks:
     - name: In second partition, ensure no connectivity to first partition
-      command: nc -v -w 15 "{{ hostvars[item].ansible_default_ipv4.address }}" 22
+      command: nc -v -i 15 -w 15 "{{ hostvars[item].ansible_default_ipv4.address }}" 22
       with_items: "{{ groups['instance_group_partition_1'] }}"
       become: true
       register: nc
@@ -131,7 +131,7 @@
 - hosts: instance_group_partition_1
   tasks:
     - name: In first partition, ensure connectivity to second partition
-      command: nc -v -w 15 "{{ hostvars[item].ansible_default_ipv4.address }}" 22
+      command: nc -v -i 15 -w 15 "{{ hostvars[item].ansible_default_ipv4.address }}" 22
       with_items: "{{ groups['instance_group_partition_2'] }}"
       become: true
       register: nc
@@ -141,7 +141,7 @@
 - hosts: instance_group_partition_2
   tasks:
     - name: In second partition, ensure connectivity to first partition
-      command: nc -v -w 15 "{{ hostvars[item].ansible_default_ipv4.address }}" 22
+      command: nc -v -i 15 -w 15 "{{ hostvars[item].ansible_default_ipv4.address }}" 22
       with_items: "{{ groups['instance_group_partition_1'] }}"
       become: true
       register: nc
