@@ -1,5 +1,6 @@
 from distutils.version import LooseVersion
 import logging
+import six
 
 from towerkit.config import config
 import towerkit.exceptions as exc
@@ -20,6 +21,21 @@ class TestJobTemplateCredentials(APITest):
         del payload['credential']
         jt = v2.job_templates.post(payload)
         request.addfinalizer(jt.silent_delete)
+
+    @pytest.mark.github('https://github.com/ansible/tower/issues/3077')
+    def test_job_template_cannot_have_multiple_same_type(self, factories):
+        ct = factories.credential_type()
+        cred1 = factories.v2_credential(credential_type=ct)
+        cred2 = factories.v2_credential(credential_type=ct)
+        assert cred1.credential_type == cred2.credential_type
+
+        jt = factories.v2_job_template(credential=None)
+        jt.add_credential(cred1)
+        with pytest.raises(exc.BadRequest) as e:
+            jt.add_credential(cred2)
+        assert e.value.message['error'] == six.text_type(
+            'Cannot assign multiple {} credentials.'
+        ).format(ct.name)
 
 
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
