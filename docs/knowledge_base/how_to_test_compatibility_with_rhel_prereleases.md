@@ -1,23 +1,97 @@
 # How to test compatibility with RHEL pre-releases
 
+- [Overview](#overview)
+- [Prerequisites](#prerequisites)
+- [Versions of Tower to test](#versions-of-tower-to-test)
+- [Automated Process](#automated-process)
+- [Manual Process](#manual-process)
+  * [Getting tower-qa](#getting-tower-qa)
+  * [Downloading the RHEL image](#downloading-the-rhel-image)
+  * [Creating a new VM in VirtualBox](#creating-a-new-vm-in-virtualbox)
+  * [Configuring VM to boot from RHEL CD](#configuring-vm-to-boot-from-rhel-cd)
+  * [Installing RHEL](#installing-rhel)
+  * [Enabling port forwarding, adding public key to VM](#enabling-port-forwarding-adding-public-key-to-vm)
+  * [Registering with access.redhat.com](#registering-with-access.redhat.com)
+  * [Registering system using subscription-manager](#registering-system-using-subscription-manager)
+  * [Creating a repo file to point to pre-release packages](#creating-a-repo-file-to-point-to-pre-release-packages)
+  * [Taking a snapshot of the VM](#taking-a-snapshot-of-the-vm)
+  * [Confirming which versions of Ansible are compatible with tower](#confirming-which-versions-of-Ansible-are-compatbile-with-Tower)
+  * [Instaling Tower](#installing-tower)
+  * [Running a smoke test](#running-a-smoke-test)
+  * [Reverting VM](#reverting-vm)
+  * [Running Tower installs in parallel](#running-tower-installs-in-parallel)
+- [Signing off on the pre-release RHEL image](#signinf-off-on-the-pre-release-RHEL-image)
+- [Reference](#reference)
+
 ## Overview
 
 When RHEL approaches the end of a release, it will cut an alpha and beta image. When each image is available, an e-mail is sent out to other Red Hat product groups, prompting the groups to pull the RHEL image, install their product on the platform, and confirm their product remains functional on the new platform. In general, interoperability testing with the alpha image is optional, while testing against the beta image is mandatory.
+
+More infos available in this presentation:
+
+  * Bluejeans: https://bluejeans.com/s/DhW@w
+  * Slides: https://docs.google.com/presentation/d/14T38IbMMMC6JBBbhKcFf7RXTu7xT2mBPZeQ7NM34rZg/edit?usp=sharin
+
 
 ## Prerequisites
 
 * These instructions assume that you have a working knowledge of towerkit (the QE team's Python client for Tower) and tower-qa (the QE team's collection of playbooks and tests for Tower).
 * You will need an account on access.redhat.com registered to your redhat.com e-mail address. Your account will need to have active RHEL subscriptions associated with this. Red Hatters should be granted access to these subscriptions automatically. For more information on access.redhat.com and RHEL subscriptions, see the "Registering with access.redhat.com" section below.
 
-## Determining which versions of Tower to test
+
+## Versions of Tower to test
 
 * The RHEL pre-release image should be tested with each [currently supported version of Tower](https://access.redhat.com/support/policy/updates/ansible-tower).
 
-## Getting tower-qa
+
+## Automated Process
+
+[ansible/tower-qa](https://github.com/ansible/tower-qa) contains a playbook that aims to automate this process. In a nutshell it does the following:
+
+  * Retrieve and upload the RHEL image to test on a Cloud platform
+  * Create adequate network and security group on a Cloud platform
+  * For each version of Tower to test
+    * Create a virtual machine on the Cloud platform
+    * Configure the machine (rhsm, repo file, ...)
+    * Install proper version of Tower
+    * Run smoke tests
+
+The playbook can be found in `playbooks/rhel-prerelease-testing.yml`. This play requires a certain number of variables in order to run.
+
+
+| Name               | Description                                          | Example                                                                                                                                 |
+|--------------------|------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------|
+| rhel_cloud_image   | URL to retrieve the RHEL cloud image to test         | http://download-node-02.eng.bos.redhat.com/rel-eng/RHEL-7.6-Beta-1.2/compose/Server/x86_64/images/rhel-guest-image-7.6-140.x86_64.qcow2 |
+| supported_versions | List of Tower supported versions                     | ['devel', 3.3.0-1']                                                                                                                     |
+| node_flavor        | Flavor of the node to spawn on the Cloud platform    | m5.large                                                                                                                                |
+| node_keypair       | Keypair to associate to the node                     | mykeypair                                                                                                                               |
+| admin_password     | Admin password of the Tower instance                 | password                                                                                                                                |
+| pg_password        | Password of the PG database                          | password                                                                                                                                |
+| rhsm_username      | Subscription-manager username                        | jdoe@redhat.com                                                                                                                         |
+| rhsm_password      | Subscription-manager password                        | password                                                                                                                                |
+| rhsm_pool_ids      | Subscription-manager poold ids (Employee SKU wil do) | 890fewqrewqrew098                                                                                                                       |
+| working_dir        | Directory in which temp file will be downloaded      | /tmp                                                                                                                                    |
+
+Once the playbook finishes to run, one will have as many VM as supported_versions were specified - and smoke tests would have been run against each system.
+If the run of the playbook ended with no error, one is ready to signoff the RHEL pre-release version.
+
+
+The playbook currently relies on OpenStack modules, the controller node needs to be properly configured so that the module can interfact with the OpenStack platform.
+
+More infos:
+
+  * https://docs.ansible.com/ansible/2.6/modules/os_server_module.html#os-server-module
+  * https://docs.openstack.org/os-client-config/latest/user/configuration.html
+
+
+
+## Manual Process
+
+### Getting tower-qa
 
 Follow the steps in QE's [Getting Started Guide](docs/knowledge_base/getting_started.md#getting-started) to clone the tower-qa repo and create a virtualenv. Be sure to do this for each branch of tower-qa associated with a currently supported version of Tower. (Note that you will not need to follow any steps in the Getting Started Guide related to setting up / configuring Tower using Docker).
 
-## Downloading the RHEL image
+### Downloading the RHEL image
 
 * Connect to the Red Hat VPN
 * Open http://download-node-02.eng.bos.redhat.com/rel-eng/
@@ -25,7 +99,7 @@ Follow the steps in QE's [Getting Started Guide](docs/knowledge_base/getting_sta
 * Open http://download-node-02.eng.bos.redhat.com/rel-eng/CURRENT_RELEASE/compose/Server/x86_64/iso
 * Click on the `*dvd1.iso` file to begin the download. (e.g. http://download-node-02.eng.bos.redhat.com/rel-eng/RHEL-7.6-Beta-1.2/compose/Server/x86_64/iso/RHEL-7.6-20180814.0-Server-x86_64-dvd1.iso). Note that the download can take a while. You may want to do the download from Firefox which supports resuming downloads.
 
-## Creating a new VM in VirtualBox
+### Creating a new VM in VirtualBox
 
 * Download [VirtualBox](https://www.virtualbox.org/wiki/Downloads). Open VirtualBox.
 * Click on the New icon at top
@@ -37,14 +111,14 @@ Follow the steps in QE's [Getting Started Guide](docs/knowledge_base/getting_sta
 * Set the disk size to 20 GB (you can probably be more conservative than this if you want)
 * Click Create
 
-## Configuring VM to boot from RHEL CD
+### Configuring VM to boot from RHEL CD
 
 * Find your VM listed in VirtualBox. Click on the VM, then click on the Settings icon at top.
 * Click on the Storage icon.
 * Under Controller: IDE, click on the cd (titled 'Empty'). On the right-hand side, under the Attributes section, click on the cd image. Select Choose Virtual Optical Disk File... and select the `*.iso` image downloaded earlier. Click Open.
 * Click OK to exit the VM settings page.
 
-## Installing RHEL
+### Installing RHEL
 
 * Find your VM listed in VirtualBox. Click on the VM, then click on Start.
 * The VM should begin booting from the RHEL installation disk. Skip the integrity check at the beginning.
@@ -58,7 +132,7 @@ Follow the steps in QE's [Getting Started Guide](docs/knowledge_base/getting_sta
 * Click on User Creation. Enter a user name and password. Select Make this user administrator. Click Done.
 * The installation may only take about five minutes. When it is finished, click Reboot.
 
-## Enabling port forwarding, adding public key to VM
+### Enabling port forwarding, adding public key to VM
 
 * Find your VM listed in VirtualBox. Click on the VM, then click Settings.
 * Click on the Network icon.
@@ -72,13 +146,13 @@ Follow the steps in QE's [Getting Started Guide](docs/knowledge_base/getting_sta
 * Confirm that you can now log in to the VM without using a password.
 * Use `ssh-copy-id` to add your key for the root user as well.
 
-## Registering with access.redhat.com
+### Registering with access.redhat.com
 
 * Note: It can take access.redhat.com a few minutes to load sometimes, especially on the page listing subscriptions available to a user. Be patient, though, and the pages will eventually load. : /
 * Visit access.redhat.com and register using your redhat.com e-mail address
 * After registering, confirm that RHEL subscriptions are associated with your account by visiting access.redhat.com, clicking on My Subscriptions (towards the bottom), and clicking Inventory (just beneath the Subscription Utilization link). Search for Red Hat Enterprise Linux. Several subscriptions should be listed (e.g. Red Hat Enterprise Linux Developer Suite).
 
-## Registering system using subscription-manager
+### Registering system using subscription-manager
 
 * ssh to the VM
 * Run `sudo subscription-manager register`. When prompted, provide your username (i.e. access.redhat.com e-mail address) and password.
@@ -90,7 +164,7 @@ Product Name: Red Hat Enterprise Linux Server
 Status:       Subscribed
 ```
 
-## Creating a repo file to point to pre-release packages
+### Creating a repo file to point to pre-release packages
 
 * Log in to the VM and switch to the root account
 * cd /etc/yum.repos.d
@@ -106,7 +180,7 @@ gpgcheck = 0
 ```
 * Run `yum clean all` to clear yum's cache
 
-## Taking a snapshot of the VM
+### Taking a snapshot of the VM
 
 Save the current state of the VM so that the VM can be reverted in between Tower installations.
 
@@ -114,11 +188,11 @@ Save the current state of the VM so that the VM can be reverted in between Tower
 * With the VM still selected, click the Machine Tools icon (top-right) and select Snapshots
 * Click the Take icon. Give the snapshot a name (e.g. Fresh install)
 
-## Confirming which versions of Ansible are compatible with Tower
+### Confirming which versions of Ansible are compatible with Tower
 
 Before installing Tower (especially older versions of Tower), log in to access.redhat.com, then check the [Ansible / Tower support matrix](https://access.redhat.com/articles/3382771) to see which versions of Ansible are supported for a given version of Tower. You will need to make sure that the correct version of Ansible is used in the following section. (This will be specified using the `awx_setup_path` extravar passed to the `install-tower.yml` playbook).
 
-## Installing Tower
+### Installing Tower
 * Power on the VM (Note that in between reboots the VM's IP address may change. Re-run `ifconfig` on the host to search for a new address if you are unable to connect to the VM.
 * Activate the virtualenv for the tower-qa branch that corresponds to the version of tower you will be deploying (`master`, `release_3.2`, `release_3.1`, etc)
 * cd to your `tower-qa` checkout, create `playbooks/inventory-rhel-prelease` and provide connection information for your VM:
@@ -132,7 +206,7 @@ ansible-playbook -i playbooks/inventory -e @playbooks/inventory-virtualbox -e ou
 ```
 * Confirm that you can access the Tower UI (e.g. https://192.168.1.5:4444) and Tower API (e.g. https://192.168.1.5:4444/api/v2/). Make sure that you set `https` as the protocol when accessing tower's UI / API.
 
-## Running a smoke test
+### Running a smoke test
 
 * Activate the virtualenv corresponding to the version of Tower that you are testing.
 * Run `tkit -t https://192.168.1.5:4444 -l` (substituting in the correct address for your VM)
@@ -145,13 +219,13 @@ print(job.is_successful)
 ```
 * After confirming that the above returns `True`, open the Tower UI, navigate to the jobs page and check the job details page for the job that just completed to make sure that the Tower UI is rendering correctly.
 
-## Reverting VM / Installing other versions of Tower
+### Reverting VM / Installing other versions of Tower
 
 * After completing the above steps for one version of Tower, revert the VM image in VirtualBox to the snapshot taken earlier.
 * Locate the next release to test in the [Tower lifecycle page](https://access.redhat.com/support/policy/updates/ansible-tower). Switch to the `tower-qa` checkout and corresponding virtualenv for this release.
 * Repeat the steps for installing / testing Tower. When running the `ansible-playbook` command to run the Tower installation, be sure to update the `aw_repo_url` to the correct release URL. For help locating the URL for past / current releases, get in touch with a member of the Tower QE team.
 
-## Running Tower installs in parallel
+### Running Tower installs in parallel
 
 Like other hypervisors, VirtualBox supports cloning VMs. By cloning the base RHEL install, you can run different tower installations on the same host in parallel.
 
