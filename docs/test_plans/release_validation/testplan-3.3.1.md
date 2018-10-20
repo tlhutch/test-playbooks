@@ -21,53 +21,53 @@
 
 ## Regression
 
-1. [ ] UI regression completed
-2. [ ] API regression completed - standalone
-3. [ ] API regression completed - traditional cluster
-4. [ ] API regression completed - OpenShift
+1. [x] [UI regression completed](https://docs.google.com/document/d/15G1lEhnvxyaDJKmtsJ0CkL-GY4Flig-J2PuIwwPojmc/edit#)
+2. [x] API regression completed - standalone
+3. [x] API regression completed - traditional cluster
+4. [x] API regression completed - OpenShift
 
 ### Installation
 
 1. Standalone installation completes successfully on all [supported platforms](https://docs.ansible.com/ansible-tower/3.3.0/html/installandreference/requirements_refguide.html)
-    * [ ] ubuntu-14.04
-    * [ ] ubuntu-16.04
-    * [ ] rhel-7.4
-    * [ ] rhel-7.5
-    * [ ] centos-7.latest
-    * [ ] ol-7.latest
+    * [x] ubuntu-14.04
+    * [x] ubuntu-16.04
+    * [x] rhel-7.4
+    * [x] rhel-7.5
+    * [x] centos-7.latest
+    * [x] ol-7.latest
 
 2. Cluster installation completes successfully on all [supported platforms](https://docs.ansible.com/ansible-tower/3.3.0/html/installandreference/requirements_refguide.html)
-    * [ ] ubuntu-16.04
-    * [ ] rhel-7.5
+    * [x] ubuntu-16.04
+    * [x] rhel-7.5
 
 3. Standalone installation completes successfully using [supported ansible releases](https://access.redhat.com/articles/3382771)
-    * [ ] ansible-2.7
-    * [ ] ansible-2.6
-    * [ ] ansible-2.5
-    * [ ] ansible-2.4
-    * [ ] ansible-2.3
+    * [x] ansible-2.7
+    * [x] ansible-2.6
+    * [x] ansible-2.5
+    * [x] ansible-2.4
+    * [x] ansible-2.3
 
 4. Cluster installation completes successfully using [supported ansible releases](https://access.redhat.com/articles/3382771)
-    * [ ] ansible-2.7
-    * [ ] ansible-2.6
-    * [ ] ansible-2.5
-    * [ ] ansible-2.4
-    * [ ] ansible-2.3
+    * [x] ansible-2.7
+    * [x] ansible-2.6
+    * [x] ansible-2.5
+    * [x] ansible-2.4
+    * [x] ansible-2.3
 
 5. Bundled installation completes successfully on all [supported platforms](https://docs.ansible.com/ansible-tower/3.3.0/html/installandreference/tower_installer.html#bundled-install)
-    * [ ] rhel-7.4
-    * [ ] rhel-7.5
-    * [ ] centos-7.latest
-    * [ ] ol-7.latest
+    * [x] rhel-7.4
+    * [x] rhel-7.5
+    * [x] centos-7.latest
+    * [x] ol-7.latest
 
-6. [ ] Bundled installation completes successfully for clustered deployment
+6. [x] Bundled installation completes successfully for clustered deployment
 
 ### Upgrades
 
-1. [ ] Upgrade completes on all supported platforms from Tower-3.2.7 - standalone
-2. [ ] Upgrade completes on all supported platforms from Tower-3.3.0 - standalone
-3. [ ] Upgrade completes from RHEL 7.5 from Tower-3.3.0 - cluster
-3. [ ] Upgrade completes from Tower-3.3.0 - OpenShift
+1. [x] Upgrade completes on all supported platforms from Tower-3.2.7 - standalone
+2. [x] Upgrade completes on all supported platforms from Tower-3.3.0 - standalone
+3. [x] Upgrade completes from RHEL 7.5 from Tower-3.3.0 - cluster
+3. [x] Upgrade completes from Tower-3.3.0 - OpenShift
 
 Verify the following functionality after upgrade:
 
@@ -80,9 +80,5 @@ Verify the following functionality after upgrade:
 
 1. Installation completes successfully on supported images;
 
-    * [ ] AMI (unlicensed)
-    * [ ] Vagrant
-
-### Misc
-
-1. [ ] Archive result from the sign-off run and attach them in here.
+    * [x] AMI (unlicensed)
+    * [x] Vagrant
