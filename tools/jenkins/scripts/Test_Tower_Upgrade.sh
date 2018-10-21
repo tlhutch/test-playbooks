@@ -67,7 +67,7 @@ fi
 if [ "$INSTALL" = true ]; then
     echo "### Install ###"
     #trap reap_instances EXIT
-    ansible-playbook ${VERBOSITY} -i playbooks/inventory -e @install_vars.yml playbooks/deploy-tower.yml | tee 01-install.log
+    ansible-playbook ${VERBOSITY} -i playbooks/inventory -e @install_vars.yml playbooks/${TOWER_INSTALL_PLAYBOOK} | tee 01-install.log
 fi
 
 
@@ -101,7 +101,7 @@ fi
 
 if [ "$UPGRADE" = true ]; then
     echo "### Upgrade ###"
-    ansible-playbook ${VERBOSITY} -i playbooks/inventory -e @upgrade_vars.yml playbooks/deploy-tower.yml | tee 03-upgrade.log
+    ansible-playbook ${VERBOSITY} -i playbooks/inventory -e @upgrade_vars.yml playbooks/${TOWER_INSTALL_PLAYBOOK} | tee 03-upgrade.log
 fi
 
 
