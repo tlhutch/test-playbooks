@@ -43,3 +43,12 @@ Then each minor releases have their own branch `release_3.3.1`, `release_3.2.8`,
 As soon as a new minor release is actually released a new branch is created `release X.Y.z+1`.
 
 When making a PR to `ansible/tower-qa` please think about if this contribution makes sense to be backported to currently active release branches.
+
+
+## Running tests locally
+
+As a contributor, you can run part of the tests suite run by Jenkins locally.
+
+In order to do so, you need to have `tox` installed.
+
+Then at the root of this repository simply run `tox`
