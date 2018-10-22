@@ -20,6 +20,10 @@ export ANSIBLE_TIMEOUT=30
 export ANSIBLE_PACKAGE_NAME="ansible"
 export PYTHONUNBUFFERED=1
 
+if [[ ${TOWER_INSTALL_PLAYBOOK#*/} == "deploy-tower-cluster.yml" ]]; then
+    export CLUSTER_SETUP=True
+fi
+
 
 if [[ "${VERBOSE}" == true ]]; then
     VERBOSITY="-vvvv"
@@ -30,7 +34,7 @@ fi
 
 env
 
-
+python scripts/cloud_vars_from_env.py --cloud-provider ${CLOUD_PROVIDER} --image-vars ${IMAGES_FILE_PATH} --platform ${PLATFORM} > cloud_vars.yml
 
 cat << EOF > install_vars.yml
 ---
@@ -45,7 +49,6 @@ delete_on_start: ${DELETE_ON_INSTALL}
 create_ec2_assign_public_ip: true
 create_ec2_vpc_id: vpc-552da032
 create_ec2_vpc_subnet_id: subnet-9cdddbb0
-ec2_images: `scripts/image_deploy_vars.py --cloud_provider ${CLOUD_PROVIDER} --platform ${PLATFORM} --ansible_version ${ANSIBLE_BRANCH} --groups tower`
 instance_name_prefix: ${INSTANCE_NAME_PREFIX}-ansible-${ANSIBLE_BRANCH}
 minimum_var_space: 0
 pg_password: ${AWX_PG_PASSWORD}
@@ -67,7 +70,7 @@ fi
 if [ "$INSTALL" = true ]; then
     echo "### Install ###"
     #trap reap_instances EXIT
-    ansible-playbook ${VERBOSITY} -i playbooks/inventory -e @install_vars.yml playbooks/${TOWER_INSTALL_PLAYBOOK} | tee 01-install.log
+    ansible-playbook ${VERBOSITY} -i playbooks/inventory -e @cloud_vars.yml -e @install_vars.yml ${TOWER_INSTALL_PLAYBOOK} | tee 01-install.log
 fi
 
 
@@ -87,7 +90,6 @@ aw_repo_url: ${UPGRADE_AW_REPO_URL}
 awx_setup_path: ${UPGRADE_AWX_SETUP_PATH}
 awx_upgrade: true
 delete_on_start: false
-ec2_images: `scripts/image_deploy_vars.py --cloud_provider ${CLOUD_PROVIDER} --platform ${PLATFORM} --ansible_version ${ANSIBLE_BRANCH} --groups tower`
 instance_name_prefix: ${INSTANCE_NAME_PREFIX}-ansible-${ANSIBLE_BRANCH}
 minimum_var_space: 0
 out_of_box_os: true
@@ -101,7 +103,7 @@ fi
 
 if [ "$UPGRADE" = true ]; then
     echo "### Upgrade ###"
-    ansible-playbook ${VERBOSITY} -i playbooks/inventory -e @upgrade_vars.yml playbooks/${TOWER_INSTALL_PLAYBOOK} | tee 03-upgrade.log
+    ansible-playbook ${VERBOSITY} -i playbooks/inventory -e @cloud_vars.yml -e @upgrade_vars.yml ${TOWER_INSTALL_PLAYBOOK} | tee 03-upgrade.log
 fi
 
 
