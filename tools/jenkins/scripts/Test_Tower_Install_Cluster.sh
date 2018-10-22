@@ -27,9 +27,11 @@ else
 INSTANCE_NAME_PREFIX="${INSTANCE_NAME_PREFIX}-ansible-${ANSIBLE_NIGHTLY_BRANCH}"
 fi
 
+python scripts/cloud_vars_from_env.py --cloud-provider ec2 --image-vars ${IMAGES_FILE_PATH} --platform ${PLATFORM} > cloud_vars.yml
+
 ansible-playbook \
 -i playbooks/inventory \
--e @${IMAGES_FILE_PATH} \
+-e @cloud_vars.yml \
 -e ec2_key_name=jenkins \
 -e ec2_public_key="{{ lookup('file', '~/.ssh/id_rsa.pub') }}" \
 -e delete_on_start=${DELETE_ON_START} \
