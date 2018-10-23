@@ -19,8 +19,8 @@ ec2_images:
     - {'name': 'cluster-5-rhel-7.5-x86_64', 'user': 'ec2-user', 'id': 'ami-0d70a070', 'type': 'm5.large', 'groups': 'tower, instance_group_ordinary_instances, instance_group_controller, instance_group_partition_2, instance_group_5, instance_group_7', 'security_group': 'tower-cluster'}
     - {'name': 'cluster-6-rhel-7.5-x86_64', 'user': 'ec2-user', 'id': 'ami-0d70a070', 'type': 'm5.large', 'groups': 'isolated_group_protected', 'controller': 'controller', 'security_group': 'tower-cluster'}
     - {'name': 'cluster-7-rhel-7.5-x86_64', 'user': 'ec2-user', 'id': 'ami-0d70a070', 'type': 'm5.large', 'groups': 'isolated_group_protected', 'controller': 'controller', 'security_group': 'tower-cluster'}
-    - {'name': 'cluster-pg-rhel-7.5.-x86_64', 'user': 'ec2-user', 'id': 'ami-0d70a070', 'type': 'm5.large', 'groups': 'database', 'security_group': 'tower-cluster'}
-    - {'name': 'cluster-managed-host-rhel-7.5.-x86_64', 'user': 'ec2-user', 'id': 'ami-0d70a070', 'type': 'm3.medium', 'groups': 'managed_hosts', 'security_group': 'tower-cluster'}
+    - {'name': 'cluster-pg-rhel-7.5-x86_64', 'user': 'ec2-user', 'id': 'ami-0d70a070', 'type': 'm5.large', 'groups': 'database', 'security_group': 'tower-cluster'}
+    - {'name': 'cluster-managed-host-rhel-7.5-x86_64', 'user': 'ec2-user', 'id': 'ami-0d70a070', 'type': 'm3.medium', 'groups': 'managed_hosts', 'security_group': 'tower-cluster'}
 
     - {'name': 'cluster-1-ubuntu-16.04-x86_64', 'user': 'ubuntu', 'id': 'ami-077b0e78', 'type': 'm5.large', 'groups': 'tower,cluster_installer,instance_group_ordinary_instance,instance_group_partition1,instance_group_1', 'security_group': 'tower-cluster', 'user_data': *install_py2 }
     - {'name': 'cluster-2-ubuntu-16.04-x86_64', 'user': 'ubuntu', 'id': 'ami-077b0e78', 'type': 'm5.large', 'groups': 'tower, instance_group_ordinary_instances, instance_group_partition_1, instance_group_2, instance_group_6', 'security_group': 'tower-cluster', 'user_data': *install_py2 }
