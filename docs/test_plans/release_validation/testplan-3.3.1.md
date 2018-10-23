@@ -15,6 +15,10 @@
 
 * TBD
 
+## Release prep
+
+- Give Shane / Christian heads up about upcoming release (so they can coordinate release work with Red Hat release team)
+
 ## Regression
 
 1. [ ] [UI regression completed](https://docs.google.com/document/d/15G1lEhnvxyaDJKmtsJ0CkL-GY4Flig-J2PuIwwPojmc/edit#)
