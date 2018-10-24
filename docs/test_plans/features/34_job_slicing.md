@@ -16,7 +16,7 @@ Slices do not share any information with each other, so stateful playbooks will 
 
 ## Basic CRUD Operations
 
-- [ ] Slice parameter can be set on job templates
+- [x] Slice parameter can be set on job templates
 - [ ] Sliced job results can be deleted
 - [ ] Job results for slices can be deleted
 - [ ] Search Results
@@ -52,7 +52,7 @@ Slices do not share any information with each other, so stateful playbooks will 
     - [ ] Inventories
     - [ ] Projects
     - [ ] Credential Passwords
-    - [ ] Survey Responses
+    - [x] Survey Responses
     - [ ] Custom Virtualenv
   - [ ] Extra Vars
   - [ ] Credentials
@@ -64,12 +64,12 @@ Slices do not share any information with each other, so stateful playbooks will 
   - [ ] Works
   - [ ] Does not create a workflow job
 - [ ] Simultaneous execution
-  - [ ] Can run simultaneously
+  - [x] Can run simultaneously
   - [ ] Won't run simultaneously if that is disabled
 - [ ] Notification templates only fire for the whole sliced job, as opposed to the slices
 - [ ] Relaunching
-  - [ ] Slices can be relaunced individually
-  - [ ] The entire sliced job can be relaunched
+  - [x] Slices can be relaunced individually
+  - [x] The entire sliced job can be relaunched
   - [ ] Values carried over to the relaunced job:
     - [ ] slice number
     - [ ] static fields
@@ -88,5 +88,5 @@ Slices do not share any information with each other, so stateful playbooks will 
   - [ ] Cancelling the sliced job cancels all slices
   - [ ] Canceling a slice does not cancel the entire job
 - [ ] Can be executed as part of a workflow
-- [ ] Can be scheduled
+- [x] Can be scheduled
 
