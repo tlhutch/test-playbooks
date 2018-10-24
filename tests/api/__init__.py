@@ -8,7 +8,7 @@ import contextlib
 import pytest
 
 
-error_pattern = re.compile('SchemaValidationError\:.*\n')
+error_pattern = re.compile(r'SchemaValidationError\:.*\n')
 
 
 @pytest.mark.api

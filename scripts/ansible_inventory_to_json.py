@@ -23,7 +23,7 @@ group_map = dict()
 # Get group names
 file = open(args.inventory_file, 'r')
 for line in file:
-    match = re.search('\[(.*)\]', line)
+    match = re.search(r'\[(.*)\]', line)
     if not match or 'vars' in match.group(1):
         continue
     if args.group_filter and not any(expr in match.group(1) for expr in args.group_filter.split(',')):

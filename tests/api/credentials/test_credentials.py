@@ -297,7 +297,7 @@ class TestCredentials(APITest):
         for kind in ('aws', 'azure_rm', 'gce', 'net', 'ssh'):
             factories.v2_credential(kind=kind)
 
-        encrypted_content_pat = re.compile('\$encrypted\$[a-zA-Z0-9$]*=*')
+        encrypted_content_pat = re.compile(r'\$encrypted\$[a-zA-Z0-9$]*=*')
         encrypted_content = encrypted_content_pat.findall(get_pg_dump())
         assert encrypted_content
 

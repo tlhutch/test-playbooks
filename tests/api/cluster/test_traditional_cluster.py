@@ -732,7 +732,7 @@ class TestTraditionalCluster(APITest):
                     # Ensure that we are getting actual output from the command
                     if not matches:
                         return False
-                    matches = re.search('running_nodes,\[([^\]]*)\]', stdout.replace('\n', ''))
+                    matches = re.search(r'running_nodes,\[([^\]]*)\]', stdout.replace('\n', ''))
                     # Ensure 'running_nodes' section isn't listed. Interpret this as either a) all nodes offline or
                     # b) this node is offline and cannot tell the state of the other nodes.
                     if matches is None:
