@@ -23,7 +23,7 @@ Slices do not share any information with each other, so stateful playbooks will 
   - [ ] Slices
   - [ ] Sliced Jobs
 - [x] Sliced Job Results can be viewed
-- [ ] Sliced Job Results can only be viewed by people with appropriate permissions
+- [x] Sliced Job Results can only be viewed by people with appropriate permissions
 
 ## Inventory
 
