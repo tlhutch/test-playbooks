@@ -17,12 +17,12 @@ Slices do not share any information with each other, so stateful playbooks will 
 ## Basic CRUD Operations
 
 - [x] Slice parameter can be set on job templates
-- [ ] Sliced job results can be deleted
-- [ ] Job results for slices can be deleted
+- [x] Sliced job results can be deleted
+- [x] Job results for slices can be deleted
 - [ ] Search Results
   - [ ] Slices
   - [ ] Sliced Jobs
-- [ ] Sliced Job Results can be viewed
+- [x] Sliced Job Results can be viewed
 - [ ] Sliced Job Results can only be viewed by people with appropriate permissions
 
 ## Inventory
