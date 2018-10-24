@@ -10,7 +10,7 @@ from tests.api import APITest
 
 from towerkit.rrule import RRule
 from towerkit.utils import poll_until
-from towerkit.exceptions import BadRequest, NotFound
+from towerkit.exceptions import BadRequest, NotFound, Forbidden
 
 
 log = logging.getLogger(__name__)
@@ -302,5 +302,33 @@ class TestJobTemplateSlicing(APITest):
         with pytest.raises(NotFound) as exc:
             slice_result.get()
         assert exc.value.message == {'detail': 'Not found.'}
+
+    @pytest.mark.mp_group('JobTemplateSharding', 'isolated_serial')
+    def test_job_template_slice_results_rbac(self, factories, v2, sliced_jt_factory):
+        """Tests that users without permission cannot read results from sliced jobs,
+           and that users with implicit permission can.
+        """
+        valid_user = factories.user()
+        invalid_user = factories.user()
+        jt = sliced_jt_factory(3)
+        jt.set_object_roles(valid_user, 'read')
+
+        workflow_job = jt.launch()
+        assert workflow_job.type == 'workflow_job'
+        workflow_job.wait_until_completed()
+        slice_result = v2.unified_jobs.get(unified_job_node__workflow_job=workflow_job.id).results[0]
+
+        with self.current_user(invalid_user):
+            with pytest.raises(Forbidden) as exc:
+                workflow_job.get()
+            assert exc.value.message == {'detail': 'You do not have permission to perform this action.'}
+
+            with pytest.raises(Forbidden) as exc:
+                slice_result.get()
+            assert exc.value.message == {'detail': 'You do not have permission to perform this action.'}
+
+        with self.current_user(valid_user):
+            assert workflow_job.get().id == workflow_job.id
+            assert slice_result.get().id == slice_result.id
 
     # TODO: (some kind of test for actual clusters, probably in job execution node assignment)
