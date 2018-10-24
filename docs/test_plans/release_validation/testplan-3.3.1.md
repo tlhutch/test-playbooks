@@ -21,7 +21,7 @@
 
 ## Regression
 
-1. [ ] [UI regression completed](https://docs.google.com/document/d/15G1lEhnvxyaDJKmtsJ0CkL-GY4Flig-J2PuIwwPojmc/edit#)
+1. [ ] UI regression completed
 2. [ ] API regression completed - standalone
 3. [ ] API regression completed - traditional cluster
 4. [ ] API regression completed - OpenShift
