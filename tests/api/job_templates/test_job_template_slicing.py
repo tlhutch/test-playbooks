@@ -10,7 +10,7 @@ from tests.api import APITest
 
 from towerkit.rrule import RRule
 from towerkit.utils import poll_until
-from towerkit.exceptions import BadRequest
+from towerkit.exceptions import BadRequest, NotFound
 
 
 log = logging.getLogger(__name__)
@@ -280,5 +280,27 @@ class TestJobTemplateSlicing(APITest):
         assert workflow_job.type == 'workflow_job'
         assert workflow_job.job_template == jt.id
         assert workflow_job.related.workflow_nodes.get().count == 3
+
+    @pytest.mark.mp_group('JobTemplateSharding', 'isolated_serial')
+    def test_job_template_slice_results_can_be_deleted(self, factories, v2, sliced_jt_factory):
+        """Tests that job results for sliced jobs can be deleted,
+           deleting the result for the workflow job does not
+           delete the slice results, and that slice results can be deleted.
+        """
+        jt = sliced_jt_factory(3)
+
+        workflow_job = jt.launch()
+        assert workflow_job.type == 'workflow_job'
+        workflow_job.wait_until_completed()
+        slice_result = v2.unified_jobs.get(unified_job_node__workflow_job=workflow_job.id).results[0]
+        workflow_job.delete()
+        with pytest.raises(NotFound) as exc:
+            workflow_job.get()
+        assert exc.value.message == {'detail': 'Not found.'}
+
+        slice_result.delete()
+        with pytest.raises(NotFound) as exc:
+            slice_result.get()
+        assert exc.value.message == {'detail': 'Not found.'}
 
     # TODO: (some kind of test for actual clusters, probably in job execution node assignment)
