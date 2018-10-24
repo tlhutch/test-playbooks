@@ -22,6 +22,9 @@ export PYTHONUNBUFFERED=1
 
 if [[ ${TOWER_INSTALL_PLAYBOOK#*/} == "deploy-tower-cluster.yml" ]]; then
     export CLUSTER_SETUP=True
+    LOAD_DATA_INVENTORY='playbooks/inventory.cluster'
+else
+    LOAD_DATA_INVENTORY='playbooks/inventory.log'
 fi
 
 
@@ -76,7 +79,7 @@ fi
 
 if [ "$LOAD_TOWER" = true ]; then
     echo "### Load Tower ###"
-    scripts/resource_loading/load_tower.py ${LOADING_ARGS} | tee 02-resource-loading.log
+    scripts/resource_loading/load_tower.py --inventory ${LOAD_DATA_INVENTORY} ${LOADING_ARGS} | tee 02-resource-loading.log
 fi
 
 
@@ -109,5 +112,5 @@ fi
 
 if [ "$VERIFY_RESOURCES" = true ]; then
 	echo "### Verify Loaded Resources ###"
-	scripts/resource_loading/verify_loaded_tower.py ${VERIFICATION_ARGS} | tee 04-resource-verification.log
+	scripts/resource_loading/verify_loaded_tower.py --inventory ${LOAD_DATA_INVENTORY} ${VERIFICATION_ARGS} | tee 04-resource-verification.log
 fi
