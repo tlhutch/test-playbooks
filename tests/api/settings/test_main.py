@@ -211,7 +211,7 @@ class TestGeneralSettings(APITest):
             stdout_page = unified_job_with_stdout.connection.get(
                 unified_job_with_stdout.related.stdout, query_parameters={'format': 'json'}
             ).json()['content']
-        assert re.search('^Standard Output too large to display \(\d+ bytes\), only download supported for sizes over 0 bytes.$',
+        assert re.search(r'^Standard Output too large to display \(\d+ bytes\), only download supported for sizes over 0 bytes.$',
                          stdout_page), \
             "Expected result_stdout error message not matched - %s." % stdout_page
         if unified_job_with_stdout.type != "system_job":

@@ -264,7 +264,7 @@ for name, desired_inventory_source in desired_inventory_sources.items():
         found_inventory_source = found_inventory_sources[desired_inventory_source.name]
     except KeyError:
         try:  # We need to filter by what the inventory source will likely be named in tower for implicit inv srcs
-            internal_name = re.compile('^{0} \({1}'.format(desired_inventory_source.group,
+            internal_name = re.compile(r'^{0} \({1}'.format(desired_inventory_source.group,
                                                            desired_inventory_source.name.split('/')[0]))
             source_name = filter(lambda x: internal_name.match(x), found_inventory_sources)[0]
             found_inventory_source = found_inventory_sources[source_name]

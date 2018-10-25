@@ -51,7 +51,7 @@ def get_test_results():
         build = job.get_build(id)
         output = build.get_console()
         if 'Started by timer' not in output:
-            user = re.search('Started by user ([\w ]+)', output).group(1)
+            user = re.search(r'Started by user ([\w ]+)', output).group(1)
             print 'Skipping {} (manually launched by {})'.format(build.name, user)
             continue
         runs = []
@@ -71,7 +71,7 @@ def get_test_results():
             desc = desc.lower()
             results = {'passed': 0, 'failed': 0, 'error': 0}
             for result in results:
-                res = re.search('(\d+) {}'.format(result), desc)
+                res = re.search(r'(\d+) {}'.format(result), desc)
                 if not res:
                     continue
                 results[result] = int(res.group(1))
