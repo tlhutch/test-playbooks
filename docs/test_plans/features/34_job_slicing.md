@@ -63,9 +63,9 @@ Slices do not share any information with each other, so stateful playbooks will 
 - [ ] Callback Provisioning
   - [ ] Works
   - [ ] Does not create a workflow job
-- [ ] Simultaneous execution
+- [x] Simultaneous execution
   - [x] Can run simultaneously
-  - [ ] Won't run simultaneously if that is disabled
+  - [x] Won't run simultaneously if that is disabled
 - [ ] Notification templates only fire for the whole sliced job, as opposed to the slices
 - [ ] Relaunching
   - [x] Slices can be relaunced individually
