@@ -82,7 +82,7 @@ Slices do not share any information with each other, so stateful playbooks will 
   - [ ] Inventory
   - [ ] Job Template
 - [ ] Sliced jobs can be executed with a custom virtualenv
-- [ ] When a job template is set to 0 or 1 slice, it launches as a regular job template
+- [x] When a job template is set to 0 or 1 slice, it launches as a regular job template
 - [ ] Auditors can view job results for sliced jobs
 - [ ] Cancellation
   - [ ] Cancelling the sliced job cancels all slices
