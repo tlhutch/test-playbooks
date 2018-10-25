@@ -4,6 +4,7 @@ import sys
 
 from towerkit.tower.license import generate_license
 from towerkit.utils import poll_until
+from towerkit.exceptions import BadRequest
 import pytest
 
 
@@ -15,7 +16,14 @@ log = logging.getLogger(__name__)
 # Refer to https://github.com/ansible/tower/issues/2375
 def apply_license_until_effective(config, license_info):
     log.info('Applying {} license...'.format(license_info['license_type']))
-    config.post(license_info)
+    try:
+        config.post(license_info)
+    except BadRequest:
+        if config.is_awx_license:
+            log.warn('Detected AWX instead of Tower, see README "Set up Tower-License module", proceed at own risk.')
+            return
+        else:
+            raise
     poll_until(lambda: config.get().license_info and config.license_info.license_key == license_info['license_key'],
                interval=1, timeout=90)
 
