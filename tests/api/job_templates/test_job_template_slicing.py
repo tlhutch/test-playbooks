@@ -72,6 +72,18 @@ class TestJobTemplateSlicing(APITest):
         assert do_all_jobs_overlap(jobs)
 
     @pytest.mark.mp_group('JobTemplateSharding', 'isolated_serial')
+    @pytest.mark.parametrize('slices', (0, 1))
+    def test_job_template_slice_zero_or_one_slice_does_not_run_as_workflow(self, factories, v2, do_all_jobs_overlap, sliced_jt_factory, slices):
+        """Tests that a slice value of "0" or "1" does not create a workflow job
+        """
+        jt = sliced_jt_factory(slices)
+
+        job = jt.launch()
+        assert job.type != 'workflow_job'
+        job.wait_until_completed()
+        assert job.is_successful
+
+    @pytest.mark.mp_group('JobTemplateSharding', 'isolated_serial')
     @pytest.mark.parametrize('allow_sim', (True, False))
     def test_job_template_slice_allow_simultaneous(self, factories, v2, do_all_jobs_overlap,
                                                    sliced_jt_factory, allow_sim):
