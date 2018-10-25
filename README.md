@@ -56,7 +56,9 @@ cd tower                      # or 'awx' -- the root directory of your cloned re
 git clone git@github.com:ansible/tower-license.git
 
 # exec back into the container to install tower-license module in the awx venv
-docker exec -it tools_awx_1 bash
+# It is necessary to provide the user id so you will have permission to write
+# to /venv/awx
+docker exec --user=0 -it tools_awx_1 bash
 source /venv/awx/bin/activate
 pip install awx_devel/tower-license/
 ```
