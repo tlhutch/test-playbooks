@@ -343,4 +343,37 @@ class TestJobTemplateSlicing(APITest):
             assert workflow_job.get().id == workflow_job.id
             assert slice_result.get().id == slice_result.id
 
+    @pytest.mark.mp_group('JobTemplateSharding', 'isolated_serial')
+    def test_job_template_slice_job_can_be_canceled(self, factories, v2, sliced_jt_factory):
+        """Test that cancelling a sliced job cancels all workflow nodes"""
+        jt = sliced_jt_factory(3, jt_kwargs=dict(playbook='sleep.yml', extra_vars={'sleep_interval': 15}))
+        workflow_job = jt.launch().wait_until_started()
+        slice_results = v2.unified_jobs.get(unified_job_node__workflow_job=workflow_job.id).results
+        [s.wait_for_job() for s in slice_results]
+        workflow_job.cancel().wait_until_status('canceled')
+        assert workflow_job.status == 'canceled'
+        for r in slice_results:
+            r.get().wait_until_status('canceled')
+            assert r.status == 'canceled'
+
+    @pytest.mark.mp_group('JobTemplateSharding', 'isolated_serial')
+    def test_job_template_slice_slices_can_be_canceled(self, factories, v2, sliced_jt_factory):
+        """Test that canceling an individual slice does not cancel the sliced job or other nodes"""
+        jt = sliced_jt_factory(3, jt_kwargs=dict(playbook='sleep.yml', extra_vars={'sleep_interval': 10}))
+        workflow_job = jt.launch()
+        workflow_job.wait_until_status('running')
+        job_slices = workflow_job.related.workflow_nodes.get().results
+        assert workflow_job.status == 'running'
+        canceled_slice = job_slices[0]
+        canceled_slice.wait_for_job(timeout=60)
+        canceled_slice_job = canceled_slice.related.job.get()
+        canceled_slice_job.cancel().wait_until_status('canceled')
+        assert canceled_slice_job.get().status == 'canceled'
+        for s in job_slices[1:]:
+            s.wait_for_job(timeout=60)
+            j = s.related.job.get()
+            j.wait_until_completed()
+            assert j.is_successful
+        assert workflow_job.get().status == 'failed'
+
     # TODO: (some kind of test for actual clusters, probably in job execution node assignment)
