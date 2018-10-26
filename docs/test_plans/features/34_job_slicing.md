@@ -56,8 +56,9 @@ Slices do not share any information with each other, so stateful playbooks will 
   - [ ] Credentials
   - [ ] Forks
   - [ ] Show Changes
-  - [ ] Verbosity
-  - [ ] Allow Simultaneous
+  - [x] Verbosity
+  - [x] Allow Simultaneous
+  - [x] Timeout
 - [ ] Callback Provisioning
   - [ ] Works
   - [ ] Does not create a workflow job
