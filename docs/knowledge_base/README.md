@@ -29,3 +29,8 @@ For any feedback/comment please email <ansible-tower-qe@redhat.com>.
 
   * [Writing tickets](tickets.md)
   * [Writing tests](test_writing.md)
+
+
+## Ongoing efforts
+
+  * [RHEL8 testing](rhel8_testing.md)
