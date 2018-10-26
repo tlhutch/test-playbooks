@@ -27,11 +27,9 @@ Slices do not share any information with each other, so stateful playbooks will 
 
 ## Inventory
 
-- [ ] Script Endpoint
-  - [ ] Arbitrary slices can be created with the script endpoint (`/api/v2/inventories/N/script/?hostvars=1&subset=split2of3`)
-  - [ ] Inventory Group membership is reflected in slices
-  - [ ] Smart Inventories can be sliced
-  - [ ] Slices are consistent between runs
+- [ ] Inventory Group membership is reflected in slices
+- [ ] Smart Inventories can be sliced
+- [ ] Slices are consistent between runs
 - [ ] Sliced jobs work with large inventories
   - [ ] 5000
   - [ ] 10000
@@ -40,7 +38,7 @@ Slices do not share any information with each other, so stateful playbooks will 
 
 ## Workflows
 
-- [ ] Sliced Job Templates can be used as part of a Workflow Job Template
+- [x] Sliced Job Templates can be used as part of a Workflow Job Template
 - [ ] Workflow Jobs using a sliced job template can be cancelled
 - [ ] Workflow Jobs using a sliced job template can be relaunched
 
