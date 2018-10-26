@@ -47,7 +47,7 @@
 
 - name: On isolated_group_protected, enable ssh traffic from controller instances
   firewalld:
-    rich_rule: 'rule family="ipv4" source address="{{ hostvars[item].ansible_default_ipv4.address }}/32" port protocol="tcp" port="22" accept'
+    rich_rule: 'rule family="ipv4" source address="{{ hostvars[item].ipify_public_ip }}/32" port protocol="tcp" port="22" accept'
     zone: public
     state: enabled
     permanent: true
@@ -57,7 +57,7 @@
 
 - name: On managed hosts, enable ssh traffic from isolated_group_protected
   firewalld:
-    rich_rule: 'rule family="ipv4" source address="{{ hostvars[item].ansible_default_ipv4.address }}/32" port protocol="tcp" port="22" accept'
+    rich_rule: 'rule family="ipv4" source address="{{ hostvars[item].ipify_public_ip }}/32" port protocol="tcp" port="22" accept'
     zone: public
     state: enabled
     permanent: true

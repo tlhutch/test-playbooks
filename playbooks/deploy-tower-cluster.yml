@@ -7,6 +7,11 @@
     - role: save_inventory
       my_inventory_file: '{{inventory_dir}}/inventory.cluster'
 
+- name: Retrieve Public IPs of all instances
+  hosts: all
+  tasks:
+    - ipify_facts:
+
 - name: 'Add authorized keys on non-installer instances'
   hosts: 'tower:instance_group_*:database:haproxy:managed_hosts:!cluster_installer'
   roles:
