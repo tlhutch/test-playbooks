@@ -84,9 +84,9 @@ Slices do not share any information with each other, so stateful playbooks will 
 - [ ] Sliced jobs can be executed with a custom virtualenv
 - [x] When a job template is set to 0 or 1 slice, it launches as a regular job template
 - [ ] Auditors can view job results for sliced jobs
-- [ ] Cancellation
-  - [ ] Cancelling the sliced job cancels all slices
-  - [ ] Canceling a slice does not cancel the entire job
+- [x] Cancellation
+  - [x] Cancelling the sliced job cancels all slices
+  - [x] Canceling a slice does not cancel the entire job
 - [ ] Can be executed as part of a workflow
 - [x] Can be scheduled
 
