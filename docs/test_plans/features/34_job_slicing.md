@@ -19,9 +19,7 @@ Slices do not share any information with each other, so stateful playbooks will 
 - [x] Slice parameter can be set on job templates
 - [x] Sliced job results can be deleted
 - [x] Job results for slices can be deleted
-- [ ] Search Results
-  - [ ] Slices
-  - [ ] Sliced Jobs
+- [ ] Job Results for slices are viewable when the workflow job is deleted
 - [x] Sliced Job Results can be viewed
 - [x] Sliced Job Results can only be viewed by people with appropriate permissions
 
@@ -29,11 +27,6 @@ Slices do not share any information with each other, so stateful playbooks will 
 
 - [ ] Inventory Group membership is reflected in slices
 - [ ] Smart Inventories can be sliced
-- [ ] Slices are consistent between runs
-- [ ] Sliced jobs work with large inventories
-  - [ ] 5000
-  - [ ] 10000
-  - [ ] 20000
 - [ ] Hosts will not appear in more than one slice
 
 ## Workflows
@@ -65,27 +58,21 @@ Slices do not share any information with each other, so stateful playbooks will 
 - [x] Simultaneous execution
   - [x] Can run simultaneously
   - [x] Won't run simultaneously if that is disabled
-- [ ] Notification templates only fire for the whole sliced job, as opposed to the slices
 - [ ] Relaunching
   - [x] Slices can be relaunced individually
   - [x] The entire sliced job can be relaunched
   - [ ] Values carried over to the relaunced job:
     - [ ] slice number
     - [ ] static fields
-- [ ] Projects and Inventories that update on launch only do so for the workflow job
-- [ ] Failure
-  - [ ] Failed when all workflow nodes are failed
-  - [ ] If a single slice fails, the others keep running
 - [ ] Instance group settings are respected at all levels
   - [ ] Organization
   - [ ] Inventory
   - [ ] Job Template
 - [ ] Sliced jobs can be executed with a custom virtualenv
 - [x] When a job template is set to 0 or 1 slice, it launches as a regular job template
-- [ ] Auditors can view job results for sliced jobs
 - [x] Cancellation
   - [x] Cancelling the sliced job cancels all slices
   - [x] Canceling a slice does not cancel the entire job
-- [ ] Can be executed as part of a workflow
+- [x] Can be executed as part of a workflow
 - [x] Can be scheduled
 
