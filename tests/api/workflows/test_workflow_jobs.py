@@ -292,9 +292,7 @@ class Test_Workflow_Jobs(APITest):
         if job_node.job is None:
             return  # cancel happened before nodes spawned, this is fine
         job = job_node.get_related('job')
-        # If job does not cancel within 1 min, that means that cancel
-        # was never propagated from the workflow job
-        poll_until(lambda: job.get().status == 'canceled', timeout=60)
+        assert job.get().status == 'canceled'
         assert job.created < wfj.finished
 
     def test_cancel_workflow_job(self, factories):
