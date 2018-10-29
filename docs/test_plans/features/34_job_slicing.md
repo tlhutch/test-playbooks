@@ -19,7 +19,7 @@ Slices do not share any information with each other, so stateful playbooks will 
 - [x] Slice parameter can be set on job templates
 - [x] Sliced job results can be deleted
 - [x] Job results for slices can be deleted
-- [ ] Job Results for slices are viewable when the workflow job is deleted
+- [x] Job Results for slices are viewable when the workflow job is deleted
 - [x] Sliced Job Results can be viewed
 - [x] Sliced Job Results can only be viewed by people with appropriate permissions
 
@@ -52,9 +52,9 @@ Slices do not share any information with each other, so stateful playbooks will 
   - [x] Verbosity
   - [x] Allow Simultaneous
   - [x] Timeout
-- [ ] Callback Provisioning
-  - [ ] Works
-  - [ ] Does not create a workflow job
+- [x] Callback Provisioning
+  - [x] Works
+  - [x] Does not create a workflow job
 - [x] Simultaneous execution
   - [x] Can run simultaneously
   - [x] Won't run simultaneously if that is disabled
