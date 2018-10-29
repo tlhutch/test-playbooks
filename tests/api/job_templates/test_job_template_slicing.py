@@ -314,7 +314,7 @@ class TestJobTemplateSlicing(APITest):
         with pytest.raises(NotFound) as exc:
             slice_result.get()
         assert exc.value.message == {'detail': 'Not found.'}
-        
+
     @pytest.mark.mp_group('JobTemplateSharding', 'isolated_serial')
     def test_job_template_slice_results_readable_when_workflow_is_deleted(self, factories, v2, sliced_jt_factory):
         """Test that results for individual slices can still be obtained if the
