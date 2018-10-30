@@ -25,7 +25,6 @@ Slices do not share any information with each other, so stateful playbooks will 
 
 ## Inventory
 
-- [ ] Inventory Group membership is reflected in slices
 - [ ] Smart Inventories can be sliced
 - [ ] Hosts will not appear in more than one slice
 
@@ -38,8 +37,8 @@ Slices do not share any information with each other, so stateful playbooks will 
 ## Execution
 - [ ] Job Template Parameters are applied to all slices
   - [ ] Prompts
-    - [ ] Credentials
-    - [ ] Limits (note: may result in 0 host slices)
+    - [x] Credentials
+    - [x] Limits (note: may result in 0 host slices)
     - [ ] Inventories
     - [ ] Projects
     - [ ] Credential Passwords
@@ -58,12 +57,9 @@ Slices do not share any information with each other, so stateful playbooks will 
 - [x] Simultaneous execution
   - [x] Can run simultaneously
   - [x] Won't run simultaneously if that is disabled
-- [ ] Relaunching
+- [x] Relaunching
   - [x] Slices can be relaunced individually
   - [x] The entire sliced job can be relaunched
-  - [ ] Values carried over to the relaunced job:
-    - [ ] slice number
-    - [ ] static fields
 - [ ] Instance group settings are respected at all levels
   - [ ] Organization
   - [ ] Inventory
