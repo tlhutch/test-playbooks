@@ -4,10 +4,21 @@ def TOWER_BRANCH
 def TOWER_PACKAGING_BRANCH
 def NIGHTLY_REPO_DIR
 def TOWER_QA_BRANCH
+def TOWERKIT_BRANCH
 def TEST_TOWER_INSTALL_BUILD_ID = 'lastBuild'
+def NIGHTLY_BRANCH_COMBINATION = 'stable-2.6,PLATFORM=rhel-7.5-x86_64,label=jenkins-jnlp-agent'
+def PARALLELIZE = ''
 
 stage ('Prepare Build') {
   node('master') {
+      
+if (params.PARALLEL) {
+    PARALLELIZE = '--mp --np 4'
+    echo "Parallel forks set to ${params.PARALLEL}"
+    } else {
+      echo "Running tests in serial"
+    }
+      
     TOWER_BRANCH_NAME = sh (
       returnStdout: true,
       script: 'echo ${TOWER_BRANCH##*/}'
@@ -21,6 +32,11 @@ stage ('Prepare Build') {
     TOWER_QA_BRANCH_NAME = sh (
       returnStdout: true,
       script: 'echo ${TOWER_QA_BRANCH##*/}'
+    ).trim()
+    
+    TOWERKIT_BRANCH_NAME = sh (
+      returnStdout: true,
+      script: 'echo ${TOWERKIT_BRANCH##*/}'
     ).trim()
 
     NIGHTLY_REPO_DIR = "${params.TOWER_BRANCH}-${BUILD_ID}"
@@ -77,7 +93,7 @@ stage('Install Tower') {
             name: 'config',
             description: '',
             combinations: [
-              "ANSIBLE_NIGHTLY_BRANCH=stable-2.6,PLATFORM=${params.PLATFORM},label=jenkins-jnlp-agent"
+              "ANSIBLE_NIGHTLY_BRANCH=${NIGHTLY_BRANCH_COMBINATION}"
             ],
           ]
         ]
@@ -90,27 +106,58 @@ stage('Install Tower') {
   }
 }
 
-stage('Test Tower') {
+stage('Test Tower Integration') {
   node {
     if (params.RUN_TESTS) {
       build(
-        job: 'Test_Tower_Integration_CA_Test',
+        job: 'Test_Tower_Integration',
         parameters: [
           string(name: 'TESTEXPR', value: "${params.TESTEXPR}"),
           string(name: 'TEST_TOWER_INSTALL_BUILD', value: "${TEST_TOWER_INSTALL_BUILD_ID}"),
+          booleanParam(name: 'DESTROY_TEST_INSTANCE', value: false),
           string(name: 'TOWERQA_GIT_BRANCH', value: "origin/${TOWER_QA_BRANCH_NAME}"),
+          string(name: 'TOWERKIT_GIT_BRANCH', value: "${TOWERKIT_BRANCH_NAME}"),
           [
             $class: 'MatrixCombinationsParameterValue',
             name: 'config',
             description: '',
             combinations: [
-              "ANSIBLE_NIGHTLY_BRANCH=stable-2.6,PLATFORM=${params.PLATFORM},label=jenkins-jnlp-agent"
+              "ANSIBLE_NIGHTLY_BRANCH=${NIGHTLY_BRANCH_COMBINATION}"
             ],
           ]
         ]
       )
     } else {
-      echo "Skipped tests"
+      echo "Skipped integration tests"
+    }
+  }
+}
+stage('Test Tower E2E') {
+  node {
+    if (params.RUN_E2E) {
+      copyArtifacts(
+        projectName: "Test_Tower_Install/ANSIBLE_NIGHTLY_BRANCH=${NIGHTLY_BRANCH_COMBINATION}",
+        filter: '.tower_url',
+        fingerprintArtifacts: true,
+        flatten: true,
+        selector: specific(TEST_TOWER_INSTALL_BUILD_ID)
+      )
+      script {
+        AWX_E2E_URL = readFile '.tower_url'
+      }
+      echo "Running e2e tests against ${AWX_E2E_URL}"
+      retry(2) {
+        build(
+          job: 'Test_Tower_E2E',
+          parameters: [
+            string(name: 'AWX_E2E_URL', value: "https://${AWX_E2E_URL}"),
+            string(name: 'TOWER_REPO', value: "git@github.com:${params.TOWER_FORK}/${params.PRODUCT}.git"),
+            string(name: 'TOWER_BRANCH_NAME', value: "${TOWER_BRANCH_NAME}")
+          ]
+        )
+      }
+    } else {
+      echo "Skipped E2E tests"
     }
   }
 }
