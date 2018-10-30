@@ -31,11 +31,12 @@ class TestJobTemplateSlicing(APITest):
             jt = factories.v2_job_template(job_slice_count=ct, **jt_kwargs)
             inventory = jt.ds.inventory
             hosts = []
-            for i in range(host_ct):
-                hosts.append(inventory.related.hosts.post(payload=dict(
-                    name='foo{}'.format(i),
-                    variables='ansible_connection: local'
-                )))
+            if 'inventory' not in jt_kwargs:
+                for i in range(host_ct):
+                    hosts.append(inventory.related.hosts.post(payload=dict(
+                        name='foo{}'.format(i),
+                        variables='ansible_connection: local'
+                    )))
             return jt
         return r
 
@@ -392,4 +393,20 @@ class TestJobTemplateSlicing(APITest):
             assert j.is_successful
         assert workflow_job.get().status == 'failed'
 
-    # TODO: (some kind of test for actual clusters, probably in job execution node assignment)
+    def test_job_template_slice_with_smart_inventory(self, factories, v2, sliced_jt_factory):
+        inventory = factories.v2_inventory()
+
+        for n in range(9):
+            factories.v2_host(name="test_host_{0}".format(
+                str(n)), inventory=inventory)
+            factories.v2_host(name="excluded_host_{0}".format(
+                str(n)), inventory=inventory)
+        smart_inventory = factories.v2_inventory(organization=inventory.ds.organization, host_filter="search=test_host",
+                                                 kind="smart")
+        jt = sliced_jt_factory(3, jt_kwargs=dict(inventory=smart_inventory))
+        workflow_job = jt.launch()
+        assert workflow_job.type == 'workflow_job'
+        workflow_job.wait_until_completed()
+        assert workflow_job.is_successful
+        for job in v2.unified_jobs.get(unified_job_node__workflow_job=workflow_job.id).results:
+            assert job.get().host_status_counts['ok'] == 3
