@@ -277,7 +277,7 @@ class Test_Job(APITest):
         # assert expected values in response
         expected_passwords = result['credential_passwords'][0].split(':')[1]
         expected_password_list = expected_passwords.replace(' ', '').split(',')
-        assert credential.expected_passwords_needed_to_start == expected_password_list
+        assert sorted(credential.expected_passwords_needed_to_start) == sorted(expected_password_list)
 
     def test_relaunch_uses_extra_vars_from_job(self, job_with_extra_vars):
         """Verify that when you relaunch a job containing extra_vars in the

@@ -48,8 +48,8 @@ class TestJobTemplateExtraVars(APITest):
         jt = factories.v2_job_template()
         for invalid, message in (
                 ('"{"', 'Input type `str` is not a dictionary'),
-                (('a', 'b'), 'No JSON object could be decoded'),
-                (('one=1', 'two=2'), 'No JSON object could be decoded'),
+                (('a', 'b'), 'Cannot parse as JSON'),
+                (('one=1', 'two=2'), 'Cannot parse as JSON'),
                 (0, 'Input type `int` is not a dictionary'),
                 (0.1, 'Input type `float` is not a dictionary'),
                 (True, 'Input type `bool` is not a dictionary'),
