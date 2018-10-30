@@ -25,7 +25,7 @@ Slices do not share any information with each other, so stateful playbooks will 
 
 ## Inventory
 
-- [ ] Smart Inventories can be sliced
+- [x] Smart Inventories can be sliced
 - [ ] Hosts will not appear in more than one slice
 
 ## Workflows
