@@ -208,7 +208,6 @@ class Test_Workflow_Job_Template_RBAC(APITest):
             with pytest.raises(Forbidden):
                 other_wfjt.delete()
 
-    @pytest.mark.github('https://github.com/ansible/awx/issues/2256')
     @pytest.mark.parametrize('source', (
         'workflow',  # tests use role needed for applying inventory to WFJT
         'prompt',    # tests use role needed for launching
@@ -232,7 +231,6 @@ class Test_Workflow_Job_Template_RBAC(APITest):
                 else:
                     wfjt.inventory = inventory.id
 
-    @pytest.mark.github('https://github.com/ansible/awx/issues/2256')
     def test_user_with_execute_can_use_wfjt_with_inventory(self, factories):
         inventory = factories.inventory()
         wfjt = factories.workflow_job_template(inventory=inventory)
