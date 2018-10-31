@@ -51,3 +51,45 @@ class TestClusterCommon(APITest):
         assert use_facts_job.result_stdout.count(ansible_facts.ansible_distribution) == 1
         assert use_facts_job.result_stdout.count(ansible_facts.ansible_machine) == 1
         assert use_facts_job.result_stdout.count(ansible_facts.ansible_system) == 1
+
+    @pytest.mark.mp_group('JobTemplateSlicing', 'isolated_serial')
+    def test_sliced_job_ordinary_instances(self, v2, factories):
+        # obtain all ordinary (non-isolated) instances, put in instance group
+        instances = v2.instances.get(rampart_groups__controller__isnull=True, page_size=200, capacity__gt=0).results
+        ct = len(instances)
+        cap_dict = {}
+        ig = factories.instance_group()
+        for inst in instances:
+            inst.percent_capacity_remaining == 100.0
+            cap_dict[inst.hostname] = inst.capacity
+            ig.add_instance(inst)
+        available_hostnames = set(inst.hostname for inst in instances)
+
+        # duplicated with sliced_jt_factory fixture
+        jt = factories.v2_job_template(job_slice_count=ct, playbook='sleep.yml', extra_vars='{"sleep_interval": 120}')
+        jt.add_instance_group(ig)
+        inventory = jt.ds.inventory
+        for i in range(ct):
+            inventory.related.hosts.post(payload=dict(
+                name='foo{}'.format(i),
+                variables='ansible_connection: local'
+            ))
+
+        # put the sharded job and joblets into stable running state
+        workflow_job = jt.launch()
+        assert workflow_job.type == 'workflow_job'
+        nodes = workflow_job.get_related('workflow_nodes').results
+
+        # verify expectations for this cluster state
+        working_hostnames = set([])
+        for node in nodes:
+            job = node.wait_for_job().get_related('job')
+            job.wait_until_status(['running'])
+            assert job.instance_group == ig.id
+            working_hostnames.add(job.execution_node)
+        assert working_hostnames == available_hostnames  # jobs distribute evenly
+        instances = ig.get_related('instances', page_size=200).results  # refresh capacity
+        assert [inst.consumed_capacity for inst in instances] == [2 for i in range(ct)], (
+            'Expected all instances used by sliced job to consume 2 units of capacity. '
+            'List of all instances:\n{}'.format(instances)
+        )

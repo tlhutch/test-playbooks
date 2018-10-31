@@ -319,6 +319,32 @@ class TestJobTemplateCallbacks(APITest):
         assert job.is_successful
 
     @pytest.mark.skip_openshift
+    def test_provision_with_split_job(self, ansible_runner, job_template,
+                                      host_with_default_ipv4_in_variables, host_config_key, callback_host):
+        """Verify callbacks are functional even with JTs which are split JTs."""
+        job_template.host_config_key = host_config_key
+        assert job_template.ds.inventory.get_related('hosts').count == 2
+        job_template.job_slice_count = 2
+
+        contacted = ansible_runner.uri(method="POST", timeout=90, status_code=httplib.CREATED,
+                                       url='{0}{1.related.callback}'.format(callback_host, job_template),
+                                       body_format='json', validate_certs=False,
+                                       body=dict(host_config_key=host_config_key))
+
+        result = contacted.values().pop()
+        assert result['status'] == httplib.CREATED
+        assert not result['changed']
+        assert not result.get('failed')
+
+        job_id = result['location'].split('jobs/')[1].split('/')[0]
+        job = job_template.related.jobs.get(id=job_id).results.pop().wait_until_completed()
+        assert job.type == 'job'  # not a workflow_job
+        assert job.launch_type == "callback"
+        assert job.is_successful
+        assert job.limit == 'local' if 'localhost' in callback_host else host_with_default_ipv4_in_variables.name
+        assert job.get_related('job_host_summaries').count == 1  # double-check that only ran against 1 host
+
+    @pytest.mark.skip_openshift
     def test_provision_job_template_with_limit(self, api_jobs_url, ansible_runner, job_template_with_random_limit,
                                                host_with_default_ipv4_in_variables, host_config_key, callback_host):
         """Assert that launching a callback job against a job_template with an
