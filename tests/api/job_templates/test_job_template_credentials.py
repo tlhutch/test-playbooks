@@ -139,7 +139,7 @@ class TestJobTemplateLaunchCredentials(APITest):
         """
         factories.host(inventory=job_template_prompt_for_credential.ds.inventory)
         assert job_template_prompt_for_credential.ds.inventory.get_related('hosts').count == 2
-        job_template_prompt_for_credential.job_shard_count = 2
+        job_template_prompt_for_credential.job_slice_count = 2
         wfj = job_template_prompt_for_credential.launch(dict(credential=ssh_credential_ask.id,
                                                         ssh_password=config.credentials.ssh.password,
                                                         ssh_key_unlock=config.credentials.ssh.encrypted.ssh_key_unlock,

@@ -40,7 +40,7 @@ class TestJobTemplateSlicing(APITest):
             return jt
         return r
 
-    @pytest.mark.mp_group('JobTemplateSharding', 'isolated_serial')
+    @pytest.mark.mp_group('JobTemplateSlicing', 'isolated_serial')
     def test_job_template_slice_run(self, factories, v2, do_all_jobs_overlap, sliced_jt_factory):
         """Tests that a job template is split into multiple jobs
         and that those run against a 1/3rd subset of the inventory
@@ -72,7 +72,7 @@ class TestJobTemplateSlicing(APITest):
 
         assert do_all_jobs_overlap(jobs)
 
-    @pytest.mark.mp_group('JobTemplateSharding', 'isolated_serial')
+    @pytest.mark.mp_group('JobTemplateSlicing', 'isolated_serial')
     @pytest.mark.parametrize('slices', (0, 1))
     def test_job_template_slice_zero_or_one_slice_does_not_run_as_workflow(self, factories, v2, do_all_jobs_overlap, sliced_jt_factory, slices):
         """Tests that a slice value of "0" or "1" does not create a workflow job
@@ -84,7 +84,7 @@ class TestJobTemplateSlicing(APITest):
         job.wait_until_completed()
         assert job.is_successful
 
-    @pytest.mark.mp_group('JobTemplateSharding', 'isolated_serial')
+    @pytest.mark.mp_group('JobTemplateSlicing', 'isolated_serial')
     @pytest.mark.parametrize('allow_sim', (True, False))
     def test_job_template_slice_allow_simultaneous(self, factories, v2, do_all_jobs_overlap,
                                                    sliced_jt_factory, allow_sim):
@@ -294,7 +294,7 @@ class TestJobTemplateSlicing(APITest):
         assert workflow_job.job_template == jt.id
         assert workflow_job.related.workflow_nodes.get().count == 3
 
-    @pytest.mark.mp_group('JobTemplateSharding', 'isolated_serial')
+    @pytest.mark.mp_group('JobTemplateSlicing', 'isolated_serial')
     def test_job_template_slice_results_can_be_deleted(self, factories, v2, sliced_jt_factory):
         """Tests that job results for sliced jobs can be deleted,
            deleting the result for the workflow job does not
@@ -316,7 +316,7 @@ class TestJobTemplateSlicing(APITest):
             slice_result.get()
         assert exc.value.message == {'detail': 'Not found.'}
 
-    @pytest.mark.mp_group('JobTemplateSharding', 'isolated_serial')
+    @pytest.mark.mp_group('JobTemplateSlicing', 'isolated_serial')
     def test_job_template_slice_results_readable_when_workflow_is_deleted(self, factories, v2, sliced_jt_factory):
         """Test that results for individual slices can still be obtained if the
            parent workflow job result is deleted.
@@ -332,7 +332,7 @@ class TestJobTemplateSlicing(APITest):
         for job in slice_results:
             assert job.get().host_status_counts['ok'] == 1
 
-    @pytest.mark.mp_group('JobTemplateSharding', 'isolated_serial')
+    @pytest.mark.mp_group('JobTemplateSlicing', 'isolated_serial')
     def test_job_template_slice_results_rbac(self, factories, v2, sliced_jt_factory):
         """Tests that users without permission cannot read results from sliced jobs,
            and that users with implicit permission can.
@@ -360,7 +360,7 @@ class TestJobTemplateSlicing(APITest):
             assert workflow_job.get().id == workflow_job.id
             assert slice_result.get().id == slice_result.id
 
-    @pytest.mark.mp_group('JobTemplateSharding', 'isolated_serial')
+    @pytest.mark.mp_group('JobTemplateSlicing', 'isolated_serial')
     def test_job_template_slice_job_can_be_canceled(self, factories, v2, sliced_jt_factory):
         """Test that cancelling a sliced job cancels all workflow nodes"""
         jt = sliced_jt_factory(3, jt_kwargs=dict(playbook='sleep.yml', extra_vars={'sleep_interval': 15}))
@@ -373,7 +373,7 @@ class TestJobTemplateSlicing(APITest):
             r.get().wait_until_status('canceled')
             assert r.status == 'canceled'
 
-    @pytest.mark.mp_group('JobTemplateSharding', 'isolated_serial')
+    @pytest.mark.mp_group('JobTemplateSlicing', 'isolated_serial')
     def test_job_template_slice_slices_can_be_canceled(self, factories, v2, sliced_jt_factory):
         """Test that canceling an individual slice does not cancel the sliced job or other nodes"""
         jt = sliced_jt_factory(3, jt_kwargs=dict(playbook='sleep.yml', extra_vars={'sleep_interval': 10}))

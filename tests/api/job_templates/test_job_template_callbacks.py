@@ -324,7 +324,7 @@ class TestJobTemplateCallbacks(APITest):
         """Verify callbacks are functional even with JTs which are split JTs."""
         job_template.host_config_key = host_config_key
         assert job_template.ds.inventory.get_related('hosts').count == 2
-        job_template.job_shard_count = 2
+        job_template.job_slice_count = 2
 
         contacted = ansible_runner.uri(method="POST", timeout=90, status_code=httplib.CREATED,
                                        url='{0}{1.related.callback}'.format(callback_host, job_template),

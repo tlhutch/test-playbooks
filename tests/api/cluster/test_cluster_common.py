@@ -52,7 +52,7 @@ class TestClusterCommon(APITest):
         assert use_facts_job.result_stdout.count(ansible_facts.ansible_machine) == 1
         assert use_facts_job.result_stdout.count(ansible_facts.ansible_system) == 1
 
-    @pytest.mark.mp_group('JobTemplateSharding', 'isolated_serial')
+    @pytest.mark.mp_group('JobTemplateSlicing', 'isolated_serial')
     def test_sliced_job_ordinary_instances(self, v2, factories):
         # obtain all ordinary (non-isolated) instances, put in instance group
         instances = v2.instances.get(rampart_groups__controller__isnull=True, page_size=200, capacity__gt=0).results
