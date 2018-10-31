@@ -35,37 +35,37 @@ class TestInstanceGroups(APITest):
             u'id': unified_job.id
         } in error.value[1]['active_jobs']
 
-    def test_instance_group_capacity_should_be_sum_of_individual_instances(self, factories, tower_instance_group):
-        tower_hostnames = [instance.hostname for instance in tower_instance_group.related.instances.get().results]
-        ig = factories.instance_group(policy_instance_list=tower_hostnames)
-        utils.poll_until(lambda: ig.get().instances == len(tower_hostnames), interval=1, timeout=30)
+    def test_instance_group_capacity_should_be_sum_of_individual_instances(self, factories, active_instances):
+        hostnames = [instance.hostname for instance in active_instances.results]
+        ig = factories.instance_group(policy_instance_list=hostnames)
+        utils.poll_until(lambda: ig.get().instances == len(hostnames), interval=1, timeout=30)
 
         assert ig.get().capacity == self.find_expected_capacity(ig)
         assert ig.consumed_capacity == self.find_expected_consumed_capacity(ig)
 
-    def test_instance_group_capacity_should_update_for_added_instances(self, factories, tower_instance_group):
+    def test_instance_group_capacity_should_update_for_added_instances(self, factories, active_instances):
         ig = factories.instance_group()
         assert ig.instances == 0
 
         num_instances = 0
-        for instance in tower_instance_group.related.instances.get().results:
+        for instance in active_instances.results:
             num_instances += 1
             ig.add_instance(instance)
             assert ig.get().instances == num_instances
             assert ig.capacity == self.find_expected_capacity(ig)
             assert ig.consumed_capacity == self.find_expected_consumed_capacity(ig)
 
-    def test_instance_group_capacity_should_update_for_removed_instances(self, factories, tower_instance_group):
+    def test_instance_group_capacity_should_update_for_removed_instances(self, factories, active_instances):
         ig = factories.instance_group()
         num_instances = 0
-        for instance in tower_instance_group.related.instances.get().results:
+        for instance in active_instances.results:
             num_instances += 1
             ig.add_instance(instance)
             assert ig.get().instances == num_instances
             assert ig.capacity == self.find_expected_capacity(ig)
             assert ig.consumed_capacity == self.find_expected_consumed_capacity(ig)
 
-        for instance in tower_instance_group.related.instances.get().results:
+        for instance in active_instances.results:
             num_instances -= 1
             ig.remove_instance(instance)
             assert ig.get().instances == num_instances
@@ -73,10 +73,10 @@ class TestInstanceGroups(APITest):
             assert ig.consumed_capacity == self.find_expected_consumed_capacity(ig)
 
     def test_instance_group_capacity_should_adjust_for_new_instance_capacity_adjustment(self, factories,
-                                                                                        tower_instance_group,
+                                                                                        active_instances,
                                                                                         reset_instance):
         ig = factories.instance_group()
-        instance = tower_instance_group.related.instances.get().results.pop()
+        instance = active_instances.results.pop()
         ig.add_instance(instance)
         assert ig.get().capacity == instance.capacity
 
@@ -86,10 +86,10 @@ class TestInstanceGroups(APITest):
                          interval=1, timeout=30)
 
     def test_instance_group_capacity_should_adjust_for_enabling_and_disabling_instances(self, factories,
-                                                                                        tower_instance_group,
+                                                                                        active_instances,
                                                                                         reset_instance):
         ig = factories.instance_group()
-        instance = tower_instance_group.related.instances.get().results.pop()
+        instance = active_instances.results.pop()
         initial_capacity = instance.capacity
 
         ig.add_instance(instance)
@@ -102,8 +102,8 @@ class TestInstanceGroups(APITest):
         instance.enabled = True
         utils.poll_until(lambda: ig.get().capacity == initial_capacity, interval=1, timeout=30)
 
-    def test_conflict_exception_when_attempting_to_delete_ig_with_running_job(self, factories, tower_instance_group):
-        instance = random.sample(tower_instance_group.related.instances.get().results, 1).pop()
+    def test_conflict_exception_when_attempting_to_delete_ig_with_running_job(self, factories, active_instances):
+        instance = random.sample(active_instances.results, 1).pop()
         ig = factories.instance_group()
         ig.add_instance(instance)
 
@@ -120,8 +120,8 @@ class TestInstanceGroups(APITest):
 
         self.check_resource_is_being_used(error, job)
 
-    def test_conflict_exception_when_attempting_to_delete_ig_with_running_project_update(self, factories, tower_instance_group):
-        instance = random.sample(tower_instance_group.related.instances.get().results, 1).pop()
+    def test_conflict_exception_when_attempting_to_delete_ig_with_running_project_update(self, factories, active_instances):
+        instance = random.sample(active_instances.results, 1).pop()
         ig = factories.instance_group()
         ig.add_instance(instance)
 
@@ -141,9 +141,9 @@ class TestInstanceGroups(APITest):
 
     def test_conflict_exception_when_attempting_to_delete_ig_with_running_inventory_update(self,
                                                                                            factories,
-                                                                                           tower_instance_group,
+                                                                                           active_instances,
                                                                                            inventory_script_code_with_sleep):
-        instance = random.sample(tower_instance_group.related.instances.get().results, 1).pop()
+        instance = random.sample(active_instances.results, 1).pop()
         ig = factories.instance_group()
         ig.add_instance(instance)
 
