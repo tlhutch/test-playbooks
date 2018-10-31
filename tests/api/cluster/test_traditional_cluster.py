@@ -180,29 +180,6 @@ class TestTraditionalCluster(APITest):
             ig_hostnames = [i.hostname for i in ig.related.instances.get().results]
             assert set(ig_hostnames).isdisjoint(set(isolated_instance_hostnames))
 
-    @pytest.mark.parametrize('resource', ['job_template', 'inventory', 'organization'])
-    def test_job_template_executes_on_assigned_instance_group(self, v2, factories, resource, get_resource_from_jt):
-        instance_groups = v2.instance_groups.get().results
-        job_template_to_instance_group_map = []
-        for ig in instance_groups:
-            jt = factories.v2_job_template()
-            get_resource_from_jt(jt, resource).add_instance_group(ig)
-            job_template_to_instance_group_map.append((jt, ig))
-
-        for jt, _ in job_template_to_instance_group_map:
-            jt.launch()
-        for jt, _ in job_template_to_instance_group_map:
-            jt.wait_until_completed()
-
-        for jt, ig in job_template_to_instance_group_map:
-            job = jt.get_related('last_job')
-            assert job.instance_group == ig.id, "Job instance group differs from job template instance group"
-
-            execution_host = job.execution_node
-            instances = ig.get_related('instances').results
-            assert any(execution_host in instance.hostname for instance in instances), \
-                "Job not run on instance in assigned instance group"
-
     @pytest.mark.mp_group(group="check_instance_stats_during_quiet_period", strategy="isolated_serial")
     @pytest.mark.github('https://github.com/ansible/tower/issues/2310')
     def test_default_instance_attributes(self, v2):

@@ -10,8 +10,8 @@ from tests.api import APITest
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestClusterCommon(APITest):
 
-    def test_jobs_should_be_able_to_run_on_all_full_instances(self, v2, factories):
-        instances = v2.instances.get(rampart_groups__controller__isnull=True).results
+    def test_jobs_should_be_able_to_run_on_all_full_instances(self, active_instances, factories):
+        instances = active_instances.results
         igs = []
         for instance in instances:
             ig = factories.instance_group()
@@ -30,9 +30,9 @@ class TestClusterCommon(APITest):
             assert job.is_successful
             assert job.execution_node == ig.related.instances.get().results.pop().hostname
 
-    def test_fact_cache_across_different_tower_instances(self, tower_instance_group, factories):
+    def test_fact_cache_across_different_tower_instances(self, active_instances, factories):
         ig1, ig2 = [factories.instance_group() for _ in range(2)]
-        instances = random.sample(tower_instance_group.related.instances.get().results, 2)
+        instances = random.sample(active_instances.results, 2)
         ig1.add_instance(instances[0])
         ig2.add_instance(instances[1])
 
@@ -93,3 +93,23 @@ class TestClusterCommon(APITest):
             'Expected all instances used by sliced job to consume 2 units of capacity. '
             'List of all instances:\n{}'.format(instances)
         )
+
+    @pytest.mark.parametrize('resource', ['job_template', 'inventory', 'organization'])
+    def test_job_template_executes_on_assigned_instance_group(self, v2, factories, resource, get_resource_from_jt):
+        instance_groups = v2.instance_groups.get().results
+        for ig in instance_groups:
+            if not ig.capacity:
+                continue  # skip dead groups
+            jt = factories.v2_job_template()
+            get_resource_from_jt(jt, resource).add_instance_group(ig)
+
+            jt.launch()
+            jt.wait_until_completed()
+            job = jt.get_related('last_job')
+            job.wait_until_completed()
+            assert job.instance_group == ig.id, "Job instance group differs from job template instance group"
+
+            execution_host = job.execution_node
+            instances = ig.get_related('instances').results
+            assert any(execution_host in instance.hostname for instance in instances), \
+                "Job not run on instance in assigned instance group"
