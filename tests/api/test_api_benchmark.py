@@ -54,38 +54,82 @@ class TestApiPerformance(APITest):
     def resource_creation_function(self, v2, resource_type):
         return getattr(v2, resource_type).create
 
+    def launch_and_wait(self, job_template):
+        j = job_template.launch()
+        j.wait_until_completed()
+
+    def multi_launch_and_wait(self, job_template, ct):
+        jobs = []
+        for _ in range(ct):
+            jobs.append(job_template.launch())
+        while True:
+            for j in jobs:
+                j.wait_until_completed()
+            return jobs
+
     @pytest.mark.parametrize('endpoint', endpoints)
+    @pytest.mark.mp_group('Benchmarking', 'isolated_serial')
     def test_benchmark_endpoint_response(self, v2, endpoint, benchmark):
         e = getattr(v2, endpoint)
         benchmark(self.get_endpoint, e)
 
+    @pytest.mark.mp_group('Benchmarking', 'isolated_serial')
     def test_benchmark_org_creation(self, v2, benchmark):
         f = self.resource_creation_function(v2, 'organizations')
         benchmark(f)
 
+    @pytest.mark.mp_group('Benchmarking', 'isolated_serial')
     def test_benchmark_user_creation(self, v2, factories, benchmark):
         f = self.resource_creation_function(v2, 'users')
         org = factories.v2_organization()
         benchmark(f, organization=org)
 
+    @pytest.mark.mp_group('Benchmarking', 'isolated_serial')
     def test_benchmark_cloud_credential_creation(self, v2, factories, benchmark):
         f = self.resource_creation_function(v2, 'credentials')
         org = factories.v2_organization()
         benchmark(f, organization=org, kind='aws', username='foo', password='bar')
 
+    @pytest.mark.mp_group('Benchmarking', 'isolated_serial')
     def test_benchmark_project_creation(self, v2, factories, benchmark):
         f = self.resource_creation_function(v2, 'projects')
         org = factories.v2_organization()
         benchmark(f, organization=org, wait=False)
 
+    @pytest.mark.mp_group('Benchmarking', 'isolated_serial')
     def test_benchmark_inventory_creation(self, v2, factories, benchmark):
         f = self.resource_creation_function(v2, 'inventory')
         org = factories.v2_organization()
         benchmark(f, organization=org)
 
-    def test_job_template_creation(self, v2, factories, benchmark):
+    @pytest.mark.mp_group('Benchmarking', 'isolated_serial')
+    def test_benchmark_job_template_creation(self, v2, factories, benchmark):
         org = factories.v2_organization()
         inventory = factories.v2_inventory(organization=org)
         project = factories.v2_project(organization=org)
         f = self.resource_creation_function(v2, 'job_templates')
         benchmark(f, organization=org, inventory=inventory, project=project)
+
+    @pytest.mark.mp_group('Benchmarking', 'isolated_serial')
+    def test_benchmark_job_template_slicing(self, v2, factories, benchmark):
+        instances = v2.instances.get(
+            rampart_groups__controller__isnull=True, page_size=200, capacity__gt=0).results
+        ct = len(instances)
+        host_count = ct * 20
+        jt = factories.v2_job_template(
+            job_slice_count=ct, forks=20, playbook='gather_facts.yml')
+        for _ in range(host_count):
+            jt.ds.inventory.add_host()
+        benchmark(self.launch_and_wait, jt)
+
+    @pytest.mark.mp_group('Benchmarking', 'isolated_serial')
+    def test_benchmark_workaround(self, v2, factories, benchmark):
+        instances = v2.instances.get(
+            rampart_groups__controller__isnull=True, page_size=200, capacity__gt=0).results
+        ct = len(instances)
+        inventory = factories.v2_inventory()
+        job_template = factories.v2_job_template(
+            forks=20, inventory=inventory, allow_simultaneous=True, playbook='gather_facts.yml')
+        for _ in range(20):
+            inventory.add_host()
+        benchmark(self.multi_launch_and_wait, job_template, ct)
