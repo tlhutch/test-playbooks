@@ -318,6 +318,7 @@ class TestJobTemplateCallbacks(APITest):
         assert job.launch_type == "callback"
         assert job.is_successful
 
+    @pytest.mark.github('https://github.com/ansible/tower/issues/3096')
     @pytest.mark.skip_openshift
     def test_provision_with_split_job(self, ansible_runner, job_template,
                                       host_with_default_ipv4_in_variables, host_config_key, callback_host):
