@@ -2,6 +2,7 @@ import json
 import copy
 
 from towerkit import utils
+from towerkit.exceptions import NoContent
 import pytest
 
 from tests.api import APITest
@@ -421,11 +422,19 @@ class TestWorkflowExtraVars(APITest):
     def test_wfjt_nodes_source_variables_with_set_stats(self, factories, artifacts_from_stats_playbook):
         host = factories.v2_host()
         set_stats_jt = factories.v2_job_template(playbook='test_set_stats.yml')
+        no_stats_jt = factories.v2_job_template()
         success_jt = factories.v2_job_template()
         failure_jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='fail_unless.yml')
 
         wfjt = factories.v2_workflow_job_template()
+        # Create common ancestor for two branches, one that has set_stats
+        # passed downstream and another that has no stats set.
+        ancestor = factories.v2_workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=no_stats_jt)
         stats_node = factories.v2_workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=set_stats_jt)
+        with pytest.raises(NoContent):
+            ancestor.related.success_nodes.post(dict(id=stats_node.id))
+        # Create branch of nodes that should have no stats passed to them
+        ancestor.add_always_node(unified_job_template=no_stats_jt).add_always_node(unified_job_template=no_stats_jt)
         stats_node.add_always_node(unified_job_template=success_jt).add_success_node(unified_job_template=failure_jt) \
             .add_failure_node(unified_job_template=success_jt)
 
@@ -447,3 +456,7 @@ class TestWorkflowExtraVars(APITest):
         for job in success_jt.related.jobs.get().results + failure_jt.related.jobs.get().results:
             sourced_vars = json.loads(job.extra_vars)
             assert sourced_vars == artifacts_from_stats_playbook
+
+        for job in no_stats_jt.related.jobs.get().results:
+            sourced_vars = json.loads(job.extra_vars)
+            assert sourced_vars == {}, 'Variables ended up in other jobs where set_stats should not have propogated.'
