@@ -2,8 +2,13 @@ from towerkit import exceptions as exc, utils
 import fauxfactory
 import pytest
 import six
+import time
+import logging
 
 from tests.api import APITest
+
+
+log = logging.getLogger(__name__)
 
 
 @pytest.mark.api
@@ -185,19 +190,29 @@ class TestInventory(APITest):
             inv.delete()
         assert jt.launch().wait_until_completed().is_successful
 
-    def test_confirm_large_inventory_copies_dont_overwhelm_system(self, factories):
+    @pytest.fixture
+    def host_script(self):
+        """Given N, this produces text which can be used in an inventory script
+        that prints JSON output that defines an inventory with N hosts
+        """
+        def give_me_text(hosts=0, groups=0):
+            return '\n'.join([
+                "#!/usr/bin/env python",
+                "import json",
+                "data = {'_meta': {'hostvars': {}}}",
+                "for i in range({}):".format(hosts),
+                "   data.setdefault('ungrouped', []).append('Host-{}'.format(i))",
+                "for i in range({}):".format(groups),
+                "   data['Group-{}'.format(i)] = {'vars': {'foo': 'bar'}}",
+                "print json.dumps(data, indent=2)"
+            ])
+        return give_me_text
+
+    def test_confirm_large_inventory_copies_dont_overwhelm_system(self, factories, host_script):
         """Verify that copying an inventory with many hosts doesn't affect system's ability to run jobs"""
         total = 5000
         jt = factories.v2_job_template()
-        script = '\n'.join([
-            "#!/usr/bin/env python",
-            "import json",
-            "data = {'_meta': {'hostvars': {}}}",
-            "for i in range({}):".format(total),
-            "   data.setdefault('hosts', []).append('Host-{}'.format(i))",
-            "print json.dumps(data, indent=2)"
-        ])
-        inv_script = factories.v2_inventory_script(script=script)
+        inv_script = factories.v2_inventory_script(script=host_script(total))
         inv_source = factories.v2_inventory_source(inventory_script=inv_script)
         inv = inv_source.ds.inventory
         inv.update_inventory_sources(wait=True)
@@ -206,3 +221,33 @@ class TestInventory(APITest):
         assert jt.launch().wait_until_completed().is_successful
 
         utils.poll_until(lambda: copied.get_related('hosts').count == total, interval=10, timeout=60 * 5)
+
+    def test_large_import_activity_stream(self, v2, factories, host_script):
+        total = 25
+        inv_script = factories.v2_inventory_script(script=host_script(hosts=total, groups=total))
+        inv_source = factories.v2_inventory_source(inventory_script=inv_script)
+        inv = inv_source.ds.inventory
+        search_kernel = inv.name[:-3]  # work around https://github.com/ansible/awx/issues/2570
+        start = time.time()
+        inv.update_inventory_sources(wait=True)
+        creation_entry_ct = v2.activity_stream.get(changes__icontains=search_kernel).count
+        log.warn('Inventory import of {} hosts took {}, producing {} entries.'.format(
+            total, time.time() - start, creation_entry_ct
+        ))
+
+        start = time.time()
+        inv.delete()
+        utils.poll_until(lambda: v2.inventory.get(name__icontains=search_kernel).count == 0, interval=1, timeout=60 * 5)
+        deletion_entries = v2.activity_stream.get(changes__icontains=search_kernel, operation='delete')
+        log.warn('Deletion of inventory took roughly {}, producing {} entries.'.format(
+            time.time() - start, deletion_entries.count
+        ))
+        for entry in deletion_entries.results:
+            if entry.object1 == 'inventory':
+                inventory_entry = entry
+                break
+        else:
+            raise Exception('Could not find inventory entry out of:\n{}'.format(deletion_entries.results[:2]))
+        assert inventory_entry.changes['coalesced_data']['hosts_deleted'] == total
+        assert inventory_entry.changes['coalesced_data']['groups_deleted'] == total
+        assert deletion_entries.count == 2  # one for inventory delete, one for inventory source
