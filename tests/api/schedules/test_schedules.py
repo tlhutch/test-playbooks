@@ -294,7 +294,8 @@ class TestSchedules(SchedulesTest):
         error_stream = StringIO.StringIO()
         for zone in zones:
             if zone in ['Africa/Khartoum', 'Africa/Sao_Tome', 'Africa/Windhoek', 'America/Grand_Turk',
-                        'Antarctica/Casey', 'Asia/Famagusta', 'Asia/Pyongyang', 'Pacific/Tongatapu']:
+                        'Antarctica/Casey', 'Asia/Famagusta', 'Asia/Pyongyang', 'Pacific/Tongatapu',
+                        'Europe/Volgograd']:
                 # Bug in dateutil, timezone not supported, exported restricted or not important
                 continue
             try:
