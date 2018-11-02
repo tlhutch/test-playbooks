@@ -190,7 +190,7 @@ class Test_Job_Events(APITest):
         # https://github.com/ansible/tower/issues/1441
         if ansible_version_cmp('2.5.1') == 0:
             desired_stdout_contents.extend([' [ERROR]:', ''])
-        if ansible_version_cmp('2.7.0') > 0:
+        if ansible_version_cmp('2.8.0') >= 0:
             desired_stdout_contents = ["SSH password:", "Identity added:", "BECOME password"]
         self.verify_desired_stdout(job, 'verbose', desired_stdout_contents)
 
@@ -246,7 +246,7 @@ class Test_Job_Events(APITest):
         # https://github.com/ansible/tower/issues/1441
         if ansible_version_cmp('2.5.1') == 0:
             desired_stdout_contents.extend([' [ERROR]:', ''])
-        if ansible_version_cmp('2.7.0') > 0:
+        if ansible_version_cmp('2.8.0') >= 0:
             desired_stdout_contents = ["SSH password:", "Identity added:", "BECOME password"]
         self.verify_desired_stdout(job, 'verbose', desired_stdout_contents)
 
@@ -290,7 +290,7 @@ class Test_Job_Events(APITest):
         # https://github.com/ansible/tower/issues/1441
         if ansible_version_cmp('2.5.1') == 0:
             desired_stdout_contents.extend([' [ERROR]:', ''])
-        if ansible_version_cmp('2.7.0') > 0:
+        if ansible_version_cmp('2.8.0') >= 0:
             desired_stdout_contents = ["SSH password:", "Identity added:", "BECOME password"]
         self.verify_desired_stdout(job, 'verbose', desired_stdout_contents)
 
