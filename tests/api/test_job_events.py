@@ -327,7 +327,7 @@ class Test_Job_Events(APITest):
         for event in events:
             data = event.event_data
             if 'res' not in data:
-                if event.event != 'runner_on_skipped':
+                if event.event not in ['runner_on_skipped', 'runner_on_start']:
                     raise(Exception('Unexpected lack of result in event_data: {0}'.format(event)))
                 continue
             if 'results' in data.res:

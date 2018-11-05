@@ -333,7 +333,8 @@ print json.dumps(inv, indent=2)
             expected_count,
             custom_inventory_update_with_status_completed,
             ssh_credential,
-            api_ad_hoc_commands_pg
+            api_ad_hoc_commands_pg,
+            ansible_version_cmp
     ):
         """Verifies that ad hoc command launches with different values for limit behave as expected."""
         # create payload
@@ -345,6 +346,11 @@ print json.dumps(inv, indent=2)
         # post the command
         command_pg = api_ad_hoc_commands_pg.post(payload).wait_until_completed()
         assert command_pg.is_successful, "Command unsuccessful - %s" % command_pg
+
+        # Starting with 2.8, runner_on_start are also returned
+        # doubling the expected value count
+        if ansible_version_cmp('2.8.0.0') >= 0:
+            expected_count = expected_count * 2
 
         # assert that command run on correct number of hosts
         events_pg = command_pg.get_related('events', event__startswith='runner_on')
