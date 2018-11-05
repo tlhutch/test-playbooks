@@ -362,6 +362,7 @@ class TestSCMInventorySource(APITest):
 
         assert project.get().status == 'canceled'
 
+    @pytest.mark.github('https://github.com/ansible/tower-qa/issues/2432')
     @pytest.mark.ansible_integration
     def test_custom_credential_affects_ansible_env_of_scm_inventory(self, factories,
                                                                     scm_inv_source_with_group_and_host_var_dirs):
