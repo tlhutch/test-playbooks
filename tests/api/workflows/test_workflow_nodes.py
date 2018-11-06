@@ -99,11 +99,6 @@ class Test_Workflow_Nodes(APITest):
             assert getattr(ask_everything_jt, field) != getattr(job, field)
             assert getattr(wf_node, field) == getattr(job, field)
 
-    def test_workflow_job_template_node_cannot_contain_workflow_job_template(self, factories):
-        wfjt = factories.workflow_job_template()
-        with pytest.raises(BadRequest):
-            wfjt.related.workflow_nodes.post(dict(unified_job_template=wfjt.id))
-
     @pytest.mark.github('https://github.com/ansible/awx/issues/2255')
     @pytest.mark.parametrize('add_methods', ['add_success_node',
                                              'add_failure_node',
