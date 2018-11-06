@@ -29,6 +29,8 @@ def apply_license_until_effective(config, license_info):
 
 
 def delete_license_until_effective(config):
+    if config.is_awx_license:
+        return
     log.info('Deleting current license...')
     config.delete()
     poll_until(lambda: not config.get().license_info, interval=1, timeout=90)
