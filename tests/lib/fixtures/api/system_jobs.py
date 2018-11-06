@@ -3,13 +3,13 @@ import pytest
 
 @pytest.fixture(scope="function", params=['cleanup_jobs', 'cleanup_activitystream'])
 def system_job(request):
-    return request.getfuncargvalue(request.param)
+    return request.getfixturevalue(request, request.param)
 
 
 @pytest.fixture(scope="function", params=['cleanup_jobs_with_status_completed',
                                           'cleanup_activitystream_with_status_completed'])
 def system_job_with_status_completed(request):
-    return request.getfuncargvalue(request.param)
+    return request.getfixturevalue(request, request.param)
 
 
 @pytest.fixture(scope="function")

@@ -22,7 +22,7 @@ log = logging.getLogger(__name__)
                                           'ad_hoc_with_status_completed'])
 def unified_job_with_stdout(request):
     """Returns a completed unified job with job stdout."""
-    return request.getfuncargvalue(request.param)
+    return request.getfixturevalue(request, request.param)
 
 
 def assess_created_elements(elements, criteria, expected_count):

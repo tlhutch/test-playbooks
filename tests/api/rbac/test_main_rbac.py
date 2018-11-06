@@ -241,7 +241,7 @@ class Test_Main_RBAC(APITest):
         admin_resource.set_object_roles(user, 'admin')
 
         with self.current_user(username=user.username, password=user.password):
-            query_results = request.getfuncargvalue(fixture_name).get(role_level='admin_role')
+            query_results = request.getfixturevalue(request, fixture_name).get(role_level='admin_role')
             # only one of our two resources should get returned
             assert query_results.count == 1, \
                 "Unexpected number of query results returned. Expected one, received {0}.".format(query_results.count)

@@ -142,7 +142,7 @@ class Test_Credential_RBAC(APITest):
         another_user = factories.user()
         team = factories.team()
 
-        agent = request.getfuncargvalue(agent_name)
+        agent = request.getfixturevalue(request, agent_name)
         role_names = get_resource_roles(credential)
         with self.current_user(username=agent.username, password=agent.password):
             for role_name in role_names:

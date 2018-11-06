@@ -33,7 +33,7 @@ def setting_pg(request):
     FIXME: we do not include "github" here because tests will
     choke on pytest-github.
     """
-    return request.getfuncargvalue("api_settings_" + request.param + "_pg")
+    return request.getfixturevalue(request, "api_settings_" + request.param + "_pg")
 
 
 @pytest.fixture
@@ -87,7 +87,7 @@ def configure_auth_google(update_setting_pg, api_settings_google_pg):
                                           "configure_auth_github_team",
                                           "configure_auth_google"])
 def configured_auth(request):
-    return request.getfuncargvalue(request.param)
+    return request.getfixturevalue(request, request.param)
 
 
 @pytest.fixture

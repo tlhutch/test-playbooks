@@ -14,7 +14,7 @@ def job_with_status_completed(job_template_ping):
 
 @pytest.fixture(scope="function", params=['json_launch_time_vars', 'yaml_launch_time_vars'])
 def launch_time_extra_vars(request):
-    return request.getfuncargvalue(request.param)
+    return request.getfixturevalue(request, request.param)
 
 
 @pytest.fixture(scope="function")
