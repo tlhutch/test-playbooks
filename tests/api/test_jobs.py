@@ -622,7 +622,7 @@ class Test_Job_Env(APITest):
             expected_env_vars = dict(
                 GCE_EMAIL=self.credentials['cloud'][cloud_credential.kind]['username'],
                 GCE_PROJECT=self.credentials['cloud'][cloud_credential.kind]['project'],
-                GCE_PEM_FILE_PATH=lambda x: re.match(r'^/tmp/awx_\w+/tmp\w+', x)
+                GCE_CREDENTIALS_FILE_PATH=lambda x: re.match(r'^/tmp/awx_\w+/tmp\w+', x)
             )
         elif cloud_credential.kind == 'azure_rm' and azure_type(cloud_credential) == 'azure':
             self.has_credentials('cloud', 'azure', ['subscription_id', 'client_id', 'secret', 'tenant'])

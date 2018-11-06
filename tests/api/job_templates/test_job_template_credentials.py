@@ -499,7 +499,7 @@ class TestJobTemplateExtraCredentials(APITest):
         assert job.is_successful
 
         env_vars = ('AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY', 'AZURE_CLIENT_ID', 'AZURE_CLOUD_ENVIRONMENT', 'AZURE_SECRET',
-                    'AZURE_SUBSCRIPTION_ID', 'AZURE_TENANT', 'GCE_EMAIL', 'GCE_PEM_FILE_PATH', 'GCE_PROJECT')
+                    'AZURE_SUBSCRIPTION_ID', 'AZURE_TENANT', 'GCE_EMAIL', 'GCE_CREDENTIALS_FILE_PATH', 'GCE_PROJECT')
 
         for env_var in env_vars:
             assert env_var in job.job_env
@@ -555,7 +555,7 @@ class TestJobTemplateExtraCredentials(APITest):
         assert job.is_successful
 
         env_vars = ('AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY', 'AZURE_CLIENT_ID', 'AZURE_SECRET',
-                    'AZURE_SUBSCRIPTION_ID', 'AZURE_TENANT', 'GCE_EMAIL', 'GCE_PEM_FILE_PATH', 'GCE_PROJECT')
+                    'AZURE_SUBSCRIPTION_ID', 'AZURE_TENANT', 'GCE_EMAIL', 'GCE_CREDENTIALS_FILE_PATH', 'GCE_PROJECT')
 
         for env_var in env_vars:
             assert env_var in job.job_env
