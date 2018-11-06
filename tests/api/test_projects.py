@@ -72,8 +72,7 @@ class Test_Projects(APITest):
 
         # assert various project attributes are false
         for attr in ('scm_clean', 'scm_delete_on_update', 'last_job_failed',
-                     'scm_delete_on_next_update', 'scm_update_on_launch',
-                     'last_update_failed',):
+                     'scm_update_on_launch', 'last_update_failed',):
 
             assert hasattr(project_ansible_playbooks_manual, attr), \
                 "Unhandled project attribute: %s" % attr
