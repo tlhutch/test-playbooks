@@ -85,6 +85,12 @@ class TestApiPerformance(APITest):
         benchmark(f, organization=org)
 
     @pytest.mark.mp_group('Benchmarking', 'isolated_serial')
+    def test_benchmark_team_creation(self, v2, factories, benchmark):
+        f = self.resource_creation_function(v2, 'teams')
+        org = factories.v2_organization()
+        benchmark(f, organization=org)
+
+    @pytest.mark.mp_group('Benchmarking', 'isolated_serial')
     def test_benchmark_cloud_credential_creation(self, v2, factories, benchmark):
         f = self.resource_creation_function(v2, 'credentials')
         org = factories.v2_organization()
@@ -123,13 +129,50 @@ class TestApiPerformance(APITest):
         benchmark(self.launch_and_wait, jt)
 
     @pytest.mark.mp_group('Benchmarking', 'isolated_serial')
-    def test_benchmark_workaround(self, v2, factories, benchmark):
+    def test_benchmark_job_slicing_workaround(self, v2, factories, benchmark):
         instances = v2.instances.get(
             rampart_groups__controller__isnull=True, page_size=200, capacity__gt=0).results
         ct = len(instances)
         inventory = factories.v2_inventory()
-        job_template = factories.v2_job_template(
+        jt = factories.v2_job_template(
             forks=20, inventory=inventory, allow_simultaneous=True, playbook='gather_facts.yml')
         for _ in range(20):
             inventory.add_host()
-        benchmark(self.multi_launch_and_wait, job_template, ct)
+        benchmark(self.multi_launch_and_wait, jt, ct)
+
+    @pytest.mark.mp_group('Benchmarking', 'isolated_serial')
+    def test_benchmark_single_job(self, v2, factories, benchmark):
+        instances = v2.instances.get(
+            rampart_groups__controller__isnull=True, page_size=200, capacity__gt=0).results
+        ct = len(instances)
+        job_size = ct * 20
+        inventory = factories.v2_inventory()
+        jt = factories.v2_job_template(
+            forks=20, inventory=inventory, allow_simultaneous=True, playbook='gather_facts.yml')
+        for _ in range(job_size):
+            inventory.add_host()
+        benchmark(self.launch_and_wait, jt)
+
+    @pytest.mark.mp_group('Benchmarking', 'isolated_serial')
+    def test_benchmark_associate_user_with_org(self, factories, benchmark):
+        # Need a setup function because we can't reuse the "user" value
+        def setup():
+            user = factories.v2_user()
+            org = factories.v2_organization()
+            return (org, user), {}
+
+        def associate_user(org, user):
+            org.related.users.post(user.payload())
+        benchmark.pedantic(associate_user, setup=setup, rounds=15)
+
+    @pytest.mark.mp_group('Benchmarking', 'isolated_serial')
+    def test_benchmark_associate_user_with_team(self, factories, benchmark):
+        def setup():
+            user = factories.v2_user()
+            org = factories.v2_organization()
+            team = factories.v2_team(organization=org)
+            return (team, user), {}
+
+        def associate_user(team, user):
+            team.related.users.post(user.payload())
+        benchmark.pedantic(associate_user, setup=setup, rounds=15)
