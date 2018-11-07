@@ -1,5 +1,6 @@
 import pytest
 from tests.api import APITest
+from towerkit.config import config
 
 
 @pytest.mark.benchmark
@@ -91,10 +92,41 @@ class TestApiPerformance(APITest):
         benchmark(f, organization=org)
 
     @pytest.mark.mp_group('Benchmarking', 'isolated_serial')
+    def test_benchmark_associate_user_with_org(self, factories, benchmark):
+        # Need a setup function because we can't reuse the "user" value
+        def setup():
+            user = factories.v2_user()
+            org = factories.v2_organization()
+            return (org, user), {}
+
+        def associate_user(org, user):
+            org.related.users.post(user.payload())
+        benchmark.pedantic(associate_user, setup=setup, rounds=15)
+
+    @pytest.mark.mp_group('Benchmarking', 'isolated_serial')
+    def test_benchmark_associate_user_with_team(self, factories, benchmark):
+        def setup():
+            user = factories.v2_user()
+            org = factories.v2_organization()
+            team = factories.v2_team(organization=org)
+            return (team, user), {}
+
+        def associate_user(team, user):
+            team.related.users.post(user.payload())
+        benchmark.pedantic(associate_user, setup=setup, rounds=15)
+
+    @pytest.mark.mp_group('Benchmarking', 'isolated_serial')
     def test_benchmark_cloud_credential_creation(self, v2, factories, benchmark):
         f = self.resource_creation_function(v2, 'credentials')
         org = factories.v2_organization()
         benchmark(f, organization=org, kind='aws', username='foo', password='bar')
+
+    @pytest.mark.mp_group('Benchmarking', 'isolated_serial')
+    def test_benchmark_machine_credential_creation(self, v2, factories, benchmark):
+        f = self.resource_creation_function(v2, 'credentials')
+        org = factories.v2_organization()
+        benchmark(f, organization=org, kind='ssh',
+                  username='foo', password='bar', ssh_key_data=config.credentials.ssh.ssh_key_data)
 
     @pytest.mark.mp_group('Benchmarking', 'isolated_serial')
     def test_benchmark_project_creation(self, v2, factories, benchmark):
@@ -153,26 +185,17 @@ class TestApiPerformance(APITest):
             inventory.add_host()
         benchmark(self.launch_and_wait, jt)
 
+    @pytest.mark.github('https://github.com/ansible/awx/issues/2252')
     @pytest.mark.mp_group('Benchmarking', 'isolated_serial')
-    def test_benchmark_associate_user_with_org(self, factories, benchmark):
-        # Need a setup function because we can't reuse the "user" value
-        def setup():
-            user = factories.v2_user()
-            org = factories.v2_organization()
-            return (org, user), {}
-
-        def associate_user(org, user):
-            org.related.users.post(user.payload())
-        benchmark.pedantic(associate_user, setup=setup, rounds=15)
-
-    @pytest.mark.mp_group('Benchmarking', 'isolated_serial')
-    def test_benchmark_associate_user_with_team(self, factories, benchmark):
-        def setup():
-            user = factories.v2_user()
-            org = factories.v2_organization()
-            team = factories.v2_team(organization=org)
-            return (team, user), {}
-
-        def associate_user(team, user):
-            team.related.users.post(user.payload())
-        benchmark.pedantic(associate_user, setup=setup, rounds=15)
+    def test_benchmark_workflow_in_workflow(self, factories, benchmark):
+        wfjt_outer = factories.workflow_job_template()
+        wfjt_inner = factories.workflow_job_template()
+        jt = factories.job_template()
+        factories.workflow_job_template_node(
+            workflow_job_template=wfjt_inner,
+            unified_job_template=jt
+        )
+        node = factories.workflow_job_template_node(
+            workflow_job_template=wfjt_outer)
+        node.unified_job_template = wfjt_inner.id
+        benchmark(self.launch_and_wait, wfjt_outer)
