@@ -273,7 +273,29 @@ class Test_Workflow_Jobs(APITest):
 
     # Canceling jobs
 
-    def test_cancel_workflow_job(self, factories, api_jobs_pg):
+    @pytest.mark.github('https://github.com/ansible/tower/issues/910')
+    def test_cancel_workflow_job_pre_spawn(self, factories):
+        host = factories.host()
+        jt_sleep = factories.job_template(inventory=host.ds.inventory, playbook='sleep.yml')  # Longer-running job
+        jt_sleep.extra_vars = '{"sleep_interval": 120}'
+        wfjt = factories.workflow_job_template()
+        factories.workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt_sleep)
+
+        wfj = wfjt.launch()
+        wfj.cancel()
+        wfj.wait_until_status('canceled')
+
+        # workflow job is canceled, it should:
+        #  - not spawn any jobs after its finished / canceled time
+        #  - not have any running jobs after it is marked canceled
+        job_node = wfj.get_related('workflow_nodes').results.pop()
+        if job_node.job is None:
+            return  # cancel happened before nodes spawned, this is fine
+        job = job_node.get_related('job')
+        assert job.get().status == 'canceled'
+        assert job.created < wfj.finished
+
+    def test_cancel_workflow_job(self, factories):
         """Confirm that cancelling a workflow job cancels spawned jobs."""
         # Build workflow
         host = factories.host()
@@ -300,7 +322,7 @@ class Test_Workflow_Jobs(APITest):
         poll_until(lambda: getattr(wfj.get(), 'status') == 'canceled', timeout=3 * 60)
 
         # Confirm job spawned by workflow job was canceled
-        poll_until(lambda: getattr(job.get(), 'status') == 'canceled', timeout=60)
+        assert job.get().status == 'canceled'
 
     def test_cancel_job_spawned_by_workflow_job(self, factories):
         """Cancel job spawned by workflow job. Confirm workflow job finishes and is marked successful.
