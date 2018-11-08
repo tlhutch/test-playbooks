@@ -35,10 +35,8 @@ class TestInstances(APITest):
         ig = factories.instance_group()
         instance = v2.instances.get(rampart_groups__controller__isnull=True).results.pop()
         ig.add_instance(instance)
-        utils.poll_until(lambda: ig.get().instances == 1, interval=5, timeout=30)
 
         jt = factories.v2_job_template()
-        factories.v2_host(inventory=jt.ds.inventory)
         jt.add_instance_group(ig)
 
         request.addfinalizer(lambda: instance.patch(enabled=True))
@@ -49,6 +47,22 @@ class TestInstances(APITest):
         assert job.get().status == 'pending'
 
         instance.enabled = True
+        assert job.wait_until_completed(timeout=120).is_successful
+
+    def test_jobs_should_resume_on_newly_associated_instances(self, request, v2, factories):
+        ig = factories.instance_group()  # remains empty until later in test after launch
+
+        jt = factories.v2_job_template()
+        jt.add_instance_group(ig)
+
+        job = jt.launch()
+
+        utils.logged_sleep(30)
+        assert job.get().status == 'pending'
+
+        instance = v2.instances.get(rampart_groups__controller__isnull=True).results.pop()
+        ig.add_instance(instance)
+
         assert job.wait_until_completed(timeout=120).is_successful
 
     def test_disabiling_instance_should_not_impact_currently_running_jobs(self, request, v2, factories,
