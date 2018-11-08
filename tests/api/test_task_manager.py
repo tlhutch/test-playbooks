@@ -844,6 +844,7 @@ class Test_Cascade_Fail_Dependent_Jobs(APITest):
         assert inv_source.get().status == 'failed'
         assert inv_source.last_job_failed
 
+    @pytest.mark.github('https://github.com/ansible/tower/issues/3120')
     def test_failed_project_update_should_cascade_fail_dependent_job(self, factories):
         jt = factories.v2_job_template()
         project = jt.ds.project
