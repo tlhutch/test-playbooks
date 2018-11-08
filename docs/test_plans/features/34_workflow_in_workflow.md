@@ -18,8 +18,8 @@ This document attempts to overview the automated testing requirements for the ve
 
 ## Test Plan
 
-  * [ ] API
-    * [ ] Ensure a Worflow Job Templates can be embedded in another Worflow Job Templates
-    * [ ] Ensure recursion at any deep level can be detected and the worflow should fail properly
-    * [ ] Ensure proper variable scoping is respected
+  * [x] API
+    * [x] Ensure a Worflow Job Templates can be embedded in another Worflow Job Templates
+    * [x] Ensure recursion at any deep level can be detected and the worflow should fail properly
+    * [x] Ensure proper variable scoping is respected
   * [ ] [UI](https://docs.google.com/document/d/1VaBHxIzvqCH03pD2xkvB-PrP8e96oGeJBFpXdi6Q93Q/edit) 
