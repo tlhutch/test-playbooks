@@ -57,7 +57,7 @@ class TestApiPerformance(APITest):
 
     def launch_and_wait(self, job_template):
         j = job_template.launch()
-        j.wait_until_completed()
+        j.wait_until_completed(interval=0.25)
 
     def multi_launch_and_wait(self, job_template, ct):
         jobs = []
@@ -65,8 +65,18 @@ class TestApiPerformance(APITest):
             jobs.append(job_template.launch())
         while True:
             for j in jobs:
-                j.wait_until_completed()
+                j.wait_until_completed(interval=0.25)
             return jobs
+
+    def wait_for_job_start(self, job_template):
+        job_template.launch().wait_until_started(interval=0.25)
+
+    def wait_for_workflow_node_start(self, wfjt):
+        wfj = wfjt.launch()
+        wfjn = wfj.related.workflow_nodes.get().results.pop()
+        wfjn.wait_for_job(interval=0.25)
+        job = wfjn.get_related('job')
+        job.wait_until_started(interval=0.25)
 
     @pytest.mark.parametrize('endpoint', endpoints)
     @pytest.mark.mp_group('Benchmarking', 'isolated_serial')
@@ -139,6 +149,36 @@ class TestApiPerformance(APITest):
         f = self.resource_creation_function(v2, 'inventory')
         org = factories.v2_organization()
         benchmark(f, organization=org)
+
+    @pytest.mark.mp_group('Benchmarking', 'isolated_serial')
+    def test_benchmark_inventory_group_creation(self, factories, benchmark):
+        def create_group(inventory, org):
+            factories.v2_group(inventory=inventory, organization=org)
+        org = factories.v2_organization()
+        inventory = factories.v2_inventory(organization=org)
+        benchmark(create_group, inventory, org)
+
+    @pytest.mark.mp_group('Benchmarking', 'isolated_serial')
+    def test_benchmark_inventory_source_update(self, factories, benchmark):
+        def update_source(source):
+            source.update().wait_until_completed(interval=0.25)
+        credential = factories.v2_credential(kind='aws')
+        source = factories.v2_inventory_source(source='ec2', credential=credential)
+        benchmark(update_source, source)
+
+    @pytest.mark.mp_group('Benchmarking', 'isolated_serial')
+    def test_benchmark_job_template_start_time(self, factories, benchmark):
+        jt = factories.v2_job_template(allow_simultaneous=True)
+        benchmark(self.wait_for_job_start, jt)
+
+    @pytest.mark.mp_group('Benchmarking', 'isolated_serial')
+    def test_benchmark_workflow_node_start_time(self, factories, benchmark):
+        jt = factories.v2_job_template(
+            playbook='ping.yml', allow_simultaneous=True)
+        wfjt = factories.workflow_job_template(allow_simultaneous=True)
+        factories.workflow_job_template_node(
+            workflow_job_template=wfjt, unified_job_template=jt)
+        benchmark(self.wait_for_workflow_node_start, wfjt)
 
     @pytest.mark.mp_group('Benchmarking', 'isolated_serial')
     def test_benchmark_job_template_creation(self, v2, factories, benchmark):
