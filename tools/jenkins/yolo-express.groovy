@@ -21,22 +21,22 @@ if (params.PARALLEL) {
       
     TOWER_BRANCH_NAME = sh (
       returnStdout: true,
-      script: 'echo ${TOWER_BRANCH##*/}'
+      script: 'echo ${TOWER_BRANCH#*/}'
     ).trim()
 
     TOWER_PACKAGING_BRANCH_NAME = sh (
       returnStdout: true,
-      script: 'echo ${TOWER_PACKAGING_BRANCH##*/}'
+      script: 'echo ${TOWER_PACKAGING_BRANCH#*/}'
     ).trim()
 
     TOWER_QA_BRANCH_NAME = sh (
       returnStdout: true,
-      script: 'echo ${TOWER_QA_BRANCH##*/}'
+      script: 'echo ${TOWER_QA_BRANCH#*/}'
     ).trim()
     
     TOWERKIT_BRANCH_NAME = sh (
       returnStdout: true,
-      script: 'echo ${TOWERKIT_BRANCH##*/}'
+      script: 'echo ${TOWERKIT_BRANCH#*/}'
     ).trim()
 
     NIGHTLY_REPO_DIR = "${params.TOWER_BRANCH}-${BUILD_ID}"
