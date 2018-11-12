@@ -88,6 +88,7 @@ stage('Install Tower') {
           string(name: 'INSTANCE_NAME_PREFIX', value: "${params.CUSTOM_INSTANCE_PREFIX}"),
           string(name: 'AW_REPO_URL', value: "${AWX_NIGHTLY_REPO_URL}/${NIGHTLY_REPO_DIR}"),
           booleanParam(name: 'TRIGGER', value: false),
+          string(name: 'TOWERQA_GIT_BRANCH', value: "origin/${TOWER_QA_BRANCH_NAME}"),
           [
             $class: 'MatrixCombinationsParameterValue',
             name: 'config',
