@@ -126,7 +126,7 @@ class Test_Projects(APITest):
         assert project_pg.is_successful, "After a successful project update, " \
             "the project is not marked as successful - id:%s" % project_pg.id
 
-    def test_automatic_deletion_of_project_folder(self, factories, ansible_runner, api_config_pg, api_ping_pg, v2):
+    def test_automatic_deletion_of_project_folder(self, factories, ansible_adhoc, api_config_pg, api_ping_pg, v2):
         project = factories.v2_project()
         expected_project_path = os.path.join(api_config_pg.project_base_dir, project.local_path)  # absolute path
 
@@ -138,7 +138,10 @@ class Test_Projects(APITest):
         instances = set([update.execution_node])
         if len(all_instances) > 1:
             # Update project on 2nd instance, to validate broadcasted task
-            inst2 = v2.instances.get(not__hostname=update.execution_node, capacity__gt=0).results.pop()
+            inst2 = v2.instances.get(
+                not__hostname=update.execution_node,
+                capacity__gt=0, page_size=200, rampart_groups__controller__isnull=True
+            ).results.pop()
             ig = factories.instance_group()
             ig.add_instance(inst2)
             jt = factories.job_template(project=project)
@@ -147,7 +150,7 @@ class Test_Projects(APITest):
             assert job.execution_node not in instances
             instances.add(job.execution_node)
 
-        contacted = ansible_runner.stat(path=expected_project_path)
+        contacted = ansible_adhoc()['tower'].stat(path=expected_project_path)
 
         inventory_instances = set([])  # inventory node names different from API names
         for host, result in contacted.items():
@@ -163,7 +166,7 @@ class Test_Projects(APITest):
 
         # project folder should now not exist in any instances
         def folder_has_been_deleted_everywhere():
-            contacted = ansible_runner.stat(path=expected_project_path)
+            contacted = ansible_adhoc()['tower'].stat(path=expected_project_path)
             not_deleted = []
             for host, result in contacted.items():
                 if result['stat']['exists']:
