@@ -71,20 +71,29 @@ class Test_Workflow_Job_Templates(APITest):
     def test_workflow_workflow_node(self, factories):
         """Tests successful use of workflows in workflows"""
         wfjt_outer = factories.workflow_job_template(
-            extra_vars={'outer_var': 'foo'}
+            extra_vars={'outer_var': 'foo'},
+            inventory=factories.v2_inventory()
         )
         wfjt_inner = factories.workflow_job_template(
             extra_vars={'inner_var': 'bar'},
+            ask_variables_on_launch=True,
+            ask_inventory_on_launch=True
+        )
+        jt = factories.job_template(
+            ask_inventory_on_launch=True,
             ask_variables_on_launch=True
         )
-        jt = factories.job_template()
         factories.workflow_job_template_node(
+            extra_data={'node_var_inner': 'boo2'},
             workflow_job_template=wfjt_inner,
             unified_job_template=jt
         )
-        node = factories.workflow_job_template_node(workflow_job_template=wfjt_outer)
-        node.unified_job_template = wfjt_inner.id
         # HACK: unified_job_template does not work with the dependency store
+        node = wfjt_outer.get_related('workflow_nodes').post(dict(
+            extra_data={'node_var_outer': 'boo'},
+            workflow_job_template=wfjt_outer.id,
+            unified_job_template=wfjt_inner.id,
+        ))
 
         wfj_outer = wfjt_outer.launch()
         node = wfj_outer.get_related('workflow_nodes').results.pop().wait_for_job()
@@ -92,8 +101,13 @@ class Test_Workflow_Job_Templates(APITest):
         wfj_inner.wait_until_completed()
         assert wfj_inner.type == 'workflow_job'
         assert wfj_inner.workflow_job_template == wfjt_inner.id
+        assert wfj_inner.inventory == wfjt_outer.inventory  # outermost prompt
         assert wfj_inner.status == 'successful'
-        assert json.loads(wfj_inner.extra_vars) == {'inner_var': 'bar', 'outer_var': 'foo'}
+        assert json.loads(wfj_inner.extra_vars) == {
+            'inner_var': 'bar',
+            'outer_var': 'foo',
+            'node_var_outer': 'boo'
+        }
 
         # check contents of inner workflow
         inner_nodes = wfj_inner.get_related('workflow_nodes')
@@ -102,7 +116,13 @@ class Test_Workflow_Job_Templates(APITest):
         assert jt_node.job  # inner workflow job is finished, so this must have spawned by now
         jt_job = jt_node.get_related('job')
         assert jt_job.job_template == jt.id
-        assert json.loads(jt_job.extra_vars) == {'inner_var': 'bar', 'outer_var': 'foo'}
+        assert jt_job.inventory == wfjt_outer.inventory  # outermost prompt
+        assert json.loads(jt_job.extra_vars) == {
+            'inner_var': 'bar',
+            'node_var_inner': 'boo2',
+            'outer_var': 'foo',
+            'node_var_outer': 'boo'
+        }
 
     def test_workflow_workflow_node_rejected_prompts(self, factories):
         # TODO: update to include prompted inventory when branches merge
