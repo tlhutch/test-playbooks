@@ -13,6 +13,7 @@ pysphere
 pytest
 git+ssh://git@github.com/ansible/pytest-mp.git
 git+ssh://git@github.com/ansible/pytest-ansible.git
+pytest-benchmark
 pytest-cache
 pytest-cov
 pytest-github
