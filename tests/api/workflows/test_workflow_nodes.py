@@ -99,6 +99,31 @@ class Test_Workflow_Nodes(APITest):
             assert getattr(ask_everything_jt, field) != getattr(job, field)
             assert getattr(wf_node, field) == getattr(job, field)
 
+    def test_workflow_node_values_take_precedence_over_wfjt_values(self, factories):
+        inner_wfjt = factories.workflow_job_template(
+            ask_variables_on_launch=True,
+            ask_inventory_on_launch=True
+        )
+        wfjt = factories.v2_workflow_job_template()
+        # HACK: unified_job_template does not work with the dependency store
+        wfjt_node = wfjt.get_related('workflow_nodes').post(dict(
+            extra_data={'var1': 'wfjtn'},
+            inventory=factories.inventory().id,
+            workflow_job_template=wfjt.id,
+            unified_job_template=inner_wfjt.id,
+        ))
+        # sanity assertions
+        assert wfjt_node.inventory != inner_wfjt.inventory
+        assert wfjt_node.extra_data == {'var1': 'wfjtn'}
+        assert inner_wfjt.extra_vars == ''
+
+        wfj = wfjt.launch()
+        wfj_node = wfj.get_related('workflow_nodes').results.pop()
+        wfj_node.wait_for_job()
+        job = wfj_node.get_related('job')
+        assert job.inventory == wfjt_node.inventory
+        assert json.loads(job.extra_vars) == wfjt_node.extra_data
+
     @pytest.mark.github('https://github.com/ansible/awx/issues/2255')
     @pytest.mark.parametrize('add_methods', ['add_success_node',
                                              'add_failure_node',
