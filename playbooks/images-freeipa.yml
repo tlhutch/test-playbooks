@@ -3,7 +3,7 @@ instance_name_prefix: "{{ lookup('env','USER') }}-freeipa"
 my_inventory_file: '{{inventory_dir}}/inventory.freeipa'
 
 ec2_images:
-    - {'name': 'freeipa - rhel-7.6-x86_64', 'user': 'ec2-user', 'id': 'ami-0a0e0aebb1b6a5ff0', 'type': 'm3.medium', 'groups': 'freeipa', 'security_group': 'freeipa'}
+    - {'name': 'freeipa - rhel-7.5-x86_64', 'user': 'ec2-user', 'id': 'ami-0d70a070', 'type': 'm3.medium', 'groups': 'freeipa', 'security_group': 'freeipa'}
 
 ec2_security_groups:
     - name: freeipa
