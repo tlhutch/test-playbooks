@@ -10,7 +10,7 @@
 * [Feature]()
 * [API Test Plan](https://github.com/ansible/tower-qa/blob/devel/docs/test_plans/features/34_job_slicing.md)
 * [UI Test Plan](https://github.com/ansible/tower-qa/blob/devel/docs/test_plans/features/34_job_slicing_ui.md)
-- [ ] Testing complete
+- [x] Testing complete
 
 ### Workflow Convergence Node (jim + elijah + danny)
 * [Feature]()
