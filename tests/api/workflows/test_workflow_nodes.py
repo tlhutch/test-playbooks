@@ -124,6 +124,27 @@ class Test_Workflow_Nodes(APITest):
         assert job.inventory == wfjt_node.inventory
         assert json.loads(job.extra_vars) == wfjt_node.extra_data
 
+    def test_workflow_prompted_inventory_value_takes_precedence_over_wfjt_value(self, factories):
+        inventory = factories.v2_inventory()
+        jt = factories.v2_job_template(ask_inventory_on_launch=True)
+        inner_wfjt = factories.workflow_job_template(
+            ask_inventory_on_launch=True
+        )
+        factories.workflow_job_template_node(workflow_job_template=inner_wfjt, unified_job_template=jt)
+        wfjt = factories.v2_workflow_job_template(
+            ask_inventory_on_launch=True
+        )
+        wfjt.get_related('workflow_nodes').post(dict(
+            workflow_job_template=wfjt.id,
+            unified_job_template=inner_wfjt.id
+        ))
+
+        wfj = wfjt.launch(dict(inventory=inventory.id))
+        wfj_node = wfj.get_related('workflow_nodes').results.pop()
+        wfj_node.wait_for_job()
+        job = wfj_node.get_related('job')
+        assert job.inventory == inventory.id
+
     @pytest.mark.github('https://github.com/ansible/awx/issues/2255')
     @pytest.mark.parametrize('add_methods', ['add_success_node',
                                              'add_failure_node',
