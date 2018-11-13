@@ -454,7 +454,7 @@ class Test_Workflow_Job_Templates(APITest):
 
         # now, delete inventory and when we launch the WFJT, the JT should use
         # its default inventory
-        inventory.delete()
+        inventory.delete().wait_until_deleted()
         wfjt = wfjt.get()
         with pytest.raises(NotFound):
             inventory.get()
