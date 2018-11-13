@@ -140,7 +140,7 @@ class Test_Workflow_Job_Templates(APITest):
         job = node.get_related('job')
         assert job.type == 'workflow_job'
         assert job.workflow_job_template == wfjt_inner.id
-        assert job.inventory == None
+        assert job.inventory is None
         assert json.loads(job.extra_vars) == {'inner_var': 'bar'}
 
     def test_workflow_workflow_node_recursion_error(self, factories):
