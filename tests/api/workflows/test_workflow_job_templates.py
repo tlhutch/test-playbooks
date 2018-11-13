@@ -125,9 +125,9 @@ class Test_Workflow_Job_Templates(APITest):
         }
 
     def test_workflow_workflow_node_rejected_prompts(self, factories):
-        # TODO: update to include prompted inventory when branches merge
         wfjt_outer = factories.workflow_job_template(
-            extra_vars={'outer_var': 'foo'}  # inner WFJT does not prompt, should not use these
+            extra_vars={'outer_var': 'foo'},  # inner WFJT does not prompt, should not use these
+            inventory=factories.inventory()
         )
         wfjt_inner = factories.workflow_job_template(
             extra_vars={'inner_var': 'bar'}
@@ -140,6 +140,7 @@ class Test_Workflow_Job_Templates(APITest):
         job = node.get_related('job')
         assert job.type == 'workflow_job'
         assert job.workflow_job_template == wfjt_inner.id
+        assert job.inventory == None
         assert json.loads(job.extra_vars) == {'inner_var': 'bar'}
 
     def test_workflow_workflow_node_recursion_error(self, factories):

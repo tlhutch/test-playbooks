@@ -164,6 +164,26 @@ class Test_Workflow_Nodes(APITest):
                               'extra_data': ['Variables var1 are not allowed on launch. '
                                              'Check the Prompt on Launch setting on the Job Template to include Extra Variables.']}
 
+    def test_workflow_node_creation_rejected_when_source_wfjt_has_ask_disabled(self, factories):
+        inventory = factories.v2_inventory()
+
+        wfjt = factories.v2_workflow_job_template()
+        inner_wfjt = factories.v2_workflow_job_template()
+
+        with pytest.raises(BadRequest) as e:
+            # HACK: unified_job_template does not work with the dependency store
+            node = wfjt.get_related('workflow_nodes').post(dict(
+                extra_data={'var1': 'wfjtn'},
+                inventory=inventory.id,
+                workflow_job_template=wfjt.id,
+                unified_job_template=inner_wfjt.id,
+            ))
+        assert e.value[1] == {
+            'inventory': ['Field is not configured to prompt on launch.'],
+            'extra_data': ['Variables var1 are not allowed on launch. '
+                         'Check the Prompt on Launch setting on the Workflow Job Template to include Extra Variables.']
+        }
+
     def test_workflow_node_creation_rejected_when_source_jt_has_ask_credential_disabled(self, factories):
         credential = factories.v2_credential()
 
