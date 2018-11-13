@@ -26,28 +26,24 @@ Slices do not share any information with each other, so stateful playbooks will 
 ## Inventory
 
 - [x] Smart Inventories can be sliced
-- [ ] Hosts will not appear in more than one slice
+- [x] Hosts will not appear in more than one slice
 
 ## Workflows
 
 - [x] Sliced Job Templates can be used as part of a Workflow Job Template
-- [ ] Workflow Jobs using a sliced job template can be cancelled
-- [ ] Workflow Jobs using a sliced job template can be relaunched
+- [x] Workflow Jobs using a sliced job template can be cancelled
+- [x] Workflow Jobs using a sliced job template can be relaunched
 
 ## Execution
-- [ ] Job Template Parameters are applied to all slices
-  - [ ] Prompts
+- [x] Job Template Parameters are applied to all slices
+  - [x] Prompts
     - [x] Credentials
     - [x] Limits (note: may result in 0 host slices)
-    - [ ] Inventories
-    - [ ] Projects
-    - [ ] Credential Passwords
     - [x] Survey Responses
-    - [ ] Custom Virtualenv
-  - [ ] Extra Vars
-  - [ ] Credentials
-  - [ ] Forks
-  - [ ] Show Changes
+  - [x] Extra Vars
+  - [x] Credentials
+  - [x] Forks
+  - [x] Show Changes
   - [x] Verbosity
   - [x] Allow Simultaneous
   - [x] Timeout
@@ -60,11 +56,11 @@ Slices do not share any information with each other, so stateful playbooks will 
 - [x] Relaunching
   - [x] Slices can be relaunced individually
   - [x] The entire sliced job can be relaunched
-- [ ] Instance group settings are respected at all levels
-  - [ ] Organization
-  - [ ] Inventory
-  - [ ] Job Template
-- [ ] Sliced jobs can be executed with a custom virtualenv
+- [x] Instance group settings are respected at all levels
+  - [x] Organization
+  - [x] Inventory
+  - [x] Job Template
+- [x] Sliced jobs can be executed with a custom virtualenv
 - [x] When a job template is set to 0 or 1 slice, it launches as a regular job template
 - [x] Cancellation
   - [x] Cancelling the sliced job cancels all slices
