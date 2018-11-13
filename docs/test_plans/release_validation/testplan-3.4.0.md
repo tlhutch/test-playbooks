@@ -42,7 +42,7 @@
 ### Finish Organization Permission Views (danny) (ui only)
 * [Feature]()
 * [UI Test Plan](https://docs.google.com/document/d/18azadvf-9dqC39Ri-By6IiE_eUt2bu9rPX6WjRBjgic)
-- [ ] Testing complete
+- [x] Testing complete
 
 ### Support FIPS mode on RHEL 7 and CentOS 7 (yanis) (api only)
 * [Feature]()
