@@ -109,7 +109,6 @@ class Test_Workflow_Nodes(APITest):
         wfjt_node = wfjt.get_related('workflow_nodes').post(dict(
             extra_data={'var1': 'wfjtn'},
             inventory=factories.inventory().id,
-            workflow_job_template=wfjt.id,
             unified_job_template=inner_wfjt.id,
         ))
         # sanity assertions
@@ -221,7 +220,6 @@ class Test_Workflow_Nodes(APITest):
             wfjt.get_related('workflow_nodes').post(dict(
                 extra_data={'var1': 'wfjtn'},
                 inventory=inventory.id,
-                workflow_job_template=wfjt.id,
                 unified_job_template=inner_wfjt.id,
             ))
         assert e.value[1] == {

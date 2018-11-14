@@ -91,7 +91,6 @@ class Test_Workflow_Job_Templates(APITest):
         # HACK: unified_job_template does not work with the dependency store
         node = wfjt_outer.get_related('workflow_nodes').post(dict(
             extra_data={'node_var_outer': 'boo'},
-            workflow_job_template=wfjt_outer.id,
             unified_job_template=wfjt_inner.id,
         ))
 
