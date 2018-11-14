@@ -6,7 +6,7 @@ def NIGHTLY_REPO_DIR
 def TOWER_QA_BRANCH
 def TOWERKIT_BRANCH
 def TEST_TOWER_INSTALL_BUILD_ID = 'lastBuild'
-def NIGHTLY_BRANCH_COMBINATION = "${params.ANSIBLE_NIGHTLY_BRANCH},PLATFORM=rhel-7.5-x86_64,label=jenkins-jnlp-agent"
+def NIGHTLY_BRANCH_COMBINATION = "${params.ANSIBLE_NIGHTLY_BRANCH},PLATFORM=${params.PLATFORM},label=jenkins-jnlp-agent"
 def PARALLELIZE = ''
 
 stage ('Prepare Build') {
