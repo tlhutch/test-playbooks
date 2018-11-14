@@ -76,11 +76,6 @@ class TestWorkflowJobTemplateSurveys(APITest):
 
         wfjt.add_survey(spec=self.survey)
 
-        jt_survey = copy.deepcopy(self.survey)
-        jt_survey[0]['default'] = 'wfjn_var1_default'
-        jt_survey[1]['default'] = 'wfjn_var2_default'
-        jt.add_survey(spec=jt_survey)
-
         wfj = wfjt.launch(dict(extra_vars=dict(var3='launch'))).wait_until_completed()
         job = jt.get().related.last_job.get()
         assert wfj.is_successful
