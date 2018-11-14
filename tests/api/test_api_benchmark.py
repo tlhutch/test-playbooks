@@ -181,6 +181,30 @@ class TestApiPerformance(APITest):
         benchmark(self.wait_for_workflow_node_start, wfjt)
 
     @pytest.mark.mp_group('Benchmarking', 'isolated_serial')
+    def test_benchmark_workflow_in_workflow_node_start_time(self, factories, benchmark):
+        def wait_for_inner_workflow_node_start(wfjt):
+            wfj = wfjt.launch()
+            wfjn = wfj.related.workflow_nodes.get().results.pop()
+            wfjn.wait_for_job(interval=0.25)
+            job = wfjn.get_related('job')
+            inner_wfjn = job.related.workflow_nodes.get().results.pop()
+            inner_wfjn.wait_for_job(interval=0.25)
+            inner_job = inner_wfjn.get_related('job')
+            inner_job.wait_until_started(interval=0.25)
+
+        wfjt_outer = factories.workflow_job_template(allow_simultaneous=True)
+        wfjt_inner = factories.workflow_job_template(allow_simultaneous=True)
+        jt = factories.job_template(allow_simultaneous=True)
+        factories.workflow_job_template_node(
+            workflow_job_template=wfjt_inner,
+            unified_job_template=jt
+        )
+        node = factories.workflow_job_template_node(
+            workflow_job_template=wfjt_outer)
+        node.unified_job_template = wfjt_inner.id
+        benchmark(wait_for_inner_workflow_node_start, wfjt_outer)
+
+    @pytest.mark.mp_group('Benchmarking', 'isolated_serial')
     def test_benchmark_job_template_creation(self, v2, factories, benchmark):
         org = factories.v2_organization()
         inventory = factories.v2_inventory(organization=org)
