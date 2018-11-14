@@ -1,5 +1,8 @@
 #!/usr/bin/env python
 
+# Needs to be updated to return ansible_host values
+# See https://github.com/ansible/tower-qa/issues/2481 for details
+
 import argparse
 import json
 import os

@@ -2,10 +2,6 @@ from base64 import b64decode
 import os
 import gc
 import logging
-from pkg_resources import parse_version
-
-from ansible import __version__ as ansible_version
-
 import fauxfactory
 import pytest
 
@@ -95,10 +91,15 @@ def hostvars_for_host(modified_ansible_adhoc):
     manager = modified_ansible_adhoc().options['inventory_manager']
 
     def gimme_hostvars(host_name):
-        if parse_version(ansible_version) < parse_version('2.3'):
-            raise RuntimeError('Local version of Ansible is so old {}'.format(ansible_version))
-        else:
-            return manager.get_host(host_name).get_vars()
+        # Look up host by name
+        host = manager.get_host(host_name)
+        # .. if no host found, attempt to find by ansible_host
+        if not host:
+            hosts = [h for h in manager.get_hosts() if h.vars.get('ansible_host', '') == host_name]
+            if not hosts:
+                raise Exception("Could not find host '{}'".format(host_name))
+            host = hosts.pop()
+        return host.get_vars()
 
     return gimme_hostvars
 
@@ -111,16 +112,19 @@ def hosts_in_group(modified_ansible_adhoc):
     manager = modified_ansible_adhoc().options['inventory_manager']
 
     def gimme_hosts(group_name):
-        if parse_version(ansible_version) < parse_version('2.3'):
-            raise RuntimeError('Local version of Ansible is so old {}'.format(ansible_version))
-        elif parse_version(ansible_version) < parse_version('2.4'):
-            groups_dict = manager.get_group_dict() if hasattr(manager, 'get_group_dict') else manager.get_groups_dict()
-            return groups_dict.get(group_name)
-        else:
-            group = manager.groups.get(group_name)
-            if group is None:
-                return []
-            return [host.name for host in group.get_hosts()]
+        group = manager.groups.get(group_name)
+        if group is None:
+            return []
+
+        addresses = []
+        for host in group.get_hosts():
+            # Return ansible_host if provided
+            address = host.vars.get('ansible_host', '')
+            # .. otherwise, return hostname
+            if not address:
+                address = host.name
+            addresses.append(address)
+        return addresses
 
     return gimme_hosts
 

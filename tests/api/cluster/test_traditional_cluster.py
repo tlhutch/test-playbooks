@@ -151,7 +151,7 @@ class TestTraditionalCluster(APITest):
                 break
             time.sleep(interval)
 
-    @pytest.mark.github('https://github.com/ansible/tower-qa/issues/2450')
+    @pytest.mark.github('https://github.com/ansible/tower-qa/issues/2481')
     def test_instance_group_creation(self, authtoken, v2, ansible_runner):
         inventory_path = os.environ.get('TQA_INVENTORY_FILE_PATH', '/tmp/setup/inventory')
         cmd = 'scripts/ansible_inventory_to_json.py --inventory {0} --group-filter tower,instance_group_,isolated_group_'.format(inventory_path)
@@ -501,7 +501,6 @@ class TestTraditionalCluster(APITest):
             job = jt.launch().wait_until_completed()
             assert job.is_successful
 
-    @pytest.mark.github('https://github.com/ansible/tower-qa/issues/2449')
     @pytest.mark.mp_group(group="pytest_mark_requires_isolation", strategy="isolated_serial")
     def test_instance_removal(self, connection, admin_user, hosts_in_group, hostvars_for_host, factories, user_password, v2):
         """
