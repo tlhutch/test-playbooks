@@ -12,10 +12,10 @@
 - name: 'Dynamically create host groups'
   hosts: 'tower'
   tasks:
-   - name: group hosts by distribution_major_version
-     group_by:
+    - name: group hosts by distribution_major_version
+      group_by:
         key: "{{ansible_distribution}}-{{ansible_distribution_major_version}}"
-     changed_when: false
+      changed_when: false
 
 - name: 'Install Tower'
   hosts: 'tower'

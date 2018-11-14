@@ -37,12 +37,14 @@ pg_port="{{ hostvars['127.0.0.1']['tower_db']['pg_port'] }}"
 pg_database="{{ hostvars['127.0.0.1']['tower_db']['pg_database'] }}"
 pg_username="{{ hostvars['127.0.0.1']['tower_db']['pg_username'] }}"
 pg_password="{{ hostvars['127.0.0.1']['tower_db']['pg_password'] }}"
+pg_hashed_password="md5{{ ("awx" + hostvars['127.0.0.1']['tower_db']['pg_password'])|hash("md5")  }}"
 {% else %}
 pg_host="{{ hostvars[groups['database'][0]].ansible_default_ipv4.address }}"
 pg_port="{{ pg_port | default('5432') }}"
 pg_database="{{ pg_database }}"
 pg_username="{{ pg_username }}"
 pg_password="{{ pg_password }}"
+pg_hashed_password="md5{{ ("awx" + pg_password)|hash("md5")  }}"
 {% endif %}
 
 {% if 'tower' in groups %}
