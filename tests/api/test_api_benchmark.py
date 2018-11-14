@@ -225,7 +225,6 @@ class TestApiPerformance(APITest):
             inventory.add_host()
         benchmark(self.launch_and_wait, jt)
 
-    @pytest.mark.github('https://github.com/ansible/awx/issues/2252')
     @pytest.mark.mp_group('Benchmarking', 'isolated_serial')
     def test_benchmark_workflow_in_workflow(self, factories, benchmark):
         wfjt_outer = factories.workflow_job_template()
@@ -239,3 +238,15 @@ class TestApiPerformance(APITest):
             workflow_job_template=wfjt_outer)
         node.unified_job_template = wfjt_inner.id
         benchmark(self.launch_and_wait, wfjt_outer)
+
+    @pytest.mark.mp_group('Benchmarking', 'isolated_serial')
+    def test_benchmark_nested_empty_workflows_in_workflow(self, factories, benchmark):
+        wfjts = []
+        for i in range(10):
+            wfjt = factories.workflow_job_template()
+            if wfjts:
+                wfjts[-1].get_related('workflow_nodes').post(dict(
+                    unified_job_template=wfjt.id
+                ))
+            wfjts.append(wfjt)
+        benchmark(self.launch_and_wait, wfjts[0])
