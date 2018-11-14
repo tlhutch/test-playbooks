@@ -176,7 +176,7 @@ class TestJobTemplateLaunchCredentials(APITest):
 
     @pytest.mark.ansible_integration
     @pytest.mark.skip_openshift
-    def test_launch_with_encrypted_ssh_credential(self, ansible_runner, job_template,
+    def test_launch_with_encrypted_ssh_credential(self, skip_if_fips_enabled, ansible_runner, job_template,
                                                   encrypted_ssh_credential_with_ssh_key_data):
         (credential_type, credential) = encrypted_ssh_credential_with_ssh_key_data
 
