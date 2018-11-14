@@ -8,7 +8,7 @@ cluster_install: true
 #
 
 ec2_images:
-    - {'name': 'haproxy-rhel-7.5-x86_64', 'user': 'ec2-user', 'id': 'ami-0d70a070', 'type': 'm5.large', 'groups': 'haproxy', 'security_group': 'tower-haproxy'}
+    - {'name': 'haproxy-rhel-7.6-x86_64', 'user': 'ec2-user', 'id': 'ami-06fd194eff2ab1451', 'type': 'm5.large', 'groups': 'haproxy', 'security_group': 'tower-haproxy'}
 
 ec2_security_groups:
     - name: tower-haproxy

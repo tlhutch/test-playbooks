@@ -4,11 +4,11 @@ my_inventory_file: '{{inventory_dir}}/inventory.cluster'
 cluster_install: true
 
 ec2_images:
-  #- {'name': 'haproxy-rhel-7.5-x86_64', 'user': 'ec2-user', 'id': 'ami-0d70a070', 'type': 'm5.large', 'groups': 'haproxy', 'security_group': 'tower-cluster'}
-    - {'name': 'cluster-1-rhel-7.5-x86_64', 'user': 'ec2-user', 'id': 'ami-0d70a070', 'type': 'm5.large', 'groups': 'cluster_installer,tower', 'security_group': 'tower-cluster'}
-    - {'name': 'cluster-2-rhel-7.5-x86_64', 'user': 'ec2-user', 'id': 'ami-0d70a070', 'type': 'm5.large', 'groups': 'tower', 'security_group': 'tower-cluster'}
-    - {'name': 'cluster-3-rhel-7.5-x86_64', 'user': 'ec2-user', 'id': 'ami-0d70a070', 'type': 'm5.large', 'groups': 'tower', 'security_group': 'tower-cluster'}
-    - {'name': 'cluster-pg-rhel-7.5.-x86_64', 'user': 'ec2-user', 'id': 'ami-0d70a070', 'type': 'm5.large', 'groups': 'database',   'security_group': 'tower-cluster'}
+  #- {'name': 'haproxy-rhel-7.6-x86_64', 'user': 'ec2-user', 'id': 'ami-06fd194eff2ab1451', 'type': 'm5.large', 'groups': 'haproxy', 'security_group': 'tower-cluster'}
+    - {'name': 'cluster-1-rhel-7.6-x86_64', 'user': 'ec2-user', 'id': 'ami-06fd194eff2ab1451', 'type': 'm5.large', 'groups': 'cluster_installer,tower', 'security_group': 'tower-cluster'}
+    - {'name': 'cluster-2-rhel-7.6-x86_64', 'user': 'ec2-user', 'id': 'ami-06fd194eff2ab1451', 'type': 'm5.large', 'groups': 'tower', 'security_group': 'tower-cluster'}
+    - {'name': 'cluster-3-rhel-7.6-x86_64', 'user': 'ec2-user', 'id': 'ami-06fd194eff2ab1451', 'type': 'm5.large', 'groups': 'tower', 'security_group': 'tower-cluster'}
+    - {'name': 'cluster-pg-rhel-7.6.-x86_64', 'user': 'ec2-user', 'id': 'ami-06fd194eff2ab1451', 'type': 'm5.large', 'groups': 'database',   'security_group': 'tower-cluster'}
 
 ec2_security_groups:
     - name: tower-cluster
