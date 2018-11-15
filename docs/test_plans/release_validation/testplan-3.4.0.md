@@ -75,6 +75,8 @@
 1. [ ] Backup/restore successful - OpenShift
 
 ### Installation
+Install/Deploy tower in the following configurations and validate functionality with automated tests
+
 1. Installation completes successfully on all supported platforms (automated)
     * [ ] centos-7.latest
     * [ ] ubuntu-16.04
@@ -105,6 +107,8 @@
     * [ ] rhel-7.5
     * [ ] rhel-7.6
 1. [ ] Bundled installation completes successfully for clustered deployments
+1. [ ] Deploy tower with [HTTPS+Load Balancer+Let's Encrypt](https://github.com/ansible/tower-qa/issues/1985)
+1. [ ] Deploy tower in [OpenShift with an external DB](https://github.com/ansible/tower-qa/issues/1656)
 
 ### Upgrades for all supported platforms
 1. [ ] Successful upgrades (and migrations) from `3.2.0` - `3.4.0` (standalone)
