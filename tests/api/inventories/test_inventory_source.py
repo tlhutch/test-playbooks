@@ -1,5 +1,6 @@
 from towerkit import exceptions as exc
 import pytest
+import threading
 
 from tests.api import APITest
 
@@ -159,23 +160,60 @@ class TestInventorySource(APITest):
         assert inv_source.wait_until_completed().is_successful
         assert inv_update.get().is_successful
 
-    def test_delete_sublist_resources(self, factories):
-        inv_source = factories.v2_inventory_source()
+    def update_and_delete_resources(self, inv_source):
         assert inv_source.update().wait_until_completed().is_successful
 
-        groups = inv_source.related.groups.get()
-        hosts = inv_source.related.hosts.get()
-        assert groups.count
-        assert hosts.count
+        groups = inv_source.get_related('groups')
+        hosts = inv_source.get_related('hosts')
 
-        groups.delete()
-        hosts.delete()
+        # Add all instances to newly created instance group, in parallel
+        # Past issues seen include:
+        # 504 timeout - deletion of groups is too heavy, request times out
+        # 500 error - deadlock because groups and host deletes conflict
+        threads = [
+            threading.Thread(target=groups.delete),
+            threading.Thread(target=hosts.delete)
+        ]
+        map(lambda t: t.start(), threads)
+        map(lambda t: t.join(), threads)
 
-        for group in groups.results:
-            with pytest.raises(exc.NotFound):
-                group.get()
-        for host in hosts.results:
-            with pytest.raises(exc.NotFound):
-                host.get()
+        with pytest.raises(exc.NotFound):
+            groups.results[0].get()  # canary, actual groups span multiple pages
+        with pytest.raises(exc.NotFound):
+            hosts.results[0].get()
         assert groups.get().count == 0
         assert hosts.get().count == 0
+
+    def test_delete_sublist_resources(self, factories):
+        inv_source = factories.v2_inventory_source()
+        self.update_and_delete_resources(inv_source)
+
+    @pytest.mark.github('https://github.com/ansible/awx/issues/2240')
+    def test_simultaneous_delete_sublist_resources_generic_large_inventory(self, factories):
+        Ng = 470
+        Nh = 189
+        # In this inventory, all hosts are members of all groups,
+        # so that makes it more challenging to avoid conflicts while deleting both
+        inv_source = factories.v2_inventory_source(
+            inventory_script=factories.v2_inventory_script(
+                script='\n'.join([
+                    "#!/usr/bin/env python",
+                    "import json",
+                    "hosts=['Host-{}' for i in range(%s)]" % Nh,
+                    "data = {'_meta': {'hostvars': {}}}",
+                    "for i in range(%s):" % Ng,
+                    "   data['Group-{}'.format(i)] = {'hosts': hosts}",
+                    "print json.dumps(data, indent=2)"
+                ])
+            )
+        )
+        self.update_and_delete_resources(inv_source)
+
+    @pytest.mark.github('https://github.com/ansible/awx/issues/2240')
+    def test_simultaneous_delete_sublist_resources_ec2(self, factories):
+        # Reported custom issue where server error, deadlocks, occured
+        inv_source = factories.v2_inventory_source(
+            source='ec2',
+            credential=factories.v2_credential(kind='aws')
+        )
+        self.update_and_delete_resources(inv_source)
