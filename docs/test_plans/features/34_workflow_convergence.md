@@ -64,6 +64,7 @@ Note: it was determined the "longest pole" is the fact that the WF jobs only sta
     - [x] failure
 - [x] Confirm that convergence node does not start if final running node is in waiting, pending, or running state
 - [x] Confirm that convergence node runs even if final remaining parent node to the convergence node experiences an error or fails
+- [x] Confirm that if convergence node has an "failure" relation to a parent, and it is canceled, this triggers the convergence node
 - [x] Confirm that workflows with convergence nodes behave correctly when re-launched (this test is a little more than just path execution)
 
 ### Deep / complex workflows

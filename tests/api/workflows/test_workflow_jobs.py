@@ -189,7 +189,6 @@ class Test_Workflow_Jobs(APITest):
         wfj = wfjt.launch().wait_until_completed()
         assert 'failed' == wfj.status, "Workflow job {} expected to be failed {}".format(wfjt.id, wfjt.status)
 
-    @pytest.mark.github('https://github.com/ansible/awx/issues/2255')
     @pytest.mark.ansible_integration
     def test_workflow_job_trigger_conditions(self, factories, api_workflow_job_nodes_pg):
         """Confirm that workflow with all possible triggering scenarios executes jobs appropriately.
@@ -358,22 +357,26 @@ class Test_Workflow_Jobs(APITest):
         poll_until(lambda: getattr(job.get(), 'status') == 'canceled', timeout=60)
 
         # Confirm WF job failed
-        poll_until(lambda: wfj.get().failed, timeout=3 * 60)
+        wfj.wait_until_completed()
+        wfj = wfj.get()
+        assert wfj.failed, "Workflow job should have been marked failed when only job in WF was canceled, because it had no failure recovery path."
 
     def test_cancel_job_in_workflow_with_downstream_jobs(self, factories, api_jobs_pg):
-        """Cancel job spawned by workflow job. Confirm jobs downstream from cancelled job
+        """Cancel job spawned by workflow job. Confirm jobs downstream from canceled job
         are not triggered, but rest of workflow continues to execute.
 
         Workflow:
          n1                 <--- canceled
-          - (success) n2
-          - (failure) n3
+          - (success) dnr_n2  <--- should be marked Do Not Run
+          - (failure) failure_path_for_canceled_node_n3 <--- should run because canceled jobs are treated as failed
+          - (always) always_path_for_canceled_nA <--- should run because canceled jobs are treated as failed
          n4
           - (always) n5
 
         Expect:
          - Nodes downstream from n1 (includes n2, n3) should not run.
          - Rest of workflow (includes n4, n5) should run to completion.
+         - WFJ should succeed because failure path node for canceled job should succeed
         """
         # Create jobs for workflow
         # Note: Both root jobs sleep so that (1) there's time to cancel n1 and (2) n4 does not finish before n1 is
@@ -389,8 +392,9 @@ class Test_Workflow_Jobs(APITest):
         wfjt = factories.workflow_job_template()
         node_payload = dict(unified_job_template=jt.id)
         n1 = factories.workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt_sleep)
-        n2 = n1.related.success_nodes.post(node_payload)
-        n3 = n1.related.failure_nodes.post(node_payload)
+        dnr_n2 = n1.related.success_nodes.post(node_payload)
+        always_path_for_canceled_nA = n1.related.always_nodes.post(node_payload)
+        failure_path_for_canceled_node_n3 = n1.related.failure_nodes.post(node_payload)
         n4 = factories.workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt_sleep)
         n5 = n4.related.always_nodes.post(node_payload)
 
@@ -408,8 +412,9 @@ class Test_Workflow_Jobs(APITest):
         assert mapping, error
 
         n1_job_node = wfj.related.workflow_nodes.get(id=mapping[n1.id]).results.pop()
-        n2_job_node = wfj.related.workflow_nodes.get(id=mapping[n2.id]).results.pop()
-        n3_job_node = wfj.related.workflow_nodes.get(id=mapping[n3.id]).results.pop()
+        dnr_n2_job_node = wfj.related.workflow_nodes.get(id=mapping[dnr_n2.id]).results.pop()
+        failure_path_n3_job_node = wfj.related.workflow_nodes.get(id=mapping[failure_path_for_canceled_node_n3.id]).results.pop()
+        always_path_nA_job_node = wfj.related.workflow_nodes.get(id=mapping[always_path_for_canceled_nA.id]).results.pop()
         n4_job_node = wfj.related.workflow_nodes.get(id=mapping[n4.id]).results.pop()
         n5_job_node = wfj.related.workflow_nodes.get(id=mapping[n5.id]).results.pop()
 
@@ -422,19 +427,20 @@ class Test_Workflow_Jobs(APITest):
         poll_until(lambda: getattr(n1_job.get(), 'status') == 'canceled', timeout=60)
 
         # Confirm workflow job fails
-        poll_until(lambda: wfj.get().failed, timeout=3 * 60)
-
+        wfj.wait_until_completed()
+        wfj = wfj.get()
+        assert 'successful' == wfj.status, "Workflow job should have succeeded because failure path node should have 'handeled' the cancelation"
         # Confirm remaining jobs in workflow completed successfully
-        for job_node in (n4_job_node, n5_job_node):
+        for job_node in (n4_job_node, n5_job_node, failure_path_n3_job_node, always_path_nA_job_node):
             job_node.get()
             assert getattr(job_node, 'job', None), 'Failed to find job listed on node {}'.format(job_node)
             assert job_node.get_related('job').status == 'successful'
 
         # Confirm job downstream from cancelled job never triggered
-        for job_node in (n2_job_node, n3_job_node):
-            job_node.get()
-            assert not getattr(job_node, 'job', None), \
-                'Found job listed on node {} (even though parent job node cancelled)'.format(job_node)
+        dnr_n2_job_node = dnr_n2_job_node.get()
+        assert not getattr(dnr_n2_job_node, 'job', None), \
+            'Found job listed on node {} that should have been marked DNR because was success child of canceled node'.format(job_node)
+        assert dnr_n2_job_node.do_not_run, "Node was not marked Do Not Run even though was success child of canceled node."
 
     @pytest.mark.parametrize('dependency', ['inventory', 'project'])
     def test_downstream_jt_jobs_fail_appropriately_when_missing_deleted_dependencies(self, factories, dependency):

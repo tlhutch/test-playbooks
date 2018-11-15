@@ -7,6 +7,7 @@ from copy import deepcopy
 
 import pytest
 from towerkit.exceptions import BadRequest, NoContent
+from towerkit.utils import poll_until
 
 from tests.api import APITest
 from towerkit.config import config
@@ -236,6 +237,81 @@ class Test_Workflow_Convergence(APITest):
             raise AssertionError(
                 'Convergence node started before parent job finisheds. Errors were:\n{}'.format(
                     '\n'.join(nodes_still_running_when_convergence_job_started)))
+
+    def test_convergence_node_runs_as_failure_node_for_canceled_parents(self, factories):
+        """Confirm that convergence runs if it is the failure path for canceled parents.
+
+        Workflow:
+
+        n0: (uses jt that succeeds) (no children)
+          - (failure) dnr (uses jt that would succeed, but should be marked dnr)
+        n1: (uses jt that succeeds)
+          - (success) n2 (is canceled)
+          - (always)  n3 (is canceled)
+        n2:
+          - (success) convergence_node (uses jt that succeeds)
+        n3:
+          - (failure) convergence_node (uses jt that succeeds)
+
+        Expect:
+         - n0 should run and suceed
+         - dnr should be marked dnr
+         - n1 should run and succeed
+         - n2 should not start and be canceled
+         - n3 should not start and be canceled
+         - convergence_node should run and succeed
+         - convergence_node should not have started until all parents have been canceled
+        """
+        host = factories.v2_host()
+        wfjt = factories.workflow_job_template()
+        jt = factories.job_template(
+            inventory=host.ds.inventory,
+            allow_simultaneous=True)
+        jt_sleep = factories.job_template(inventory=host.ds.inventory, playbook='sleep.yml', extra_vars='{"sleep_interval": 30}',
+                                          allow_simultaneous=True)  # Longer-running job
+
+        n0 = factories.workflow_job_template_node(
+            workflow_job_template=wfjt, unified_job_template=jt)
+        dnr = n0.add_failure_node(unified_job_template=jt)
+        n1 = factories.workflow_job_template_node(
+            workflow_job_template=wfjt, unified_job_template=jt)
+        n2 = n1.add_success_node(unified_job_template=jt_sleep)
+        n3 = n1.add_always_node(unified_job_template=jt_sleep)
+        convergence_node = factories.workflow_job_template_node(
+            workflow_job_template=wfjt, unified_job_template=jt)
+        with pytest.raises(NoContent):
+            # this returns a 204, which raises an exception in towerkit
+            # because it is not 200 but we are OK with it in this context
+            n2.related.success_nodes.post(dict(id=convergence_node.id))
+        with pytest.raises(NoContent):
+            n3.related.failure_nodes.post(dict(id=convergence_node.id))
+
+        # Run the job
+        wfj = wfjt.launch()
+        tree = WorkflowTree(wfjt)
+        job_tree = WorkflowTree(wfj)
+        mapping = WorkflowTreeMapper(tree, job_tree).map()
+
+        # Cancel jobs of parents of convergence_node
+        n2_job_node = wfj.related.workflow_nodes.get(id=mapping[n2.id]).results.pop()
+        n3_job_node = wfj.related.workflow_nodes.get(id=mapping[n3.id]).results.pop()
+        n2_job_node.wait_for_job(timeout=60)  # Job does not exist until kicked off by workflow
+        n2_job = n2_job_node.related.job.get()
+        n2_job.cancel()
+        n3_job_node.wait_for_job(timeout=60)  # Job does not exist until kicked off by workflow
+        n3_job = n3_job_node.related.job.get()
+        n3_job.cancel()
+        poll_until(lambda: getattr(n3_job.get(), 'status') == 'canceled', timeout=60)
+        poll_until(lambda: getattr(n2_job.get(), 'status') == 'canceled', timeout=60)
+
+        # Wait for entire workflow to finish
+        wfj.wait_until_completed()
+
+        # Assert each job reached expected states
+        assert 'successful' == get_job_status(wfj, n0.id, mapping)
+        assert 'successful' == get_job_status(wfj, n1.id, mapping)
+        assert 'successful' == get_job_status(wfj, convergence_node.id, mapping)
+        assert get_job_node(wfj, dnr.id, mapping).do_not_run is True
 
     def test_dnr_is_propagated(self, factories):
         host = factories.v2_host()
