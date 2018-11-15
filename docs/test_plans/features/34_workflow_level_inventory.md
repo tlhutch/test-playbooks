@@ -31,7 +31,7 @@ launch" set.
           the api disallows created a workflow job template node with a job template that has no inventory.
     - [x] .. if job is set to prompt for inventory (and does have a default set)
   * Inventory prompt in conjunction with workflows-in-workflows
-    - [ ] inventory can be provided as a prompt in a workflow-type node
+    - [x] inventory can be provided as a prompt in a workflow-type node
     - [x] node rejects inventory if sub-workflow is not set to prompt (both in request and task system)
   * Other inventory items to consider:
     - [x] Source inventory with unicode name. Groups and hosts should have unicode names as well.
