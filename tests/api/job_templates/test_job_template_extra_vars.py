@@ -331,3 +331,33 @@ class TestJobTemplateExtraVars(APITest):
         assert job_vars['job_var'] == launch_time_vars['job_var']
         assert job_vars['intersection'] == launch_time_vars['intersection'], \
             "A launch-time variable did not replace our JT and survey intersection variable."
+
+    @pytest.mark.parametrize('required', [True, False])
+    def test_survey_vars_passed_with_jt_when_launch_vars_absent_and_survey_defaults_present(self, factories, required):
+        host = factories.v2_host()
+        jt = factories.v2_job_template(
+            inventory=host.ds.inventory, playbook='debug_extra_vars.yml')
+
+        survey = [dict(required=required,
+                       question_name='Q1',
+                       variable='var1',
+                       type='text',
+                       default='survey'),
+                  dict(required=required,
+                       question_name='Q2',
+                       variable='var2',
+                       type='password',
+                       default='survey')]
+        jt.add_survey(spec=survey)
+
+        j = jt.launch(dict(extra_vars=dict())).wait_until_completed()
+        job = jt.get().related.last_job.get()
+        assert j.is_successful
+        assert job.is_successful
+        assert '"var1": "survey"' in job.result_stdout
+        assert '"var2": "survey"' in job.result_stdout
+
+        assert json.loads(j.extra_vars) == dict(
+            var1='survey', var2='$encrypted$')
+        assert json.loads(job.extra_vars) == dict(
+            var1='survey', var2='$encrypted$')
