@@ -88,11 +88,25 @@ def encrypted_rsa_ssh_key_data():
     return open(os.path.join(fixtures_dir, 'static/encrypted_rsa'), 'r').read()
 
 
+@pytest.fixture
+def encrypted_rsa_ssh_key_data_pkcs8():
+    return open(os.path.join(fixtures_dir, 'static/encrypted_rsa_pkcs8'), 'r').read()
+
+
 @pytest.fixture(scope="function")
 def encrypted_rsa_ssh_credential(admin_user, encrypted_rsa_ssh_key_data, factories):
     cred = factories.credential(name="encrypted rsa ssh_credentials-%s" % fauxfactory.gen_utf8(),
                                 description="machine credential - %s" % fauxfactory.gen_utf8(),
                                 kind='ssh', user=admin_user, ssh_key_data=encrypted_rsa_ssh_key_data,
+                                ssh_key_unlock='ASK', password=None, become_password=None)
+    return cred
+
+
+@pytest.fixture(scope="function")
+def encrypted_rsa_pkcs8_ssh_credential(admin_user, encrypted_rsa_ssh_key_data_pkcs8, factories):
+    cred = factories.credential(name="encrypted rsa ssh_credentials-%s" % fauxfactory.gen_utf8(),
+                                description="machine credential - %s" % fauxfactory.gen_utf8(),
+                                kind='ssh', user=admin_user, ssh_key_data=encrypted_rsa_ssh_key_data_pkcs8,
                                 ssh_key_unlock='ASK', password=None, become_password=None)
     return cred
 
@@ -145,11 +159,26 @@ def encrypted_ecdsa_ssh_key_data():
     return open(os.path.join(fixtures_dir, 'static/encrypted_ecdsa'), 'r').read()
 
 
+@pytest.fixture
+def encrypted_ecdsa_ssh_key_data_pkcs8():
+    return open(os.path.join(fixtures_dir, 'static/encrypted_ecdsa_pkcs8'), 'r').read()
+
+
 @pytest.fixture(scope="function")
 def encrypted_ecdsa_ssh_credential(admin_user, encrypted_ecdsa_ssh_key_data, factories):
     cred = factories.credential(name="encrypted ecdsa ssh_credentials-%s" % fauxfactory.gen_utf8(),
                                 description="machine credential - %s" % fauxfactory.gen_utf8(),
                                 kind='ssh', user=admin_user, ssh_key_data=encrypted_ecdsa_ssh_key_data,
+                                ssh_key_unlock='ASK', password=None, become_password=None)
+
+    return cred
+
+
+@pytest.fixture(scope="function")
+def encrypted_ecdsa_pkcs8_ssh_credential(admin_user, encrypted_ecdsa_ssh_key_data_pkcs8, factories):
+    cred = factories.credential(name="encrypted ecdsa ssh_credentials-%s" % fauxfactory.gen_utf8(),
+                                description="machine credential - %s" % fauxfactory.gen_utf8(),
+                                kind='ssh', user=admin_user, ssh_key_data=encrypted_ecdsa_ssh_key_data_pkcs8,
                                 ssh_key_unlock='ASK', password=None, become_password=None)
 
     return cred
@@ -211,7 +240,14 @@ def unencrypted_ssh_credential_with_ssh_key_data(request):
 
 
 # Convenience fixture that iterates through encrypted ssh credentials
-encrypted_ssh_credential_params = ['encrypted_rsa', 'encrypted_dsa', 'encrypted_ecdsa', 'encrypted_open']
+encrypted_ssh_credential_params = [
+    'encrypted_rsa',
+    'encrypted_dsa',
+    'encrypted_ecdsa',
+    'encrypted_open',
+    'encrypted_rsa_pkcs8',
+    'encrypted_ecdsa_pkcs8'
+]
 
 
 @pytest.fixture(
@@ -219,7 +255,11 @@ encrypted_ssh_credential_params = ['encrypted_rsa', 'encrypted_dsa', 'encrypted_
     params=encrypted_ssh_credential_params,
     ids=encrypted_ssh_credential_params,
 )
-def encrypted_ssh_credential_with_ssh_key_data(request):
+def encrypted_ssh_credential_with_ssh_key_data(request, is_fips_enabled):
+
+    if is_fips_enabled and 'pkcs8' not in request.param:
+        pytest.skip('Cannot run on a FIPS enabled platform')
+
     return (request.param, request.getfuncargvalue(request.param + '_ssh_credential'))
 
 

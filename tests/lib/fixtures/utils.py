@@ -151,3 +151,14 @@ def skip_docker(is_docker):
 def _skip_docker(request, is_docker):
     if request.node.get_closest_marker('skip_docker') and is_docker:
         pytest.skip(docker_skip_msg)
+
+
+@pytest.fixture
+def skip_if_fips_enabled(is_fips_enabled):
+    if is_fips_enabled:
+        pytest.skip('Cannot run on a FIPS enabled platform')
+
+
+@pytest.fixture
+def is_fips_enabled(ansible_facts):
+    return True in [dict(facts)['ansible_facts']['ansible_fips'] for host, facts in ansible_facts.contacted.iteritems()]

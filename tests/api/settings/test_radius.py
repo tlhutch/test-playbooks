@@ -8,7 +8,7 @@ from tests.api import APITest
 @pytest.mark.api
 @pytest.mark.destructive
 @pytest.mark.mp_group('RADIUS', 'isolated_serial')
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited', 'skip_if_fips_enabled')
 class TestRADIUS(APITest):
 
     username = config.credentials.radius.username
