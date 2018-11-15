@@ -334,6 +334,10 @@ class TestJobTemplateExtraVars(APITest):
 
     @pytest.mark.parametrize('required', [True, False])
     def test_survey_vars_passed_with_jt_when_launch_vars_absent_and_survey_defaults_present(self, factories, required):
+        """Verifies behavior for default survey responses.
+            Required (True): Job should fail to start
+            Not Required (False): Job should start and the defaults should be used
+        """
         host = factories.v2_host()
         jt = factories.v2_job_template(
             inventory=host.ds.inventory, playbook='debug_extra_vars.yml')
@@ -350,14 +354,19 @@ class TestJobTemplateExtraVars(APITest):
                        default='survey')]
         jt.add_survey(spec=survey)
 
-        j = jt.launch(dict(extra_vars=dict())).wait_until_completed()
-        job = jt.get().related.last_job.get()
-        assert j.is_successful
-        assert job.is_successful
-        assert '"var1": "survey"' in job.result_stdout
-        assert '"var2": "survey"' in job.result_stdout
+        if not required:
+            j = jt.launch(dict(extra_vars=dict())).wait_until_completed()
+            job = jt.get().related.last_job.get()
+            assert j.is_successful
+            assert job.is_successful
+            assert '"var1": "survey"' in job.result_stdout
+            assert '"var2": "survey"' in job.result_stdout
 
-        assert json.loads(j.extra_vars) == dict(
-            var1='survey', var2='$encrypted$')
-        assert json.loads(job.extra_vars) == dict(
-            var1='survey', var2='$encrypted$')
+            assert json.loads(j.extra_vars) == dict(
+                var1='survey', var2='$encrypted$')
+            assert json.loads(job.extra_vars) == dict(
+                var1='survey', var2='$encrypted$')
+        if required:
+            with pytest.raises(towerkit.exceptions.BadRequest) as e:
+                j = jt.launch(dict(extra_vars=dict())).wait_until_completed()
+            assert "variables_needed_to_start" in e.value.message
