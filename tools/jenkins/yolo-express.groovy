@@ -12,13 +12,18 @@ def PARALLELIZE = ''
 stage ('Prepare Build') {
   node('master') {
       
-if (params.PARALLEL) {
-    PARALLELIZE = '--mp --np 4'
-    echo "Parallel forks set to ${params.PARALLEL}"
-    } else {
-      echo "Running tests in serial"
+    if (params.PARALLEL) {
+      PARALLELIZE = '--mp --np 4'
+      echo "Parallel forks set to ${params.PARALLEL}"
+      } else {
+        echo "Running tests in serial"
     }
-      
+    
+    TEST_NIGHTLY = sh (
+        returnStdout: true,
+        script: 'echo ${NIGHTLY_BRANCH_COMBINATION}'
+        ).trim()
+    
     TOWER_BRANCH_NAME = sh (
       returnStdout: true,
       script: 'echo ${TOWER_BRANCH##*/}'
@@ -80,23 +85,17 @@ stage('Build Tower') {
 }
 
 stage('Install Tower') {
-  node {
+  node('jenkins-jnlp-agent') {
     if (params.RUN_INSTALLER) {
       install_build = build(
-        job: 'Test_Tower_Install',
+        job: 'Test_Tower_Install_Plain',
         parameters: [
           string(name: 'INSTANCE_NAME_PREFIX', value: "${params.CUSTOM_INSTANCE_PREFIX}"),
           string(name: 'AW_REPO_URL', value: "${AWX_NIGHTLY_REPO_URL}/${NIGHTLY_REPO_DIR}"),
           booleanParam(name: 'TRIGGER', value: false),
           string(name: 'TOWERQA_GIT_BRANCH', value: "origin/${TOWER_QA_BRANCH_NAME}"),
-          [
-            $class: 'MatrixCombinationsParameterValue',
-            name: 'config',
-            description: '',
-            combinations: [
-              "ANSIBLE_NIGHTLY_BRANCH=${NIGHTLY_BRANCH_COMBINATION}"
-            ],
-          ]
+          string(name: 'PLATFORM', value: "${params.PLATFORM}"),
+          string(name: 'ANSIBLE_NIGHTLY_BRANCH', value: "${params.ANSIBLE_NIGHTLY_BRANCH}")
         ]
       )
 
@@ -108,24 +107,18 @@ stage('Install Tower') {
 }
 
 stage('Test Tower Integration') {
-  node {
+  node('jenkins-jnlp-agent') {
     if (params.RUN_TESTS) {
       build(
-        job: 'Test_Tower_Integration',
+        job: 'Test_Tower_Integration_Plain',
         parameters: [
           string(name: 'TESTEXPR', value: "${params.TESTEXPR}"),
           string(name: 'TEST_TOWER_INSTALL_BUILD', value: "${TEST_TOWER_INSTALL_BUILD_ID}"),
           booleanParam(name: 'DESTROY_TEST_INSTANCE', value: false),
           string(name: 'TOWERQA_GIT_BRANCH', value: "origin/${TOWER_QA_BRANCH_NAME}"),
           string(name: 'TOWERKIT_GIT_BRANCH', value: "${TOWERKIT_BRANCH_NAME}"),
-          [
-            $class: 'MatrixCombinationsParameterValue',
-            name: 'config',
-            description: '',
-            combinations: [
-              "ANSIBLE_NIGHTLY_BRANCH=${NIGHTLY_BRANCH_COMBINATION}"
-            ],
-          ]
+          string(name: 'PLATFORM', value: "${params.PLATFORM}"),
+          string(name: 'ANSIBLE_NIGHTLY_BRANCH', value: "${params.ANSIBLE_NIGHTLY_BRANCH}")
         ]
       )
     } else {
