@@ -2,7 +2,7 @@ import json
 import copy
 
 from towerkit import utils
-from towerkit.exceptions import NoContent
+from towerkit.exceptions import NoContent, BadRequest
 import pytest
 
 from tests.api import APITest
@@ -357,6 +357,10 @@ class TestWorkflowExtraVars(APITest):
 
     @pytest.mark.parametrize('required', [True, False])
     def test_survey_vars_passed_with_wfjt_when_launch_vars_absent_and_survey_defaults_present(self, factories, required):
+        """Verifies behavior for default survey responses.
+            Required (True): Job should fail to start
+            Not Required (False): Job should start and the defaults should be used
+        """
         host = factories.v2_host()
         wfjt = factories.v2_workflow_job_template(ask_variables_on_launch=True)
         jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='debug_extra_vars.yml')
@@ -374,15 +378,21 @@ class TestWorkflowExtraVars(APITest):
                        default='survey')]
         wfjt.add_survey(spec=survey)
 
-        wfj = wfjt.launch(dict(extra_vars=dict())).wait_until_completed()
-        job = jt.get().related.last_job.get()
-        assert wfj.is_successful
-        assert job.is_successful
-        assert '"var1": "survey"' in job.result_stdout
-        assert '"var2": "survey"' in job.result_stdout
+        if not required:
+            wfj = wfjt.launch(dict(extra_vars=dict())).wait_until_completed()
+            job = jt.get().related.last_job.get()
+            assert wfj.is_successful
+            assert job.is_successful
+            assert '"var1": "survey"' in job.result_stdout
+            assert '"var2": "survey"' in job.result_stdout
 
-        assert json.loads(wfj.extra_vars) == dict(var1='survey', var2='$encrypted$')
-        assert json.loads(job.extra_vars) == dict(var1='survey', var2='$encrypted$')
+            assert json.loads(wfj.extra_vars) == dict(var1='survey', var2='$encrypted$')
+            assert json.loads(job.extra_vars) == dict(var1='survey', var2='$encrypted$')
+
+        if required:
+            with pytest.raises(BadRequest) as e:
+                wfjt.launch(dict(extra_vars=dict())).wait_until_completed()
+            assert "variables_needed_to_start" in e.value.message
 
     def test_launch_vars_passed_with_wfjt_when_launch_vars_and_multiple_surveys_present(self, factories):
         host = factories.v2_host()
