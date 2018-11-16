@@ -6,7 +6,6 @@ def NIGHTLY_REPO_DIR
 def TOWER_QA_BRANCH
 def TOWERKIT_BRANCH
 def TEST_TOWER_INSTALL_BUILD_ID = 'lastBuild'
-def NIGHTLY_BRANCH_COMBINATION = "${params.ANSIBLE_NIGHTLY_BRANCH},PLATFORM=${params.PLATFORM},label=jenkins-jnlp-agent"
 def PARALLELIZE = ''
 
 stage ('Prepare Build') {
@@ -18,12 +17,7 @@ stage ('Prepare Build') {
       } else {
         echo "Running tests in serial"
     }
-    
-    TEST_NIGHTLY = sh (
-        returnStdout: true,
-        script: 'echo ${NIGHTLY_BRANCH_COMBINATION}'
-        ).trim()
-    
+
     TOWER_BRANCH_NAME = sh (
       returnStdout: true,
       script: 'echo ${TOWER_BRANCH##*/}'
@@ -130,7 +124,7 @@ stage('Test Tower E2E') {
   node {
     if (params.RUN_E2E) {
       copyArtifacts(
-        projectName: "Test_Tower_Install/ANSIBLE_NIGHTLY_BRANCH=${NIGHTLY_BRANCH_COMBINATION}",
+        projectName: "qe-sandbox/Test_Tower_Install_Plain",
         filter: '.tower_url',
         fingerprintArtifacts: true,
         flatten: true,
