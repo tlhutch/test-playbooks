@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -euxo pipefail
 
 pip install -U setuptools pbr
 pip install -r requirements.txt

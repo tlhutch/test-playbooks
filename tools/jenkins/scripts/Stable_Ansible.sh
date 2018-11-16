@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -euxo pipefail
 
 # Clean-up old trigger files
 rm -f *.cfg 

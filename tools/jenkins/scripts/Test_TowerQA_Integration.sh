@@ -1,4 +1,5 @@
-#!/bin/bash -xe
+#!/usr/bin/env bash
+set -euxo pipefail
 
 rm -f ./run_integration_tests
 
@@ -17,7 +18,7 @@ then
 fi
 
 GH_API_PR_LABEL_URL=https://api.github.com/repos/ansible/tower-qa/issues/${ghprbPullId}/labels
-INTEGRATION_LABEL=`curl -u :${GITHUB_ACCESS_TOKEN} ${GH_API_PR_LABEL_URL} 2>/dev/null | grep 'ci:integration' | wc -l`
+INTEGRATION_LABEL=`curl -u :${GITHUB_ACCESS_TOKEN} ${GH_API_PR_LABEL_URL} 2>/dev/null | grep -c 'ci:integration'` || true
 if [ ${INTEGRATION_LABEL} -gt 0 ]
 then
   touch ./run_integration_tests

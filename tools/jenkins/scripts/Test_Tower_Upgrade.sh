@@ -1,4 +1,5 @@
-#!/bin/bash -xe -o pipefail
+#!/usr/bin/env bash
+set -euxo pipefail
 
 yum remove -y python-requests
 

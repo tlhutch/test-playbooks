@@ -1,4 +1,5 @@
-#!/bin/bash -xe -o pipefail
+#!/usr/bin/env bash
+set -euxo pipefail
 
 # HACK: jnlp container installs requests using yum. Remove yum installation so that it doesn't overlap with the following pip install
 yum remove -y python-requests

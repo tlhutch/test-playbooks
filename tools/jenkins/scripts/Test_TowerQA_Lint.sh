@@ -1,4 +1,5 @@
-#!/bin/bash -xe
+#!/usr/bin/env bash
+set -euxo pipefail
 
 pip install -U pip
 pip install -r requirements.txt

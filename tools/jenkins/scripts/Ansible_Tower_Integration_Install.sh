@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -euxo pipefail
 
 mkdir -p ~/.ssh/
 cp $PUBLIC_KEY ~/.ssh/id_rsa.pub
