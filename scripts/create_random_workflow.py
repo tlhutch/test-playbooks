@@ -15,6 +15,7 @@ LOG_FORMAT = '%(asctime)-15s  %(message)s'  # NOQA
 logging.basicConfig(level='INFO', format=LOG_FORMAT)
 log = logging.getLogger()
 
+
 def graceful_exit():
     if wf_to_nest_jt_id or sliced_jt_id or failing_jt_id or passing_jt_id:
         print("\nTo reuse templates used for this run, set the following variables:")
@@ -27,11 +28,13 @@ def graceful_exit():
     if passing_jt_id:
         print("export RAND_WORKFLOW_PASSING_JT_ID={}".format(passing_jt_id))
 
+
 def signal_handler(*args, **kwargs):
     graceful_exit()
     sys.exit(0)
 
 signal.signal(signal.SIGINT, signal_handler)
+
 
 def parse_args():
     # Build parser
@@ -151,7 +154,6 @@ if __name__ == '__main__': # noqa C901
             dict(unified_job_template=passing_jt_id))
         inner_wf_jt.allow_simultaneous = True
         wf_to_nest_jt_id = inner_wf_jt.id
-
 
     # Helpers
     def _get_rand_node():
