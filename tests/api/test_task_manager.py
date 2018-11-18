@@ -849,15 +849,15 @@ class Test_Cascade_Fail_Dependent_Jobs(APITest):
         jt = factories.v2_job_template()
         project = jt.ds.project
         project.scm_url = "will_fail"
+        failed_update = project.get_related('last_update')  # changing details created new update
+        failed_update.wait_until_completed()
         job = jt.launch().wait_until_completed()
-        sync_update = project.related.project_updates.get(launch_type='sync').results.pop()
 
         assert job.status == 'error'
         assert job.failed
-        assert job.job_explanation == 'Previous Task Failed: {"job_type": "project_update", "job_name": "%s", "job_id": "%s"}' \
-                                      % (project.name, sync_update.id)
+        assert job.job_explanation == (
+            'Project for this job template is not successful. '
+            'Please correct the project details and manually update it.'
+        )
         assert jt.get().status == 'failed'
         assert jt.last_job_failed
-
-        assert sync_update.status == 'failed'
-        assert sync_update.failed
