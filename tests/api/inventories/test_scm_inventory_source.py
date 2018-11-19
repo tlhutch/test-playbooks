@@ -254,10 +254,9 @@ class TestSCMInventorySource(APITest):
         assert host.variables.test_env == 'TEST_ENV_1'
 
     @pytest.mark.github('https://github.com/ansible/tower-qa/issues/2296')
-    @pytest.mark.skip_openshift
     @pytest.mark.mp_group('ProjectUpdateWithSCMChange', 'serial')
     @pytest.mark.parametrize('source_path', ['inventories/inventory.ini', 'inventories/dyn_inventory.py'])
-    def test_project_launch_using_update_on_project_update_with_scm_change(self, factories, v2,
+    def test_project_launch_using_update_on_project_update_with_scm_change(self, skip_if_openshift, factories, v2,
                                                                            job_template_that_writes_to_source, source_path):
         """Verifies that an scm inventory sync runs after running a job that commits code to its upstream repo"""
         project = job_template_that_writes_to_source.ds.project
@@ -386,8 +385,7 @@ class TestSCMInventorySource(APITest):
         ansible_env = event.event_data.res.ansible_env
         assert ansible_env.ENV_VAR == env_var
 
-    @pytest.mark.skip_openshift
-    def test_scm_inventory_disallows_manual_project(self, factories, project_ansible_playbooks_manual):
+    def test_scm_inventory_disallows_manual_project(self, skip_if_openshift, factories, project_ansible_playbooks_manual):
         desired_error = {'source_project': ['Cannot use manual project for SCM-based inventory.']}
         with pytest.raises(exc.BadRequest) as e:
             factories.v2_inventory_source(source='scm', project=project_ansible_playbooks_manual)

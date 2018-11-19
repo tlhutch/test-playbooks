@@ -85,8 +85,7 @@ class SafeStop(object):
 
 
 @pytest.mark.api
-@pytest.mark.requires_traditional_cluster
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited', 'skip_if_not_traditional_cluster')
 class TestTraditionalCluster(APITest):
 
     def mutually_exclusive_instance_groups(self, instance_groups):

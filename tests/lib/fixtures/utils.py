@@ -184,27 +184,72 @@ def is_docker(hosts_in_group, hostvars_for_host):
 docker_skip_msg = "Test doesn't support dev container"
 
 
-@pytest.fixture
+@pytest.fixture(scope='class')
 def skip_docker(is_docker):
     if is_docker:
         pytest.skip(docker_skip_msg)
 
 
-@pytest.fixture(autouse=True)
+@pytest.fixture(autouse=True, scope='class')
 def _skip_docker(request, is_docker):
     if request.node.get_closest_marker('skip_docker') and is_docker:
         pytest.skip(docker_skip_msg)
 
 
-@pytest.fixture
+@pytest.fixture(scope='class')
 def skip_if_fips_enabled(is_fips_enabled):
     if is_fips_enabled:
         pytest.skip('Cannot run on a FIPS enabled platform')
 
 
-@pytest.fixture
+@pytest.fixture(scope='class')
 def is_fips_enabled(is_docker, ansible_module):
     if is_docker:
         return False
     ansible_facts = uncalled_ansible_facts(ansible_module)
     return True in [dict(facts)['ansible_facts']['ansible_fips'] for host, facts in ansible_facts.contacted.iteritems()]
+
+
+@pytest.fixture(scope='class')
+def skip_if_not_traditional_cluster(is_traditional_cluster):
+    if not is_traditional_cluster:
+        pytest.skip('Cannot run on an non traditional cluster install')
+
+
+@pytest.fixture(scope='class')
+def is_traditional_cluster(v2_class, is_docker):
+    return v2_class.ping.get()['ha'] and not is_docker
+
+
+@pytest.fixture(scope='class')
+def skip_if_openshift(is_openshift_cluster):
+    if is_openshift_cluster:
+        pytest.skip('Cannot run on an OpenShift install')
+
+
+@pytest.fixture(scope='class')
+def skip_if_not_openshift(is_openshift_cluster):
+    if not is_openshift_cluster:
+        pytest.skip('Cannot run on an non-OpenShift install')
+
+
+@pytest.fixture(scope='class')
+def is_openshift_cluster(v2_class, is_docker):
+    return v2_class.ping.get()['ha'] and is_docker
+
+
+@pytest.fixture(scope='class')
+def skip_if_not_cluster(is_cluster):
+    if not is_cluster:
+        pytest.skip('Cannot run on a non-cluster install')
+
+
+@pytest.fixture(scope='class')
+def skip_if_cluster(is_cluster):
+    if is_cluster:
+        pytest.skip('Cannot run on a cluster install')
+
+
+@pytest.fixture(scope='class')
+def is_cluster(is_traditional_cluster, is_openshift_cluster):
+    return is_traditional_cluster or is_openshift_cluster

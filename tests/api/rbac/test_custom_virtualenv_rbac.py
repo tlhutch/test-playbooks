@@ -7,8 +7,7 @@ from tests.api import APITest
 
 @pytest.mark.api
 @pytest.mark.rbac
-@pytest.mark.requires_single_instance
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited', 'skip_if_cluster')
 class TestCustomVirtualenvRBAC(APITest):
 
     resources_with_venv = ('v2_job_template', 'v2_project', 'v2_organization')

@@ -13,8 +13,7 @@ from tests.api import APITest
 class Test_Proot(APITest):
     """Tests to assert correctness while running with AWX_PROOT_ENABLED=True"""
 
-    @pytest.mark.requires_single_instance
-    def test_job_isolation(self, factories, api_settings_jobs_pg, update_setting_pg):
+    def test_job_isolation(self, skip_if_cluster, factories, api_settings_jobs_pg, update_setting_pg):
         """Launch 2 jobs and verify that they each:
          - complete successfully
          - ran at the same time
@@ -148,8 +147,7 @@ print json.dumps({})
         # assert successful inventory_update
         job_pg.assert_successful()
 
-    @pytest.mark.skip_openshift
-    def test_ssh_connections(self, job_with_ssh_connection, api_settings_jobs_pg, update_setting_pg):
+    def test_ssh_connections(self, skip_if_openshift, job_with_ssh_connection, api_settings_jobs_pg, update_setting_pg):
         """Verify that jobs complete successfully when connecting to inventory
         using the default ansible connection type (e.g. not local).
         """

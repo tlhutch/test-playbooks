@@ -64,8 +64,7 @@ class Test_Projects(APITest):
                         task_icontains, 'runner_on_', project.related.last_update)
         return (_res)
 
-    @pytest.mark.requires_single_instance
-    def test_manual_project(self, project_ansible_playbooks_manual):
+    def test_manual_project(self, skip_if_cluster, project_ansible_playbooks_manual):
         """Verify tower can successfully creates a manual project (scm_type='').
         This includes verifying UTF-8 local-path.
         """
@@ -104,9 +103,8 @@ class Test_Projects(APITest):
                 (related_pg.count, related_attr, 0, related_attr)
 
     # Override the project local_path to workaround unicode issues
-    @pytest.mark.requires_single_instance
     @pytest.mark.fixture_args(local_path="project_dir_%s" % fauxfactory.gen_alphanumeric())
-    def test_change_from_manual_to_scm_project(self, project_ansible_playbooks_manual):
+    def test_change_from_manual_to_scm_project(self, skip_if_cluster, project_ansible_playbooks_manual):
         """Verify tower can successfully convert a manual project, into a scm
         managed project.
         """
@@ -182,9 +180,8 @@ class Test_Projects(APITest):
         # it may take a while for the task to delete the folder to complete
         poll_until(folder_has_been_deleted_everywhere, timeout=30)
 
-    @pytest.mark.requires_single_instance
     @pytest.mark.ansible_integration
-    def test_update_with_private_git_repository(self, ansible_runner, api_config_pg, project_ansible_docsite_git):
+    def test_update_with_private_git_repository(self, skip_if_cluster, ansible_runner, api_config_pg, project_ansible_docsite_git):
         """Tests that project updates succeed with private git repositories."""
         # find project path
         local_path = project_ansible_docsite_git.local_path
@@ -326,9 +323,8 @@ class Test_Projects(APITest):
             with pytest.raises(exc.NotFound):
                 assert project_ansible_playbooks_git.get_related(related)
 
-    @pytest.mark.requires_single_instance
     @pytest.mark.ansible_integration
-    def test_project_with_galaxy_requirements(self, factories, ansible_runner, project_with_galaxy_requirements, api_config_pg):
+    def test_project_with_galaxy_requirements(self, skip_if_cluster, factories, ansible_runner, project_with_galaxy_requirements, api_config_pg):
         """Verify that project requirements are downloaded when specified in a requirements file."""
         last_update_pg = project_with_galaxy_requirements.wait_until_completed().get_related('last_update')
         last_update_pg.assert_successful()
@@ -416,9 +412,8 @@ class Test_Projects(APITest):
             self.check_secret_fields(event.stdout, 'foobar', 'barfoo')
             self.check_secret_fields(str(event.event_data), 'foobar', 'barfoo')
 
-    @pytest.mark.requires_single_instance
     @pytest.mark.ansible_integration
-    def test_git_project_from_file_path(self, request, factories, ansible_runner):
+    def test_git_project_from_file_path(self, skip_if_cluster, request, factories, ansible_runner):
         """Confirms that local file paths can be used for git repos"""
         path = '/home/at_3207_test/'
         request.addfinalizer(lambda: ansible_runner.file(path=path, state='absent'))

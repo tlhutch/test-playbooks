@@ -11,9 +11,8 @@ from tests.api import APITest
 
 
 @pytest.mark.api
-@pytest.mark.requires_cluster
 @pytest.mark.mp_group('InstanceGroupPolicies', 'isolated_serial')
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited', 'skip_if_not_cluster')
 class TestInstanceGroupPolicies(APITest):
 
     def get_ig_instances(self, ig):
@@ -393,8 +392,7 @@ class TestInstanceGroupPolicies(APITest):
         assert tower_instance_group.get().instances == 5
         assert tower_ig_instances.get().count == 5
 
-    @pytest.mark.requires_openshift_cluster
-    def test_instance_groups_update_for_newly_spawned_instance(self, factories, v2, tower_instance_hostnames):
+    def test_instance_groups_update_for_newly_spawned_instance(self, skip_if_not_openshift, factories, v2, tower_instance_hostnames):
         num_instances = len(tower_instance_hostnames)
 
         pct_ig = factories.instance_group(policy_instance_percentage=100)
@@ -412,8 +410,7 @@ class TestInstanceGroupPolicies(APITest):
         for igroup in (pct_ig, min_ig, mixed_policy_ig):
             utils.poll_until(lambda: igroup.get().instances == num_instances + 1, interval=1, timeout=30)
 
-    @pytest.mark.requires_openshift_cluster
-    def test_instance_groups_update_for_newly_removed_instance(self, factories, v2, tower_instance_hostnames):
+    def test_instance_groups_update_for_newly_removed_instance(self, skip_if_not_openshift, factories, v2, tower_instance_hostnames):
         num_instances = len(tower_instance_hostnames)
 
         pct_ig = factories.instance_group(policy_instance_percentage=100)

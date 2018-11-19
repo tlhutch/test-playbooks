@@ -6,9 +6,8 @@ from tests.api import APITest
 
 
 @pytest.mark.api
-@pytest.mark.requires_openshift_cluster
 @pytest.mark.mp_group('OpenShiftCluster', 'isolated_serial')
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited', 'skip_if_not_openshift')
 class TestOpenShiftCluster(APITest):
 
     @pytest.fixture(autouse=True)

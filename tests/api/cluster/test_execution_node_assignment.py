@@ -10,9 +10,8 @@ from tests.api import APITest
 
 
 @pytest.mark.api
-@pytest.mark.requires_cluster
 @pytest.mark.mp_group('ExecutionNodeAssignment', 'isolated_serial')
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited', 'skip_if_not_cluster')
 class TestExecutionNodeAssignment(APITest):
 
     MAX_JOBS_PER_INSTANCE = 3
@@ -302,8 +301,7 @@ class TestExecutionNodeAssignment(APITest):
         assert inv_source.get().related.last_update.get().execution_node == instance.hostname
         assert project.get().related.last_update.get().execution_node == instance.hostname
 
-    @pytest.mark.requires_traditional_cluster
-    def test_jobs_distribute_among_isolated_instance_group_members(self, factories, v2, do_all_jobs_overlap):
+    def test_jobs_distribute_among_isolated_instance_group_members(self, skip_if_not_traditional_cluster, factories, v2, do_all_jobs_overlap):
         ig = v2.instance_groups.get(name='protected').results.pop()
         instances = ig.related.instances.get().results
 

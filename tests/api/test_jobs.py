@@ -490,10 +490,9 @@ class Test_Job(APITest):
             jt.add_survey(spec=spec)
         assert e.value[1]['error'] == "$encrypted$ is a reserved keyword, may not be used for new default in position 0."
 
-    @pytest.mark.requires_single_instance
     @pytest.mark.ansible_integration
     @pytest.mark.mp_group(group="job_with_status_pending", strategy="isolated_serial")
-    def test_cancel_pending_job(self, job_with_status_pending):
+    def test_cancel_pending_job(self, skip_if_cluster, job_with_status_pending):
         """Verify the job->cancel endpoint behaves as expected when canceling a
         pending/queued job
         """

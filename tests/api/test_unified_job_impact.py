@@ -169,8 +169,7 @@ class TestUnifiedJobImpact(APITest):
         assert ig_with_single_instance.get().consumed_capacity == 2 * self.unified_job_impact('job', num_hosts=1)
         self.verify_resource_percent_capacity_remaining(ig_with_single_instance)
 
-    @pytest.mark.requires_cluster
-    def test_instance_group_updates_for_simultaneously_running_unified_jobs(self, factories, v2):
+    def test_instance_group_updates_for_simultaneously_running_unified_jobs(self, skip_if_not_cluster, factories, v2):
         ig = factories.instance_group()
         instances = v2.instances.get(rampart_groups__controller__isnull=True).results
         for instance in instances:

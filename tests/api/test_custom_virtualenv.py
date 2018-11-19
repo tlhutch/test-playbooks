@@ -13,8 +13,7 @@ from tests.lib.helpers.workflow_utils import (WorkflowTree, WorkflowTreeMapper)
 
 @pytest.mark.api
 @pytest.mark.destructive
-@pytest.mark.requires_single_instance
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited', 'skip_if_cluster')
 class TestCustomVirtualenv(APITest):
 
     @pytest.fixture
