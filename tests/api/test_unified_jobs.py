@@ -20,9 +20,15 @@ class TestUnifiedJobs(APITest):
                                                  ('cleanup_jobs_template', 'launch')],
                              ids=['job', 'workflow job', 'ad hoc command', 'project_update',
                                   'inventory_update', 'system job'])
-    def test_delete_running_unified_job_forbidden(self, request, fixture, method):
+    def test_delete_running_unified_job_forbidden(self, request, factories, fixture, method):
         if method:
             resource = request.getfixturevalue(fixture)
+            if fixture == 'workflow_job_template':
+                # Workflow jobs run too fast for this test to reliably work while empty
+                factories.v2_workflow_job_template_node(
+                    workflow_job_template=resource,
+                    unified_job_template=factories.v2_job_template()
+                )
             uj = getattr(resource, method)()
         else:
             uj = request.getfixturevalue(fixture)
