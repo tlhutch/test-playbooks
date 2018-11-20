@@ -640,6 +640,7 @@ class TestTraditionalCluster(APITest):
         else:
             proj = factories.v2_project(organization=org, scm_type=scm_type)
             playbook = 'sleep.yml'
+        org.remove_instance_group(ig1)
 
         # Run job template on second instance
         host = factories.v2_host()
