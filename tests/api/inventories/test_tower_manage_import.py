@@ -73,6 +73,7 @@ def get_ec2_inventory():
 @pytest.mark.api
 @pytest.mark.destructive
 @pytest.mark.skip_openshift
+@pytest.mark.ansible(host_pattern='tower[0]')  # target 1 normal instance
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestTowerManageInventoryImport(APITest):
 

@@ -44,19 +44,20 @@ def project_update_with_status_completed(project_ansible_playbooks_git):
 
 
 @pytest.fixture(scope="function")
-def project_ansible_playbooks_manual(request, factories, ansible_runner, api_config_pg, organization):
+def project_ansible_playbooks_manual(request, factories, ansible_adhoc, api_config_pg, organization):
     local_path = 'project_dir_{0}'.format(fauxfactory.gen_alphanumeric())
     base_dir = api_config_pg.project_base_dir
     full_path = os.path.join(base_dir, local_path)
-    contacted = ansible_runner.git(repo='https://github.com/ansible/test-playbooks.git', dest=full_path)
-    result = contacted.values()[0]
-    assert not result.get('failed'), "Clone failed\n{0}".format(json.dumps(result, indent=4))
+    ansible_module = ansible_adhoc().tower  # set up on _all_ tower nodes
+    contacted = ansible_module.git(repo='https://github.com/ansible/test-playbooks.git', dest=full_path)
+    for host, result in contacted.items():
+        assert not result.get('failed'), "Clone on host {0} failed\n{1}".format(host, json.dumps(result, indent=4))
 
     project = factories.project(name="ansible-playbooks.manual - {0}".format(local_path),
                                 local_path=local_path, scm_type='', wait=False, organization=organization)
 
     def delete_local_project():
-        ansible_runner.file(state="absent", path=full_path)
+        ansible_module.file(state="absent", path=full_path)
 
     request.addfinalizer(delete_local_project)
     return project
