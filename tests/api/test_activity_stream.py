@@ -21,9 +21,11 @@ class TestActivityStream(APITest):
                                           'credential_type', 'project', 'inventory', 'group', 'host', 'inventory_script',
                                           'organization', 'user', 'team', 'instance_group'])
     def test_deleted_resources_logged_as_deleted_user(self, v2, factories, resource):
+        is_survey = False
         if resource == 'schedule':
             resource = factories.v2_job_template().add_schedule()
         elif resource == 'survey':
+            is_survey = True
             resource = factories.v2_job_template().add_survey()
         elif resource in ('credential_type', 'instance_group'):
             resource = getattr(factories, resource)()
@@ -39,9 +41,16 @@ class TestActivityStream(APITest):
         assert len(as_entries) == 1
         as_entry = as_entries.pop()
 
-        assert as_entry.object1 == resource.type
+        if is_survey:
+            # The deletion of the survey is actually an update to the Job
+            # Template
+            assert as_entry.object1 == 'job_template'
+            assert as_entry.operation == 'update'
+        else:
+            assert as_entry.object1 == resource.type
+            assert as_entry.operation == 'delete'
+
         assert not as_entry.object2
-        assert as_entry.operation == 'delete'
         assert as_entry.summary_fields.actor.username == superuser.username
         assert as_entry.summary_fields.actor.first_name == superuser.first_name
         assert as_entry.summary_fields.actor.last_name == superuser.last_name
