@@ -208,6 +208,57 @@ class Test_Workflow_Job_Template_RBAC(APITest):
             with pytest.raises(Forbidden):
                 other_wfjt.delete()
 
+    @pytest.mark.parametrize('source', (
+        'workflow',  # tests use role needed for applying inventory to WFJT
+        'prompt',    # tests use role needed for launching
+    ))
+    def test_prompts_access(self, factories, source):
+        inventory = factories.inventory()
+        if source == 'prompt':
+            wfjt = factories.workflow_job_template(ask_inventory_on_launch=True)
+        else:
+            wfjt = factories.workflow_job_template()
+
+        # set permission to WFJT and inventory
+        user = factories.user()
+        wfjt.set_object_roles(user, 'Admin')
+        inventory.set_object_roles(user, 'Read')  # not sufficient
+
+        with self.current_user(user.username, user.password):
+            with pytest.raises(Forbidden):
+                if source == 'prompt':
+                    wfjt.launch(payload={'inventory': inventory.id})
+                else:
+                    wfjt.inventory = inventory.id
+
+    def test_user_with_execute_can_use_wfjt_with_inventory(self, factories):
+        inventory = factories.inventory()
+        wfjt = factories.workflow_job_template(inventory=inventory)
+
+        # assert that if the inventory is allready set,
+        # the user with execute permission on the wfjt can launch it
+        # Add a node so there is a job to apply the inventory to
+        jt = factories.job_template(ask_inventory_on_launch=True)
+        factories.workflow_job_template_node(
+            workflow_job_template=wfjt,
+            unified_job_template=jt,
+        )
+        user = factories.user()
+        wfjt.set_object_roles(user, 'Execute')
+        jt.set_object_roles(user, 'Read')
+        # if the inventory is set in advance by an admin, read permissions on
+        # the inventory should be sufficient
+        inventory.set_object_roles(user, 'Read')
+        with self.current_user(user.username, user.password):
+            wfj = wfjt.launch()
+            node = wfj.get_related('workflow_nodes').results.pop()
+            node.wait_for_job()
+            job = node.get_related('job')
+            assert job.inventory == inventory.id
+            wfj.wait_until_completed()
+            assert wfj.status == 'successful'
+
+    @pytest.mark.github('https://github.com/ansible/tower/issues/895')
     @pytest.mark.parametrize('role', ['admin', 'execute', 'read'])
     def test_user_capabilities(self, factories, api_workflow_job_templates_pg, role):
         """Test user_capabilities given each WFJT role."""

@@ -127,7 +127,7 @@ class TestJobTemplateSlicing(APITest):
         relaunched_wj = workflow_job.relaunch()
         assert relaunched_wj.type == 'workflow_job'
         assert relaunched_wj.get_related('workflow_nodes').count == 2
-        orig_data = workflow_job.json.copy()
+        orig_data = workflow_job.get().json.copy()
         relaunch_data = relaunched_wj.json
         non_static_fields = (
             'created', 'id', 'url', 'modified', 'related', 'launch_type',

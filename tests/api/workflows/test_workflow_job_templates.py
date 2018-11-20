@@ -71,20 +71,28 @@ class Test_Workflow_Job_Templates(APITest):
     def test_workflow_workflow_node(self, factories):
         """Tests successful use of workflows in workflows"""
         wfjt_outer = factories.workflow_job_template(
-            extra_vars={'outer_var': 'foo'}
+            extra_vars={'outer_var': 'foo'},
+            inventory=factories.v2_inventory()
         )
         wfjt_inner = factories.workflow_job_template(
             extra_vars={'inner_var': 'bar'},
+            ask_variables_on_launch=True,
+            ask_inventory_on_launch=True
+        )
+        jt = factories.job_template(
+            ask_inventory_on_launch=True,
             ask_variables_on_launch=True
         )
-        jt = factories.job_template()
         factories.workflow_job_template_node(
+            extra_data={'node_var_inner': 'boo2'},
             workflow_job_template=wfjt_inner,
             unified_job_template=jt
         )
-        node = factories.workflow_job_template_node(workflow_job_template=wfjt_outer)
-        node.unified_job_template = wfjt_inner.id
         # HACK: unified_job_template does not work with the dependency store
+        node = wfjt_outer.get_related('workflow_nodes').post(dict(
+            extra_data={'node_var_outer': 'boo'},
+            unified_job_template=wfjt_inner.id,
+        ))
 
         wfj_outer = wfjt_outer.launch()
         node = wfj_outer.get_related('workflow_nodes').results.pop().wait_for_job()
@@ -92,8 +100,13 @@ class Test_Workflow_Job_Templates(APITest):
         wfj_inner.wait_until_completed()
         assert wfj_inner.type == 'workflow_job'
         assert wfj_inner.workflow_job_template == wfjt_inner.id
+        assert wfj_inner.inventory == wfjt_outer.inventory  # outermost prompt
         assert wfj_inner.status == 'successful'
-        assert json.loads(wfj_inner.extra_vars) == {'inner_var': 'bar', 'outer_var': 'foo'}
+        assert json.loads(wfj_inner.extra_vars) == {
+            'inner_var': 'bar',
+            'outer_var': 'foo',
+            'node_var_outer': 'boo'
+        }
 
         # check contents of inner workflow
         inner_nodes = wfj_inner.get_related('workflow_nodes')
@@ -102,12 +115,18 @@ class Test_Workflow_Job_Templates(APITest):
         assert jt_node.job  # inner workflow job is finished, so this must have spawned by now
         jt_job = jt_node.get_related('job')
         assert jt_job.job_template == jt.id
-        assert json.loads(jt_job.extra_vars) == {'inner_var': 'bar', 'outer_var': 'foo'}
+        assert jt_job.inventory == wfjt_outer.inventory  # outermost prompt
+        assert json.loads(jt_job.extra_vars) == {
+            'inner_var': 'bar',
+            'node_var_inner': 'boo2',
+            'outer_var': 'foo',
+            'node_var_outer': 'boo'
+        }
 
     def test_workflow_workflow_node_rejected_prompts(self, factories):
-        # TODO: update to include prompted inventory when branches merge
         wfjt_outer = factories.workflow_job_template(
-            extra_vars={'outer_var': 'foo'}  # inner WFJT does not prompt, should not use these
+            extra_vars={'outer_var': 'foo'},  # inner WFJT does not prompt, should not use these
+            inventory=factories.inventory()
         )
         wfjt_inner = factories.workflow_job_template(
             extra_vars={'inner_var': 'bar'}
@@ -120,6 +139,7 @@ class Test_Workflow_Job_Templates(APITest):
         job = node.get_related('job')
         assert job.type == 'workflow_job'
         assert job.workflow_job_template == wfjt_inner.id
+        assert job.inventory is None
         assert json.loads(job.extra_vars) == {'inner_var': 'bar'}
 
     def test_workflow_workflow_node_recursion_error(self, factories):
@@ -378,3 +398,118 @@ class Test_Workflow_Job_Templates(APITest):
             pytest.fail('Intermediate node should still exist after deleting leaf node')
         n1_always_nodes = n1.get_related('always_nodes').results
         assert len(n1_always_nodes) == 0, 'Intermediate node should no longer point to leaf node:\n{0}'.format(n1_always_nodes)
+
+    # tests for WFJT-level prompts
+    # trying to use inventory that is pending deletion has some coverage in unit tests
+    @pytest.mark.parametrize('source', (
+        'workflow',  # test that inventory set on WFJT takes effects in spawned jobs
+        'prompt',    # test that inventory provided on launch takes effect
+        'rejected'   # test that if JT does not prompt for inventory, does not take effect
+    ))
+    def test_launch_with_workflow_inventory(self, factories, source):
+        inventory = factories.inventory()
+        if source == 'prompt':
+            wfjt = factories.workflow_job_template(ask_inventory_on_launch=True)
+        else:
+            wfjt = factories.workflow_job_template(inventory=inventory)
+            assert wfjt.inventory is not None
+
+        if source == 'rejected':
+            jt = factories.job_template()
+        else:
+            jt = factories.job_template(ask_inventory_on_launch=True)
+        assert jt.inventory != wfjt.inventory
+
+        factories.workflow_job_template_node(
+            workflow_job_template=wfjt,
+            unified_job_template=jt
+        )
+
+        if source == 'prompt':
+            wfj = wfjt.launch(payload={'inventory': inventory.id})
+        else:
+            wfj = wfjt.launch()
+        assert wfj.inventory == inventory.id
+        node = wfj.get_related('workflow_nodes').results.pop()
+        node.wait_for_job()
+
+        job = node.get_related('job')
+        if source == 'rejected':
+            assert job.inventory == jt.inventory
+        else:
+            assert job.inventory == inventory.id
+
+    def test_deleted_workflow_inventory_has_no_effect(self, factories):
+        inventory = factories.inventory()
+        wfjt = factories.workflow_job_template(inventory=inventory)
+        assert wfjt.inventory is not None
+        jt = factories.job_template(ask_inventory_on_launch=True)
+        assert jt.inventory != wfjt.inventory
+
+        factories.workflow_job_template_node(
+            workflow_job_template=wfjt,
+            unified_job_template=jt
+        )
+
+        # now, delete inventory and when we launch the WFJT, the JT should use
+        # its default inventory
+        inventory.delete().wait_until_deleted()
+        wfjt = wfjt.get()
+        with pytest.raises(NotFound):
+            inventory.get()
+        assert wfjt.inventory is None
+        wfj = wfjt.launch()
+        node = wfj.get_related('workflow_nodes').results.pop()
+        node.wait_for_job()
+        job = node.get_related('job')
+        assert job.inventory == jt.inventory
+
+    @pytest.mark.parametrize('source', (
+        'creation',
+        'prompt',
+    ))
+    def test_workflow_inventory_is_used_when_job_has_no_default(self, factories, source):
+        inv_vars = {'amazing': 'cow', 'foo': 'bar'}
+        inventory = factories.inventory(variables=inv_vars)
+        if source == 'prompt':
+            wfjt = factories.workflow_job_template(ask_inventory_on_launch=True)
+        else:
+            wfjt = factories.workflow_job_template(inventory=inventory)
+            assert wfjt.inventory is not None
+        jt = factories.job_template(ask_inventory_on_launch=True)
+
+        factories.workflow_job_template_node(
+            workflow_job_template=wfjt,
+            unified_job_template=jt
+        )
+
+        # At this time, we cannot create nodes that use a job template with
+        # no inventory. So we create the node and then delete the inventory
+        # related to the job template
+        jt.related.inventory.delete()
+        jt = jt.get()
+        assert jt.inventory is None
+
+        if source == 'prompt':
+            wfj = wfjt.launch(payload={'inventory': inventory.id})
+        else:
+            wfj = wfjt.launch()
+
+        node = wfj.get_related('workflow_nodes').results.pop()
+        node.wait_for_job()
+        job = node.get_related('job')
+        assert job.inventory == inventory.id
+        assert job.related.inventory.get().variables == inv_vars
+
+    def test_workflow_reject_inventory_on_launch(self, factories):
+        """While the prompts test assert behavior about the JTs launched inside
+        the workflow, this test checks that the workflow JT itself will reject
+        an inventory if it is not set to prompt for inventory.
+        """
+        inventory = factories.inventory()
+        # By default, WFJTs do not prompt for inventory
+        wfjt = factories.workflow_job_template()
+        with pytest.raises(BadRequest) as e:
+            wfjt.get_related('launch').post({'inventory': inventory.id})
+
+        assert e.value.message == {'inventory': ['Field is not configured to prompt on launch.']}
