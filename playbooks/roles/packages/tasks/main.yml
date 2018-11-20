@@ -42,10 +42,6 @@
   include: rhsm.yml
   when: ansible_distribution == 'RedHat'
 
-- name: include epel tasks
-  include: epel.yml
-  when: ansible_os_family == 'RedHat' and ansible_install_method in ['stable', 'testing', 'nightly', 'pip']
-
 - name: install playbook dependency rpms
   yum:
     name: '{{item}}'
@@ -80,12 +76,6 @@
     src: files/ansible_apt.repo.j2
     dest: /etc/apt/sources.list.d/ansible_repo.list
   when: ansible_pkg_mgr == 'apt' and ansible_install_method == 'nightly'
-
-# enable epel-testing repo (optional)
-
-- name: Enable epel-testing repo (testing)
-  command: yum-config-manager --enable epel-testing
-  when: ansible_pkg_mgr == 'yum' and ansible_install_method == 'testing'
 
 # enable ansible-nightly repo (optional)
 
