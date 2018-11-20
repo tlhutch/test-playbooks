@@ -318,7 +318,6 @@ class TestJobTemplateCallbacks(APITest):
         assert job.launch_type == "callback"
         assert job.is_successful
 
-    @pytest.mark.github('https://github.com/ansible/tower/issues/3096')
     @pytest.mark.skip_openshift
     def test_provision_with_split_job(self, ansible_runner, job_template,
                                       host_with_default_ipv4_in_variables, host_config_key, callback_host):
@@ -341,6 +340,8 @@ class TestJobTemplateCallbacks(APITest):
         job = job_template.related.jobs.get(id=job_id).results.pop().wait_until_completed()
         assert job.type == 'job'  # not a workflow_job
         assert job.launch_type == "callback"
+        assert job.job_slice_count == 1
+        assert job.job_slice_number == 0
         assert job.is_successful
         assert job.limit == 'local' if 'localhost' in callback_host else host_with_default_ipv4_in_variables.name
         assert job.get_related('job_host_summaries').count == 1  # double-check that only ran against 1 host
