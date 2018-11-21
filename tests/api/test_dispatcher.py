@@ -64,7 +64,7 @@ class TestDispatcher(APITest):
             """
             result = run_remote_command('awx-manage run_dispatcher --status')
             for line in result['stdout_lines']:
-                matches = re.search('\[pid:(\d+)\] workers', line) # noqa: W605
+                matches = re.search(r'\[pid:(\d+)\] workers', line)
                 if matches:
                     parent_pid = matches.group(1)
                     break
@@ -73,7 +73,7 @@ class TestDispatcher(APITest):
                                 .format(self.runner_output(result)))
             child_pids = []
             for line in result['stdout_lines']:
-                matches = re.search('worker\[pid:(\d+)\]', line) # noqa: W605
+                matches = re.search(r'worker\[pid:(\d+)\]', line)
                 if matches:
                     child_pids.append(matches.group(1))
             return (parent_pid, child_pids)
@@ -145,14 +145,14 @@ class TestDispatcher(APITest):
 
             worker_description = ''
             for i, line in enumerate(result['stdout_lines']):
-                if re.search("RunJob\([^\)]*{}[^\)]*\)".format(job.id), line): # noqa: W605
+                if re.search(r'RunJob\([^\)]*{}[^\)]*\)'.format(job.id), line):
                     worker_description = result['stdout_lines'][i - 1]
                     break
             else:
                 raise Exception('Unable to find worker running job {0}\n\nawx_manage run_dispatcher --status shows:\n{1}'
                                 .format(job.id, result['stdout_lines']))
 
-            matches = re.search('\[pid:(\d+)]', worker_description) # noqa: W605
+            matches = re.search(r'\[pid:(\d+)]', worker_description)
             return matches.group(1)
 
         jt = factories.job_template(playbook='sleep.yml', extra_vars='{"sleep_interval": 120}')
