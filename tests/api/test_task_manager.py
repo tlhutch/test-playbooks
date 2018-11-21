@@ -856,8 +856,7 @@ class Test_Cascade_Fail_Dependent_Jobs(APITest):
         assert job.status == 'error'
         assert job.failed
         assert job.job_explanation == (
-            'Project for this job template is not successful. '
-            'Please correct the project details and manually update it.'
+            'The project revision for this job template is unknown due to a failed update.'
         )
         assert jt.get().status == 'failed'
         assert jt.last_job_failed
