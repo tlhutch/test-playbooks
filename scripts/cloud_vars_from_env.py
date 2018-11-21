@@ -21,8 +21,7 @@ prefixes = ['ANSIBLE', 'AW_', 'AWS', 'AWX', 'AZURE', 'CREATE_EC2', 'EC2',
 # and obtaining the desired image vars from playbooks/images-{cloud-provider}.yml.
 # If any of the following environment variables aren't provided and the cloud image
 # variable files are missing them, a random 10 character value will be generated:
-passwords = ['AWX_ADMIN_PASSWORD', 'AWX_MUNIN_PASSWORD', 'AWX_PG_PASSWORD',
-             'AWX_RABBITMQ_PASSWORD', 'AWX_REDIS_PASSWORD']
+passwords = ['AWX_ADMIN_PASSWORD', 'AWX_PG_PASSWORD', 'AWX_RABBITMQ_PASSWORD']
 
 
 def parse_args():
