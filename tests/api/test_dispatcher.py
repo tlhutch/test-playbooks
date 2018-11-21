@@ -180,7 +180,7 @@ class TestDispatcher(APITest):
 
         def processes_respawned():
             _, pids = get_dispatcher_pids()
-            if len(pids) != len(pids_before):
+            if len(pids) != 4:
                 assert len(pids) < len(pids_before)
                 return False
             return True
@@ -199,7 +199,7 @@ class TestDispatcher(APITest):
 
         def processes_respawned():
             _, pids = get_dispatcher_pids()
-            if len(pids) != len(child_pids):
+            if len(pids) != 4:
                 assert len(pids) < len(child_pids)
                 return False
             return True
