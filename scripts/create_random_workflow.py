@@ -33,6 +33,7 @@ def signal_handler(*args, **kwargs):
     graceful_exit()
     sys.exit(0)
 
+
 signal.signal(signal.SIGINT, signal_handler)
 
 
@@ -66,7 +67,7 @@ def parse_args():
         default=os.getenv(
             'NUM_CONVERGENCE_NODES',
             3),
-        help="Desired tree depth (note: actual depth varies)")
+        help="Desired number of convergence nodes")
 
     # Parse args
     (opts, args) = parser.parse_args()
@@ -79,7 +80,7 @@ def parse_args():
     return (opts, args)
 
 
-if __name__ == '__main__': # noqa C901
+if __name__ == '__main__':  # noqa C901
     (opts, args) = parse_args()
 
     config.base_url = args[0]
@@ -100,7 +101,7 @@ if __name__ == '__main__': # noqa C901
     sliced_jt_id = os.getenv('RAND_WORKFLOW_SLICED_JT_ID')
     num_slices = os.getenv('NUM_SLICES', 10)
     log.info(
-        "Will include {} convergence in workflow!".format(
+        "Will include {} convergence nodes in workflow!".format(
             opts.num_convergence_nodes))
     log.info("Set NUM_CONVERGENCE_NODES=0 to exclude convergence nodes")
     wf_to_nest_jt_id = os.getenv('RAND_INNER_WORKFLOW_JT_ID')
@@ -137,12 +138,8 @@ if __name__ == '__main__': # noqa C901
             job_slice_count=num_slices,
         )
         sliced_jt_inventory = sliced_jt.ds.inventory
-        hosts = []
         for i in range(num_slices):
-            hosts.append(sliced_jt_inventory.related.hosts.post(payload=dict(
-                name='foo{}'.format(i),
-                variables='ansible_connection: local'
-            )))
+            sliced_jt_inventory.add_host()
         sliced_jt.allow_simultaneous = True
         sliced_jt_id = sliced_jt.id
 
