@@ -347,13 +347,13 @@ print json.dumps(inv, indent=2)
         command_pg = api_ad_hoc_commands_pg.post(payload).wait_until_completed()
         assert command_pg.is_successful, "Command unsuccessful - %s" % command_pg
 
-        # Starting with 2.8, runner_on_start are also returned
-        # doubling the expected value count
-        if ansible_version_cmp('2.8.0.0') >= 0:
-            expected_count = expected_count * 2
-
         # assert that command run on correct number of hosts
-        events_pg = command_pg.get_related('events', event__startswith='runner_on')
+        # TODO(spredzy): Starting with ansible 2.8.0 some times not only `runner_on_ok`
+        #                events are returned but sometimes also `runner_on_start`.
+        #                So far it has not been consistent (works in Standalone not on
+        #                Cluster) while we get to the bottom of it we will filter on
+        #                `runner_on_ok` for now.
+        events_pg = command_pg.get_related('events', event__startswith='runner_on_ok')
         assert events_pg.count == expected_count
 
     @pytest.mark.ansible_integration
