@@ -196,6 +196,16 @@ class TestJobTemplateSlicing(APITest):
         relaunched_job.wait_until_completed()
         assert job.host_status_counts == relaunched_job.host_status_counts
 
+    @pytest.mark.github('https://github.com/ansible/awx/issues/2554')
+    def test_relaunch_after_conversion(self, factories, sliced_jt_factory):
+        jt = sliced_jt_factory(2)
+        workflow_job = jt.launch()
+
+        jt.job_slice_count = 1
+        with pytest.raises(BadRequest) as exc:
+            workflow_job.relaunch()
+        assert exc.value.message == {'detail': 'Cannot relaunch sliced workflow job after slice count has changed.'}
+
     def test_job_template_slice_remainder_hosts(self, factories, sliced_jt_factory):
         """Test the logic for when the host count (= 5) does not match the
         slice count (= 3)
