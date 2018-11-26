@@ -359,9 +359,7 @@ class Test_Workflow_Jobs(APITest):
         poll_until(lambda: getattr(job.get(), 'status') == 'canceled', timeout=60)
 
         # Confirm WF job failed
-        wfj.wait_until_completed()
-        wfj = wfj.get()
-        assert wfj.failed, "Workflow job should have been marked failed when only job in WF was canceled, because it had no failure recovery path."
+        wfj.wait_until_status('failed', since_job_created=False)
 
     def test_cancel_job_in_workflow_with_downstream_jobs(self, factories, api_jobs_pg):
         """Cancel job spawned by workflow job. Confirm jobs downstream from canceled job
@@ -430,8 +428,7 @@ class Test_Workflow_Jobs(APITest):
 
         # Confirm workflow job fails
         wfj.wait_until_completed()
-        wfj = wfj.get()
-        assert 'successful' == wfj.status, "Workflow job should have succeeded because failure path node should have 'handeled' the cancelation"
+        assert wfj.is_successful, "Workflow job should have succeeded because failure path node should have 'handeled' the cancelation"
         # Confirm remaining jobs in workflow completed successfully
         for job_node in (n4_job_node, n5_job_node, failure_path_n3_job_node, always_path_nA_job_node):
             job_node.get()
@@ -506,11 +503,11 @@ class Test_Workflow_Jobs(APITest):
         wfjt_inner = factories.v2_workflow_job_template()
         jt_to_delete = factories.v2_job_template()
         ancestor = factories.workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt_to_delete)
-        n1 = factories.workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt_to_delete)
         n0 = factories.workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt_to_delete)
+        n1 = factories.workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt_to_delete)
         ancestor.unified_job_template = wfjt_inner.id
-        n1.unified_job_template = wfjt_inner.id
         n0.unified_job_template = wfjt_inner.id
+        n1.unified_job_template = wfjt_inner.id
         with pytest.raises(NoContent):
             ancestor.related.always_nodes.post(dict(id=n0.id))
         with pytest.raises(NoContent):

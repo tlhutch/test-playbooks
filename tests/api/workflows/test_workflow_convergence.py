@@ -7,7 +7,6 @@ from copy import deepcopy
 
 import pytest
 from towerkit.exceptions import BadRequest, NoContent
-from towerkit.utils import poll_until
 
 from tests.api import APITest
 from towerkit.config import config
@@ -190,7 +189,7 @@ class Test_Workflow_Convergence(APITest):
 
         Workflow:
 
-        n0: (uses jt that succeeds) (no children)
+        n0: (uses jt that succeeds)
           - (failure) dnr (uses jt that would succeed, but should be marked dnr)
         n1: (uses jt that succeeds)
           - (success) n2 (is canceled)
@@ -248,8 +247,8 @@ class Test_Workflow_Convergence(APITest):
         n3_job_node.wait_for_job(timeout=60)  # Job does not exist until kicked off by workflow
         n3_job = n3_job_node.related.job.get()
         n3_job.cancel()
-        poll_until(lambda: getattr(n3_job.get(), 'status') == 'canceled', timeout=60)
-        poll_until(lambda: getattr(n2_job.get(), 'status') == 'canceled', timeout=60)
+        n2_job.wait_until_status('canceled', since_job_created=False)
+        n3_job.wait_until_status('canceled', since_job_created=False)
 
         # Wait for entire workflow to finish
         wfj.wait_until_completed()
@@ -569,7 +568,7 @@ class Test_Workflow_Convergence(APITest):
             assert convergence_vars[key] == expected_convergence_job_vars[
                 key], 'Correct key was inherited by convergence job but found unexpected value'
 
-    def test_convergence_nodes_merge_set_stats_variables(self, factories): # noqa C901
+    def test_convergence_nodes_merge_set_stats_variables(self, factories):  # noqa C901
         """Confirm that set stats are merged correctly.
 
         Correct merging is defined as:
