@@ -1,0 +1,5 @@
+[local]
+127.0.0.1 ansible_connection=local ansible_python_interpreter="/usr/bin/env python"
+
+[tower]
+dummy_openshift_host ansible_connection=docker ansible_user=awx

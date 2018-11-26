@@ -160,5 +160,7 @@ def skip_if_fips_enabled(is_fips_enabled):
 
 
 @pytest.fixture
-def is_fips_enabled(ansible_facts):
+def is_fips_enabled(is_docker, ansible_facts):
+    if is_docker:
+        return False
     return True in [dict(facts)['ansible_facts']['ansible_fips'] for host, facts in ansible_facts.contacted.iteritems()]
