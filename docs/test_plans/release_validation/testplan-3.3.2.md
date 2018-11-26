@@ -21,7 +21,7 @@
 - Give Shane / Christian heads up about upcoming release (so they can coordinate release work with Red Hat release team)
 
 
-### Veritifcation steps
+### Verification steps
 
 For all [supported platforms](https://docs.ansible.com/ansible-tower/3.3.0/html/installandreference/requirements_refguide.html) and [supported ansible releases](https://access.redhat.com/articles/3382771) the following processes should work:
 
@@ -45,7 +45,7 @@ Upgrade:
 
 Regression verifications:
 
-  * [ ] UI regression
+  * [ ] [UI regression](https://docs.google.com/document/d/1aJGD8c2lhCC_pNp7t7s4tVrf7p0SjpajJ7R7_n8mkHA/edit#heading=h.nd7oku9karga)
   * [ ] API regression - Standalone
   * [ ] API regression - Traditional Cluster
   * [ ] API regression - OpenShift Cluster
