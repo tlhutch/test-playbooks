@@ -48,7 +48,6 @@ ansible_nightly_repo: ${ANSIBLE_NIGHTLY_REPO}/${ANSIBLE_BRANCH}
 ansible_package_name: ${ANSIBLE_PACKAGE_NAME}
 aw_repo_url: ${INSTALL_AW_REPO_URL}
 awx_setup_path: ${INSTALL_AWX_SETUP_PATH}
-create_ec2_wait_upon_creation: false
 delete_on_start: ${DELETE_ON_INSTALL}
 create_ec2_assign_public_ip: true
 create_ec2_vpc_id: vpc-552da032
@@ -62,7 +61,7 @@ EOF
 
 function reap_instances {
     echo "### Reap EC2 Instances ###"
-    ansible-playbook ${VERBOSITY} -i playbooks/inventory.log -e @install_vars.yml playbooks/reap-tower-ec2.yml || true
+    ansible-playbook ${VERBOSITY} -i ${LOAD_DATA_INVENTORY} -e @install_vars.yml playbooks/reap-tower-ec2.yml || true
 }
 
 

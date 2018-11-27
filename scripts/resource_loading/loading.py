@@ -67,7 +67,7 @@ resources = utils.PseudoNamespace(yaml_file.load_file(args.resources))
 config.validate_schema = args.validate
 
 try:
-    group = filter(lambda potential: potential in inventory_manager.groups, ('tower'))[0]
+    group = filter(lambda potential: potential in inventory_manager.groups, ['tower'])[0]
 except IndexError:
     raise(Exception('{0.inventory} is without desired "tower" group.'.format(args)))
 
