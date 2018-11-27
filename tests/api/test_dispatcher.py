@@ -89,6 +89,7 @@ class TestDispatcher(APITest):
         jt = factories.v2_job_template(playbook='sleep.yml',
                                        extra_vars=dict(sleep_interval=30))
         jt.ds.inventory.add_host()
+        self.ensure_jt_runs_on_primary_instance(jt, v2)
         job = jt.launch().wait_until_status('running')
 
         try:
@@ -106,6 +107,7 @@ class TestDispatcher(APITest):
         jt = factories.v2_job_template(playbook='sleep.yml',
                                        extra_vars=dict(sleep_interval=30))
         jt.ds.inventory.add_host()
+        self.ensure_jt_runs_on_primary_instance(jt, v2)
         job = jt.launch().wait_until_status('running')
 
         # kill all dispatcher processes, supervisorctl immediately restarts dispatcher
