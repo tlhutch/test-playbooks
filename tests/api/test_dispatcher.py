@@ -85,6 +85,7 @@ class TestDispatcher(APITest):
             ig = [ig for ig in igs.results if ig.name == '1'].pop()
             jt.add_instance_group(ig)
 
+    @pytest.mark.github('https://github.com/ansible/tower/issues/3157')
     def test_dispatcher_graceful_restart(self, factories, v2, run_remote_command):
         jt = factories.v2_job_template(playbook='sleep.yml',
                                        extra_vars=dict(sleep_interval=30))
