@@ -188,7 +188,7 @@ class TestInventorySource(APITest):
         inv_source = factories.v2_inventory_source()
         self.update_and_delete_resources(inv_source)
 
-    @pytest.mark.github('https://github.com/ansible/awx/issues/2240')
+    @pytest.mark.github('https://github.com/ansible/tower/issues/973')
     def test_simultaneous_delete_sublist_resources_generic_large_inventory(self, factories):
         Ng = 470
         Nh = 189
@@ -209,7 +209,7 @@ class TestInventorySource(APITest):
         )
         self.update_and_delete_resources(inv_source)
 
-    @pytest.mark.github('https://github.com/ansible/awx/issues/2240')
+    @pytest.mark.github(' https://github.com/ansible/tower/issues/973')
     def test_simultaneous_delete_sublist_resources_ec2(self, factories):
         # Reported custom issue where server error, deadlocks, occured
         inv_source = factories.v2_inventory_source(
