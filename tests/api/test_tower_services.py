@@ -86,6 +86,7 @@ class TestTowerServices(APITest):
         def online():
             try:
                 v2.get()
+                job.get()
             except:
                 return False
             return True
@@ -102,25 +103,30 @@ class TestTowerServices(APITest):
         jt = factories.v2_job_template(playbook='sleep.yml',
                                        extra_vars=dict(sleep_interval=120))
         jt.ds.inventory.add_host()
+        # Important to run jt on same node where we stop rabbitmq because
+        # Each Tower instance has a deployment of RabbitMQ that will cluster
+        # with the other instances' RabbitMQ instances.
+        self.ensure_jt_runs_on_primary_instance(jt, v2)
         job = jt.launch().wait_until_status('running')
 
         try:
             contacted = ansible_runner.service(name='rabbitmq-server', state='stopped')
             result = contacted.values()[0]
             assert not result.get('failed', False), \
-                "Stopping postgres failed. Command stderr: \n{0}\n\nCommand stdout: \n{1}"\
+                "Stopping rabbitmq failed. Command stderr: \n{0}\n\nCommand stdout: \n{1}"\
                 .format(result['stderr'], result['stdout'])
             time.sleep(60)
         finally:
             contacted = ansible_runner.service(name='rabbitmq-server', state='started')
             result = contacted.values()[0]
             assert not result.get('failed', False), \
-                "Starting postgres failed. Command stderr: \n{0}\n\nCommand stdout: \n{1}"\
+                "Starting rabbitmq failed. Command stderr: \n{0}\n\nCommand stdout: \n{1}"\
                 .format(result['stderr'], result['stdout'])
 
         def online():
             try:
                 v2.get()
+                job.get()
             except:
                 return False
             return True
@@ -135,6 +141,7 @@ class TestTowerServices(APITest):
         jt = factories.v2_job_template(playbook='sleep.yml',
                                        extra_vars=dict(sleep_interval=120))
         jt.ds.inventory.add_host()
+        self.ensure_jt_runs_on_primary_instance(jt, v2)
         job = jt.launch().wait_until_status('running')
 
         try:
@@ -150,6 +157,9 @@ class TestTowerServices(APITest):
         def online():
             try:
                 v2.get()
+                # API can be up and the job still give a BadGateway error for a
+                # few seconds.
+                job.get()
             except:
                 return False
             return True

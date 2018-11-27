@@ -70,6 +70,12 @@ class APITest(object):
 
         return True
 
+    def ensure_jt_runs_on_primary_instance(self, jt, api_version):
+        igs = api_version.instance_groups.get()
+        if igs.count != 1:
+            ig = [ig for ig in igs.results if ig.name == '1'].pop()
+            jt.add_instance_group(ig)
+
     @contextlib.contextmanager
     def current_user(self, username=None, password=None):
         with utils.as_user(self.connections['root'], username, password):
