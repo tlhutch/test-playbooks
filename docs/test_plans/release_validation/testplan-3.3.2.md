@@ -25,22 +25,25 @@
 
 For all [supported platforms](https://docs.ansible.com/ansible-tower/3.3.0/html/installandreference/requirements_refguide.html) and [supported ansible releases](https://access.redhat.com/articles/3382771) the following processes should work:
 
+OS supported are: RHEL7.4+ (and its derivative counter-part), Ubuntu 14.04 and 16.04
+Ansible versions supported are: stable-2.3 to stable 2.7
+
 Install:
 
   * [ ] Standalone
-  * [ ] Standalone Bundle
-  * [ ] Traditional Cluster
+  * [x] [Standalone Bundle](http://jenkins.ansible.eng.rdu2.redhat.com/job/Test_Tower_Bundle_Install/1730/)
+  * [ ] Traditional Cluster with isolated nodes
   * [ ] Traditional Cluster Bundle
-  * [ ] OpenShift Cluster
+  * [x] [OpenShift Cluster](http://jenkins.ansible.eng.rdu2.redhat.com/view/Tower/job/Test_Tower_OpenShift_Deploy/445/)
 
 
 Upgrade:
 
   * [ ] Standalone from latest minor
   * [ ] Standalone from latest major
-  * [ ] Traditional Cluster from latest minor
-  * [ ] Traditional Cluster from latest major
-  * [ ] OpenShift Cluster from latest minor
+  * [ ] Traditional Cluster with isolated nodes from latest minor
+  * [ ] Traditional Cluster with isolated nodes from latest major
+  * [x] [OpenShift Cluster from latest minor](http://jenkins.ansible.eng.rdu2.redhat.com/view/Tower/job/Test_Tower_OpenShift_Upgrade/22/)
 
 
 Regression verifications:
@@ -53,5 +56,6 @@ Regression verifications:
 
 Artifacts:
 
-  * [ ] Build AMI (unlicensed)
-  * [ ] Build Vagrant image
+  * [x] [AMI](http://jenkins.ansible.eng.rdu2.redhat.com/job/qe-sandbox/job/Build_Tower_Image_Plain/2/)
+  * [x] [Vagrant image](http://jenkins.ansible.eng.rdu2.redhat.com/job/Build_Tower_Vagrant_Box/39/)
+  * [x] [Documentation](http://jenkins.ansible.eng.rdu2.redhat.com/job/Build_Tower_Docs/3007/)
