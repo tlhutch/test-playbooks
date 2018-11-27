@@ -186,7 +186,7 @@ class TestSmartInventory(APITest):
             ahc = factories.v2_ad_hoc_command(inventory=smart_inventory, limit=name).wait_until_completed()
             assert ahc.is_successful
 
-            runner_events = ahc.related.events.get(event__startswith='runner_on')
+            runner_events = ahc.related.events.get(event__startswith='runner_on_ok')
             assert runner_events.count == 1
             assert runner_events.results[0].host_name == name
 
@@ -209,7 +209,7 @@ class TestSmartInventory(APITest):
             job = jt.launch().wait_until_completed()
             assert job.is_successful
 
-            runner_events = job.related.job_events.get(event__startswith='runner_on')
+            runner_events = job.related.job_events.get(event__startswith='runner_on_ok')
             assert runner_events.count == 1
             assert runner_events.results[0].host_name == name
 

@@ -315,7 +315,7 @@ class TestJobTemplateVaultCredentials(APITest):
         job = jt.launch().wait_until_completed()
         assert job.is_successful
 
-        debug_tasks = job.related.job_events.get(host_name=host.name, task='debug').results
+        debug_tasks = job.related.job_events.get(host_name=host.name, task='debug', event__startswith='runner_on_ok').results
         assert len(debug_tasks) == 1
         assert debug_tasks[0].event_data.res.hostvars.keys() == [host.name]
 
@@ -340,7 +340,7 @@ class TestJobTemplateVaultCredentials(APITest):
         job = jt.launch(dict(vault_password='tower')).wait_until_completed()
         assert job.is_successful
 
-        debug_tasks = job.related.job_events.get(host_name=host.name, task='debug').results
+        debug_tasks = job.related.job_events.get(host_name=host.name, task='debug', event__startswith='runner_on_ok').results
         assert len(debug_tasks) == 1
         assert debug_tasks[0].event_data.res.hostvars.keys() == [host.name]
 
@@ -356,7 +356,7 @@ class TestJobTemplateVaultCredentials(APITest):
         job = jt.launch().wait_until_completed()
         assert job.is_successful
 
-        debug_tasks = job.related.job_events.get(host_name=host.name, task='debug').results
+        debug_tasks = job.related.job_events.get(host_name=host.name, task='debug', event__startswith='runner_on_ok').results
         assert len(debug_tasks) == 2
         assert any('First!' in task.stdout for task in debug_tasks)
         assert any('Second!' in task.stdout for task in debug_tasks)
@@ -381,7 +381,7 @@ class TestJobTemplateVaultCredentials(APITest):
         job = jt.launch(payload).wait_until_completed()
         assert job.is_successful
 
-        debug_tasks = job.related.job_events.get(host_name=host.name, task='debug').results
+        debug_tasks = job.related.job_events.get(host_name=host.name, task='debug', event__startswith='runner_on_ok').results
         assert len(debug_tasks) == 2
         assert any('First!' in task.stdout for task in debug_tasks)
         assert any('Second!' in task.stdout for task in debug_tasks)

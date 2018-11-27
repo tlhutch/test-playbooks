@@ -56,10 +56,13 @@ class Test_Projects(APITest):
         res = project.related.project_updates.get(job_type=job_type, order_by='-created') \
                                              .results[0].related.events \
                                              .get(task__icontains=task_icontains, event__startswith='runner_on_', order_by='counter')
-        assert 2 == res.count, \
+
+        _res = [result for result in res['results'] if result['event'] != 'runner_on_start']
+
+        assert 2 == len(_res), \
                 "Expected to find 2 job events matching task={},event__startswith={} for project update {}".format(
                         task_icontains, 'runner_on_', project.related.last_update)
-        return (res.results)
+        return (_res)
 
     @pytest.mark.requires_single_instance
     def test_manual_project(self, project_ansible_playbooks_manual):
