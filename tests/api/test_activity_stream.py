@@ -267,7 +267,7 @@ class TestActivityStream(APITest):
                     'In position {}: {}'.format(key, e)
                 )
 
-    @pytest.mark.last
+    @pytest.mark.second_to_last
     def test_fish_for_sensitive_content(self, v2):
         ct = 0
         this_page = v2.activity_stream.get(changes__icontains='$encrypted$')
