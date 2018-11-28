@@ -58,45 +58,65 @@ class TestTowerServices(APITest):
                 .format(process, command, result['stdout'])
 
     def test_database_unavailable(self, install_enterprise_license_unlimited,
-                                  factories, v2, ansible_runner, ansible_os_family):
+                                  factories, v2, ansible_adhoc, ansible_os_family):
         if ansible_os_family == 'Debian':
             pg_service = 'postgresql'
         else:
             pg_service = 'postgresql-9.6'
-
         jt = factories.v2_job_template(playbook='sleep.yml',
                                        extra_vars=dict(sleep_interval=120))
         jt.ds.inventory.add_host()
         job = jt.launch().wait_until_status('running')
 
+        # We need to find the right host to stop the postgres server on
+        tower_hosts = ansible_adhoc()
+        if tower_hosts.has_matching_inventory('database'):
+            db_host = tower_hosts.database
+        elif tower_hosts.has_matching_inventory('tower'):
+            db_host = tower_hosts.tower
+        else:
+            raise KeyError(
+                'Could not find a host in the inventory to stop the database'
+                '\non! Provide an inventory for a standalone tower with a '
+                '"tower" group or a cluster with a "database" group.')
+
         try:
-            contacted = ansible_runner.service(name=pg_service, state='stopped')
+            contacted = db_host.service(name=pg_service, state='stopped')
             result = contacted.values()[0]
             assert not result.get('failed', False), \
                 "Stopping postgres failed. Command stderr: \n{0}\n\nCommand stdout: \n{1}"\
                 .format(result['stderr'], result['stdout'])
+            assert 'Could not find the requested service' not in result.get('msg', '')
             time.sleep(60)
         finally:
-            contacted = ansible_runner.service(name=pg_service, state='started')
+            contacted = db_host.service(name=pg_service, state='started')
             result = contacted.values()[0]
             assert not result.get('failed', False), \
                 "Starting postgres failed. Command stderr: \n{0}\n\nCommand stdout: \n{1}"\
                 .format(result['stderr'], result['stdout'])
+            assert 'Could not find the requested service' not in result.get('msg', '')
+            time.sleep(20)
 
         def online():
             try:
                 v2.get()
+                # API can be up and the job still give a BadGateway error for a
+                # few seconds.
                 job.get()
             except:
                 return False
             return True
         utils.poll_until(online, interval=5, timeout=120)
-        job.wait_until_status(['error', 'failed'], since_job_created=False)
+        # We are waiting for a job that was given a sleep interval of 120 to
+        # complete. This is to give postgres enough time to be shut down and
+        # restarted.
+        job.wait_until_status(['error', 'failed'], since_job_created=False, timeout=190)
         assert job.job_explanation == 'Task was marked as running in Tower but was not present in the job queue, so it has been marked as failed.'
 
         jt.extra_vars = '{"sleep_interval": 1}'
         job = jt.launch().wait_until_completed()
-        assert job.is_successful
+        assert job.is_successful, \
+            'Newly launched job was not successful after database restart! Job status: {}, Job explanation: {}'.format(job.status, job.job_explanation)
 
     def test_rabbitmq_unavailable(self, install_enterprise_license_unlimited,
                                   factories, v2, ansible_runner, ansible_os_family):
@@ -115,6 +135,7 @@ class TestTowerServices(APITest):
             assert not result.get('failed', False), \
                 "Stopping rabbitmq failed. Command stderr: \n{0}\n\nCommand stdout: \n{1}"\
                 .format(result['stderr'], result['stdout'])
+            assert 'Could not find the requested service' not in result.get('msg', '')
             time.sleep(60)
         finally:
             contacted = ansible_runner.service(name='rabbitmq-server', state='started')
@@ -122,6 +143,7 @@ class TestTowerServices(APITest):
             assert not result.get('failed', False), \
                 "Starting rabbitmq failed. Command stderr: \n{0}\n\nCommand stdout: \n{1}"\
                 .format(result['stderr'], result['stdout'])
+            assert 'Could not find the requested service' not in result.get('msg', '')
             # Let rabbitmq-server warm up
             time.sleep(20)
 
@@ -135,7 +157,8 @@ class TestTowerServices(APITest):
         # On this second run we should not have to wait so long
         jt.extra_vars = '{"sleep_interval": 1}'
         job = jt.launch().wait_until_completed()
-        assert job.is_successful, 'Job status: {}, Job explanation: {}'.format(job.status, job.job_explanation)
+        assert job.is_successful, \
+            'Newly launched job was not successful after rabbitmq restart! Job status: {}, Job explanation: {}'.format(job.status, job.job_explanation)
 
     def test_tower_restart(self, install_enterprise_license_unlimited, factories, v2, ansible_runner):
         jt = factories.v2_job_template(playbook='sleep.yml',
@@ -169,4 +192,5 @@ class TestTowerServices(APITest):
 
         jt.extra_vars = '{"sleep_interval": 1}'
         job = jt.launch().wait_until_completed()
-        assert job.is_successful
+        assert job.is_successful, \
+            'Newly launched job was not successful after ansible-tower-service restart! Job status: {}, Job explanation: {}'.format(job.status, job.job_explanation)
