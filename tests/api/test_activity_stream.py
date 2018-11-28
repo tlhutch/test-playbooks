@@ -5,6 +5,8 @@ from towerkit import utils
 import towerkit.exceptions
 import pytest
 import six
+import json
+import yaml
 
 from tests.api import APITest
 
@@ -233,3 +235,61 @@ class TestActivityStream(APITest):
         assert set([activity.object1, activity.object2]) == set(['organization', 'user'])
         assert set([activity.changes.object1_pk, activity.changes.object2_pk]) == set([user.id, org.id])
         assert activity.object_association == 'role'
+
+    def assert_not_concerning(self, content):
+        """Given some data in content, assures that no encrpyted content lies
+        therein.
+        """
+        dict_content = content
+        if isinstance(content, six.string_types):
+            if content.startswith('$encrypted$'):
+                assert len(content) == len('$encrypted$'), (
+                    'The value {} appears to contain un-hidden encrypted data.'
+                ).format(content)
+            dict_content = None
+            try:
+                dict_content = json.loads(content)
+            except Exception:
+                try:
+                    dict_content = yaml.load(content)
+                except Exception:
+                    pass
+        sub_items = []
+        if isinstance(dict_content, dict):
+            sub_items = [(k, v) for k, v in dict_content.iteritems()]
+        elif isinstance(dict_content, list):
+            sub_items = [(i, v) for i, v in enumerate(dict_content)]
+        for key, item in sub_items:
+            try:
+                self.assert_not_concerning(item)
+            except AssertionError as e:
+                raise AssertionError(
+                    'In position {}: {}'.format(key, e)
+                )
+
+    @pytest.mark.last
+    def test_fish_for_sensitive_content(self, v2):
+        ct = 0
+        this_page = v2.activity_stream.get(changes__icontains='$encrypted$')
+        lvl = 'debug'
+        if this_page.count > 100000:
+            lvl = 'error'
+        elif this_page.count > 10000:
+            lvl = 'warn'
+        elif this_page.count > 1000:
+            lvl = 'info'
+        getattr(log, lvl)('Processing {} activity stream entries'.format(this_page.count))
+        while True:
+            ct += 1
+            log.info('Sniffing for hazardous content in activity stream page {}'.format(ct))
+            for entry in this_page.results:
+                try:
+                    self.assert_not_concerning(entry.changes)
+                except AssertionError as e:
+                    raise AssertionError(
+                        '{} In entry \n{}'.format(e, entry)
+                    )
+            if this_page.next:
+                this_page = this_page.next.get()
+            else:
+                break
