@@ -122,20 +122,20 @@ class TestTowerServices(APITest):
             assert not result.get('failed', False), \
                 "Starting rabbitmq failed. Command stderr: \n{0}\n\nCommand stdout: \n{1}"\
                 .format(result['stderr'], result['stdout'])
+            # Let rabbitmq-server warm up
+            time.sleep(20)
 
-        def online():
-            try:
-                v2.get()
-                job.get()
-            except:
-                return False
-            return True
-        utils.poll_until(online, interval=5, timeout=120)
-        job.wait_until_status('successful', since_job_created=False)
+        # Rabbit being down and restarting will not effect the responsiveness
+        # of v2.get(), so it does not help us to wait for it.
+        # we are waiting for a job that was given a sleep interval of 120 to
+        # complete. This is to give rabbit enough time to be shut down and
+        # restarted.
+        job.wait_until_status('successful', since_job_created=False, timeout=190)
 
+        # On this second run we should not have to wait so long
         jt.extra_vars = '{"sleep_interval": 1}'
         job = jt.launch().wait_until_completed()
-        assert job.is_successful
+        assert job.is_successful, 'Job status: {}, Job explanation: {}'.format(job.status, job.job_explanation)
 
     def test_tower_restart(self, install_enterprise_license_unlimited, factories, v2, ansible_runner):
         jt = factories.v2_job_template(playbook='sleep.yml',
