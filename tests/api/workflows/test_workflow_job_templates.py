@@ -2,7 +2,7 @@ import pytest
 import logging
 import json
 
-from towerkit.exceptions import BadRequest, NotFound
+from towerkit.exceptions import BadRequest, NotFound, NoContent
 
 from tests.api import APITest
 from tests.lib.helpers.workflow_utils import WorkflowTree
@@ -58,15 +58,14 @@ class Test_Workflow_Job_Templates(APITest):
 
         # Create third node. Have each root node trigger third node.
         n3 = n1.related.always_nodes.post(dict(unified_job_template=jt.id))
-        for condition in ('always', 'success', 'failure'):
-            with pytest.raises(BadRequest) as exception:
-                n2.get_related(condition + '_nodes').post(dict(id=n3.id))
-            assert 'Multiple parent relationship not allowed.' in str(exception.value)
+        try:
+            n2.related.always_nodes.post(dict(id=n3.id))
+        except NoContent:
+            pass
 
-            # Confirm nodes were not linked
-            triggered_nodes = n2.get_related(condition + '_nodes').results
-            assert not len(triggered_nodes), \
-                'Found nodes listed, expected none. (Creates converging path in workflow):\n{0}'.format(triggered_nodes)
+        # Confirm nodes were linked
+        assert n3.id in n1.get().always_nodes
+        assert n3.id in n2.get().always_nodes
 
     def test_workflow_workflow_node(self, factories):
         """Tests successful use of workflows in workflows"""
