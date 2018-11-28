@@ -119,6 +119,22 @@ class TestLDAP(APITest):
         assert users.count == 1
         assert users.results.pop().id == linda.id
 
+    def test_ldap_field_truncation(self, v2, update_setting_pg, clean_user_orgs_and_teams):
+        """ Verifies that excessively long user attr map values are truncated to 30 characters
+            This test assumes that bstrickland has the following value in its initials field
+            ohwowthisisasuperlongstringyoumusthaveareallylongname
+            """
+        ldap_settings = deepcopy(self.base_ldap_settings)
+        ldap_settings['AUTH_LDAP_USER_ATTR_MAP'] = {'first_name': 'initials',
+                                                    'last_name': 'sn',
+                                                    'email': 'mail'}
+        ldap_endpoint = v2.settings.get().get_endpoint('ldap')
+        update_setting_pg(ldap_endpoint, ldap_settings)
+        with self.current_user('bstrickland', self.ldap_password):
+            buck = v2.me.get().results.pop()
+        clean_user_orgs_and_teams(buck)
+        assert buck.first_name == 'ohwowthisisasuperlongstringyou'
+
     def test_multi_ldap_user_in_second_directory_can_authenticate(self, v2, update_setting_pg, clean_user_orgs_and_teams):
         default_ldap_settings = deepcopy(self.base_ldap_settings)
         # Required because of a known issue with multiple directories.
