@@ -35,7 +35,7 @@ class TestDispatcher(APITest):
             if type(pid) != list:
                 pid = [pid]
             run_remote_command('kill -9 {}'.format(' '.join([str(p) for p in pid])))
-            poll_until(lambda: not process_present(pid), timeout=30)
+            poll_until(lambda: not process_present(pid), timeout=60)
         return _kill_process
 
     @pytest.fixture(scope="function")
@@ -86,6 +86,7 @@ class TestDispatcher(APITest):
         jt.ds.inventory.add_host()
         self.ensure_jt_runs_on_primary_instance(jt, v2)
         job = jt.launch().wait_until_status('running')
+        poll_until(lambda: job.related.job_events.get().count > 0, timeout=30)
 
         try:
             run_remote_command('supervisorctl stop tower-processes:awx-dispatcher')
@@ -104,6 +105,7 @@ class TestDispatcher(APITest):
         jt.ds.inventory.add_host()
         self.ensure_jt_runs_on_primary_instance(jt, v2)
         job = jt.launch().wait_until_status('running')
+        poll_until(lambda: job.related.job_events.get().count > 0, timeout=30)
 
         # kill all dispatcher processes, supervisorctl immediately restarts dispatcher
         run_remote_command("pkill -f --signal 9 run_dispatcher")
@@ -125,7 +127,6 @@ class TestDispatcher(APITest):
         job = jt.launch().wait_until_completed()
         assert job.is_successful, 'Job status: {}, Job explanation: {}'.format(job.status, job.job_explanation)
 
-    @pytest.mark.github('https://github.com/ansible/tower/issues/3138')
     def test_kill_dispatcher_child_process_executing_job(self, factories, v2, run_remote_command, kill_process,
                                                          get_dispatcher_pids):
 
@@ -157,15 +158,15 @@ class TestDispatcher(APITest):
 
         self.ensure_jt_runs_on_primary_instance(jt, v2)
         job = jt.launch()
+        poll_until(lambda: job.related.job_events.get().count > 0, timeout=30)
 
         _, worker_pids_before = get_dispatcher_pids()
         pid = get_worker_running_job(job.id)
         kill_process(pid)
         _, worker_pids_after = get_dispatcher_pids()
-        # Expect to find one worker in place of removed worker
-        assert len(set(worker_pids_after) - (set(worker_pids_before) - set(pid))) == 1
+        assert pid not in worker_pids_after
 
-        assert job.wait_until_completed(since_job_created=False).status == 'failed'
+        poll_until(lambda: job.get().status == 'failed', timeout=30)
 
         jt.extra_vars = '{"sleep_interval": 1}'
         job = jt.launch().wait_until_completed()
