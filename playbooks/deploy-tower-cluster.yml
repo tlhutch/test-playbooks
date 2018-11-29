@@ -51,8 +51,10 @@
   roles:
     - role: isolated_group_firewall_rules
     
-- name: Enabled FIPS
+- name: Enable FIPS for isolated nodes
   hosts: 'isolated_group_*'
-  include_role:
-    name: fips
-  when: "'7.5' in ansible_distribution_version"
+  tasks:
+    - name: Run FIPS Role
+      include_role:
+        name: fips
+      when: "'7.5' in ansible_distribution_version"

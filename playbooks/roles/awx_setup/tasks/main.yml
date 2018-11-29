@@ -1,7 +1,7 @@
 ---
 # Download ansible-tower-setup and run the setup playbook
 
-- name: Enabled FIPS
+- name: Enable FIPS
   include_role:
     name: fips
   when: "'7.5' in ansible_distribution_version"
