@@ -50,3 +50,9 @@
   become_method: sudo
   roles:
     - role: isolated_group_firewall_rules
+    
+- name: Enabled FIPS
+  hosts: 'isolated_group_*'
+  include_role:
+    name: fips
+  when: "'7.5' in ansible_distribution_version"
