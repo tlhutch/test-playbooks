@@ -52,21 +52,30 @@ class TestClusterCommon(APITest):
         assert use_facts_job.result_stdout.count(ansible_facts.ansible_machine) == 1
         assert use_facts_job.result_stdout.count(ansible_facts.ansible_system) == 1
 
+    @pytest.mark.parametrize('isolated', [False, True])
     @pytest.mark.mp_group('JobTemplateSlicing', 'isolated_serial')
-    def test_sliced_job_ordinary_instances(self, v2, factories):
-        # obtain all ordinary (non-isolated) instances, put in instance group
-        instances = v2.instances.get(rampart_groups__controller__isnull=True, page_size=200, capacity__gt=0).results
+    def test_sliced_job_distributes_through_instance_group(self, v2, factories, isolated):
+        if isolated:
+            instances = v2.instances.get(rampart_groups__name='protected').results
+            iso_groups = v2.instance_groups.get(name='protected')
+            if iso_groups.count == 0:
+                pytest.skip('This cluster has no isolated instances.')
+            ig = iso_groups.results.pop()
+        else:
+            # obtain all ordinary (non-isolated) instances, put in instance group
+            instances = v2.instances.get(rampart_groups__controller__isnull=True, page_size=200, capacity__gt=0).results
+            ig = factories.instance_group()
         ct = len(instances)
         cap_dict = {}
-        ig = factories.instance_group()
         for inst in instances:
             inst.percent_capacity_remaining == 100.0
             cap_dict[inst.hostname] = inst.capacity
-            ig.add_instance(inst)
+            if not isolated:
+                ig.add_instance(inst)
         available_hostnames = set(inst.hostname for inst in instances)
 
         # duplicated with sliced_jt_factory fixture
-        jt = factories.v2_job_template(job_slice_count=ct, playbook='sleep.yml', extra_vars='{"sleep_interval": 120}')
+        jt = factories.v2_job_template(job_slice_count=ct, playbook='sleep.yml', extra_vars='{"sleep_interval": 30}')
         jt.add_instance_group(ig)
         inventory = jt.ds.inventory
         for i in range(ct):
@@ -82,9 +91,11 @@ class TestClusterCommon(APITest):
 
         # verify expectations for this cluster state
         working_hostnames = set([])
+        jobs = []
         for node in nodes:
             job = node.wait_for_job().get_related('job')
             job.wait_until_status(['running'])
+            jobs.append(job)
             assert job.instance_group == ig.id
             working_hostnames.add(job.execution_node)
         assert working_hostnames == available_hostnames  # jobs distribute evenly
@@ -93,6 +104,13 @@ class TestClusterCommon(APITest):
             'Expected all instances used by sliced job to consume 2 units of capacity. '
             'List of all instances:\n{}'.format(instances)
         )
+        if isolated:
+            # This is the only place we test isolated sliced jobs,
+            # so we need to check all other parameters are what was expected
+            workflow_job.wait_until_completed()
+            assert workflow_job.is_successful
+            for job in jobs:
+                assert job.get().host_status_counts['changed'] == 1
 
     @pytest.mark.parametrize('resource', ['job_template', 'inventory', 'organization'])
     def test_job_template_executes_on_assigned_instance_group(self, v2, factories, resource, get_resource_from_jt):
