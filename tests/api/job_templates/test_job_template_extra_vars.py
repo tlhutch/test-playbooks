@@ -371,7 +371,6 @@ class TestJobTemplateExtraVars(APITest):
                 j = jt.launch(dict(extra_vars=dict())).wait_until_completed()
             assert "variables_needed_to_start" in e.value.message
 
-    @pytest.mark.github('https://github.com/ansible/tower/issues/3043')
     def test_included_extra_vars_with_vault_content(self, factories):
         cred = factories.v2_credential(kind='vault', vault_password='password')
         jt = factories.v2_job_template(playbook='custom_json.yml')

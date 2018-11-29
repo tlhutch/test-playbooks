@@ -258,7 +258,6 @@ class Test_Workflow_Job_Template_RBAC(APITest):
             wfj.wait_until_completed()
             assert wfj.status == 'successful'
 
-    @pytest.mark.github('https://github.com/ansible/tower/issues/895')
     @pytest.mark.parametrize('role', ['admin', 'execute', 'read'])
     def test_user_capabilities(self, factories, api_workflow_job_templates_pg, role):
         """Test user_capabilities given each WFJT role."""

@@ -573,7 +573,6 @@ class TestGeneralSettings(APITest):
         system_settings.delete()
         assert system_settings.get().LICENSE == license
 
-    @pytest.mark.github('https://github.com/ansible/tower/issues/795')
     def test_changed_settings(self, modify_settings, api_settings_changed_pg):
         """Verifies that changed entries show under /api/v1/settings/changed/.
         Note: "TOWER_URL_BASE" and "LICENSE" always show here regardless of

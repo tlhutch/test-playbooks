@@ -29,7 +29,6 @@ class TestInstanceGroupPolicies(APITest):
     def tower_instance_hostnames(self, tower_instance_group):
         return [instance.hostname for instance in tower_instance_group.related.instances.get().results]
 
-    @pytest.mark.github('https://github.com/ansible/tower/issues/2659')
     def test_policy_intance_list_updated_with_manual_related_endpoint_association(self, v2, factories):
         """If an instance is added to related instances of group, then the
         instance hostname should be added to policy_instance_list
@@ -58,7 +57,6 @@ class TestInstanceGroupPolicies(APITest):
 
         assert ig.get().policy_instance_list == []
 
-    @pytest.mark.github('https://github.com/ansible/tower/issues/881')
     @pytest.mark.parametrize('instance_percentage, expected_num_instances',
         [(0, 0), (20, 1), (41, 3), (79, 4), (100, 5)])
     def test_correct_instances_with_new_ig_with_policy_instance_percentage(self, factories, tower_instance_hostnames,
@@ -129,7 +127,6 @@ class TestInstanceGroupPolicies(APITest):
         assert ig_instances.get().count == 0
         assert ig.policy_instance_list == []
 
-    @pytest.mark.github('https://github.com/ansible/tower/issues/873')
     def test_correct_instances_with_existing_ig_with_updated_policy_instance_percentage(self, factories,
                                                                                         tower_instance_hostnames):
         ig = factories.instance_group(policy_instance_percentage=0)
@@ -143,7 +140,6 @@ class TestInstanceGroupPolicies(APITest):
         assert ig_instances.count == 5
         assert set(ig_instance_hostnames) == set(tower_instance_hostnames)
 
-    @pytest.mark.github('https://github.com/ansible/tower/issues/873')
     def test_correct_instances_with_existing_ig_with_updated_policy_instance_minimum(self, factories,
                                                                                      tower_instance_hostnames):
         ig = factories.instance_group(policy_instance_minimum=0)
@@ -157,7 +153,6 @@ class TestInstanceGroupPolicies(APITest):
         assert ig_instances.count == 5
         assert set(ig_instance_hostnames) == set(tower_instance_hostnames)
 
-    @pytest.mark.github('https://github.com/ansible/tower/issues/873')
     def test_correct_instances_with_existing_ig_with_updated_policy_instance_list(self, factories, tower_instance_hostnames):
         ig = factories.instance_group()
         assert ig.instances == 0
@@ -360,7 +355,6 @@ class TestInstanceGroupPolicies(APITest):
             utils.poll_until(lambda: igroup.get().instances == instance_count, interval=1, timeout=30)
             assert instance.hostname in self.get_ig_instances(igroup)
 
-    @pytest.mark.github('https://github.com/ansible/tower/issues/2772')
     def test_instances_may_be_manually_associated_to_multiple_instance_groups(self, factories, tower_instance_group):
         instances = tower_instance_group.related.instances.get().results
 
