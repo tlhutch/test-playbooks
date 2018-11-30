@@ -37,58 +37,61 @@
     enabled: yes
     state: started
 
-- name: Add eth0 to public zone
-  firewalld:
-    interface: eth0
-    zone: public
-    state: enabled
-    permanent: true
-    immediate: true
+- block:
+  - name: Add eth0 to public zone
+    firewalld:
+      interface: eth0
+      zone: public
+      state: enabled
+      permanent: true
+      immediate: true
 
-- name: On isolated_group_protected, enable ssh traffic from controller instances (private ip)
-  firewalld:
-    rich_rule: 'rule family="ipv4" source address="{{ hostvars[item].ansible_default_ipv4.address }}/32" port protocol="tcp" port="22" accept'
-    zone: public
-    state: enabled
-    permanent: true
-    immediate: true
-  when: inventory_hostname in groups['isolated_group_protected']
-  with_items: "{{ groups['instance_group_controller'] + groups['instance_group_future_controller'] }}"
+  - name: On isolated_group_protected, enable ssh traffic from controller instances (private ip)
+    firewalld:
+      rich_rule: 'rule family="ipv4" source address="{{ hostvars[item].ansible_default_ipv4.address }}/32" port protocol="tcp" port="22" accept'
+      zone: public
+      state: enabled
+      permanent: true
+      immediate: true
+    when: inventory_hostname in groups['isolated_group_protected']
+    with_items: "{{ groups['instance_group_controller'] + groups['instance_group_future_controller'] }}"
 
-- name: On isolated_group_protected, enable ssh traffic from controller instances (public ip)
-  firewalld:
-    rich_rule: 'rule family="ipv4" source address="{{ hostvars[item].ipify_public_ip }}/32" port protocol="tcp" port="22" accept'
-    zone: public
-    state: enabled
-    permanent: true
-    immediate: true
-  when: inventory_hostname in groups['isolated_group_protected']
-  with_items: "{{ groups['instance_group_controller'] + groups['instance_group_future_controller'] }}"
+  - name: On isolated_group_protected, enable ssh traffic from controller instances (public ip)
+    firewalld:
+      rich_rule: 'rule family="ipv4" source address="{{ hostvars[item].ipify_public_ip }}/32" port protocol="tcp" port="22" accept'
+      zone: public
+      state: enabled
+      permanent: true
+      immediate: true
+    when: inventory_hostname in groups['isolated_group_protected']
+    with_items: "{{ groups['instance_group_controller'] + groups['instance_group_future_controller'] }}"
 
-- name: On managed hosts, enable ssh traffic from isolated_group_protected (private ip)
-  firewalld:
-    rich_rule: 'rule family="ipv4" source address="{{ hostvars[item].ipify_public_ip }}/32" port protocol="tcp" port="22" accept'
-    zone: public
-    state: enabled
-    permanent: true
-    immediate: true
-  when: inventory_hostname in groups['managed_hosts']
-  with_items: "{{ groups['isolated_group_protected'] }}"
+  - name: On managed hosts, enable ssh traffic from isolated_group_protected (private ip)
+    firewalld:
+      rich_rule: 'rule family="ipv4" source address="{{ hostvars[item].ipify_public_ip }}/32" port protocol="tcp" port="22" accept'
+      zone: public
+      state: enabled
+      permanent: true
+      immediate: true
+    when: inventory_hostname in groups['managed_hosts']
+    with_items: "{{ groups['isolated_group_protected'] }}"
 
-- name: On managed hosts, enable ssh traffic from isolated_group_protected (public ip)
-  firewalld:
-    rich_rule: 'rule family="ipv4" source address="{{ hostvars[item].ansible_default_ipv4.address }}/32" port protocol="tcp" port="22" accept'
-    zone: public
-    state: enabled
-    permanent: true
-    immediate: true
-  when: inventory_hostname in groups['managed_hosts']
-  with_items: "{{ groups['isolated_group_protected'] }}"
+  - name: On managed hosts, enable ssh traffic from isolated_group_protected (public ip)
+    firewalld:
+      rich_rule: 'rule family="ipv4" source address="{{ hostvars[item].ansible_default_ipv4.address }}/32" port protocol="tcp" port="22" accept'
+      zone: public
+      state: enabled
+      permanent: true
+      immediate: true
+    when: inventory_hostname in groups['managed_hosts']
+    with_items: "{{ groups['isolated_group_protected'] }}"
 
-- name: Remove general access to ssh from public zone
-  firewalld:
-    service: ssh
-    state: disabled
-    zone: public
-    permanent: true
-    immediate: true
+  - name: Remove general access to ssh from public zone
+    firewalld:
+      service: ssh
+      state: disabled
+      zone: public
+      permanent: true
+      immediate: true
+
+  when: ansible_os_family == 'RedHat'
