@@ -532,3 +532,14 @@ print json.dumps(inv, indent=2)
             job = jt.launch().wait_until_completed()
         assert job.is_successful
         assert '"var1": "{}"'.format(value) in job.result_stdout
+
+    @pytest.mark.ansible_integration
+    def test_playbook_calling_ansible_with_shell_and_inventory_file(self, factories):
+        jt = factories.v2_job_template(playbook='test_ansible_shell.yml')
+        factories.v2_host(inventory=jt.ds.inventory)
+        job = jt.launch().wait_until_completed()
+
+        playbook_event = job.related.job_events.get(
+            task='Run Playbook', event__startswith='runner_on_ok').results.pop()
+        assert job.is_successful
+        assert 'ok=1' in playbook_event.event_data.res.stdout
