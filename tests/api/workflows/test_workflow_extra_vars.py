@@ -470,3 +470,90 @@ class TestWorkflowExtraVars(APITest):
         for job in no_stats_jt.related.jobs.get().results:
             sourced_vars = json.loads(job.extra_vars)
             assert sourced_vars == {}, 'Variables ended up in other jobs where set_stats should not have propogated.'
+
+    @pytest.mark.parametrize("res_type", [
+        'v2_inventory_source',
+        'project',
+        'workflow_job_template'
+    ])
+    def test_artifacts_pass_through_non_job(self, factories, artifacts_from_stats_playbook, res_type):
+        """This test sandwiches two jobs between a non-job type, like
+        job1 -> inventory update -> job2
+        With this configuration, job1 uses set_stats
+        Doing this, we confirm that job2 receives the vars from artifacts,
+        and we confirm that the non-job job is not in any way broken
+        """
+        host = factories.v2_host()
+        set_stats_jt = factories.v2_job_template(
+            playbook='test_set_stats.yml',
+            inventory=host.ds.inventory
+        )
+
+        wfjt = factories.v2_workflow_job_template()
+        stats_node = factories.v2_workflow_job_template_node(
+            workflow_job_template=wfjt,
+            unified_job_template=set_stats_jt
+        )
+        non_job_node = stats_node.add_always_node(
+            unified_job_template=getattr(factories, res_type)()
+        )
+        receiving_jt = factories.job_template(
+            ask_variables_on_launch=True
+        )
+        non_job_node.add_always_node(
+            unified_job_template=receiving_jt
+        )
+
+        workflow_job = wfjt.launch()
+
+        receiving_node = workflow_job.related.workflow_nodes.get(
+            unified_job_template=receiving_jt.id
+        ).results.pop()
+        receiving_node.wait_for_job()
+        receiving_job = receiving_node.get_related('job')
+        assert json.loads(receiving_job.extra_vars) == artifacts_from_stats_playbook
+
+        workflow_job.wait_until_completed()
+        assert workflow_job.is_successful
+
+    def test_artifacts_passed_to_workflow_nodes(self, factories, v2, artifacts_from_stats_playbook):
+        """Test artifacts used with workflows-in-workflows
+        """
+        host = factories.v2_host()
+        set_stats_jt = factories.v2_job_template(
+            playbook='test_set_stats.yml',
+            inventory=host.ds.inventory
+        )
+
+        receiving_jt = factories.v2_job_template(ask_variables_on_launch=True)
+        receiving_wfjt = factories.workflow_job_template(ask_variables_on_launch=True)
+        factories.workflow_job_template_node(
+            workflow_job_template=receiving_wfjt,
+            unified_job_template=receiving_jt
+        )
+
+        wfjt = factories.v2_workflow_job_template()
+        stats_node = factories.v2_workflow_job_template_node(
+            workflow_job_template=wfjt,
+            unified_job_template=set_stats_jt
+        )
+        stats_node.add_always_node(unified_job_template=receiving_wfjt)
+
+        workflow_job = wfjt.launch()
+
+        receiving_wfjt_node = workflow_job.related.workflow_nodes.get(
+            unified_job_template=receiving_wfjt.id
+        ).results.pop()
+        receiving_wfjt_node.wait_for_job()
+        receiving_wfjt_job = receiving_wfjt_node.get_related('job')
+        assert json.loads(receiving_wfjt_job.extra_vars) == artifacts_from_stats_playbook
+
+        receiving_jt_node = receiving_wfjt_job.related.workflow_nodes.get(
+            unified_job_template=receiving_jt.id
+        ).results.pop()
+        receiving_jt_node.wait_for_job()
+        receiving_job = receiving_jt_node.get_related('job')
+        assert json.loads(receiving_job.extra_vars) == artifacts_from_stats_playbook
+
+        workflow_job.wait_until_completed()
+        assert workflow_job.is_successful
