@@ -178,6 +178,29 @@ class Test_Job(APITest):
         # assert success
         assert job_pg.is_successful, "Job unsuccessful - %s" % job_pg
 
+    def test_relaunch_with_different_custom_credential(self, request, v2, factories):
+        """Verify relaunching a job when a custom credential associated with the template
+        has been changed to another of the same type"""
+        jt = factories.v2_job_template()
+        custom_cred_type = factories.credential_type()
+
+        custom_cred1, custom_cred2 = [factories.v2_credential(credential_type=custom_cred_type) for _ in range(2)]
+        jt.add_extra_credential(custom_cred1)
+
+        job = jt.launch().wait_until_completed()
+        assert job.is_successful
+
+        jt.remove_extra_credential(custom_cred1)
+        jt.add_extra_credential(custom_cred2)
+
+        relaunched_job = job.relaunch().wait_until_completed()
+        assert relaunched_job.is_successful
+
+        creds_used = [c['id']
+                      for c in relaunched_job.summary_fields.credentials]
+        assert custom_cred1.id not in creds_used
+        assert custom_cred2.id in creds_used
+
     def test_relaunch_with_vault_credential_only(self, request, factories, v2):
         payload = factories.v2_job_template.payload()
         del payload['credential']
