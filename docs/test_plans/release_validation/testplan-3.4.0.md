@@ -70,7 +70,7 @@
    - [ ] GitHub Org
    - [ ] GitHub Team
    - [ ] Azure OAuth
-   - [ ] Radius
+   - [x] Radius
 1. [x] Tower SAML integration regression completed (vm)
 1. [ ] Tower social authentication regression completed (OpenShift)
    - [ ] Google OAuth
