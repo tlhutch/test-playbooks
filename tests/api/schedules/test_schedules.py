@@ -191,7 +191,7 @@ class TestSchedules(SchedulesTest):
                 schedule.get()
 
     def test_schedule_triggers_launch_without_count(self, v2_unified_job_template):
-        rule = self.minutely_rrule()
+        rule = self.minutely_rrule(interval=2)
         schedule = v2_unified_job_template.add_schedule(rrule=rule)
         assert schedule.next_run == rule.next_run
 
