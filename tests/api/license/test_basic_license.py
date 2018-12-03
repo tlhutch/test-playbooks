@@ -130,6 +130,19 @@ class TestBasicLicense(LicenseTest):
             with pytest.raises(exc.NotFound):
                 api_settings_pg.get_endpoint(service)
 
+    def test_job_template_cannot_be_sliced_with_basic_license(self, v2, factories):
+        default_org = v2.organizations.get(id=1).results.pop()
+        inventory = factories.v2_inventory(organization=default_org)
+        project = factories.v2_project(organization=default_org)
+        credential = factories.v2_credential(organization=default_org)
+        jt = factories.v2_job_template(organization=default_org,
+                                       inventory=inventory,
+                                       project=project,
+                                       credential=credential)
+        with pytest.raises(exc.PaymentRequired) as e:
+            jt.job_slice_count = 2
+        assert e.value.message == {u'job_slice_count': [u'Job slicing is a workflows-based feature and your license does not allow use of workflows.']}
+
 
 @pytest.mark.api
 @pytest.mark.mp_group(group="TestBasicLicenseSerial", strategy="isolated_serial")
