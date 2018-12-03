@@ -16,27 +16,27 @@
 * [Feature]()
 * [API Test Plan](https://github.com/ansible/tower-qa/blob/devel/docs/test_plans/features/34_workflow_convergence.md)
 * [UI Test Plan](https://docs.google.com/document/d/1U9VgxNoTw6CPpWbqKPomglmAK50xW3IaCif_BKZNc2o)
-- [ ] Testing complete
+- [x] Testing complete
 
 ### Workflow-Level Inventory (elijah + john)
 * [Feature]()
 * [API + UI Test Plan](https://github.com/ansible/tower-qa/blob/devel/docs/test_plans/features/34_workflow_level_inventory.md)
-- [ ] Testing complete
+- [x] Testing complete
 
 ### Workflows within Workflows (yanis + john)
 * [Feature]()
 * [API + UI Test Plan](https://github.com/ansible/tower-qa/blob/devel/docs/test_plans/features/34_workflow_in_workflow.md)
-- [ ] Testing complete
+- [x] Testing complete
 
 ### Workflows Always Nodes Allowed in Conjunction With Other Nodes (elijah + danny)
 * [Feature]()
 * [API + UI Test Plan](https://github.com/ansible/tower-qa/blob/devel/docs/test_plans/features/34_always_nodes_allowed_with_other_nodes.md)
 - [x] Testing complete
 
-### Source all Content from releases.ansible.com (elijah) (packaging only)
+### Source all Content from releases.ansible.com (yanis) (packaging only)
 * [Feature]()
 * [Test Plan](https://github.com/ansible/tower-qa/blob/devel/docs/test_plans/packaging/34-ensure-no-third-party-packages.md)
-- [ ] Testing complete
+- [x] Testing complete
 
 
 ### Finish Organization Permission Views (danny) (ui only)
@@ -47,17 +47,17 @@
 ### Support FIPS mode on RHEL 7 and CentOS 7 (yanis) (api only)
 * [Feature]()
 * [API Test Plan](https://github.com/ansible/tower-qa/blob/devel/docs/test_plans/features/34_fips_compliant.md)
-- [ ] Testing complete
+- [x] Testing complete
 
 ### Replace Celery with Dispatcher (jim) (api only)
 * [Feature]()
 * [API Test Plan](https://github.com/ansible/tower-qa/blob/devel/docs/test_plans/features/34_celery_replacement.md)
-- [ ] Testing complete
+- [x] Testing complete
 
 ### Settings Menu Reorganization (john) (ui only)
 * [Feature]()
 * [UI Test Plan](https://docs.google.com/document/d/1bZEUe6FW-gKY4y5tfcDdUwbRH2UdxxutMqZwYtww4lw)
-- [ ] Testing complete
+- [x] Testing complete
 
 ## Regression
 1. [ ] UI regression completed
