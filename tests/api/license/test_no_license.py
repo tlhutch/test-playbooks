@@ -1,6 +1,7 @@
 import json
 
 import towerkit.exceptions as exc
+from towerkit.utils import poll_until
 import fauxfactory
 import pytest
 
@@ -102,8 +103,9 @@ class TestNoLicenseSerial(LicenseTest):
         assert conf.license_info != {}, "License expected, but none found"
         assert conf.license_info.license_key == legacy_license_json['license_key']
 
-    def test_cannot_launch_job(self, func_install_basic_license, api_config_pg, job_template):
+    def test_cannot_launch_job(self, v2, func_install_basic_license, api_config_pg, job_template):
         """Verify that job_templates cannot be launched"""
         api_config_pg.delete()
+        poll_until(lambda: not v2.config.get().license_info, interval=1, timeout=15)
         with pytest.raises(exc.LicenseExceeded):
             job_template.launch_job()
