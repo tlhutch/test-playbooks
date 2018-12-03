@@ -65,7 +65,7 @@
 1. [ ] API regression completed - traditional cluster
 1. [ ] API regression completed - OpenShift
 1. [ ] Tower social authentication regression completed (vm)
-1. [ ] Tower SAML integration regression completed (vm)
+1. [x] Tower SAML integration regression completed (vm)
 1. [ ] Tower social authentication regression completed (OpenShift)
 1. [ ] Tower SAML integration regression completed (OpenShift)
 1. [ ] Logging regression completed - standalone
