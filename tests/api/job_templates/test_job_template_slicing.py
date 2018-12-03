@@ -420,3 +420,15 @@ class TestJobTemplateSlicing(APITest):
         assert workflow_job.is_successful
         for job in v2.unified_jobs.get(unified_job_node__workflow_job=workflow_job.id).results:
             assert job.get().host_status_counts['ok'] == 3
+
+    def test_job_template_admin_can_set_slices(self, factories, sliced_jt_factory):
+        org = factories.v2_organization()
+        jt = sliced_jt_factory(3, jt_kwargs=dict(
+                                                organization=org,
+                                                playbook='sleep.yml',
+                                                extra_vars={'sleep_interval': 15}))
+        user = factories.v2_user(organization=org)
+        org.set_object_roles(user, 'Job Template Admin')
+        with self.current_user(user):
+            jt.job_slice_count = 2
+        assert jt.get().job_slice_count == 2
