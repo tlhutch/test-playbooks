@@ -123,28 +123,11 @@ Install/Deploy tower in the following configurations and validate functionality 
 1. [ ] Deploy tower in [OpenShift with an external DB](https://github.com/ansible/tower-qa/issues/1656)
 
 ### Upgrades for all supported platforms
-1. [ ] Successful upgrades (and migrations) from `3.2.0` - `3.4.0` (standalone)
-1. [ ] Successful upgrades (and migrations) from `3.2.1` - `3.4.0` (standalone)
-1. [ ] Successful upgrades (and migrations) from `3.2.2` - `3.4.0` (standalone)
-1. [ ] Successful upgrades (and migrations) from `3.2.3` - `3.4.0` (standalone)
-1. [ ] Successful upgrades (and migrations) from `3.2.4` - `3.4.0` (standalone)
-1. [ ] Successful upgrades (and migrations) from `3.2.5` - `3.4.0` (standalone)
-1. [ ] Successful upgrades (and migrations) from `3.2.6` - `3.4.0` (standalone)
-1. [ ] Successful upgrades (and migrations) from `3.2.7` - `3.4.0` (standalone)
-1. [ ] Successful upgrades (and migrations) from `3.3.0` - `3.4.0` (standalone)
-1. [ ] Successful upgrades (and migrations) from `3.3.1` - `3.4.0` (standalone)
-1. [ ] Successful upgrades (and migrations) from `3.2.0` - `3.4.0` (traditional cluster)
-1. [ ] Successful upgrades (and migrations) from `3.2.1` - `3.4.0` (traditional cluster)
-1. [ ] Successful upgrades (and migrations) from `3.2.2` - `3.4.0` (traditional cluster)
-1. [ ] Successful upgrades (and migrations) from `3.2.3` - `3.4.0` (traditional cluster)
-1. [ ] Successful upgrades (and migrations) from `3.2.4` - `3.4.0` (traditional cluster)
-1. [ ] Successful upgrades (and migrations) from `3.2.5` - `3.4.0` (traditional cluster)
-1. [ ] Successful upgrades (and migrations) from `3.2.6` - `3.4.0` (traditional cluster)
-1. [ ] Successful upgrades (and migrations) from `3.2.7` - `3.4.0` (traditional cluster)
-1. [ ] Successful upgrades (and migrations) from `3.3.0` - `3.4.0` (traditional cluster)
-1. [ ] Successful upgrades (and migrations) from `3.3.1` - `3.4.0` (traditional cluster)
-1. [ ] Successful upgrades (and migrations) from `3.3.0` - `3.4.0` (OpenShift)
-1. [ ] Successful upgrades (and migrations) from `3.3.1` - `3.4.0` (OpenShift)
+1. [ ] Successful upgrades (and migrations) from `3.2.8` - `3.4.0` (standalone)
+1. [ ] Successful upgrades (and migrations) from `3.3.2` - `3.4.0` (standalone)
+1. [ ] Successful upgrades (and migrations) from `3.2.8` - `3.4.0` (traditional cluster)
+1. [ ] Successful upgrades (and migrations) from `3.3.2` - `3.4.0` (traditional cluster)
+1. [ ] Successful upgrades (and migrations) from `3.3.2` - `3.4.0` (OpenShift)
 * Verify the following functionality after upgrade
     * Resource migrations
     * Launch project_updates for existing projects
