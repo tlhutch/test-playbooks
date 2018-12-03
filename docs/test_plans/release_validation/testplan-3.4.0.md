@@ -72,12 +72,12 @@
    - [ ] Azure OAuth
    - [x] Radius
 1. [x] Tower SAML integration regression completed (vm)
-1. [ ] Tower social authentication regression completed (OpenShift)
+1. [x] Tower social authentication regression completed (OpenShift)
    - [x] Google OAuth
    - [x] GitHub
    - [x] GitHub Org
    - [x] GitHub Team
-   - [ ] Azure OAuth
+   - [x] Azure OAuth
    - [x] Radius
 1. [x] Tower SAML integration regression completed (OpenShift)
 1. [ ] Logging regression completed - standalone
