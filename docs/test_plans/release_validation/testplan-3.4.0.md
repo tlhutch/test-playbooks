@@ -78,7 +78,7 @@
    - [ ] GitHub Org
    - [ ] GitHub Team
    - [ ] Azure OAuth
-   - [ ] Radius
+   - [x] Radius
 1. [x] Tower SAML integration regression completed (OpenShift)
 1. [ ] Logging regression completed - standalone
 1. [ ] Logging regression completed - cluster
