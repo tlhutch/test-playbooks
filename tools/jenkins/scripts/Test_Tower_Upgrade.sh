@@ -56,6 +56,7 @@ instance_name_prefix: ${INSTANCE_NAME_PREFIX}-ansible-${ANSIBLE_BRANCH}
 minimum_var_space: 0
 pg_password: ${AWX_PG_PASSWORD}
 terminate_ec2_wait_upon_creation: false
+apply_isolated_groups_fw_rules: false
 EOF
 
 
@@ -97,6 +98,7 @@ instance_name_prefix: ${INSTANCE_NAME_PREFIX}-ansible-${ANSIBLE_BRANCH}
 minimum_var_space: 0
 out_of_box_os: true
 pg_password: ${AWX_PG_PASSWORD}
+apply_isolated_groups_fw_rules: false
 EOF
 
 if [ "${SLEEP_BEFORE_UPGRADE}" = true ]; then

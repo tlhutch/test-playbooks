@@ -50,3 +50,4 @@
   become_method: sudo
   roles:
     - role: isolated_group_firewall_rules
+      when: '{{ apply_isolated_groups_fw_rules | default("true") }}'
