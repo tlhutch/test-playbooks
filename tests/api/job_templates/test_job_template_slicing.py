@@ -423,10 +423,8 @@ class TestJobTemplateSlicing(APITest):
 
     def test_job_template_admin_can_set_slices(self, factories, sliced_jt_factory):
         org = factories.v2_organization()
-        jt = sliced_jt_factory(3, jt_kwargs=dict(
-                                                organization=org,
-                                                playbook='sleep.yml',
-                                                extra_vars={'sleep_interval': 15}))
+        inv = factories.v2_inventory(organization=org)
+        jt = factories.v2_job_template(inventory=inv)
         user = factories.v2_user(organization=org)
         org.set_object_roles(user, 'Job Template Admin')
         with self.current_user(user):
