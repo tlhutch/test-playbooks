@@ -517,8 +517,8 @@ class TestTraditionalCluster(APITest):
         * We check that group and instance capacity for the now-online node are restored
         * We check a new job against the now-back-online node starts and completes
         """
-        current_host = connection.server.split('/')[-1]
-
+        current_host = v2.ping.get().active_node
+        fqdn = connection.server.split('/')[-1]
         hosts = hosts_in_group('instance_group_ordinary_instances')
         hosts.remove(current_host)
         host = random.choice(hosts)
@@ -535,6 +535,7 @@ class TestTraditionalCluster(APITest):
         jt.ds.inventory.add_host()
         jt.add_instance_group(ig)
 
+        # MIGHT NEED TO WAIT TO HAVE ACCURATE INSTANCE CAPACITY
         # Store the capacity of the group and instance for later verification
         group_capacity = ig.capacity
         instance_capacity = instance.capacity
@@ -561,41 +562,41 @@ class TestTraditionalCluster(APITest):
 
         # Start a long running job from the node we're going to take offline
         long_job = jt.launch().wait_until_status('running')
+        # FIXME https://github.com/ansible/awx/issues/2835
+        # Need to wait until after pre-run hook has completed because of above bug.
+        utils.poll_until(lambda: long_job.related.job_events.get().count > 0, timeout=30)
         assert long_job.execution_node == host
 
         # Stop the tower node.
         stop, start = self.get_stop_and_start_funcs_for_node(admin_user, hostvars_for_host, host, v2)
         with SafeStop(stop, start):
             # Sanity check that start of context did not change web request URL
-            assert current_host in self.connections['root'].server
-            log.debug("Using online node {}".format(current_host))
+            assert fqdn in self.connections['root'].server
+            log.debug("Using online node with fqdn of {} and ip of ".format(fqdn, current_host))
 
-            # Check that the heartbeat of all nodes except the stopped one advance
-            heartbeats, offline_heartbeat = get_heartbeats()
-            assert offline_heartbeat is not None
-
-            def heartbeats_changed():
-                new_heartbeats, _ = get_heartbeats()
-                for host, beat in new_heartbeats.items():
-                    if heartbeats[host] == new_heartbeats[host]:
-                        return False
-                return True
-
-            utils.poll_until(heartbeats_changed, interval=10, timeout=120)
-            _, current_offline_heartbeat = get_heartbeats()
-            # assert the offline heartbeat is unchanged
-            assert current_offline_heartbeat == offline_heartbeat
-
+            # We probably cannot trust that the node is offline yet
+            # poll until capacity is 0 on offline node to know everything is dead
             def check_group_capacity_zeroed():
                 ig.get()
                 return ig.capacity == 0
-            utils.poll_until(check_group_capacity_zeroed, interval=5, timeout=120)
-            assert instance.get().capacity == 0
+
+            utils.poll_until(check_group_capacity_zeroed, interval=5, timeout=190)
+            other_heartbeats, offline_heartbeat = get_heartbeats()
+            # assert the offline heartbeat is unchanged
+            # then wait another two min and get heartbeat again and assert not changed
+            time.sleep(190)
+            current_other_heartbeats, current_offline_heartbeat = get_heartbeats()
+            assert current_offline_heartbeat == offline_heartbeat
+            for key in other_heartbeats.keys():
+                assert current_other_heartbeats[key] != other_heartbeats[key], \
+                    'Heartbeat for online node {} did not advance! Only the offline node should have its heartbeat stop!'.format(key)
+
+            # Check that ig capacity is still set to zero
+            assert instance.get().capacity == 0, 'Instance group capacity changed while node was still offline'
 
             # Check the job we started is marked as failed
-            long_job.wait_until_completed()  # failure here means job runs too long, does not get reaped
-            assert long_job.status in FAIL_STATUSES
-
+            utils.poll_until(lambda: long_job.get().status in FAIL_STATUSES, interval=5, timeout=130)
+            long_job = long_job.get()
             # Should fail with explanation
             explanation = "Task was marked as running in Tower but was not present in the job queue, so it has been marked as failed."
             assert long_job.job_explanation == explanation
