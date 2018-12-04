@@ -25,16 +25,12 @@
       shell: grub2-mkconfig -o /boot/grub2/grub.cfg
       become: True
 
-    - name: reboot
-      shell: "sleep 5 && reboot"
+    - name: Wait for Ansible process to finish
+      shell: "sleep 5"
       async: 1
-      poll: 0
-
-    - name: wait for the reboot to complete
-      wait_for_connection:
-        connect_timeout: 20
-        sleep: 5
-        delay: 5
-        timeout: 300
+      
+    - name: reboot
+      reboot:
+      become: True
 
   when: not ansible_fips and ansible_os_family == 'RedHat'
