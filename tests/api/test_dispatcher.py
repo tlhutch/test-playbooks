@@ -86,9 +86,6 @@ class TestDispatcher(APITest):
         jt.ds.inventory.add_host()
         self.ensure_jt_runs_on_primary_instance(jt, v2)
         job = jt.launch().wait_until_status('running')
-        # FIXME https://github.com/ansible/awx/issues/2835
-        # Need to wait until after pre-run hook has completed because of above bug.
-        poll_until(lambda: job.related.job_events.get().count > 0, timeout=30)
 
         try:
             run_remote_command('supervisorctl stop tower-processes:awx-dispatcher')
@@ -107,9 +104,6 @@ class TestDispatcher(APITest):
         jt.ds.inventory.add_host()
         self.ensure_jt_runs_on_primary_instance(jt, v2)
         job = jt.launch().wait_until_status('running')
-        # FIXME https://github.com/ansible/awx/issues/2835
-        # Need to wait until after pre-run hook has completed because of above bug.
-        poll_until(lambda: job.related.job_events.get().count > 0, timeout=30)
 
         # kill all dispatcher processes, supervisorctl immediately restarts dispatcher
         run_remote_command("pkill -f --signal 9 run_dispatcher")
@@ -162,9 +156,6 @@ class TestDispatcher(APITest):
 
         self.ensure_jt_runs_on_primary_instance(jt, v2)
         job = jt.launch()
-        # FIXME https://github.com/ansible/awx/issues/2835
-        # Need to wait until after pre-run hook has completed because of above bug.
-        poll_until(lambda: job.related.job_events.get().count > 0, timeout=30)
 
         _, worker_pids_before = get_dispatcher_pids()
         pid = get_worker_running_job(job.id)

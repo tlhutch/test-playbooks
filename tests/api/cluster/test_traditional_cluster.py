@@ -566,9 +566,6 @@ class TestTraditionalCluster(APITest):
 
         # Start a long running job from the node we're going to take offline
         long_job = jt.launch().wait_until_status('running')
-        # FIXME https://github.com/ansible/awx/issues/2835
-        # Need to wait until after pre-run hook has completed because of above bug.
-        utils.poll_until(lambda: long_job.related.job_events.get().count > 0, timeout=30)
         assert long_job.execution_node == host
 
         # Stop the tower node.

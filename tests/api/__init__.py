@@ -71,7 +71,7 @@ class APITest(object):
         return True
 
     def ensure_jt_runs_on_primary_instance(self, jt, api_version):
-        igs = api_version.instance_groups.get()
+        igs = api_version.instance_groups.get(controller__isnull=True)
         if igs.count != 1:
             ig = [ig for ig in igs.results if ig.name == '1'].pop()
             jt.add_instance_group(ig)
