@@ -1,0 +1,156 @@
+#!/usr/bin/env bash
+
+function retrieve_boolean_value {
+
+    value=$1
+    case "${value}" in
+        yes)
+            echo 'true'
+            ;;
+        no)
+            echo 'false'
+            ;;
+        *)
+            >&2 echo "\"${value}\": specified value cannot be casted into boolean type."
+            exit 1
+            ;;
+    esac
+}
+
+function retrieve_credential_file {
+
+    inventory_host=$1
+    is_fips_enabled=$(ssh -ostricthostkeychecking=no ec2-user@"${inventory_host}" cat /proc/sys/crypto/fips_enabled)
+    if [[ "${is_fips_enabled}" == 1 ]]; then
+        echo 'config/credentials-pkcs8.yml'
+    else
+        echo 'config/credentials.yml'
+    fi
+}
+
+function retrieve_inventory_file {
+
+    if [[ -f "playbooks/inventory.log" ]]; then
+        echo "playbooks/inventory.log"
+    else
+        echo "playbooks/inventory.cluster"
+    fi
+}
+
+function generate_instance_name_prefix {
+
+    instance_name_prefix=$1
+    platform=$2
+    ansible_version=$3
+    tower_version=$4
+
+    echo "${instance_name_prefix}-ansible-${ansible_version}-${platform}"
+}
+
+# shellcheck disable=2034
+function setup_env_based_on_deployment_scenario {
+
+    scenario=$1
+
+    case "${scenario}" in
+       standalone)
+           PLAYBOOK=playbooks/deploy-tower.yml
+           INVENTORY=playbooks/inventory.log
+           IMAGE_VARS=playbooks/images-ec2.yml
+           ;;
+       cluster)
+           PLAYBOOK=playbooks/deploy-tower-cluster.yml
+           INVENTORY=playbooks/inventory.cluster
+           IMAGE_VARS=playbooks/images-isolated-groups.yml
+           export CLUSTER_SETUP=true
+           export AWX_APPLY_ISOLATED_GROUPS_FW_RULES=false
+           ;;
+       *)
+           (>&2 echo "\"${scenario}\" is not a supported scenario. Supported scenarios: standalone, cluster.")
+           exit 1
+           ;;
+    esac
+}
+
+function retrieve_aw_repo_url_based_on_version {
+
+    version=$1
+    url="https://releases.ansible.com/ansible-tower/setup-bundle/ansible-tower-setup-bundle-${version}-1.el7.tar.gz"
+    http_code=$(curl -L -s -o /dev/null -I -w "%{http_code}" "${url}")
+
+    if [[ "${http_code}" == "200" ]]; then
+        echo 'https://releases.ansible.com/ansible-tower'
+    else
+        url="http://nightlies.testing.ansible.com/ansible-tower_nightlies_m8u16fz56qr6q7/release_${version}"
+        http_code=$(curl -L -s -o /dev/null -I -w "%{http_code}" "${url}")
+        if [[ "${http_code}" == "200"  ]]; then
+            echo "http://nightlies.testing.ansible.com/ansible-tower_nightlies_m8u16fz56qr6q7/release_${version}"
+        else
+           url="http://nightlies.testing.ansible.com/ansible-tower_nightlies_m8u16fz56qr6q7/${version}"
+           http_code=$(curl -L -s -o /dev/null -I -w "%{http_code}" "${url}")
+           if [[ "${http_code}" == "200"  ]]; then
+               echo "http://nightlies.testing.ansible.com/ansible-tower_nightlies_m8u16fz56qr6q7/${version}"
+           else
+               >&2 echo "\"${version}\": specified version cannot be found."
+               exit 1
+           fi
+        fi
+    fi
+}
+
+function retrieve_awx_setup_path_based_on_version_and_scenario {
+
+    version=$1
+    scenario=$2
+    aw_repo_url=$3
+    bundle=$4
+
+    if [[ "${aw_repo_url}" =~ .*"nightlies.testing.ansible.com".* ]]; then
+        if [[ "${bundle}" == "yes" ]]; then
+            echo "/setup-bundle/ansible-tower-setup-bundle-latest.el7.tar.gz"
+        else
+            echo "/setup/ansible-tower-setup-latest.tar.gz"
+        fi
+    else
+        if [[ "${bundle}" == "yes" ]]; then
+            echo "/setup-bundle/ansible-tower-setup-bundle-${version}-1.el7.tar.gz"
+        else
+            _vers=$(echo -e "${version}\n3.3.0" | sort -V | head -n 1)
+            if [[ "${version}" == "${_vers}" ]]; then
+                echo "/setup/ansible-tower-setup-${version}.tar.gz"
+            else
+                echo "/setup/ansible-tower-setup-${version}-1.tar.gz"
+            fi
+        fi
+    fi
+}
+
+function retrieve_verbosity_string {
+
+    if [[ "${VERBOSE}" == "yes" ]]; then
+        echo '-vvvv'
+    else
+        echo '-v'
+    fi
+}
+
+function retrieve_tower_server_from_inventory {
+
+    inventory=$1
+    if grep cluster_installer "${inventory}" > /dev/null; then
+        grep -A 1 cluster_installer "${inventory}" | tail -n 1 | cut -d' ' -f 1
+    else
+        grep -A 1 tower "${inventory}" | tail -n 1 | cut -d' ' -f 1
+    fi
+}
+
+function is_tower_ready {
+
+    tower_url=$1
+    http_code=$(curl -k -L -s -o /dev/null -I -w "%{http_code}" "${tower_url}")
+    if [[ "${http_code}" == 200 ]]; then
+        return 0
+    else
+        return 1
+    fi
+}

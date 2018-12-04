@@ -56,7 +56,7 @@ instance_name_prefix: ${INSTANCE_NAME_PREFIX}-ansible-${ANSIBLE_BRANCH}
 minimum_var_space: 0
 pg_password: ${AWX_PG_PASSWORD}
 terminate_ec2_wait_upon_creation: false
-apply_isolated_groups_fw_rules: false
+awx_apply_isolated_groups_fw_rules: false
 fips_enabled: false
 EOF
 
@@ -99,7 +99,7 @@ instance_name_prefix: ${INSTANCE_NAME_PREFIX}-ansible-${ANSIBLE_BRANCH}
 minimum_var_space: 0
 out_of_box_os: true
 pg_password: ${AWX_PG_PASSWORD}
-apply_isolated_groups_fw_rules: false
+awx_apply_isolated_groups_fw_rules: false
 fips_enabled: false
 EOF
 

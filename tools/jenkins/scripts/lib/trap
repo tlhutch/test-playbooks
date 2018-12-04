@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+
+set -euxo pipefail
+
+
+function reap_instances {
+    if [[ -e "${INVENTORY}" ]]; then
+        ansible-playbook "${VERBOSITY}" -i "${INVENTORY}" -e @playbooks/vars.yml playbooks/reap-tower-ec2.yml || true
+    else
+        >&2 echo "No inventory found. No instance to reap."
+    fi
+}
+
+
+function reap_instances_on_failure {
+    if [[ "$?" != 0 ]]; then
+        reap_instances
+    fi
+}
+
+
+if [[ "$REAP_INSTANCES" == "yes" ]]; then
+    echo "### Reaping Instances: Enabled"
+    trap reap_instances EXIT
+elif [[ "$REAP_INSTANCES_ON_FAILURE" == "yes" ]]; then
+    echo "### Reaping Instances On Failure: Enabled"
+    trap reap_instances_on_failure EXIT
+fi
