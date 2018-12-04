@@ -30,26 +30,26 @@ Ansible versions supported are: stable-2.3 to stable 2.7
 
 Install:
 
-  * [ ] Standalone
+  * [x] [Standalone](http://jenkins.ansible.eng.rdu2.redhat.com/job/Test_Tower_Install/1167/)
   * [x] [Standalone Bundle](http://jenkins.ansible.eng.rdu2.redhat.com/job/Test_Tower_Bundle_Install/1730/)
-  * [ ] Traditional Cluster with isolated nodes
-  * [ ] Traditional Cluster Bundle
+  * [x] [Traditional Cluster with isolated nodes](http://jenkins.ansible.eng.rdu2.redhat.com/view/Tower/job/Test_Tower_Install_Cluster/1518/)
+  * [x] [Traditional Cluster Bundle with isolated nodes](http://jenkins.ansible.eng.rdu2.redhat.com/view/Tower/job/qe-sandbox/job/Test_Tower_Install_Cluster_Plain/167/)
   * [x] [OpenShift Cluster](http://jenkins.ansible.eng.rdu2.redhat.com/view/Tower/job/Test_Tower_OpenShift_Deploy/445/)
 
 
 Upgrade:
 
-  * [ ] Standalone from latest minor
-  * [ ] Standalone from latest major
-  * [ ] Traditional Cluster with isolated nodes from latest minor
-  * [ ] Traditional Cluster with isolated nodes from latest major
+  * [ ] [Standalone from latest minor - 3.3.1](http://jenkins.ansible.eng.rdu2.redhat.com/job/Test_Tower_Upgrade/3434/) + #3435
+  * [x] [Standalone from latest major - 3.2.8](http://jenkins.ansible.eng.rdu2.redhat.com/job/Test_Tower_Upgrade/3437/) + #3438
+  * [ ] Traditional Cluster with isolated nodes from latest minor - 3.3.1
+  * [ ] Traditional Cluster with isolated nodes from latest major - 3.2.8
   * [x] [OpenShift Cluster from latest minor](http://jenkins.ansible.eng.rdu2.redhat.com/view/Tower/job/Test_Tower_OpenShift_Upgrade/22/)
 
 
 Regression verifications:
 
   * [ ] [UI regression](https://docs.google.com/document/d/1aJGD8c2lhCC_pNp7t7s4tVrf7p0SjpajJ7R7_n8mkHA/edit#heading=h.nd7oku9karga)
-  * [ ] API regression - Standalone
+  * [x] [API regression - Standalone](http://jenkins.ansible.eng.rdu2.redhat.com/job/qe-sandbox/job/Test_Tower_Integration_Plain/133/testReport/)
   * [ ] API regression - Traditional Cluster
   * [ ] API regression - OpenShift Cluster
 
