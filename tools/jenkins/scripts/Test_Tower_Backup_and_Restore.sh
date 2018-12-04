@@ -48,9 +48,7 @@ create_ec2_vpc_subnet_id: subnet-9cdddbb0
 ec2_images: `scripts/image_deploy_vars.py --cloud_provider ${CLOUD_PROVIDER} --platform ${PLATFORM} --ansible_version ${ANSIBLE_BRANCH} --groups tower`
 instance_name_prefix: ${INSTANCE_NAME_PREFIX}-ansible-${ANSIBLE_BRANCH}
 minimum_var_space: 0
-munin_password: ${AWX_MUNIN_PASSWORD}
 pg_password: ${AWX_PG_PASSWORD}
-redis_password: ${AWX_REDIS_PASSWORD}
 terminate_ec2_wait_upon_creation: false
 EOF
 
