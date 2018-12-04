@@ -145,7 +145,7 @@ def create_test_update():
     if change > 0:
         description = '*{0}* ({1}) has {2} more failures than {3}'.format(job_name, url, change, old_url)
     elif change == 0:
-        description = '*{0}* ({1}) has the same number of failures as {3}'.format(job_name, url, old_url)
+        description = '*{0}* ({1}) has the same number of failures as {2}'.format(job_name, url, old_url)
     else:
         change = -change
         description = '*{0}* ({1}) has {2} fewer failures than {3}'.format(job_name, url, change, old_url)
