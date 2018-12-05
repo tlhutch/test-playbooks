@@ -473,14 +473,18 @@ class TestTraditionalCluster(APITest):
             # Stop controller nodes
             with SafeStop(stoppers, starters):
                 # Wait until controller group capacity is set to zero
-                utils.poll_until(lambda: controller_group.get().capacity == 0, interval=5, timeout=120)
-                utils.poll_until(lambda: protected_group.get().capacity == 0, interval=5, timeout=120)
+                utils.poll_until(lambda: controller_group.get().capacity == 0,
+                interval=5, timeout=120)
+                # It has been determined that the protected_group capacity is
+                # not set to zero by any logic when the controller nodes are
+                # down, because there is no access to the nodes by which to get
+                # this information. See https://github.com/ansible/awx/issues/2874
 
                 # Check the long running job fails
                 long_job.wait_until_status(FAIL_STATUSES, interval=5, timeout=180, since_job_created=False)
 
                 # Should fail with explanation:
-                explanation = "Task was marked as running in Tower but its  controller management daemon was not present in the job queue, so it has been marked as failed. Task may still be running, but contactability is unknown."
+                explanation = "Task was marked as running in Tower but was not present in the job queue, so it has been marked as failed."
                 assert long_job.job_explanation == explanation
 
                 # Start a new job and check it remains pending
