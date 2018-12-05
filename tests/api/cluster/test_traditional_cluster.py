@@ -703,7 +703,7 @@ class TestTraditionalCluster(APITest):
             num_ordinary_instances = len(hosts_in_group('instance_group_ordinary_instances'))
             for partition in ('instance_group_partition_1', 'instance_group_partition_2'):
                 def decrease_in_rabbitmq_nodes():
-                    hosts = hosts_in_group(partition)
+                    hosts = hosts_in_group(partition, return_hostnames=True)
                     cmd = "ANSIBLE_BECOME=true ansible {} -i {} -m shell -a 'rabbitmqctl cluster_status'".format(hosts[0], inventory_file)
                     proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
                     stdout, stderr = proc.communicate()
@@ -727,7 +727,7 @@ class TestTraditionalCluster(APITest):
             assert rc == 0, "Received non-zero response code from '{}'".format(cmd)
 
             # Confirm no partitions detected
-            for host in hosts_in_group('instance_group_partition_1'):
+            for host in hosts_in_group('instance_group_partition_1', return_hostnames=True):
                 cmd = "ANSIBLE_BECOME=true ansible {} -i {} -m shell -a 'curl -s http://tower:tower@localhost:15672/api/nodes?columns=partitions'".format(host, inventory_file)
                 proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
                 stdout, stderr = proc.communicate()
