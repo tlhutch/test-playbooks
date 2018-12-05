@@ -64,9 +64,6 @@ class TestTowerServices(APITest):
         jt.ds.inventory.add_host()
         self.ensure_jt_runs_on_primary_instance(jt, v2)
         job = jt.launch().wait_until_status('running')
-        # FIXME https://github.com/ansible/awx/issues/2835
-        # Need to wait until after pre-run hook has completed because of above bug.
-        utils.poll_until(lambda: job.related.job_events.get().count > 0, timeout=90)
 
         try:
             contacted = ansible_runner.command('ansible-tower-service stop')
@@ -106,9 +103,6 @@ class TestTowerServices(APITest):
         # with the other instances' RabbitMQ instances.
         self.ensure_jt_runs_on_primary_instance(jt, v2)
         job = jt.launch().wait_until_status('running')
-        # FIXME https://github.com/ansible/awx/issues/2835
-        # Need to wait until after pre-run hook has completed because of above bug.
-        utils.poll_until(lambda: job.related.job_events.get().count > 0, timeout=90)
 
         try:
             contacted = ansible_runner.service(name='rabbitmq-server', state='stopped')
@@ -158,9 +152,6 @@ class TestTowerServices(APITest):
                                        extra_vars=dict(sleep_interval=120))
         jt.ds.inventory.add_host()
         job = jt.launch().wait_until_status('running')
-        # FIXME https://github.com/ansible/awx/issues/2835
-        # Need to wait until after pre-run hook has completed because of above bug.
-        utils.poll_until(lambda: job.related.job_events.get().count > 0, timeout=90)
 
         # We need to find the right host to stop the postgres server on
         tower_hosts = ansible_adhoc()
