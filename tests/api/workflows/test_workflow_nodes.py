@@ -257,10 +257,8 @@ class Test_Workflow_Nodes(APITest):
             factories.v2_workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt)
         assert e.value[1]['resources_needed_to_start'] == ['Job Template inventory is missing or undefined.']
 
-    def test_workflow_nodes_must_abide_to_jt_survey_requirements(self, factories):
-        wfjt = factories.v2_workflow_job_template()
-        jt = factories.v2_job_template()
-        spec = [dict(required=False, question_name="Text-default too short.",
+    def spec_example(self):
+        return [dict(required=False, question_name="Text-default too short.",
                      variable='test_var_one', type='text', min=7, default=''),
                 dict(required=False, question_name="Text-default too long.",
                      variable='test_var_two', type='text', max=1, default='four'),
@@ -284,7 +282,11 @@ class Test_Workflow_Nodes(APITest):
                      variable='test_var_eleven', type='password', min=1, max=5, default='four'),
                 dict(required=False, question_name="Password-default too long.",
                      variable='test_var_twelve', type='password', min=4, max=4, default='asdfasdf')]
-        jt.add_survey(spec=spec)
+
+    def test_workflow_nodes_must_abide_to_jt_survey_requirements(self, factories):
+        wfjt = factories.v2_workflow_job_template()
+        jt = factories.v2_job_template()
+        jt.add_survey(spec=self.spec_example())
 
         with pytest.raises(BadRequest) as e:
             factories.v2_workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt,
@@ -297,3 +299,24 @@ class Test_Workflow_Nodes(APITest):
             "'test_var_one' value  is too small (length is 0 must be at least 7).",
             "'test_var_two' value four is too large (must be no more than 1).",
             "'test_var_six' value asdfasdf is too large (must be no more than 4)."])
+
+    def test_node_encrypted_extra_data(self, factories):
+        wfjt = factories.v2_workflow_job_template()
+        jt = factories.v2_job_template()
+        jt.add_survey(spec=self.spec_example())
+        factories.v2_workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt,
+            extra_data=dict(
+                test_var_seven='$encrypted$', test_var_eight='f',
+                test_var_nine='foo', test_var_ten='zar',
+                test_var_eleven='woo', test_var_twelve='zzzz'
+            )
+        )
+        workflow_job = wfjt.launch()
+        node = workflow_job.get_related('workflow_nodes').results.pop()
+        node.wait_for_job()
+        job = node.get_related('job')
+        job_vars = json.loads(job.extra_vars)
+        assert 'test_var_seven' not in job_vars
+        for var in ['test_var_eight', 'test_var_eight',
+                'test_var_eight', 'test_var_eight', 'test_var_eight']:
+            assert job_vars[var] == '$encrypted$'
