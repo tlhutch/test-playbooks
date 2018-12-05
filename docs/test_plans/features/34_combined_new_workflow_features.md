@@ -19,25 +19,24 @@
 Create a test workflow that exercises these new features all together to evidence viablity of shipping all changes together.
 
 This workflow will have the following attributes:
-    - [ ] Workflow that has WFs and SJT as nodes
-    - [ ] Workflow has WF level inventory set (or prompt on launch)
-    - [ ] Create links that make as many nodes as possible
-    - [ ] convergence nodes
-    - [ ] Each convergence node should Always, Success, Failure relations with parents
+    - [x] Workflow that has WFs and SJT as nodes
+    - [x] Workflow has WF level inventory set (or prompt on launch)
+    - [x] Create a dense portion of the graph where all possible connections are made (this flexes the logic that decides what the next node to run is)
+    - [x] ^ will imply the creation of convergence nodes
+    - [x] Use a combination of Always, Success, Failure relations with parents
 
 The test will make the following assertions:
-    - [ ] Each node should link to the spawned WFJ because each is either a SJT or WFJT
-    - [ ] Each SJT should then have as many nodes as slices
-    - [ ] Each node should then link to a regular job
-    - [ ] WFJs from the WFJT nodes should have as many nodes as the test writer put in the WFJT
-    - [ ] Each node should link to a job
-    - [ ] Inventory SHOULD descend to:
-        - [ ] Jobs spawned from WFJ from SJT that have prompt on launch
-        - [ ] WFJTs that have prompt on launch
-    - [ ] Inventory SHOULD NOT descend to ANY level of:
-        - [ ] Anything that does not have Prompt on Launch
-        - [ ] Nodes should not start until all “joblets” of parent nodes have completed
-    - [ ] Create scenarios where some portions of graph should not run and assert that correct nodes get marked “Do Not Run”
-    - [ ] This implies that later nodes should have some parents that are “do not run” as well as viable triggering parents.
-    - [ ] Assert that all jobs finish or get marked Do Not Run
-    - [ ] Assert that WF job completes
+    - [x] Each node should link to the spawned WFJ because each is either a SJT or WFJT
+    - [x] Each SJT should then have as many nodes as slices
+    - [x] Each node should then link to a regular job
+    - [x] WFJs from the WFJT nodes should have as many nodes as the test writer put in the WFJT
+    - [x] Each node should link to a job
+    - [x] Inventory SHOULD descend to:
+        - [x] Jobs spawned from WFJ from SJT that have prompt on launch
+        - [x] WFJTs that have prompt on launch
+    - [x] Inventory SHOULD NOT descend to ANY level of:
+        - [x] Anything that does not have Prompt on Launch
+    - [x] Create scenarios where some portions of graph should not run and assert that correct nodes get marked “Do Not Run”
+    - [x] This implies that later nodes should have some parents that are “do not run” as well as viable triggering parents.
+    - [x] Assert that all jobs finish or get marked Do Not Run
+    - [x] Assert that WF job completes
