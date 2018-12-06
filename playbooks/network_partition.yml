@@ -73,11 +73,17 @@
 
 - hosts: instance_group_partition_1:instance_group_partition_2
   tasks:
-    - name: Install tcpkill
+    - block:
+      - name: Install EPEL
+        yum:
+          name: https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+          state: latest
+
+      - name: Install tcpkill
+        yum:
+          name: dsniff
+          enablerepo: rhui-REGION-rhel-server-optional
       become: true
-      yum:
-        name: dsniff
-        enablerepo: rhui-REGION-rhel-server-optional
       when: network_partition_state|default('enabled') == 'enabled'
 
 - hosts: instance_group_partition_1
