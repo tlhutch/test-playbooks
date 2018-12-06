@@ -39,10 +39,10 @@ Install:
 
 Upgrade:
 
-  * [ ] [Standalone from latest minor - 3.3.1](http://jenkins.ansible.eng.rdu2.redhat.com/job/Test_Tower_Upgrade/3434/) + #3435
+  * [x] [Standalone from latest minor - 3.3.1](http://jenkins.ansible.eng.rdu2.redhat.com/job/Test_Tower_Upgrade/3434/) + #3435 (Ubuntu 14.04 passed when ran manually)
   * [x] [Standalone from latest major - 3.2.8](http://jenkins.ansible.eng.rdu2.redhat.com/job/Test_Tower_Upgrade/3437/) + #3438
-  * [ ] Traditional Cluster with isolated nodes from latest minor - 3.3.1
-  * [ ] Traditional Cluster with isolated nodes from latest major - 3.2.8
+  * [x] [Traditional Cluster with isolated nodes from latest minor - 3.3.1](http://jenkins.ansible.eng.rdu2.redhat.com/job/qe-sandbox/job/Test_Tower_Upgrade_Plain/545/)
+  * [x] [Traditional Cluster with isolated nodes from latest major - 3.2.8](http://jenkins.ansible.eng.rdu2.redhat.com/job/qe-sandbox/job/Test_Tower_Upgrade_Plain/546/)
   * [x] [OpenShift Cluster from latest minor](http://jenkins.ansible.eng.rdu2.redhat.com/view/Tower/job/Test_Tower_OpenShift_Upgrade/22/)
 
 
@@ -50,8 +50,8 @@ Regression verifications:
 
   * [ ] [UI regression](https://docs.google.com/document/d/1aJGD8c2lhCC_pNp7t7s4tVrf7p0SjpajJ7R7_n8mkHA/edit#heading=h.nd7oku9karga)
   * [x] [API regression - Standalone](http://jenkins.ansible.eng.rdu2.redhat.com/job/qe-sandbox/job/Test_Tower_Integration_Plain/133/testReport/)
-  * [ ] API regression - Traditional Cluster
-  * [ ] API regression - OpenShift Cluster
+  * [x] [API regression - Traditional Cluster](http://jenkins.ansible.eng.rdu2.redhat.com/view/Tower/job/qe-sandbox/job/Test_Tower_Integration_Cluster_Plain/31/) 8 failures - fixed/flaky
+  * [x] [API regression - OpenShift Cluster](http://jenkins.ansible.eng.rdu2.redhat.com/job/Test_Tower_OpenShift_Integration/357/) - 11 failures tested manually / flaky
 
 
 Artifacts:
