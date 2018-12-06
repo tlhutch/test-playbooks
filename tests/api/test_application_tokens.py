@@ -59,7 +59,7 @@ class TestApplications(APITest):
         del payload[missing]
         with pytest.raises(exc.BadRequest) as e:
             v2.applications.post(payload)
-        assert e.value.message in ({missing: ['This field is required.']}, {missing: ['This field cannot be blank.']})
+        assert e.value.msg in ({missing: ['This field is required.']}, {missing: ['This field cannot be blank.']})
 
     @pytest.mark.parametrize('client_type', ('confidential', 'public'))
     @pytest.mark.parametrize('agt', ('authorization-code', 'implicit', 'password'))
@@ -105,7 +105,7 @@ class TestApplications(APITest):
                 authorization_grant_type='password',
                 client_type='public'
             )
-        assert e.value.message == {'__all__': ['Application with this Name and Organization already exists.']}
+        assert e.value.msg == {'__all__': ['Application with this Name and Organization already exists.']}
 
     def test_patch_modified_application_integrity(self, v2, factories):
         app = factories.application(organization=True, authorization_grant_type='password',

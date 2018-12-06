@@ -236,7 +236,7 @@ class TestTraditionalCluster(APITest):
         for full_instance in full_instances:
             with pytest.raises(exc.BadRequest) as err:
                 protected_ig.add_instance(full_instance)
-            assert 'Isolated instance group membership may not be managed via the API.' == err.value.message['error']
+            assert 'Isolated instance group membership may not be managed via the API.' == err.value.msg['error']
 
     def test_can_add_or_remove_instance_to_control_group(self, v2, factories, hosts_in_group, hostvars_for_host,
                                                          user_password):
@@ -292,7 +292,7 @@ class TestTraditionalCluster(APITest):
             for instance in iso_instances:
                 with pytest.raises(exc.BadRequest) as err:
                     ig.add_instance(instance)
-                assert 'Isolated instances may not be added or removed from instances groups via the API.' == err.value.message['error']
+                assert 'Isolated instances may not be added or removed from instances groups via the API.' == err.value.msg['error']
 
     def test_isolated_instance_cannot_be_removed_from_isolated_group(self, v2):
         iso_instance_groups = [ig for ig in v2.instance_groups.get().results if ig.controller]

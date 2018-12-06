@@ -141,7 +141,7 @@ class TestBasicLicense(LicenseTest):
                                        credential=credential)
         with pytest.raises(exc.PaymentRequired) as e:
             jt.job_slice_count = 2
-        assert e.value.message == {u'job_slice_count': [u'Job slicing is a workflows-based feature and your license does not allow use of workflows.']}
+        assert e.value.msg == {u'job_slice_count': [u'Job slicing is a workflows-based feature and your license does not allow use of workflows.']}
 
 
 @pytest.mark.api

@@ -234,47 +234,47 @@ class TestCredentialTypes(APITest):
         for cred_type in managed_by_tower:
             with pytest.raises(exc.Forbidden) as e:
                 cred_type.patch(name='Uh-oh!')
-            assert e.value.message['detail'] == managed_credential_type_modification_disallowed
+            assert e.value.msg['detail'] == managed_credential_type_modification_disallowed
 
             with pytest.raises(exc.Forbidden) as e:
                 cred_type.put()
-            assert e.value.message['detail'] == managed_credential_type_modification_disallowed
+            assert e.value.msg['detail'] == managed_credential_type_modification_disallowed
 
             with pytest.raises(exc.Forbidden) as e:
                 cred_type.delete()
-            assert e.value.message['detail'] == 'Deletion not allowed for managed credential types'
+            assert e.value.msg['detail'] == 'Deletion not allowed for managed credential types'
 
     def test_sourced_credential_type_cannot_be_deleted(self, factories):
         cred = factories.v2_credential(credential_type=True)
 
         with pytest.raises(exc.Forbidden) as e:
             cred.ds.credential_type.delete()
-        assert e.value.message['detail'] == 'Credential types that are in use cannot be deleted'
+        assert e.value.msg['detail'] == 'Credential types that are in use cannot be deleted'
 
     def test_sourced_credential_type_inputs_are_read_only(self, factories):
         cred = factories.v2_credential(credential_type=True)
 
         with pytest.raises(exc.Forbidden) as e:
             cred.ds.credential_type.inputs = dict(test=True)
-        assert e.value.message['detail'] == (
+        assert e.value.msg['detail'] == (
             'Modifications to inputs are not allowed for credential types that are in use')
 
     def test_confirm_non_cloud_or_network_credential_kinds_disallowed(self, factories):
         for kind in ('insights', 'scm', 'ssh', 'vault'):
             with pytest.raises(exc.BadRequest) as e:
                 factories.credential_type(kind=kind)
-            assert e.value.message == {'kind': ["Must be 'cloud' or 'net', not {}".format(kind)]}
+            assert e.value.msg == {'kind': ["Must be 'cloud' or 'net', not {}".format(kind)]}
 
         with pytest.raises(exc.BadRequest) as e:
             factories.credential_type(kind='not_a_kind')
-        assert e.value.message == {'kind': ['"not_a_kind" is not a valid choice.']}
+        assert e.value.msg == {'kind': ['"not_a_kind" is not a valid choice.']}
 
     @pytest.mark.parametrize('fields, expected_error', [[[dict(label='Label')], ["'id' is a required property"]],
                                                         [[dict(id='field_id')], ["'label' is a required property"]]])
     def test_confirm_input_properties_are_required_property(self, factories, fields, expected_error):
         with pytest.raises(exc.BadRequest) as e:
             factories.credential_type(inputs=dict(fields=fields))
-        assert e.value.message['inputs'] == expected_error
+        assert e.value.msg['inputs'] == expected_error
 
     def test_confirm_input_with_choices_enforced(self, factories):
         inputs = dict(fields=[dict(id='field_one', label='FieldOne', choices=['one', 'two', 'three'])])
@@ -285,7 +285,7 @@ class TestCredentialTypes(APITest):
         with pytest.raises(exc.BadRequest) as e:
             factories.v2_credential(credential_type=cred_type, inputs=dict(field_one='NotAChoice'))
 
-        assert e.value.message == {'inputs': {'field_one': ["'NotAChoice' is not one of ['one', 'two', 'three']"]}}
+        assert e.value.msg == {'inputs': {'field_one': ["'NotAChoice' is not one of ['one', 'two', 'three']"]}}
 
     @pytest.mark.parametrize('field, value', [('multiline', True), ('multiline', False),
                                               ('format', 'ssh_private_key'),
@@ -298,7 +298,7 @@ class TestCredentialTypes(APITest):
         with pytest.raises(exc.BadRequest) as e:
             factories.credential_type(inputs=dict(fields=[dict(id='field_id', label='Label',
                                                                type='boolean', **invalid)]))
-        assert e.value.message['inputs'] == desired_message
+        assert e.value.msg['inputs'] == desired_message
 
     def test_confirm_injector_sourced_input_must_exist(self, factories):
         env_var_one = dict(id='env_var_one', label='EnvVarOne')
@@ -310,7 +310,7 @@ class TestCredentialTypes(APITest):
 
         with pytest.raises(exc.BadRequest) as e:
             factories.credential_type(inputs=inputs, injectors=injectors)
-        assert e.value.message['injectors'] == ["extra_var_one uses an undefined field ('extra_var_one' is undefined)"]
+        assert e.value.msg['injectors'] == ["extra_var_one uses an undefined field ('extra_var_one' is undefined)"]
 
     @pytest.mark.parametrize('field, malformed', [('inputs', dict(inputs=[1, 2, 3, 4])),
                                                   ('inputs', dict(inputs='malformed')),
@@ -325,7 +325,7 @@ class TestCredentialTypes(APITest):
     def test_confirm_bad_request_on_malformed_fields(self, factories, field, malformed):
         with pytest.raises(exc.BadRequest) as e:
             factories.credential_type(**malformed)
-        message = e.value.message[field][0]
+        message = e.value.msg[field][0]
         assert 'expected dict' in message or 'Additional properties are not allowed' in message
 
     @pytest.mark.parametrize('malformed, expected',
@@ -353,7 +353,7 @@ class TestCredentialTypes(APITest):
     def test_confirm_bad_request_on_malformed_file_injectors(self, factories, malformed, expected):
         with pytest.raises(exc.BadRequest) as e:
             factories.credential_type(injectors=malformed)
-        assert expected in e.value.message['injectors'][0]
+        assert expected in e.value.msg['injectors'][0]
 
     @pytest.mark.parametrize('injectors, expected',
                              [(dict(file={'template.exists': '123'},
@@ -373,7 +373,7 @@ class TestCredentialTypes(APITest):
     def test_confirm_injector_sourced_tower_files_must_exist(self, factories, injectors, expected):
         with pytest.raises(exc.BadRequest) as e:
             factories.credential_type(injectors=injectors)
-        assert e.value.message['injectors'][0] == expected
+        assert e.value.msg['injectors'][0] == expected
 
     invalid_vars = ('!In??Valid', '0In**<<Valid', '--invalid--', '.in.valid.', fauxfactory.gen_utf8())
 
@@ -386,7 +386,7 @@ class TestCredentialTypes(APITest):
             ct_payload.inputs.fields = invalid_field
             with pytest.raises(exc.BadRequest) as e:
                 v2.credential_types.post(ct_payload)
-            assert e.value.message == {'inputs': ['%s is an invalid variable name'
+            assert e.value.msg == {'inputs': ['%s is an invalid variable name'
                                                   % invalid_field[0]['id'].decode('utf8')]}
 
     @pytest.mark.parametrize('var_type', ('extra_vars', 'env'))
@@ -398,7 +398,7 @@ class TestCredentialTypes(APITest):
             ct_payload.injectors[var_type][invalid_var] = '{{ input_one }}'
             with pytest.raises(exc.BadRequest) as e:
                 v2.credential_types.post(ct_payload)
-            assert e.value.message == {'injectors': ["Schema validation error in relative path ['%s'] "
+            assert e.value.msg == {'injectors': ["Schema validation error in relative path ['%s'] "
                                                      "('%s' does not match any of the regexes: "
                                                      "'^[a-zA-Z_]+[a-zA-Z0-9_]*$')"
                                                      % (var_type, invalid_var.encode('ascii', 'backslashreplace'))]}

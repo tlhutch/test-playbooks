@@ -96,12 +96,12 @@ class TestSmartInventory(APITest):
 
         with pytest.raises(exc.BadRequest) as e:
             factories.v2_inventory(host_filter='name=localhost', kind='smart', insights_credential=credential.id)
-        assert e.value.message['insights_credential'] == expected_error
+        assert e.value.msg['insights_credential'] == expected_error
 
         inventory = factories.v2_inventory(host_filter='name=localhost', kind='smart')
         with pytest.raises(exc.BadRequest) as e:
             inventory.insights_credential = credential.id
-        assert e.value.message['insights_credential'] == expected_error
+        assert e.value.msg['insights_credential'] == expected_error
 
     def test_unable_to_update_regular_inventory_into_smart_inventory(self, factories):
         inventory = factories.v2_inventory()

@@ -16,7 +16,7 @@ class TestCustomCredentials(APITest):
 
         with pytest.raises(exc.BadRequest) as e:
             factories.v2_credential(credential_type=credential_type, inputs={})
-        assert e.value.message == {'inputs': {'field': [u"required for {0.name}".format(credential_type)]}}
+        assert e.value.msg == {'inputs': {'field': [u"required for {0.name}".format(credential_type)]}}
 
     def test_ssh_private_key_input_field_validated(self, factories):
         credential_type = factories.credential_type(inputs=dict(fields=[dict(id='field_name',
@@ -25,7 +25,7 @@ class TestCustomCredentials(APITest):
 
         with pytest.raises(exc.BadRequest) as e:
             factories.v2_credential(credential_type=credential_type, inputs=dict(field_name='NotAnRSAKey'))
-        assert e.value.message == {'inputs': {'field_name': ['Invalid certificate or key: NotAnRSAKey...']}}
+        assert e.value.msg == {'inputs': {'field_name': ['Invalid certificate or key: NotAnRSAKey...']}}
 
     def test_extraneous_input_field(self, factories):
         inputs = dict(fields=[dict(id='field', label='Field')])
@@ -35,7 +35,7 @@ class TestCustomCredentials(APITest):
             factories.v2_credential(credential_type=credential_type,
                                     inputs=dict(not_a_field=123))
         desired = {'inputs': ["Additional properties are not allowed (u'not_a_field' was unexpected)"]}
-        assert e.value.message == desired
+        assert e.value.msg == desired
 
     def test_non_boolean_input_for_boolean_field(self, factories):
         inputs = dict(fields=[dict(id='field', label='Field', type='boolean')])
@@ -44,12 +44,12 @@ class TestCustomCredentials(APITest):
         with pytest.raises(exc.BadRequest) as e:
             factories.v2_credential(credential_type=credential_type,
                                     inputs=dict(field=123))
-        assert e.value.message == {'inputs': {'field': ["123 is not of type u'boolean'"]}}
+        assert e.value.msg == {'inputs': {'field': ["123 is not of type u'boolean'"]}}
 
         with pytest.raises(exc.BadRequest) as e:
             factories.v2_credential(credential_type=credential_type,
                                     inputs=dict(field='string'))
-        assert e.value.message == {'inputs': {'field': ["u'string' is not of type u'boolean'"]}}
+        assert e.value.msg == {'inputs': {'field': ["u'string' is not of type u'boolean'"]}}
 
     def test_extra_var_injector_variables_in_job_args_and_event_data(self, factories):
         inputs = dict(fields=[dict(id='field_one', label='FieldOne', secret=True),
@@ -210,6 +210,6 @@ class TestCustomCredentials(APITest):
         injectors = dict(env={blacklisted_key: "{{ field_one }}"})
         with pytest.raises(exc.BadRequest) as e:
             factories.credential_type(inputs=inputs, injectors=injectors)
-        assert e.value.message == {'injectors': [
+        assert e.value.msg == {'injectors': [
             'Environment variable {} is blacklisted from use in credentials.'.format(blacklisted_key)
         ]}

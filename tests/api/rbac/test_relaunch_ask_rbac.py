@@ -35,7 +35,7 @@ class TestRelaunchAskRBAC(APITest):
             with self.current_user(relaunch_user):
                 with pytest.raises(towerkit.exceptions.Forbidden) as exc:
                     job.relaunch()
-            assert 'Job was launched with prompts provided by another user.' == exc.value.message['detail'], \
+            assert 'Job was launched with prompts provided by another user.' == exc.value.msg['detail'], \
                 "Failed while checking relaunch Permissions"
         return fn
 
@@ -124,7 +124,7 @@ class TestRelaunchAskRBAC(APITest):
 
             with pytest.raises(towerkit.exceptions.Forbidden) as exc:
                 job.relaunch()
-        assert 'Job was launched with unknown prompted fields.' in exc.value.message['detail'], \
+        assert 'Job was launched with unknown prompted fields.' in exc.value.msg['detail'], \
             "Failed while checking relaunch Permissions"
 
     def test_relaunch_with_no_ssh_password_provided_denied(self, factories, ssh_credential_ask):
@@ -137,7 +137,7 @@ class TestRelaunchAskRBAC(APITest):
         with pytest.raises(exc.BadRequest) as e:
             job.relaunch()
 
-        assert 'Missing passwords needed to start: ssh_password' in e.value.message['credential_passwords']
+        assert 'Missing passwords needed to start: ssh_password' in e.value.msg['credential_passwords']
         """one-off assertion to provide coverage for https://github.com/ansible/tower/issues/964
         A new job would be created even when access is denied.
         """
