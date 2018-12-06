@@ -223,7 +223,7 @@ ssh_credential_params = ['unencrypted_rsa', 'unencrypted_dsa', 'unencrypted_ecds
     ids=ssh_credential_params,
 )
 def ssh_credential_with_ssh_key_data(request, params=ssh_credential_params):
-    return (request.param, request.getfixturevalue(request, request.param + '_ssh_credential'))
+    return (request.param, request.getfixturevalue(request.param + '_ssh_credential'))
 
 
 # Convenience fixture that iterates through unencrypted ssh credentials
@@ -236,7 +236,7 @@ unencrypted_ssh_credential_params = ['unencrypted_rsa', 'unencrypted_dsa', 'unen
     ids=unencrypted_ssh_credential_params,
 )
 def unencrypted_ssh_credential_with_ssh_key_data(request):
-    return (request.param, request.getfixturevalue(request, request.param + '_ssh_credential'))
+    return (request.param, request.getfixturevalue(request.param + '_ssh_credential'))
 
 
 # Convenience fixture that iterates through encrypted ssh credentials
@@ -293,7 +293,7 @@ def network_credential_with_ssh_key_data(admin_user, factories):
                                           'network_credential_with_authorize',
                                           'network_credential_with_ssh_key_data'])
 def network_credential(request):
-    return request.getfixturevalue(request, request.param)
+    return request.getfixturevalue(request.param)
 
 
 # SCM credentials
@@ -374,7 +374,7 @@ def openstack_v3_credential(admin_user, factories):
 # Convenience fixture that iterates through OpenStack credentials
 @pytest.fixture(scope="function", params=['openstack_v2', 'openstack_v3'])
 def openstack_credential(request):
-    return request.getfixturevalue(request, request.param + '_credential')
+    return request.getfixturevalue(request.param + '_credential')
 
 
 @pytest.fixture(scope="function")
@@ -397,7 +397,7 @@ def satellite6_credential(admin_user, factories):
 @pytest.fixture(scope="function", params=['aws', 'azure', 'azure_ad', 'gce', 'vmware', 'openstack_v2', 'openstack_v3',
                                           'cloudforms', 'satellite6'])
 def cloud_credential(request):
-    return request.getfixturevalue(request, request.param + '_credential')
+    return request.getfixturevalue(request.param + '_credential')
 
 
 @pytest.fixture(scope='function')

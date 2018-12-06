@@ -112,7 +112,7 @@ def another_job_template(factories, organization, project, ssh_credential, host_
 @pytest.fixture(scope="function", params=['job_template_with_json_vars', 'job_template_with_yaml_vars'])
 def job_template_with_extra_vars(request):
     """job_template with a set of extra_vars"""
-    return request.getfixturevalue(request, request.param)
+    return request.getfixturevalue(request.param)
 
 
 @pytest.fixture(scope="function")

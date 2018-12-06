@@ -7,7 +7,7 @@ def notification_template(request):
     """All notification templates"""
     if request.param == 'twilio':
         pytest.xfail('Unable to send twilio notifications will account inactive')
-    return request.getfixturevalue(request, request.param + "_notification_template")
+    return request.getfixturevalue(request.param + "_notification_template")
 
 
 @pytest.fixture(scope="function")

@@ -3,7 +3,7 @@ import pytest
 
 @pytest.fixture(scope="function", params=['cleanup_jobs', 'cleanup_activitystream'])
 def system_job_template(request):
-    return request.getfixturevalue(request, request.param + '_template')
+    return request.getfixturevalue(request.param + '_template')
 
 
 @pytest.fixture(scope="function")

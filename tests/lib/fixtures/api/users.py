@@ -88,7 +88,7 @@ def all_users(superuser, org_admin, org_user, anonymous_user, system_auditor):
 @pytest.fixture(scope="function", params=('superuser', 'org_admin', 'org_user', 'anonymous_user', 'system_auditor'))
 def all_user(request):
     """Return the fixture for the specified request.param"""
-    return request.getfixturevalue(request, request.param)
+    return request.getfixturevalue(request.param)
 
 
 @pytest.fixture
@@ -105,7 +105,7 @@ def non_superusers(org_admin, org_user, anonymous_user, system_auditor):
 @pytest.fixture(scope="function", params=('org_admin', 'org_user', 'anonymous_user', 'system_auditor'))
 def non_superuser(request):
     """Return the fixture for the specified request.param"""
-    return request.getfixturevalue(request, request.param)
+    return request.getfixturevalue(request.param)
 
 
 @pytest.fixture(scope="function")
@@ -129,7 +129,7 @@ def privileged_users(superuser, org_admin):
 @pytest.fixture(scope="function", params=('superuser', 'org_admin'))
 def privileged_user(request):
     """Return the fixture for the specified request.param"""
-    return request.getfixturevalue(request, request.param)
+    return request.getfixturevalue(request.param)
 
 
 @pytest.fixture(scope="function")
@@ -141,7 +141,7 @@ def unprivileged_users(org_user, anonymous_user):
 @pytest.fixture(scope="function", params=('org_user', 'anonymous_user'))
 def unprivileged_user(request):
     """Return the fixture for the specified request.param"""
-    return request.getfixturevalue(request, request.param)
+    return request.getfixturevalue(request.param)
 
 
 @pytest.fixture(scope="function")

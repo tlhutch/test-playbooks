@@ -20,7 +20,7 @@ def unified_job_with_status_completed(request):
 
     Returns the job run.
     """
-    return request.getfixturevalue(request, request.param)
+    return request.getfixturevalue(request.param)
 
 
 @pytest.fixture(scope="function")
