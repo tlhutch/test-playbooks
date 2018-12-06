@@ -580,7 +580,7 @@ class Test_Job(APITest):
     @pytest.mark.parametrize('resource', ['project', 'custom_inventory_source'])
     def test_cascade_delete_update_unified_jobs(self, request, resource):
         """Verify that project and inventory updates get cascade deleted with their UJT deletion."""
-        resource = request.getfixturevalue(request, resource)
+        resource = request.getfixturevalue(resource)
         update = resource.update().wait_until_completed()
 
         # delete unified job template

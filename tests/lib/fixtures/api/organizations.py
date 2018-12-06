@@ -20,7 +20,7 @@ def default_organization(api_organizations_pg):
 @pytest.fixture(scope="function")
 def organization(request, api_config_pg, factories):
     if 'multiple_organizations' not in api_config_pg.get().features:
-        return request.getfixturevalue(request, 'default_organization')
+        return request.getfixturevalue('default_organization')
     else:
         org = factories.organization(name="Random organization %s" % fauxfactory.gen_utf8(),
                                      description="Random organization - %s" % fauxfactory.gen_utf8())

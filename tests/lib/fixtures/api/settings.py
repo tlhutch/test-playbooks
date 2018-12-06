@@ -33,7 +33,7 @@ def setting_pg(request):
     FIXME: we do not include "github" here because tests will
     choke on pytest-github.
     """
-    return request.getfixturevalue(request, "api_settings_" + request.param + "_pg")
+    return request.getfixturevalue("api_settings_" + request.param + "_pg")
 
 
 @pytest.fixture
