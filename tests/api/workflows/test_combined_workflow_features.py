@@ -4,7 +4,7 @@ import pytest
 from towerkit.exceptions import NoContent
 
 from tests.api import APITest
-from tests.api.workflows.utils import get_job_node
+from tests.api.workflows.utils import get_job_node, get_inventory_sync_unified_jt
 from tests.lib.helpers.workflow_utils import (WorkflowTree, WorkflowTreeMapper)
 
 
@@ -75,7 +75,8 @@ class TestCombinedWorkflowFeatures(APITest):
             inventory=self.inner_inventory
         )
 
-    def validate_sjt_inside_wf_inside_wf(self, inner_wf_job):
+    def validate_sjt_inside_wf_inside_wf(self, inner_wf_job, additional_assertions=[]):
+        """Pass additional assertions as a list of callables that should raise sensible error messages."""
         sjt_workflow_job_node = inner_wf_job.related.workflow_nodes.get().results.pop()
         wf_spawned_from_sjt = sjt_workflow_job_node.related.job.get()
         sliced_nodes = wf_spawned_from_sjt.related.workflow_nodes.get()
@@ -84,6 +85,90 @@ class TestCombinedWorkflowFeatures(APITest):
         for node in sliced_nodes.results:
             assert node.summary_fields.job.status == 'successful', 'Node in wf spawned from sliced jt failed!'
             assert node.related.job.get().is_successful, 'Job in wf spawned from sliced jt did not succeed!'
+            sjt_job_vars = json.loads(node.related.job.get().extra_vars)
+            assert sjt_job_vars.get('outer_var') == 'outer_var'
+            for assertion in additional_assertions:
+                assertion(sjt_job_vars)
+
+    def test_set_stats_propagate_correctly_through_workflow(self, factories, setup_resources):
+        wfjt = factories.workflow_job_template(
+            extra_vars={'outer_var': 'outer_var'},
+            inventory=self.outer_inventory
+        )
+
+        set_stats_vars = {
+            'set_stats_data': {
+                    'acow': 'jumped over the moon',
+                    'apig': {
+                        'flew': 2
+                        }
+                    }
+            }
+        set_stats_jt = factories.job_template(playbook='test_set_stats.yml', extra_vars=set_stats_vars)
+        tartarabuelo = factories.workflow_job_template_node(
+            workflow_job_template=wfjt,
+            unified_job_template=set_stats_jt
+        )
+        # Make sure set stats flow through project update
+        abuelo = tartarabuelo.add_success_node(
+            unified_job_template=get_inventory_sync_unified_jt(factories)
+        )
+        # Make sure set stats flow through project update.
+        parent = abuelo.add_success_node(
+            unified_job_template=factories.v2_project()
+        )
+        run_and_succeed = parent.add_always_node(unified_job_template=self.jt_regular)
+        run_and_fail = run_and_succeed.add_success_node(unified_job_template=self.jt_failure)
+        convergenece_node = parent.add_always_node(unified_job_template=self.jt_regular)
+        with pytest.raises(NoContent):
+            run_and_fail.related.always_nodes.post(dict(id=convergenece_node.id))
+        wf_use_outer_inv = convergenece_node.add_success_node(
+            unified_job_template=self.wfjt_inner_ask_on_launch
+        )
+        jt_use_outer_inv = convergenece_node.add_success_node(
+            unified_job_template=self.jt_ask_on_launch
+        )
+
+        # put a SJT node that asks for inventory inside WFJ that asks for
+        # inventory inside the outer WF
+        factories.workflow_job_template_node(
+            workflow_job_template=self.wfjt_inner_ask_on_launch,
+            unified_job_template=self.sliced_jt_ask_inventory_on_launch,
+        )
+
+        wfj = wfjt.launch().wait_until_completed()
+        # Unhandled failed nodes will cause WF to be marked failed
+        assert wfj.status == 'successful'
+        tree = WorkflowTree(wfjt)
+        job_tree = WorkflowTree(wfj)
+        mapping = WorkflowTreeMapper(tree, job_tree).map()
+
+        # Assert all nodes we expected jobs to run and fail failed
+        for node in [run_and_fail, ]:
+            assert get_job_node(wfj, node.id, mapping).summary_fields.job.status == 'failed'
+
+        # Assert all nodes we expected jobs to run and succeed did so
+        for node in [run_and_succeed, parent, convergenece_node]:
+            assert get_job_node(wfj, node.id, mapping).summary_fields.job.status == 'successful'
+
+        for node in [wf_use_outer_inv, jt_use_outer_inv]:
+            job = get_job_node(wfj, node.id, mapping).related.job.get()
+            assert job.status == 'successful'
+            assert job.inventory == self.outer_inventory.id
+            assert json.loads(job.extra_vars).get('outer_var', 'MISSING VAR!') == 'outer_var', 'Inner unified job template did not inherit extra var!'
+
+        # Assert the SJT inside the WF that prompted for inventory used the outer
+        # inventory
+        inner_wf_job_node = wfj.related.workflow_nodes.get(unified_job_template=self.wfjt_inner_ask_on_launch.id).results.pop()
+        inner_wf_job = inner_wf_job_node.related.job.get()
+        # Assert the job node has the correct wfjt in it
+        assert inner_wf_job.related.unified_job_template.get().id == self.wfjt_inner_ask_on_launch.id, 'Unexpected job template found on node'
+
+        def _found_set_stats_data_on_sjt_job(job_vars):
+            assert job_vars.get('acow') == 'jumped over the moon', 'Missing var on sliced job template joblet that should have been inherited via set_stats!'
+            assert job_vars.get('apig', {}).get('flew') == 2, 'Missing var on sliced job template joblet that should have been inherited via set_stats!'
+
+        self.validate_sjt_inside_wf_inside_wf(inner_wf_job, additional_assertions=[_found_set_stats_data_on_sjt_job])
 
     def test_workflow_with_dead_branches_marked_dnr(self, factories, setup_resources):
         # Create detached section of workflow where some branches should be
@@ -255,7 +340,7 @@ class TestCombinedWorkflowFeatures(APITest):
                 self.jt_failure.id,
                 self.sliced_jt.id
             ]:
-                # UNFORTUNATELY _all_ regular job templates iherit workflow level vars regarless of ask_on_launch value
+                # UNFORTUNATELY _all_ regular job templates inherit workflow level vars regarless of ask_on_launch value
                 assert json.loads(this_job.extra_vars).get('outer_var', 'MISSING VAR!') == 'outer_var', 'Inner unified job template did not inherit extra var!'
             else:
                 assert json.loads(this_job.extra_vars).get('outer_var') is None, 'Inner unified job template should not inherit extra var!'

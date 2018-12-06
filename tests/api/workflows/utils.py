@@ -1,4 +1,5 @@
 # Shared functions for workflow tests that run jobs
+from towerkit.config import config
 
 
 def get_job_node(wfj, wfj_node_id, mapping):
@@ -53,3 +54,22 @@ def get_job_status(wfj, wfj_node_id, mapping):
     """
     return get_job_node(wfj, wfj_node_id, mapping)[
         'summary_fields']['job']['status']
+
+
+def get_inventory_sync_unified_jt(factories):
+            target_host = factories.v2_host()
+            target_inventory = target_host.ds.inventory
+            tower_cred = factories.v2_credential(
+                kind='tower',
+                inputs={
+                    'host': config.base_url,
+                    'username': config.credentials.users.admin.username,
+                    'password': config.credentials.users.admin.password,
+                    'verify_ssl': False
+                }
+            )
+            unified_jt = factories.v2_inventory_source(
+                source='tower', credential=tower_cred,
+                instance_filters=target_inventory.id
+            )
+            return unified_jt
