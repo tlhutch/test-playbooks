@@ -673,6 +673,8 @@ class TestTraditionalCluster(APITest):
 
         Note: Test is designed to run from an instance in the `instance_group_partition_1` instance group.
         """
+        pytest.skip("https://github.com/ansible/tower/issues/3195 - rabbit crashing after netsplit, fails to restart")
+
         # As a precondition, confirm that all instances have capacity
         for instance in v2.instances.get().results:
             assert instance.capacity > 0
