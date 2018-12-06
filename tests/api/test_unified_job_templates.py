@@ -34,5 +34,5 @@ class TestUnifiedJobTemplates(APITest):
 
         with pytest.raises(exc.BadRequest) as e:
             ujt_factory(**ujt_factory_kwargs)
-        assert e.value.message['__all__'] == ['{0} with this {1} combination already exists.'
+        assert e.value.msg['__all__'] == ['{0} with this {1} combination already exists.'
                                               .format(ujt_type_name, unique_together)]

@@ -392,7 +392,7 @@ class TestWorkflowExtraVars(APITest):
         if required:
             with pytest.raises(BadRequest) as e:
                 wfjt.launch(dict(extra_vars=dict())).wait_until_completed()
-            assert "variables_needed_to_start" in e.value.message
+            assert "variables_needed_to_start" in e.value.msg
 
     def test_launch_vars_passed_with_wfjt_when_launch_vars_and_multiple_surveys_present(self, factories):
         host = factories.v2_host()

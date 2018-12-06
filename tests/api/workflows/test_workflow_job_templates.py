@@ -511,4 +511,4 @@ class Test_Workflow_Job_Templates(APITest):
         with pytest.raises(BadRequest) as e:
             wfjt.get_related('launch').post({'inventory': inventory.id})
 
-        assert e.value.message == {'inventory': ['Field is not configured to prompt on launch.']}
+        assert e.value.msg == {'inventory': ['Field is not configured to prompt on launch.']}

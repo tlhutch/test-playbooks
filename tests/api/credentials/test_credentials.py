@@ -19,7 +19,7 @@ class TestCredentials(APITest):
 
         with pytest.raises(exc.BadRequest) as e:
             v1.credentials.post(payload)
-        assert e.value.message == {'kind': ['"invalid_kind" is not a valid choice']}
+        assert e.value.msg == {'kind': ['"invalid_kind" is not a valid choice']}
 
     @pytest.mark.parametrize('fields', [dict(name=fauxfactory.gen_utf8(),
                                              description=fauxfactory.gen_utf8(),
@@ -162,7 +162,7 @@ class TestCredentials(APITest):
         with pytest.raises(exc.BadRequest) as e:
             v1.credentials.post(payload)
 
-        assert e.value.message == expected_message
+        assert e.value.msg == expected_message
 
     @pytest.fixture(scope='class')
     def openstack_credential_type(self, v2_class):
@@ -182,7 +182,7 @@ class TestCredentials(APITest):
         with pytest.raises(exc.BadRequest) as e:
             v2.credentials.post(payload)
 
-        assert e.value.message['inputs'] == expected_message
+        assert e.value.msg['inputs'] == expected_message
 
     @pytest.mark.parametrize('version', ('v1', 'v2'))
     def test_invalid_ssh_key_data_creation_attempt(self, request, factories, version):
@@ -192,7 +192,7 @@ class TestCredentials(APITest):
 
         with pytest.raises(exc.BadRequest) as e:
             v.credentials.post(payload)
-        error = e.value.message.get('inputs', e.value.message)
+        error = e.value.msg.get('inputs', e.value.msg)
         assert error == {'ssh_key_data': ['Invalid certificate or key: NotAnRSAKey...']}
 
     @pytest.mark.parametrize("kind, ssh_key_unlock", [
@@ -208,7 +208,7 @@ class TestCredentials(APITest):
 
         with pytest.raises(exc.BadRequest) as e:
             v2.credentials.post(payload)
-        assert e.value.message['inputs'] == {'ssh_key_unlock': ['should not be set when SSH key is not encrypted.']}
+        assert e.value.msg['inputs'] == {'ssh_key_unlock': ['should not be set when SSH key is not encrypted.']}
 
     @pytest.mark.parametrize('cred_args, scm_url',
                              [[dict(password=''), 'git@github.com:/ansible/tower-qa.git'],

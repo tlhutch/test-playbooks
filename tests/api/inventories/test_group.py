@@ -603,7 +603,7 @@ class TestGroup(APITest):
         with pytest.raises(exc.BadRequest) as e:
             for group in [child_group, grandchild_group]:
                 group.add_group(parent_group)
-        assert e.value.message['error'] == 'Cyclical Group association.'
+        assert e.value.msg['error'] == 'Cyclical Group association.'
 
     def test_self_association(self, factories):
         """Verify that groups cannot list themselves as a child."""

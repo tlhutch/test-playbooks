@@ -281,7 +281,7 @@ class Test_Inventory_Scripts(APITest):
         for forbidden in ('TERM', 'USER', 'HOME'):
             with pytest.raises(exc.BadRequest) as e:
                 custom_inventory_source_with_vars.patch(source_vars=json.dumps({forbidden: 'should_not_allow'}))
-            assert e.value.message == {'source_vars': ['`{}` is a prohibited environment variable'.format(forbidden)]}
+            assert e.value.msg == {'source_vars': ['`{}` is a prohibited environment variable'.format(forbidden)]}
 
     @pytest.mark.ansible_integration
     def test_import_script_failure(self, custom_inventory_source, api_unified_jobs_pg, bad_inventory_script):

@@ -188,7 +188,7 @@ class TestJobTemplateSlicing(APITest):
         # Relaunch overall job
         with pytest.raises(BadRequest) as exc:
             workflow_job.relaunch()
-        assert exc.value.message == {'detail': 'Cannot relaunch slice workflow job orphaned from job template.'}
+        assert exc.value.msg == {'detail': 'Cannot relaunch slice workflow job orphaned from job template.'}
         # Relaunch joblet
         relaunched_job = job.relaunch()
         assert relaunched_job.job_slice_count == job.job_slice_count
@@ -204,7 +204,7 @@ class TestJobTemplateSlicing(APITest):
         jt.job_slice_count = 1
         with pytest.raises(BadRequest) as exc:
             workflow_job.relaunch()
-        assert exc.value.message == {'detail': 'Cannot relaunch sliced workflow job after slice count has changed.'}
+        assert exc.value.msg == {'detail': 'Cannot relaunch sliced workflow job after slice count has changed.'}
 
     def test_job_template_slice_remainder_hosts(self, factories, sliced_jt_factory):
         """Test the logic for when the host count (= 5) does not match the
@@ -319,12 +319,12 @@ class TestJobTemplateSlicing(APITest):
         workflow_job.delete()
         with pytest.raises(NotFound) as exc:
             workflow_job.get()
-        assert exc.value.message == {'detail': 'Not found.'}
+        assert exc.value.msg == {'detail': 'Not found.'}
 
         slice_result.delete()
         with pytest.raises(NotFound) as exc:
             slice_result.get()
-        assert exc.value.message == {'detail': 'Not found.'}
+        assert exc.value.msg == {'detail': 'Not found.'}
 
     @pytest.mark.mp_group('JobTemplateSlicing', 'isolated_serial')
     def test_job_template_slice_results_readable_when_workflow_is_deleted(self, factories, v2, sliced_jt_factory):
@@ -360,11 +360,11 @@ class TestJobTemplateSlicing(APITest):
         with self.current_user(invalid_user):
             with pytest.raises(Forbidden) as exc:
                 workflow_job.get()
-            assert exc.value.message == {'detail': 'You do not have permission to perform this action.'}
+            assert exc.value.msg == {'detail': 'You do not have permission to perform this action.'}
 
             with pytest.raises(Forbidden) as exc:
                 slice_result.get()
-            assert exc.value.message == {'detail': 'You do not have permission to perform this action.'}
+            assert exc.value.msg == {'detail': 'You do not have permission to perform this action.'}
 
         with self.current_user(valid_user):
             assert workflow_job.get().id == workflow_job.id

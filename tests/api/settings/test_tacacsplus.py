@@ -130,4 +130,4 @@ class TestTACACSPlus(APITest):
     def test_confirm_tacacs_host_and_secret_required(self, update_setting_pg, api_settings_tacacsplus_pg):
         with pytest.raises(exc.BadRequest) as e:
             update_setting_pg(api_settings_tacacsplus_pg, dict(TACACSPLUS_HOST='127.0.0.1'))
-        assert e.value.message == {'__all__': ['TACACSPLUS_SECRET is required when TACACSPLUS_HOST is provided.']}
+        assert e.value.msg == {'__all__': ['TACACSPLUS_SECRET is required when TACACSPLUS_HOST is provided.']}

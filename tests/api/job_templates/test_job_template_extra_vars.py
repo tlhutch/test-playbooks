@@ -59,14 +59,14 @@ class TestJobTemplateExtraVars(APITest):
             with pytest.raises(towerkit.exceptions.BadRequest) as e:
                 print utils.to_str(invalid)
                 jt.extra_vars = utils.to_str(invalid)
-            assert 'extra_vars' in e.value.message
-            assert message in e.value.message['extra_vars'][0]
+            assert 'extra_vars' in e.value.msg
+            assert message in e.value.msg['extra_vars'][0]
 
     def test_confirm_recursive_extra_vars_rejected(self, factories):
         jt = factories.v2_job_template()
         with pytest.raises(towerkit.exceptions.BadRequest) as e:
             jt.extra_vars = "&id001\nfoo: *id001\n"
-            assert 'Variables not compatible with JSON standard (error: Circular reference detected)' in e.message
+            assert 'Variables not compatible with JSON standard (error: Circular reference detected)' in e.msg
 
     @pytest.mark.ansible_integration
     def test_launch_with_extra_vars_from_job_template(self, job_template_with_extra_vars):
@@ -369,7 +369,7 @@ class TestJobTemplateExtraVars(APITest):
         if required:
             with pytest.raises(towerkit.exceptions.BadRequest) as e:
                 j = jt.launch(dict(extra_vars=dict())).wait_until_completed()
-            assert "variables_needed_to_start" in e.value.message
+            assert "variables_needed_to_start" in e.value.msg
 
     def test_included_extra_vars_with_vault_content(self, factories):
         cred = factories.v2_credential(kind='vault', vault_password='password')

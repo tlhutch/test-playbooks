@@ -33,7 +33,7 @@ class TestJobTemplateCredentials(APITest):
         jt.add_credential(cred1)
         with pytest.raises(exc.BadRequest) as e:
             jt.add_credential(cred2)
-        assert e.value.message['error'] == six.text_type(
+        assert e.value.msg['error'] == six.text_type(
             'Cannot assign multiple {} credentials.'
         ).format(ct.name)
 
@@ -105,7 +105,7 @@ class TestJobTemplateLaunchCredentials(APITest):
         for invalid, error in invalid_and_error:
             with pytest.raises(exc.BadRequest) as e:
                 job_template_prompt_for_credential.launch(dict(credential=invalid))
-            assert e.value.message['credentials'] == [error]
+            assert e.value.msg['credentials'] == [error]
 
     def test_launch_with_ask_credential_and_without_passwords_in_payload(self, job_template_prompt_for_credential,
                                                                          ssh_credential_ask):
@@ -256,7 +256,7 @@ class TestJobTemplateLaunchCredentials(APITest):
             jt.launch(dict(credentials=[vault_cred2.id]))
         error_msg = (u'Removing Vault (id={0.inputs.vault_id}) credential at launch time without replacement '
                      'is not supported. Provided list lacked credential(s): {0.name}-{0.id}.').format(vault_cred1)
-        assert e.value.message == {'credentials': [error_msg]}
+        assert e.value.msg == {'credentials': [error_msg]}
 
         job = jt.launch(dict(credentials=[vault_cred1.id, vault_cred2.id]))
         assert job.wait_until_completed().is_successful
@@ -279,7 +279,7 @@ class TestJobTemplateLaunchCredentials(APITest):
         for payload in bad_payloads:
             with pytest.raises(exc.BadRequest) as e:
                 jt.launch(payload)
-            assert e.value.message == {'error': "'credentials' cannot be used in combination with 'credential', 'vault_credential', or 'extra_credentials'."}
+            assert e.value.msg == {'error': "'credentials' cannot be used in combination with 'credential', 'vault_credential', or 'extra_credentials'."}
 
 
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
@@ -335,7 +335,7 @@ class TestJobTemplateVaultCredentials(APITest):
 
         with pytest.raises(exc.BadRequest) as e:
             jt.launch().wait_until_completed()
-        assert e.value.message == {'passwords_needed_to_start': ['vault_password']}
+        assert e.value.msg == {'passwords_needed_to_start': ['vault_password']}
 
         job = jt.launch(dict(vault_password='tower')).wait_until_completed()
         assert job.is_successful
@@ -372,8 +372,8 @@ class TestJobTemplateVaultCredentials(APITest):
 
         with pytest.raises(exc.BadRequest) as e:
             jt.launch().wait_until_completed()
-        assert set(e.value.message['passwords_needed_to_start']) == set(['vault_password.first', 'vault_password.second'])
-        assert len(e.value.message['passwords_needed_to_start']) == 2
+        assert set(e.value.msg['passwords_needed_to_start']) == set(['vault_password.first', 'vault_password.second'])
+        assert len(e.value.msg['passwords_needed_to_start']) == 2
 
         payload = {'vault_password.first': 'secret1',
                    'vault_password.second': 'secret2'}
@@ -393,7 +393,7 @@ class TestJobTemplateVaultCredentials(APITest):
         jt.add_credential(vault_cred1)
         with pytest.raises(exc.BadRequest) as e:
             jt.add_credential(vault_cred2)
-        assert e.value.message == {'error': 'Cannot assign multiple Vault (id=foo) credentials.'}
+        assert e.value.msg == {'error': 'Cannot assign multiple Vault (id=foo) credentials.'}
 
 
 @pytest.fixture(scope='class')
@@ -450,7 +450,7 @@ class TestJobTemplateExtraCredentials(APITest):
         for cred in (scm_cred, ssh_cred, vault_cred):
             with pytest.raises(exc.BadRequest) as e:
                 jt.add_extra_credential(cred)
-            assert e.value.message == {'error': 'Extra credentials must be network or cloud.'}
+            assert e.value.msg == {'error': 'Extra credentials must be network or cloud.'}
             assert not jt.related.extra_credentials.get().results
 
     @pytest.fixture(scope='class')
@@ -474,7 +474,7 @@ class TestJobTemplateExtraCredentials(APITest):
 
         with pytest.raises(exc.BadRequest) as e:
             v2_job_template.add_extra_credential(cred_two)
-        assert e.value.message == {'error': 'Cannot assign multiple {} credentials.'.format(kind_name)}
+        assert e.value.msg == {'error': 'Cannot assign multiple {} credentials.'.format(kind_name)}
 
         assert cred_two.id not in [c.id for c in v2_job_template.related.extra_credentials.get().results]
 

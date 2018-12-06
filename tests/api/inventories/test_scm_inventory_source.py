@@ -391,12 +391,12 @@ class TestSCMInventorySource(APITest):
         desired_error = {'source_project': ['Cannot use manual project for SCM-based inventory.']}
         with pytest.raises(exc.BadRequest) as e:
             factories.v2_inventory_source(source='scm', project=project_ansible_playbooks_manual)
-        assert e.value.message == desired_error
+        assert e.value.msg == desired_error
 
         inv_source = factories.v2_inventory_source(source='scm')
         with pytest.raises(exc.BadRequest) as e:
             inv_source.source_project = project_ansible_playbooks_manual.id
-        assert e.value.message == desired_error
+        assert e.value.msg == desired_error
 
     def test_scm_inventory_disallows_vault_credentials(self, factories):
         project = factories.v2_project(scm_type='git')
@@ -408,7 +408,7 @@ class TestSCMInventorySource(APITest):
                 source='scm', source_path='inventories/inventory.ini',
                 project=project, credential=vault_credential
             )
-        assert e.value.message == {'credential': [desired_error]}
+        assert e.value.msg == {'credential': [desired_error]}
 
         with pytest.raises(exc.BadRequest) as e:
             iu = factories.v2_inventory_source(
@@ -418,7 +418,7 @@ class TestSCMInventorySource(APITest):
             iu.related.credentials.post({
                 'associate': True, 'id': vault_credential.id
             })
-        assert e.value.message == {'msg': desired_error}
+        assert e.value.msg == {'msg': desired_error}
 
     def test_scm_inv_source_is_schedulable_without_update_on_project_update(self, factories):
         scm_inv_source = factories.v2_inventory_source(source='scm', source_path='inventories/inventory.ini')
@@ -426,7 +426,7 @@ class TestSCMInventorySource(APITest):
 
         with pytest.raises(exc.BadRequest) as e:
             scm_inv_source.update_on_project_update = True
-        assert e.value.message == {'update_on_project_update': ['Setting not compatible with existing schedules.']}
+        assert e.value.msg == {'update_on_project_update': ['Setting not compatible with existing schedules.']}
         assert not scm_inv_source.update_on_project_update
 
     def test_scm_inv_source_isnt_schedulable_with_update_on_project_update(self, factories):
@@ -434,7 +434,7 @@ class TestSCMInventorySource(APITest):
                                                        update_on_project_update=True)
         with pytest.raises(exc.BadRequest) as e:
             scm_inv_source.add_schedule()
-        assert e.value.message == {'unified_job_template': [u'Inventory sources with `update_on_project_update` cannot'
+        assert e.value.msg == {'unified_job_template': [u'Inventory sources with `update_on_project_update` cannot'
                                                             ' be scheduled. Schedule its source project `{0.name}` '
                                                             'instead.'.format(scm_inv_source.ds.project)]}
 
@@ -449,20 +449,20 @@ class TestSCMInventorySource(APITest):
                                               'to update on launch.']}
         with pytest.raises(exc.BadRequest) as e:
             v2.inventory_sources.post(bad_payload)
-        assert e.value.message == desired_error
+        assert e.value.msg == desired_error
 
         inv_source = factories.v2_inventory_source(source='scm', source_path='inventories/inventory.ini',
                                                    update_on_launch=True, inventory=inventory, project=project)
         with pytest.raises(exc.BadRequest) as e:
             inv_source.update_on_project_update = True
-        assert e.value.message == desired_error
+        assert e.value.msg == desired_error
 
         inv_source.update_on_launch = False
         inv_source.update_on_project_update = True
 
         with pytest.raises(exc.BadRequest) as e:
             inv_source.update_on_launch = True
-        assert e.value.message == desired_error
+        assert e.value.msg == desired_error
 
     def test_scm_inv_source_with_update_on_launch_is_synced_on_job_launch(self, factories):
         inv_source = factories.v2_inventory_source(source='scm', source_path='inventories/inventory.ini',
@@ -649,7 +649,7 @@ class TestSCMInventorySource(APITest):
                                  ('update_on_project_update', lambda: inv_src.patch(update_on_project_update=True))]:
             with pytest.raises(exc.BadRequest) as e:
                 forbidden()
-            assert e.value.message == {'detail': ['Cannot set {} if not SCM type.'.format(field)]}
+            assert e.value.msg == {'detail': ['Cannot set {} if not SCM type.'.format(field)]}
 
     def test_scm_inv_parent_sym_links(self, factories):
         """This test asserts that symlinks inside of a project source tree will
