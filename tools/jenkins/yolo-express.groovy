@@ -38,7 +38,7 @@ stage ('Prepare Build') {
       script: 'echo ${TOWERKIT_BRANCH##*/}'
     ).trim()
 
-    NIGHTLY_REPO_DIR = "${params.TOWER_BRANCH}-${BUILD_ID}"
+    NIGHTLY_REPO_DIR = "${params.TOWER_BRANCH}-${params.GIT_PREVIOUS_COMMIT}"    
   }
 }
 
