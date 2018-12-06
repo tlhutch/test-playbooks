@@ -51,7 +51,7 @@
   tasks:
     - name: In first partition, set firewall rules for blocking instances of second partition
       firewalld:
-        rich_rule: 'rule family="ipv4" source address="{{ hostvars[item].ansible_default_ipv4.address }}/32" drop'
+        rich_rule: 'rule family="ipv4" source address="{{ hostvars[item].ansible_host }}/32" drop'
         zone: trusted
         state: "{{ network_partition_state|default('enabled') }}"
         permanent: true
@@ -63,7 +63,7 @@
   tasks:
     - name: In second partition, set firewall rules for blocking instances of first partition
       firewalld:
-        rich_rule: 'rule family="ipv4" source address="{{ hostvars[item].ansible_default_ipv4.address }}/32" drop'
+        rich_rule: 'rule family="ipv4" source address="{{ hostvars[item].ansible_host }}/32" drop'
         zone: trusted
         state: "{{ network_partition_state|default('enabled') }}"
         permanent: true
@@ -89,7 +89,7 @@
 - hosts: instance_group_partition_1
   tasks:
     - name: In first partition, terminate connections to second partition
-      command: timeout 5 tcpkill -i eth0 -9 src "{{ hostvars[item].ansible_default_ipv4.address }}"
+      command: timeout 5 tcpkill -i eth0 -9 src "{{ hostvars[item].ansible_host }}"
       with_items: "{{ groups['instance_group_partition_2'] }}"
       become: true
       register: tcpkill
@@ -99,7 +99,7 @@
 - hosts: instance_group_partition_2
   tasks:
     - name: In second partition, terminate connections to first partition
-      command: timeout 5 tcpkill -i eth0 -9 src "{{ hostvars[item].ansible_default_ipv4.address }}"
+      command: timeout 5 tcpkill -i eth0 -9 src "{{ hostvars[item].ansible_host }}"
       with_items: "{{ groups['instance_group_partition_1'] }}"
       become: true
       register: tcpkill
@@ -117,7 +117,7 @@
 - hosts: instance_group_partition_1
   tasks:
     - name: In first partition, ensure no connectivity to second partition
-      command: nc -v -i 15 -w 15 "{{ hostvars[item].ansible_default_ipv4.address }}" 22
+      command: nc -v -i 15 -w 15 "{{ hostvars[item].ansible_host }}" 22
       with_items: "{{ groups['instance_group_partition_2'] }}"
       become: true
       register: nc
@@ -127,7 +127,7 @@
 - hosts: instance_group_partition_2
   tasks:
     - name: In second partition, ensure no connectivity to first partition
-      command: nc -v -i 15 -w 15 "{{ hostvars[item].ansible_default_ipv4.address }}" 22
+      command: nc -v -i 15 -w 15 "{{ hostvars[item].ansible_host }}" 22
       with_items: "{{ groups['instance_group_partition_1'] }}"
       become: true
       register: nc
@@ -137,7 +137,7 @@
 - hosts: instance_group_partition_1
   tasks:
     - name: In first partition, ensure connectivity to second partition
-      command: nc -v -i 15 -w 15 "{{ hostvars[item].ansible_default_ipv4.address }}" 22
+      command: nc -v -i 15 -w 15 "{{ hostvars[item].ansible_host }}" 22
       with_items: "{{ groups['instance_group_partition_2'] }}"
       become: true
       register: nc
@@ -147,7 +147,7 @@
 - hosts: instance_group_partition_2
   tasks:
     - name: In second partition, ensure connectivity to first partition
-      command: nc -v -i 15 -w 15 "{{ hostvars[item].ansible_default_ipv4.address }}" 22
+      command: nc -v -i 15 -w 15 "{{ hostvars[item].ansible_host }}" 22
       with_items: "{{ groups['instance_group_partition_1'] }}"
       become: true
       register: nc
