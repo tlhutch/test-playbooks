@@ -11,6 +11,14 @@
   hosts: all
   tasks:
     - ipify_facts:
+      
+- name: Enable FIPS for isolated nodes
+  hosts: 'tower:isolated_group*:instance_group*'
+  tasks:
+    - name: Run FIPS Role
+      include_role:
+        name: fips
+      when: "'7.5' in ansible_distribution_version"
 
 - name: 'Add authorized keys on non-installer instances'
   hosts: 'tower:instance_group_*:database:haproxy:managed_hosts:!cluster_installer'
