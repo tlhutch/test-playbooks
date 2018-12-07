@@ -4,7 +4,7 @@ import pytest
 from towerkit.exceptions import NoContent
 
 from tests.api import APITest
-from tests.api.workflows.utils import get_job_node, get_inventory_sync_unified_jt
+from tests.api.workflows.utils import get_job_node
 from tests.lib.helpers.workflow_utils import (WorkflowTree, WorkflowTreeMapper)
 
 
@@ -23,8 +23,9 @@ class TestCombinedWorkflowFeatures(APITest):
         * Workflow level extra_vars
     """
 
-    @pytest.fixture
-    def setup_resources(self, factories):
+    @pytest.fixture(autouse=True)
+    def setup_common_resources(self, class_factories):
+        factories = class_factories
         self.host = factories.v2_host()
         self.outer_inventory = factories.v2_inventory()
         self.inner_inventory = factories.v2_inventory()
@@ -76,7 +77,13 @@ class TestCombinedWorkflowFeatures(APITest):
         )
 
     def validate_sjt_inside_wf_inside_wf(self, inner_wf_job, additional_assertions=[]):
-        """Pass additional assertions as a list of callables that should raise sensible error messages."""
+        """Pass additional assertions as a list of callables that take the sliced joblet extra_vars as an argument.
+
+        The extra vars of the individual "joblet" from the sliced job workflow job will be a dictionary.
+
+        These callables should raise sensible error messages that provide sufficient information
+        to understand a test failure.
+        """
         sjt_workflow_job_node = inner_wf_job.related.workflow_nodes.get().results.pop()
         wf_spawned_from_sjt = sjt_workflow_job_node.related.job.get()
         sliced_nodes = wf_spawned_from_sjt.related.workflow_nodes.get()
@@ -90,7 +97,7 @@ class TestCombinedWorkflowFeatures(APITest):
             for assertion in additional_assertions:
                 assertion(sjt_job_vars)
 
-    def test_set_stats_propagate_correctly_through_workflow(self, factories, setup_resources):
+    def test_set_stats_propagate_correctly_through_workflow(self, factories):
         wfjt = factories.workflow_job_template(
             extra_vars={'outer_var': 'outer_var'},
             inventory=self.outer_inventory
@@ -111,7 +118,7 @@ class TestCombinedWorkflowFeatures(APITest):
         )
         # Make sure set stats flow through project update
         abuelo = tartarabuelo.add_success_node(
-            unified_job_template=get_inventory_sync_unified_jt(factories)
+            unified_job_template=factories.v2_inventory_source()
         )
         # Make sure set stats flow through project update.
         parent = abuelo.add_success_node(
@@ -170,7 +177,7 @@ class TestCombinedWorkflowFeatures(APITest):
 
         self.validate_sjt_inside_wf_inside_wf(inner_wf_job, additional_assertions=[_found_set_stats_data_on_sjt_job])
 
-    def test_workflow_with_dead_branches_marked_dnr(self, factories, setup_resources):
+    def test_workflow_with_dead_branches_marked_dnr(self, factories):
         # Create detached section of workflow where some branches should be
         # marked DNR
         wfjt = factories.workflow_job_template(
@@ -243,7 +250,7 @@ class TestCombinedWorkflowFeatures(APITest):
             assert job.inventory == self.outer_inventory.id
             assert json.loads(job.extra_vars).get('outer_var', 'MISSING VAR!') == 'outer_var', 'Inner unified job template did not inherit extra var!'
 
-    def test_dense_workflow(self, factories, setup_resources): # noqa C901
+    def test_dense_workflow(self, factories): # noqa C901
         wfjt = factories.workflow_job_template(
             extra_vars={'outer_var': 'outer_var'},
             inventory=self.outer_inventory

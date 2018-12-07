@@ -10,7 +10,6 @@ from towerkit.exceptions import BadRequest, NoContent
 
 from tests.api import APITest
 from tests.api.workflows.utils import (
-    get_inventory_sync_unified_jt,
     get_job_node,
     get_job_status,
 )
@@ -309,7 +308,7 @@ class Test_Workflow_Convergence(APITest):
             unified_jt = factories.job_template(
                 inventory=host.ds.inventory, allow_simultaneous=True)
         elif node_type == 'inventory_sync':
-            unified_jt = get_inventory_sync_unified_jt(factories)
+            unified_jt = factories.v2_inventory_source()
 
         wfjt = factories.v2_workflow_job_template()
         parent_jt = factories.v2_job_template(
