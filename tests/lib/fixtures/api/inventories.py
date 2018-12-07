@@ -245,7 +245,7 @@ def openstack_v3_inventory_source(request, authtoken, openstack_v3_group):
 
 @pytest.fixture(scope="function", params=['openstack_v2', 'openstack_v3'])
 def openstack_group(request):
-    return request.getfuncargvalue(request.param + '_group')
+    return request.getfixturevalue(request.param + '_group')
 
 
 @pytest.fixture(scope="function")
@@ -296,7 +296,7 @@ def cloud_groups(aws_group, azure_group, azure_ad_group, gce_group, openstack_v2
 # Convenience fixture that iterates through cloud_groups that support source_regions
 @pytest.fixture(scope="function", params=['aws', 'azure', 'gce'])
 def cloud_group_supporting_source_regions(request):
-    return request.getfuncargvalue(request.param + '_group')
+    return request.getfixturevalue(request.param + '_group')
 
 
 @pytest.fixture

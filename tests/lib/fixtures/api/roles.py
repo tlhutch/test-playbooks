@@ -35,7 +35,7 @@ def set_test_roles(factories):
 @pytest.fixture(scope="function", params=['organization', 'job_template', 'workflow_job_template', 'custom_inventory_source', 'project'])
 def notifiable_resource(request, organization):
     """Iterates through the Tower objects that support notifications."""
-    resource = request.getfuncargvalue(request.param)
+    resource = request.getfixturevalue(request.param)
     # provide organization for WFJT
     if resource.type == "workflow_job_template":
         resource.organization = organization.id

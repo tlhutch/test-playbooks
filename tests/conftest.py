@@ -1,5 +1,4 @@
 """Configuration for pytest plugins and fixtures"""
-
 import os
 import sys
 import pkgutil

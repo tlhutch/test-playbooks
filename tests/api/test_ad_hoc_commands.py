@@ -13,7 +13,7 @@ def deleted_object(request):
     """Creates and deletes an object.
     Returns the deleted object.
     """
-    obj = request.getfuncargvalue(request.param)
+    obj = request.getfixturevalue(request.param)
     obj.delete()
     if request.param == 'inventory':
         obj.wait_until_deleted()

@@ -12,7 +12,7 @@ from tests.api import APITest
                                           'project'])
 def related_organization_object(request):
     """Create organization_related_counts objects sequentially."""
-    return request.getfuncargvalue(request.param)
+    return request.getfixturevalue(request.param)
 
 
 @pytest.mark.api
