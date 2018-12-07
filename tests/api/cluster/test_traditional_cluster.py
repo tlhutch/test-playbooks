@@ -570,10 +570,31 @@ class TestTraditionalCluster(APITest):
                     heartbeats[this_host] = this_heartbeat
             return heartbeats, offline_heartbeat
 
+        def get_capacities():
+            """
+            Return a dictionary of the capacity of all ordinary nodes that are online
+            and the capacity of the node we take offline.
+            """
+            instances = v2.ping.get().instances
+            capacities = {}
+            offline_capacity = None
+            for i in instances:
+                this_host = i['node']
+                this_capacity = i['capacity']
+                if this_host not in hosts and this_host != host:
+                    # ignore nodes not in the ordinary_instances group
+                    continue
+                if this_host == host:
+                    # this is the node we took offline
+                    offline_capacity = this_capacity
+                else:
+                    capacities[this_host] = this_capacity
+            return capacities, offline_capacity
+
         # Start a long running job from the node we're going to take offline
         long_job = jt.launch().wait_until_status('running')
         assert long_job.execution_node == host
-
+        original_capacities, original_capacity_of_offline_node = get_capacities()
         # Stop the tower node.
         stop, start = self.get_stop_and_start_funcs_for_node(admin_user, hostvars_for_host, host, v2)
         with SafeStop(stop, start):
@@ -587,19 +608,26 @@ class TestTraditionalCluster(APITest):
                 ig.get()
                 return ig.capacity == 0
 
+            # Check that instance group capacity is set to zero
             utils.poll_until(check_group_capacity_zeroed, interval=5, timeout=190)
             other_heartbeats, offline_heartbeat = get_heartbeats()
             # assert the offline heartbeat is unchanged
             # then wait another two min and get heartbeat again and assert not changed
             time.sleep(190)
+            # Check capacity only changed on offline node
+            current_other_capacities, current_offline_capacity = get_capacities()
+            for key in current_other_capacities.keys():
+                assert current_other_capacities[key] == original_capacities[key], \
+                    'Capacity for online node {} changed! Only the offline node should have its capacity changed!'.format(key)
+            # Check that instance capacity is set to zero
+            assert current_offline_capacity == 0, 'Capacity for offline instance is not set to 0!'
+
+            # Check that the other nodes heartbeats advanced
             current_other_heartbeats, current_offline_heartbeat = get_heartbeats()
             assert current_offline_heartbeat == offline_heartbeat
             for key in other_heartbeats.keys():
                 assert current_other_heartbeats[key] != other_heartbeats[key], \
                     'Heartbeat for online node {} did not advance! Only the offline node should have its heartbeat stop!'.format(key)
-
-            # Check that ig capacity is still set to zero
-            assert instance.get().capacity == 0, 'Instance group capacity changed while node was still offline'
 
             # Check the job we started is marked as failed
             utils.poll_until(lambda: long_job.get().status in FAIL_STATUSES, interval=5, timeout=130)
@@ -620,6 +648,13 @@ class TestTraditionalCluster(APITest):
             return ig.get().capacity == group_capacity
         utils.poll_until(check_group_capacity_restored, interval=5, timeout=120)
         assert instance.get().capacity == instance_capacity
+
+        current_other_capacities, current_capacity_of_restored_node = get_capacities()
+        assert current_capacity_of_restored_node == original_capacity_of_offline_node, \
+            'Capacity for instance that has been restored did not return to original value!'
+        for key in current_other_capacities.keys():
+            assert current_other_capacities[key] == original_capacities[key], \
+                'Capacity for online node {} changed! They should not have been effected by other node capacity change!'.format(key)
 
         # Check that the waiting job is picked up and completes
         job.wait_until_completed(since_job_created=False)
