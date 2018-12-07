@@ -9,8 +9,10 @@ import pytest
 from towerkit.exceptions import BadRequest, NoContent
 
 from tests.api import APITest
-from towerkit.config import config
-from tests.api.workflows.utils import get_job_status, get_job_node
+from tests.api.workflows.utils import (
+    get_job_node,
+    get_job_status,
+)
 from tests.lib.helpers.workflow_utils import (WorkflowTree, WorkflowTreeMapper)
 
 
@@ -306,21 +308,7 @@ class Test_Workflow_Convergence(APITest):
             unified_jt = factories.job_template(
                 inventory=host.ds.inventory, allow_simultaneous=True)
         elif node_type == 'inventory_sync':
-            target_host = factories.v2_host()
-            target_inventory = target_host.ds.inventory
-            tower_cred = factories.v2_credential(
-                kind='tower',
-                inputs={
-                    'host': config.base_url,
-                    'username': config.credentials.users.admin.username,
-                    'password': config.credentials.users.admin.password,
-                    'verify_ssl': False
-                }
-            )
-            unified_jt = factories.v2_inventory_source(
-                source='tower', credential=tower_cred,
-                instance_filters=target_inventory.id
-            )
+            unified_jt = factories.v2_inventory_source()
 
         wfjt = factories.v2_workflow_job_template()
         parent_jt = factories.v2_job_template(

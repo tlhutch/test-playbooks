@@ -51,5 +51,4 @@ def get_job_status(wfj, wfj_node_id, mapping):
         # Assert correct nodes get marked do_not_run
         assert 'failed'  is get_job_status(wfj, n1.id, mapping)
     """
-    return get_job_node(wfj, wfj_node_id, mapping)[
-        'summary_fields']['job']['status']
+    return get_job_node(wfj, wfj_node_id, mapping)['summary_fields']['job']['status']
