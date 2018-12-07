@@ -17,10 +17,13 @@
         key: "{{ansible_distribution}}-{{ansible_distribution_major_version}}"
       changed_when: false
 
-- name: Enable FIPS
-  include_role:
-    name: fips
-  when: "'7.5' in ansible_distribution_version"
+- name: Enable FIPS for isolated nodes
+  hosts: 'tower'
+  tasks:
+    - name: Run FIPS Role
+      include_role:
+        name: fips
+      when: "'7.5' in ansible_distribution_version"
 
 - name: 'Install Tower'
   hosts: 'tower'
