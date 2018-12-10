@@ -10,7 +10,6 @@ from tests.api import APITest
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestGCECredentials(APITest):
 
-    @pytest.mark.github('https://github.com/ansible/tower/issues/3084')
     def test_gce_playbook_module(self, factories, gce_credential):
         host = factories.v2_host()
         jt = factories.v2_job_template(

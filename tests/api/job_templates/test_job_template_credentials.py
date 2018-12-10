@@ -22,7 +22,6 @@ class TestJobTemplateCredentials(APITest):
         jt = v2.job_templates.post(payload)
         request.addfinalizer(jt.silent_delete)
 
-    @pytest.mark.github('https://github.com/ansible/tower/issues/3077')
     def test_job_template_cannot_have_multiple_same_type(self, factories):
         ct = factories.credential_type()
         cred1 = factories.v2_credential(credential_type=ct)

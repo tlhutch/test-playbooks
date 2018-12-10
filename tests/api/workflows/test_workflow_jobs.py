@@ -274,7 +274,6 @@ class Test_Workflow_Jobs(APITest):
 
     # Canceling jobs
 
-    @pytest.mark.github('https://github.com/ansible/tower/issues/910')
     def test_cancel_workflow_job_pre_spawn(self, factories):
         host = factories.host()
         jt_sleep = factories.job_template(inventory=host.ds.inventory, playbook='sleep.yml')  # Longer-running job
