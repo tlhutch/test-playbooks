@@ -62,7 +62,7 @@ EOF
 
 function reap_instances {
     echo "### Reap EC2 Instances ###"
-    ansible-playbook ${VERBOSITY} -i ${LOAD_DATA_INVENTORY} -e @install_vars.yml playbooks/reap-tower-ec2.yml || true
+    ansible-playbook ${VERBOSITY} -i ${LOAD_DATA_INVENTORY} -e @cloud_vars.yml -e @install_vars.yml playbooks/reap-tower-ec2.yml || true
 }
 
 
