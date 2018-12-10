@@ -24,6 +24,7 @@ ec2_images:
     - {'name': 'ol-7.3-x86_64',          'user': 'ec2-user',    'id': 'ami-7c4b7e6b', 'type': 'm3.medium', 'groups': 'tower,instance_group_non_default', 'security_group': 'Tower' }
     - {'name': 'ol-7.4-x86_64',          'user': 'ec2-user',    'id': 'ami-75bde60f', 'type': 'm3.medium', 'groups': 'tower,instance_group_non_default', 'security_group': 'Tower' }
     - {'name': 'ol-7.5-x86_64',          'user': 'ec2-user',    'id': 'ami-3485114b', 'type': 'm5.large', 'groups': 'tower,instance_group_non_default', 'security_group': 'Tower' }
+    - {'name': 'ol-7.6-x86_64',          'user': 'ec2-user',    'id': 'ami-0d401c561deebd182', 'type': 'm5.large', 'groups': 'tower,instance_group_non_default', 'security_group': 'Tower' }
 
 ec2_security_groups:
     - name: Tower
