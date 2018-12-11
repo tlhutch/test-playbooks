@@ -73,6 +73,12 @@ class Test_Workflow_Convergence(APITest):
     the 'xdot' utility. This is available on fedora from the 'python-xdot' package from dnf.
     """
 
+    # currently clocks on our openshift nodes can be >= 30 seconds out of sync
+    # which makes this test not work at all, because start and finish times of
+    # jobs are sourced from system clock on pod which may be on different
+    # compute nodes
+    # Re-visit when we are no longer running on Atomic Host
+    @pytest.mark.skip_openshift
     @pytest.mark.parametrize(
         'test_case', convergence_node_parent_node_test_cases, ids=[
             case.case_name for case in convergence_node_parent_node_test_cases])
