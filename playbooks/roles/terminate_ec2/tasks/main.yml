@@ -20,4 +20,4 @@
     wait: '{{ terminate_ec2_wait_upon_termination|default(true) }}'
     wait_timeout: '600'
   with_items: '{{ ec2_images }}'
-  when: '{{ delete_on_start }}'
+  when: '{{ delete_on_start|default(false) }} or {{ reap_instances|default(false) }}'
