@@ -113,20 +113,26 @@ def hosts_in_group(modified_ansible_adhoc):
     """
     manager = modified_ansible_adhoc().options['inventory_manager']
 
-    def gimme_hosts(group_name, return_hostnames=False):
+    def gimme_hosts(group_name, return_hostnames=False, return_map=False):
         """
-        return_hostnames: return hostname instead of ansible_host
-        (default behavior is to return ansible_host, if present)
+        Default behavior is to return list of ansible_host, if present
+
+        :param return_hostnames: Boolean, return list of hostnames instead
+
+        :param return_map: Boolean, return a mapping between hostname and ansible_host.
         """
         group = manager.groups.get(group_name)
         if group is None:
             return []
-
         addresses = []
+        if return_map:
+            addresses = {}
         for host in group.get_hosts():
             ansible_host = host.vars.get('ansible_host', '')
-
-            if return_hostnames:
+            if return_map:
+                addresses[host.name] = ansible_host
+                continue
+            elif return_hostnames:
                 address = host.name
             elif ansible_host:
                 address = ansible_host
