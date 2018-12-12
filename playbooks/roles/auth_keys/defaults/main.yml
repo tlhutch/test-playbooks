@@ -4,7 +4,6 @@ authorized_keys:
     - 'https://github.com/chrismeyersfsu.keys'
     - 'https://github.com/jlaska.keys'
     - 'https://github.com/matburt.keys'
-    - 'https://github.com/simfarm.keys'
     - 'https://github.com/jladdjr.keys'
     - 'https://github.com/jakemcdermott.keys'
     - 'https://github.com/ghjm.keys'
