@@ -88,8 +88,8 @@ def get_test_results():
                     return (
                         failure_history[0].failures,
                         failure_history[0].url,
-                        failure_history[1].failures,
-                        failure_history[1].url
+                        failure_history[0].failures,
+                        url
                     )
 
             total_failures = results['failed'] + results['error']
