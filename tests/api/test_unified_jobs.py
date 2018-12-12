@@ -37,7 +37,7 @@ class TestUnifiedJobs(APITest):
             uj.delete()
         assert e.value[1]['detail'] == 'Cannot delete running job resource.'
 
-        assert uj.wait_until_completed().is_successful
+        uj.wait_until_completed().assert_successful()
 
     @pytest.mark.parametrize('template', ['job', 'workflow_job'])
     def test_confirm_survey_password_defaults_censored_in_unified_job_extra_vars(self, factories, template):

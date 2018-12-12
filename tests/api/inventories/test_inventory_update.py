@@ -18,18 +18,15 @@ class TestInventoryUpdate(APITest):
         """Verify successful inventory import using /api/v1/inventory_sources/N/update/."""
         inv_source = cloud_group.get_related('inventory_source')
         inv_update = inv_source.update().wait_until_completed()
-        assert inv_update.is_successful
-        assert inv_source.get().is_successful
+        inv_update.assert_successful()
 
     @pytest.mark.ansible_integration
     def test_v2_update_inventory_source(self, cloud_inventory):
         """Verify successful inventory import using /api/v2/inventory_sources/N/update/."""
         inv_source = cloud_inventory.related.inventory_sources.get().results.pop()
         inv_update = inv_source.update().wait_until_completed()
-        assert inv_update.is_successful
-        assert inv_source.get().is_successful
+        inv_update.assert_successful()
 
-    @pytest.mark.github('https://github.com/ansible/tower-qa/issues/2302')
     def test_v2_update_all_inventory_sources_with_functional_sources(self, factories):
         """Verify behavior when inventory has functional inventory sources."""
         inventory = factories.v2_inventory()
@@ -58,12 +55,9 @@ class TestInventoryUpdate(APITest):
         assert dict(inventory_source=scm_source.id, inventory_update=scm_update.id, status="started") in filtered_postlaunch
         assert len(postlaunch.json) == 3
 
-        assert azure_update.is_successful
-        assert azure_source.is_successful
-        assert ec2_update.is_successful
-        assert ec2_source.is_successful
-        assert scm_update.is_successful
-        assert scm_source.is_successful
+        azure_update.assert_successful()
+        ec2_update.assert_successful()
+        scm_update.assert_successful()
 
     def test_v2_update_all_inventory_sources_with_semifunctional_sources(self, factories):
         """Verify behavior when inventory has an inventory source that is ready for update
@@ -92,8 +86,8 @@ class TestInventoryUpdate(APITest):
         assert len(postlaunch.json) == 2
 
         assert not inv_source1.last_updated
+        inv_update.assert_successful()
         assert inv_source2.is_successful
-        assert inv_update.is_successful
 
     def test_v2_update_all_inventory_sources_with_nonfunctional_sources(self, factories):
         """Verify behavior when inventory has nonfunctional inventory sources."""
@@ -128,7 +122,7 @@ class TestInventoryUpdate(APITest):
         inv_updates = inventory.update_inventory_sources(wait=True)
 
         for update in inv_updates:
-            assert update.is_successful
+            update.assert_successful()
         assert inv_source1.get().is_successful
         assert inv_source2.get().is_successful
 
@@ -161,7 +155,7 @@ class TestInventoryUpdate(APITest):
         excluded_host, isolated_host = [factories.host(inventory=inventory) for _ in range(2)]
         excluded_group.add_host(excluded_host)
 
-        assert inv_source.update().wait_until_completed().is_successful
+        inv_source.update().wait_until_completed().assert_successful()
 
         # verify our script-spawned group contents
         assert spawned_group.related.children.get().count == 0
@@ -205,7 +199,7 @@ class TestInventoryUpdate(APITest):
         excluded_host, isolated_host = [factories.host(inventory=inventory) for _ in range(2)]
         excluded_group.add_host(excluded_host)
 
-        assert inv_source.update().wait_until_completed().is_successful
+        inv_source.update().wait_until_completed().assert_successful()
 
         # verify our script-spawned group contents
         spawned_group_children = spawned_group.related.children.get()
@@ -233,7 +227,7 @@ class TestInventoryUpdate(APITest):
         """
         inv_source = factories.v2_inventory_source(overwrite_vars=True)
         inventory = inv_source.ds.inventory
-        assert inv_source.update().wait_until_completed().is_successful
+        inv_source.update().wait_until_completed().assert_successful()
         custom_group = inv_source.related.groups.get().results.pop()
 
         inserted_variables = "{'overwrite_me': true}"
@@ -243,7 +237,7 @@ class TestInventoryUpdate(APITest):
         for host in hosts.results:
             host.variables = inserted_variables
 
-        assert inv_source.update().wait_until_completed().is_successful
+        inv_source.update().wait_until_completed().assert_successful()
 
         assert inventory.get().variables == load_json_or_yaml(inserted_variables)
         expected_vars = {'ansible_host': '127.0.0.1', 'ansible_connection': 'local'}
@@ -262,7 +256,7 @@ class TestInventoryUpdate(APITest):
         """
         inv_source = factories.v2_inventory_source()
         inventory = inv_source.ds.inventory
-        assert inv_source.update().wait_until_completed().is_successful
+        inv_source.update().wait_until_completed().assert_successful()
         custom_group = inv_source.related.groups.get().results.pop()
 
         inserted_variables = "{'overwrite_me': false}"
@@ -272,7 +266,7 @@ class TestInventoryUpdate(APITest):
         for host in hosts.results:
             host.variables = inserted_variables
 
-        assert inv_source.update().wait_until_completed().is_successful
+        inv_source.update().wait_until_completed().assert_successful()
 
         assert inventory.get().variables == load_json_or_yaml(inserted_variables)
         expected_vars = {'overwrite_me': False, 'ansible_host': '127.0.0.1', 'ansible_connection': 'local'}
@@ -299,7 +293,7 @@ class TestInventoryUpdate(APITest):
         inv_source = factories.v2_inventory_source(inventory_script=inv_script)
 
         inv_update = inv_source.update().wait_until_completed()
-        assert inv_update.is_successful
+        inv_update.assert_successful()
         assert "TEST" in inv_update.result_stdout
 
     def test_update_with_custom_credential(self, factories, ansible_version_cmp):
@@ -360,7 +354,7 @@ class TestInventoryUpdate(APITest):
         inv_source = factories.v2_inventory_source(verbosity=verbosity)
         inv_update = inv_source.update().wait_until_completed()
 
-        assert inv_update.is_successful
+        inv_update.assert_successful()
         assert inv_update.verbosity == inv_source.verbosity
         if verbosity == 0 and ansible_version_cmp('2.4.0') >= 1:
             # https://github.com/ansible/awx/issues/792
@@ -535,7 +529,7 @@ class TestInventoryUpdate(APITest):
         inv_source.group_by = only_group_by
 
         update = inv_source.update().wait_until_completed()
-        assert update.is_successful
+        update.assert_successful()
         assert inv_source.get().is_successful
 
         groups = aws_group.ds.inventory.related.root_groups.get()
@@ -653,7 +647,7 @@ class TestInventoryUpdate(APITest):
         aws_inventory_source = factories.v2_inventory_source(kind='ec2', credential=aws_cred, verbosity=2)
 
         inv_update = aws_inventory_source.update().wait_until_completed()
-        assert inv_update.is_successful
+        inv_update.assert_successful()
 
         inv_update = aws_inventory_source.update()
         poll_until(
@@ -684,7 +678,7 @@ class TestInventoryUpdate(APITest):
             instance_filters=target_inventory.id
         )
         inv_update = tower_source.update().wait_until_completed()
-        assert inv_update.is_successful
+        inv_update.assert_successful()
         assert 'Loaded 0 groups, 1 hosts' in inv_update.result_stdout
 
         loaded_hosts = tower_source.ds.inventory.related.hosts.get()

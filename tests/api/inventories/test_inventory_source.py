@@ -161,7 +161,7 @@ class TestInventorySource(APITest):
         assert inv_update.get().is_successful
 
     def update_and_delete_resources(self, inv_source):
-        assert inv_source.update().wait_until_completed().is_successful
+        inv_source.update().wait_until_completed().assert_successful()
 
         groups = inv_source.get_related('groups')
         hosts = inv_source.get_related('hosts')

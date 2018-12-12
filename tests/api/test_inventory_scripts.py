@@ -246,7 +246,7 @@ class Test_Inventory_Scripts(APITest):
         update_pg = custom_inventory_source_with_vars.update().wait_until_completed()
 
         # assert successful inventory_update
-        assert update_pg.is_successful, "Inventory update unsuccessful - %s" % update_pg
+        update_pg.assert_successful()
 
         # assert imported groups
         inv_pg = custom_inventory_source_with_vars.get_related('inventory')
