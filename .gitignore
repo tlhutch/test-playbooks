@@ -19,5 +19,7 @@ chromedriver
 reports
 *credentials.yml*
 *credentials.yaml*
+*credentials-pkcs8.yml*
+*credentials-pkcs8.yaml*
 tools/docker/.build
 .DS_Store
