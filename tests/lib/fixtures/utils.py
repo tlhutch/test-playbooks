@@ -119,7 +119,10 @@ def hosts_in_group(modified_ansible_adhoc):
 
         :param return_hostnames: Boolean, return list of hostnames instead
 
-        :param return_map: Boolean, return a mapping between hostname and ansible_host.
+        :param return_map: Boolean, return a mapping between hostname and
+            ansible_host if it is available. Otherwise just a map of the
+            hostname to the hostname to keep tests sane, because in this case
+            that is all the info we have and just have to run with it.
         """
         group = manager.groups.get(group_name)
         if group is None:
@@ -130,7 +133,7 @@ def hosts_in_group(modified_ansible_adhoc):
         for host in group.get_hosts():
             ansible_host = host.vars.get('ansible_host', '')
             if return_map:
-                addresses[host.name] = ansible_host
+                addresses[host.name] = ansible_host if ansible_host else host.name
                 continue
             elif return_hostnames:
                 address = host.name
