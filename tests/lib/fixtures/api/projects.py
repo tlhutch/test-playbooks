@@ -20,7 +20,7 @@ def project_ansible_helloworld_hg(factories, organization):
 
 @pytest.fixture(scope="function")
 def project_ansible_playbooks_git_nowait(factories, organization):
-    project = factories.project(scm_type='git', scm_url='https://github.com/jlaska/ansible-playbooks.git',
+    project = factories.project(scm_type='git', scm_url='https://github.com/ansible/test-playbooks.git',
                                 organization=organization, wait=False)
     return project
 
@@ -48,7 +48,7 @@ def project_ansible_playbooks_manual(request, factories, ansible_runner, api_con
     local_path = 'project_dir_{0}'.format(fauxfactory.gen_alphanumeric())
     base_dir = api_config_pg.project_base_dir
     full_path = os.path.join(base_dir, local_path)
-    contacted = ansible_runner.git(repo='https://github.com/jlaska/ansible-playbooks.git', dest=full_path)
+    contacted = ansible_runner.git(repo='https://github.com/ansible/test-playbooks.git', dest=full_path)
     result = contacted.values()[0]
     assert not result.get('failed'), "Clone failed\n{0}".format(json.dumps(result, indent=4))
 
