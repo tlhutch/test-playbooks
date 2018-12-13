@@ -611,12 +611,12 @@ class TestSCMInventorySource(APITest):
         assert project.wait_until_completed().is_successful
 
     @pytest.mark.parametrize('scm_url, branch, source_path, expected_error',
-                             [('https://github.com/jlaska/ansible-playbooks.git', '', 'inventories/invalid_inventory.ini',
+                             [('https://github.com/ansible/test-playbooks.git', '', 'inventories/invalid_inventory.ini',
                                "Invalid section entry: '[syntax ?? error]'"),
-                              ('https://github.com/jlaska/ansible-playbooks.git', '',
+                              ('https://github.com/ansible/test-playbooks.git', '',
                                'inventories/invalid_dyn_inventory.py',
                                'bad data for the host list'),
-                              ('https://github.com/jlaska/ansible-playbooks.git', '', 'not_a_source_path',
+                              ('https://github.com/ansible/test-playbooks.git', '', 'not_a_source_path',
                                'Source does not exist'),
                               ('https://github.com/ansible/ansible.git', 'stable-2.3', 'contrib/inventory/ec2.py',
                                'Check your credentials'),

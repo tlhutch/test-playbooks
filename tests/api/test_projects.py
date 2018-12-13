@@ -113,7 +113,7 @@ class Test_Projects(APITest):
         # change the scm_type to 'git'
         project_pg = project_ansible_playbooks_manual.patch(
             scm_type='git',
-            scm_url='https://github.com/jlaska/ansible-playbooks.git',
+            scm_url='https://github.com/ansible/test-playbooks.git',
         )
 
         # update the project and wait for completion
@@ -218,7 +218,7 @@ class Test_Projects(APITest):
     @pytest.mark.parametrize("scm_type,mod_kwargs", [
         ('hg', {'scm_branch': '09e81486069b4e38e62c24d7d7a529fc975d4a31'}),
         ('git', {'scm_branch': 'with_requirements'}),
-        ('hg', {'scm_type': 'git', 'scm_url': 'https://github.com/jlaska/ansible-playbooks.git'}),
+        ('hg', {'scm_type': 'git', 'scm_url': 'https://github.com/ansible/test-playbooks.git'}),
         ('git', {'scm_url': 'https://github.com/alancoding/ansible-playbooks.git'})
     ], ids=['hg-branch', 'git-branch', 'scm_type', 'git-url'])
     def test_auto_update_on_modification_of_scm_fields(self, factories, scm_type, mod_kwargs):
@@ -349,7 +349,7 @@ class Test_Projects(APITest):
                 expected_role_path
 
     def test_project_with_galaxy_requirements_processed_on_scm_change(self, factories, job_template_that_writes_to_source):
-        project_with_requirements = factories.v2_project(scm_url='https://github.com/jlaska/ansible-playbooks.git',
+        project_with_requirements = factories.v2_project(scm_url='https://github.com/ansible/test-playbooks.git',
                                                          scm_branch='with_requirements')
         jt_with_requirements = factories.v2_job_template(project=project_with_requirements,
                                                          playbook='debug.yml')
@@ -373,7 +373,7 @@ class Test_Projects(APITest):
         dict(scm_clean=False, scm_delete_on_update=True),
     ], ids=('first_time', 'scm_clean', 'scm_delete_on_update'))
     def test_project_with_galaxy_requirements_updated_when(self, factories, scm_params):
-        project = factories.v2_project(scm_url='https://github.com/jlaska/ansible-playbooks.git',
+        project = factories.v2_project(scm_url='https://github.com/ansible/test-playbooks.git',
                                        scm_branch='with_requirements',
                                        scm_update_on_launch=False,
                                        **scm_params)
@@ -400,7 +400,7 @@ class Test_Projects(APITest):
 
     @pytest.mark.parametrize("scm_url, use_credential",
                              [('https://github.com/ansible/tower.git', True),
-                              ('https://github.com/jlaska/ansible-playbooks.git', True),
+                              ('https://github.com/ansible/test-playbooks.git', True),
                               ('https://foobar:barfoo@github.com/ansible/tower.git', False)],
                              ids=['invalid_cred', 'valid_cred', 'cred_in_url'])
     def test_project_update_results_do_not_leak_credential(self, factories, scm_url, use_credential):
@@ -424,7 +424,7 @@ class Test_Projects(APITest):
         """Confirms that local file paths can be used for git repos"""
         path = '/home/at_3207_test/'
         request.addfinalizer(lambda: ansible_runner.file(path=path, state='absent'))
-        sync = ansible_runner.git(repo='git://github.com/jlaska/ansible-playbooks.git', dest=path)
+        sync = ansible_runner.git(repo='git://github.com/ansible/test-playbooks.git', dest=path)
         rev = sync.values().pop()['after']
         assert rev
         project = factories.project(scm_url='file://{0}'.format(path))

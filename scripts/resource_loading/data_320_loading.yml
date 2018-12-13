@@ -541,10 +541,10 @@ projects:
       credential: git@github.com (ssh_key_data)
 
     - name: ansible-playbooks.git (github, ssh_key_data)
-      description: 'git@github.com:jlaska/ansible-playbooks.git (ssh_key_data)'
+      description: 'git@github.com:ansible/test-playbooks.git (ssh_key_data)'
       organization: Ansible, Inc
       scm_type: git
-      scm_url: 'git@github.com:jlaska/ansible-playbooks.git'
+      scm_url: 'git@github.com:ansible/test-playbooks.git'
       scm_branch: 'master'
       scm_clean: false
       scm_delete_on_update: false
