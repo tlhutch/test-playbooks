@@ -129,6 +129,7 @@ class Test_Projects(APITest):
         assert project_pg.is_successful, "After a successful project update, " \
             "the project is not marked as successful - id:%s" % project_pg.id
 
+    @pytest.mark.skip_openshift  # Github Issue: https://github.com/ansible/tower-qa/issues/2523
     def test_automatic_deletion_of_project_folder(self, factories, ansible_adhoc, api_config_pg, api_ping_pg, v2):
         project = factories.v2_project()
         expected_project_path = os.path.join(api_config_pg.project_base_dir, project.local_path)  # absolute path
