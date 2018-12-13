@@ -238,6 +238,7 @@ class Test_Sequential_Jobs(APITest):
         # check that we have overlapping jobs
         check_overlapping_jobs(jobs)
 
+    @pytest.mark.skip_openshift  # Github Issue: https://github.com/ansible/tower-qa/issues/2591
     def test_workflow_job_template(self, workflow_job_template, factories):
         """Launch several WFJs using the same WFJT. Check that:
         * No WFJs ran simultaneously.
@@ -300,6 +301,7 @@ class Test_Sequential_Jobs(APITest):
         # confirm unified jobs ran as expected
         confirm_unified_jobs(ordered_commands)
 
+    @pytest.mark.skip_openshift  # Github Issue: https://github.com/ansible/tower-qa/issues/2591
     def test_simultaneous_ad_hoc_commands(self, request, v1):
         """Launch two ad hoc commands on different inventories. Check that
         our commands run simultaneously.
@@ -605,6 +607,7 @@ class Test_Autospawned_Jobs(APITest):
         sorted_unified_jobs = [initial_project_update, [job_pg, spawned_project_update]]
         confirm_unified_jobs(sorted_unified_jobs)
 
+    @pytest.mark.skip_openshift  # Github Issue: https://github.com/ansible/tower-qa/issues/2591
     def test_inventory_and_project(self, custom_inventory_job_template, custom_inventory_source):
         """Verify that two project updates and an inventory update get triggered
         by a job launch when we enable update_on_launch for both our project and
