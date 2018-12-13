@@ -5,6 +5,8 @@ import logging
 import fauxfactory
 import pytest
 
+from pytest_ansible.fixtures import ansible_facts as uncalled_ansible_facts
+
 
 @pytest.fixture
 def subrequest(request):
@@ -167,7 +169,8 @@ def skip_if_fips_enabled(is_fips_enabled):
 
 
 @pytest.fixture
-def is_fips_enabled(is_docker, ansible_facts):
+def is_fips_enabled(is_docker, ansible_module):
     if is_docker:
         return False
+    ansible_facts = uncalled_ansible_facts(ansible_module)
     return True in [dict(facts)['ansible_facts']['ansible_fips'] for host, facts in ansible_facts.contacted.iteritems()]
