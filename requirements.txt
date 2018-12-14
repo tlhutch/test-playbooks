@@ -16,7 +16,7 @@ git+ssh://git@github.com/ansible/pytest-ansible.git
 pytest-benchmark
 pytest-cache
 pytest-cov
-pytest-github
+git+ssh://git@github.com/jlaska/pytest-github.git
 pytest-ordering
 python-dateutil
 pytz
