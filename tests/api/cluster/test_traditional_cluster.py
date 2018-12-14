@@ -151,8 +151,7 @@ class TestTraditionalCluster(APITest):
                 break
             time.sleep(interval)
 
-    @pytest.mark.github('https://github.com/ansible/tower-qa/issues/2481')
-    def test_instance_group_creation(self, authtoken, v2, ansible_runner):
+    def test_instance_group_creation(self, authtoken, v2, ansible_runner, hosts_in_group):
         inventory_path = os.environ.get('TQA_INVENTORY_FILE_PATH', '/tmp/setup/inventory')
         cmd = 'scripts/ansible_inventory_to_json.py --inventory {0} --group-filter tower,instance_group_,isolated_group_'.format(inventory_path)
         contacted = ansible_runner.script(cmd)
@@ -168,10 +167,17 @@ class TestTraditionalCluster(APITest):
         assert len(instance_groups) == len(group_mapping.keys())
         assert set(instance_groups) == set(group_mapping.keys())
 
+        # group_mapping maps instance groups to fqdns, but we need ip addresses
+        # relate the two to eachother via the ansible_host var passed with each
+        # host in the inventory file. If no ansible_host var is present, we will
+        # just stick to hostname.
+        hostname_map = hosts_in_group('all', return_map=True)
         for group in v2.instance_groups.get().results:
             instances = [instance.hostname for instance in group.get_related('instances').results]
             assert len(instances) == len(group_mapping[group.name])
-            assert set(instances) == set(group_mapping[group.name])
+            # Using default of host allows us to cope with situations when
+            # there is no "ansible_host" defined
+            assert set(instances) == set([hostname_map.get(host, host) for host in group_mapping[group.name]])
 
     def test_instance_groups_do_not_include_isolated_instances(self, v2):
         igs = [ig for ig in v2.instance_groups.get().results if not ig.controller]
