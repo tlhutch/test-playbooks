@@ -618,6 +618,7 @@ class TestInventoryUpdate(APITest):
         assert 'ERROR! No inventory was parsed, please check your configuration and options' in inv_update.result_stdout
         assert 'SyntaxError' not in inv_update.result_stdout
 
+    @pytest.mark.skip_openshift  # Github Issue: https://github.com/ansible/tower-qa/issues/2591
     def test_inventory_events_are_inserted_in_the_background(self, factories):
         aws_cred = factories.v2_credential(kind='aws')
         ec2_source = factories.v2_inventory_source(source='ec2', credential=aws_cred)
