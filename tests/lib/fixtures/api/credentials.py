@@ -408,5 +408,5 @@ def write_access_git_credential(class_factories):
                               GIT_COMMITTER_NAME='Tower Testing', GIT_COMMITTER_EMAIL='tower@qe.com',
                               GIT_KEY="{{tower.filename}}"))
     cred_type = class_factories.credential_type(inputs=inputs, injectors=injectors)
-    pk = config.credentials.scm.jlaska_ansible_playbooks.ssh_key_data
+    pk = config.credentials.scm.test_playbooks.ssh_key_data
     return class_factories.v2_credential(credential_type=cred_type, inputs=dict(git_key=pk))

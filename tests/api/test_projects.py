@@ -32,7 +32,7 @@ def project_with_galaxy_requirements(request, authtoken, organization):
     # Create project
     payload = dict(name="project-with-galaxy-requirements - %s" % fauxfactory.gen_utf8(),
                    scm_type='git',
-                   scm_url='https://github.com/jlaska/ansible-playbooks',
+                   scm_url='https://github.com/ansible/test-playbooks',
                    scm_branch='with_requirements',
                    scm_clean=False,
                    scm_delete_on_update=False,
