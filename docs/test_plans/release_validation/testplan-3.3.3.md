@@ -15,10 +15,10 @@ Due to the really limited change introduced in this maintenance release only a l
 
 ## Resources
 
-* TBD
+* TBD (jladd, ..)
 
 ## Test
 
-1. [ ] Install Cluster
+1. [x] Install Cluster
 2. [ ] Upgrade Cluster
 3. [ ] API Integration Cluster
