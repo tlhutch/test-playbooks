@@ -61,7 +61,7 @@ class TestSCMInventorySource(APITest):
                                            'inventories/metaless_dyn_inventory.py'])
     def scm_inv_source_with_group_and_host_var_dirs(self, request, class_factories):
         inv_source = class_factories.v2_inventory_source(source='scm', source_path=request.param)
-        assert inv_source.update().wait_until_completed().is_successful
+        inv_source.update().wait_until_completed().assert_successful()
         scm_inv_sources = inv_source.ds.project.related.scm_inventory_sources.get().results
         assert len(scm_inv_sources) == 1
         assert scm_inv_sources[0].id == inv_source.id
@@ -162,14 +162,14 @@ class TestSCMInventorySource(APITest):
     def test_scm_inv_source_with_overwrite(self, factories):
         inv_source = factories.v2_inventory_source(source='scm', source_path='inventories/inventory.ini',
                                                    overwrite=True)
-        assert inv_source.update().wait_until_completed().is_successful
+        inv_source.update().wait_until_completed().assert_successful()
 
         for related_hosts in (inv_source.ds.inventory.related.hosts, inv_source.related.hosts):
             hosts = related_hosts.get(page_size=200).results
             assert set([host.name for host in hosts]) == self.inventory_hostnames
 
         inv_source.source_path = 'inventories/more_inventories/dyn_inventory.py'
-        assert inv_source.update().wait_until_completed().is_successful
+        inv_source.update().wait_until_completed().assert_successful()
 
         for related_hosts in (inv_source.ds.inventory.related.hosts, inv_source.related.hosts):
             hosts = related_hosts.get(page_size=200).results
@@ -190,7 +190,7 @@ class TestSCMInventorySource(APITest):
         for inv_source in inv_sources:
             inv_source.update()
         for inv_source in inv_sources:
-            assert inv_source.wait_until_completed().is_successful
+            inv_source.wait_until_completed().assert_successful()
 
         hosts = inventory.related.hosts.get(page_size=200).results
         assert set([host.name for host in hosts]) == self.all_inventory_hostnames
@@ -238,7 +238,7 @@ class TestSCMInventorySource(APITest):
         for source_path in ('inventories/inventory.ini', 'inventories/dyn_inventory.py'):
             scm_inv_source.source_path = source_path
             for _ in range(2):
-                assert scm_inv_source.update().wait_until_completed().is_successful
+                scm_inv_source.update().wait_until_completed().assert_successful()
         assert scm_inv_source.related.inventory_updates.get().count == 4
         assert scm_inv_source.ds.project.related.project_updates.get(launch_type='manual').count == 1
 
@@ -249,7 +249,7 @@ class TestSCMInventorySource(APITest):
                                              inputs=dict(test_env='TEST_ENV_1'))
         inv_source = factories.v2_inventory_source(source='scm', source_path='inventories/dyn_inventory_test_env.py',
                                                    credential=credential)
-        assert inv_source.update().wait_until_completed().is_successful
+        inv_source.update().wait_until_completed().assert_successful()
         host = inv_source.ds.inventory.related.hosts.get(name='localhost').results.pop()
         assert host.variables.test_env == 'TEST_ENV_1'
 
@@ -272,13 +272,13 @@ class TestSCMInventorySource(APITest):
         assert project.related.project_updates.get(launch_type='sync').count == 1
 
         job = job_template_that_writes_to_source.launch()
-        assert job.wait_until_completed().is_successful, job.result_stdout
+        job.wait_until_completed().assert_successful()
 
         assert project.related.project_updates.get(launch_type='manual').count == 1
         assert project.related.project_updates.get(launch_type='sync').count == 2  # addtl sync from job launch
         assert inv_source.related.inventory_updates.get().count == 1
 
-        assert project.update().wait_until_completed().is_successful
+        project.update().wait_until_completed().assert_successful()
         inv_source.wait_until_completed()
 
         assert project.related.project_updates.get(launch_type='manual').count == 2
@@ -294,13 +294,13 @@ class TestSCMInventorySource(APITest):
         inv_source = factories.v2_inventory_source(source='scm', project=project,
                                                    source_path=source_path,
                                                    update_on_project_update=True)
-        assert inv_source.wait_until_completed().is_successful
+        inv_source.wait_until_completed().assert_successful()
 
         assert project.related.project_updates.get(launch_type='manual').count == 1
         assert project.related.project_updates.get(launch_type='sync').count == 1
         assert inv_source.related.inventory_updates.get().count == 1
 
-        assert project.update().wait_until_completed().is_successful
+        project.update().wait_until_completed().assert_successful()
 
         assert project.related.project_updates.get(launch_type='manual').count == 2
         assert project.related.project_updates.get(launch_type='sync').count == 1
@@ -318,7 +318,7 @@ class TestSCMInventorySource(APITest):
         assert project.related.project_updates.get(launch_type='sync').count == 1
         assert inv_source.related.inventory_updates.get().count == 1
 
-        assert inv_source.update().wait_until_completed().is_successful
+        inv_source.update().wait_until_completed().assert_successful()
 
         assert project.related.project_updates.get(launch_type='manual').count == 1
         assert project.related.project_updates.get(launch_type='sync').count == 2
@@ -341,7 +341,7 @@ class TestSCMInventorySource(APITest):
         jt = factories.v2_job_template(inventory=inv_sources[0].ds.inventory, project=project,
                                        playbook='utils/trigger_update.yml', limit='ungrouped_host_01')
         jt.add_extra_credential(write_access_git_credential)
-        assert jt.launch().wait_until_completed().is_successful
+        jt.launch().wait_until_completed().assert_successful()
 
         update = project.update().wait_until_status('running')
 
@@ -380,7 +380,7 @@ class TestSCMInventorySource(APITest):
                                        playbook='ansible_env.yml')
         jt.add_extra_credential(cred)
         job = jt.launch().wait_until_completed()
-        assert job.is_successful
+        job.assert_successful()
 
         event = job.related.job_events.get(host=host.id, task='debug').results.pop()
         ansible_env = event.event_data.res.ansible_env
@@ -471,7 +471,7 @@ class TestSCMInventorySource(APITest):
 
         assert not inv_source.related.inventory_updates.get().results
         job = jt.launch().wait_until_completed()
-        assert job.is_successful
+        job.assert_successful()
 
         self.wait_until_job_events_stable(job)
 
@@ -488,15 +488,15 @@ class TestSCMInventorySource(APITest):
     @pytest.mark.mp_group('ProjectUpdateWithSCMChange', 'serial')
     def test_scm_inv_source_with_update_on_project_update_synced_within_parent_project_update(self, factories,
                                                                                               job_template_that_writes_to_source):
-        assert job_template_that_writes_to_source.launch().wait_until_completed().is_successful
+        job_template_that_writes_to_source.launch().wait_until_completed().assert_successful()
 
         project = job_template_that_writes_to_source.ds.project
         scm_inv_source = factories.v2_inventory_source(source='scm', source_path='inventories/inventory.ini',
                                                        project=project)
         scm_inv_source.update_on_project_update = True
 
-        assert project.update().wait_until_completed().is_successful
-        assert scm_inv_source.get().is_successful
+        project.update().wait_until_completed().assert_successful()
+        scm_inv_source.get().assert_successful()
 
         inv_updates = scm_inv_source.related.inventory_updates.get().results
         assert len(inv_updates) == 1
@@ -521,7 +521,7 @@ class TestSCMInventorySource(APITest):
     @pytest.mark.mp_group('ProjectUpdateWithSCMChange', 'serial')
     def test_project_update_for_scm_inv_source_with_running_update_on_project_update(self, factories,
                                                                                      job_template_that_writes_to_source):
-        assert job_template_that_writes_to_source.launch().wait_until_completed().is_successful
+        job_template_that_writes_to_source.launch().wait_until_completed().assert_successful()
         project = job_template_that_writes_to_source.ds.project
         scm_inv_source = factories.v2_inventory_source(source='scm', source_path='inventories/inventory.ini',
                                                        project=project)
@@ -530,7 +530,7 @@ class TestSCMInventorySource(APITest):
         #  update the project and immediately schedule another update
         project.update().wait_until_status('running')
         project.update()
-        assert scm_inv_source.wait_until_completed().is_successful
+        scm_inv_source.wait_until_completed().assert_successful()
 
         inv_updates = scm_inv_source.related.inventory_updates.get().results
         assert len(inv_updates) == 1
@@ -556,11 +556,11 @@ class TestSCMInventorySource(APITest):
         jt = factories.v2_job_template(inventory=inv_source.ds.inventory, project=project)
         # Job launch triggers update of project-inv-src and project itself
         job = jt.launch().wait_until_completed()
-        assert inv_source.related.inventory_updates.get().results[0].is_successful
+        inv_source.related.inventory_updates.get().results[0].assert_successful()
         # project spawns multiple updates
         for pu in project.related.project_updates.get().results:
-            assert pu.is_successful
-        assert job.is_successful
+            pu.assert_successful()
+        job.assert_successful()
 
     def test_scm_inv_source_update_on_project_update_with_project_update_on_launch(self, factories):
         scm_inv_source = factories.v2_inventory_source(source='scm', source_path='inventories/inventory.ini')
@@ -574,7 +574,7 @@ class TestSCMInventorySource(APITest):
         assert project.related.project_updates.get(launch_type='manual').count == 1
 
         job = jt.launch().wait_until_completed()
-        assert job.is_successful
+        job.assert_successful()
 
         self.wait_until_job_events_stable(job)
 
@@ -596,7 +596,7 @@ class TestSCMInventorySource(APITest):
 
     @pytest.mark.mp_group('ProjectUpdateWithSCMChange', 'serial')
     def test_canceled_inventory_update_during_project_update(self, factories, job_template_that_writes_to_source):
-        assert job_template_that_writes_to_source.launch().wait_until_completed().is_successful
+        job_template_that_writes_to_source.launch().wait_until_completed().assert_successful()
         project = job_template_that_writes_to_source.ds.project
         inv_source = factories.v2_inventory_source(source='scm', source_path='inventories/inventory.ini',
                                                    project=project)
@@ -608,7 +608,7 @@ class TestSCMInventorySource(APITest):
         inv_update.related.cancel.post()
         assert inv_update.wait_until_completed().status == 'canceled'
 
-        assert project.wait_until_completed().is_successful
+        project.wait_until_completed().assert_successful()
 
     @pytest.mark.parametrize('scm_url, branch, source_path, expected_error',
                              [('https://github.com/ansible/test-playbooks.git', '', 'inventories/invalid_inventory.ini',
@@ -637,7 +637,7 @@ class TestSCMInventorySource(APITest):
 
         project_updates = project.related.project_updates.get(launch_type='sync').results
         assert len(project_updates) == 1
-        assert project_updates[0].is_successful
+        project_updates[0].assert_successful()
 
     @pytest.mark.parametrize('source', ('custom', 'ec2'))
     def test_confirm_non_scm_inventory_source_disallows_scm_fields(self, factories, source):
@@ -666,7 +666,7 @@ class TestSCMInventorySource(APITest):
         )
 
         inv_update = inv_src.update().wait_until_completed()
-        assert inv_update.is_successful
+        inv_update.assert_successful()
 
         groups = inv_src.related.groups.get()
         assert groups['count'] == 1

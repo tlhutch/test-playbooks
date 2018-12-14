@@ -68,7 +68,7 @@ class TestHostFilter(APITest):
     @pytest.fixture(scope='class')
     def populate_ansible_facts(self, class_factories, loaded_inventory):
         jt = class_factories.job_template(inventory=loaded_inventory, playbook='gather_facts.yml', use_fact_cache=True)
-        assert jt.launch().wait_until_completed().is_successful
+        jt.launch().wait_until_completed().assert_successful()
 
     @pytest.mark.mp_group('HostSearch', 'serial')
     @pytest.mark.parametrize('host_filter, expected_hosts',

@@ -84,7 +84,7 @@ class TestInventory(APITest):
         jt = factories.v2_job_template(inventory=inventory)
 
         job = jt.launch().wait_until_completed()
-        assert job.is_successful
+        job.assert_successful()
 
         jhs = job.related.job_host_summaries.get()
         assert jhs.count == 1
@@ -97,7 +97,7 @@ class TestInventory(APITest):
         jt = factories.v2_job_template(inventory=inventory)
 
         job = jt.launch().wait_until_completed()
-        assert job.is_successful
+        job.assert_successful()
 
         assert job.related.job_host_summaries.get().count == 0
 
@@ -188,7 +188,7 @@ class TestInventory(APITest):
         for inv in invs:
             inv.silent_delete = noop
             inv.delete()
-        assert jt.launch().wait_until_completed().is_successful
+        jt.launch().wait_until_completed().assert_successful()
 
     @pytest.fixture
     def host_script(self):
@@ -218,7 +218,7 @@ class TestInventory(APITest):
         inv.update_inventory_sources(wait=True)
 
         copied = inv.get_related('copy').post({'name': six.text_type('{} (Copied)').format(inv.name)})
-        assert jt.launch().wait_until_completed().is_successful
+        jt.launch().wait_until_completed().assert_successful()
 
         utils.poll_until(lambda: copied.get_related('hosts').count == total, interval=10, timeout=60 * 5)
 

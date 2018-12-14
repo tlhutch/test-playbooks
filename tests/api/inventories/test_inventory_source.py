@@ -70,7 +70,7 @@ class TestInventorySource(APITest):
 
         # Run the inventory update
         inv_update = inv_src.update().wait_until_completed()
-        assert inv_update.is_successful
+        inv_update.assert_successful()
         inv_hosts = inventory.related.hosts.get()
         assert inv_hosts.count == 3
         script_data = inventory.get_related('script')
@@ -128,7 +128,7 @@ class TestInventorySource(APITest):
 
         # Run the inventory update
         inv_update = inv_src.update().wait_until_completed()
-        assert inv_update.is_successful
+        inv_update.assert_successful()
         inv_hosts = inventory.related.hosts.get()
         assert inv_hosts.count == 1
         host = inv_hosts.results.pop()
@@ -146,7 +146,7 @@ class TestInventorySource(APITest):
         jt = factories.v2_job_template(playbook='debug_hostvars.yml', inventory=inventory)
         jt.add_credential(vault_cred)
         job = jt.launch().wait_until_completed()
-        assert job.is_successful
+        job.assert_successful()
         assert '"encrypted_var": "artemis"' in job.result_stdout
 
     def test_conflict_exception_with_running_inventory_update(self, factories):
@@ -157,8 +157,8 @@ class TestInventorySource(APITest):
             inv_source.delete()
         assert e.value[1] == {'error': 'Resource is being used by running jobs.', 'active_jobs': [{'type': 'inventory_update', u'id': inv_update.id}]}
 
-        assert inv_source.wait_until_completed().is_successful
-        assert inv_update.get().is_successful
+        inv_source.wait_until_completed().assert_successful()
+        inv_update.get().assert_successful()
 
     def update_and_delete_resources(self, inv_source):
         inv_source.update().wait_until_completed().assert_successful()
