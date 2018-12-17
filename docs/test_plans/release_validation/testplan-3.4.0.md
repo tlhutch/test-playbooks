@@ -82,7 +82,7 @@
 1. [x] Tower SAML integration regression completed (OpenShift)
 1. [ ] Logging regression completed - standalone
 1. [ ] Logging regression completed - cluster
-1. [ ] Backup/restore successful - standalone
+1. [x] [Backup/restore successful - standalone](http://jenkins.ansible.eng.rdu2.redhat.com/job/Test_Tower_Backup_and_Restore/628/)
 1. [ ] Backup/restore successful - traditional cluster (RHEL-7.5, Ubuntu-16)
 1. [ ] Backup/restore successful - OpenShift
 
