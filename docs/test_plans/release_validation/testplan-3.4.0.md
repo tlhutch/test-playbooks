@@ -122,7 +122,7 @@ Install/Deploy tower in the following configurations and validate functionality 
 1. [ ] Deploy tower in [OpenShift with an external DB](https://github.com/ansible/tower-qa/issues/1656)
 
 ### Upgrades for all supported platforms
-1. [ ] Successful upgrades (and migrations) from `3.2.7` - `3.4.0` (standalone)
+1. [x] [Successful upgrades (and migrations) from `3.2.7` - `3.4.0` (standalone)](http://jenkins.ansible.eng.rdu2.redhat.com/view/Tower/job/Test_Tower_Upgrade/3486/)
 1. [x] [Successful upgrades (and migrations) from `3.2.8` - `3.4.0` (standalone)](http://jenkins.ansible.eng.rdu2.redhat.com/view/Tower/job/Test_Tower_Upgrade/3485/)
 1. [x] [Successful upgrades (and migrations) from `3.3.0` - `3.4.0` (standalone)](http://jenkins.ansible.eng.rdu2.redhat.com/view/Tower/job/Test_Tower_Upgrade/3481/)
 1. [x] [Successful upgrades (and migrations) from `3.3.1` - `3.4.0` (standalone)](http://jenkins.ansible.eng.rdu2.redhat.com/view/Tower/job/Test_Tower_Upgrade/3482/)
