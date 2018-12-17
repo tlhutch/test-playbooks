@@ -136,9 +136,9 @@ Install/Deploy tower in the following configurations and validate functionality 
 
 ### Artifacts
 
-    * [x] [AMI (unlicensed)](http://jenkins.ansible.eng.rdu2.redhat.com/job/qe-sandbox/job/Build_Tower_Image_Plain/5/)
-    * [x] [Vagrant](http://jenkins.ansible.eng.rdu2.redhat.com/job/Build_Tower_Vagrant_Box/48/)
-    * [x] [Documentation](http://jenkins.ansible.eng.rdu2.redhat.com/job/Build_Tower_Docs/3067/)
+  * [x] [AMI (unlicensed)](http://jenkins.ansible.eng.rdu2.redhat.com/job/qe-sandbox/job/Build_Tower_Image_Plain/5/)
+  * [x] [Vagrant](http://jenkins.ansible.eng.rdu2.redhat.com/job/Build_Tower_Vagrant_Box/48/)
+  * [x] [Documentation](http://jenkins.ansible.eng.rdu2.redhat.com/job/Build_Tower_Docs/3067/)
 
 ### Misc
 
