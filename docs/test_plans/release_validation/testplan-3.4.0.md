@@ -134,10 +134,11 @@ Install/Deploy tower in the following configurations and validate functionality 
     * Launch inventory_updates for existing inventory_source
     * Launch, and relaunch, existing job_templates
 
-### Provided Images
-1. Installation completes successfully on supported images
-    * [ ] AMI (unlicensed)
-    * [ ] Vagrant
+### Artifacts
+
+    * [x] [AMI (unlicensed)](http://jenkins.ansible.eng.rdu2.redhat.com/job/qe-sandbox/job/Build_Tower_Image_Plain/5/)
+    * [x] [Vagrant](http://jenkins.ansible.eng.rdu2.redhat.com/job/Build_Tower_Vagrant_Box/48/)
+    * [x] [Documentation](http://jenkins.ansible.eng.rdu2.redhat.com/job/Build_Tower_Docs/3067/)
 
 ### Misc
 
