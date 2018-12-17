@@ -111,13 +111,12 @@ Install/Deploy tower in the following configurations and validate functionality 
     * [ ] devel
     * [ ] ansible-2.7
     * [ ] ansible-2.6
-1. Bundled installation completes successfully on all supported platforms (automated)
-    * [ ] centos-7.latest
-    * [ ] ubuntu-16.04
-    * [ ] ol-7.latest
-    * [ ] rhel-7.4
-    * [ ] rhel-7.5
-    * [ ] rhel-7.6
+1. [Bundled installation completes successfully on all supported platforms (automated)](http://jenkins.ansible.eng.rdu2.redhat.com/view/Tower/job/Test_Tower_Bundle_Install/1753/)
+    * [x] centos-7.latest
+    * [x] ol-7.latest
+    * [x] rhel-7.4
+    * [x] rhel-7.5
+    * [x] rhel-7.6
 1. [ ] Bundled installation completes successfully for clustered deployments
 1. [ ] Deploy tower with [HTTPS+Load Balancer+Let's Encrypt](https://github.com/ansible/tower-qa/issues/1985)
 1. [ ] Deploy tower in [OpenShift with an external DB](https://github.com/ansible/tower-qa/issues/1656)
