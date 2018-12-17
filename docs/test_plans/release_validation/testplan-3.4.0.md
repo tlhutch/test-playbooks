@@ -89,17 +89,17 @@
 ### Installation
 Install/Deploy tower in the following configurations and validate functionality with automated tests
 
-1. Installation completes successfully on all supported platforms (automated)
-    * [ ] centos-7.latest
-    * [ ] ubuntu-16.04
-    * [ ] ol-7.latest
-    * [ ] rhel-7.4
-    * [ ] rhel-7.5
-    * [ ] rhel-7.6
-1. Installation completes successfully using supported ansible releases (automated)
-    * [ ] devel
-    * [ ] ansible-2.7
-    * [ ] ansible-2.6
+1. [Installation completes successfully on all supported platforms (automated)](http://jenkins.ansible.eng.rdu2.redhat.com/view/Tower/job/Test_Tower_Install/1205/)
+    * [x] centos-7.latest
+    * [x] ubuntu-16.04
+    * [x] ol-7.latest
+    * [x] rhel-7.4
+    * [x] rhel-7.5
+    * [x] rhel-7.6
+1. [Installation completes successfully using supported ansible releases (automated)](http://jenkins.ansible.eng.rdu2.redhat.com/view/Tower/job/Test_Tower_Install/1205/)
+    * [x] devel
+    * [x] ansible-2.7
+    * [x] ansible-2.6
 1. Cluster installation completes successfully on all supported platforms (automated)
     * [ ] centos-7.latest
     * [ ] ubuntu-16.04
