@@ -132,7 +132,7 @@ class TestSmartInventory(APITest):
         assert hosts.count == 3
 
         ahc = factories.v2_ad_hoc_command(inventory=smart_inventory).wait_until_completed()
-        assert ahc.is_successful
+        ahc.assert_successful()
         assert ahc.summary_fields.inventory.id == smart_inventory.id
         assert ahc.inventory == smart_inventory.id
 
@@ -158,7 +158,7 @@ class TestSmartInventory(APITest):
 
         jt = factories.v2_job_template(inventory=smart_inventory)
         job = jt.launch().wait_until_completed()
-        assert job.is_successful
+        job.assert_successful()
         assert job.summary_fields.inventory.id == smart_inventory.id
         assert job.inventory == smart_inventory.id
 
@@ -184,7 +184,7 @@ class TestSmartInventory(APITest):
 
         for name in host_names:
             ahc = factories.v2_ad_hoc_command(inventory=smart_inventory, limit=name).wait_until_completed()
-            assert ahc.is_successful
+            ahc.assert_successful()
 
             runner_events = ahc.related.events.get(event__startswith='runner_on_ok')
             assert runner_events.count == 1
@@ -207,7 +207,7 @@ class TestSmartInventory(APITest):
         for name in host_names:
             jt.limit = name
             job = jt.launch().wait_until_completed()
-            assert job.is_successful
+            job.assert_successful()
 
             runner_events = job.related.job_events.get(event__startswith='runner_on_ok')
             assert runner_events.count == 1
@@ -218,7 +218,7 @@ class TestSmartInventory(APITest):
         smart_inventory = factories.v2_inventory(organization=host.ds.inventory.ds.organization, kind="smart",
                                                  host_filter="name={0}".format(host.name))
         ahc = factories.v2_ad_hoc_command(inventory=smart_inventory, module_name='ping').wait_until_completed()
-        assert ahc.is_successful
+        ahc.assert_successful()
         assert 'provided hosts list is empty' in ahc.result_stdout
 
     def test_jobs_should_not_run_on_disabled_smart_inventory_hosts(self, factories):
@@ -226,7 +226,7 @@ class TestSmartInventory(APITest):
         smart_inventory = factories.v2_inventory(organization=host.ds.inventory.ds.organization, kind="smart",
                                                  host_filter="name={0}".format(host.name))
         job = factories.v2_job_template(inventory=smart_inventory).launch().wait_until_completed()
-        assert job.is_successful
+        job.assert_successful()
         assert 'skipping: no hosts matched' in job.result_stdout
 
     def test_host_update_after_ahc(self, factories):
@@ -246,7 +246,7 @@ class TestSmartInventory(APITest):
                                                  host_filter="name={0}".format(host.name))
         job = factories.v2_job_template(inventory=smart_inventory).launch().wait_until_completed()
 
-        assert job.is_successful
+        job.assert_successful()
         jhs = job.related.job_host_summaries.get().results.pop()
 
         assert host.get().summary_fields.last_job.id == job.id
@@ -290,7 +290,7 @@ class TestSmartInventory(APITest):
         group.add_host(host)
 
         jt = factories.v2_job_template(inventory=inventory)
-        assert jt.launch().wait_until_completed().is_successful
+        jt.launch().wait_until_completed().assert_successful()
 
         smart_inventory = factories.v2_inventory(organization=inventory.ds.organization, kind="smart",
                                                  host_filter="name={0}".format(host.name), variables="")
@@ -308,7 +308,7 @@ class TestSmartInventory(APITest):
         assert smart_inventory.related.hosts.get().count == 1
 
         jt = factories.v2_job_template(inventory=smart_inventory)
-        assert jt.launch().wait_until_completed().is_successful
+        jt.launch().wait_until_completed().assert_successful()
 
     def test_smart_inventory_deletion_should_not_cascade_delete_hosts(self, factories):
         host = factories.v2_host()

@@ -87,7 +87,7 @@ class TestInventoryUpdate(APITest):
 
         assert not inv_source1.last_updated
         inv_update.assert_successful()
-        assert inv_source2.is_successful
+        inv_source2.assert_successful()
 
     def test_v2_update_all_inventory_sources_with_nonfunctional_sources(self, factories):
         """Verify behavior when inventory has nonfunctional inventory sources."""
@@ -123,8 +123,8 @@ class TestInventoryUpdate(APITest):
 
         for update in inv_updates:
             update.assert_successful()
-        assert inv_source1.get().is_successful
-        assert inv_source2.get().is_successful
+        inv_source1.get().assert_successful()
+        inv_source2.get().assert_successful()
 
     def test_v2_update_with_no_inventory_sources(self, factories):
         inventory = factories.v2_inventory()
@@ -391,8 +391,8 @@ class TestInventoryUpdate(APITest):
 
             # assert that the update was successful if used with supported source region
             if source_region not in unsupported_source_regions:
-                assert update_pg.is_successful, "inventory_update %s failed with supported region %s." % (update_pg, source_region)
-                assert inv_source_pg.get().is_successful, "An inventory_update was succesful, but the inventory_source is not successful - %s" % inv_source_pg
+                assert update_pg.is_successful, u"inventory_update %s failed with supported region %s." % (update_pg, source_region)
+                assert inv_source_pg.get().is_successful, u"An inventory_update was succesful, but the inventory_source is not successful - %s" % inv_source_pg
 
             # assert that update fails if used with unsupported source region
             else:
@@ -430,8 +430,8 @@ class TestInventoryUpdate(APITest):
 
         # assert that the update was successful
         update_pg = inv_source_pg.update().wait_until_completed()
-        assert update_pg.is_successful, "inventory_update %s failed with region %s." % (update_pg, source_region)
-        assert inv_source_pg.get().is_successful, "An inventory_update was succesful, but the inventory_source is not successful - %s" % inv_source_pg
+        assert update_pg.is_successful, u"inventory_update %s failed with region %s." % (update_pg, source_region)
+        assert inv_source_pg.get().is_successful, u"An inventory_update was succesful, but the inventory_source is not successful - %s" % inv_source_pg
 
         # assert that hosts were imported
         assert cloud_group_supporting_source_regions.ds.inventory.get().total_hosts > 0, \
@@ -469,8 +469,8 @@ class TestInventoryUpdate(APITest):
 
         # assert that the update was successful
         update_pg = inv_source_pg.update().wait_until_completed()
-        assert update_pg.is_successful, "inventory_update %s failed with region %s." % (update_pg, source_region)
-        assert inv_source_pg.get().is_successful, "An inventory_update was succesful, but the inventory_source is not successful - %s" % inv_source_pg
+        assert update_pg.is_successful, u"inventory_update %s failed with region %s." % (update_pg, source_region)
+        assert inv_source_pg.get().is_successful, u"An inventory_update was succesful, but the inventory_source is not successful - %s" % inv_source_pg
 
         # assert that no hosts were imported
         assert cloud_group_supporting_source_regions.ds.inventory.get().total_hosts == 0, \
@@ -484,8 +484,8 @@ class TestInventoryUpdate(APITest):
         """
         aws_inventory_source = factories.v2_inventory_source(kind='ec2', instance_filters=instance_filter)
         update = aws_inventory_source.update().wait_until_completed()
-        assert update.is_successful
-        assert aws_inventory_source.get().is_successful
+        update.assert_successful()
+        aws_inventory_source.get().assert_successful()
 
         assert aws_inventory_source.ds.inventory.related.hosts.get().count > 0
 
@@ -502,8 +502,8 @@ class TestInventoryUpdate(APITest):
         update_pg = inv_source_pg.update().wait_until_completed()
 
         # assert that the update was successful
-        assert update_pg.is_successful, "inventory_update failed - %s" % update_pg
-        assert inv_source_pg.get().is_successful, "An inventory_update was succesful, but the inventory_source is not successful - %s" % inv_source_pg
+        assert update_pg.is_successful, u"inventory_update failed - %s" % update_pg
+        assert inv_source_pg.get().is_successful, u"An inventory_update was succesful, but the inventory_source is not successful - %s" % inv_source_pg
 
         # assert whether hosts were imported
         assert aws_group.get().total_hosts == 0, "Unexpected number of hosts returned (%s != 0)." % aws_group.total_hosts
@@ -530,7 +530,7 @@ class TestInventoryUpdate(APITest):
 
         update = inv_source.update().wait_until_completed()
         update.assert_successful()
-        assert inv_source.get().is_successful
+        inv_source.get().assert_successful()
 
         groups = aws_group.ds.inventory.related.root_groups.get()
         actual_group_names = [group.name for group in groups.results if group.name != aws_group.name]
@@ -551,7 +551,7 @@ class TestInventoryUpdate(APITest):
 
         # Launch job and check results
         job_pg = job_template.launch().wait_until_completed(timeout=3 * 60)
-        assert job_pg.is_successful, "Job unsuccessful - %s" % job_pg
+        assert job_pg.is_successful, u"Job unsuccessful - %s" % job_pg
 
         # Assert that the inventory_update is marked as successful
         inv_source_pg = aws_group.get_related('inventory_source')
