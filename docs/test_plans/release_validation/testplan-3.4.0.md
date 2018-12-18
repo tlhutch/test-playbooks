@@ -84,7 +84,7 @@
 1. [ ] Logging regression completed - cluster
 1. [x] [Backup/restore successful - standalone](http://jenkins.ansible.eng.rdu2.redhat.com/job/Test_Tower_Backup_and_Restore/628/)
 1. [ ] Backup/restore successful - traditional cluster (RHEL-7.5, Ubuntu-16)
-1. [ ] Backup/restore successful - OpenShift
+1. [x] Backup/restore successful - OpenShift (elijahd, auto-manual, still working on job for future releases)
 
 ### Installation
 Install/Deploy tower in the following configurations and validate functionality with automated tests
