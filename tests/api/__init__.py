@@ -82,7 +82,7 @@ class APITest(object):
             yield
 
     @contextlib.contextmanager
-    def current_instance(self, connection, v=None):
+    def current_instance(self, connection, v=None, pages=[]):
         """
         Context manager to allow running tests against alternative tower instance.
 
@@ -104,6 +104,17 @@ class APITest(object):
         >>>     jt.add_instance_group(ig)
         >>>     job = jt.launch()
         >>>     assert ig.consumed_capacity > 0
+
+        Set connection object and provide page objects
+        (sets connection for factories and page objects):
+        >>> from towerkit.api.client import Connection
+        >>> connection = Connection('https://' + hostname)
+        >>> connection.login(user.username, user.password)
+        >>> jt1 = factories.job_template()
+        >>> jt2 = factories.job_template()
+        >>> with self.current_instance(connection, pages=[jt1, jt2]):
+        >>>     jt1.get()  # both jt1 and jt2 will use
+        >>>     jt2.get()  # new connection to perform GET
         """
         try:
             previous_connection = self.connections['root']
@@ -111,8 +122,19 @@ class APITest(object):
             if v:
                 previous_v_connection = v.connection
                 v.connection = connection
+            reset_page_connections = []
+            for p in pages:
+                previous_page_connection = p.connection
+
+                def _reset_page_connection():
+                    p.connection = previous_page_connection
+
+                p.connection = connection
+                reset_page_connections.append(_reset_page_connection)
             yield
         finally:
             self.connections['root'] = previous_connection
             if v:
                 v.connection = previous_v_connection
+            for f in reset_page_connections:
+                f()

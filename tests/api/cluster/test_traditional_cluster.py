@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from contextlib import contextmanager
 import json
 import logging
 import os
@@ -480,7 +481,7 @@ class TestTraditionalCluster(APITest):
             with SafeStop(stoppers, starters):
                 # Wait until controller group capacity is set to zero
                 utils.poll_until(lambda: controller_group.get().capacity == 0,
-                interval=5, timeout=120)
+                                 interval=5, timeout=120)
                 # It has been determined that the protected_group capacity is
                 # not set to zero by any logic when the controller nodes are
                 # down, because there is no access to the nodes by which to get
@@ -511,8 +512,9 @@ class TestTraditionalCluster(APITest):
             job = jt.launch().wait_until_completed()
             assert job.is_successful
 
-    @pytest.mark.mp_group(group="pytest_mark_requires_isolation", strategy="isolated_serial")
-    def test_instance_removal(self, connection, admin_user, hosts_in_group, hostvars_for_host, factories, user_password, v2):
+    @pytest.mark.mp_group(group="pytest_mark_requires_isolation", strategy="isolated_serial")  # noqa: C901
+    def test_instance_removal(self, connection, admin_user, user_password, inventory_hostname_map, ansible_adhoc,
+                              hosts_in_group, hostvars_for_host, factories, v2):
         """
         This test checks a full node's ability to recover when its tower services are stopped and restarted
 
@@ -527,15 +529,29 @@ class TestTraditionalCluster(APITest):
         * We check that group and instance capacity for the now-online node are restored
         * We check a new job against the now-back-online node starts and completes
         """
-        current_host = v2.ping.get().active_node
-        fqdn = connection.server.split('/')[-1]
+        def get_rabbit_master():
+            inventory_file = ansible_adhoc().options['inventory']
+            hosts = hosts_in_group('instance_group_ordinary_instances', return_hostnames=True)
+            for host in hosts:
+                cmd = "ANSIBLE_BECOME=true ansible {} -i {} -m shell -a 'rabbitmqctl list_queues -p tower --local'".format(host, inventory_file)
+                proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+                stdout, stderr = proc.communicate()
+                if 'awx_private_queue' in stdout:
+                    return host
+            else:
+                raise Exception('Failed to find rabbit master')
+
         hosts = hosts_in_group('instance_group_ordinary_instances')
-        hosts.remove(current_host)
-        host = random.choice(hosts)
+        host = inventory_hostname_map(get_rabbit_master())
         instance = v2.instances.get(hostname=host).results.pop()
 
+        active_host = hosts[1] if hosts[0] == host else hosts[0]
+        active_instance = v2.instances.get(hostname=active_host).results.pop()
+        active_ig = factories.instance_group()
+        active_ig.add_instance(active_instance)
+
         # Create an instance group with only the target instance
-        ig = factories.instance_group(name='for_testing_instance_removal')
+        ig = factories.instance_group()
         ig.add_instance(instance)
         ig = ig.get()  # needed for accurate capacity value
 
@@ -550,32 +566,16 @@ class TestTraditionalCluster(APITest):
         group_capacity = ig.capacity
         instance_capacity = instance.capacity
 
-        def get_heartbeats():
-            """
-            return a dictionary of heartbeats of all ordinary nodes that are online
-            and the heartbeat of the offline node"""
-            instances = v2.ping.get().instances
-            heartbeats = {}
-            offline_heartbeat = None
-            for i in instances:
-                this_host = i['node']
-                this_heartbeat = i['heartbeat']
-                if this_host not in hosts and this_host != host:
-                    # ignore nodes not in the ordinary_instances group
-                    continue
-                if this_host == host:
-                    # this is the node we took offline
-                    offline_heartbeat = this_heartbeat
-                else:
-                    heartbeats[this_host] = this_heartbeat
-            return heartbeats, offline_heartbeat
+        # Start a long running job from the node we're going to take offline
+        long_job = jt.launch().wait_until_status('running')
+        assert long_job.execution_node == host
 
-        def get_capacities():
+        def get_capacities(v):
             """
             Return a dictionary of the capacity of all ordinary nodes that are online
             and the capacity of the node we take offline.
             """
-            instances = v2.ping.get().instances
+            instances = v.ping.get().instances
             capacities = {}
             offline_capacity = None
             for i in instances:
@@ -591,57 +591,120 @@ class TestTraditionalCluster(APITest):
                     capacities[this_host] = this_capacity
             return capacities, offline_capacity
 
-        # Start a long running job from the node we're going to take offline
-        long_job = jt.launch().wait_until_status('running')
-        assert long_job.execution_node == host
-        original_capacities, original_capacity_of_offline_node = get_capacities()
+        original_capacities, original_capacity_of_offline_node = get_capacities(v2)
+
+        def get_stable_connection():
+            """
+            Returns a context manager that can be used to ensure that test is connected
+            to an instance that is not going to be brought down as part of the test.
+
+            Will either return a
+            - no-op context manager if connected to an instance that won't be brought down, or
+            - context manager that will switch connections if connected to an instance that will
+              be brought down
+            """
+            current_host = v2.ping.get().active_node
+            if host != current_host:
+                return contextmanager(lambda: (yield))  # no-op context mgr
+
+            for h in hosts:
+                if h != current_host:
+                    other_host = h
+                    break
+            else:
+                raise Exception('Test requires at least two full instances in cluster')
+
+            @contextmanager
+            def _stable_connection():
+                connection = Connection('https://' + other_host)
+                connection.login(admin_user.username, admin_user.password)
+                with self.current_instance(connection, v2, pages=[instance, ig, jt, long_job, active_ig]):
+                    yield
+            return _stable_connection
+
         # Stop the tower node.
-        stop, start = self.get_stop_and_start_funcs_for_node(admin_user, hostvars_for_host, host, v2)
-        with SafeStop(stop, start):
-            # Sanity check that start of context did not change web request URL
-            assert fqdn in self.connections['root'].server
-            log.debug("Using online node with fqdn of {} and ip of ".format(fqdn, current_host))
+        stable_connection = get_stable_connection()
+        with stable_connection():
+            stop, start = self.get_stop_and_start_funcs_for_node(admin_user, hostvars_for_host, host, v2)
+            with SafeStop(stop, start):
+                # Confirm new rabbit master elected
+                def new_rabbit_master_elected():
+                    try:
+                        master = inventory_hostname_map(get_rabbit_master())
+                        return master != host
+                    except:
+                        # Failed to find master
+                        return False
+                utils.poll_until(new_rabbit_master_elected, interval=10, timeout=60)
 
-            # We probably cannot trust that the node is offline yet
-            # poll until capacity is 0 on offline node to know everything is dead
-            def check_group_capacity_zeroed():
-                ig.get()
-                return ig.capacity == 0
+                # We probably cannot trust that the node is offline yet
+                # poll until capacity is 0 on offline node to know everything is dead
+                def check_group_capacity_zeroed():
+                    ig.get()
+                    return ig.capacity == 0
+                utils.poll_until(check_group_capacity_zeroed, interval=5, timeout=190)
 
-            # Check that instance group capacity is set to zero
-            utils.poll_until(check_group_capacity_zeroed, interval=5, timeout=190)
-            other_heartbeats, offline_heartbeat = get_heartbeats()
-            # assert the offline heartbeat is unchanged
-            # then wait another two min and get heartbeat again and assert not changed
-            time.sleep(190)
-            # Check capacity only changed on offline node
-            current_other_capacities, current_offline_capacity = get_capacities()
-            for key in current_other_capacities.keys():
-                assert current_other_capacities[key] == original_capacities[key], \
-                    'Capacity for online node {} changed! Only the offline node should have its capacity changed!'.format(key)
-            # Check that instance capacity is set to zero
-            assert current_offline_capacity == 0, 'Capacity for offline instance is not set to 0!'
+                def get_heartbeats():
+                    """
+                    return a dictionary of heartbeats of all ordinary nodes that are online
+                    and the heartbeat of the offline node"""
+                    instances = v2.ping.get().instances
+                    heartbeats = {}
+                    offline_heartbeat = None
+                    for i in instances:
+                        this_host = i['node']
+                        this_heartbeat = i['heartbeat']
+                        if this_host not in hosts and this_host != host:
+                            # ignore nodes not in the ordinary_instances group
+                            continue
+                        if this_host == host:
+                            # this is the node we took offline
+                            offline_heartbeat = this_heartbeat
+                        else:
+                            heartbeats[this_host] = this_heartbeat
+                    return heartbeats, offline_heartbeat
 
-            # Check that the other nodes heartbeats advanced
-            current_other_heartbeats, current_offline_heartbeat = get_heartbeats()
-            assert current_offline_heartbeat == offline_heartbeat
-            for key in other_heartbeats.keys():
-                assert current_other_heartbeats[key] != other_heartbeats[key], \
-                    'Heartbeat for online node {} did not advance! Only the offline node should have its heartbeat stop!'.format(key)
+                other_heartbeats, offline_heartbeat = get_heartbeats()
+                # assert the offline heartbeat is unchanged
+                # then wait another two min and get heartbeat again and assert not changed
+                time.sleep(190)
 
-            # Check the job we started is marked as failed
-            utils.poll_until(lambda: long_job.get().status in FAIL_STATUSES, interval=5, timeout=130)
-            long_job = long_job.get()
-            # Should fail with explanation
-            explanation = "Task was marked as running in Tower but was not present in the job queue, so it has been marked as failed."
-            assert long_job.job_explanation == explanation
+                # Check capacity only changed on offline node
+                current_other_capacities, current_offline_capacity = get_capacities(v2)
+                for key in current_other_capacities.keys():
+                    assert current_other_capacities[key] == original_capacities[key], \
+                        'Capacity for online node {} changed! Only the offline node should have its capacity changed!'.format(key)
+                # Check that instance capacity is set to zero
+                assert current_offline_capacity == 0, 'Capacity for offline instance is not set to 0!'
 
-            # Start a new job against the offline node
-            jt.patch(extra_vars='', playbook='ping.yml')  # no longer need long-running job
-            job = jt.launch()
+                current_other_heartbeats, current_offline_heartbeat = get_heartbeats()
+                assert current_offline_heartbeat == offline_heartbeat
+                for key in other_heartbeats.keys():
+                    assert current_other_heartbeats[key] != other_heartbeats[key], \
+                        'Heartbeat for online node {} did not advance! Only the offline node should have its heartbeat stop!'.format(key)
 
-            # Check it stays in pending
-            self.assert_job_stays_pending(job)
+                # Check that ig capacity is still set to zero
+                assert instance.get().capacity == 0, 'Instance group capacity changed while node was still offline'
+
+                # Check the job we started is marked as failed
+                utils.poll_until(lambda: long_job.get().status in FAIL_STATUSES, interval=5, timeout=130)
+                long_job = long_job.get()
+                # Should fail with explanation
+                explanation = "Task was marked as running in Tower but was not present in the job queue, so it has been marked as failed."
+                assert long_job.job_explanation == explanation
+
+                # Start a new job against the offline node
+                jt.patch(extra_vars='', playbook='ping.yml')  # no longer need long-running job
+                job = jt.launch()
+
+                # Check it stays in pending
+                self.assert_job_stays_pending(job)
+
+                # Confirm that job run on node that was not shut down runs successfully
+                jt_on_active_node = factories.job_template()
+                jt_on_active_node.ds.inventory.add_host()
+                jt_on_active_node.add_instance_group(active_ig)
+                assert jt_on_active_node.launch().wait_until_completed().is_successful
 
         # Capacity of the instance and the group should be restored
         def check_group_capacity_restored():
@@ -649,7 +712,7 @@ class TestTraditionalCluster(APITest):
         utils.poll_until(check_group_capacity_restored, interval=5, timeout=120)
         assert instance.get().capacity == instance_capacity
 
-        current_other_capacities, current_capacity_of_restored_node = get_capacities()
+        current_other_capacities, current_capacity_of_restored_node = get_capacities(v2)
         assert current_capacity_of_restored_node == original_capacity_of_offline_node, \
             'Capacity for instance that has been restored did not return to original value!'
         for key in current_other_capacities.keys():

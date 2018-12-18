@@ -112,7 +112,19 @@ def pytest_configure(config):
 
 @pytest.fixture(scope='session')
 def connection():
+    """
+    Note that because of scoping, return value is effectively cached for duration of test run.
+    Even setting scope to `function` here would not give a means of retrieving the connection that
+    had been changed _within a test_. In order to get the current connection, see `current_connection`
+    fixture.
+    """
     return connections['root']
+
+
+@pytest.fixture(scope='session')
+def current_connection():
+    """returns callable that gives current connection"""
+    return lambda: connections['root']
 
 
 @pytest.mark.trylast

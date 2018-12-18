@@ -32,7 +32,7 @@ class HasCreateFactory(object):
 
     @classmethod
     def __call__(cls, request, *args, **kwargs):
-        connection = request.getfixturevalue('connection')
+        connection = request.getfixturevalue('current_connection')()
 
         provided_has_creates = mixins.has_create.all_instantiated_dependencies(*flattened_has_creates(*kwargs.items()))
 

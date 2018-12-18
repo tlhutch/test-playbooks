@@ -148,6 +148,31 @@ def hosts_in_group(modified_ansible_adhoc):
 
 
 @pytest.fixture(scope='class')
+def inventory_hostname_map(modified_ansible_adhoc):
+    manager = modified_ansible_adhoc().options['inventory_manager']
+    group = manager.groups.get('all')
+
+    mapping = []
+    for host in group.get_hosts():
+        ansible_host = host.vars.get('ansible_host', '')
+        if not ansible_host:
+            continue
+        mapping.append((host.name, ansible_host))
+    if not mapping:
+        raise Exception('No hosts in inventory specify ansible_host')
+
+    def get_alternate_hostname(host):
+        # poor man's bidirectional map
+        for pair in mapping:
+            if host == pair[0]:
+                return pair[1]
+            if host == pair[1]:
+                return pair[0]
+        raise Exception('{} not found in hostname mapping'.format(host))
+    return get_alternate_hostname
+
+
+@pytest.fixture(scope='class')
 def is_docker(hosts_in_group, hostvars_for_host):
     try:
         tower_hosts = hosts_in_group('tower')
