@@ -63,10 +63,11 @@ def project_ansible_playbooks_manual(request, factories, ansible_runner, api_con
 
 
 @pytest.fixture(scope="function")
-def project_ansible_git_nowait(factories, organization):
+def project_ansible_git_nowait(factories, organization, ansible_version):
+    scm_branch = 'devel' if 'dev' in ansible_version else 'stable-%s' % ansible_version[0:3]
     project = factories.project(name="ansible.git - {0}".format(fauxfactory.gen_alphanumeric()),
                                 scm_type='git', scm_url='https://github.com/ansible/ansible.git',
-                                organization=organization, wait=False)
+                                scm_branch=scm_branch, organization=organization, wait=False)
     return project
 
 
