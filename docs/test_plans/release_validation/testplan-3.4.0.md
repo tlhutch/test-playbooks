@@ -63,7 +63,7 @@
 1. [ ] UI regression completed
 1. [x] [API regression completed - standalone](http://jenkins.ansible.eng.rdu2.redhat.com/job/Test_Tower_Integration/ANSIBLE_NIGHTLY_BRANCH=stable-2.7,PLATFORM=rhel-7.6-x86_64,label=jenkins-jnlp-agent/4605/)
 1. [ ] API regression completed - traditional cluster
-1. [ ] API regression completed - OpenShift
+1. [x] [API regression completed - OpenShift](http://jenkins.ansible.eng.rdu2.redhat.com/view/Tower/job/Test_Tower_OpenShift_Integration/373/)
 1. [ ] Tower social authentication regression completed (vm)
    - [ ] Google OAuth
    - [x] GitHub
