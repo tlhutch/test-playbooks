@@ -1,9 +1,0 @@
----
-# Tasks to save ami info
-
-- name: generate ami info file with image id and originated host name
-  template:
-    src: 'ami_info.j2'
-    dest: '{{ ami_info_file }}'
-    mode: '0644'
-  when: ec2_ami.changed
