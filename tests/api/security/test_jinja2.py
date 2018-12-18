@@ -22,7 +22,7 @@ class TestJinja2(APITest):
         factories.v2_host(inventory=jt.ds.inventory)
 
         job = jt.launch().wait_until_completed()
-        assert job.is_successful
+        job.assert_successful()
 
         if allow_jinja in ('always', 'template'):
             assert self.target_text in job.result_stdout
@@ -40,7 +40,7 @@ class TestJinja2(APITest):
         factories.v2_host(inventory=jt.ds.inventory)
 
         job = jt.launch(dict(extra_vars="var1: \"{{ 'target_text'|upper }}\"")).wait_until_completed()
-        assert job.is_successful
+        job.assert_successful()
 
         if allow_jinja in ('always', 'template'):
             assert self.target_text in job.result_stdout
@@ -69,7 +69,7 @@ class TestJinja2(APITest):
         factories.v2_host(inventory=jt.ds.inventory)
 
         job = jt.launch().wait_until_completed()
-        assert job.is_successful
+        job.assert_successful()
 
         if allow_jinja == 'always':
             assert self.target_text in job.result_stdout
@@ -99,7 +99,7 @@ class TestJinja2(APITest):
 
         payload = dict(extra_vars=dict(var1="{{ 'target_text'|upper }}", var2="{{ 'target_text'|upper }}"))
         job = jt.launch(payload).wait_until_completed()
-        assert job.is_successful
+        job.assert_successful()
 
         if allow_jinja == 'always':
             assert self.target_text in job.result_stdout
@@ -119,8 +119,8 @@ class TestJinja2(APITest):
 
         wfj = wfjt.launch().wait_until_completed()
         job = jt.get().related.last_job.get()
-        assert wfj.is_successful
-        assert job.is_successful
+        wfj.assert_successful()
+        job.assert_successful()
 
         if allow_jinja == 'always':
             assert self.target_text in job.result_stdout
@@ -152,8 +152,8 @@ class TestJinja2(APITest):
 
         wfj = wfjt.launch().wait_until_completed()
         job = jt.get().related.last_job.get()
-        assert wfj.is_successful
-        assert job.is_successful
+        wfj.assert_successful()
+        job.assert_successful()
 
         if allow_jinja == 'always':
             assert self.target_text in job.result_stdout
@@ -171,7 +171,7 @@ class TestJinja2(APITest):
                                           module_args="echo {{ 'target_text'|upper }}").wait_until_completed()
 
         if allow_jinja == 'always':
-            assert ahc.is_successful
+            ahc.assert_successful()
             assert self.target_text in ahc.result_stdout
         else:
             assert ahc.status == 'error'

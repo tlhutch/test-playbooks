@@ -30,12 +30,12 @@ class TestInsights(APITest):
 
         # update registered host with registered machine ID
         modified_ansible_adhoc().tower.shell('echo -n {0} > /etc/redhat-access-insights/machine-id'.format(self.registered_machine_id))
-        assert jt.launch().wait_until_completed().is_successful
+        jt.launch().wait_until_completed().assert_successful()
 
         # update unregistered host with unregistered machine ID
         jt.limit = "unregistered_host"
         modified_ansible_adhoc().tower.shell('echo -n {0} > /etc/redhat-access-insights/machine-id'.format(self.unregistered_machine_id))
-        assert jt.launch().wait_until_completed().is_successful
+        jt.launch().wait_until_completed().assert_successful()
 
         return inventory
 
@@ -130,14 +130,14 @@ class TestInsights(APITest):
         project = factories.v2_project(scm_type='insights', credential=insights_cred, wait=True)
         update = project.related.last_update.get()
 
-        assert project.is_successful
+        project.assert_successful()
         assert project.credential == insights_cred.id
         assert not project.scm_branch
         assert project.scm_type == 'insights'
         assert project.scm_url == 'https://access.redhat.com'
         assert project.scm_revision
 
-        assert update.is_successful
+        update.assert_successful()
         assert not update.job_explanation
         assert update.project == project.id
         assert update.credential == insights_cred.id

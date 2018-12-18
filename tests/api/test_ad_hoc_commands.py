@@ -36,7 +36,7 @@ def ad_hoc_command_with_multi_ask_credential_and_password_in_payload(request, ho
 
     # assert command successful
     command_pg.wait_until_completed()
-    assert command_pg.is_successful, "Command unsuccessful - %s " % command_pg
+    command_pg.assert_successful()
 
     return command_pg
 
@@ -67,7 +67,7 @@ class Test_Ad_Hoc_Commands_Inventory(APITest):
 
         # assert command successful
         command_pg.wait_until_completed()
-        assert command_pg.is_successful, "Command unsuccessful - %s " % command_pg
+        command_pg.assert_successful()
 
 
 @pytest.mark.api
@@ -95,7 +95,7 @@ class Test_Ad_Hoc_Commands_Group(APITest):
 
         # assert command successful
         command_pg.wait_until_completed()
-        assert command_pg.is_successful, "Command unsuccessful - %s " % command_pg
+        command_pg.assert_successful()
 
 
 @pytest.mark.api
@@ -123,7 +123,7 @@ class Test_Ad_Hoc_Commands_Host(APITest):
 
         # assert command successful
         command_pg.wait_until_completed()
-        assert command_pg.is_successful, "Command unsuccessful - %s " % command_pg
+        command_pg.assert_successful()
 
 
 @pytest.mark.api
@@ -156,7 +156,7 @@ class Test_Ad_Hoc_Commands_Main(APITest):
 
                 # assert command successful
                 command_pg.wait_until_completed()
-                assert command_pg.is_successful, "Command unsuccessful - %s " % command_pg
+                command_pg.assert_successful()
 
     def test_post_as_unprivileged_user(self, inventory, ssh_credential, api_ad_hoc_commands_pg, unprivileged_users, user_password):
         """Verify that unprivileged users cannot post to the ad_hoc_commands endpoint."""
@@ -185,7 +185,7 @@ class Test_Ad_Hoc_Commands_Main(APITest):
 
         # assert command successful
         command_pg.wait_until_completed()
-        assert command_pg.is_successful, "Command unsuccessful - %s " % command_pg
+        command_pg.assert_successful()
 
         # check that command was indeed of module "command"
         assert command_pg.module_name == "command"
@@ -255,7 +255,7 @@ class Test_Ad_Hoc_Commands_Main(APITest):
 
         # assert command successful
         command_pg.wait_until_completed()
-        assert command_pg.is_successful, "Command unsuccessful - %s" % command_pg
+        command_pg.assert_successful()
 
     @pytest.mark.ansible_integration
     def test_launch_with_ask_credential_and_without_passwords_in_payload(self, inventory, ssh_credential_multi_ask, api_ad_hoc_commands_pg):
@@ -285,7 +285,7 @@ class Test_Ad_Hoc_Commands_Main(APITest):
 
         # assert success
         command_pg.wait_until_completed()
-        assert not command_pg.is_successful, "Command successful, but was expected to fail - %s " % command_pg
+        not command_pg.assert_successful()
 
     @pytest.mark.ansible_integration
     @pytest.mark.parametrize("limit_value, expected_count", [
@@ -345,7 +345,7 @@ print json.dumps(inv, indent=2)
 
         # post the command
         command_pg = api_ad_hoc_commands_pg.post(payload).wait_until_completed()
-        assert command_pg.is_successful, "Command unsuccessful - %s" % command_pg
+        command_pg.assert_successful()
 
         # assert that command run on correct number of hosts
         # TODO(spredzy): Starting with ansible 2.8.0 some times not only `runner_on_ok`
@@ -376,7 +376,7 @@ print json.dumps(inv, indent=2)
         job_pg = api_ad_hoc_commands_pg.post(payload).wait_until_completed()
         # Before 2.0.1.0, we expect job to be successful
         if ansible_version_cmp('2.0.1.0') < 0:
-            assert job_pg.is_successful, "Job unsuccessful - %s." % job_pg
+            job_pg.assert_successful()
         # Between 2.0.1.0 and 2.2.0.0 we expect job to fail
         elif ansible_version_cmp('2.2.0.0') < 0:
             assert job_pg.status == "failed", "Unexpected job_pg.status - %s." % job_pg
@@ -385,7 +385,7 @@ print json.dumps(inv, indent=2)
         # After 2.2.0.0 we expect job to be successful
         # See https://github.com/ansible/ansible/issues/17762
         else:
-            assert job_pg.is_successful, "Job unsuccessful - %s." % job_pg
+            job_pg.assert_successful()
             assert "[WARNING]: No hosts matched, nothing to do" in job_pg.result_stdout, \
                 "Unexpected job_pg.result_stdout when launching an ad hoc command with an unmatched limit."
 
@@ -414,7 +414,7 @@ print json.dumps(inv, indent=2)
                 command = api_ad_hoc_commands_pg.post(payload).wait_until_completed()
 
                 # verify that the first ad hoc command ran successfully
-                assert command.is_successful, "Ad hoc command unsuccessful - %s" % command
+                command.assert_successful()
 
                 # navigate to relaunch_pg and assert on relaunch_pg value
                 relaunch_pg = command.get_related('relaunch')
@@ -422,7 +422,7 @@ print json.dumps(inv, indent=2)
 
                 # relaunch the job and assert success
                 relaunched_command = command.relaunch().wait_until_completed()
-                assert relaunched_command.is_successful, "Command unsuccessful - %s " % relaunched_command
+                relaunched_command.assert_successful()
 
     def test_relaunch_command_with_unprivileged_users(self, ad_hoc_with_status_completed, unprivileged_users, user_password):
         """Verifies that unprivileged users cannot relaunch a command originally launched by admin."""
@@ -448,7 +448,7 @@ print json.dumps(inv, indent=2)
 
         # relaunch command and assert successful
         relaunched_command = ad_hoc_command_with_multi_ask_credential_and_password_in_payload.relaunch(payload).wait_until_completed()
-        assert relaunched_command.is_successful, "Command unsuccessful - %s " % relaunched_command
+        relaunched_command.assert_successful()
 
     def test_relaunch_command_with_ask_credential_and_without_passwords(
         self, request,
@@ -476,7 +476,7 @@ print json.dumps(inv, indent=2)
         host = factories.v2_host()
         ahc = factories.v2_ad_hoc_command(inventory=host.ds.inventory, module_name='shell', module_args='echo {{test}}',
                                           extra_vars=extra_vars).wait_until_completed()
-        assert ahc.is_successful
+        ahc.assert_successful()
         assert exp_stdout in ahc.result_stdout
 
     def test_launch_with_blacklisted_extra_vars(self, factories):
@@ -487,7 +487,7 @@ print json.dumps(inv, indent=2)
     def test_relaunch_with_deleted_related(self, ad_hoc_with_status_completed, deleted_object):
         """Verify that relaunching a job with deleted related fails."""
         # verify that the first ad hoc command ran successfully
-        assert ad_hoc_with_status_completed.is_successful, "Ad hoc command unsuccessful - %s" % ad_hoc_with_status_completed
+        ad_hoc_with_status_completed.assert_successful()
 
         # navigate to relaunch_pg and assert on relaunch_pg value
         relaunch_pg = ad_hoc_with_status_completed.get_related('relaunch')
@@ -501,7 +501,7 @@ print json.dumps(inv, indent=2)
     @pytest.mark.fixture_args(module_name='shell', module_args='exit 1', job_type='check')
     def test_launch_with_check(self, host, ssh_credential, ad_hoc_with_status_completed):
         """Verifies check command behavior."""
-        assert ad_hoc_with_status_completed.is_successful, "Command unsuccessful - %s." % ad_hoc_with_status_completed
+        ad_hoc_with_status_completed.assert_successful()
 
         # check command attributes
         assert ad_hoc_with_status_completed.job_type == 'check'
@@ -521,7 +521,7 @@ print json.dumps(inv, indent=2)
         ahc = factories.v2_ad_hoc_command(inventory=host.ds.inventory, module_name='file', module_args='dest=/tmp/test_directory, state=touch',
                                           diff_mode=True).wait_until_completed()
 
-        assert ahc.is_successful
+        ahc.assert_successful()
         assert ahc.diff_mode
         assert '--- before' in ahc.result_stdout
         assert '+++ after' in ahc.result_stdout
@@ -559,7 +559,7 @@ print json.dumps(inv, indent=2)
 
         # verify that the first ad hoc command ran successfully
         ad_hoc_command_pg.wait_until_completed()
-        assert ad_hoc_command_pg.is_successful, "Ad hoc command unsuccessful - %s" % ad_hoc_command_pg
+        ad_hoc_command_pg.assert_successful()
 
         # delete related objects
         inventory_pg.delete().wait_until_deleted()
@@ -608,5 +608,5 @@ print json.dumps(inv, indent=2)
 
         ahc = factories.v2_ad_hoc_command(inventory=host.ds.inventory, module_name='shell',
                                           module_args="python -c 'print \"\xe8\xb5\xb7\xe5\x8b\x95\" * 1000000'").wait_until_completed()
-        assert ahc.is_successful
+        ahc.assert_successful()
         assert "\xe8\xb5\xb7\xe5\x8b\x95" * 1000000 in ahc.result_stdout

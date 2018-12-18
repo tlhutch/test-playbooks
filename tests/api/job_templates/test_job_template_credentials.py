@@ -53,12 +53,12 @@ class TestJobTemplateLaunchCredentials(APITest):
 
         # launch the job_template without providing a credential
         job = job_template_no_credential.launch().wait_until_completed()
-        assert job.is_successful
+        job.assert_successful()
         assert job.credential is None
 
         job_template_no_credential.ask_credential_on_launch = True
         job = job_template_no_credential.launch().wait_until_completed()
-        assert job.is_successful
+        job.assert_successful()
         assert job.credential is None
 
     def test_launch_with_linked_credential(self, job_template_prompt_for_credential, ssh_credential):
@@ -76,7 +76,7 @@ class TestJobTemplateLaunchCredentials(APITest):
 
         job = job_template_prompt_for_credential.launch().wait_until_completed()
 
-        assert job.is_successful
+        job.assert_successful()
         assert job.credential == ssh_credential.id
 
     def test_launch_with_payload_credential(self, job_template_prompt_for_credential, ssh_credential):
@@ -92,7 +92,7 @@ class TestJobTemplateLaunchCredentials(APITest):
 
         job = job_template_prompt_for_credential.launch(dict(credential=ssh_credential.id)).wait_until_completed()
 
-        assert job.is_successful
+        job.assert_successful()
         assert job.credential == ssh_credential.id
 
     def test_launch_with_invalid_credential_in_payload(self, job_template_prompt_for_credential):
@@ -129,7 +129,7 @@ class TestJobTemplateLaunchCredentials(APITest):
                                                         ssh_password=config.credentials.ssh.password,
                                                         ssh_key_unlock=config.credentials.ssh.encrypted.ssh_key_unlock,
                                                         become_password=config.credentials.ssh.become_password))
-        assert job.wait_until_completed().is_successful
+        job.wait_until_completed().assert_successful()
         assert job.credential == ssh_credential_ask.id
 
     def test_launch_split_JT_with_ask_credential_and_passwords_in_payload(self, job_template_prompt_for_credential,
@@ -143,10 +143,10 @@ class TestJobTemplateLaunchCredentials(APITest):
                                                         ssh_password=config.credentials.ssh.password,
                                                         ssh_key_unlock=config.credentials.ssh.encrypted.ssh_key_unlock,
                                                         become_password=config.credentials.ssh.become_password))
-        assert wfj.wait_until_completed().is_successful
+        wfj.wait_until_completed().assert_successful()
         job = wfj.get_related('workflow_nodes').results.pop().get_related('job')
         assert job.credential == ssh_credential_ask.id
-        assert job.is_successful
+        job.assert_successful()
 
     @pytest.mark.ansible_integration
     @pytest.mark.skip_openshift
@@ -165,13 +165,13 @@ class TestJobTemplateLaunchCredentials(APITest):
         if credential_type == "unencrypted_open":
             contacted = ansible_runner.command('ssh -V')
             if LooseVersion(contacted.values()[0]['stderr'].split(" ")[0].split("_")[1]) >= LooseVersion("6.5"):
-                assert job.is_successful
+                job.assert_successful()
             else:
                 assert job.status == 'error'
                 runtime_error = "RuntimeError: It looks like you're trying to use a private key in OpenSSH format"
                 assert runtime_error in job.result_traceback
         else:
-            assert job.is_successful
+            job.assert_successful()
 
     @pytest.mark.ansible_integration
     @pytest.mark.skip_openshift
@@ -191,13 +191,13 @@ class TestJobTemplateLaunchCredentials(APITest):
         if credential_type == "encrypted_open":
             contacted = ansible_runner.command('ssh -V')
             if LooseVersion(contacted.values()[0]['stderr'].split(" ")[0].split("_")[1]) >= LooseVersion("6.5"):
-                assert job.is_successful
+                job.assert_successful()
             else:
                 assert job.status == 'error'
                 runtime_error = "RuntimeError: It looks like you're trying to use a private key in OpenSSH format"
                 assert runtime_error in job.result_traceback
         else:
-            assert job.is_successful
+            job.assert_successful()
 
     def test_launch_with_team_credential(self, factories, job_template_prompt_for_credential, team, team_ssh_credential):
         """Verifies that a team user can use a team credential to launch a job template."""
@@ -207,7 +207,7 @@ class TestJobTemplateLaunchCredentials(APITest):
 
         with self.current_user(team_user.username, team_user.password):
             job = job_template_prompt_for_credential.launch(dict(credential=team_ssh_credential.id)).wait_until_completed()
-            assert job.is_successful
+            job.assert_successful()
             assert job.credential == team_ssh_credential.id
 
     def test_launch_with_multiple_credentials(self, v2, factories, custom_cloud_credentials, custom_network_credentials):
@@ -221,7 +221,7 @@ class TestJobTemplateLaunchCredentials(APITest):
         jt = factories.v2_job_template(credential=None, ask_credential_on_launch=True)
         jt.ds.inventory.add_host()
         job = jt.launch(dict(credentials=[c.id for c in creds]))
-        assert job.wait_until_completed().is_successful
+        job.wait_until_completed().assert_successful()
 
         job_creds = job.related.credentials.get().results
         assert set(c.id for c in job_creds) == set(c.id for c in creds)
@@ -240,7 +240,7 @@ class TestJobTemplateLaunchCredentials(APITest):
         jt = factories.v2_job_template(credential=None)
         jt.ds.inventory.add_host()
         job = jt.launch(dict(credentials=[c.id for c in creds]))
-        assert job.wait_until_completed().is_successful
+        job.wait_until_completed().assert_successful()
         assert job.related.credentials.get().count == 0
 
     def test_provide_additional_vault_credential_on_launch(self, v2, factories):
@@ -258,7 +258,7 @@ class TestJobTemplateLaunchCredentials(APITest):
         assert e.value.msg == {'credentials': [error_msg]}
 
         job = jt.launch(dict(credentials=[vault_cred1.id, vault_cred2.id]))
-        assert job.wait_until_completed().is_successful
+        job.wait_until_completed().assert_successful()
 
         job_creds = job.related.credentials.get().results
         assert set(c.id for c in job_creds) == set([vault_cred1.id, vault_cred2.id])
@@ -312,7 +312,7 @@ class TestJobTemplateVaultCredentials(APITest):
         jt.vault_credential = vault_cred.id
 
         job = jt.launch().wait_until_completed()
-        assert job.is_successful
+        job.assert_successful()
 
         debug_tasks = job.related.job_events.get(host_name=host.name, task='debug', event__startswith='runner_on_ok').results
         assert len(debug_tasks) == 1
@@ -337,7 +337,7 @@ class TestJobTemplateVaultCredentials(APITest):
         assert e.value.msg == {'passwords_needed_to_start': ['vault_password']}
 
         job = jt.launch(dict(vault_password='tower')).wait_until_completed()
-        assert job.is_successful
+        job.assert_successful()
 
         debug_tasks = job.related.job_events.get(host_name=host.name, task='debug', event__startswith='runner_on_ok').results
         assert len(debug_tasks) == 1
@@ -353,7 +353,7 @@ class TestJobTemplateVaultCredentials(APITest):
         jt.add_credential(vault_cred2)
 
         job = jt.launch().wait_until_completed()
-        assert job.is_successful
+        job.assert_successful()
 
         debug_tasks = job.related.job_events.get(host_name=host.name, task='debug', event__startswith='runner_on_ok').results
         assert len(debug_tasks) == 2
@@ -378,7 +378,7 @@ class TestJobTemplateVaultCredentials(APITest):
                    'vault_password.second': 'secret2'}
 
         job = jt.launch(payload).wait_until_completed()
-        assert job.is_successful
+        job.assert_successful()
 
         debug_tasks = job.related.job_events.get(host_name=host.name, task='debug', event__startswith='runner_on_ok').results
         assert len(debug_tasks) == 2
@@ -495,7 +495,7 @@ class TestJobTemplateExtraCredentials(APITest):
         job = jt.launch().wait_until_completed()
         request.addfinalizer(job.delete)  # Noisy neighbor
 
-        assert job.is_successful
+        job.assert_successful()
 
         env_vars = ('AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY', 'AZURE_CLIENT_ID', 'AZURE_CLOUD_ENVIRONMENT', 'AZURE_SECRET',
                     'AZURE_SUBSCRIPTION_ID', 'AZURE_TENANT', 'GCE_EMAIL', 'GCE_CREDENTIALS_FILE_PATH', 'GCE_PROJECT')
@@ -533,7 +533,7 @@ class TestJobTemplateExtraCredentials(APITest):
                                        ask_credential_on_launch=True)
 
         job = jt.launch(dict(extra_credentials=[cred.id for cred in credentials])).wait_until_completed()
-        assert job.is_successful
+        job.assert_successful()
 
         ansible_env = job.related.job_events.get(host=host.id, task='debug').results.pop().event_data.res.ansible_env
         for var in ('EXTRA_VAR_FROM_FIELD_ONE', 'EXTRA_VAR_FROM_FIELD_TWO',
@@ -551,7 +551,7 @@ class TestJobTemplateExtraCredentials(APITest):
 
         job = jt.launch().wait_until_completed()
         request.addfinalizer(job.delete)  # Noisy neighbor
-        assert job.is_successful
+        job.assert_successful()
 
         env_vars = ('AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY', 'AZURE_CLIENT_ID', 'AZURE_SECRET',
                     'AZURE_SUBSCRIPTION_ID', 'AZURE_TENANT', 'GCE_EMAIL', 'GCE_CREDENTIALS_FILE_PATH', 'GCE_PROJECT')

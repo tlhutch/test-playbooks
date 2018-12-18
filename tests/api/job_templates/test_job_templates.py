@@ -44,7 +44,7 @@ class TestJobTemplates(APITest):
         job_pg = job_template_ping.launch().wait_until_completed()
 
         # assert success
-        assert job_pg.is_successful, "Job unsuccessful - %s" % job_pg
+        job_pg.assert_successful()
 
     def test_modified_by_unaffected_by_launch(self, v2, factories, job_template_ping):
         admin_user = factories.v2_user(first_name='Joe', last_name='Admin', is_superuser=True)
@@ -72,7 +72,7 @@ class TestJobTemplates(APITest):
         # launch JT with limit
         payload = dict(limit="local")
         job_pg = job_template_with_random_limit.launch(payload).wait_until_completed()
-        assert job_pg.is_successful, "Job unsuccessful - %s." % job_pg
+        job_pg.assert_successful()
 
         # assess job results for limit
         assert job_pg.ask_limit_on_launch
@@ -108,7 +108,7 @@ class TestJobTemplates(APITest):
         # launch JT with values for job_tag and skip_tag in payload
         job_pg = job_template.launch(launch_payload).wait_until_completed()
         if ansible_version_cmp("2.0.0.0") >= 0:
-            assert job_pg.is_successful, "Job unsuccessful - %s." % job_pg
+            job_pg.assert_successful()
         else:
             assert job_pg.status == 'failed', "Job unexpectedly did not fail - %s." % job_pg
 
@@ -140,7 +140,7 @@ class TestJobTemplates(APITest):
         jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='file.yml', ask_diff_mode_on_launch=True)
         job = jt.launch(dict(diff_mode=diff_mode)).wait_until_completed()
 
-        assert job.is_successful
+        job.assert_successful()
         assert job.diff_mode is diff_mode
         assert ('--- before' in job.result_stdout) is diff_mode
         assert ('+++ after' in job.result_stdout) is diff_mode
@@ -161,7 +161,7 @@ class TestJobTemplates(APITest):
         host = factories.v2_host()
         jt = factories.v2_job_template(inventory=host.ds.inventory, ask_verbosity_on_launch=True)
         job = jt.launch(dict(verbosity=verbosity)).wait_until_completed()
-        assert job.is_successful
+        job.assert_successful()
 
         assert jt.verbosity == 0
         assert job.ask_verbosity_on_launch
@@ -197,7 +197,7 @@ class TestJobTemplates(APITest):
                        diff_mode=True,
                        verbosity=5)
         job = job_template.launch(payload).wait_until_completed()
-        assert job.is_successful
+        job.assert_successful()
 
         # assert that payload ignored
         assert job.extra_vars == json.dumps({}), \
@@ -233,7 +233,7 @@ class TestJobTemplates(APITest):
         assert launch.ask_job_type_on_launch
 
         job = jt.launch(dict(job_type=job_type)).wait_until_completed()
-        assert job.is_successful
+        job.assert_successful()
 
         assert job.ask_job_type_on_launch
         assert job.job_type == job_type
@@ -256,7 +256,7 @@ class TestJobTemplates(APITest):
         # launch JT with inventory in payload
         payload = dict(inventory=another_inventory.id)
         job_pg = job_template.launch(payload).wait_until_completed()
-        assert job_pg.is_successful, "Job unsuccessful - %s." % job_pg
+        job_pg.assert_successful()
 
         # assess job results for inventory
         assert job_pg.ask_inventory_on_launch
@@ -336,7 +336,7 @@ print json.dumps(inv, indent=2)
 
         # launch the job template
         job_pg = job_template.launch().wait_until_completed()
-        assert job_pg.is_successful, "Job unsuccessful - %s." % job_pg
+        job_pg.assert_successful()
 
         # assert that job run on correct number of hosts
         job_host_summaries_pg = job_pg.get_related('job_host_summaries')
@@ -366,7 +366,7 @@ print json.dumps(inv, indent=2)
 
         # launch JT and assess results
         job_pg = job_template_with_random_tag.launch().wait_until_completed()
-        assert job_pg.is_successful, "Job unsuccessful - %s." % job_pg
+        job_pg.assert_successful()
         tag_index = job_pg.job_args.index('-t') + 1
         assert job_pg.job_args[tag_index] == "tag", "Launched a tag JT but '-t tag' not found in job_args."
 
@@ -387,7 +387,7 @@ print json.dumps(inv, indent=2)
             assert "ERROR: tag(s) not found in playbook" in job_pg.result_stdout, \
                 "Unexpected job_pg.result_stdout: %s." % job_pg.result_stdout
         else:
-            assert job_pg.is_successful, "Job unsuccessful - %s." % job_pg
+            job_pg.assert_successful()
             assert job_pg.job_tags == job_template_with_random_tag.job_tags, \
                 "Value for job_tags inconsistent with job_template value."
 
@@ -425,7 +425,7 @@ print json.dumps(inv, indent=2)
             with pytest.raises(towerkit.exceptions.Conflict):
                 tower_resource.delete()
 
-        assert job.wait_until_completed().is_successful
+        job.wait_until_completed().assert_successful()
 
     @pytest.mark.github('https://github.com/ansible/tower/issues/789')
     def test_job_listing_after_delete_does_not_500(self, factories, v2):
@@ -467,7 +467,7 @@ print json.dumps(inv, indent=2)
         jt = factories.job_template(inventory=host.ds.inventory, playbook='file.yml', diff_mode=True)
         job = jt.launch().wait_until_completed()
 
-        assert job.is_successful
+        job.assert_successful()
         assert job.diff_mode
         assert '--- before' in job.result_stdout
         assert '+++ after' in job.result_stdout
@@ -482,7 +482,7 @@ print json.dumps(inv, indent=2)
 
         # launch JT and assess results
         job_pg = job_template.launch().wait_until_completed()
-        assert job_pg.is_successful, "Job unsuccessful - %s." % job_pg
+        job_pg.assert_successful()
         assert job_pg.job_type == "check", "Unexpected job_type after launching check JT."
         assert "--check" in job_pg.job_args, \
             "Launched a check JT but '--check' not present in job_args."
@@ -502,7 +502,7 @@ print json.dumps(inv, indent=2)
         )
         factories.v2_host(inventory=jt.ds.inventory)
         job = jt.launch().wait_until_completed()
-        assert job.is_successful
+        job.assert_successful()
 
         # TOWER_HOST should be undefined
         jt.extra_vars = jt.extra_vars.replace('AWX_HOST', 'TOWER_HOST')
@@ -530,7 +530,7 @@ print json.dumps(inv, indent=2)
                                            extra_vars='var1: "{{ %s }}"' % var_name)
             factories.v2_host(inventory=jt.ds.inventory)
             job = jt.launch().wait_until_completed()
-        assert job.is_successful
+        job.assert_successful()
         assert '"var1": "{}"'.format(value) in job.result_stdout
 
     @pytest.mark.ansible_integration
@@ -541,5 +541,5 @@ print json.dumps(inv, indent=2)
 
         playbook_event = job.related.job_events.get(
             task='Run Playbook', event__startswith='runner_on_ok').results.pop()
-        assert job.is_successful
+        job.assert_successful()
         assert 'ok=1' in playbook_event.event_data.res.stdout

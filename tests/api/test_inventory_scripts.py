@@ -293,5 +293,5 @@ class Test_Inventory_Scripts(APITest):
         update_pg = custom_inventory_source.update().wait_until_completed()
 
         # assert failed inventory_update
-        assert not update_pg.is_successful, "Inventory update completed " \
+        not update_pg.assert_successful()
             "successfully, but was expected to fail  - %s " % update_pg

@@ -71,7 +71,7 @@ class TestCustomCredentials(APITest):
         jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='debug_hostvars.yml')
         jt.add_extra_credential(credential)
         job = jt.launch().wait_until_completed()
-        assert job.is_successful
+        job.assert_successful()
 
         hostvars = job.related.job_events.get(host=host.id, task='debug').results.pop().event_data.res.hostvars
         for field, value in input_values.items():
@@ -96,7 +96,7 @@ class TestCustomCredentials(APITest):
         jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='ansible_env.yml')
         jt.add_extra_credential(credential)
         job = jt.launch().wait_until_completed()
-        assert job.is_successful
+        job.assert_successful()
 
         assert job.job_env.EXTRA_VAR_FROM_FIELD_ONE == '**********'
         assert job.job_env.EXTRA_VAR_FROM_FIELD_TWO == 'True'
@@ -125,7 +125,7 @@ class TestCustomCredentials(APITest):
         jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='cat_file.yml')
         jt.add_extra_credential(credential)
         job = jt.launch().wait_until_completed()
-        assert job.is_successful
+        job.assert_successful()
 
         stdout = job.related.job_events.get(host=host.id, task='debug').results.pop().event_data.res.cat.stdout
         assert stdout == file_contents
@@ -149,7 +149,7 @@ class TestCustomCredentials(APITest):
         jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='cat_file.yml')
         jt.add_extra_credential(credential)
         job = jt.launch().wait_until_completed()
-        assert job.is_successful
+        job.assert_successful()
 
         stdout = job.related.job_events.get(host=host.id, task='debug').results.pop().event_data.res.cat.stdout
         assert stdout == (one_contents if 'one' in injector_var.values().pop().values().pop() else two_contents)
@@ -170,7 +170,7 @@ class TestCustomCredentials(APITest):
         jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='cat_files.yml')
         jt.add_credential(credential)
         job = jt.launch().wait_until_completed()
-        assert job.is_successful
+        job.assert_successful()
 
         job_events = job.related.job_events.get(host=host.id, task='debug', order_by='counter')
         assert job_events.results[0].event_data.res.cat1.stdout == one_contents
@@ -190,7 +190,7 @@ class TestCustomCredentials(APITest):
         jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='ansible_env.yml')
         jt.add_extra_credential(credential)
         job = jt.launch().wait_until_completed()
-        assert job.is_successful
+        job.assert_successful()
 
         for stream_endpoint in (credential_type.related.activity_stream, credential.related.activity_stream,
                                 jt.related.activity_stream, job.related.activity_stream):

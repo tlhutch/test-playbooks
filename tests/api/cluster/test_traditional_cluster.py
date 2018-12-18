@@ -232,7 +232,7 @@ class TestTraditionalCluster(APITest):
         ig = v2.instance_groups.get(name='protected').results[0]
         set_stats_jt.add_instance_group(ig)
         stats_job = set_stats_jt.launch().wait_until_completed()
-        assert stats_job.is_successful
+        stats_job.assert_successful()
 
         assert stats_job.artifacts == artifacts_from_stats_playbook
 
@@ -510,7 +510,7 @@ class TestTraditionalCluster(APITest):
             job.wait_until_completed(since_job_created=False)
             # Check we can successfully launch a new job against the isolated node
             job = jt.launch().wait_until_completed()
-            assert job.is_successful
+            job.assert_successful()
 
     @pytest.mark.mp_group(group="pytest_mark_requires_isolation", strategy="isolated_serial")  # noqa: C901
     def test_instance_removal(self, connection, admin_user, user_password, inventory_hostname_map, ansible_adhoc,
@@ -704,7 +704,7 @@ class TestTraditionalCluster(APITest):
                 jt_on_active_node = factories.job_template()
                 jt_on_active_node.ds.inventory.add_host()
                 jt_on_active_node.add_instance_group(active_ig)
-                assert jt_on_active_node.launch().wait_until_completed().is_successful
+                jt_on_active_node.launch().wait_until_completed().assert_successful()
 
         # Capacity of the instance and the group should be restored
         def check_group_capacity_restored():
@@ -724,7 +724,7 @@ class TestTraditionalCluster(APITest):
 
         # Check that we can run a new job against the node
         job = jt.launch().wait_until_completed()
-        assert job.is_successful
+        job.assert_successful()
 
     @pytest.mark.mp_group(group="pytest_mark_requires_isolation", strategy="isolated_serial")
     @pytest.mark.parametrize('run_on_isolated_group', [True, False], ids=['isolated group', 'regular instance group'])
@@ -756,7 +756,7 @@ class TestTraditionalCluster(APITest):
         job = jt.launch().wait_until_completed()
         ig2_hostnames = [i.hostname for i in ig2.get_related('instances').results]
         assert job.execution_node in ig2_hostnames
-        assert job.is_successful
+        job.assert_successful()
 
     @pytest.mark.github('https://github.com/ansible/tower-qa/issues/2298')
     @pytest.mark.last
@@ -858,7 +858,7 @@ class TestTraditionalCluster(APITest):
                 ig = v2.instance_groups.get(name=str(index)).results.pop()
                 jt.add_instance_group(ig)
                 job = jt.launch().wait_until_completed()
-                assert job.is_successful
+                job.assert_successful()
 
         # Confirm that instances have capacity
         for instance in v2.instances.get().results:
@@ -934,5 +934,5 @@ class TestTraditionalCluster(APITest):
             jt.add_instance_group(ig)
 
             job = jt.launch().wait_until_completed()
-            assert job.is_successful
+            job.assert_successful()
             assert job.job_env['VIRTUAL_ENV'] == venv_path(folder_name)

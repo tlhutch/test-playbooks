@@ -25,7 +25,7 @@ class TestFactCache(APITest):
         assert not ansible_facts.json
 
         jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='gather_facts.yml', use_fact_cache=True)
-        assert jt.launch().wait_until_completed().is_successful
+        jt.launch().wait_until_completed().assert_successful()
 
         self.assert_updated_facts(ansible_facts.get())
         assert "foo" not in ansible_facts
@@ -51,7 +51,7 @@ class TestFactCache(APITest):
         update_setting_pg(
             v2.settings.get().get_endpoint('jobs'),
             {'AWX_PROOT_ENABLED': False})
-        assert scan_facts_job_template.launch().wait_until_completed().is_successful
+        scan_facts_job_template.launch().wait_until_completed().assert_successful()
 
         ansible_facts = scan_facts_job_template.ds.inventory.related.hosts.get().results[0].related.ansible_facts.get()
         self.assert_updated_facts(ansible_facts)
@@ -70,7 +70,7 @@ class TestFactCache(APITest):
     def test_ingest_facts_with_host_with_unicode_hostname(self, factories):
         host = factories.v2_host(name=fauxfactory.gen_utf8())
         jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='gather_facts.yml', use_fact_cache=True)
-        assert jt.launch().wait_until_completed().is_successful
+        jt.launch().wait_until_completed().assert_successful()
 
         ansible_facts = host.related.ansible_facts.get()
         self.assert_updated_facts(ansible_facts)
@@ -78,7 +78,7 @@ class TestFactCache(APITest):
     def test_ingest_facts_with_host_with_hostname_with_spaces(self, factories):
         host = factories.v2_host(name="hostname with spaces")
         jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='gather_facts.yml', use_fact_cache=True)
-        assert jt.launch().wait_until_completed().is_successful
+        jt.launch().wait_until_completed().assert_successful()
 
         ansible_facts = host.related.ansible_facts.get()
         self.assert_updated_facts(ansible_facts)
@@ -86,11 +86,11 @@ class TestFactCache(APITest):
     def test_consume_facts_with_single_host(self, factories):
         host = factories.v2_host()
         jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='gather_facts.yml', use_fact_cache=True)
-        assert jt.launch().wait_until_completed().is_successful
+        jt.launch().wait_until_completed().assert_successful()
 
         jt.patch(playbook='use_facts.yml', job_tags='ansible_facts')
         job = jt.launch().wait_until_completed()
-        assert job.is_successful
+        job.assert_successful()
 
         ansible_facts = host.related.ansible_facts.get()
         assert ansible_facts.ansible_distribution in job.result_stdout
@@ -102,11 +102,11 @@ class TestFactCache(APITest):
         hosts = [factories.v2_host(inventory=inventory) for _ in range(3)]
 
         jt = factories.v2_job_template(inventory=hosts[0].ds.inventory, playbook='gather_facts.yml', use_fact_cache=True)
-        assert jt.launch().wait_until_completed().is_successful
+        jt.launch().wait_until_completed().assert_successful()
 
         jt.patch(playbook='use_facts.yml', job_tags='ansible_facts')
         job = jt.launch().wait_until_completed()
-        assert job.is_successful
+        job.assert_successful()
 
         ansible_facts = hosts.pop().related.ansible_facts.get()  # facts should be the same between hosts
         assert job.result_stdout.count(ansible_facts.ansible_distribution) == 3
@@ -123,12 +123,12 @@ class TestFactCache(APITest):
 
         jt = factories.v2_job_template(inventory=target_host.ds.inventory, playbook='gather_facts.yml', use_fact_cache=True)
         scan_job = jt.launch().wait_until_completed()
-        assert scan_job.is_successful
+        scan_job.assert_successful()
 
         jt.patch(playbook='use_facts.yml', job_tags='ansible_facts')
         jt.limit = target_host.name
         fact_job = jt.launch().wait_until_completed()
-        assert fact_job.is_successful
+        fact_job.assert_successful()
 
         ansible_facts = target_host.related.ansible_facts.get()
         assert fact_job.result_stdout.count(ansible_facts.ansible_distribution) == 1
@@ -143,17 +143,17 @@ class TestFactCache(APITest):
         host = factories.v2_host()
 
         jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='gather_facts.yml', use_fact_cache=True)
-        assert jt.launch().wait_until_completed().is_successful
+        jt.launch().wait_until_completed().assert_successful()
         ansible_facts = host.related.ansible_facts.get()
         first_time = ansible_facts.ansible_date_time.time
 
-        assert jt.launch().wait_until_completed().is_successful
+        jt.launch().wait_until_completed().assert_successful()
         second_time = ansible_facts.get().ansible_date_time.time
         assert second_time > first_time
 
         jt.patch(playbook='use_facts.yml', job_tags='ansible_facts')
         job = jt.launch().wait_until_completed()
-        assert job.is_successful
+        job.assert_successful()
 
         self.assert_updated_facts(ansible_facts)
         assert second_time in job.result_stdout
@@ -162,7 +162,7 @@ class TestFactCache(APITest):
         host = factories.v2_host()
         jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='scan_custom.yml', use_fact_cache=True)
         job = jt.launch().wait_until_completed()
-        assert job.is_successful
+        job.assert_successful()
 
         target_job_events = job.related.job_events.get(event="runner_on_ok", task="test_scan_facts")
         assert target_job_events.count == 1
@@ -183,7 +183,7 @@ class TestFactCache(APITest):
 
         jt.patch(playbook='use_facts.yml', job_tags='custom_facts')
         job = jt.launch().wait_until_completed()
-        assert job.is_successful
+        job.assert_successful()
 
         # verify facts consumption
         result_stdout = job.result_stdout
@@ -204,11 +204,11 @@ class TestFactCache(APITest):
         deleted_host = factories.v2_host(inventory=inv)
 
         job = jt.launch().wait_until_completed()
-        assert job.is_successful
+        job.assert_successful()
 
         deleted_host.delete()
         job = job.relaunch().wait_until_completed()
-        assert job.is_successful
+        job.assert_successful()
 
         assert job.related.job_host_summaries.get().count == 0
 
@@ -218,12 +218,12 @@ class TestFactCache(APITest):
         host = factories.v2_host()
 
         jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='gather_facts.yml', use_fact_cache=True)
-        assert jt.launch().wait_until_completed().is_successful
+        jt.launch().wait_until_completed().assert_successful()
         ansible_facts = host.related.ansible_facts.get()
         self.assert_updated_facts(ansible_facts)
 
         jt.playbook = 'clear_facts.yml'
-        assert jt.launch().wait_until_completed().is_successful
+        jt.launch().wait_until_completed().assert_successful()
 
         assert not host.related.ansible_facts.get().json
 
@@ -233,7 +233,7 @@ class TestFactCache(APITest):
         scan_facts_job_template.extra_vars = json.dumps(dict(scan_file_paths=','.join(scan_file_paths)))
 
         job = scan_facts_job_template.launch().wait_until_completed()
-        assert job.is_successful
+        job.assert_successful()
 
         host = scan_facts_job_template.related.inventory.get().related.hosts.get().results[0]
         files = host.related.ansible_facts.get().files
@@ -265,7 +265,7 @@ class TestFactCache(APITest):
         scan_facts_job_template.patch(extra_vars=json.dumps(extra_vars))
 
         job = scan_facts_job_template.launch().wait_until_completed()
-        assert job.is_successful
+        job.assert_successful()
 
         host = scan_facts_job_template.related.inventory.get().related.hosts.get().results[0]
         files = host.related.ansible_facts.get().files
@@ -277,7 +277,7 @@ class TestFactCache(APITest):
         scan_facts_job_template.extra_vars = json.dumps(dict(scan_file_paths='/tmp,/bin', scan_use_checksum=True))
 
         job = scan_facts_job_template.launch().wait_until_completed()
-        assert job.is_successful
+        job.assert_successful()
 
         host = scan_facts_job_template.related.inventory.get().related.hosts.get().results[0]
         files = host.related.ansible_facts.get().files
@@ -297,11 +297,11 @@ inv = dict(somegroup{0}=dict(hosts=['somehost{0}'],
 
 print json.dumps(inv)""".format(random_title(non_ascii=False))
         inv_src = factories.v2_inventory_source(inventory_script=(True, dict(script=script)))
-        assert inv_src.update().wait_until_completed().is_successful
+        inv_src.update().wait_until_completed().assert_successful()
         jt = factories.v2_job_template(inventory=inv_src.ds.inventory,
                                        use_fact_cache=True,
                                        playbook='scan_custom.yml')
-        assert jt.launch().wait_until_completed().is_successful
+        jt.launch().wait_until_completed().assert_successful()
         host = inv_src.ds.inventory.related.hosts.get().results.pop()
         facts = host.related.ansible_facts.get()
         assert facts.string == "abc"
@@ -311,7 +311,7 @@ print json.dumps(inv)""".format(random_title(non_ascii=False))
         jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='gather_facts.yml',
                                        use_fact_cache=True, extra_vars=dict(set_fact_cacheable=True))
         job = jt.launch().wait_until_completed()
-        assert job.is_successful
+        job.assert_successful()
 
         facts = host.related.ansible_facts.get()
         self.assert_updated_facts(facts)

@@ -97,7 +97,7 @@ class TestOpenShiftCluster(APITest):
         jt.add_instance_group(tower_instance_group)
 
         job = jt.launch().wait_until_completed(timeout=180)
-        assert job.is_successful
+        job.assert_successful()
         assert job.execution_node == tower_pod
 
     def test_verify_jobs_fail_with_execution_node_death(self, factories, v2, tower_version):

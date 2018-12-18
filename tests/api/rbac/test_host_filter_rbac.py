@@ -33,7 +33,7 @@ class TestHostFilterRBAC(APITest):
         jtB = class_factories.job_template(inventory=invB, playbook='gather_facts.yml',
                                            use_fact_cache=True)
         for jt in [jtA, jtB]:
-            assert jt.launch().wait_until_completed().is_successful
+            jt.launch().wait_until_completed().assert_successful()
 
         return invA, invB
 

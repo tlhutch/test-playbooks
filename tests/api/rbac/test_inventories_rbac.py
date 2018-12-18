@@ -259,7 +259,7 @@ class TestInventoryRBAC(APITest):
         with self.current_user(username=user.username, password=user.password):
             if role in ALLOWED_ROLES:
                 update = inv_source.update().wait_until_completed()
-                assert update.is_successful, "Update unsuccessful - %s." % update
+                update.assert_successful()
             elif role in REJECTED_ROLES:
                 with pytest.raises(towerkit.exceptions.Forbidden):
                     inv_source.update()
@@ -284,7 +284,7 @@ class TestInventoryRBAC(APITest):
         with self.current_user(username=user.username, password=user.password):
             if role in ALLOWED_ROLES:
                 update = inv_source.update().wait_until_completed()
-                assert update.is_successful, "Update unsuccessful - %s." % update
+                update.assert_successful()
             elif role in REJECTED_ROLES:
                 with pytest.raises(towerkit.exceptions.Forbidden):
                     inv_source.update()
@@ -311,8 +311,8 @@ class TestInventoryRBAC(APITest):
             if role in ALLOWED_ROLES:
                 inv_updates = inventory.update_inventory_sources(wait=True)
                 for update in inv_updates:
-                    assert update.is_successful
-                assert gce_source.get().is_successful and ec2_source.get().is_successful
+                    update.assert_successful()
+                gce_source.get().is_successful and ec2_source.get().assert_successful()
             elif role in REJECTED_ROLES:
                 with pytest.raises(towerkit.exceptions.Forbidden):
                     inventory.update_inventory_sources()
@@ -421,7 +421,7 @@ class TestInventoryRBAC(APITest):
                 ahc = factories.v2_ad_hoc_command(inventory=inventory,
                                                   credential=credential,
                                                   module_name="ping").wait_until_completed()
-                assert ahc.is_successful, "Command unsuccessful - %s." % ahc
+                ahc.assert_successful()
             elif role in REJECTED_ROLES:
                 with pytest.raises(towerkit.exceptions.Forbidden):
                     factories.v2_ad_hoc_command(inventory=inventory,
@@ -443,14 +443,14 @@ class TestInventoryRBAC(APITest):
         ahc = factories.v2_ad_hoc_command(inventory=inventory,
                                          credential=credential,
                                          module_name="ping").wait_until_completed()
-        assert ahc.is_successful, "Command unsuccessful - %s." % ahc
+        ahc.assert_successful()
 
         inventory.set_object_roles(user, role)
 
         with self.current_user(username=user.username, password=user.password):
             if role in ALLOWED_ROLES:
                 relaunched_ahc = ahc.relaunch().wait_until_completed()
-                assert relaunched_ahc.is_successful, "Command unsuccessful - %s." % relaunched_ahc
+                relaunched_ahc.assert_successful()
             elif role in REJECTED_ROLES:
                 with pytest.raises(towerkit.exceptions.Forbidden):
                     ahc.relaunch()

@@ -151,7 +151,7 @@ class Test_Project_RBAC(APITest):
         with self.current_user(username=user.username, password=user.password):
             if role in ALLOWED_ROLES:
                 update = project.update().wait_until_completed()
-                assert update.is_successful, "Project update unsuccessful - %s." % update
+                update.assert_successful()
             elif role in REJECTED_ROLES:
                 with pytest.raises(towerkit.exceptions.Forbidden):
                     project.update()

@@ -219,7 +219,7 @@ class TestCredentials(APITest):
     def test_scm_credential_with_private_github_repo(self, factories, cred_args, scm_url):
         scm_cred = factories.v2_credential(kind='scm', **cred_args)
         project = factories.v2_project(scm_url=scm_url, credential=scm_cred)
-        assert project.is_successful
+        project.assert_successful()
         assert len(project.related.playbooks.get().json)
 
     @pytest.mark.parametrize('cred_type', ['Machine', 'Vault'])

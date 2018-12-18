@@ -24,7 +24,7 @@ class TestPrompts(APITest):
     def test_created_schedule_with_default_jt(self, factories):
         jt = factories.v2_job_template()
         job = jt.launch().wait_until_completed()
-        assert job.is_successful
+        job.assert_successful()
 
         create_schedule = job.related.create_schedule.get()
         assert create_schedule.prompts == {}
@@ -54,7 +54,7 @@ class TestPrompts(APITest):
         job = jt.launch(dict(diff_mode=True, extra_vars=dict(var1='launch'), limit='launch', job_tags='launch',
                              skip_tags='launch', job_type='check', verbosity=5, inventory=jt.ds.inventory.id,
                              credentials=[jt.ds.credential.id])).wait_until_completed()
-        assert job.is_successful
+        job.assert_successful()
 
         create_schedule = job.related.create_schedule.get()
         assert create_schedule.prompts == dict(diff_mode=True, extra_vars=dict(var1='launch'),
@@ -86,7 +86,7 @@ class TestPrompts(APITest):
         job = jt.launch(dict(diff_mode=jt.diff_mode, extra_vars=jt.extra_vars, limit=jt.limit, job_tags=jt.job_tags,
                              skip_tags=jt.skip_tags, job_type=jt.job_type, verbosity=jt.verbosity,
                              inventory=jt.ds.inventory.id, credentials=[jt.ds.credential.id])).wait_until_completed()
-        assert job.is_successful
+        job.assert_successful()
 
         create_schedule = job.related.create_schedule.get()
         assert create_schedule.prompts == {}
@@ -120,7 +120,7 @@ class TestPrompts(APITest):
 
         jt = factories.v2_job_template(ask_inventory_on_launch=True, ask_credential_on_launch=True)
         job = jt.launch(dict(inventory=inventory.id, credentials=cred_ids)).wait_until_completed()
-        assert job.is_successful
+        job.assert_successful()
 
         create_schedule = job.related.create_schedule.get()
         assert create_schedule.prompts.inventory.id == inventory.id
@@ -147,7 +147,7 @@ class TestPrompts(APITest):
         launch_creds = [launch_ssh, launch_aws, launch_vmware, launch_vault]
         launch_cred_ids = [cred.id for cred in launch_creds]
         job = jt.launch(dict(credentials=launch_cred_ids)).wait_until_completed()
-        assert job.is_successful
+        job.assert_successful()
 
         create_schedule = job.related.create_schedule.get()
         assert len(create_schedule.prompts.credentials) == 4
@@ -169,7 +169,7 @@ class TestPrompts(APITest):
         payload = dict(credential_passwords=dict(ssh_password='fake', become_password='fake',
                                                  ssh_key_unlock=self.credentials.ssh.encrypted.ssh_key_unlock))
         job = jt.launch(payload).wait_until_completed()
-        assert job.is_successful
+        job.assert_successful()
 
         create_schedule = job.related.create_schedule.get()
         assert create_schedule.prompts == {}
@@ -194,7 +194,7 @@ class TestPrompts(APITest):
         jt.add_survey(spec=survey)
 
         job = jt.launch().wait_until_completed()
-        assert job.is_successful
+        job.assert_successful()
 
         create_schedule = job.related.create_schedule.get()
         assert create_schedule.prompts == {}
@@ -220,7 +220,7 @@ class TestPrompts(APITest):
 
         payload = dict(extra_vars=dict(var1='launch', var2='launch', nonsurvey_var='ignore me'))
         job = jt.launch(payload).wait_until_completed()
-        assert job.is_successful
+        job.assert_successful()
 
         create_schedule = job.related.create_schedule.get()
         assert create_schedule.prompts == dict(extra_vars=dict(var1='$encrypted$', var2='launch'))
@@ -236,8 +236,8 @@ class TestPrompts(APITest):
 
         wfj = wfjt.launch().wait_until_completed()
         job = jt.get().related.last_job.get()
-        assert wfj.is_successful
-        assert job.is_successful
+        wfj.assert_successful()
+        job.assert_successful()
 
         create_schedule = job.related.create_schedule.get()
         assert create_schedule.prompts == {}
@@ -275,8 +275,8 @@ class TestPrompts(APITest):
 
         wfj = wfjt.launch().wait_until_completed()
         job = jt.get().related.last_job.get()
-        assert wfj.is_successful
-        assert job.is_successful
+        wfj.assert_successful()
+        job.assert_successful()
 
         create_schedule = job.related.create_schedule.get()
         prompts = create_schedule.prompts
@@ -323,8 +323,8 @@ class TestPrompts(APITest):
 
         wfj = wfjt.launch().wait_until_completed()
         job = jt.get().related.last_job.get()
-        assert wfj.is_successful
-        assert job.is_successful
+        wfj.assert_successful()
+        job.assert_successful()
 
         create_schedule = job.related.create_schedule.get()
         assert create_schedule.prompts == {}
@@ -375,8 +375,8 @@ class TestPrompts(APITest):
         payload = dict(extra_vars=dict(var1='launch', var2='$encrypted$', var3='launch'))
         wfj = wfjt.launch(payload).wait_until_completed()
         job = jt.get().related.last_job.get()
-        assert wfj.is_successful
-        assert job.is_successful
+        wfj.assert_successful()
+        job.assert_successful()
 
         create_schedule = job.related.create_schedule.get()
         assert create_schedule.prompts == dict(extra_vars=dict(var1='launch', var2='$encrypted$', var3='launch'))
@@ -405,8 +405,8 @@ class TestPrompts(APITest):
 
         wfj = wfjt.launch().wait_until_completed()
         job = jt.get().related.last_job.get()
-        assert wfj.is_successful
-        assert job.is_successful
+        wfj.assert_successful()
+        job.assert_successful()
 
         create_schedule = job.related.create_schedule.get()
         assert len(create_schedule.prompts.credentials) == 4

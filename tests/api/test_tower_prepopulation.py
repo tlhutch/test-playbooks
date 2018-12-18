@@ -38,7 +38,7 @@ class Test_Tower_Prepopulation(APITest):
         assert job_templates.count == 1, "'Demo Job Template' not found."
         job_template = job_templates.results[0]
         if job_template.last_job_run:
-            assert project.is_successful, "'Demo Project' unsuccessful - %s." % project
+            project.assert_successful()
         else:
             assert project.status == "never updated", "Unexpected project.status - %s." % projects
         assert job_template.custom_virtualenv is None
@@ -50,4 +50,4 @@ class Test_Tower_Prepopulation(APITest):
         assert job_template.inventory == inventory.id
         assert job_template.credential == credential.id
         job = job_template.launch().wait_until_completed()
-        assert job.is_successful, 'Job unsuccessful - %s.' % job
+        job.assert_successful()

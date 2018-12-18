@@ -72,7 +72,7 @@ class Test_System_Jobs(APITest):
         # launch cleanup job
         payload = dict(extra_vars=dict(days=0))
         system_job_pg = cleanup_jobs_template.launch(payload).wait_until_completed()
-        assert system_job_pg.is_successful, "Job unsuccessful - %s." % system_job_pg
+        system_job_pg.assert_successful()
 
         # assert provided job has been deleted if not project/inventory update
         if unified_job_with_status_completed.type not in ['inventory_update', 'project_update']:
@@ -97,7 +97,7 @@ class Test_System_Jobs(APITest):
         # launch cleanup job and assert job successful
         payload = dict(extra_vars=dict(days=0))
         system_job_pg = cleanup_jobs_template.launch(payload).wait_until_completed()
-        assert system_job_pg.is_successful, "Job unsuccessful - %s" % system_job_pg
+        system_job_pg.assert_successful()
 
         # assert no jobs under /api/v1/jobs/
         assert api_jobs_pg.get().count == 0, "Jobs remain after cleanup_job run (received %s jobs)." % api_jobs_pg.get().count
@@ -124,7 +124,7 @@ class Test_System_Jobs(APITest):
         # launch job and assert job successful
         payload = dict(extra_vars=dict(days=0))
         system_job_pg = cleanup_activitystream_template.launch(payload).wait_until_completed(timeout=60 * 5)
-        assert system_job_pg.is_successful, "Job unsuccessful - %s" % system_job_pg
+        system_job_pg.assert_successful()
 
         # assert that activity_stream cleared
         activity_stream_pg = api_activity_stream_pg.get()

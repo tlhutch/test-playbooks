@@ -102,7 +102,7 @@ class Test_Schedules_RBAC(APITest):
         jt.set_object_roles(user, role)
 
         job = jt.launch().wait_until_completed()
-        assert job.is_successful
+        job.assert_successful()
 
         with self.current_user(user):
             if role in ('admin', 'execute'):
@@ -121,7 +121,7 @@ class Test_Schedules_RBAC(APITest):
         jt.set_object_roles(user, role)
 
         wfj = wfjt.launch().wait_until_completed()
-        assert wfj.is_successful
+        wfj.assert_successful()
 
         create_schedule = jt.get().related.last_job.get().related.create_schedule.get()
         with self.current_user(user):

@@ -95,7 +95,7 @@ class TestDispatcher(APITest):
 
         jt.extra_vars = '{"sleep_interval": 1}'
         job = jt.launch().wait_until_completed()
-        assert job.is_successful, 'Job status: {}, Job explanation: {}'.format(job.status, job.job_explanation)
+        job.assert_successful()
 
     def test_dispatcher_hard_restart(self, factories, v2, run_remote_command):
         jt = factories.v2_job_template(playbook='sleep.yml',
@@ -122,7 +122,7 @@ class TestDispatcher(APITest):
 
         jt.extra_vars = '{"sleep_interval": 1}'
         job = jt.launch().wait_until_completed()
-        assert job.is_successful, 'Job status: {}, Job explanation: {}'.format(job.status, job.job_explanation)
+        job.assert_successful()
 
     def test_kill_dispatcher_child_process_executing_job(self, factories, v2, run_remote_command, kill_process,
                                                          get_dispatcher_pids):
@@ -166,7 +166,7 @@ class TestDispatcher(APITest):
 
         jt.extra_vars = '{"sleep_interval": 1}'
         job = jt.launch().wait_until_completed()
-        assert job.is_successful, 'Job status: {}, Job explanation: {}'.format(job.status, job.job_explanation)
+        job.assert_successful()
 
     def test_kill_all_dispatcher_child_processes(self, v2, factories, run_remote_command, get_dispatcher_pids, kill_process):
         _, pids_before = get_dispatcher_pids()
@@ -184,7 +184,7 @@ class TestDispatcher(APITest):
         jt.ds.inventory.add_host()
         self.ensure_jt_runs_on_primary_instance(jt, v2)
         job = jt.launch().wait_until_completed()
-        assert job.is_successful, 'Job status: {}, Job explanation: {}'.format(job.status, job.job_explanation)
+        job.assert_successful()
 
     def test_kill_dispatcher_parent_process(self, factories, v2, get_dispatcher_pids, kill_process, process_present):
         parent_pid, child_pids = get_dispatcher_pids()
@@ -203,4 +203,4 @@ class TestDispatcher(APITest):
         jt.ds.inventory.add_host()
         self.ensure_jt_runs_on_primary_instance(jt, v2)
         job = jt.launch().wait_until_completed()
-        assert job.is_successful, 'Job status: {}, Job explanation: {}'.format(job.status, job.job_explanation)
+        job.assert_successful()

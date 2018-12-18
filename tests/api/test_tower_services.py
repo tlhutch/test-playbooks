@@ -90,7 +90,7 @@ class TestTowerServices(APITest):
 
         jt.extra_vars = '{"sleep_interval": 1}'
         job = jt.launch().wait_until_completed()
-        assert job.is_successful, \
+        job.assert_successful()
             'Newly launched job was not successful after ansible-tower-service restart! Job status: {}, Job explanation: {}'.format(job.status, job.job_explanation)
 
     def test_rabbitmq_unavailable(self, install_enterprise_license_unlimited,
@@ -132,14 +132,14 @@ class TestTowerServices(APITest):
         # On this second run we should not have to wait so long
         jt.extra_vars = '{"sleep_interval": 1}'
         job = jt.launch().wait_until_completed()
-        assert job.is_successful, \
+        job.assert_successful()
             'Newly launched job was not successful after rabbitmq restart! Job status: {}, Job explanation: {}'.format(job.status, job.job_explanation)
 
         # Test that we can create new job templates and run them
         new_jt = factories.v2_job_template(playbook='sleep.yml',
                                        extra_vars=dict(sleep_interval=1))
         new_job = new_jt.launch().wait_until_completed()
-        assert new_job.is_successful, \
+        new_job.assert_successful()
             'Job launched from newly created JT after rabbitmq restart failed! Job status: {}, Job explanation: {}'.format(job.status, job.job_explanation)
 
     def test_database_unavailable(self, install_enterprise_license_unlimited,
@@ -202,10 +202,10 @@ class TestTowerServices(APITest):
         new_jt = factories.v2_job_template(playbook='sleep.yml',
                                        extra_vars=dict(sleep_interval=1))
         new_job = new_jt.launch().wait_until_completed()
-        assert new_job.is_successful, \
+        new_job.assert_successful()
             'Job launched from newly created JT after DB restart failed! Job status: {}, Job explanation: {}'.format(job.status, job.job_explanation)
 
         jt.extra_vars = '{"sleep_interval": 1}'
         job = jt.launch().wait_until_completed()
-        assert job.is_successful, \
+        job.assert_successful()
             'Newly launched job from old job template was not successful after database restart! Job status: {}, Job explanation: {}'.format(job.status, job.job_explanation)

@@ -14,7 +14,7 @@ class TestJobsRBAC(APITest):
         job = api_jobs_pg.post(job_template.json)
         assert job.status == 'new'
         job.related.start.post()
-        assert job.wait_until_completed().is_successful
+        job.wait_until_completed().assert_successful()
 
     def test_v1_launch_as_non_superuser(self, job_template, non_superusers, api_jobs_pg):
         """Verify a non-superuser is unable to create a job via POST to the /api/v1/jobs/ endpoint."""
@@ -33,10 +33,10 @@ class TestJobsRBAC(APITest):
     def test_relaunch_job_as_superuser(self, factories):
         jt = factories.v2_job_template()
         job = jt.launch().wait_until_completed()
-        assert job.is_successful
+        job.assert_successful()
 
         relaunched_job = job.relaunch().wait_until_completed()
-        assert relaunched_job.is_successful
+        relaunched_job.assert_successful()
 
     def test_relaunch_job_as_organization_admin(self, factories):
         jt1, jt2 = [factories.v2_job_template() for _ in range(2)]
@@ -46,11 +46,11 @@ class TestJobsRBAC(APITest):
         job1 = jt1.launch().wait_until_completed()
         job2 = jt2.launch().wait_until_completed()
         for job in [job1, job2]:
-            assert job.is_successful
+            job.assert_successful()
 
         with self.current_user(user):
             relaunched_job = job1.relaunch().wait_until_completed()
-            assert relaunched_job.is_successful
+            relaunched_job.assert_successful()
 
             with pytest.raises(exc.Forbidden):
                 job2.relaunch()
@@ -61,7 +61,7 @@ class TestJobsRBAC(APITest):
         jt.ds.inventory.ds.organization.set_object_roles(user, 'member')
 
         job = jt.launch().wait_until_completed()
-        assert job.is_successful
+        job.assert_successful()
 
         with self.current_user(user):
             with pytest.raises(exc.Forbidden):

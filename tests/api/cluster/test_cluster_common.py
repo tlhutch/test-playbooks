@@ -27,7 +27,7 @@ class TestClusterCommon(APITest):
 
             jt.add_instance_group(ig)
             job = jt.launch().wait_until_completed()
-            assert job.is_successful
+            job.assert_successful()
             assert job.execution_node == ig.related.instances.get().results.pop().hostname
 
     def test_fact_cache_across_different_tower_instances(self, active_instances, factories):
@@ -44,8 +44,8 @@ class TestClusterCommon(APITest):
         use_facts_jt.add_instance_group(ig2)
 
         gather_facts_job, use_facts_job = [jt.launch().wait_until_completed() for jt in (gather_facts_jt, use_facts_jt)]
-        assert gather_facts_job.is_successful
-        assert use_facts_job.is_successful
+        gather_facts_job.assert_successful()
+        use_facts_job.assert_successful()
 
         ansible_facts = host.related.ansible_facts.get()
         assert use_facts_job.result_stdout.count(ansible_facts.ansible_distribution) == 1
@@ -108,7 +108,7 @@ class TestClusterCommon(APITest):
             # This is the only place we test isolated sliced jobs,
             # so we need to check all other parameters are what was expected
             workflow_job.wait_until_completed()
-            assert workflow_job.is_successful
+            workflow_job.assert_successful()
             for job in jobs:
                 assert job.get().host_status_counts['changed'] == 1
 

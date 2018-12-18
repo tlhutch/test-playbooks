@@ -84,7 +84,7 @@ class TestJobTemplateExtraVars(APITest):
 
         # launch JT and assert successful
         job = job_template_with_extra_vars.launch().wait_until_completed()
-        assert job.is_successful, "Job unsuccessful - %s." % job
+        job.assert_successful()
 
         # assert extra_vars match JT extra_vars
         job_template_vars = utils.load_json_or_yaml(job_template_with_extra_vars.extra_vars)
@@ -109,7 +109,7 @@ class TestJobTemplateExtraVars(APITest):
 
         # launch JT and assert successful
         job = job_template_with_extra_vars.launch(dict(extra_vars=launch_time_extra_vars)).wait_until_completed()
-        assert job.is_successful, "Job unsuccessful - %s." % job
+        job.assert_successful()
 
         jt_vars = utils.load_json_or_yaml(job_template_with_extra_vars.extra_vars)
         launch_time_vars = utils.load_json_or_yaml(launch_time_extra_vars)
@@ -133,7 +133,7 @@ class TestJobTemplateExtraVars(APITest):
 
         # launch JT with launch-time variables
         job = job_template.launch(dict(extra_vars=launch_time_extra_vars)).wait_until_completed()
-        assert job.is_successful, "Job unsuccessful - %s." % job
+        job.assert_successful()
 
         # assert launch-time variables excluded
         job_extra_vars = json.loads(job.extra_vars)
@@ -155,7 +155,7 @@ class TestJobTemplateExtraVars(APITest):
 
         # launch JT and assert successful
         job = job_template_ask_variables_on_launch.launch().wait_until_completed()
-        assert job.is_successful, "Job unsuccessful - {0}".format(job)
+        job.assert_successful()
 
         job_vars = json.loads(job.extra_vars)
         assert job_vars == {}, \
@@ -265,7 +265,7 @@ class TestJobTemplateExtraVars(APITest):
         # launch JT and assert successful
         payload = dict(extra_vars=launch_time_vars)
         job = job_template_variables_needed_to_start.launch(payload).wait_until_completed()
-        assert job.is_successful, "Job unsuccessful - %s." % job
+        job.assert_successful()
 
         default_survey_vars = self.get_default_survey_vars(survey_spec)
         survey_vars = [var for var in default_survey_vars if var not in required_survey_vars]
@@ -310,7 +310,7 @@ class TestJobTemplateExtraVars(APITest):
         # launch JT and assert successful
         launch_time_vars = self.update_launch_time_vars(launch_time_extra_vars, dict(likes_chicken=["yes"], favorite_color="green"))
         job = job_template_with_extra_vars.launch(dict(extra_vars=launch_time_vars)).wait_until_completed()
-        assert job.is_successful, "Job unsuccessful - %s." % job
+        job.assert_successful()
 
         jt_vars = utils.load_json_or_yaml(job_template_with_extra_vars.extra_vars)
         launch_time_vars = utils.load_json_or_yaml(launch_time_vars)
@@ -357,8 +357,8 @@ class TestJobTemplateExtraVars(APITest):
         if not required:
             j = jt.launch(dict(extra_vars=dict())).wait_until_completed()
             job = jt.get().related.last_job.get()
-            assert j.is_successful
-            assert job.is_successful
+            j.assert_successful()
+            job.assert_successful()
             assert '"var1": "survey"' in job.result_stdout
             assert '"var2": "survey"' in job.result_stdout
 
@@ -376,7 +376,7 @@ class TestJobTemplateExtraVars(APITest):
         jt = factories.v2_job_template(playbook='custom_json.yml')
         jt.vault_credential = cred.id
         job = jt.launch().wait_until_completed(interval=1, timeout=30)
-        assert job.is_successful, "Job unsuccessful - %s." % job
+        job.assert_successful()
 
         assert "people run into some space aliens and they end up fighting them" in job.result_stdout
         assert "{{ unsafe }}" in job.result_stdout

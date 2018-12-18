@@ -31,7 +31,7 @@ def run_wfj_and_assert_completed(
         wfj = wfj.relaunch().wait_until_completed()
     else:
         wfj = wfjt.launch().wait_until_completed()
-    assert wfj.is_successful, 'Workflow was not successful in {}'.format(
+    wfj.assert_successful()
         test_case_name)
     for node in wfj.related.workflow_nodes.get().results:
         job = node.related.job.get()
@@ -541,7 +541,7 @@ class Test_Workflow_Convergence(APITest):
                 node.related.always_nodes.post(dict(id=convergence_node.id))
 
         wfj = wfjt.launch().wait_until_completed()
-        assert wfj.is_successful
+        wfj.assert_successful()
         assert wfj.extra_vars == '{}'
 
         convergence_job = convergence_jt.related.jobs.get().results.pop()
@@ -636,7 +636,7 @@ class Test_Workflow_Convergence(APITest):
                 node.related.always_nodes.post(dict(id=convergence_node.id))
 
         wfj = wfjt.launch().wait_until_completed()
-        assert wfj.is_successful
+        wfj.assert_successful()
         assert wfj.extra_vars == '{}'
 
         convergence_job = convergence_jt.related.jobs.get().results.pop()

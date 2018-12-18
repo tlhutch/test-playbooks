@@ -314,7 +314,7 @@ class TestLegacyLicenseExpired(LicenseTest):
     @pytest.mark.fixture_args(days=1000, older_than='5y', granularity='5y')
     def test_system_job_launch(self, system_job):
         system_job.wait_until_completed()
-        assert system_job.is_successful
+        system_job.assert_successful()
 
 
 @pytest.mark.api

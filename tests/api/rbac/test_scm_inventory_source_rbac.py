@@ -28,7 +28,7 @@ class TestSCMInventorySourceRBAC(APITest):
                     inv_source = factories.v2_inventory_source(**inv_source_args).wait_until_completed()
             else:
                 inv_source = factories.v2_inventory_source(**inv_source_args).wait_until_completed()
-                assert inv_source.wait_until_completed().is_successful
+                inv_source.wait_until_completed().assert_successful()
 
     @pytest.mark.parametrize('role', ['admin', 'read', 'use', 'update'])
     def test_scm_inventory_source_project_association(self, factories, role):

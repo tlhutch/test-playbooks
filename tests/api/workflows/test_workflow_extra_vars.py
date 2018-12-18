@@ -17,12 +17,12 @@ class TestWorkflowExtraVars(APITest):
         factories.workflow_job_template_node(workflow_job_template=workflow_job_template_with_extra_vars)
 
         wfj = workflow_job_template_with_extra_vars.launch().wait_until_completed()
-        assert wfj.is_successful
+        wfj.assert_successful()
 
         nodes = wfj.related.workflow_nodes.get()
         assert len(nodes.results) == 1, "Only expecting one node, found:\n\n{0}".format(nodes)
         node_job = nodes.results.pop().related.job.get()
-        assert node_job.is_successful
+        node_job.assert_successful()
 
         # assert expected wfj and node job extra_vars
         wfjt_vars = utils.load_json_or_yaml(workflow_job_template_with_extra_vars.extra_vars)
@@ -43,12 +43,12 @@ class TestWorkflowExtraVars(APITest):
         survey_spec = wfjt.add_survey(spec=required_survey_spec)
 
         wfj = wfjt.launch(dict(extra_vars=launch_time_vars)).wait_until_completed()
-        assert wfj.is_successful
+        wfj.assert_successful()
 
         nodes = wfj.related.workflow_nodes.get()
         assert len(nodes.results) == 1, "Only expecting one node, found:\n\n{0}".format(nodes)
         node_job = nodes.results.pop().related.job.get()
-        assert node_job.is_successful
+        node_job.assert_successful()
 
         # assert expected wfj and node job extra_vars
         required_survey_vars = survey_spec.get_required_vars()
@@ -78,12 +78,12 @@ class TestWorkflowExtraVars(APITest):
         factories.workflow_job_template_node(workflow_job_template=wfjt)
 
         wfj = wfjt.launch().wait_until_completed()
-        assert wfj.is_successful
+        wfj.assert_successful()
 
         nodes = wfj.related.workflow_nodes.get()
         assert len(nodes.results) == 1, "Only expecting one node, found:\n\n{0}".format(nodes)
         node_job = nodes.results.pop().related.job.get()
-        assert node_job.is_successful
+        node_job.assert_successful()
 
         # assert expected wfj and node job extra_vars
         wfj_vars = json.loads(wfj.extra_vars)
@@ -98,12 +98,12 @@ class TestWorkflowExtraVars(APITest):
         factories.workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=job_template_with_extra_vars)
 
         wfj = wfjt.launch().wait_until_completed()
-        assert wfj.is_successful
+        wfj.assert_successful()
 
         nodes = wfj.related.workflow_nodes.get()
         assert len(nodes.results) == 1, "Only expecting one node, found:\n\n{0}".format(nodes)
         node_job = nodes.results.pop().related.job.get()
-        assert node_job.is_successful
+        node_job.assert_successful()
 
         # assert expected wfj and node job extra_vars
         jt_vars = utils.load_json_or_yaml(job_template_with_extra_vars.extra_vars)
@@ -122,12 +122,12 @@ class TestWorkflowExtraVars(APITest):
         survey_spec = job_template_variables_needed_to_start.related.survey_spec.get()
 
         wfj = wfjt.launch().wait_until_completed()
-        assert wfj.is_successful
+        wfj.assert_successful()
 
         nodes = wfj.related.workflow_nodes.get()
         assert len(nodes.results) == 1, "Only expecting one node, found:\n\n{0}".format(nodes)
         node_job = nodes.results.pop().related.job.get()
-        assert node_job.is_successful
+        node_job.assert_successful()
 
         # assert expected wfj and node job extra_vars
         survey_vars = survey_spec.get_default_vars()
@@ -146,12 +146,12 @@ class TestWorkflowExtraVars(APITest):
         survey_spec = job_template_with_extra_vars.add_survey(spec=required_survey_spec)
 
         wfj = wfjt.launch().wait_until_completed()
-        assert wfj.is_successful
+        wfj.assert_successful()
 
         nodes = wfj.related.workflow_nodes.get()
         assert len(nodes.results) == 1, "Only expecting one node, found:\n\n{0}".format(nodes)
         node_job = nodes.results.pop().related.job.get()
-        assert node_job.is_successful
+        node_job.assert_successful()
 
         # assert expected wfj and node job extra_vars
         jt_vars = utils.load_json_or_yaml(job_template_with_extra_vars.extra_vars)
@@ -177,12 +177,12 @@ class TestWorkflowExtraVars(APITest):
                                              unified_job_template=job_template_with_extra_vars)
 
         wfj = workflow_job_template_with_extra_vars.launch().wait_until_completed()
-        assert wfj.is_successful
+        wfj.assert_successful()
 
         nodes = wfj.related.workflow_nodes.get()
         assert len(nodes.results) == 1, "Only expecting one node, found:\n\n{0}".format(nodes)
         node_job = nodes.results.pop().related.job.get()
-        assert node_job.is_successful
+        node_job.assert_successful()
 
         # assert expected wfj and node job extra_vars
         jt_vars = utils.load_json_or_yaml(job_template_with_extra_vars.extra_vars)
@@ -232,12 +232,12 @@ class TestWorkflowExtraVars(APITest):
                                              unified_job_template=job_template_with_extra_vars)
 
         wfj = workflow_job_template_with_extra_vars.launch().wait_until_completed()
-        assert wfj.is_successful
+        wfj.assert_successful()
 
         nodes = wfj.related.workflow_nodes.get()
         assert len(nodes.results) == 1, "Only expecting one node, found:\n\n{0}".format(nodes)
         node_job = nodes.results.pop().related.job.get()
-        assert node_job.is_successful
+        node_job.assert_successful()
 
         # assert expected wfj and node job extra_vars
         jt_vars = utils.load_json_or_yaml(job_template_with_extra_vars.extra_vars)
@@ -273,8 +273,8 @@ class TestWorkflowExtraVars(APITest):
 
         wfj = wfjt.launch(dict(extra_vars=dict(var1='launch', var2='$encrypted$'))).wait_until_completed()
         job = jt.get().related.last_job.get()
-        assert wfj.is_successful
-        assert job.is_successful
+        wfj.assert_successful()
+        job.assert_successful()
         assert '"var1": "launch"' in job.result_stdout
         assert '"var2": "$encrypted$"' in job.result_stdout
 
@@ -289,8 +289,8 @@ class TestWorkflowExtraVars(APITest):
 
         wfj = wfjt.launch(dict(extra_vars=dict())).wait_until_completed()
         job = jt.get().related.last_job.get()
-        assert wfj.is_successful
-        assert job.is_successful
+        wfj.assert_successful()
+        job.assert_successful()
 
         assert json.loads(wfj.extra_vars) == dict()
         assert json.loads(job.extra_vars) == dict()
@@ -317,8 +317,8 @@ class TestWorkflowExtraVars(APITest):
         payload = dict(var1='$encrypted$', var2='$encrypted$', var3='$encrypted$')
         wfj = wfjt.launch(dict(extra_vars=payload)).wait_until_completed()
         job = jt.get().related.last_job.get()
-        assert wfj.is_successful
-        assert job.is_successful
+        wfj.assert_successful()
+        job.assert_successful()
         assert '"var1": "$encrypted$"' in job.result_stdout
         assert '"var2": "survey"' in job.result_stdout
 
@@ -347,8 +347,8 @@ class TestWorkflowExtraVars(APITest):
         payload = dict(var1='launch', var2='launch', var3='$encrypted$')
         wfj = wfjt.launch(dict(extra_vars=payload)).wait_until_completed()
         job = jt.get().related.last_job.get()
-        assert wfj.is_successful
-        assert job.is_successful
+        wfj.assert_successful()
+        job.assert_successful()
         assert '"var1": "launch"' in job.result_stdout
         assert '"var2": "launch"' in job.result_stdout
 
@@ -381,8 +381,8 @@ class TestWorkflowExtraVars(APITest):
         if not required:
             wfj = wfjt.launch(dict(extra_vars=dict())).wait_until_completed()
             job = jt.get().related.last_job.get()
-            assert wfj.is_successful
-            assert job.is_successful
+            wfj.assert_successful()
+            job.assert_successful()
             assert '"var1": "survey"' in job.result_stdout
             assert '"var2": "survey"' in job.result_stdout
 
@@ -421,8 +421,8 @@ class TestWorkflowExtraVars(APITest):
         payload = dict(extra_vars=dict(var1='launch', var2='launch', var3='launch'))
         wfj = wfjt.launch(payload).wait_until_completed()
         job = jt.get().related.last_job.get()
-        assert wfj.is_successful
-        assert job.is_successful
+        wfj.assert_successful()
+        job.assert_successful()
         assert '"var1": "launch"' in job.result_stdout
         assert '"var2": "launch"' in job.result_stdout
 
@@ -449,7 +449,7 @@ class TestWorkflowExtraVars(APITest):
             .add_failure_node(unified_job_template=success_jt)
 
         wfj = wfjt.launch().wait_until_completed()
-        assert wfj.is_successful
+        wfj.assert_successful()
         assert wfj.extra_vars == '{}'
 
         # verify jobs spawned as expected
@@ -458,7 +458,7 @@ class TestWorkflowExtraVars(APITest):
 
         # the root job produces the artifacts
         root_job = set_stats_jt.get().related.last_job.get()
-        assert root_job.is_successful
+        root_job.assert_successful()
         assert root_job.extra_vars == '{}'
         assert root_job.artifacts == artifacts_from_stats_playbook
 
@@ -514,7 +514,7 @@ class TestWorkflowExtraVars(APITest):
         assert json.loads(receiving_job.extra_vars) == artifacts_from_stats_playbook
 
         workflow_job.wait_until_completed()
-        assert workflow_job.is_successful
+        workflow_job.assert_successful()
 
     def test_artifacts_passed_to_workflow_nodes(self, factories, v2, artifacts_from_stats_playbook):
         """Test artifacts used with workflows-in-workflows
@@ -556,4 +556,4 @@ class TestWorkflowExtraVars(APITest):
         assert json.loads(receiving_job.extra_vars) == artifacts_from_stats_playbook
 
         workflow_job.wait_until_completed()
-        assert workflow_job.is_successful
+        workflow_job.assert_successful()

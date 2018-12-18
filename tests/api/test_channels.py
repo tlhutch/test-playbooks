@@ -96,7 +96,7 @@ class TestAdHocCommandChannels(ChannelsTest, APITest):
             ahc = class_factories.v2_ad_hoc_command(module_name='shell', module_args='true',
                                                     inventory=host.ds.inventory)
             ws.ad_hoc_stdout(ahc.id)
-            assert ahc.wait_until_completed().is_successful
+            ahc.wait_until_completed().assert_successful()
 
             messages = [m for m in ws]
             ws.unsubscribe()
@@ -142,13 +142,13 @@ class TestAdHocCommandChannels(ChannelsTest, APITest):
             ahc = factories.v2_ad_hoc_command(module_name='shell', module_args='true',
                                               inventory=host.ds.inventory).wait_until_completed()
             ws.ad_hoc_stdout(ahc.id)
-            assert ahc.wait_until_completed().is_successful
+            ahc.wait_until_completed().assert_successful()
             assert [m for m in ws]
 
             ws.unsubscribe()
             self.sleep_and_clear_messages(ws)
 
-            assert ahc.relaunch().wait_until_completed().is_successful
+            ahc.relaunch().wait_until_completed().assert_successful()
             assert not [m for m in ws]
 
 
@@ -167,7 +167,7 @@ class TestJobChannels(ChannelsTest, APITest):
             job = class_factories.v2_job_template(playbook='debug.yml',
                                                   inventory=host.ds.inventory).launch()
             ws.job_stdout(job.id)
-            assert job.wait_until_completed().is_successful
+            job.wait_until_completed().assert_successful()
 
             messages = [m for m in ws]
             ws.unsubscribe()
@@ -211,13 +211,13 @@ class TestJobChannels(ChannelsTest, APITest):
             job = factories.v2_job_template(playbook='debug.yml',
                                             inventory=host.ds.inventory).launch()
             ws.job_stdout(job.id)
-            assert job.wait_until_completed().is_successful
+            job.wait_until_completed().assert_successful()
             assert [m for m in ws]
 
             ws.unsubscribe()
             self.sleep_and_clear_messages(ws)
 
-            assert job.relaunch().wait_until_completed().is_successful
+            job.relaunch().wait_until_completed().assert_successful()
             assert not [m for m in ws]
 
 
@@ -298,7 +298,7 @@ class TestInventoryChannels(ChannelsTest, APITest):
 
             inv_update = class_factories.v2_inventory_source(source='custom').update()
             ws.inventory_update_stdout(inv_update.id)
-            assert inv_update.wait_until_completed().is_successful
+            inv_update.wait_until_completed().assert_successful()
             messages = [m for m in ws]
 
             ws.unsubscribe()
@@ -345,13 +345,13 @@ class TestInventoryChannels(ChannelsTest, APITest):
             inv_source = factories.v2_inventory_source(source='custom')
             inv_update = inv_source.update()
             ws.inventory_update_stdout(inv_update.id)
-            assert inv_update.wait_until_completed().is_successful
+            inv_update.wait_until_completed().assert_successful()
             assert [m for m in ws]
 
             ws.unsubscribe()
             self.sleep_and_clear_messages(ws)
 
-            assert inv_source.update().wait_until_completed().is_successful
+            inv_source.update().wait_until_completed().assert_successful()
             assert not [m for m in ws]
 
 
@@ -367,7 +367,7 @@ class TestProjectUpdateChannels(ChannelsTest, APITest):
 
             project_update = class_factories.v2_project().update()
             ws.project_update_stdout(project_update.id)
-            assert project_update.wait_until_completed().is_successful
+            project_update.wait_until_completed().assert_successful()
             messages = [m for m in ws]
 
             ws.unsubscribe()
@@ -413,11 +413,11 @@ class TestProjectUpdateChannels(ChannelsTest, APITest):
             project = factories.v2_project()
             project_update = project.update()
             ws.project_update_stdout(project_update.id)
-            assert project_update.wait_until_completed().is_successful
+            project_update.wait_until_completed().assert_successful()
             assert [m for m in ws]
 
             ws.unsubscribe()
             self.sleep_and_clear_messages(ws)
 
-            assert project.update().wait_until_completed().is_successful
+            project.update().wait_until_completed().assert_successful()
             assert not [m for m in ws]

@@ -194,5 +194,5 @@ class TestEnterpriseLicenseExpired(LicenseTest):
     @pytest.mark.fixture_args(days=1000, older_than='5y', granularity='5y')
     def test_system_job_launch(self, system_job_with_status_completed):
         """Verify that system jobs can be launched"""
-        assert system_job_with_status_completed.is_successful, (
+        system_job_with_status_completed.assert_successful()
             "System job unexpectedly failed - %s" % system_job_with_status_completed)

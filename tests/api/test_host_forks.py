@@ -125,7 +125,7 @@ class Test_Host_Fork(APITest):
         job_pg = job_pg.wait_until_completed(timeout=60 * 30)
 
         # Make sure there is no traceback in result_stdout or result_traceback
-        assert job_pg.is_successful, \
+        job_pg.assert_successful()
             "Job unsuccessful (%s)\nJob result_stdout: %s\nJob result_traceback: %s" % \
             (job_pg.status, job_pg.result_stdout, job_pg.result_traceback)
 

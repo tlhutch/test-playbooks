@@ -53,8 +53,8 @@ class Test_Workflow_Nodes(APITest):
         wfj = wfjt.launch().wait_until_completed()
         job = jt.get().related.last_job.get()
 
-        assert wfj.is_successful
-        assert job.is_successful
+        wfj.assert_successful()
+        job.assert_successful()
         assert json.loads(job.extra_vars) == {'var1': 'survey', 'var2': '$encrypted$'}
 
         # verify job sources JT and not wf node
@@ -87,8 +87,8 @@ class Test_Workflow_Nodes(APITest):
 
         wfj = wfjt.launch().wait_until_completed()
         job = ask_everything_jt.get().related.last_job.get()
-        assert wfj.is_successful
-        assert job.is_successful
+        wfj.assert_successful()
+        job.assert_successful()
         assert json.loads(job.extra_vars) == {'var1': 'wf_var', 'var2': '$encrypted$'}
 
         # verify job sources wf node and not JT

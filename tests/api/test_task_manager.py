@@ -400,7 +400,7 @@ class Test_Autospawned_Jobs(APITest):
 
         # launch job_template and assert successful
         job_pg = cloud_inventory_job_template.launch_job().wait_until_completed(timeout=600)
-        assert job_pg.is_successful, "Job unsuccessful - %s." % job_pg
+        job_pg.assert_successful()
 
         # check that inventory update triggered
         inv_src_pg.get()
@@ -409,8 +409,8 @@ class Test_Autospawned_Jobs(APITest):
 
         # check that inventory update and source are successful
         inv_update = inv_src_pg.get_related('last_update')
-        assert inv_update.is_successful, "Last update unsuccessful - %s." % inv_update
-        assert inv_src_pg.is_successful, "Inventory source unsuccessful - %s." % inv_src_pg
+        inv_update.assert_successful()
+        inv_src_pg.assert_successful()
 
         # check that jobs ran sequentially and in the right order
         sorted_unified_jobs = [inv_update, job_pg]
@@ -428,13 +428,13 @@ class Test_Autospawned_Jobs(APITest):
 
         jt = factories.v2_job_template(inventory=inv_source.ds.inventory, playbook='debug.yml')
         job = jt.launch().wait_until_completed()
-        assert job.is_successful
+        job.assert_successful()
 
         inv_update = inv_source.get().related.last_update.get()
         assert inv_source.get().last_updated
         assert inv_source.last_job_run
-        assert inv_update.is_successful
-        assert inv_source.is_successful
+        inv_update.assert_successful()
+        inv_source.assert_successful()
 
         # check that jobs ran sequentially and in the right order
         sorted_unified_jobs = [inv_update, job]
@@ -467,7 +467,7 @@ class Test_Autospawned_Jobs(APITest):
 
         # launch job_template and assert successful
         job_pg = job_template.launch_job().wait_until_completed(timeout=600)
-        assert job_pg.is_successful, "Job unsuccessful - %s." % job_pg
+        job_pg.assert_successful()
 
         # check that inventory updates were triggered
         for inv_source in (aws_inventory_source, gce_inventory_source):
@@ -479,10 +479,10 @@ class Test_Autospawned_Jobs(APITest):
 
         # check that inventory updates were successful
         aws_update, gce_update = aws_inventory_source.related.last_update.get(), gce_inventory_source.related.last_update.get()
-        assert aws_update.is_successful, "aws_inventory_source -> last_update unsuccessful - %s." % aws_update
-        assert aws_inventory_source.is_successful, "Inventory source unsuccessful - %s." % aws_inventory_source
-        assert gce_update.is_successful, "gce_inventory_source -> last_update unsuccessful - %s." % gce_update
-        assert gce_inventory_source.is_successful, "Inventory source unsuccessful - %s." % gce_inventory_source
+        aws_update.assert_successful()
+        aws_inventory_source.assert_successful()
+        gce_update.assert_successful()
+        gce_inventory_source.assert_successful()
 
         # check that jobs ran sequentially and in the right order
         sorted_unified_jobs = [[aws_update, gce_update], job_pg]
@@ -512,7 +512,7 @@ class Test_Autospawned_Jobs(APITest):
 
         # launch job_template and assert successful
         job_pg = custom_inventory_job_template.launch_job().wait_until_completed(timeout=600)
-        assert job_pg.is_successful, "Job unsuccessful - %s." % job_pg
+        job_pg.assert_successful()
 
         # check that inventory update not triggered
         custom_inventory_source.get()
@@ -550,13 +550,13 @@ class Test_Autospawned_Jobs(APITest):
 
         # launch job_template and assert successful
         job_pg = job_template.launch_job().wait_until_completed(timeout=600)
-        assert job_pg.is_successful, "Job unsuccessful - %s." % job_pg
+        job_pg.assert_successful()
 
         # check that our new project updates are successful
         spawned_project_updates = project.related.project_updates.get(not__id=initial_project_update.id)
         assert spawned_project_updates.count == 2, "Unexpected number of job-spawned project updates."
         for update in spawned_project_updates.results:
-            assert update.is_successful, "Project update unsuccessful - %s." % update
+            update.assert_successful()
 
         # check that our new project updates are of the right type
         spawned_check_updates = project.related.project_updates.get(not__id=initial_project_update.id, job_type='check')
@@ -594,13 +594,13 @@ class Test_Autospawned_Jobs(APITest):
 
         # launch job_template and assert successful
         job_pg = job_template_ansible_playbooks_git.launch_job().wait_until_completed(timeout=600)
-        assert job_pg.is_successful, "Job unsuccessful - %s." % job_pg
+        job_pg.assert_successful()
 
         # check that our new project update completes successfully and is of the right type
         spawned_project_updates = project_ansible_playbooks_git.related.project_updates.get(not__id=initial_project_update.id)
         assert spawned_project_updates.count == 1, "Unexpected number of final updates."
         spawned_project_update = spawned_project_updates.results.pop()
-        assert spawned_project_update.is_successful, "Project update unsuccessful."
+        spawned_project_update.assert_successful()
         assert spawned_project_update.job_type == 'run', "Expected one new project update of job_type 'run.'"
 
         # check that jobs ran sequentially and in the right order
@@ -635,13 +635,13 @@ class Test_Autospawned_Jobs(APITest):
 
         # launch job_template and assert successful
         job_pg = custom_inventory_job_template.launch_job().wait_until_completed(timeout=600)
-        assert job_pg.is_successful, "Job unsuccessful - %s." % job_pg
+        job_pg.assert_successful()
 
         # check our new project updates are successful
         spawned_project_updates = project.related.project_updates.get(not__id=initial_project_update.id)
         assert spawned_project_updates.count == 2, "Unexpected number of final updates ({0}).".format(spawned_project_updates.count)
         for update in spawned_project_updates.results:
-            assert update.is_successful, "Project update unsuccessful - %s." % update
+            update.assert_successful()
 
         # check that our new project updates are of the right type
         spawned_check_updates = project.related.project_updates.get(not__id=initial_project_update.id, job_type='check')
@@ -654,9 +654,9 @@ class Test_Autospawned_Jobs(APITest):
         custom_inventory_source.get()
         assert custom_inventory_source.last_updated is not None, "Expecting value for last_updated - %s." % custom_inventory_source
         assert custom_inventory_source.last_job_run is not None, "Expecting value for last_job_run - %s." % custom_inventory_source
-        assert custom_inventory_source.is_successful, "Inventory source unsuccessful - {0}.".format(custom_inventory_source)
+        custom_inventory_source.assert_successful()
         inv_update_pg = custom_inventory_source.related.inventory_updates.get().results.pop()
-        assert custom_inventory_source.is_successful, "Inventory update unsuccessful - {0}.".format(inv_update_pg)
+        custom_inventory_source.assert_successful()
 
         # check that jobs ran sequentially and in the right order
         sorted_unified_jobs = [initial_project_update, [spawned_check_update, inv_update_pg], [job_pg, spawned_run_update]]

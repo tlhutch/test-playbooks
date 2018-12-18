@@ -36,8 +36,8 @@ class TestWorkflowJobTemplateSurveys(APITest):
 
         wfj = wfjt.launch().wait_until_completed()
         job = jt.get().related.last_job.get()
-        assert wfj.is_successful
-        assert job.is_successful
+        wfj.assert_successful()
+        job.assert_successful()
         assert '"var1": "var1_default"' in job.result_stdout
         assert '"var2": "var2_default"' in job.result_stdout
 
@@ -56,15 +56,15 @@ class TestWorkflowJobTemplateSurveys(APITest):
 
         wfj1 = wfjt.launch().wait_until_completed()
         job1 = jt.get().related.last_job.get()
-        assert wfj1.is_successful
-        assert job1.is_successful
+        wfj1.assert_successful()
+        job1.assert_successful()
         assert '"var1": "var1_default"' in job1.result_stdout
         assert '"var2": "var2_default"' in job1.result_stdout
 
         wfj2 = wfj1.relaunch().wait_until_completed()
         job2 = jt.related.last_job.get()
-        assert wfj2.is_successful
-        assert job2.is_successful
+        wfj2.assert_successful()
+        job2.assert_successful()
         assert '"var1": "var1_default"' in job2.result_stdout
         assert '"var2": "var2_default"' in job2.result_stdout
 
@@ -88,8 +88,8 @@ class TestWorkflowJobTemplateSurveys(APITest):
 
         wfj = wfjt.launch(dict(extra_vars=dict(var1='launch'))).wait_until_completed()
         job = jt.get().related.last_job.get()
-        assert wfj.is_successful
-        assert job.is_successful
+        wfj.assert_successful()
+        job.assert_successful()
         assert '"var1": "launch"' in job.result_stdout
         assert '"var2": "var2_default"' in job.result_stdout
 
@@ -120,8 +120,8 @@ class TestWorkflowJobTemplateSurveys(APITest):
 
         wfj = wfjt.launch().wait_until_completed()
         job = jt.get().related.last_job.get()
-        assert wfj.is_successful
-        assert job.is_successful
+        wfj.assert_successful()
+        job.assert_successful()
         assert '"var1": ""' in job.result_stdout
         assert '"var2": ""' in job.result_stdout
 
@@ -146,8 +146,8 @@ class TestWorkflowJobTemplateSurveys(APITest):
         wfj = wfjt.launch(dict(extra_vars=dict(var1='var1_launch',
                                                var2='var2_launch'))).wait_until_completed()
         job = jt.get().related.last_job.get()
-        assert wfj.is_successful
-        assert job.is_successful
+        wfj.assert_successful()
+        job.assert_successful()
         assert '"var1": "var1_launch"' in job.result_stdout
         assert '"var2": "var2_launch"' in job.result_stdout
 
@@ -178,5 +178,5 @@ class TestWorkflowJobTemplateSurveys(APITest):
 
         wfjt.launch().wait_until_completed()
         job = jt.get().related.last_job.get()
-        assert job.is_successful
+        job.assert_successful()
         assert '"var1": "don\'t update me"' in job.result_stdout
