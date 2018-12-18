@@ -556,7 +556,6 @@ class TestInventoryUpdate(APITest):
         # Assert that the inventory_update is marked as successful
         inv_source_pg = aws_group.get_related('inventory_source')
         inv_source_pg.assert_successful()
-                                             "inventory_source is not successful - %s" % inv_source_pg)
 
         # Assert that hyphen containing tag groups are registered with underscores
         for group_name in ['tag_Test_Flag_2202', 'tag_Test_Flag_2202_Replace_Dash_In_Groups']:

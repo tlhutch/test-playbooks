@@ -31,8 +31,7 @@ def run_wfj_and_assert_completed(
         wfj = wfj.relaunch().wait_until_completed()
     else:
         wfj = wfjt.launch().wait_until_completed()
-    wfj.assert_successful()
-        test_case_name)
+    wfj.assert_successful(msg=test_case_name)
     for node in wfj.related.workflow_nodes.get().results:
         job = node.related.job.get()
         assert job.status == 'successful', 'Job in workflow failed during {}'.format(

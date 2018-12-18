@@ -229,7 +229,8 @@ class TestCustomVirtualenv(APITest):
                                                      for n in (n1, n2, n3)]
             n1_job, n2_job, n3_job = [job_node.related.job.get() for job_node in
                                       (n1_job_node, n2_job_node, n3_job_node)]
-            all([job.assert_successful()
+            for job in (n1_job, n2_job, n3_job):
+                job.assert_successful()
 
             assert n1_job.job_env['VIRTUAL_ENV'] == venv_path().rstrip('/')
             assert n2_job.job_env['VIRTUAL_ENV'] == venv_path(folder_name)

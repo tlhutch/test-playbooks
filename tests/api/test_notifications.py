@@ -162,7 +162,6 @@ class Test_Notifications(APITest):
         # Trigger test notification
         notification_pg = notification_template.test().wait_until_completed()
         notification_pg.assert_successful()
-            notification_pg
 
         # Confirm test notification delivered
         if can_confirm_notification(notification_template):

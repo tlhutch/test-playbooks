@@ -126,8 +126,6 @@ class Test_Host_Fork(APITest):
 
         # Make sure there is no traceback in result_stdout or result_traceback
         job_pg.assert_successful()
-            "Job unsuccessful (%s)\nJob result_stdout: %s\nJob result_traceback: %s" % \
-            (job_pg.status, job_pg.result_stdout, job_pg.result_traceback)
 
         created = datetime.datetime.strptime(job_pg.created, '%Y-%m-%dT%H:%M:%S.%fZ')
         modified = datetime.datetime.strptime(job_pg.modified, '%Y-%m-%dT%H:%M:%S.%fZ')

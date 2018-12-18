@@ -195,4 +195,3 @@ class TestEnterpriseLicenseExpired(LicenseTest):
     def test_system_job_launch(self, system_job_with_status_completed):
         """Verify that system jobs can be launched"""
         system_job_with_status_completed.assert_successful()
-            "System job unexpectedly failed - %s" % system_job_with_status_completed)
