@@ -60,7 +60,7 @@
 - [x] Testing complete
 
 ## Regression
-1. [ ] UI regression completed
+1. [ ] [UI regression completed](https://docs.google.com/document/d/153nKe65KhYnCmqoZAE6f3kAPW3762v8O8sly6QwdaJM/)
 1. [x] [API regression completed - standalone](http://jenkins.ansible.eng.rdu2.redhat.com/job/Test_Tower_Integration/ANSIBLE_NIGHTLY_BRANCH=stable-2.7,PLATFORM=rhel-7.6-x86_64,label=jenkins-jnlp-agent/4605/)
 1. [ ] API regression completed - traditional cluster
 1. [x] [API regression completed - OpenShift](http://jenkins.ansible.eng.rdu2.redhat.com/view/Tower/job/Test_Tower_OpenShift_Integration/373/)
@@ -119,7 +119,8 @@ Install/Deploy tower in the following configurations and validate functionality 
     * [x] rhel-7.6
 1. [x] [Bundled installation completes successfully for clustered deployments](http://jenkins.ansible.eng.rdu2.redhat.com/view/Tower/job/Test_Tower_Install_Cluster/1577/)
 1. [ ] Deploy tower with [HTTPS+Load Balancer+Let's Encrypt](https://github.com/ansible/tower-qa/issues/1985)
-1. [ ] Deploy tower in [OpenShift with an external DB](https://github.com/ansible/tower-qa/issues/1656)
+1. [x] Deploy tower in [OpenShift with an external DB](http://jenkins.ansible.eng.adu2.redhat.com/job/Test_Tower_OpenShift_Deploy_External_DB/10/)
+    - [Test Run against instance](http://jenkins.ansible.eng.rdu2.redhat.com/job/Test_Tower_OpenShift_Integration/375/)
 
 ### Upgrades for all supported platforms
 1. [x] [Successful upgrades (and migrations) from `3.2.7` - `3.4.0` (standalone)](http://jenkins.ansible.eng.rdu2.redhat.com/view/Tower/job/Test_Tower_Upgrade/3486/)
