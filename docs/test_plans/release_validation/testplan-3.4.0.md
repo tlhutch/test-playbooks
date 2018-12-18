@@ -128,7 +128,7 @@ Install/Deploy tower in the following configurations and validate functionality 
 1. [x] [Successful upgrades (and migrations) from `3.3.1` - `3.4.0` (standalone)](http://jenkins.ansible.eng.rdu2.redhat.com/view/Tower/job/Test_Tower_Upgrade/3482/)
 1. [x] [Successful upgrades (and migrations) from `3.3.2` - `3.4.0` (standalone)](http://jenkins.ansible.eng.rdu2.redhat.com/view/Tower/job/Test_Tower_Upgrade/3483/)
 1. [ ] Successful upgrades (and migrations) from `3.2.8` - `3.4.0` (traditional cluster)
-1. [ ] Successful upgrades (and migrations) from `3.3.2` - `3.4.0` (traditional cluster)
+1. [x] [Successful upgrades (and migrations) from `3.3.2` - `3.4.0` (traditional cluster)](http://jenkins.ansible.eng.rdu2.redhat.com/view/Tower/job/Test_Tower_Upgrade/3493/)
 1. [x] [Successful upgrades (and migrations) from `3.3.2` - `3.4.0` (OpenShift)](http://jenkins.ansible.eng.rdu2.redhat.com/job/Test_Tower_OpenShift_Upgrade/25/)
 * Verify the following functionality after upgrade
     * Resource migrations
