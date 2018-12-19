@@ -62,7 +62,7 @@
 ## Regression
 1. [ ] [UI regression completed](https://docs.google.com/document/d/153nKe65KhYnCmqoZAE6f3kAPW3762v8O8sly6QwdaJM/)
 1. [x] [API regression completed - standalone](http://jenkins.ansible.eng.rdu2.redhat.com/job/Test_Tower_Integration/ANSIBLE_NIGHTLY_BRANCH=stable-2.7,PLATFORM=rhel-7.6-x86_64,label=jenkins-jnlp-agent/4605/)
-1. [ ] API regression completed - traditional cluster
+1. [x] [API regression completed - traditional cluster](http://jenkins.ansible.eng.rdu2.redhat.com/view/Tower/job/Test_Tower_Integration_Cluster/ANSIBLE_NIGHTLY_BRANCH=stable-2.7,PLATFORM=rhel-7.6-x86_64,label=jenkins-jnlp-agent/1087/)
 1. [x] [API regression completed - OpenShift](http://jenkins.ansible.eng.rdu2.redhat.com/view/Tower/job/Test_Tower_OpenShift_Integration/373/)
 1. [x] Tower social authentication regression completed (vm)
    - [x] Google OAuth
@@ -83,7 +83,7 @@
 1. [ ] Logging regression completed - standalone
 1. [ ] Logging regression completed - cluster
 1. [x] [Backup/restore successful - standalone](http://jenkins.ansible.eng.rdu2.redhat.com/job/Test_Tower_Backup_and_Restore/628/)
-1. [ ] Backup/restore successful - traditional cluster (RHEL-7.5, Ubuntu-16)
+1. [x] [Backup/restore successful - traditional cluster (RHEL-7.5, Ubuntu-16)](http://jenkins.ansible.eng.rdu2.redhat.com/view/Tower/job/Test_Tower_Backup_and_Restore/645/ANSIBLE_BRANCH=stable-2.6,PLATFORM=rhel-7.6-x86_64,label=jenkins-jnlp-agent/)
 1. [x] Backup/restore successful - OpenShift (elijahd, auto-manual, still working on job for future releases)
 
 ### Installation
@@ -123,12 +123,16 @@ Install/Deploy tower in the following configurations and validate functionality 
     - [Test Run against instance](http://jenkins.ansible.eng.rdu2.redhat.com/job/Test_Tower_OpenShift_Integration/375/)
 
 ### Upgrades for all supported platforms
+1. [x] [Successful upgrades (and migrations) from `3.1.8` - `3.4.0` (standalone)](Manually tested)
 1. [x] [Successful upgrades (and migrations) from `3.2.7` - `3.4.0` (standalone)](http://jenkins.ansible.eng.rdu2.redhat.com/view/Tower/job/Test_Tower_Upgrade/3486/)
 1. [x] [Successful upgrades (and migrations) from `3.2.8` - `3.4.0` (standalone)](http://jenkins.ansible.eng.rdu2.redhat.com/view/Tower/job/Test_Tower_Upgrade/3485/)
 1. [x] [Successful upgrades (and migrations) from `3.3.0` - `3.4.0` (standalone)](http://jenkins.ansible.eng.rdu2.redhat.com/view/Tower/job/Test_Tower_Upgrade/3481/)
 1. [x] [Successful upgrades (and migrations) from `3.3.1` - `3.4.0` (standalone)](http://jenkins.ansible.eng.rdu2.redhat.com/view/Tower/job/Test_Tower_Upgrade/3482/)
 1. [x] [Successful upgrades (and migrations) from `3.3.2` - `3.4.0` (standalone)](http://jenkins.ansible.eng.rdu2.redhat.com/view/Tower/job/Test_Tower_Upgrade/3483/)
+1. [x] [Successful upgrades (and migrations) from `3.1.8` - `3.4.0` (traditional cluster)](Manually tested)
+1. [x] [Successful upgrades (and migrations) from `3.2.7` - `3.4.0` (traditional cluster)](http://jenkins.ansible.eng.rdu2.redhat.com/view/Tower/job/Test_Tower_Upgrade/3501/)
 1. [x] [Successful upgrades (and migrations) from `3.2.8` - `3.4.0` (traditional cluster)](http://jenkins.ansible.eng.rdu2.redhat.com/view/Tower/job/Test_Tower_Upgrade/3496/)
+1. [x] [Successful upgrades (and migrations) from `3.3.1` - `3.4.0` (traditional cluster)](http://jenkins.ansible.eng.rdu2.redhat.com/view/Tower/job/Test_Tower_Upgrade/3497/)
 1. [x] [Successful upgrades (and migrations) from `3.3.2` - `3.4.0` (traditional cluster)](http://jenkins.ansible.eng.rdu2.redhat.com/view/Tower/job/Test_Tower_Upgrade/3493/)
 1. [x] [Successful upgrades (and migrations) from `3.3.2` - `3.4.0` (OpenShift)](http://jenkins.ansible.eng.rdu2.redhat.com/job/Test_Tower_OpenShift_Upgrade/25/)
 * Verify the following functionality after upgrade
