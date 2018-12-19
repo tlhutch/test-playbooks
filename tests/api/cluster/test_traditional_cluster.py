@@ -188,6 +188,31 @@ class TestTraditionalCluster(APITest):
             ig_hostnames = [i.hostname for i in ig.related.instances.get().results]
             assert set(ig_hostnames).isdisjoint(set(isolated_instance_hostnames))
 
+    def test_isolated_instance_heartbeat_after_setting_iso_verbosity(self, request, v2, api_settings_all_pg):
+        original_setting = api_settings_all_pg.get().AWX_ISOLATED_VERBOSITY
+        api_settings_all_pg.AWX_ISOLATED_VERBOSITY = 5
+
+        def reset_setting():
+            api_settings_all_pg.AWX_ISOLATED_VERBOSITY = original_setting
+        request.addfinalizer(reset_setting)
+
+        isolated_instance_hostnames = [i.hostname for i in
+                                       v2.instances.get(rampart_groups__controller__isnull=False).results]
+        initial_heartbeats = {i.node: i.heartbeat for i in
+                              v2.ping.get().instances if i.node in isolated_instance_hostnames}
+
+        def isolated_heartbeats_advanced():
+            heartbeats = {i.node: i.heartbeat for i in
+                          v2.ping.get().instances if i.node in isolated_instance_hostnames}
+            for i in isolated_instance_hostnames:
+                if i not in heartbeats:
+                    return False
+                if heartbeats[i] == initial_heartbeats[i]:
+                    return False
+            return True
+        # iso. heartbeats advance about every ten minutes
+        utils.poll_until(isolated_heartbeats_advanced, interval=30, timeout=650)
+
     @pytest.mark.mp_group(group="check_instance_stats_during_quiet_period", strategy="isolated_serial")
     @pytest.mark.github('https://github.com/ansible/tower/issues/2310')
     def test_default_instance_attributes(self, v2):
