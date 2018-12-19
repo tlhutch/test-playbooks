@@ -80,8 +80,8 @@
    - [x] Azure OAuth
    - [x] Radius
 1. [x] Tower SAML integration regression completed (OpenShift)
-1. [ ] Logging regression completed - standalone
-1. [ ] Logging regression completed - cluster
+1. [x] Logging regression completed - standalone
+1. [x] Logging regression completed - cluster
 1. [x] [Backup/restore successful - standalone](http://jenkins.ansible.eng.rdu2.redhat.com/job/Test_Tower_Backup_and_Restore/628/)
 1. [x] [Backup/restore successful - traditional cluster (RHEL-7.5, Ubuntu-16)](http://jenkins.ansible.eng.rdu2.redhat.com/view/Tower/job/Test_Tower_Backup_and_Restore/645/ANSIBLE_BRANCH=stable-2.6,PLATFORM=rhel-7.6-x86_64,label=jenkins-jnlp-agent/)
 1. [x] Backup/restore successful - OpenShift (elijahd, auto-manual, still working on job for future releases)
