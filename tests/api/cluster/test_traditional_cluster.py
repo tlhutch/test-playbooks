@@ -783,7 +783,7 @@ class TestTraditionalCluster(APITest):
         assert job.execution_node in ig2_hostnames
         job.assert_successful()
 
-    @pytest.mark.github('https://github.com/ansible/tower-qa/issues/2298')
+    @pytest.mark.github('https://github.com/ansible/tower/issues/3195', skip=True)
     @pytest.mark.last
     @pytest.mark.requires_ha
     @pytest.mark.mp_group(group="pytest_mark_requires_isolation", strategy="isolated_serial")
@@ -802,8 +802,6 @@ class TestTraditionalCluster(APITest):
 
         Note: Test is designed to run from an instance in the `instance_group_partition_1` instance group.
         """
-        pytest.skip("https://github.com/ansible/tower/issues/3195 - rabbit crashing after netsplit, fails to restart")
-
         # As a precondition, confirm that all instances have capacity
         for instance in v2.instances.get().results:
             assert instance.capacity > 0
