@@ -17,4 +17,4 @@ class TestProjectSchedules(SchedulesTest):
         poll_until(lambda: schedule_jobs.get().count == 1, interval=15, timeout=5 * 60)
 
         project_update = schedule_jobs.get().results.pop().wait_until_completed()
-        assert project_update.is_successful
+        project_update.assert_successful()

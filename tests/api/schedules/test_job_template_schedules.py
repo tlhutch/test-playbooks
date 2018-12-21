@@ -101,7 +101,7 @@ class TestJobTemplateSchedules(SchedulesTest):
         unified_jobs = schedule.related.unified_jobs.get()
         utils.poll_until(lambda: unified_jobs.get().count == 1, timeout=1.5 * 60)
         job = unified_jobs.results.pop()
-        assert job.wait_until_completed().is_successful
+        job.wait_until_completed().assert_successful()
         assert json.loads(job.extra_vars) == {'var1': 'survey', 'var2': '$encrypted$'}
 
         for field in self.select_jt_fields:
@@ -136,7 +136,7 @@ class TestJobTemplateSchedules(SchedulesTest):
         unified_jobs = schedule.related.unified_jobs.get()
         utils.poll_until(lambda: unified_jobs.get().count == 1, timeout=1.5 * 60)
         job = unified_jobs.results.pop()
-        assert job.wait_until_completed().is_successful
+        job.wait_until_completed().assert_successful()
         assert json.loads(job.extra_vars) == {'var1': 'schedule', 'var2': '$encrypted$'}
 
         fields = filter(lambda field: field not in ('extra_data', 'rrule'), payload)
@@ -194,7 +194,7 @@ class TestJobTemplateSchedules(SchedulesTest):
         unified_jobs = schedule.related.unified_jobs.get()
         utils.poll_until(lambda: unified_jobs.get().count == 1, interval=5, timeout=1.5 * 60)
         uj = unified_jobs.results.pop()
-        assert uj.wait_until_completed().is_successful
+        uj.wait_until_completed().assert_successful()
         if ujt_type == 'workflow_job_template':
             job = uj.related.workflow_nodes.get().results.pop().related.job.get()
         else:
@@ -260,7 +260,7 @@ class TestJobTemplateSchedules(SchedulesTest):
         unified_jobs = schedule.related.unified_jobs.get()
         utils.poll_until(lambda: unified_jobs.get().count == 1, interval=5, timeout=1.5 * 60)
         job = unified_jobs.results.pop()
-        assert job.wait_until_completed().is_successful
+        job.wait_until_completed().assert_successful()
         assert json.loads(job.extra_vars) == {'var1': 'survey', 'var2': '$encrypted$'}
         assert '"var1": "survey"' in job.result_stdout
         assert '"var2": "very_secret"' in job.result_stdout
@@ -287,7 +287,7 @@ class TestJobTemplateSchedules(SchedulesTest):
         unified_jobs = schedule.related.unified_jobs.get()
         utils.poll_until(lambda: unified_jobs.get().count == 1, interval=5, timeout=1.5 * 60)
         job = unified_jobs.results.pop()
-        assert job.wait_until_completed().is_successful
+        job.wait_until_completed().assert_successful()
         assert json.loads(job.extra_vars) == {'var1': 'schedule', 'var2': '$encrypted$'}
         assert '"var1": "schedule"' in job.result_stdout
         assert '"var2": "very_secret"' in job.result_stdout
@@ -317,7 +317,7 @@ class TestJobTemplateSchedules(SchedulesTest):
         unified_jobs = schedule.related.unified_jobs.get()
         utils.poll_until(lambda: unified_jobs.get().count == 1, interval=5, timeout=1.5 * 60)
         job = unified_jobs.results.pop()
-        assert job.wait_until_completed().is_successful
+        job.wait_until_completed().assert_successful()
         assert json.loads(job.extra_vars) == {'var1': 'new_survey', 'var2': '$encrypted$'}
         assert '"var1": "new_survey"' in job.result_stdout
         assert '"var2": "new_survey"' in job.result_stdout
@@ -349,7 +349,7 @@ class TestJobTemplateSchedules(SchedulesTest):
         unified_jobs = schedule.related.unified_jobs.get()
         utils.poll_until(lambda: unified_jobs.get().count == 1, interval=5, timeout=1.5 * 60)
         job = unified_jobs.results.pop()
-        assert job.wait_until_completed().is_successful
+        job.wait_until_completed().assert_successful()
         assert json.loads(job.extra_vars) == {'var1': 'new_schedule', 'var2': '$encrypted$'}
         assert '"var1": "new_schedule"' in job.result_stdout
         assert '"var1": "new_schedule"' in job.result_stdout
@@ -373,7 +373,7 @@ class TestJobTemplateSchedules(SchedulesTest):
         unified_jobs = schedule.related.unified_jobs.get()
         utils.poll_until(lambda: unified_jobs.get().count == 1, interval=5, timeout=1.5 * 60)
         job = unified_jobs.results.pop()
-        assert job.wait_until_completed().is_successful
+        job.wait_until_completed().assert_successful()
         assert json.loads(job.extra_vars) == {'var1': '$encrypted$'}
         assert '"var1": "survey"' in job.result_stdout
 

@@ -162,7 +162,7 @@ class TestExecutionNodeAssignment(APITest):
             inv.ds.organization.add_instance_group(ig)
 
         ahc = factories.v2_ad_hoc_command(inventory=inv, module_name='ping')
-        assert ahc.wait_until_completed().is_successful
+        ahc.wait_until_completed().assert_successful()
         assert ahc.execution_node == instance.hostname
 
     def test_ahcs_should_distribute_among_new_instance_group_members(self, factories, tower_ig_instances, v2):
@@ -201,7 +201,7 @@ class TestExecutionNodeAssignment(APITest):
         project.ds.organization.add_instance_group(ig)
 
         project_update = project.update()
-        assert project_update.wait_until_completed().is_successful
+        project_update.wait_until_completed().assert_successful()
         assert project_update.execution_node == instance.hostname
 
     def test_project_updates_should_distribute_among_new_instance_group_members(self, factories,
@@ -246,7 +246,7 @@ class TestExecutionNodeAssignment(APITest):
             inv.ds.organization.add_instance_group(ig)
 
         inv_update = inv_source.update()
-        assert inv_update.wait_until_completed().is_successful
+        inv_update.wait_until_completed().assert_successful()
         assert inv_update.execution_node == instance.hostname
 
     def test_inventory_updates_should_distribute_among_new_instance_group_members(self, factories,
@@ -297,7 +297,7 @@ class TestExecutionNodeAssignment(APITest):
             resource.add_instance_group(ig)
 
         wfj = wfjt.launch()
-        assert wfj.wait_until_completed().is_successful
+        wfj.wait_until_completed().assert_successful()
         assert jt.get().related.last_job.get().execution_node == instance.hostname
         assert inv_source.get().related.last_update.get().execution_node == instance.hostname
         assert project.get().related.last_update.get().execution_node == instance.hostname
@@ -370,7 +370,7 @@ class TestExecutionNodeAssignment(APITest):
         instance = tower_instance_group.related.instances.get().results.pop()
         ig.add_instance(instance)
 
-        assert job.wait_until_completed(timeout=300).is_successful
+        job.wait_until_completed(timeout=300).assert_successful()
         assert job.execution_node == instance.hostname
 
     @pytest.mark.github('https://github.com/ansible/tower/issues/2763')

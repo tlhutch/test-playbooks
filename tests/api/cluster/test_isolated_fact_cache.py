@@ -30,7 +30,7 @@ class TestIsolatedFactCache(APITest):
 
         jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='gather_facts.yml', use_fact_cache=True)
         jt.add_instance_group(isolated_instance_group)
-        assert jt.launch().wait_until_completed().is_successful
+        jt.launch().wait_until_completed().assert_successful()
 
         ansible_facts = host.related.ansible_facts.get()
         self.assert_updated_facts(ansible_facts)
@@ -43,13 +43,13 @@ class TestIsolatedFactCache(APITest):
 
         jt = factories.v2_job_template(inventory=hosts[0].ds.inventory, playbook='gather_facts.yml', use_fact_cache=True)
         jt.add_instance_group(isolated_instance_group)
-        assert jt.launch().wait_until_completed().is_successful
+        jt.launch().wait_until_completed().assert_successful()
         self.assert_updated_facts(ansible_facts.get())
         self.assert_job_ran_on_isolated_node(ansible_facts)
 
         jt.patch(playbook='use_facts.yml', job_tags='ansible_facts')
         job = jt.launch().wait_until_completed()
-        assert job.is_successful
+        job.assert_successful()
 
         assert job.result_stdout.count(ansible_facts.ansible_distribution) == 3
         assert job.result_stdout.count(ansible_facts.ansible_machine) == 3
@@ -60,11 +60,11 @@ class TestIsolatedFactCache(APITest):
 
         jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='gather_facts.yml', use_fact_cache=True)
         jt.add_instance_group(isolated_instance_group)
-        assert jt.launch().wait_until_completed().is_successful
+        jt.launch().wait_until_completed().assert_successful()
         ansible_facts = host.related.ansible_facts.get()
         self.assert_updated_facts(ansible_facts)
         self.assert_job_ran_on_isolated_node(ansible_facts)
 
         jt.playbook = 'clear_facts.yml'
-        assert jt.launch().wait_until_completed().is_successful
+        jt.launch().wait_until_completed().assert_successful()
         assert ansible_facts.get().json == {}

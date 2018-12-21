@@ -127,7 +127,7 @@ class TestGeneralSettings(APITest):
         command_pg = api_ad_hoc_commands_pg.post(payload)
 
         # assert command successful
-        assert command_pg.wait_until_completed().is_successful, "Command unsuccessful - %s." % command_pg
+        command_pg.wait_until_completed().assert_successful()
 
         # check that correct module run
         assert command_pg.module_name == "shell", "Incorrect module run. Expected 'shell' but got %s." % command_pg.module_name
@@ -349,7 +349,7 @@ class TestGeneralSettings(APITest):
 
         host = factories.v2_host()
         jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='gather_facts.yml', use_fact_cache=True)
-        assert jt.launch().wait_until_completed().is_successful
+        jt.launch().wait_until_completed().assert_successful()
 
         jt.patch(playbook='use_facts.yml', job_tags='ansible_facts')
         job = jt.launch().wait_until_completed()
@@ -637,7 +637,7 @@ class TestGeneralSettings(APITest):
 
         custom_source = factories.v2_inventory_source(source='custom')
         inv_update = custom_source.update().wait_until_completed()
-        assert inv_update.is_successful
+        inv_update.assert_successful()
         assert inv_update.job_env.SOME_TEST_ENV_VAR == desired_val
 
         inventory = custom_source.ds.inventory
@@ -645,7 +645,7 @@ class TestGeneralSettings(APITest):
 
         jt = factories.v2_job_template(inventory=inventory, playbook='ansible_env.yml')
         job = jt.launch().wait_until_completed()
-        assert job.is_successful
+        job.assert_successful()
 
         assert job.job_env.SOME_TEST_ENV_VAR == desired_val
         debug_event = job.related.job_events.get(task='debug', host=host.id).results[0]
@@ -659,5 +659,5 @@ class TestGeneralSettings(APITest):
 
         ahc = factories.v2_ad_hoc_command(inventory=inventory, limit=host.name)
         ahc.wait_until_completed()
-        assert ahc.is_successful
+        ahc.assert_successful()
         assert ahc.job_env.SOME_TEST_ENV_VAR == desired_val

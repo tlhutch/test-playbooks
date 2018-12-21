@@ -194,7 +194,7 @@ class Test_Job_Template_RBAC(APITest):
         with self.current_user(username=user.username, password=user.password):
             if role in ALLOWED_ROLES:
                 job = job_template.launch().wait_until_completed()
-                assert job.is_successful, "Job unsuccessful - %s." % job
+                job.assert_successful()
             elif role in REJECTED_ROLES:
                 with pytest.raises(towerkit.exceptions.Forbidden):
                     job_template.launch()
@@ -223,12 +223,12 @@ class Test_Job_Template_RBAC(APITest):
         job_template.set_object_roles(user, role)
 
         job = job_template.launch().wait_until_completed()
-        assert job.is_successful, "Job unsuccessful - %s." % job
+        job.assert_successful()
 
         with self.current_user(username=user.username, password=user.password):
             if role in ALLOWED_ROLES:
                 relaunched_job = job.relaunch().wait_until_completed()
-                assert relaunched_job.is_successful, "Job unsuccessful - %s." % job
+                relaunched_job.assert_successful()
             elif role in REJECTED_ROLES:
                 with pytest.raises(towerkit.exceptions.Forbidden):
                     job.relaunch()

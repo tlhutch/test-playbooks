@@ -44,7 +44,7 @@ class TestNoLicense(LicenseTest):
     def test_can_launch_project_update(self, project_ansible_playbooks_git_nowait):
         """Verify that project_updates can be launched"""
         job_pg = project_ansible_playbooks_git_nowait.update().wait_until_completed()
-        assert job_pg.is_successful, "project_update was unsuccessful - %s" % job_pg
+        job_pg.assert_successful()
 
     def test_can_launch_inventory_update_but_it_should_fail(self, custom_inventory_source):
         job = custom_inventory_source.update().wait_until_completed()

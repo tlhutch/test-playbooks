@@ -59,7 +59,7 @@ class TestJobTemplateSlicing(APITest):
         workflow_job = jt.launch()
         assert workflow_job.type == 'workflow_job'
         workflow_job.wait_until_completed()
-        assert workflow_job.is_successful
+        workflow_job.assert_successful()
 
         # The obvious test that slicing worked - that all hosts have only 1 job
         hosts = jt.ds.inventory.related.hosts.get().results
@@ -82,7 +82,7 @@ class TestJobTemplateSlicing(APITest):
         job = jt.launch()
         assert job.type != 'workflow_job'
         job.wait_until_completed()
-        assert job.is_successful
+        job.assert_successful()
 
     @pytest.mark.mp_group('JobTemplateSlicing', 'isolated_serial')
     @pytest.mark.parametrize('allow_sim', (True, False))
@@ -103,7 +103,7 @@ class TestJobTemplateSlicing(APITest):
         for workflow_job in workflow_jobs:
             assert workflow_job.type == 'workflow_job'
             workflow_job.wait_until_completed()
-            assert workflow_job.is_successful
+            workflow_job.assert_successful()
 
         # The sliced workflow container has configurable allow_simultaneous
         assert do_all_jobs_overlap(workflow_jobs) == allow_sim
@@ -213,7 +213,7 @@ class TestJobTemplateSlicing(APITest):
         jt = sliced_jt_factory(3, host_ct=5)
         workflow_job = jt.launch()
         workflow_job.wait_until_completed()
-        assert workflow_job.is_successful
+        workflow_job.assert_successful()
 
         # The obvious test that slicing worked - that all hosts have only 1 job
         hosts = jt.ds.inventory.related.hosts.get().results
@@ -400,7 +400,7 @@ class TestJobTemplateSlicing(APITest):
             s.wait_for_job(timeout=60)
             j = s.related.job.get()
             j.wait_until_completed()
-            assert j.is_successful
+            j.assert_successful()
         assert workflow_job.get().status == 'failed'
 
     def test_job_template_slice_with_smart_inventory(self, factories, v2, sliced_jt_factory):
@@ -417,7 +417,7 @@ class TestJobTemplateSlicing(APITest):
         workflow_job = jt.launch()
         assert workflow_job.type == 'workflow_job'
         workflow_job.wait_until_completed()
-        assert workflow_job.is_successful
+        workflow_job.assert_successful()
         for job in v2.unified_jobs.get(unified_job_node__workflow_job=workflow_job.id).results:
             assert job.get().host_status_counts['ok'] == 3
 

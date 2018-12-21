@@ -198,7 +198,7 @@ class TestSchedules(SchedulesTest):
         unified_jobs = schedule.related.unified_jobs.get()
         poll_until(lambda: unified_jobs.get().count == 1, interval=15, timeout=5 * 60)
         job = unified_jobs.results.pop()
-        assert job.wait_until_completed().is_successful
+        job.wait_until_completed().assert_successful()
         assert schedule.get().next_run == rule.next_run
 
     def test_schedule_triggers_launch_with_count(self, v2_unified_job_template):
@@ -209,7 +209,7 @@ class TestSchedules(SchedulesTest):
         unified_jobs = schedule.related.unified_jobs.get()
         poll_until(lambda: unified_jobs.get().count == 1, interval=15, timeout=5 * 60)
         job = unified_jobs.results.pop()
-        assert job.wait_until_completed().is_successful
+        job.wait_until_completed().assert_successful()
         assert schedule.get().next_run is None
 
     def test_modified_by_unaffected_by_launch(self, v2, job_template_ping):
@@ -234,7 +234,7 @@ class TestSchedules(SchedulesTest):
         unified_jobs = schedule.related.unified_jobs.get()
         poll_until(lambda: unified_jobs.get().count == 1, interval=15, timeout=5 * 60)
         job = unified_jobs.results.pop()
-        assert job.wait_until_completed().is_successful
+        job.wait_until_completed().assert_successful()
         assert '"var1": "{}"'.format(schedule.id) in job.result_stdout
 
     @pytest.mark.github('https://github.com/ansible/tower/issues/891')

@@ -212,7 +212,7 @@ class Test_Job_Events(APITest):
                                     inventory=inventory,
                                     playbook='async_tasks.yml')
         job = jt.launch().wait_until_completed(interval=20)
-        assert job.is_successful
+        job.assert_successful()
 
         playbook_on_start = self.get_job_events_by_event_type(job, 'playbook_on_start')
         assert len(playbook_on_start) == 1
@@ -266,7 +266,7 @@ class Test_Job_Events(APITest):
                                     inventory=inventory,
                                     playbook='free_waiter.yml')
         job = jt.launch().wait_until_completed(interval=20)
-        assert job.is_successful
+        job.assert_successful()
 
         playbook_on_start = self.get_job_events_by_event_type(job, 'playbook_on_start')
         assert len(playbook_on_start) == 1
@@ -312,7 +312,7 @@ class Test_Job_Events(APITest):
                                     inventory=host.ds.inventory, verbosity=1)
 
         job = jt.launch().wait_until_completed()
-        assert not job.is_successful
+        not job.assert_successful()
         assert job.status == 'failed'
 
         playbook_on_task_start = self.get_job_events_by_event_type(job, 'playbook_on_task_start')
@@ -362,7 +362,7 @@ class Test_Job_Events(APITest):
 
         jt = factories.v2_job_template(playbook='test_include_role.yml')
         job = jt.launch().wait_until_completed()
-        assert job.is_successful
+        job.assert_successful()
 
         assert job.related.job_events.get(event='warning').count == 0
 
@@ -372,7 +372,7 @@ class Test_Job_Events(APITest):
         host = factories.v2_host()
         jt = factories.v2_job_template(playbook='handler.yml', inventory=host.ds.inventory)
         job = jt.launch().wait_until_completed()
-        assert job.is_successful
+        job.assert_successful()
         assert job.related.job_events.get(event='playbook_on_notify').count == 1
 
     def test_long_task_name_is_truncated(self, factories, ansible_version_cmp):
@@ -380,7 +380,7 @@ class Test_Job_Events(APITest):
         host = factories.v2_host()
         jt = factories.v2_job_template(playbook='long_task_name.yml', inventory=host.ds.inventory)
         job = jt.launch().wait_until_completed()
-        assert job.is_successful
+        job.assert_successful()
         on_ok = job.related.job_events.get(event='runner_on_ok')
         assert on_ok.count == 1
         task = on_ok.results.pop()['task']

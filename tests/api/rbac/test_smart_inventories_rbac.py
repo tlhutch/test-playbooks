@@ -128,7 +128,7 @@ class TestSmartInventoryRBAC(APITest):
                 ahc = factories.v2_ad_hoc_command(inventory=inventory,
                                                   credential=credential,
                                                   module_name="ping").wait_until_completed()
-                assert ahc.is_successful
+                ahc.assert_successful()
             elif role in REJECTED_ROLES:
                 with pytest.raises(exc.Forbidden):
                     factories.v2_ad_hoc_command(inventory=inventory,

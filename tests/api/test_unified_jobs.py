@@ -51,11 +51,11 @@ class TestUnifiedJobs(APITest):
         resource.add_survey(spec=survey)
 
         uj = resource.launch().wait_until_completed()
-        assert uj.is_successful
+        uj.assert_successful()
         assert uj.extra_vars == json.dumps(dict(var="$encrypted$"))
 
         relaunched_uj = uj.relaunch().wait_until_completed()
-        assert relaunched_uj.is_successful
+        relaunched_uj.assert_successful()
         assert relaunched_uj.extra_vars == json.dumps(dict(var="$encrypted$"))
 
     uj_with_stdout = ['job_template',

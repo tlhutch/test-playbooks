@@ -27,7 +27,7 @@ class Test_Labels(APITest):
         """Verify that resulting jobs list JT labels."""
         # launch JT
         job_pg = job_template_with_labels.launch().wait_until_completed()
-        assert job_pg.is_successful, "Job unsuccessful - %s." % job_pg
+        job_pg.assert_successful()
 
         # verify that the job has the same labels as the job template
         job_template_labels = job_template_with_labels.get_related('labels')
@@ -156,11 +156,11 @@ class Test_Labels(APITest):
         """Labels should get reference deleted when their last remaining job gets deleted"""
         # launch JT and assert successful
         job_pg = job_template_with_label.launch().wait_until_completed()
-        assert job_pg.is_successful, "Job unsuccessful - %s." % job_pg
+        job_pg.assert_successful()
 
         # launch JT again and assert successful
         second_job_pg = job_template_with_label.launch().wait_until_completed()
-        assert second_job_pg.is_successful, "Job unsuccessful - %s." % second_job_pg
+        second_job_pg.assert_successful()
 
         # find our label in api/v1/labels
         label_id = job_template_with_label.get_related('labels').results[0].id
@@ -200,7 +200,7 @@ class Test_Labels(APITest):
 
         # launch JT and assert successful
         job_pg = job_template.launch().wait_until_completed()
-        assert job_pg.is_successful, "Job unsuccessful - %s." % job_pg
+        job_pg.assert_successful()
 
         # resulting jobs should also have ten summary_field labels. The job summary_field labels should be the JT summary_field labels
         job_summary_field_labels = job_pg.summary_fields['labels']['results']
@@ -225,7 +225,7 @@ class Test_Labels(APITest):
         """Test that JTs and jobs may be filtered by label."""
         # launch JT and assert success
         job_pg = job_template_with_label.launch().wait_until_completed()
-        assert job_pg.is_successful, "Job unsuccessful - %s." % job_pg
+        job_pg.assert_successful()
 
         # find label name
         labels_pg = job_template_with_label.get_related('labels')

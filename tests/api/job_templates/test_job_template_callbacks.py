@@ -316,7 +316,7 @@ class TestJobTemplateCallbacks(APITest):
         job_id = result['location'].split('jobs/')[1].split('/')[0]
         job = job_template_variables_needed_to_start.related.jobs.get(id=job_id).results.pop().wait_until_completed()
         assert job.launch_type == "callback"
-        assert job.is_successful
+        job.assert_successful()
 
     @pytest.mark.skip_openshift
     def test_provision_with_split_job(self, ansible_runner, job_template,
@@ -342,7 +342,7 @@ class TestJobTemplateCallbacks(APITest):
         assert job.launch_type == "callback"
         assert job.job_slice_count == 1
         assert job.job_slice_number == 0
-        assert job.is_successful
+        job.assert_successful()
         assert job.limit == 'local' if 'localhost' in callback_host else host_with_default_ipv4_in_variables.name
         assert job.get_related('job_host_summaries').count == 1  # double-check that only ran against 1 host
 
@@ -372,7 +372,7 @@ class TestJobTemplateCallbacks(APITest):
         job_id = result['location'].split('jobs/')[1].split('/')[0]
         job = job_template_with_random_limit.related.jobs.get(id=job_id).results.pop().wait_until_completed()
         assert job.launch_type == "callback"
-        assert job.is_successful
+        job.assert_successful()
 
         # account for dev container
         desired_hostname = 'local' if 'localhost' in callback_host else host_with_default_ipv4_in_variables.name
@@ -409,7 +409,7 @@ class TestJobTemplateCallbacks(APITest):
         job_id = result['location'].split('jobs/')[1].split('/')[0]
         job = job_template.related.jobs.get(id=job_id).results.pop().wait_until_completed()
         assert job.launch_type == "callback"
-        assert job.is_successful
+        job.assert_successful()
 
         host_summaries = job.related.job_host_summaries.get()
         assert host_summaries.count == 1
@@ -471,7 +471,7 @@ class TestJobTemplateCallbacks(APITest):
 
         job = job_template.related.jobs.get(id=job_id).results.pop().wait_until_completed()
         assert job.launch_type == "callback"
-        assert job.is_successful
+        job.assert_successful()
 
         host_summaries = job.get_related('job_host_summaries')
         assert host_summaries.count == 1
@@ -523,10 +523,10 @@ class TestJobTemplateCallbacks(APITest):
         assert not result['changed']
         job_id = result['location'].split('jobs/')[1].split('/')[0]
         job = job_template.related.jobs.get(id=job_id).results.pop().wait_until_completed()
-        assert job.is_successful
+        job.assert_successful()
 
-        assert custom_source.get().is_successful
-        assert custom_source.related.last_update.get().is_successful
+        custom_source.get().assert_successful()
+        custom_source.related.last_update.get().assert_successful()
 
         host_summaries = job.related.job_host_summaries.get().results
         assert len(host_summaries) == 1
@@ -574,10 +574,10 @@ class TestJobTemplateCallbacks(APITest):
         assert not result['changed']
         job_id = result['location'].split('jobs/')[1].split('/')[0]
         job = job_template.related.jobs.get(id=job_id).results.pop().wait_until_completed()
-        assert job.is_successful
+        job.assert_successful()
 
-        assert custom_source.get().is_successful
-        assert custom_source.related.last_update.get().is_successful
+        custom_source.get().assert_successful()
+        custom_source.related.last_update.get().assert_successful()
 
         host_summaries = job.related.job_host_summaries.get().results
         assert len(host_summaries) == 1
@@ -662,5 +662,5 @@ class TestJobTemplateCallbacks(APITest):
 
             job_id = os.path.basename(os.path.normpath(res.headers['Location']))
             job = v2.jobs.get(id=job_id).results[0]
-            assert job.wait_until_completed().is_successful
+            job.wait_until_completed().assert_successful()
             assert job.job_env['VIRTUAL_ENV'] == venv_path(folder_name)

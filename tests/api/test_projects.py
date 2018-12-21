@@ -120,14 +120,13 @@ class Test_Projects(APITest):
         latest_update_pg = project_pg.update().wait_until_completed()
 
         # assert project_update was successful
-        assert latest_update_pg.is_successful, "Project update unsuccessful - %s" % latest_update_pg
+        latest_update_pg.assert_successful()
 
         # update the project endpoint
         project_pg.get()
 
         # assert project is marked as successful
-        assert project_pg.is_successful, "After a successful project update, " \
-            "the project is not marked as successful - id:%s" % project_pg.id
+        project_pg.assert_successful()
 
     @pytest.mark.skip_openshift  # Github Issue: https://github.com/ansible/tower-qa/issues/2523
     def test_automatic_deletion_of_project_folder(self, factories, ansible_adhoc, api_config_pg, api_ping_pg, v2):
@@ -314,8 +313,8 @@ class Test_Projects(APITest):
             project.delete()
         assert e.value[1] == {'error': 'Resource is being used by running jobs.', 'active_jobs': [{'type': 'project_update', 'id': update.id}]}
 
-        assert update.wait_until_completed().is_successful
-        assert project.get().is_successful
+        update.wait_until_completed().assert_successful()
+        project.get().assert_successful()
 
     def test_delete_related_fields(self, install_enterprise_license_unlimited, project_ansible_playbooks_git):
         """Verify that related fields on a deleted resource respond as expected"""
@@ -332,13 +331,13 @@ class Test_Projects(APITest):
     def test_project_with_galaxy_requirements(self, factories, ansible_runner, project_with_galaxy_requirements, api_config_pg):
         """Verify that project requirements are downloaded when specified in a requirements file."""
         last_update_pg = project_with_galaxy_requirements.wait_until_completed().get_related('last_update')
-        assert last_update_pg.is_successful, "Project update unsuccessful - %s" % last_update_pg
+        last_update_pg.assert_successful()
 
         # create a JT with our project and launch a job with this JT
         # note: we do this since only 'run' project updates download galaxy roles
         job_template_pg = factories.job_template(project=project_with_galaxy_requirements, playbook="debug.yml")
         job_pg = job_template_pg.launch().wait_until_completed()
-        assert job_pg.is_successful, "Job unsuccessful - %s." % job_pg
+        job_pg.assert_successful()
 
         # assert that expected galaxy requirements were downloaded
         expected_role_path = os.path.join(api_config_pg.project_base_dir,
@@ -354,15 +353,15 @@ class Test_Projects(APITest):
         jt_with_requirements = factories.v2_job_template(project=project_with_requirements,
                                                          playbook='debug.yml')
 
-        assert jt_with_requirements.launch().wait_until_completed().is_successful, \
-            "First job template run for a project always triggers the processing of requirements.yml"
-        assert job_template_that_writes_to_source.launch().wait_until_completed().is_successful, \
-            "Failed to update remote repository with a commit. This is needed to trigger processing of requirements.yml"
-        assert project_with_requirements.update().wait_until_completed().is_successful, \
-            "Project update that pulls down newly written SCM commits failed."
+        jt_with_requirements.launch().wait_until_completed().assert_successful(
+            msg="First job template run for a project always triggers the processing of requirements.yml"
+            )
+        job_template_that_writes_to_source.launch().wait_until_completed().assert_successful(
+            msg="Failed to update remote repository with a commit. This is needed to trigger processing of requirements.yml"
+            )
+        project_with_requirements.update().wait_until_completed().assert_successful(msg="Project update that pulls down newly written SCM commits failed.")
 
-        assert jt_with_requirements.launch().wait_until_completed().is_successful, \
-            "Job Template that triggers SCM update that processes requirements.yml failed"
+        jt_with_requirements.launch().wait_until_completed().assert_successful(msg="Job Template that triggers SCM update that processes requirements.yml failed")
         (event_unforced, event_forced) = self.get_project_update_galaxy_update_task(project_with_requirements)
 
         assert 'runner_on_ok' in [event_unforced.event, event_forced.event]
@@ -386,8 +385,7 @@ class Test_Projects(APITest):
 
         jt = factories.v2_job_template(project=project, playbook='debug.yml')
 
-        assert jt.launch().wait_until_completed().is_successful, \
-            "Job Template that triggers SCM update that processes requirements.yml failed"
+        jt.launch().wait_until_completed().assert_successful(msg="Job Template that triggers SCM update that processes requirements.yml failed")
         (event_unforced, event_forced) = self.get_project_update_galaxy_update_task(project)
         assert 'runner_on_ok' == event_unforced.event, \
             "Empty project directory expected to trigger the processing of requirements.yml"
@@ -428,5 +426,5 @@ class Test_Projects(APITest):
         rev = sync.values().pop()['after']
         assert rev
         project = factories.project(scm_url='file://{0}'.format(path))
-        assert project.is_successful
+        project.assert_successful()
         assert project.scm_revision == rev

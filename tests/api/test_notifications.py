@@ -161,8 +161,7 @@ class Test_Notifications(APITest):
         """Generate test notifications for each notification type"""
         # Trigger test notification
         notification_pg = notification_template.test().wait_until_completed()
-        assert notification_pg.is_successful, "Notification was unsuccessful - %s" %\
-            notification_pg
+        notification_pg.assert_successful()
 
         # Confirm test notification delivered
         if can_confirm_notification(notification_template):
@@ -186,7 +185,7 @@ class Test_Notifications(APITest):
 
         # Launch job
         job = system_job_template.launch().wait_until_completed()
-        assert job.is_successful, "Job unsuccessful - %s" % job
+        job.assert_successful()
 
         # Find the notification that matches the expected template
         notifications_pg = job.get_related('notifications').wait_until_count(notifications_expected)
@@ -204,7 +203,7 @@ class Test_Notifications(APITest):
             tower_msg = expected_job_notification(config.base_url, notification_template, job, job_result, tower_message=True)
             assert notification_pg.subject == tower_msg, \
                 "Expected most recent notification to be (%s), found (%s)" % (tower_msg, notification_pg.subject)
-            assert notification_pg.is_successful, "Notification was unsuccessful - %s" % notification_pg
+            notification_pg.assert_successful()
             assert notification_pg.notifications_sent == 1, \
                 "notification reports sending %s notifications (only one actually sent)" % notification_pg.notifications_sent
             assert notification_pg.notification_type == notification_template.notification_type
@@ -238,7 +237,7 @@ class Test_Notifications(APITest):
 
         # Launch job
         job = job_template.launch().wait_until_completed(timeout=60 * 4)
-        assert job.is_successful, "Job unsuccessful - %s" % job
+        job.assert_successful()
 
         # Check notification in job
         notifications_expected = 1 if job_result in ('any', 'success') else 0
@@ -253,7 +252,7 @@ class Test_Notifications(APITest):
                 (notification_template.id, notification_pg.notification_template)
             assert notification_pg.subject == tower_msg, \
                 "Expected most recent notification to be (%s), found (%s)" % (tower_msg, notification_pg.subject)
-            assert notification_pg.is_successful, "Notification was unsuccessful - %s" % notification_pg
+            notification_pg.assert_successful()
             assert notification_pg.notifications_sent == 1, \
                 "notification reports sending %s notifications (only one actually sent)" % notification_pg.notifications_sent
             assert notification_pg.notification_type == notification_template.notification_type

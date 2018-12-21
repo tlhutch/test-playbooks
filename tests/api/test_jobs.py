@@ -163,7 +163,7 @@ class Test_Job(APITest):
         job_pg = job_pg.wait_until_completed(timeout=60 * 10)
 
         # assert successful completion of job
-        assert job_pg.is_successful, "Job unsuccessful - %s " % job_pg
+        job_pg.assert_successful()
 
     def test_relaunch_with_credential(self, job_with_status_completed):
         """Verify relaunching a job with a valid credential no-ask credential."""
@@ -176,7 +176,7 @@ class Test_Job(APITest):
         job_pg = job_with_status_completed.relaunch().wait_until_completed()
 
         # assert success
-        assert job_pg.is_successful, "Job unsuccessful - %s" % job_pg
+        job_pg.assert_successful()
 
     def test_relaunch_with_different_custom_credential(self, request, v2, factories):
         """Verify relaunching a job when a custom credential associated with the template
@@ -188,13 +188,13 @@ class Test_Job(APITest):
         jt.add_extra_credential(custom_cred1)
 
         job = jt.launch().wait_until_completed()
-        assert job.is_successful
+        job.assert_successful()
 
         jt.remove_extra_credential(custom_cred1)
         jt.add_extra_credential(custom_cred2)
 
         relaunched_job = job.relaunch().wait_until_completed()
-        assert relaunched_job.is_successful
+        relaunched_job.assert_successful()
 
         creds_used = [c['id']
                       for c in relaunched_job.summary_fields.credentials]
@@ -214,10 +214,10 @@ class Test_Job(APITest):
         factories.v2_host(inventory=jt.ds.inventory)
 
         job = jt.launch().wait_until_completed()
-        assert job.is_successful
+        job.assert_successful()
 
         relaunched_job = job.relaunch().wait_until_completed()
-        assert relaunched_job.is_successful
+        relaunched_job.assert_successful()
 
     def test_relaunch_with_deleted_related(self, job_with_deleted_related):
         """Verify relaunching a job whose related information has been deleted."""
@@ -251,7 +251,7 @@ class Test_Job(APITest):
         job_pg = job_with_multi_ask_credential_and_password_in_payload.relaunch(payload).wait_until_completed()
 
         # assert success
-        assert job_pg.is_successful, "Job unsuccessful - %s" % job_pg
+        job_pg.assert_successful()
 
     def test_relaunch_with_multi_ask_credential_and_without_passwords(self, job_with_multi_ask_credential_and_password_in_payload):  # NOQA
         """Verify that relaunching a job with a multi-ask credential fails when not supplied with passwords."""
@@ -293,7 +293,7 @@ class Test_Job(APITest):
         relaunched_job_pg = job_with_extra_vars.relaunch().wait_until_completed()
 
         # assert success
-        assert relaunched_job_pg.is_successful, "Job unsuccessful - %s" % relaunched_job_pg
+        relaunched_job_pg.assert_successful()
 
         # coerce extra_vars into a dictionary
         try:
@@ -318,7 +318,7 @@ class Test_Job(APITest):
         factories.v2_host(inventory=inv)
 
         job = jt.launch().wait_until_completed()
-        assert job.is_successful
+        job.assert_successful()
 
         inv.delete().wait_until_deleted()
         with pytest.raises(exc.BadRequest) as e:
@@ -328,12 +328,12 @@ class Test_Job(APITest):
     def test_relaunched_jobs_are_based_on_source_template_with_prompts(self, factories):
         jt = factories.v2_job_template(ask_limit_on_launch=True)
         job = jt.launch(payload=dict(limit='foobar')).wait_until_completed()
-        assert job.is_successful
+        job.assert_successful()
         assert json.loads(job.extra_vars) == {}
 
         jt.extra_vars = '{"key": "value"}'
         relaunched_job = job.relaunch().wait_until_completed()
-        assert relaunched_job.is_successful
+        relaunched_job.assert_successful()
         assert json.loads(relaunched_job.extra_vars) == {"key": "value"}
         assert relaunched_job.limit == "foobar"
 
@@ -343,12 +343,12 @@ class Test_Job(APITest):
             job_tags='bar,foo'
         )
         job = jt.launch().wait_until_completed()
-        assert job.is_successful
+        job.assert_successful()
 
         jt.delete()
 
         relaunched_job = job.relaunch().wait_until_completed()
-        assert relaunched_job.is_successful
+        relaunched_job.assert_successful()
         assert relaunched_job.limit == 'foobar'
         assert relaunched_job.job_tags == 'bar,foo'
 
@@ -358,7 +358,7 @@ class Test_Job(APITest):
 
         with self.current_user(non_superuser):
             job = jt.launch().wait_until_completed()
-        assert job.is_successful
+        job.assert_successful()
 
         jt.delete()
 
@@ -371,14 +371,14 @@ class Test_Job(APITest):
         hosts = [factories.v2_host(name=name, inventory=jt.ds.inventory, variables={}) for name in
                  ('1_ok', '2_skipped', '3_changed', '4_failed', '5_ignored', '6_rescued', '7_unreachable')]
         job = jt.launch().wait_until_completed()
-        assert not job.is_successful
+        not job.assert_successful()
         assert job.related.relaunch.get().retry_counts.all == 7
         assert job.related.relaunch.get().retry_counts.failed == 3
 
         hosts = [host.patch(name=name) for host, name in
                  zip(hosts, ('1_failed', '2_failed', '3_failed', '4_ok', '5_failed', '6_ok', '7_ok'))]
         relaunched_job = job.relaunch(payload={'hosts': 'failed'}).wait_until_completed()
-        assert relaunched_job.is_successful
+        relaunched_job.assert_successful()
         assert relaunched_job.related.relaunch.get().retry_counts.all == 3
         assert relaunched_job.related.relaunch.get().retry_counts.failed == 0
 
@@ -396,7 +396,7 @@ class Test_Job(APITest):
         jt = factories.job_template()
         jt.add_survey(spec=survey)
         job = jt.launch(dict(extra_vars={}))
-        assert job.wait_until_completed().is_successful
+        job.wait_until_completed().assert_successful()
         extra_vars = json.loads(job.extra_vars)
 
         # only half of passwords had default values
@@ -435,7 +435,7 @@ class Test_Job(APITest):
         jt.add_survey(spec=spec)
 
         job = jt.launch().wait_until_completed()
-        assert job.is_successful
+        job.assert_successful()
         assert json.loads(job.extra_vars) == dict(test_var_three='abc', test_var_four='1', test_var_five='four',
                                                   test_var_nine='$encrypted$', test_var_ten='$encrypted$',
                                                   test_var_eleven='$encrypted$')
@@ -631,7 +631,7 @@ class Test_Job_Env(APITest):
 
         # launch job and assert successful
         job_pg = job_template_with_cloud_credential.launch().wait_until_completed()
-        assert job_pg.is_successful, "Job unsuccessful - %s " % job_pg
+        job_pg.assert_successful()
 
         # assert expected environment variables and their values
         if cloud_credential.kind == 'aws':
@@ -695,7 +695,7 @@ class Test_Job_Env(APITest):
 
         # launch job and assert successful
         job_pg = job_template_with_network_credential.launch().wait_until_completed()
-        assert job_pg.is_successful, "Job unsuccessful - %s." % job_pg
+        job_pg.assert_successful()
 
         # assert the expected job_env variables are present
         expected_env_vars = expected_net_env_vars(network_credential)

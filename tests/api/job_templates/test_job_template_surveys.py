@@ -31,7 +31,7 @@ class TestJobTemplateSurveys(APITest):
         assert not job_template.ask_variables_on_launch
 
         job = job_template.launch(dict(extra_vars=launch_time_vars)).wait_until_completed()
-        assert job.is_successful
+        job.assert_successful()
 
         launch_time_vars = utils.load_json_or_yaml(launch_time_vars)
         job_extra_vars = json.loads(job.extra_vars)
@@ -56,12 +56,12 @@ class TestJobTemplateSurveys(APITest):
         jt.add_survey(spec=survey)
 
         job = jt.launch().wait_until_completed()
-        assert job.is_successful
+        job.assert_successful()
         assert '"var1": "var1_default"' in job.result_stdout
         assert '"var2": "var2_default"' in job.result_stdout
 
         relaunched_job = job.relaunch().wait_until_completed()
-        assert relaunched_job.is_successful
+        relaunched_job.assert_successful()
         assert '"var1": "var1_default"' in relaunched_job.result_stdout
         assert '"var2": "var2_default"' in relaunched_job.result_stdout
 
@@ -82,7 +82,7 @@ class TestJobTemplateSurveys(APITest):
         jt.add_survey(spec=survey)
 
         job = jt.launch(dict(extra_vars=dict(var3='launch'))).wait_until_completed()
-        assert job.is_successful
+        job.assert_successful()
         assert '"var1": "var1_default"' in job.result_stdout
         assert '"var2": "var2_default"' in job.result_stdout
         assert json.loads(job.extra_vars) == dict(var1='$encrypted$', var2='var2_default', var3='launch')
@@ -104,7 +104,7 @@ class TestJobTemplateSurveys(APITest):
         jt.add_survey(spec=survey)
 
         job = jt.launch(dict(extra_vars=dict(var1='launch'))).wait_until_completed()
-        assert job.is_successful
+        job.assert_successful()
         assert '"var1": "launch"' in job.result_stdout
         assert '"var2": "var2_default"' in job.result_stdout
         assert json.loads(job.extra_vars) == dict(var1='$encrypted$', var2='$encrypted$')
@@ -125,7 +125,7 @@ class TestJobTemplateSurveys(APITest):
         jt.add_survey(spec=survey)
 
         job = jt.launch().wait_until_completed()
-        assert job.is_successful
+        job.assert_successful()
         assert '"var1": ""' in job.result_stdout
         assert '"var2": ""' in job.result_stdout
 
@@ -192,7 +192,7 @@ class TestJobTemplateSurveys(APITest):
         assert updated_survey.spec[0]['default'] == ""
 
         job = jt.launch().wait_until_completed()
-        assert job.is_successful
+        job.assert_successful()
         assert '"var1": ""' in job.result_stdout
 
     def test_only_select_jt_survey_fields_editable(self, factories):
@@ -218,7 +218,7 @@ class TestJobTemplateSurveys(APITest):
         assert updated_survey['spec'][0]['question_name'] == 'Q-new'
 
         job = jt.launch().wait_until_completed()
-        assert job.is_successful
+        job.assert_successful()
         assert '"var1": "don\'t update me"' in job.result_stdout
 
     def test_job_template_launch_survey_enabled(self, job_template_ping, required_survey_spec):
@@ -253,7 +253,7 @@ class TestJobTemplateSurveys(APITest):
         assert launch.variables_needed_to_start == []
 
         job = job_template_ping.launch().wait_until_completed()
-        assert job.is_successful
+        job.assert_successful()
 
         job_extra_vars = utils.load_json_or_yaml(job.extra_vars)
 
@@ -281,7 +281,7 @@ class TestJobTemplateSurveys(APITest):
         jt = factories.v2_job_template(inventory=host.ds.inventory, ask_variables_on_launch=True)
         jt.add_survey()
         job = jt.launch().wait_until_completed()
-        assert job.is_successful
+        job.assert_successful()
 
         assert json.loads(job.extra_vars) == dict(secret="$encrypted$")
 
@@ -289,7 +289,7 @@ class TestJobTemplateSurveys(APITest):
         assert json.loads(job_activity_stream.changes.extra_vars) == dict(secret="$encrypted$")
 
         job = jt.launch(dict(extra_vars=dict(secret='123', one=234, two=dict(three=345, four=dict(five=456))))).wait_until_completed()
-        assert job.is_successful
+        job.assert_successful()
         job_activity_stream = job.related.activity_stream.get().results.pop()
         assert json.loads(job_activity_stream.changes.extra_vars)['secret'] == "$encrypted$"
 

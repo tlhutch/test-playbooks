@@ -91,7 +91,7 @@ class TestCombinedWorkflowFeatures(APITest):
         assert sliced_nodes.count == self.OUTER_HOSTS, 'Unexpected number of nodes were spawned in sliced job!'
         for node in sliced_nodes.results:
             assert node.summary_fields.job.status == 'successful', 'Node in wf spawned from sliced jt failed!'
-            assert node.related.job.get().is_successful, 'Job in wf spawned from sliced jt did not succeed!'
+            node.related.job.get().assert_successful()
             sjt_job_vars = json.loads(node.related.job.get().extra_vars)
             assert sjt_job_vars.get('outer_var') == 'outer_var'
             for assertion in additional_assertions:
@@ -314,7 +314,7 @@ class TestCombinedWorkflowFeatures(APITest):
                 assert this_job.status == 'failed'
             else:
                 assert this_job.status == 'successful'
-                assert this_job.is_successful
+                this_job.assert_successful()
 
             if this_jt.id == self.sliced_jt.id:
                 # assert correct number of slices
@@ -322,7 +322,7 @@ class TestCombinedWorkflowFeatures(APITest):
                 assert sliced_nodes.count == self.INNER_HOSTS, 'Unexpected number of nodes were spawned in sliced job!'
                 for node in sliced_nodes.results:
                     assert node.summary_fields.job.status == 'successful', 'Node in wf spawned from sliced jt failed!'
-                    assert node.related.job.get().is_successful, 'Job in wf spawned from sliced jt did not succeed!'
+                    node.related.job.get().assert_successful()
 
             # Did SJT inside inner WF with 'ask_inventory_on_launch' propagate the outer inventory correctly?
             if this_jt.id == self.wfjt_inner_ask_on_launch:

@@ -63,7 +63,7 @@ class Test_System_Job_Template(APITest):
             "launching system_job_template\n%s" % json.dumps(result.json, indent=2)
 
         job_pg = system_job_template.get_related('jobs', id=result.json['system_job']).results[0].wait_until_completed()
-        assert job_pg.is_successful, "System job unexpectedly failed - %s" % job_pg
+        job_pg.assert_successful()
 
     def test_launch_as_non_superuser(self, system_job_template, non_superusers, user_password):
         """Verify launch fails when attempted by a non-superuser"""
@@ -86,7 +86,7 @@ class Test_System_Job_Template(APITest):
         job_pg = system_job_template.get_related('jobs', id=result.json['system_job']).results[0].wait_until_completed()
 
         # assert system_job ran successfully
-        assert job_pg.is_successful, "System job unsuccessful - %s" % job_pg
+        job_pg.assert_successful()
 
         # assert extra_vars properly passed to system_job
         try:

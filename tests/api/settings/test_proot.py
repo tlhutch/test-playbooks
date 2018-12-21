@@ -40,7 +40,7 @@ class Test_Proot(APITest):
         jobs = [jt.launch() for jt in (proot_1, proot_2)]
         for job in jobs:
             job.wait_until_completed()
-            assert job.is_successful
+            job.assert_successful()
 
         job_1, job_2 = jobs
 
@@ -146,7 +146,7 @@ print json.dumps({})
         job_pg = job_pg.wait_until_completed()
 
         # assert successful inventory_update
-        assert job_pg.is_successful, "Inventory update unsuccessful - %s" % job_pg
+        job_pg.assert_successful()
 
     @pytest.mark.skip_openshift
     def test_ssh_connections(self, job_with_ssh_connection, api_settings_jobs_pg, update_setting_pg):
@@ -160,4 +160,4 @@ print json.dumps({})
         job_with_ssh_connection = job_with_ssh_connection.wait_until_completed(timeout=60 * 2)
 
         # assert successful completion of job
-        assert job_with_ssh_connection.is_successful, "Job unsuccessful - %s " % job_with_ssh_connection
+        job_with_ssh_connection.assert_successful()

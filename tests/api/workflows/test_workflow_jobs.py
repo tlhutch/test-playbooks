@@ -115,14 +115,14 @@ class Test_Workflow_Jobs(APITest):
         jt = factories.job_template(inventory=host.ds.inventory)
         factories.workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt)
         wf_job = wfjt.launch().wait_until_completed()
-        assert wf_job.is_successful, "Workflow job {} unsuccessful".format(wfjt.id)
+        wf_job.assert_successful()
 
         # Get job in node
         wfjns = wf_job.related.workflow_nodes.get().results
         assert len(wfjns) == 1, "Expected one workflow job node, found {}".format(len(wfjns))
         wfjn = wfjns.pop()
         job = wfjn.get_related('job')
-        assert job.is_successful, "Job {} unsuccessful".format(job.id)
+        job.assert_successful()
 
         # Confirm WFJ correctly references job
         assert re.match(towerkit.resources.v1_job, wfjn.related.job)
@@ -162,7 +162,7 @@ class Test_Workflow_Jobs(APITest):
         n1.related.failure_nodes.post(dict(unified_job_template=jt.id))
 
         wfj = wfjt.launch().wait_until_completed()
-        assert wfj.is_successful, "Workflow job {} unsuccessful".format(wfjt.id)
+        wfj.assert_successful()
 
     def test_workflow_job_failed_on_failed_when_failed_failure_handler(self, factories):
         """Workflow: (sucessful)
@@ -244,7 +244,7 @@ class Test_Workflow_Jobs(APITest):
         n12 = n10.related.failure_nodes.post(node_payload)
 
         wfj = wfjt.launch().wait_until_completed()
-        assert wfj.is_successful, "Workflow job {} unsuccessful".format(wfjt.id)
+        wfj.assert_successful()
 
         # Map nodes to job nodes
         tree = WorkflowTree(wfjt)
@@ -427,7 +427,7 @@ class Test_Workflow_Jobs(APITest):
 
         # Confirm workflow job fails
         wfj.wait_until_completed()
-        assert wfj.is_successful, "Workflow job should have succeeded because failure path node should have 'handeled' the cancelation"
+        wfj.assert_successful()
         # Confirm remaining jobs in workflow completed successfully
         for job_node in (n4_job_node, n5_job_node, failure_path_n3_job_node, always_path_nA_job_node):
             job_node.get()
@@ -586,12 +586,12 @@ class Test_Workflow_Jobs(APITest):
         factories.v2_host(inventory=jt.ds.inventory)
         factories.v2_workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt)
         wf_job = wfjt.launch().wait_until_completed()
-        assert wf_job.is_successful, "Workflow job {} unsuccessful".format(wfjt.id)
+        wf_job.assert_successful()
 
         # Get job in node
         wfjns = wf_job.related.workflow_nodes.get().results
         wfjn = wfjns.pop()
         job = wfjn.get_related('job')
-        assert job.is_successful, "Job {} unsuccessful".format(job.id)
+        job.assert_successful()
         assert '"var1": "{}"'.format(wf_job.id) in job.result_stdout
         assert '"var2": "{}"'.format(config.credentials.users.admin.username) in job.result_stdout

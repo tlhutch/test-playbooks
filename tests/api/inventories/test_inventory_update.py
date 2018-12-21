@@ -391,8 +391,8 @@ class TestInventoryUpdate(APITest):
 
             # assert that the update was successful if used with supported source region
             if source_region not in unsupported_source_regions:
-                assert update_pg.is_successful, u"inventory_update %s failed with supported region %s." % (update_pg, source_region)
-                assert inv_source_pg.get().is_successful, u"An inventory_update was succesful, but the inventory_source is not successful - %s" % inv_source_pg
+                update_pg.assert_successful()
+                inv_source_pg.get().assert_successful()
 
             # assert that update fails if used with unsupported source region
             else:
@@ -430,8 +430,8 @@ class TestInventoryUpdate(APITest):
 
         # assert that the update was successful
         update_pg = inv_source_pg.update().wait_until_completed()
-        assert update_pg.is_successful, u"inventory_update %s failed with region %s." % (update_pg, source_region)
-        assert inv_source_pg.get().is_successful, u"An inventory_update was succesful, but the inventory_source is not successful - %s" % inv_source_pg
+        update_pg.assert_successful()
+        inv_source_pg.get().assert_successful()
 
         # assert that hosts were imported
         assert cloud_group_supporting_source_regions.ds.inventory.get().total_hosts > 0, \
@@ -469,8 +469,8 @@ class TestInventoryUpdate(APITest):
 
         # assert that the update was successful
         update_pg = inv_source_pg.update().wait_until_completed()
-        assert update_pg.is_successful, u"inventory_update %s failed with region %s." % (update_pg, source_region)
-        assert inv_source_pg.get().is_successful, u"An inventory_update was succesful, but the inventory_source is not successful - %s" % inv_source_pg
+        update_pg.assert_successful()
+        inv_source_pg.get().assert_successful()
 
         # assert that no hosts were imported
         assert cloud_group_supporting_source_regions.ds.inventory.get().total_hosts == 0, \
@@ -502,8 +502,8 @@ class TestInventoryUpdate(APITest):
         update_pg = inv_source_pg.update().wait_until_completed()
 
         # assert that the update was successful
-        assert update_pg.is_successful, u"inventory_update failed - %s" % update_pg
-        assert inv_source_pg.get().is_successful, u"An inventory_update was succesful, but the inventory_source is not successful - %s" % inv_source_pg
+        update_pg.assert_successful()
+        inv_source_pg.get().assert_successful()
 
         # assert whether hosts were imported
         assert aws_group.get().total_hosts == 0, "Unexpected number of hosts returned (%s != 0)." % aws_group.total_hosts
@@ -551,12 +551,11 @@ class TestInventoryUpdate(APITest):
 
         # Launch job and check results
         job_pg = job_template.launch().wait_until_completed(timeout=3 * 60)
-        assert job_pg.is_successful, u"Job unsuccessful - %s" % job_pg
+        job_pg.assert_successful()
 
         # Assert that the inventory_update is marked as successful
         inv_source_pg = aws_group.get_related('inventory_source')
-        assert inv_source_pg.is_successful, ("An inventory_update was launched, but the "
-                                             "inventory_source is not successful - %s" % inv_source_pg)
+        inv_source_pg.assert_successful()
 
         # Assert that hyphen containing tag groups are registered with underscores
         for group_name in ['tag_Test_Flag_2202', 'tag_Test_Flag_2202_Replace_Dash_In_Groups']:

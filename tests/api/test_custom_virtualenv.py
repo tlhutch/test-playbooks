@@ -25,7 +25,7 @@ class TestCustomVirtualenv(APITest):
         jt = factories.v2_job_template()
         jt.custom_virtualenv = venv_path()
         job = jt.launch().wait_until_completed()
-        assert job.is_successful
+        job.assert_successful()
         assert job.job_env['VIRTUAL_ENV'] == venv_path()
 
     def test_cannot_associate_invalid_venv_path_with_resource(self, v2, factories, create_venv, venv_path, get_resource_from_jt):
@@ -84,7 +84,7 @@ class TestCustomVirtualenv(APITest):
             assert jt.custom_virtualenv is None
             jt.custom_virtualenv = venv_path(folder_name)
             job = jt.launch().wait_until_completed()
-            assert job.is_successful
+            job.assert_successful()
             assert job.job_env['VIRTUAL_ENV'] == venv_path(folder_name)
 
     @pytest.mark.parametrize('resource_pair', [('organization', 'project'), ('organization', 'job_template'),
@@ -106,7 +106,7 @@ class TestCustomVirtualenv(APITest):
                     resource.custom_virtualenv = venv_path(folder_names[i])
 
                 job = jt.launch().wait_until_completed()
-                assert job.is_successful
+                job.assert_successful()
                 assert job.job_env['VIRTUAL_ENV'] == venv_path(folder_names[1])
 
     @pytest.mark.parametrize('ansible_version', ['2.6.1', '2.5.6', '2.4.6.0', '2.3.3.0', '2.2.3.0'])
@@ -119,14 +119,14 @@ class TestCustomVirtualenv(APITest):
             assert jt.custom_virtualenv is None
             jt.custom_virtualenv = venv_path(folder_name)
             job = jt.launch().wait_until_completed()
-            assert job.is_successful
+            job.assert_successful()
             job_events = job.related.job_events.get().results
 
             event = [e for e in job_events if e.task == 'command' and e.event == 'runner_on_ok'].pop()
             stdout = event.event_data.res.stdout
             assert 'ansible {}'.format(ansible_version) in stdout
 
-            assert job.is_successful
+            job.assert_successful()
             assert job.job_env['VIRTUAL_ENV'] == venv_path(folder_name)
 
     def test_venv_with_missing_requirements(self, v2, factories, create_venv, ansible_version, venv_path):
@@ -151,7 +151,7 @@ class TestCustomVirtualenv(APITest):
             jt.ds.inventory.add_host()
             jt.custom_virtualenv = venv_path(folder_name)
             job = jt.launch().wait_until_completed()
-            assert job.is_successful
+            job.assert_successful()
             assert job.job_env['VIRTUAL_ENV'] == venv_path(folder_name)
 
             relaunched_job = job.relaunch().wait_until_completed()
@@ -191,10 +191,10 @@ class TestCustomVirtualenv(APITest):
             wfjt = factories.workflow_job_template()
             factories.workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt)
             wf_job = wfjt.launch().wait_until_completed()
-            assert wf_job.is_successful
+            wf_job.assert_successful()
             wf_job_node = wf_job.related.workflow_nodes.get().results.pop()
             job = wf_job_node.related.job.get()
-            assert job.is_successful
+            job.assert_successful()
             assert job.job_env['VIRTUAL_ENV'] == venv_path(folder_name)
 
     def test_only_workflow_node_with_custom_venv_sources_venv(self, v2, factories, create_venv, venv_path):
@@ -217,7 +217,7 @@ class TestCustomVirtualenv(APITest):
             n2 = n1.related.always_nodes.post(dict(unified_job_template=jt_with_venv.id))
             n3 = n2.related.success_nodes.post(dict(unified_job_template=jt.id))
             wf_job = wfjt.launch().wait_until_completed()
-            assert wf_job.is_successful
+            wf_job.assert_successful()
 
             # map nodes to job nodes
             tree = WorkflowTree(wfjt)
@@ -229,7 +229,8 @@ class TestCustomVirtualenv(APITest):
                                                      for n in (n1, n2, n3)]
             n1_job, n2_job, n3_job = [job_node.related.job.get() for job_node in
                                       (n1_job_node, n2_job_node, n3_job_node)]
-            assert all([job.is_successful for job in (n1_job, n2_job, n3_job)])
+            for job in (n1_job, n2_job, n3_job):
+                job.assert_successful()
 
             assert n1_job.job_env['VIRTUAL_ENV'] == venv_path().rstrip('/')
             assert n2_job.job_env['VIRTUAL_ENV'] == venv_path(folder_name)
@@ -251,7 +252,7 @@ class TestCustomVirtualenv(APITest):
             poll_until(lambda: unified_jobs.get().count == 1, interval=15, timeout=5 * 60)
             job = unified_jobs.results.pop()
             job.wait_until_completed()
-            assert job.is_successful
+            job.assert_successful()
             assert job.job_env['VIRTUAL_ENV'] == venv_path(folder_name)
 
     @pytest.mark.parametrize('resource_type', ['project', 'job_template'])
@@ -270,11 +271,11 @@ class TestCustomVirtualenv(APITest):
 
             if resource_type == 'project':
                 update = copied_resource.related.project_updates.get().results.pop()
-                assert update.wait_until_completed().is_successful
+                update.wait_until_completed().assert_successful()
                 jt.project = copied_resource.id
             elif resource_type == 'job_template':
                 jt = copied_resource
 
             job = jt.launch().wait_until_completed()
-            assert job.is_successful
+            job.assert_successful()
             assert job.job_env['VIRTUAL_ENV'] == venv_path(folder_name)

@@ -36,7 +36,7 @@ class Test_Copy_Credential(APITest):
 
         # Launch the job
         job = job_template.launch().wait_until_completed()
-        assert job.is_successful, "Job unsuccessful - {}.".format(job)
+        job.assert_successful()
 
         # Check the output of the job
         job.related.stdout.get(format='txt_download')
