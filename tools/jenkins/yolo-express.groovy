@@ -82,7 +82,7 @@ stage('Install Tower') {
   node('jenkins-jnlp-agent') {
     if (params.RUN_INSTALLER) {
       install_build = build(
-        job: 'Test_Tower_Install_Plain',
+        job: 'qe-sandbox/Test_Tower_Install_Plain',
         parameters: [
           string(name: 'INSTANCE_NAME_PREFIX', value: "${params.CUSTOM_INSTANCE_PREFIX}"),
           string(name: 'AW_REPO_URL', value: "${AWX_NIGHTLY_REPO_URL}/${NIGHTLY_REPO_DIR}"),
@@ -104,7 +104,7 @@ stage('Test Tower Integration') {
   node('jenkins-jnlp-agent') {
     if (params.RUN_TESTS) {
       build(
-        job: 'Test_Tower_Integration_Plain',
+        job: 'qe-sandbox/Test_Tower_Integration_Plain',
         parameters: [
           string(name: 'TESTEXPR', value: "${params.TESTEXPR}"),
           string(name: 'TEST_TOWER_INSTALL_BUILD', value: "${TEST_TOWER_INSTALL_BUILD_ID}"),
