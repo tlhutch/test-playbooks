@@ -8,9 +8,14 @@ def TOWERKIT_BRANCH
 def TEST_TOWER_INSTALL_BUILD_ID = 'lastBuild'
 def PARALLELIZE = ''
 
+
+
 stage ('Prepare Build') {
-  node('master') {
-      
+  node('jenkins-jnlp-agent') {
+    
+    def scmVars = checkout changelog: false, poll: false, scm: [$class: 'GitSCM', branches: [[name: '*/${TOWER_BRANCH}']], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'CloneOption', depth: 0, noTags: true, reference: '', shallow: true]], submoduleCfg: [], userRemoteConfigs: [[credentialsId: 'd2d4d16b-dc9a-461b-bceb-601f9515c98a', url: 'git@github.com:ansible/${PRODUCT}.git']]]
+    def commitHash = scmVars.GIT_COMMIT
+
     if (params.PARALLEL) {
       PARALLELIZE = '--mp --np 4'
       echo "Parallel forks set to ${params.PARALLEL}"
@@ -32,13 +37,13 @@ stage ('Prepare Build') {
       returnStdout: true,
       script: 'echo ${TOWER_QA_BRANCH##*/}'
     ).trim()
-    
+
     TOWERKIT_BRANCH_NAME = sh (
       returnStdout: true,
       script: 'echo ${TOWERKIT_BRANCH##*/}'
     ).trim()
-
-    NIGHTLY_REPO_DIR = "${params.TOWER_BRANCH}-${params.GIT_PREVIOUS_COMMIT}"    
+    
+    NIGHTLY_REPO_DIR = "${params.TOWER_BRANCH}-${commitHash}"
   }
 }
 
