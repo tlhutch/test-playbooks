@@ -312,7 +312,7 @@ class Test_Job_Events(APITest):
                                     inventory=host.ds.inventory, verbosity=1)
 
         job = jt.launch().wait_until_completed()
-        not job.assert_successful()
+        assert not job.is_successful
         assert job.status == 'failed'
 
         playbook_on_task_start = self.get_job_events_by_event_type(job, 'playbook_on_task_start')
