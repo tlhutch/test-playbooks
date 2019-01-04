@@ -153,7 +153,8 @@ Install/Deploy tower in the following configurations and validate functionality 
 
 ### Re-run for asgi-amqp change
 
-  * [x] [Yolo with full integration](http://jenkins.ansible.eng.rdu2.redhat.com/job/qe-sandbox/job/Test_Tower_Integration_Plain/191/console)
+  * [ ] [Slowyo with full integration](http://jenkins.ansible.eng.rdu2.redhat.com/job/qe-sandbox/job/Test_Tower_Integration_Plain/190/#showFailuresLink)
+  * [ ] [Openshift Integration](http://jenkins.ansible.eng.rdu2.redhat.com/job/Test_Tower_OpenShift_Integration/383/console)
   * [x] [Bundled Upgrade](http://jenkins.ansible.eng.rdu2.redhat.com/view/Tower/job/Test_Tower_Upgrade/3528/console)
   * [x] [Cluster Upgrade](http://jenkins.ansible.eng.rdu2.redhat.com/view/Tower/job/Test_Tower_Install_Cluster/1588/console) and [Cluster Upgrade2](http://jenkins.ansible.eng.rdu2.redhat.com/job/Test_Tower_Install_Cluster/1589/console)
   * [x] [Manual UI Verification](https://github.com/ansible/tower/issues/3202#issuecomment-451168033)
