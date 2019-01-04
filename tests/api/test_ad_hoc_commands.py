@@ -285,7 +285,7 @@ class Test_Ad_Hoc_Commands_Main(APITest):
 
         # assert success
         command_pg.wait_until_completed()
-        not command_pg.assert_successful()
+        assert not command_pg.is_successful, "Command successful, but was expected to fail - %s " % command_pg
 
     @pytest.mark.ansible_integration
     @pytest.mark.parametrize("limit_value, expected_count", [

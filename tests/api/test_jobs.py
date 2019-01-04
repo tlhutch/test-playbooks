@@ -371,7 +371,7 @@ class Test_Job(APITest):
         hosts = [factories.v2_host(name=name, inventory=jt.ds.inventory, variables={}) for name in
                  ('1_ok', '2_skipped', '3_changed', '4_failed', '5_ignored', '6_rescued', '7_unreachable')]
         job = jt.launch().wait_until_completed()
-        not job.assert_successful()
+        assert not job.is_successful
         assert job.related.relaunch.get().retry_counts.all == 7
         assert job.related.relaunch.get().retry_counts.failed == 3
 
