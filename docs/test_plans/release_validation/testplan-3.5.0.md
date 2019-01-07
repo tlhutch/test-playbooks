@@ -47,7 +47,7 @@
 
 ### Replace supervisor (Elyezer/Mat)
 
-* Test Plan
+* [Test Plan](https://github.com/ansible/tower-qa/blob/devel/docs/test_plans/features/35_replace_supervisor.md)
 
 - [ ] Testing complete
 
