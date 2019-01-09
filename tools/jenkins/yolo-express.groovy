@@ -80,6 +80,22 @@ stage('Build Tower') {
     } else {
       echo "Skipped RPM build"
     }
+  }, buildDEB: {
+    if (params.BUILD_DEB) {
+      build(
+        job: 'Build_Tower_DEB',
+        parameters: [
+          string(name: 'TOWER_PACKAGING_REPO', value: "git@github.com:${params.TOWER_PACKAGING_FORK}/tower-packaging.git"),
+          string(name: 'TOWER_REPO', value: "git@github.com:${params.TOWER_FORK}/${params.PRODUCT}.git"),
+          string(name: 'TOWER_PACKAGING_BRANCH', value: "origin/${TOWER_PACKAGING_BRANCH_NAME}"),
+          string(name: 'TOWER_BRANCH', value: "origin/${TOWER_BRANCH_NAME}"),
+          string(name: 'NIGHTLY_REPO_DIR', value: NIGHTLY_REPO_DIR),
+          booleanParam(name: 'TRIGGER', value: false),
+        ]
+      )
+    } else {
+      echo "Skipped DEB build"
+    }
   },
   failFast: true
 }
