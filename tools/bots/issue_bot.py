@@ -33,7 +33,13 @@ def create_issue_update():
     issues = repo.get_issues(milestone=current_milestone)
     num_issues = len([i for i in issues if not i.pull_request])
 
-    return "{} open issues in milestone `{}`".format(num_issues, github_milestone)
+    needs_test = 0
+    for i in issues:
+        for label in i._labels.value:
+            if label._name.value == 'state:needs_test':
+                needs_test += 1
+
+    return "{} open issues in milestone `{}` ({} in `state:needs_test`)".format(num_issues, github_milestone, needs_test)
 
 
 post_slack_msg(create_issue_update())
