@@ -39,7 +39,8 @@ def create_issue_update():
             if label._name.value == 'state:needs_test':
                 needs_test += 1
 
-    return "{} open issues in milestone `{}` ({} in `state:needs_test`)".format(num_issues, github_milestone, needs_test)
+    url = 'https://github.com/{}/issues?q=is:open+is:issue+milestone:{}'.format(github_repo, github_milestone)
+    return "{} open issues in milestone `{}` ({} in `state:needs_test`) - Link: {}".format(num_issues, github_milestone, needs_test, url)
 
 
 post_slack_msg(create_issue_update())
