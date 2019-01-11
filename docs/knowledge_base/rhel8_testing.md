@@ -11,6 +11,12 @@ One can find RHEL 8 images at http://download-node-02.eng.bos.redhat.com/rel-eng
 
 ## Testing timeline
 
+  * `2019-01-09`: Enable CI to spawn RHEL 8 machine
+
+Our CI platform and tools can now spawn RHEL8 VMs on AWS. The official Red Hat VMs are used.
+AMI IDs are found [here](http://amis.app.eng.bos.redhat.com/images?products=RHEL-8.0&status=VISIBLE&regions=us-east-1&arches=Any)
+
+
   * `2018-10-24`: RHEL7 Tower node + RHEL8 Managed host - Status: `OK`
 
 Tower: `3.3.0`
