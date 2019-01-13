@@ -22,47 +22,60 @@
   when: ec2_images
 
 - name: create/locate ec2 instance(s)
-  ec2:
+  ec2_instance:
     aws_access_key: '{{ aws_access_key }}'
     aws_secret_key: '{{ aws_secret_key }}'
+    name: '{{ec2_name_prefix}}-{{item.name}}'
     region: '{{ ec2_region }}'
     instance_type: '{{ item.type|default(ec2_instance_type) }}'
-    instance_tags:
-        Name: '{{ec2_name_prefix}}-{{item.name}}'
+    security_group: '{{ item.security_group|default(ec2_security_group) }}'
+    key_name: '{{ ec2_key_name }}'
+    image_id: '{{ item.id }}'
+    volumes:
+      - device_name: /dev/sda1
+        ebs:
+          volume_type: gp2
+          volume_size: 15
+          delete_on_termination: true
+    vpc_subnet_id: '{{ create_ec2_vpc_subnet_id|default(omit) }}'
+    network:
+        assign_public_ip: '{{ create_ec2_assign_public_ip|default(omit) }}'
+    user_data: '{{ item.user_data|default(omit) }}'
+    wait: '{{ create_ec2_wait_upon_creation|default(false) }}'
+    wait_timeout: '{{ create_ec2_wait_upon_creation_timeout|default(600) }}'
+    tags:
         ANSIBLE_INSTALL_METHOD: '{{ ansible_install_method|default("nightly") }}'
         controller: "{{ item.controller|default('') }}"
         Test-Flag-2202: 'Replace-Dash-In-Groups'
         Ice: '{{ec2_name_prefix}}'
         Owner: '{{ lookup("env","USER") }}'
         host-type: '{{item.name}}'
-    group: '{{ item.security_group|default(ec2_security_group) }}'
-    key_name: '{{ ec2_key_name }}'
-    image: '{{ item.id }}'
-    volumes:
-      - device_name: /dev/sda1
-        volume_type: gp2
-        volume_size: '{{ item.volume_size|default(15) }}'
-        delete_on_termination: true
-    exact_count: 1
-    vpc_subnet_id: '{{ create_ec2_vpc_subnet_id|default(omit) }}'
-    assign_public_ip: '{{ create_ec2_assign_public_ip|default(omit) }}'
-    count_tag:
-        Name: '{{ec2_name_prefix}}-{{item.name}}'
-        ANSIBLE_INSTALL_METHOD: "{{ ansible_install_method|default('nightly') }}"
-    user_data: '{{ item.user_data|default(omit) }}'
-    wait: '{{ create_ec2_wait_upon_creation|default(true) }}'
-    wait_timeout: '{{ create_ec2_wait_upon_creation_timeout|default(600) }}'
+        towerqe-user: '{{ item.user }}'
+        towerqe-groups: '{{ item.groups }}'
   with_items: '{{ ec2_images }}'
   register: ec2_create_vars
 
 - name: map name to instance-id and Name tag
   set_fact:
-    name_to_instance_id: '{{ name_to_instance_id|default({}) | combine({item.item.name: item.tagged_instances[0].id}) }}'
-    name_to_tagged_name: "{{ name_to_tagged_name|default({}) | combine({item.item.name: item.tagged_instances[0].tags['Name']}) }}"
+    name_to_instance_id: '{{ name_to_instance_id|default({}) | combine({item.item.name: item.instances[0].instance_id}) }}'
+    name_to_tagged_name: "{{ name_to_tagged_name|default({}) | combine({item.item.name: item.instances[0].tags['Name']}) }}"
   with_items: '{{ ec2_create_vars.results }}'
 
+- name: ensure public dns name provided by aws
+  ec2_instance_facts:
+    aws_access_key: '{{ aws_access_key }}'
+    aws_secret_key: '{{ aws_secret_key }}'
+    region: '{{ ec2_region }}'
+    filters:
+      'tag:Name': '{{ name_to_tagged_name.values()|list }}'
+      instance-state-name: ['pending', 'running']
+  register: ec2_instance_vars
+  until: "{{ ec2_images|length }} == {{ ec2_instance_vars.instances|length }} and {{ ec2_instance_vars.instances|selectattr('public_dns_name', 'match', '^.+$')|list|length }} == {{ ec2_instance_vars.instances|length }}"
+  retries: 60
+  delay: 15
+
 - name: wait for running state for instances using elastic ips
-  ec2:
+  ec2_instance:
     aws_access_key: '{{ aws_access_key }}'
     aws_secret_key: '{{ aws_secret_key }}'
     instance_id: '{{ name_to_instance_id[item.name] }}'
@@ -84,27 +97,15 @@
 
 - name: extract helpful ec2_create_vars
   set_fact:
-    instance_id_to_public_dns: '{{ instance_id_to_public_dns|default({}) | combine({item.tagged_instances[0].id: item.tagged_instances[0].public_dns_name}) }}'
-    ec2_host_vars: "{{  ec2_host_vars|default([]) + [{'id': item.tagged_instances[0].id,
-                                                      'name': item.item.name,
-                                                      'groups': item.item.groups,
-                                                      'public_ip': item.tagged_instances[0].public_ip,
-                                                      'user': item.item.user,
-                                                      'controller': item.tagged_instances[0].tags['controller']|default('') }] }}"
-  with_items: '{{ ec2_create_vars.results }}'
+    instance_id_to_public_dns: '{{ instance_id_to_public_dns|default({}) | combine({item.instance_id: item.public_dns_name}) }}'
+    ec2_host_vars: "{{  ec2_host_vars|default([]) + [{'id': item.instance_id,
+                                                      'name': item.tags['host-type'],
+                                                      'groups': item.tags['towerqe-groups'],
+                                                      'public_ip': item.public_ip_address,
+                                                      'user': item.tags['towerqe-user'],
+                                                      'controller': item.tags['controller']|default('') }] }}"
+  with_items: '{{ ec2_instance_vars.instances|default([]) }}'
 
-- name: ensure public dns name provided by aws
-  ec2_instance_facts:
-    aws_access_key: '{{ aws_access_key }}'
-    aws_secret_key: '{{ aws_secret_key }}'
-    region: '{{ ec2_region }}'
-    filters:
-      'tag:Name': '{{ name_to_tagged_name.values()|list }}'
-      instance-state-name: ['pending', 'running']
-  register: ec2_instance_vars
-  until: "{{ ec2_images|length }} == {{ ec2_instance_vars.instances|length }} and {{ ec2_instance_vars.instances|selectattr('public_dns_name', 'match', '^.+$')|list|length }} == {{ ec2_instance_vars.instances|length }}"
-  retries: 60
-  delay: 15
 
 - name: store public dns for all created instances
   set_fact:
@@ -138,5 +139,5 @@
 # HACK While sshd may be listening, it may not fully accept connections immediately
 - name: wait for instances to accept connections
   pause:
-    seconds: 60
+    seconds: 90
   when: ec2_create_vars.changed

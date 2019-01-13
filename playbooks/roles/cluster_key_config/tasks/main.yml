@@ -59,4 +59,4 @@
   authorized_key:
     state: 'present'
     user: '{{ ansible_user }}'
-    key: "{{ hostvars[groups[install_group][0]]['install_group_public_key'].content.decode('base64') }}"
+    key: "{{ hostvars[groups[install_group][0]]['install_group_public_key'].content | b64decode }}"
