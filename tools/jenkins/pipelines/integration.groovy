@@ -128,6 +128,33 @@ Bundle?: ${params.BUNDLE}"""
             }
         }
 
+        stage('E2E Tests') {
+            steps {
+                withCredentials([file(credentialsId: '86ed99e9-dad9-49e9-b0db-9257fb563bad', variable: 'JSON_KEY_FILE'),
+                                 string(credentialsId: 'awx_admin_password', variable: 'AWX_ADMIN_PASSWORD')]) {
+                    withEnv(["AWX_ADMIN_PASSWORD=${AWX_ADMIN_PASSWORD}",
+                             "JSON_KEY_FILE=${JSON_KEY_FILE}"]) {
+                        sshagent(credentials : ['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
+                            dir('tower') {
+                                checkout([
+                                    $class: 'GitSCM',
+                                    branches: [[name: "*/${branch_name}" ]],
+                                    userRemoteConfigs: [
+                                        [
+                                            credentialsId: 'd2d4d16b-dc9a-461b-bceb-601f9515c98a',
+                                            url: 'git@github.com:ansible/tower.git'
+                                        ]
+                                    ]
+                                ])
+                            }
+                            sh './tools/jenkins/scripts/e2e.sh'
+                            junit 'tower/awx/ui/test/e2e/reports/*.xml'
+                        }
+                    }
+                }
+            }
+        }
+
         stage('Integration Tests') {
             steps {
                 sshagent(credentials : ['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
@@ -141,7 +168,7 @@ Bundle?: ${params.BUNDLE}"""
     post {
         always {
             sh './tools/jenkins/scripts/version.sh'
-            archiveArtifacts artifacts: 'version.log,playbooks/inventory.log,playbooks/inventory.cluster,playbooks/vars.yml,tower_url'
+            archiveArtifacts artifacts: 'version.log,playbooks/inventory.log,playbooks/inventory.cluster,playbooks/vars.yml,tower_url,reports/junit/results.xml,tower/awx/ui/test/e2e/reports/*.xml'
         }
     }
 

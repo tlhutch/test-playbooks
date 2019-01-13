@@ -154,3 +154,10 @@ function is_tower_ready {
         return 1
     fi
 }
+
+function retrieve_deployment_type {
+
+  url=$1
+  # TODO(spredzy): Look at the license endpoint and return 'tower' or 'awx'
+  echo 'tower'
+}
