@@ -53,7 +53,7 @@
 
 ### Use Brew Signed Packages (Yanis/Elyezer)
 
-* Test Plan
+* [Test Plan](https://github.com/ansible/tower-qa/blob/devel/docs/test_plans/features/35_brew_signed_packages.md)
 
 - [ ] Testing complete
 
@@ -65,13 +65,13 @@
 
 ### Move Tower to ansible-runner for task execution (Yanis/Danny)
 
-* Test Plan
+* [Test Plan](https://github.com/ansible/tower-qa/blob/devel/docs/test_plans/features/35_runner_integration.md)
 
 - [ ] Testing complete
 
 ### Using ansible-runner on isolated nodes (Yanis/Danny)
 
-* Test Plan
+* [Test Plan](https://github.com/ansible/tower-qa/blob/devel/docs/test_plans/features/35_runner_integration.md)
 
 - [ ] Testing complete
 
@@ -119,7 +119,7 @@
 
 ### FIPS II: Cryptographic Boogaloo - use system crypto packages (Yanis)
 
-* Test Plan
+* [Test Plan](https://github.com/ansible/tower-qa/blob/devel/docs/test_plans/features/35_fips_II.md)
 
 - [ ] Testing complete
 
