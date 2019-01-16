@@ -53,7 +53,10 @@ Regression verifications:
   * [ ] [API regression - Standalone]
   * [ ] [API regression - Traditional Cluster]
   * [ ] [API regression - OpenShift Cluster]
-
+  
+ Additional Manual Verification:
+ 
+  * [ ] Configure 2+ users with google auth with 3.3.2, upgrade to 3.4.1, verify all 2+ users can authenticate
 
 Artifacts:
 
