@@ -7,18 +7,13 @@
 
 ## Notes
 
-* Tower [CHANGELOG] **TBD**
-* Tower-packaging [CHANGELOG] **TBD**
+* Tower [CHANGELOG](https://github.com/ansible/tower/compare/release_3.3.3...release_3.3.4)
+* Tower-packaging [CHANGELOG](https://github.com/ansible/tower-packaging/compare/release_3.3.3...release_3.3.4)
 
 
 ## Resources
 
-* TBD
-
-
-## Release prep
-
-- Give Shane / Christian heads up about upcoming release (so they can coordinate release work with Red Hat release team)
+* Elijah DeLee + Yanis Guenane
 
 
 ### Verification steps
