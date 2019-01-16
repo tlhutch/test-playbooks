@@ -43,7 +43,6 @@ Upgrade:
 
 Regression verifications:
 
-  * [ ] [UI regression]
   * [ ] [API regression - Standalone]
   * [ ] [API regression - Traditional Cluster]
   * [ ] [API regression - OpenShift Cluster]
