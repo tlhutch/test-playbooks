@@ -34,7 +34,7 @@ class TestCustomCredentials(APITest):
         with pytest.raises(exc.BadRequest) as e:
             factories.v2_credential(credential_type=credential_type,
                                     inputs=dict(not_a_field=123))
-        desired = {'inputs': ["Additional properties are not allowed (u'not_a_field' was unexpected)"]}
+        desired = {'inputs': ["Additional properties are not allowed ('not_a_field' was unexpected)"]}
         assert e.value.msg == desired
 
     def test_non_boolean_input_for_boolean_field(self, factories):
@@ -44,12 +44,12 @@ class TestCustomCredentials(APITest):
         with pytest.raises(exc.BadRequest) as e:
             factories.v2_credential(credential_type=credential_type,
                                     inputs=dict(field=123))
-        assert e.value.msg == {'inputs': {'field': ["123 is not of type u'boolean'"]}}
+        assert e.value.msg == {'inputs': {'field': ["123 is not of type 'boolean'"]}}
 
         with pytest.raises(exc.BadRequest) as e:
             factories.v2_credential(credential_type=credential_type,
                                     inputs=dict(field='string'))
-        assert e.value.msg == {'inputs': {'field': ["u'string' is not of type u'boolean'"]}}
+        assert e.value.msg == {'inputs': {'field': ["'string' is not of type 'boolean'"]}}
 
     def test_extra_var_injector_variables_in_job_args_and_event_data(self, factories):
         inputs = dict(fields=[dict(id='field_one', label='FieldOne', secret=True),

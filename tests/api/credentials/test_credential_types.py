@@ -380,14 +380,11 @@ class TestCredentialTypes(APITest):
     def test_confirm_inputs_must_be_valid(self, factories, v2):
         ct_payload = factories.credential_type.payload(inputs={})
 
-        invalid_fields = [[dict(id=to_str(var), label=fauxfactory.gen_utf8())] for var in self.invalid_vars]
-
-        for invalid_field in invalid_fields:
-            ct_payload.inputs.fields = invalid_field
+        for var in self.invalid_vars:
+            ct_payload.inputs.fields = [dict(id=to_str(var), label=fauxfactory.gen_utf8())]
             with pytest.raises(exc.BadRequest) as e:
                 v2.credential_types.post(ct_payload)
-            assert e.value.msg == {'inputs': ['%s is an invalid variable name'
-                                                  % invalid_field[0]['id'].decode('utf8')]}
+            assert e.value.msg == {'inputs': ['%s is an invalid variable name' % var]}
 
     @pytest.mark.parametrize('var_type', ('extra_vars', 'env'))
     def test_confirm_injector_vars_must_be_valid(self, factories, v2, var_type):
@@ -401,7 +398,7 @@ class TestCredentialTypes(APITest):
             assert e.value.msg == {'injectors': ["Schema validation error in relative path ['%s'] "
                                                      "('%s' does not match any of the regexes: "
                                                      "'^[a-zA-Z_]+[a-zA-Z0-9_]*$')"
-                                                     % (var_type, invalid_var.encode('ascii', 'backslashreplace'))]}
+                                                     % (var_type, invalid_var)]}
             del ct_payload.injectors[var_type][invalid_var]
 
     def test_confirm_inputs_persist_as_specified(self, factories):

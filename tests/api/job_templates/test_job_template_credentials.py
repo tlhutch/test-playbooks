@@ -97,7 +97,7 @@ class TestJobTemplateLaunchCredentials(APITest):
 
     def test_launch_with_invalid_credential_in_payload(self, job_template_prompt_for_credential):
         """Verify the job launch endpoint throws 400 error when launching with invalid credential id"""
-        invalid_and_error = [('one', "Incorrect type. Expected pk value, received unicode."),
+        invalid_and_error = [('one', "Incorrect type. Expected pk value, received str."),
                              (0, 'Invalid pk "0" - object does not exist.'),
                              (False, 'Invalid pk "False" - object does not exist.'),
                              ({}, 'Incorrect type. Expected pk value, received OrderedDict.')]
