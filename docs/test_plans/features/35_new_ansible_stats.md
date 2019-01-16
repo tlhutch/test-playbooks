@@ -1,4 +1,4 @@
-# FIPS II
+# New Ansible Stats
 
 ## Feature Summary
 
@@ -18,3 +18,4 @@ Ansible Core 2.8 introduces two new statistics to the playbook summary: "Ignored
 * [ ] Rescue tasks are not counted as "ok" or "failed" by tower
 * [ ] Ignored tasks are not counted as "ok" or "failed" by tower
 * [ ] Ignored tasks and Rescued tasks are accurately reflected in job host summaries
+* [ ] Passes an upgrade/migration test

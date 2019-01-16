@@ -53,8 +53,10 @@ New metrics and analytics endpoints will be added to Tower for monitoring by Pro
     * [ ] Are reported
     * [ ] Can recover from this state
   * [ ] RBAC
+  * [ ] This feature can be disabled
 * [ ] Metrics
   * [ ] Counts are incremented correctly
   * [ ] Custom Modules are reported
   * [ ] Metrics are readable by
   * [ ] RBAC
+  * [ ] This feature can be disabled
