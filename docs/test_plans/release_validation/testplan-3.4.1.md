@@ -7,25 +7,20 @@
 
 ## Notes
 
-* Tower [CHANGELOG] **TBD**
-* Tower-packaging [CHANGELOG] **TBD**
+* Tower [CHANGELOG](https://github.com/ansible/tower/compare/release_3.4.0...release_3.4.1)
+* Tower-packaging [CHANGELOG](https://github.com/ansible/tower-packaging/compare/release_3.4.0...release_3.4.1)
 
 
 ## Resources
 
-* TBD
-
-
-## Release prep
-
-- Give Shane / Christian heads up about upcoming release (so they can coordinate release work with Red Hat release team)
+* Elijah DeLee + Yanis Guenane
 
 
 ### Verification steps
 
 For all [supported platforms](https://docs.ansible.com/ansible-tower/3.4.0/html/installandreference/requirements_refguide.html) and [supported ansible releases](https://access.redhat.com/articles/3382771) the following processes should work:
 
-OS supported are: RHEL7.4+ (and its derivative counter-part), Ubuntu 14.04 and 16.04
+OS supported are: RHEL7.4+ (and its derivative counter-part), Ubuntu 16.04
 System installed Ansible versions supported are: 2.6 to stable 2.7.
 Custom virtual environments may also have 2.3 to 2.5.
 
@@ -49,13 +44,12 @@ Upgrade:
 
 Regression verifications:
 
-  * [ ] [UI regression]
   * [ ] [API regression - Standalone]
   * [ ] [API regression - Traditional Cluster]
   * [ ] [API regression - OpenShift Cluster]
-  
+
  Additional Manual Verification:
- 
+
   * [ ] Configure 2+ users with google auth with 3.3.2, upgrade to 3.4.1, verify all 2+ users can authenticate
 
 Artifacts:
