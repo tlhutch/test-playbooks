@@ -46,6 +46,7 @@ Regression verifications:
   * [ ] [API regression - Standalone]
   * [ ] [API regression - Traditional Cluster]
   * [ ] [API regression - OpenShift Cluster]
+  * [ ] [UI Regression Testplan](https://docs.google.com/document/d/1ywu786MvepxDyNgEjNKYRpaSCCFcMFPjbbibUIPn_vo/edit#)
 
 
 Artifacts:
