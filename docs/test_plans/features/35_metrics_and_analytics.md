@@ -41,22 +41,25 @@ New metrics and analytics endpoints will be added to Tower for monitoring by Pro
 
 ## Acceptance criteria
 
-* [ ] Analytics
-  * [ ] Module Utilization counts are accurate
-    * [ ] Setup is excluded
-    * [ ] Custom modules are included
-  * [ ] Time Savings with automation is accurate based on inputs
-  * [ ] Anomalous tasks
-    * [ ] Are Reported
-    * [ ] Can recover from this state
-  * [ ] Anomalous Hosts
-    * [ ] Are reported
-    * [ ] Can recover from this state
-  * [ ] RBAC
-  * [ ] This feature can be disabled
-* [ ] Metrics
-  * [ ] Counts are incremented correctly
-  * [ ] Custom Modules are reported
-  * [ ] Metrics are readable by
-  * [ ] RBAC
-  * [ ] This feature can be disabled
+* [ ] API
+  * [ ] Analytics
+    * [ ] Module Utilization counts are accurate
+      * [ ] Setup is excluded
+      * [ ] Custom modules are included
+    * [ ] Time Savings with automation is accurate based on inputs
+    * [ ] Anomalous tasks
+      * [ ] Are Reported
+      * [ ] Can recover from this state
+    * [ ] Anomalous Hosts
+      * [ ] Are reported
+      * [ ] Can recover from this state
+    * [ ] RBAC
+    * [ ] This feature can be disabled
+  * [ ] Metrics
+    * [ ] Counts are incremented correctly
+    * [ ] Custom Modules are reported
+    * [ ] Metrics are readable by
+      * [ ] Prometheus
+      * [ ] ???
+    * [ ] RBAC
+    * [ ] This feature can be disabled

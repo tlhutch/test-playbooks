@@ -11,10 +11,12 @@ This is helpful in multitenant situations, preventing a given org from using mor
 
 ## Acceptance criteria
 
-* [ ] Inventory updates fail if they would bring an organization out of compliance with the policy
-* [ ] Hosts cannot be added to an inventory if they would bring it out of compliance
-* [ ] Inventories shared between orgs do not count against the org recieving permission
-* [ ] This feature can be disabled
-* [ ] This feature can be selectively enabled
-* [ ] RBAC (Only Super Users can change these settings)
-* [ ] If the limit is set below the current host count for an org, ???
+* [ ] API
+  * [ ] Inventory updates fail if they would bring an organization out of compliance with the policy
+  * [ ] Hosts cannot be added to an inventory if they would bring it out of compliance
+  * [ ] Inventories shared between orgs do not count against the org recieving permission
+  * [ ] This feature can be disabled
+  * [ ] This feature can be selectively enabled
+  * [ ] RBAC
+    * [ ] Only Super Users can change these settings
+  * [ ] If the limit is set below the current host count for an org, ???

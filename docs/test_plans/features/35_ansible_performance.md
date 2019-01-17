@@ -13,7 +13,17 @@ This will gather resource usage information from playbook runs and store it in T
 
 ## Acceptance criteria
 
-* [ ] This feature can be enabled and disabled
-* [ ] Stats can be collected separately for jobs running simultaneously on the same node
-* [ ] If enabled, venvs using an older version of ansible can still be used.
-* [ ] Stats can be viewed at the api endpoint for the job
+* [ ] API
+  * [ ] This feature can be enabled and disabled
+  * [ ] Stats can be collected separately for jobs running simultaneously on the same node
+  * [ ] If enabled, venvs using an older version of ansible can still be used.
+  * [ ] Stats can be viewed at the api endpoint for the job
+  * [ ] Stats endpoint can be accessed while a job is running
+  * [ ] Stats endpoint is not available on
+    * [ ] System Jobs
+    * [ ] Workflow Jobs
+  * [ ] Stats are collected for jobs on isolated nodes
+  * [ ] Stats can be collected in an OpenShift deployment of tower
+  * [ ] Jobs spawned by workflows or sliced jobs have stats
+  * [ ] Stats are removed by cleanup jobs
+  * [ ] (Manual) verify that cpu/memory intensive jobs actually show spikes
