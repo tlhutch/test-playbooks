@@ -23,7 +23,7 @@
           when: ansible_pkg_mgr == 'apt' and ansible_distribution_major_version != '14'
 
         - name: Create custom virtualenv
-          command: "virtualenv {{ venv_base }}/{{ venv_folder_name }}"
+          command: "virtualenv -p python --system-site-packages {{ venv_base }}/{{ venv_folder_name }}"
 
         - name: Print packages to install
           debug:
