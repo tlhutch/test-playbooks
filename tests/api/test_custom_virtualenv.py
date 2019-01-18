@@ -24,8 +24,12 @@ class TestCustomVirtualenv(APITest):
         return '/var/lib/awx/venv'
 
     @pytest.mark.mp_group('CustomVirtualenv', 'isolated_serial')
-    def test_default_venv(self, v2, venv_path):
-        assert v2.config.get().custom_virtualenvs == [venv_path()]
+    def test_default_venv(self, v2, venv_path, is_docker):
+        expect = [venv_path()]
+        if is_docker:
+            # development environment ships with a python3, just to have
+            expect.append(venv_path().replace('ansible', 'ansible3'))
+        assert v2.config.get().custom_virtualenvs == expect
 
     def test_default_venv_can_be_sourced(self, v2, factories, venv_path):
         jt = factories.v2_job_template()
