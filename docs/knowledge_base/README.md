@@ -1,4 +1,4 @@
-# Ansible Tower QE Kownledge Base
+# Ansible Tower QE Knowledge Base
 
 Welcome to the Ansible Tower QE Knowledge Base !
 
