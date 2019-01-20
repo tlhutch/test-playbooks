@@ -98,6 +98,37 @@ class TestCustomVirtualenv(APITest):
             job.assert_successful()
             assert job.job_env['VIRTUAL_ENV'].rstrip('/') == venv_path(folder_name).rstrip('/')
 
+    def test_run_inventory_update_using_venv_with_required_packages(self, v2, factories, create_venv, venv_path):
+        folder_name = random_title(non_ascii=False)
+        project = factories.project(
+            scm_type='git',
+            scm_url='https://github.com/AlanCoding/Ansible-inventory-file-examples.git'
+        )
+        project.get()
+        assert project.scm_url == 'https://github.com/AlanCoding/Ansible-inventory-file-examples.git'
+        inv_src = factories.v2_inventory_source(
+            source='scm',
+            project=project,
+            source_path='plugins/example_linode/linode.yml'
+        )
+        assert inv_src.source_project == project.id
+        inventory = inv_src.ds.inventory
+        org = inventory.ds.organization
+        ansigit = 'git+https://github.com/ansible/ansible.git'
+        with create_venv(folder_name, 'python-memcached psutil {} linode_api4'.format(ansigit)):
+            poll_until(lambda: venv_path(folder_name) in v2.config.get().custom_virtualenvs, interval=1, timeout=15)
+            assert org.custom_virtualenv is None
+            org.custom_virtualenv = venv_path(folder_name)
+            iu = inv_src.update().wait_until_completed()
+            assert iu.status == 'failed'
+            output = iu.result_stdout
+            assert (
+                'No setting was provided for required configuration plugin_type: '
+                'inventory plugin: linode setting: access_token' in output.replace('\n', ' ')  # Can't trust the line breaks
+            ), 'Full job output:\n{}'.format(output)
+            iu.get()
+            assert iu.job_args[iu.job_args.index('--venv') + 1].rstrip('/') == venv_path(folder_name).rstrip('/')
+
     @pytest.mark.parametrize('resource_pair', [('organization', 'project'), ('organization', 'job_template'),
                                                ('project', 'job_template')],
                              ids=['org and project', 'org and jt', 'project and jt'])
