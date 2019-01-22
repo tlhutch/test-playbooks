@@ -41,9 +41,10 @@ Upgrade:
 
 Regression verifications:
 
-  * [x] [API regression - Standalone](http://jenkins.ansible.eng.rdu2.redhat.com/job/Test_Tower_Integration/ANSIBLE_NIGHTLY_BRANCH=stable-2.7,PLATFORM=rhel-7.6-x86_64,label=jenkins-jnlp-agent/5277/parameters/)_
-  * [x] [API regression - Traditional Cluster](http://jenkins.ansible.eng.rdu2.redhat.com/job/Test_Tower_Integration_Cluster/ANSIBLE_NIGHTLY_BRANCH=stable-2.7,PLATFORM=rhel-7.6-x86_64,label=jenkins-jnlp-agent/1161/)
+  * [x] [API regression - Standalone](http://jenkins.ansible.eng.rdu2.redhat.com/job/Test_Tower_Integration_Plain/261)_
+  * [x] [API regression - Traditional Cluster](http://jenkins.ansible.eng.rdu2.redhat.com/view/Tower/job/Test_Tower_Integration_Cluster_Plain/58/)
   * [ ] [API regression - OpenShift Cluster]
+  * [x] [E2E against Standalone](http://jenkins.ansible.eng.rdu2.redhat.com/view/Tower/job/Test_Tower_E2E/1331/)
 
  Additional Manual Verification:
 
