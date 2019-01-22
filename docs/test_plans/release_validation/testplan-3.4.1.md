@@ -18,39 +18,36 @@
 
 ### Verification steps
 
-For all [supported platforms](https://docs.ansible.com/ansible-tower/3.4.0/html/installandreference/requirements_refguide.html) and [supported ansible releases](https://access.redhat.com/articles/3382771) the following processes should work:
-
-OS supported are: RHEL7.4+ (and its derivative counter-part), Ubuntu 16.04
+OS supported are: RHEL7.4+ (and its derivative counter-part)
 System installed Ansible versions supported are: 2.6 to stable 2.7.
 Custom virtual environments may also have 2.3 to 2.5.
 
+* No changes were deemed to have an impact that would differ accross platforms, so we cut down the platforms tested.
+* No changes were deemed to have large upgrade impact so number of prior versions to test upgrade from was cut down.
+
 Install:
 
-  * [ ] [Standalone]
+  * [x] [Standalone](http://jenkins.ansible.eng.rdu2.redhat.com/job/Test_Tower_Install/1301)
   * [ ] [Standalone Bundle]
-  * [ ] [Traditional Cluster with isolated nodes]
+  * [x] [Traditional Cluster with isolated nodes](http://jenkins.ansible.eng.rdu2.redhat.com/job/Test_Tower_Install/1302/parameters/)
   * [ ] [Traditional Cluster Bundle with isolated nodes]
   * [ ] [OpenShift Cluster]
 
 
 Upgrade:
 
-  * [ ] [Standalone from latest minor - 3.4.1]
-  * [ ] [Standalone from latest major - 3.4.1]
-  * [ ] [Traditional Cluster with isolated nodes from latest minor - 3.4.1]
-  * [ ] [Traditional Cluster with isolated nodes from latest major - 3.4.1]
-  * [ ] [OpenShift Cluster from latest minor]
-
+  * [x] Standalone from latest minor - 3.4.1 as part of manually testing insights URL upgrade
+  * [x] Standalone from latest major - 3.4.1 as part of manually testing social auth upgrade
 
 Regression verifications:
 
-  * [ ] [API regression - Standalone]
-  * [ ] [API regression - Traditional Cluster]
+  * [x] [API regression - Standalone](http://jenkins.ansible.eng.rdu2.redhat.com/job/Test_Tower_Integration/ANSIBLE_NIGHTLY_BRANCH=stable-2.7,PLATFORM=rhel-7.6-x86_64,label=jenkins-jnlp-agent/5277/parameters/)_
+  * [x] [API regression - Traditional Cluster](http://jenkins.ansible.eng.rdu2.redhat.com/job/Test_Tower_Integration_Cluster/ANSIBLE_NIGHTLY_BRANCH=stable-2.7,PLATFORM=rhel-7.6-x86_64,label=jenkins-jnlp-agent/1161/)
   * [ ] [API regression - OpenShift Cluster]
 
  Additional Manual Verification:
 
-  * [ ] Configure 2+ users with google auth with 3.3.2, upgrade to 3.4.1, verify all 2+ users can authenticate
+  * [x] Configure users with github auth with 3.3.2, upgrade to 3.4.1, verify all users can authenticate
 
 Artifacts:
 
