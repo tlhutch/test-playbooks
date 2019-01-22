@@ -25,32 +25,13 @@ Ansible versions supported are: stable-2.3 to stable 2.7
 
 Install:
 
-  * [ ] [Standalone]
-  * [ ] [Standalone Bundle]
-  * [ ] [Traditional Cluster with isolated nodes]
-  * [ ] [Traditional Cluster Bundle with isolated nodes]
-  * [ ] [OpenShift Cluster]
-
-
-Upgrade:
-
-  * [ ] [Standalone from latest minor - 3.3.4]
-  * [ ] [Standalone from latest major - 3.3.4]
-  * [ ] [Traditional Cluster with isolated nodes from latest minor - 3.3.4]
-  * [ ] [Traditional Cluster with isolated nodes from latest major - 3.3.4]
-  * [ ] [OpenShift Cluster from latest minor]
+  * [x] [Standalone]
+  * [x] [Traditional Cluster with isolated nodes]
 
 
 Regression verifications:
 
-  * [ ] [API regression - Standalone]
-  * [ ] [API regression - Traditional Cluster]
-  * [ ] [API regression - OpenShift Cluster]
-  * [ ] [UI Regression Testplan](https://docs.google.com/document/d/1ywu786MvepxDyNgEjNKYRpaSCCFcMFPjbbibUIPn_vo/edit#)
-
-
-Artifacts:
-
-  * [ ] [AMI]
-  * [ ] [Vagrant image]
-  * [ ] [Documentation]
+  * [x] [API regression - Standalone](http://jenkins.ansible.eng.rdu2.redhat.com/job/Test_Tower_Integration_Plain/260)
+  * [x] [API regression - Traditional Cluster](http://jenkins.ansible.eng.rdu2.redhat.com/view/Tower/job/Test_Tower_Integration_Cluster_Plain/57/parameters/)
+  * [x] [UI Regression Testplan](https://docs.google.com/document/d/1ywu786MvepxDyNgEjNKYRpaSCCFcMFPjbbibUIPn_vo/edit#)
+  * [x] [E2E against Standalone](http://jenkins.ansible.eng.rdu2.redhat.com/view/Tower/job/Test_Tower_E2E/1332/)
