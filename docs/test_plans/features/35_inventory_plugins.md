@@ -46,50 +46,52 @@ inventory updates that populate inventories in the organization.
     - [ ] GCE
        - [ ] Confirm plugin is used in virtual environments with ansible >= X.X
        - [ ] Confirm that script is used in venvs with ansible < X.X
-       - [ ] Confirm that output is sane and jobs can be run against inventory
-       - [ ] Confirm plugin uses proper credentials
-       - [ ] Confirm that credentials can be changed
+       - [ ] Confirm that the inventory update creates a usable inventory
+			 - [ ] Determine and document if the plugin output is the same, a superset, or different from the script output
     - [ ] Azure
        - [ ] Confirm plugin is used in virtual environments with ansible >= X.X
        - [ ] Confirm that script is used in venvs with ansible < X.X
-       - [ ] Confirm that output is sane and jobs can be run against inventory
-       - [ ] Confirm plugin uses proper credentials
-       - [ ] Confirm that credentials can be changed
+       - [ ] Confirm that the inventory update creates a usable inventory
+			 - [ ] Determine and document if the plugin output is the same, a superset, or different from the script output
     - [ ] EC2
        - [ ] Confirm plugin is used in virtual environments with ansible >= X.X
        - [ ] Confirm that script is used in venvs with ansible < X.X
-       - [ ] Confirm that output is sane and jobs can be run against inventory
-       - [ ] Confirm plugin uses proper credentials
-       - [ ] Confirm that credentials can be changed
+       - [ ] Confirm that the inventory update creates a usable inventory
+			 - [ ] Determine and document if the plugin output is the same, a superset, or different from the script output
+    - [ ] Tower
+       - [ ] Confirm plugin is used in virtual environments with ansible >= X.X
+       - [ ] Confirm that script is used in venvs with ansible < X.X
+       - [ ] Confirm that the inventory update creates a usable inventory
+			 - [ ] Determine and document if the plugin output is the same, a superset, or different from the script output
     - [ ] Openstack
        - [ ] Confirm plugin is used in virtual environments with ansible >= X.X
        - [ ] Confirm that script is used in venvs with ansible < X.X
-       - [ ] Confirm that output is sane and jobs can be run against inventory
-       - [ ] Confirm plugin uses proper credentials
-       - [ ] Confirm that credentials can be changed
+       - [ ] Confirm that the inventory update creates a usable inventory
+			 - [ ] Determine and document if the plugin output is the same, a superset, or different from the script output
     - [ ] VMWare
        - [ ] Confirm plugin is used in virtual environments with ansible >= X.X
        - [ ] Confirm that script is used in venvs with ansible < X.X
-       - [ ] Confirm that output is sane and jobs can be run against inventory
-       - [ ] Confirm plugin uses proper credentials
-       - [ ] Confirm that credentials can be changed
+       - [ ] Confirm that the inventory update creates a usable inventory
+			 - [ ] Determine and document if the plugin output is the same, a superset, or different from the script output
     - [ ] Sat6/Foreman
        - [ ] Confirm plugin is used in virtual environments with ansible >= X.X
        - [ ] Confirm that script is used in venvs with ansible < X.X
-       - [ ] Confirm that output is sane and jobs can be run against inventory
-       - [ ] Confirm plugin uses proper credentials
-       - [ ] Confirm that credentials can be changed
+       - [ ] Confirm that the inventory update creates a usable inventory
+			 - [ ] Determine and document if the plugin output is the same, a superset, or different from the script output
     - [ ] RHV
        - [ ] Confirm plugin is used in virtual environments with ansible >= X.X
        - [ ] Confirm that script is used in venvs with ansible < X.X
-       - [ ] Confirm that output is sane and jobs can be run against inventory
-       - [ ] Confirm plugin uses proper credentials
-       - [ ] Confirm that credentials can be changed
+       - [ ] Confirm that the inventory update creates a usable inventory
+			 - [ ] Determine and document if the plugin output is the same, a superset, or different from the script output
 
 * [ ] UI
 		- [ ] Information is available that notifies user that the org level venv will be used for inventory updates.
     - [ ] Regression testsing (should be no user experience change in UI)
 
+
+### Items that should be covered in awx unit tests
+
+	- [ ] Inventory updates should use specified credential
 
 ### Punting to future releases
 * Openshift (plugin needs work to allow secure authentication)
