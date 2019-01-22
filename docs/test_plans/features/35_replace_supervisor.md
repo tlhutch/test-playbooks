@@ -20,3 +20,9 @@ some candidates are [Circus](https://circus.readthedocs.io/en/latest/) or system
 - [ ] The installation works and no issues are introduced by this change.
 - [ ] The upgrade works and no issues are introduced by this change.
 - [ ] Check if the sosreport config is updated
+- [ ] In RHEL 8, verify that supervisor is running using Python 3, not Python
+      2.
+- [ ] In distros other than RHEL 8, verify that supervisor is running using
+      Python 2, not Python 3.
+- [ ] Verify that `ansible-tower-service` commands (e.g.
+      start/stop/status/restart) continue to function.
