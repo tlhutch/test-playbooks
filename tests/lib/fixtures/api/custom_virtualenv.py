@@ -48,8 +48,6 @@ def create_venv(request, venv_path, is_docker):
                 extra_vars['venv_base'] = '/venv'
             cmd = (u"""ansible-playbook -i {} -l {} {} playbooks/create_custom_virtualenv.yml"""
                    .format(inv_path, limit, format_ev(extra_vars)))
-            print('first cmd')
-            print(cmd)
             rc = subprocess.call(cmd, shell=True)
             assert rc == 0, "Received non-zero response code from '{}'".format(cmd)
             yield venv_path(folder_name)
