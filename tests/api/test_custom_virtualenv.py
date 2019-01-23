@@ -17,36 +17,47 @@ from tests.lib.helpers.workflow_utils import (WorkflowTree, WorkflowTreeMapper)
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestCustomVirtualenv(APITest):
 
+    @pytest.fixture
+    def venv_root(self, is_docker):
+        if is_docker:
+            return '/venv'
+        return '/var/lib/awx/venv'
+
     @pytest.mark.mp_group('CustomVirtualenv', 'isolated_serial')
-    def test_default_venv(self, v2, venv_path):
-        assert v2.config.get().custom_virtualenvs == [venv_path()]
+    def test_default_venv(self, v2, venv_path, is_docker):
+        expect = [venv_path()]
+        if is_docker:
+            # development environment ships with a python3, just to have
+            expect.append(venv_path().replace('ansible', 'ansible3'))
+        assert v2.config.get().custom_virtualenvs == expect
 
     def test_default_venv_can_be_sourced(self, v2, factories, venv_path):
         jt = factories.v2_job_template()
         jt.custom_virtualenv = venv_path()
         job = jt.launch().wait_until_completed()
         job.assert_successful()
-        assert job.job_env['VIRTUAL_ENV'] == venv_path()
+        assert job.job_env['VIRTUAL_ENV'].rstrip('/') == venv_path().rstrip('/')
 
-    def test_cannot_associate_invalid_venv_path_with_resource(self, v2, factories, create_venv, venv_path, get_resource_from_jt):
+    def test_cannot_associate_invalid_venv_path_with_resource(self, v2, factories, create_venv, venv_path,
+                                                              venv_root, get_resource_from_jt):
         folder_names = [random_title(non_ascii=False) for _ in range(2)]
         malformed_venvs = ('foo',
                            '/',
                            '/tmp',
                            '[]',
                            '()',
-                           '/var/lib/awx/venv/',
+                           '{}/'.format(venv_root),
                            '/var/lib /awx/venv/{}/'.format(folder_names[0]),
-                           '/var/lib/awx/venv/{}'.format(folder_names[0][:-1]),
-                           '/var/lib/awx/venv/{}/foo'.format(folder_names[0]),
-                           '/var/lib/awx/venv/{}/foo/'.format(folder_names[0]),
+                           '{}/{}'.format(venv_root, folder_names[0][:-1]),
+                           '{}/{}/foo'.format(venv_root, folder_names[0]),
+                           '{}/{}/foo/'.format(venv_root, folder_names[0]),
                            folder_names[0],
                            '/{}'.format(folder_names[0]),
                            '/{}/'.format(folder_names[0]),
-                           '/var/lib/awx/venv/{}/ /var/lib/awx/venv/{}/'.format(folder_names[0], folder_names[1]),
-                           '/var/lib/awx/venv/{} /var/lib/awx/venv/{}'.format(folder_names[0], folder_names[1]),
-                           '[/var/lib/awx/venv/{}/, /var/lib/awx/venv/{}/]'.format(folder_names[0], folder_names[1]),
-                           '(/var/lib/awx/venv/{}/, /var/lib/awx/venv/{}/)'.format(folder_names[0], folder_names[1]))
+                           '{0}/{1}/ {0}/{2}/'.format(venv_root, folder_names[0], folder_names[1]),
+                           '{0}/{1} {0}/{2}'.format(venv_root, folder_names[0], folder_names[1]),
+                           '[{0}/{1}/, {0}/{2}/]'.format(venv_root, folder_names[0], folder_names[1]),
+                           '({0}/{1}/, {0}/{2}/)'.format(venv_root, folder_names[0], folder_names[1]))
         jt = factories.v2_job_template()
 
         with create_venv(folder_names[0]):
@@ -61,10 +72,10 @@ class TestCustomVirtualenv(APITest):
                             resource.custom_virtualenv = path
 
     def test_can_associate_valid_venv_path_with_resource(self, v2, factories, create_venv, venv_path,
-                                                         get_resource_from_jt):
+                                                         venv_root, get_resource_from_jt):
         folder_name = random_title(non_ascii=False)
-        valid_venvs = ('/var/lib/awx/venv/{}'.format(folder_name),
-                       '/var/lib/awx/venv/{}/'.format(folder_name),
+        valid_venvs = ('{}/{}'.format(venv_root, folder_name),
+                       '{}/{}/'.format(venv_root, folder_name),
                        '')
         jt = factories.v2_job_template()
 
@@ -85,7 +96,27 @@ class TestCustomVirtualenv(APITest):
             jt.custom_virtualenv = venv_path(folder_name)
             job = jt.launch().wait_until_completed()
             job.assert_successful()
-            assert job.job_env['VIRTUAL_ENV'] == venv_path(folder_name)
+            assert job.job_env['VIRTUAL_ENV'].rstrip('/') == venv_path(folder_name).rstrip('/')
+
+    def test_run_inventory_update_using_venv_with_required_packages(self, v2, factories, create_venv, venv_path):
+        folder_name = random_title(non_ascii=False)
+        inv_src = factories.v2_inventory_source(source='scm', source_path='inventories/linode.yml')
+        inventory = inv_src.ds.inventory
+        org = inventory.ds.organization
+        ansigit = 'git+https://github.com/ansible/ansible.git'
+        with create_venv(folder_name, 'python-memcached psutil {} linode_api4'.format(ansigit)):
+            poll_until(lambda: venv_path(folder_name) in v2.config.get().custom_virtualenvs, interval=1, timeout=15)
+            assert org.custom_virtualenv is None
+            org.custom_virtualenv = venv_path(folder_name)
+            iu = inv_src.update().wait_until_completed()
+            assert iu.status == 'failed'
+            output = iu.result_stdout
+            assert (
+                'No setting was provided for required configuration plugin_type: '
+                'inventory plugin: linode setting: access_token' in output.replace('\n', ' ')  # Can't trust the line breaks
+            ), output
+            iu.get()
+            assert iu.job_args[iu.job_args.index('--venv') + 1].rstrip('/') == venv_path(folder_name).rstrip('/')
 
     @pytest.mark.parametrize('resource_pair', [('organization', 'project'), ('organization', 'job_template'),
                                                ('project', 'job_template')],
@@ -107,7 +138,7 @@ class TestCustomVirtualenv(APITest):
 
                 job = jt.launch().wait_until_completed()
                 job.assert_successful()
-                assert job.job_env['VIRTUAL_ENV'] == venv_path(folder_names[1])
+                assert job.job_env['VIRTUAL_ENV'].rstrip('/') == venv_path(folder_names[1]).rstrip('/')
 
     @pytest.mark.parametrize('ansible_version', ['2.6.1', '2.5.6', '2.4.6.0', '2.3.3.0', '2.2.3.0'])
     def test_venv_with_ansible(self, v2, factories, create_venv, ansible_version, venv_path):
@@ -127,9 +158,9 @@ class TestCustomVirtualenv(APITest):
             assert 'ansible {}'.format(ansible_version) in stdout
 
             job.assert_successful()
-            assert job.job_env['VIRTUAL_ENV'] == venv_path(folder_name)
+            assert job.job_env['VIRTUAL_ENV'].rstrip('/') == venv_path(folder_name).rstrip('/')
 
-    def test_venv_with_missing_requirements(self, v2, factories, create_venv, ansible_version, venv_path):
+    def test_venv_with_missing_requirements(self, v2, factories, create_venv, ansible_version, venv_path, venv_root):
         folder_name = random_title(non_ascii=False)
         with create_venv(folder_name, ''):
             poll_until(lambda: venv_path(folder_name) in v2.config.get().custom_virtualenvs, interval=1, timeout=15)
@@ -140,8 +171,10 @@ class TestCustomVirtualenv(APITest):
             job = jt.launch().wait_until_completed()
             assert job.status == 'failed'
             assert job.job_explanation == ''
-            possible_error_msgs = ['{0} is missing; /var/lib/awx/venv/{1}/bin/pip install {0}'.format(pkg, folder_name) for pkg in ('psutil', 'python-memcached')]
-            assert any(msg in job.result_stdout for msg in possible_error_msgs)
+            possible_error_msgs = ['{0} is missing; {2}/{1}/bin/pip install {0}'.format(pkg, folder_name, venv_root) for pkg in ('psutil', 'python-memcached')]
+            assert any(msg in job.result_stdout for msg in possible_error_msgs), (
+                'Could not find any of {} in job standard out: \n{}'.format(possible_error_msgs, job.result_stdout)
+            )
 
     def test_relaunched_jobs_use_venv_specified_on_jt_at_launch_time(self, v2, factories, create_venv, venv_path):
         folder_name = random_title(non_ascii=False)
@@ -152,17 +185,17 @@ class TestCustomVirtualenv(APITest):
             jt.custom_virtualenv = venv_path(folder_name)
             job = jt.launch().wait_until_completed()
             job.assert_successful()
-            assert job.job_env['VIRTUAL_ENV'] == venv_path(folder_name)
+            assert job.job_env['VIRTUAL_ENV'].rstrip('/') == venv_path(folder_name).rstrip('/')
 
             relaunched_job = job.relaunch().wait_until_completed()
-            assert relaunched_job.job_env['VIRTUAL_ENV'] == venv_path(folder_name)
+            assert relaunched_job.job_env['VIRTUAL_ENV'].rstrip('/') == venv_path(folder_name).rstrip('/')
 
             # Per https://github.com/ansible/tower/issues/2844,
             # venv is a property of the job, not a value in time that is persisted.
             # Relaunched job should source whatever venv is set on the JT at launch time.
             jt.custom_virtualenv = venv_path()
             relaunched_job = job.relaunch().wait_until_completed()
-            assert relaunched_job.job_env['VIRTUAL_ENV'] == venv_path()
+            assert relaunched_job.job_env['VIRTUAL_ENV'].rstrip('/') == venv_path().rstrip('/')
 
     def test_relaunched_jobs_fail_when_venv_no_longer_exists(self, v2, factories, create_venv, venv_path):
         folder_name = random_title(non_ascii=False)
@@ -195,7 +228,7 @@ class TestCustomVirtualenv(APITest):
             wf_job_node = wf_job.related.workflow_nodes.get().results.pop()
             job = wf_job_node.related.job.get()
             job.assert_successful()
-            assert job.job_env['VIRTUAL_ENV'] == venv_path(folder_name)
+            assert job.job_env['VIRTUAL_ENV'].rstrip('/') == venv_path(folder_name).rstrip('/')
 
     def test_only_workflow_node_with_custom_venv_sources_venv(self, v2, factories, create_venv, venv_path):
         """Workflow:
@@ -232,9 +265,9 @@ class TestCustomVirtualenv(APITest):
             for job in (n1_job, n2_job, n3_job):
                 job.assert_successful()
 
-            assert n1_job.job_env['VIRTUAL_ENV'] == venv_path().rstrip('/')
-            assert n2_job.job_env['VIRTUAL_ENV'] == venv_path(folder_name)
-            assert n3_job.job_env['VIRTUAL_ENV'] == venv_path().rstrip('/')
+            assert n1_job.job_env['VIRTUAL_ENV'].rstrip('/') == venv_path().rstrip('/')
+            assert n2_job.job_env['VIRTUAL_ENV'].rstrip('/') == venv_path(folder_name).rstrip('/')
+            assert n3_job.job_env['VIRTUAL_ENV'].rstrip('/') == venv_path().rstrip('/')
 
     def test_scheduled_job_uses_venv_associated_with_resource(self, v2, factories, create_venv, venv_path):
         folder_name = random_title(non_ascii=False)
@@ -253,7 +286,7 @@ class TestCustomVirtualenv(APITest):
             job = unified_jobs.results.pop()
             job.wait_until_completed()
             job.assert_successful()
-            assert job.job_env['VIRTUAL_ENV'] == venv_path(folder_name)
+            assert job.job_env['VIRTUAL_ENV'].rstrip('/') == venv_path(folder_name).rstrip('/')
 
     @pytest.mark.parametrize('resource_type', ['project', 'job_template'])
     def test_venv_preserved_by_copied_resource(self, v2, factories, create_venv, copy_with_teardown, resource_type,
@@ -278,4 +311,4 @@ class TestCustomVirtualenv(APITest):
 
             job = jt.launch().wait_until_completed()
             job.assert_successful()
-            assert job.job_env['VIRTUAL_ENV'] == venv_path(folder_name)
+            assert job.job_env['VIRTUAL_ENV'].rstrip('/') == venv_path(folder_name).rstrip('/')

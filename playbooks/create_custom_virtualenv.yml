@@ -1,4 +1,7 @@
 - hosts: all
+  vars:
+    venv_base: /var/lib/awx/venv
+    venv_folder_name: custom-venv
   tasks:
     - block:
         - name: Install virtualenv (EL-*)
@@ -20,7 +23,7 @@
           when: ansible_pkg_mgr == 'apt' and ansible_distribution_major_version != '14'
 
         - name: Create custom virtualenv
-          command: virtualenv /var/lib/awx/venv/{{ venv_folder_name|default('custom-venv') }}
+          command: "virtualenv -p python --system-site-packages {{ venv_base }}/{{ venv_folder_name }}"
 
         - name: Print packages to install
           debug:
@@ -33,7 +36,7 @@
           when: ansible_pkg_mgr == 'yum'
 
         - name: Pip install latest setuptools (Ubuntu)
-          command: /var/lib/awx/venv/{{ venv_folder_name|default('custom-venv') }}/bin/pip install -I -U setuptools
+          command: "{{ venv_base }}/{{ venv_folder_name }}/bin/pip install -I -U setuptools"
           when: ansible_pkg_mgr == 'apt'
 
         - name: Install header files required by Ansible (Ubuntu)
@@ -47,14 +50,14 @@
           when: ansible_pkg_mgr == 'apt'
 
         - name: Pip install required packages
-          command: /var/lib/awx/venv/{{ venv_folder_name|default('custom-venv') }}/bin/pip install -I -U {{ venv_packages|default("python-memcached psutil") }}
+          command: "{{ venv_base }}/{{ venv_folder_name }}/bin/pip install -I -U {{ venv_packages|default('python-memcached psutil') }}"
           when: venv_packages != ''
-      become: true
+      become: "{{ use_become | default('true')}}"
       when: not remove_virtualenv|default(false)
 
     - name: Remove custom virtualenv
       file:
-        path: /var/lib/awx/venv/{{ venv_folder_name|default('custom-venv') }}
+        path: "{{ venv_base }}/{{ venv_folder_name }}"
         state: absent
-      become: true
+      become: "{{ use_become | default('true')}}"
       when: remove_virtualenv|default(false)
