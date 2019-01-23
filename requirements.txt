@@ -20,4 +20,5 @@ git+ssh://git@github.com/jlaska/pytest-github.git
 pytest-ordering
 python-dateutil
 pytz
+selenium
 git+ssh://git@github.com/ansible/towerkit.git
