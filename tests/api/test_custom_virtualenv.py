@@ -36,7 +36,7 @@ class TestCustomVirtualenv(APITest):
         jt.custom_virtualenv = venv_path()
         job = jt.launch().wait_until_completed()
         job.assert_successful()
-        assert job.job_env['VIRTUAL_ENV'].rstrip('/') == venv_path().rstrip('/')
+        assert job.job_env['VIRTUAL_ENV'].rstrip('/') == job.custom_virtualenv.rstrip('/') == venv_path().rstrip('/')
 
     def test_cannot_associate_invalid_venv_path_with_resource(self, v2, factories, create_venv, venv_path,
                                                               venv_root, get_resource_from_jt):
@@ -109,6 +109,7 @@ class TestCustomVirtualenv(APITest):
             assert org.custom_virtualenv is None
             org.custom_virtualenv = venv_path(folder_name)
             iu = inv_src.update().wait_until_completed()
+            assert iu.custom_virtualenv == venv_path(folder_name).rstrip('/')
             assert iu.status == 'failed'
             output = iu.result_stdout
             assert (
@@ -158,7 +159,7 @@ class TestCustomVirtualenv(APITest):
             assert 'ansible {}'.format(ansible_version) in stdout
 
             job.assert_successful()
-            assert job.job_env['VIRTUAL_ENV'].rstrip('/') == venv_path(folder_name).rstrip('/')
+            assert job.job_env['VIRTUAL_ENV'].rstrip('/') == job.custom_virtualenv.rstrip('/') == venv_path(folder_name).rstrip('/')
 
     def test_venv_with_missing_requirements(self, v2, factories, create_venv, ansible_version, venv_path, venv_root):
         folder_name = random_title(non_ascii=False)
@@ -206,7 +207,7 @@ class TestCustomVirtualenv(APITest):
             jt.custom_virtualenv = venv_path(folder_name)
 
         poll_until(lambda: venv_path(folder_name) not in v2.config.get().custom_virtualenvs, interval=1, timeout=15)
-        assert jt.get().custom_virtualenv == venv_path(folder_name)
+        assert jt.get().custom_virtualenv.rstrip('/') == venv_path(folder_name)
         job = jt.launch().wait_until_completed()
         assert job.status == 'error'
         assert 'RuntimeError: a valid Python virtualenv does not exist at {}'\
@@ -300,7 +301,7 @@ class TestCustomVirtualenv(APITest):
             resource.custom_virtualenv = venv_path(folder_name)
 
             copied_resource = copy_with_teardown(resource)
-            assert copied_resource.custom_virtualenv == venv_path(folder_name)
+            assert copied_resource.custom_virtualenv.rstrip('/') == venv_path(folder_name)
 
             if resource_type == 'project':
                 update = copied_resource.related.project_updates.get().results.pop()
