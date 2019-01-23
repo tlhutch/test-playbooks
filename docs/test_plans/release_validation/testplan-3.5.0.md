@@ -83,7 +83,7 @@
 
 ### Replace inventory scripts with 2.6+ plugins (Elijah/Mat/Danny)
 
-* Test Plan
+* [Test Plan](https://github.com/ansible/tower-qa/blob/devel/docs/test_plans/features/35_inventory_plugins.md)
 
 - [ ] Testing complete
 
