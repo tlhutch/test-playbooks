@@ -95,7 +95,7 @@
   when: item.eip is defined
   with_items: '{{ ec2_images }}'
 
-- name: extract helpful ec2_create_vars
+- name: extract helpful ec2_create_vars (IPv4)
   set_fact:
     instance_id_to_public_dns: '{{ instance_id_to_public_dns|default({}) | combine({item.instance_id: item.public_dns_name}) }}'
     ec2_host_vars: "{{  ec2_host_vars|default([]) + [{'id': item.instance_id,
@@ -105,6 +105,19 @@
                                                       'user': item.tags['towerqe-user'],
                                                       'controller': item.tags['controller']|default('') }] }}"
   with_items: '{{ ec2_instance_vars.instances|default([]) }}'
+  when: not awx_ipv6_deployment | default(false) | bool
+
+- name: extract helpful ec2_create_vars (IPv6)
+  set_fact:
+    instance_id_to_public_dns: '{{ instance_id_to_public_dns|default({}) | combine({item.instance_id: item.public_dns_name}) }}'
+    ec2_host_vars: "{{  ec2_host_vars|default([]) + [{'id': item.instance_id,
+                                                      'name': item.tags['host-type'],
+                                                      'groups': item.tags['towerqe-groups'],
+                                                      'public_ip': item.network_interfaces[0].ipv6_addresses[0].ipv6_address,
+                                                      'user': item.tags['towerqe-user'],
+                                                      'controller': item.tags['controller']|default('') }] }}"
+  with_items: '{{ ec2_instance_vars.instances|default([]) }}'
+  when: awx_ipv6_deployment | default(false) | bool
 
 
 - name: store public dns for all created instances

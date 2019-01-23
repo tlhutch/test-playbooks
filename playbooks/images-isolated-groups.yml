@@ -101,46 +101,57 @@ ec2_security_groups:
           from_port: 22
           to_port: 22
           cidr_ip: 0.0.0.0/0
+          cidr_ipv6: ::/0
         - proto: tcp
           from_port: 80
           to_port: 80
           cidr_ip: 0.0.0.0/0
+          cidr_ipv6: ::/0
         - proto: tcp
           from_port: 389
           to_port: 389
           cidr_ip: 0.0.0.0/0
+          cidr_ipv6: ::/0
         - proto: tcp
           from_port: 443
           to_port: 443
           cidr_ip: 0.0.0.0/0
+          cidr_ipv6: ::/0
         - proto: tcp
           from_port: 1936
           to_port: 1936
           cidr_ip: 0.0.0.0/0
+          cidr_ipv6: ::/0
         - proto: tcp
           from_port: 4369
           to_port: 4369
           cidr_ip: 0.0.0.0/0
+          cidr_ipv6: ::/0
         - proto: tcp
           from_port: 5432
           to_port: 5432
           cidr_ip: 0.0.0.0/0
+          cidr_ipv6: ::/0
         - proto: tcp
           from_port: 5672
           to_port: 5672
           cidr_ip: 0.0.0.0/0
+          cidr_ipv6: ::/0
         - proto: tcp
           from_port: 8080
           to_port: 8080
           cidr_ip: 0.0.0.0/0
+          cidr_ipv6: ::/0
         - proto: tcp
           from_port: 15672
           to_port: 15672
           cidr_ip: 0.0.0.0/0
+          cidr_ipv6: ::/0
         - proto: tcp
           from_port: 25672
           to_port: 25672
           cidr_ip: 0.0.0.0/0
+          cidr_ipv6: ::/0
     - name: tower-isolated-group
       description: Security group for Tower HA isolated groups
       rules:

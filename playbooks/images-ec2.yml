@@ -35,27 +35,34 @@ ec2_security_groups:
           from_port: 22
           to_port: 22
           cidr_ip: 0.0.0.0/0
+          cidr_ipv6: ::/0
         - proto: tcp
           from_port: 80
           to_port: 80
           cidr_ip: 0.0.0.0/0
+          cidr_ipv6: ::/0
         - proto: tcp
           from_port: 443
           to_port: 443
           cidr_ip: 0.0.0.0/0
+          cidr_ipv6: ::/0
         - proto: tcp
           from_port: 5432
           to_port: 5432
           cidr_ip: 0.0.0.0/0
+          cidr_ipv6: ::/0
         - proto: tcp
           from_port: 8080
           to_port: 8080
           cidr_ip: 0.0.0.0/0
+          cidr_ipv6: ::/0
         - proto: udp
           from_port: 9001
           to_port: 9001
           cidr_ip: 0.0.0.0/0
+          cidr_ipv6: ::/0
         - proto: tcp
           from_port: 9001
           to_port: 9001
           cidr_ip: 0.0.0.0/0
+          cidr_ipv6: ::/0
