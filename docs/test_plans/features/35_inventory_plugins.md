@@ -40,58 +40,85 @@ inventory updates that populate inventories in the organization.
 
 ### Test suites and cases
 * [ ] API
+    - [ ] At module scope, could install various custom virtual environments to run updates in and then have tests run against several, at least two, one using the script, and the other using the plugin. For example, use 2.3 and then use devel.
+		- [ ] For each source, determine and document if the plugin output is the same, a superset, or different from the script output
+          * Make custom venvs for supported versions of python, install ansible in there
+          * Walk over each version and run the update, compare results
+          * Document and notable differences and pass on to concerned citizens
     - [ ] Able to select what virtual environment an organization uses
        - [ ] Confirm this is the virtual environment that an inventory update runs in that populates the inventory in this organization.
        - [ ] Confirm that changing the venv at the org level also changes what venv the inventory update runs in.
     - [ ] GCE
-       - [ ] Confirm plugin is used in virtual environments with ansible >= X.X
-       - [ ] Confirm that script is used in venvs with ansible < X.X
-       - [ ] Confirm that the inventory update creates a usable inventory
+       - [ ] Confirm plugin is used in virtual environments with ansible >= 2.6
+       - [ ] Confirm that script is used in venvs with ansible < 2.6
+       - [ ] Confirm that the inventory is populated with expected hosts
+       - [ ] Confirm that the inventory update creates a usable inventory (manual because we need to know we connect to machine)
+           * Ansible plugins should be tested by ansible core, but we need to confirm we are not mucking with output
+       - [ ] stretch goal -- spin up instance in GCE that we know we can log into and add test to automation that runs ping against instance from plugin generated inventory
 			 - [ ] Determine and document if the plugin output is the same, a superset, or different from the script output
     - [ ] Azure
        - [ ] Confirm plugin is used in virtual environments with ansible >= X.X
        - [ ] Confirm that script is used in venvs with ansible < X.X
-       - [ ] Confirm that the inventory update creates a usable inventory
+       - [ ] Confirm that the inventory is populated with expected hosts
+       - [ ] Confirm that the inventory update creates a usable inventory (manual because we need to know we connect to machine)
+           * Ansible plugins should be tested by ansible core, but we need to confirm we are not mucking with output
+       - [ ] stretch goal -- spin up instance in Azure that we know we can log into and add test to automation that runs ping against instance from plugin generated inventory
 			 - [ ] Determine and document if the plugin output is the same, a superset, or different from the script output
+          * Make custom venvs for supported versions of python, install ansible in there
+          * Walk over each version and run the update, compare results
+          * Document and notable differences and pass on to concerned citizens
     - [ ] EC2
        - [ ] Confirm plugin is used in virtual environments with ansible >= X.X
        - [ ] Confirm that script is used in venvs with ansible < X.X
-       - [ ] Confirm that the inventory update creates a usable inventory
+       - [ ] Confirm that the inventory update creates a usable inventory (manual because we need to know we connect to machine)
+           * Ansible plugins should be tested by ansible core, but we need to confirm we are not mucking with output
+       - [ ] stretch goal -- spin up instance in EC2 that we know we can log into and add test to automation that runs ping against instance from plugin generated inventory
 			 - [ ] Determine and document if the plugin output is the same, a superset, or different from the script output
     - [ ] Tower
        - [ ] Confirm plugin is used in virtual environments with ansible >= X.X
        - [ ] Confirm that script is used in venvs with ansible < X.X
-       - [ ] Confirm that the inventory update creates a usable inventory
+       - [ ] Confirm that the inventory update creates a usable inventory (manual because we need to know we connect to machine)
+           * Ansible plugins should be tested by ansible core, but we need to confirm we are not mucking with output
+       - [ ] stretch goal -- spin up instance somewhere that we know we can log into and add test to automation that runs ping against instance from plugin generated inventory
 			 - [ ] Determine and document if the plugin output is the same, a superset, or different from the script output
     - [ ] Openstack
        - [ ] Confirm plugin is used in virtual environments with ansible >= X.X
        - [ ] Confirm that script is used in venvs with ansible < X.X
-       - [ ] Confirm that the inventory update creates a usable inventory
+       - [ ] Confirm that the inventory update creates a usable inventory (manual because we need to know we connect to machine)
+           * Ansible plugins should be tested by ansible core, but we need to confirm we are not mucking with output
+       - [ ] stretch goal -- spin up instance in the OpenStack that we know we can log into and add test to automation that runs ping against instance from plugin generated inventory
 			 - [ ] Determine and document if the plugin output is the same, a superset, or different from the script output
     - [ ] VMWare
        - [ ] Confirm plugin is used in virtual environments with ansible >= X.X
        - [ ] Confirm that script is used in venvs with ansible < X.X
-       - [ ] Confirm that the inventory update creates a usable inventory
+       - [ ] Confirm that the inventory update creates a usable inventory (manual because we need to know we connect to machine)
+           * Ansible plugins should be tested by ansible core, but we need to confirm we are not mucking with output
+       - [ ] stretch goal -- spin up instance in the provider that we know we can log into and add test to automation that runs ping against instance from plugin generated inventory
 			 - [ ] Determine and document if the plugin output is the same, a superset, or different from the script output
     - [ ] Sat6/Foreman
        - [ ] Confirm plugin is used in virtual environments with ansible >= X.X
        - [ ] Confirm that script is used in venvs with ansible < X.X
-       - [ ] Confirm that the inventory update creates a usable inventory
+       - [ ] Confirm that the inventory update creates a usable inventory (manual because we need to know we connect to machine)
+           * Ansible plugins should be tested by ansible core, but we need to confirm we are not mucking with output
+       - [ ] stretch goal -- spin up instance in the provider that we know we can log into and add test to automation that runs ping against instance from plugin generated inventory
 			 - [ ] Determine and document if the plugin output is the same, a superset, or different from the script output
     - [ ] RHV
        - [ ] Confirm plugin is used in virtual environments with ansible >= X.X
        - [ ] Confirm that script is used in venvs with ansible < X.X
-       - [ ] Confirm that the inventory update creates a usable inventory
+       - [ ] Confirm that the inventory update creates a usable inventory (manual because we need to know we connect to machine)
+           * Ansible plugins should be tested by ansible core, but we need to confirm we are not mucking with output
+       - [ ] stretch goal -- spin up instance in the provider that we know we can log into and add test to automation that runs ping against instance from plugin generated inventory
 			 - [ ] Determine and document if the plugin output is the same, a superset, or different from the script output
 
 * [ ] UI
-		- [ ] Information is available that notifies user that the org level venv will be used for inventory updates.
+		- [ ] Information is available that notifies user that the org level venv will be used for inventory updates. ( see https://github.com/ansible/awx/issues/3059 and https://github.com/ansible/tower/issues/2575 )
     - [ ] Regression testsing (should be no user experience change in UI)
 
 
 ### Items that should be covered in awx unit tests
 
 	- [ ] Inventory updates should use specified credential
+  - [ ] Documented variables that can be passed to inventory update are munged correctly ( see https://docs.ansible.com/ansible-tower/latest/html/userguide/inventories.html#credential-sources )
 
 ### Punting to future releases
 * Openshift (plugin needs work to allow secure authentication)
