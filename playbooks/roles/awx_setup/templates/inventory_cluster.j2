@@ -39,7 +39,7 @@ pg_username="{{ hostvars['localhost']['tower_db']['pg_username'] }}"
 pg_password="{{ hostvars['localhost']['tower_db']['pg_password'] }}"
 pg_hashed_password="md5{{ (hostvars['localhost']['tower_db']['pg_password'] + "awx")|hash("md5")  }}"
 {% else %}
-{% if awx_ipv6_deployment %}
+{% if awx_ipv6_deployment | default(false) %}
 pg_host="{{ hostvars[groups['database'][0]].ansible_default_ipv6.address }}"
 {% else %}
 pg_host="{{ hostvars[groups['database'][0]].ansible_default_ipv4.address }}"

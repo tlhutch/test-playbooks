@@ -28,7 +28,7 @@ pg_hashed_password="md5{{ (hostvars['localhost']['tower_db']['pg_password'] + "a
 {% if 'database' in groups %}
 pg_host="{{ groups['database'][0] }}"
 pg_port="{{ pg_port|default(5432) }}"
-{% elif awx_ipv6_deployment %}
+{% elif awx_ipv6_deployment | default(false) %}
 pg_host="::1"
 pg_port="{{ pg_port | default(5432) }}"
 {% endif %}
