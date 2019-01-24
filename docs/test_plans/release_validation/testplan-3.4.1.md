@@ -28,10 +28,9 @@ Custom virtual environments may also have 2.3 to 2.5.
 Install:
 
   * [x] [Standalone](http://jenkins.ansible.eng.rdu2.redhat.com/job/Test_Tower_Install/1301)
-  * [ ] [Standalone Bundle]
+  * [x] [Standalone Bundle](http://jenkins.ansible.eng.rdu2.redhat.com/view/Tower/job/Test_Tower_Bundle_Install/1784/)
   * [x] [Traditional Cluster with isolated nodes](http://jenkins.ansible.eng.rdu2.redhat.com/job/Test_Tower_Install/1302/parameters/)
-  * [ ] [Traditional Cluster Bundle with isolated nodes]
-  * [ ] [OpenShift Cluster]
+  * [x] [OpenShift Cluster](http://jenkins.ansible.eng.rdu2.redhat.com/view/Tower/job/Test_Tower_OpenShift_Deploy/521/)
 
 
 Upgrade:
@@ -43,15 +42,8 @@ Regression verifications:
 
   * [x] [API regression - Standalone](http://jenkins.ansible.eng.rdu2.redhat.com/job/Test_Tower_Integration_Plain/261)_
   * [x] [API regression - Traditional Cluster](http://jenkins.ansible.eng.rdu2.redhat.com/view/Tower/job/Test_Tower_Integration_Cluster_Plain/58/)
-  * [ ] [API regression - OpenShift Cluster]
   * [x] [E2E against Standalone](http://jenkins.ansible.eng.rdu2.redhat.com/view/Tower/job/Test_Tower_E2E/1331/)
 
  Additional Manual Verification:
 
   * [x] Configure users with github auth with 3.3.2, upgrade to 3.4.1, verify all users can authenticate
-
-Artifacts:
-
-  * [ ] [AMI]
-  * [ ] [Vagrant image]
-  * [ ] [Documentation]
