@@ -31,15 +31,19 @@ admin_password='{{ admin_password }}'
 {% endif %}
 
 {# Determine if using a remote postgres instance #}
-{% if 'tower_db' in hostvars['127.0.0.1'] %}
-pg_host="{{ hostvars['127.0.0.1']['tower_db']['pg_host'] }}"
-pg_port="{{ hostvars['127.0.0.1']['tower_db']['pg_port'] }}"
-pg_database="{{ hostvars['127.0.0.1']['tower_db']['pg_database'] }}"
-pg_username="{{ hostvars['127.0.0.1']['tower_db']['pg_username'] }}"
-pg_password="{{ hostvars['127.0.0.1']['tower_db']['pg_password'] }}"
-pg_hashed_password="md5{{ (hostvars['127.0.0.1']['tower_db']['pg_password'] + "awx")|hash("md5")  }}"
+{% if 'tower_db' in hostvars['localhost'] %}
+pg_host="{{ hostvars['localhost']['tower_db']['pg_host'] }}"
+pg_port="{{ hostvars['localhost']['tower_db']['pg_port'] }}"
+pg_database="{{ hostvars['localhost']['tower_db']['pg_database'] }}"
+pg_username="{{ hostvars['localhost']['tower_db']['pg_username'] }}"
+pg_password="{{ hostvars['localhost']['tower_db']['pg_password'] }}"
+pg_hashed_password="md5{{ (hostvars['localhost']['tower_db']['pg_password'] + "awx")|hash("md5")  }}"
+{% else %}
+{% if awx_ipv6_deployment %}
+pg_host="{{ hostvars[groups['database'][0]].ansible_default_ipv6.address }}"
 {% else %}
 pg_host="{{ hostvars[groups['database'][0]].ansible_default_ipv4.address }}"
+{% endif %}
 pg_port="{{ pg_port | default('5432') }}"
 pg_database="{{ pg_database }}"
 pg_username="{{ pg_username }}"
