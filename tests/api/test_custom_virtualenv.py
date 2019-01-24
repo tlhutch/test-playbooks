@@ -86,9 +86,16 @@ class TestCustomVirtualenv(APITest):
                 for path in valid_venvs:
                     resource.custom_virtualenv = path
 
-    def test_run_job_using_venv_with_required_packages(self, v2, factories, create_venv, venv_path):
+    @pytest.mark.parametrize('python_interpreter', [None, 'python3'])
+    def test_run_job_using_venv_with_required_packages(self, v2, factories, create_venv, venv_path, python_interpreter):
         folder_name = random_title(non_ascii=False)
-        with create_venv(folder_name):
+        if python_interpreter:
+            folder_name.rstrip('/')
+            folder_name += '_' + python_interpreter
+        packages = 'python-memcached psutil'
+        if python_interpreter == 'python3':
+            packages += ' ansible'
+        with create_venv(folder_name, packages=packages, use_python=python_interpreter):
             poll_until(lambda: venv_path(folder_name) in v2.config.get().custom_virtualenvs, interval=1, timeout=15)
             jt = factories.v2_job_template()
             jt.ds.inventory.add_host()
