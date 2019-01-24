@@ -193,7 +193,29 @@ class TestTowerServices(APITest):
         # complete. This is to give postgres enough time to be shut down and
         # restarted.
         job.wait_until_status(['error', 'failed'], since_job_created=False, timeout=190)
-        assert job.job_explanation == 'Task was marked as running in Tower but was not present in the job queue, so it has been marked as failed.'
+
+        # behavior here is _not_ deterministic; when the database has
+        # a prolonged outage, a job _could_ land in _either_ failed state or
+        # error state, depending on where it is in execution at the time of the
+        # DB outage
+        #
+        # For example, if the database goes down while we're still running
+        # RunJob.run(), we might encounter an exception while accessing the
+        # (unavailable) database.  In this scenario, Tower has code that
+        # attempts to set Job.status = 'error' with a periodic retry loop.
+        # Depending on when the database becomes available again, _sometimes_
+        # this code path wins and sets the Job status to 'error'.
+        #
+        # Other times, before this retry loop is successful, the dispatcher
+        # wakes up - via its periodic heartbeat - and notices the dead job and
+        # marks it as status = 'failed' via reaper code - sometimes _this_ code
+        # path wins.
+        #
+        # the *main* thing we want to verify is that when the database goes
+        # down, the job enters _some_ form of failure state, and doesn't
+        # get stuck in a perpetual running state
+        if job.get().status == 'failed':
+            assert job.job_explanation == 'Task was marked as running in Tower but was not present in the job queue, so it has been marked as failed.'
 
         # Test that we can create new job templates and run them
         new_jt = factories.v2_job_template(playbook='sleep.yml',
