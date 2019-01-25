@@ -20,7 +20,11 @@
 {% if 'database' in groups %}
 [database]
 {% for host in groups['database'] %}
+{% if awx_ipv6_deployment | default(false) %}
+{{ hostvars[host].ansible_default_ipv6.address }} ansible_user={{ hostvars[host]['ansible_user'] }} ansible_ssh_private_key_file=~/.ssh/cluster_key
+{% else %}
 {{ hostvars[host].ansible_default_ipv4.address }} ansible_user={{ hostvars[host]['ansible_user'] }} ansible_ssh_private_key_file=~/.ssh/cluster_key
+{% endif %}
 {% endfor %}
 {% endif %}
 
