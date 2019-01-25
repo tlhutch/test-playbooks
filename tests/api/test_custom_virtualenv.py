@@ -124,6 +124,8 @@ class TestCustomVirtualenv(APITest):
             assert iu.custom_virtualenv.rstrip('/') == venv_path(folder_name).rstrip('/')
             assert iu.status == 'failed'
             output = iu.result_stdout
+            if not isinstance(output, type(u'')):
+                output = output.decode('utf-8')
             assert (
                 'No setting was provided for required configuration plugin_type: '
                 'inventory plugin: linode setting: access_token' in output.replace('\n', ' ')  # Can't trust the line breaks
