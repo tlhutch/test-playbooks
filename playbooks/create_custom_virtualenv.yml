@@ -2,6 +2,7 @@
   vars:
     venv_base: /var/lib/awx/venv
     venv_folder_name: custom-venv
+    remote_python: python
   tasks:
     - block:
         - name: Install virtualenv (EL-*)
@@ -23,7 +24,7 @@
           when: ansible_pkg_mgr == 'apt' and ansible_distribution_major_version != '14'
 
         - name: Create custom virtualenv
-          command: "virtualenv -p python --system-site-packages {{ venv_base }}/{{ venv_folder_name }}"
+          command: "virtualenv -p {{ remote_python }} --system-site-packages {{ venv_base }}/{{ venv_folder_name }}"
 
         - name: Print packages to install
           debug:

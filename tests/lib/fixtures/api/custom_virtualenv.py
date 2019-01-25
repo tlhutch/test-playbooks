@@ -2,6 +2,7 @@ from contextlib import contextmanager
 import subprocess
 
 from towerkit.utils import random_title
+from towerkit import config
 import pytest
 
 
@@ -29,7 +30,7 @@ def create_venv(request, venv_path, is_docker):
     inv_path = request.config.getoption('--ansible-inventory')
 
     @contextmanager
-    def _create_venv(folder_name=None, packages='python-memcached psutil', cluster=False):
+    def _create_venv(folder_name=None, packages='python-memcached psutil', cluster=False, use_python=None):
         if not folder_name:
             folder_name = random_title(non_ascii=False)
         if cluster:
@@ -46,23 +47,28 @@ def create_venv(request, venv_path, is_docker):
                 # AWX user not allowed to install software in containers
                 extra_vars['ansible_user'] = 0
                 extra_vars['venv_base'] = '/venv'
+            if use_python is not None:
+                extra_vars['remote_python'] = use_python
             cmd = (u"""ansible-playbook -i {} -l {} {} playbooks/create_custom_virtualenv.yml"""
                    .format(inv_path, limit, format_ev(extra_vars)))
             rc = subprocess.call(cmd, shell=True)
             assert rc == 0, "Received non-zero response code from '{}'".format(cmd)
             yield venv_path(folder_name)
         finally:
-            extra_vars = {
-                'venv_folder_name': folder_name,
-                'use_become': not is_docker,
-                'remove_virtualenv': 'true'
-            }
-            if is_docker:
-                extra_vars['ansible_user'] = 0
-                extra_vars['venv_base'] = '/venv'
-            cmd = (u"ansible-playbook -i {} -l {} {} "
-                   "playbooks/create_custom_virtualenv.yml"
-                   .format(inv_path, limit, format_ev(extra_vars)))
-            rc = subprocess.call(cmd, shell=True)
-            assert rc == 0, "Received non-zero response code from '{}'".format(cmd)
+            # If user is running with teardown prevention on, then leave the
+            # virtual environments in-tact.
+            if not config.prevent_teardown:
+                extra_vars = {
+                    'venv_folder_name': folder_name,
+                    'use_become': not is_docker,
+                    'remove_virtualenv': 'true'
+                }
+                if is_docker:
+                    extra_vars['ansible_user'] = 0
+                    extra_vars['venv_base'] = '/venv'
+                cmd = (u"ansible-playbook -i {} -l {} {} "
+                       "playbooks/create_custom_virtualenv.yml"
+                       .format(inv_path, limit, format_ev(extra_vars)))
+                rc = subprocess.call(cmd, shell=True)
+                assert rc == 0, "Received non-zero response code from '{}'".format(cmd)
     return _create_venv
