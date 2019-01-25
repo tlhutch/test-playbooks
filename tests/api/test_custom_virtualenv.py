@@ -87,7 +87,8 @@ class TestCustomVirtualenv(APITest):
                     resource.custom_virtualenv = path
 
     @pytest.mark.parametrize('python_interpreter', [None, 'python3'])
-    def test_run_job_using_venv_with_required_packages(self, v2, factories, create_venv, venv_path, python_interpreter):
+    def test_run_job_using_venv_with_required_packages(self, v2, factories, create_venv,
+                                                       venv_path, python_interpreter, ansible_adhoc):
         folder_name = random_title(non_ascii=False)
         if python_interpreter:
             folder_name.rstrip('/')
@@ -95,6 +96,10 @@ class TestCustomVirtualenv(APITest):
         packages = 'python-memcached psutil'
         if python_interpreter == 'python3':
             packages += ' ansible'
+            contacted = ansible_adhoc()['tower[0]'].command('which python3')
+            for host, result in contacted.items():
+                if result['rc'] != 0:
+                    pytest.skip('python3 is not installed on host.')
         with create_venv(folder_name, packages=packages, use_python=python_interpreter):
             poll_until(lambda: venv_path(folder_name) in v2.config.get().custom_virtualenvs, interval=1, timeout=15)
             jt = factories.v2_job_template()

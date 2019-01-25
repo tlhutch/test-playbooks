@@ -4,32 +4,6 @@
     venv_folder_name: custom-venv
     remote_python: python
   tasks:
-    - name: Check if python3 is installed
-      command: "which python3"
-      register: which_python3
-      ignore_errors: yes
-      when:
-        - not remove_virtualenv|default(false)
-        - remote_python == 'python3'
-
-    - block:
-        - name: Install python3 (EL-*)
-          yum:
-            name: python36
-            state: present
-          when: ansible_pkg_mgr == 'yum'
-
-        - name: Install virtualenv (Ubuntu)
-          apt:
-            name: python3.6
-            state: present
-          when: ansible_pkg_mgr == 'apt'
-      become: "{{ use_become | default('true')}}"
-      when:
-        - not remove_virtualenv|default(false)
-        - remote_python == 'python3'
-        - which_python3.rc
-
     - block:
         - name: Install virtualenv (EL-*)
           yum:
