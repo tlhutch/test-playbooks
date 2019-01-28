@@ -9,6 +9,14 @@
   roles:
     - role: auth_keys
 
+- name: Configure /etc/hosts to have the proper ipv6 entries
+  hosts: tower
+  tasks:
+    - name: Include hosts role
+      include_role:
+        name: hosts
+      when: awx_ipv6_deployment | default(false)
+
 - name: 'Dynamically create host groups'
   hosts: 'tower'
   tasks:

@@ -1,0 +1,6 @@
+---
+- name: Generate the /etc/hosts file
+  become: true
+  template:
+    src: hosts.j2
+    dest: /etc/hosts
