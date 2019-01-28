@@ -37,6 +37,7 @@ class TestJobTemplateCredentials(APITest):
         ).format(ct.name)
 
 
+@pytest.mark.ansible(host_pattern='tower[0]')  # assuming all nodes have same ssh installed
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestJobTemplateLaunchCredentials(APITest):
 

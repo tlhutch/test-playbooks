@@ -14,8 +14,11 @@ def ad_hoc_command(request, factories, host, ssh_credential):
 
 
 @pytest.fixture(scope="function")
-def ad_hoc_with_status_pending(pause_awx_task_system, ad_hoc_command):
+def ad_hoc_with_status_pending(ad_hoc_command, factories):
     """Wait for ad_hoc_command to move from new to queued and return the job."""
+    ad_hoc_command.ds.inventory.add_instance_group(
+        factories.instance_group()  # instance group is empty, so ad hoc command stays pending
+    )
     return ad_hoc_command.wait_until_started()
 
 

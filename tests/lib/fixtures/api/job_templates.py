@@ -171,7 +171,7 @@ def job_template_ask_variables_on_launch(job_template_ping):
 
 @pytest.fixture(scope="function")
 def job_template_with_ssh_connection(factories, organization, project, ssh_credential_with_ssh_key_data_and_sudo,
-                                     host_with_default_connection, ansible_facts):
+                                     host_with_default_connection):
     """job_template with a machine credential that uses 'ssh', instead of a 'local' connection"""
     return factories.job_template(description="job_template without credentials - %s" % fauxfactory.gen_utf8(),
                                   organization=organization, project=project,

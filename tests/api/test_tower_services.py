@@ -25,6 +25,7 @@ class TestTowerServices(APITest):
         ("restart", True),
         ("status", True)
     ], ids=['ansible-tower-service start', 'ansible-tower-service stop', 'ansible-tower-service restart', 'ansible-tower-service status'])
+    @pytest.mark.ansible(host_pattern='tower[0]')  # target 1 normal instance
     def test_tower_status_on_el7(self, ansible_runner, ansible_os_family, restart_tower_on_teardown, command, active):
         """Executes ansible-tower-service commands and checks process statuses.
         Note: we check process output with systemctl on EL7 systems and with
