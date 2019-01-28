@@ -51,8 +51,14 @@
     dest: /tmp/setup/vars.yml
   when: not is_awx_installed.stat.exists or awx_upgrade
 
+- name: create vars-static.yml file
+  copy:
+    src: vars-static.yml
+    dest: /tmp/setup/vars-static.yml
+  when: not is_awx_installed.stat.exists or awx_upgrade
+
 - name: setup.sh
-  command: ./setup.sh -e @vars.yml
+  command: ./setup.sh -e @vars.yml -e @vars-static.yml
   args:
       chdir: /tmp/setup
       # creates: /etc/tower/awx.cert
