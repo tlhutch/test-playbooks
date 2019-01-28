@@ -3,6 +3,6 @@ ignore = E501,E12,E261,F403,W503,W504,E722
 max_complexity = 20
 exclude = playbooks,*.egg*,.tox
 
-[pep8]
+[pycodestyle]
 ignore = E501,E12,E261,W503,W504,E722
 exclude=playbooks,*.egg*,.tox
