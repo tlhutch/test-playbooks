@@ -55,11 +55,12 @@ New metrics and analytics endpoints will be added to Tower for monitoring by Pro
       * [ ] Can recover from this state
     * [ ] RBAC
     * [ ] This feature can be disabled
+    * [ ] Data can be consumed by insights
   * [ ] Metrics
+    * [ ] Prometheus-like Metrics Support
     * [ ] Counts are incremented correctly
     * [ ] Custom Modules are reported
     * [ ] Metrics are readable by
       * [ ] Prometheus
-      * [ ] ???
     * [ ] RBAC
     * [ ] This feature can be disabled

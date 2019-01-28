@@ -19,4 +19,4 @@ This is helpful in multitenant situations, preventing a given org from using mor
   * [ ] This feature can be selectively enabled
   * [ ] RBAC
     * [ ] Only Super Users can change these settings
-  * [ ] If the limit is set below the current host count for an org, ???
+  * [ ] If the limit is set below the current host count for an org, jobs can't launch until rectified
