@@ -20,3 +20,4 @@ This is helpful in multitenant situations, preventing a given org from using mor
   * [ ] RBAC
     * [ ] Only Super Users can change these settings
   * [ ] If the limit is set below the current host count for an org, jobs can't launch until rectified
+  * [ ] If a dynamic inventory update would bring an org out of compliance, the update will fail in a similar way to an update that would bring Tower out of license compliance.

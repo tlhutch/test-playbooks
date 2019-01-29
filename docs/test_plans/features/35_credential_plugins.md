@@ -27,7 +27,7 @@ This will involve creating a credential to access the secret manager, and defini
   * [ ] Failure to retrieve secrets results in a descriptive error
   * [ ] SSH Keys retrieved from Secrets Manager can be used for authentication
   * [ ] Vault Passwords retrieved from Secrets Manager can decrypt a vault
-  * [ ] All Credential Types can be retrieved from a Secrets Manager
+  * [ ] All currently existing credential types can be converted to remote secrets
   * [ ] Existing Secrets can be converted to remote secrets and back
   * [ ] Secret Manager secrets can be used in a custom credential type
   * [ ] RBAC
