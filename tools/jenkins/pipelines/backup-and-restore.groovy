@@ -35,8 +35,8 @@ pipeline {
         )
         string(
             name: 'TOWERQA_BRANCH',
-            description: 'ansible/tower-qa branch to use',
-            defaultValue: 'devel'
+            description: 'ansible/tower-qa branch to use (Empty will do the right thing)',
+            defaultValue: ''
         )
         string(
             name: 'DEPLOYMENT_NAME',
@@ -84,10 +84,14 @@ Bundle?: ${params.BUNDLE}"""
         stage('Setup') {
             steps {
                 script {
-                    if (params.TOWER_VERSION == 'devel') {
-                        branch_name = 'devel'
+                    if (params.TOWERQA_BRANCH == '') {
+                        if (params.TOWER_VERSION == 'devel') {
+                            branch_name = 'devel'
+                        } else {
+                            branch_name = "release_${params.TOWER_VERSION}"
+                        }
                     } else {
-                        branch_name = "release_${params.TOWER_VERSION}"
+                        branch_name = params.TOWERQA_BRANCH
                     }
                 }
                 checkout([
