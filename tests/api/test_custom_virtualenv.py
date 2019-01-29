@@ -27,9 +27,11 @@ class TestCustomVirtualenv(APITest):
     def test_default_venv(self, v2, venv_path, is_docker):
         expect = [venv_path()]
         if is_docker:
-            # development environment ships with a python3, just to have
+            # development environment also ships with a python3 custom venv
+            # that is not necessary but to provide developers with the option to use it
             expect.append(venv_path().replace('ansible', 'ansible3'))
-        assert v2.config.get().custom_virtualenvs == expect
+        found = [str(venv_found) for venv_found in v2.config.get().custom_virtualenvs]
+        assert found.sort() == expect.sort()
 
     def test_default_venv_can_be_sourced(self, v2, factories, venv_path):
         jt = factories.v2_job_template()
@@ -327,3 +329,48 @@ class TestCustomVirtualenv(APITest):
             job = jt.launch().wait_until_completed()
             job.assert_successful()
             assert job.job_env['VIRTUAL_ENV'].rstrip('/') == venv_path(folder_name).rstrip('/')
+
+
+CUSTOM_VENVS = [
+                {
+                'name': 'python2_ansible23',
+                'packages': 'psutil python-memcached ansible==2.3',
+                'python_interpreter': 'python2'
+                },
+                {
+                'name': 'python2_ansibledevel',
+                'packages': 'psutil python-memcached git+https://github.com/ansible/ansible.git',
+                'python_interpreter': 'python2'
+                },
+                ]
+
+
+@pytest.mark.api
+@pytest.mark.destructive
+@pytest.mark.fixture_args(venvs=CUSTOM_VENVS, cluster=True)
+@pytest.mark.usefixtures(
+    'authtoken',
+    'install_enterprise_license_unlimited',
+    'shared_custom_venvs'
+    )
+@pytest.mark.requires_traditional_cluster
+@pytest.mark.mp_group('CustomVirtualenv', 'isolated_serial')
+class TestCustomVirtualenvTraditionalCluster(APITest):
+
+    def test_custom_venvs_exist(self, v2, venv_path, is_docker):
+        expected = [venv_path(env['name']) for env in CUSTOM_VENVS]
+        if is_docker:
+            # development environment also ships with a python3 custom venv
+            # that is not necessary but to provide developers with the option to use it
+            expected.append(venv_path().replace('ansible', 'ansible3'))
+        found = [str(venv_found) for venv_found in v2.config.get().custom_virtualenvs]
+        for env in expected:
+            assert env in found
+
+    @pytest.mark.parametrize('venv_info', CUSTOM_VENVS, ids=[env['name'] for env in CUSTOM_VENVS])
+    def test_default_venv_can_be_sourced(self, v2, factories, venv_path, venv_info):
+        jt = factories.v2_job_template()
+        jt.custom_virtualenv = venv_path(venv_info['name'])
+        job = jt.launch().wait_until_completed()
+        job.assert_successful()
+        assert job.job_env['VIRTUAL_ENV'].rstrip('/') == job.custom_virtualenv.rstrip('/') == venv_path(venv_info['name']).rstrip('/')

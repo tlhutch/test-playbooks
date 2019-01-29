@@ -94,7 +94,7 @@ Written by [Jim Ladd](mailto:jladd@redhat.com) (Github: jladdjr) Oct 15, 2018.
     * Remediation: Archive results for each release and link to them from the release plan.
 * _If I want to trigger a test of Tower version X.Y.Z with Ansible Version X.Y.Z on OS X version Z, how do I do that?_
     * Use the [YOLO](http://jenkins.ansible.eng.rdu2.redhat.com/job/Test_Tower_Yolo_Express/) job
-    * As of writing, does not let you choose ansible version -- see [RFE for anisble version selection](https://github.com/ansible/tower-qa/issues/2331)
+    * As of writing, does not let you choose ansible version -- see [RFE for ansible version selection](https://github.com/ansible/tower-qa/issues/2331)
     * You can specify the platform and branch of TowerQA and TowerKit to use as well as the branch of Tower
 * _`Test_Tower_Integration` doesn’t run full integration on all Ansible versions, right?_
     * No, Full integration is run with latest ansible version on each OS. So, right now, ansible stable-2.7 on each OS ( a whole column of matrix ).
