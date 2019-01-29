@@ -44,6 +44,7 @@ stage ('Prepare Build') {
     ).trim()
     
     NIGHTLY_REPO_DIR = "${params.TOWER_BRANCH}-${commitHash}"
+
   }
 }
 
@@ -117,7 +118,8 @@ stage('Test Tower Integration') {
           string(name: 'TOWERQA_GIT_BRANCH', value: "origin/${TOWER_QA_BRANCH_NAME}"),
           string(name: 'TOWERKIT_GIT_BRANCH', value: "${TOWERKIT_BRANCH_NAME}"),
           string(name: 'PLATFORM', value: "${params.PLATFORM}"),
-          string(name: 'ANSIBLE_NIGHTLY_BRANCH', value: "${params.ANSIBLE_NIGHTLY_BRANCH}")
+          string(name: 'ANSIBLE_NIGHTLY_BRANCH', value: "${params.ANSIBLE_NIGHTLY_BRANCH}"),
+          string(name: 'PYTEST_ARGS', value: PARALLELIZE)
         ]
       )
     } else {
