@@ -19,8 +19,11 @@ function retrieve_boolean_value {
 
 function retrieve_credential_file {
 
-    inventory_host=$1
-    is_fips_enabled=$(ssh -ostricthostkeychecking=no ec2-user@"${inventory_host}" cat /proc/sys/crypto/fips_enabled)
+    inventory=$1
+    tower_host=$(retrieve_tower_server_from_inventory "${INVENTORY}")
+    tower_user=$(retrieve_system_user_from_inventory "${INVENTORY}")
+
+    is_fips_enabled=$(ssh -ostricthostkeychecking=no "${tower_user}"@"${tower_host}" cat /proc/sys/crypto/fips_enabled)
     if [[ "${is_fips_enabled}" == 1 ]]; then
         echo 'config/credentials-pkcs8.yml'
     else
@@ -141,6 +144,16 @@ function retrieve_tower_server_from_inventory {
         grep -A 1 cluster_installer "${inventory}" | tail -n 1 | cut -d' ' -f 1
     else
         grep -A 1 tower "${inventory}" | tail -n 1 | cut -d' ' -f 1
+    fi
+}
+
+function retrieve_system_user_from_inventory {
+
+    inventory=$1
+    if grep cluster_installer "${inventory}" > /dev/null; then
+        grep -A 1 cluster_installer "${inventory}" | grep -o 'ansible_user=\S*' | cut -d= -f2
+    else
+        grep -A 1 tower "${inventory}" | grep -o 'ansible_user=\S*' | cut -d= -f2
     fi
 }
 
