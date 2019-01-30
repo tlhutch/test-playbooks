@@ -145,14 +145,16 @@ Bundle?: ${params.BUNDLE}"""
 
         stage('Clean cache') {
             steps {
-                script {
-                    if (params.SCENARIO == 'standalone') {
-                        playbook = 'playbooks/inventory.log'
-                    } else {
-                        playbook = 'playbooks/inventory.cluster'
+                sshagent(credentials : ['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
+                    script {
+                        if (params.SCENARIO == 'standalone') {
+                            playbook = 'playbooks/inventory.log'
+                        } else {
+                            playbook = 'playbooks/inventory.cluster'
+                        }
                     }
-                }
-                sh "ansible cloud -i ${playbook} -m command -a 'yum --enablerepo=ansible-tower,ansible-tower-dependencies clean all' -e ansible_become=true"
+                    sh "ansible cloud -i ${playbook} -m command -a 'yum --enablerepo=ansible-tower,ansible-tower-dependencies clean all' -e ansible_become=true"
+               }
             }
         }
 
