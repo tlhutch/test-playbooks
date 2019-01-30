@@ -36,8 +36,6 @@ ansible-playbook \
 -e ec2_key_name=jenkins \
 -e ec2_public_key="{{ lookup('file', '~/.ssh/id_rsa.pub') }}" \
 -e delete_on_start=${DELETE_ON_START} \
--e create_ec2_wait_upon_creation=true \
--e terminate_ec2_wait_upon_creation=false \
 -e awx_upgrade=false \
 -e minimum_var_space=0 \
 -e instance_name_prefix=${INSTANCE_NAME_PREFIX} \
