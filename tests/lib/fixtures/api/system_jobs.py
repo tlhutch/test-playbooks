@@ -20,7 +20,7 @@ def system_jobs(cleanup_jobs, cleanup_activitystream):
 @pytest.fixture(scope="function")
 def system_jobs_with_status_completed(cleanup_jobs_with_status_completed,
                                       cleanup_activitystream_with_status_completed):
-        return [cleanup_jobs_with_status_completed, cleanup_activitystream_with_status_completed]
+    return [cleanup_jobs_with_status_completed, cleanup_activitystream_with_status_completed]
 
 
 @pytest.fixture(scope="function")
