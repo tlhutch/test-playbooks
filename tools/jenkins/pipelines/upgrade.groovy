@@ -143,6 +143,19 @@ Bundle?: ${params.BUNDLE}"""
             }
         }
 
+        stage('Clean cache') {
+            script {
+                if (params.SCENARIO == 'standalone') {
+                    playbook = 'playbooks/inventory.log'
+                } else {
+                    playbook = 'playbooks/inventory.cluster'
+                }
+            }
+            steps {
+                sh "ansible cloud -i ${playbook} -m command -a 'yum --enablerepo=ansible-tower,ansible-tower-dependencies clean all' -e ansible_become=true"
+            }
+        }
+
         stage('Upgrade') {
             steps {
                 withCredentials([string(credentialsId: 'aws_access_key', variable: 'AWS_ACCESS_KEY'),
