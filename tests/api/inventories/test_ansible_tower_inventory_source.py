@@ -75,6 +75,7 @@ class TestAnsibleTowerInventorySource(APITest):
         assert updated_license_info.instance_count == instance_count
         assert updated_license_info.free_instances == free_instances
 
+    @pytest.mark.flaky(reruns=5, reruns_delay=1)
     def test_tower_inv_src_filter_by_inventory_name(self, factories, tower_cred):
         custom_inv_src = factories.v2_inventory_source()
         custom_inv_src.update().wait_until_completed().assert_successful()

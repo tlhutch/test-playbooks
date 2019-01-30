@@ -203,7 +203,7 @@ class Test_Job_Events(APITest):
     def test_async_tasks(self, factories, ansible_version_cmp):
         """Runs a single play with async tasks and confirms desired events at related endpoint"""
         credential = factories.credential(password='passphrase')
-        inventory = factories.inventory()
+        inventory = factories.v2_inventory()
         for _ in range(5):
             factories.host(inventory=inventory)
         jt = factories.job_template(credential=credential,
@@ -257,7 +257,7 @@ class Test_Job_Events(APITest):
     def test_free_strategy(self, factories, ansible_version_cmp):
         """Runs a single play with free strategy and confirms desired events at related endpoint"""
         credential = factories.credential(password='passphrase')
-        inventory = factories.inventory()
+        inventory = factories.v2_inventory()
         for _ in range(5):
             factories.host(inventory=inventory)
         jt = factories.job_template(credential=credential,
@@ -299,7 +299,7 @@ class Test_Job_Events(APITest):
 
         number_of_hosts = 2
         credential = factories.credential(password='passphrase')
-        inventory = factories.inventory()
+        inventory = factories.v2_inventory()
         for _ in range(number_of_hosts):
             factories.host(inventory=inventory)
         jt = factories.job_template(credential=credential,

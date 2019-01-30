@@ -6,6 +6,11 @@ import fauxfactory
 import pytest
 
 
+@pytest.fixture(scope='class')
+def is_traditional_cluster_class(v2_class):
+    return v2_class.ping.get()['ha'] and not is_docker
+
+
 @pytest.fixture
 def subrequest(request):
     # https://github.com/pytest-dev/pytest/issues/2495

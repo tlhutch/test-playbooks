@@ -11,6 +11,24 @@
             state: present
           when: ansible_pkg_mgr == 'yum'
 
+        - name: Install gcc (required by psutil) (EL-*)
+          yum:
+            name: gcc
+            state: present
+          when: ansible_pkg_mgr == 'yum'
+
+        - name: Install epel to provide python3-devel if on rhel7 (required for some packages installed by pip)
+          yum:
+            name: https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+            state: present
+          when: ansible_pkg_mgr == 'yum' and ansible_distribution_major_version == '7' and remote_python == 'python36'
+
+        - name: Install python36 and python36-devel if on rhel7 and want python3 (from epel so we can get matching devel packages)
+          yum:
+            name: ['python36', 'python36-devel']
+            state: present
+          when: ansible_pkg_mgr == 'yum' and ansible_distribution_major_version == '7' and remote_python == 'python36'
+
         - name: Install virtualenv (Ubuntu-14)
           apt:
             name: python-virtualenv
@@ -23,24 +41,29 @@
             state: present
           when: ansible_pkg_mgr == 'apt' and ansible_distribution_major_version != '14'
 
+        - name: Install python3.6-dev for venv deps (Ubuntu)
+          apt:
+            name: python3.6-dev
+            state: present
+          when: ansible_pkg_mgr == 'apt' and remote_python == 'python36'
+
         - name: Check if the virtualenv already exists
           stat:
             path: "{{ venv_base }}/{{ venv_folder_name }}"
           register: existing_folder
 
-        - name: Create custom virtualenv
+        - name: Create custom virtualenv (Ubuntu python3.6)
+          command: "virtualenv -p python3.6 --system-site-packages {{ venv_base }}/{{ venv_folder_name }}"
+          when: not existing_folder.stat.exists and (ansible_pkg_mgr == 'apt' and remote_python == 'python36')
+
+        - name: Create custom virtualenv (All other distros)
           command: "virtualenv -p {{ remote_python }} --system-site-packages {{ venv_base }}/{{ venv_folder_name }}"
-          when: not existing_folder.stat.exists
+          when: not existing_folder.stat.exists and not (ansible_pkg_mgr == 'apt' and remote_python == 'python36')
 
         - name: Print packages to install
           debug:
             msg: "Packages to install in venv: {{ venv_packages|default('psutil (default packages)') }}"
 
-        - name: Install gcc (required by psutil) (EL-*)
-          yum:
-            name: gcc
-            state: present
-          when: ansible_pkg_mgr == 'yum'
 
         - name: Pip install latest setuptools (Ubuntu)
           command: "{{ venv_base }}/{{ venv_folder_name }}/bin/pip install -I -U setuptools"
@@ -70,3 +93,17 @@
         state: absent
       become: "{{ use_become | default('true') | bool}}"
       when: remove_virtualenv | default(false) | bool
+
+    - name: Remove epel if we put it in place
+      yum:
+        name: epel-release
+        state: absent
+      become: "{{ use_become | default('true') | bool}}"
+      when: (remove_virtualenv | default(false)) and (ansible_pkg_mgr == 'yum' and ansible_distribution_major_version == '7' and remote_python == 'python36')
+
+    - name: Remove python36 if we put it in place
+      yum:
+        name: ['python36-devel', 'python36']
+        state: absent
+      become: "{{ use_become | default('true') | bool}}"
+      when: (remove_virtualenv | default(false)) and (ansible_pkg_mgr == 'yum' and ansible_distribution_major_version == '7' and remote_python == 'python36')

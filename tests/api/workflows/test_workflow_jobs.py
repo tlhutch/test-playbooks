@@ -94,7 +94,7 @@ class Test_Workflow_Jobs(APITest):
         related workflow job nodes of inventory update types have correct url
         """
         group = factories.group()
-        inv_script = factories.inventory_script()
+        inv_script = factories.v2_inventory_script()
         inv_source = group.related.inventory_source.patch(source_script=inv_script.id)
         wfjt = factories.workflow_job_template()
         factories.workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=inv_source)

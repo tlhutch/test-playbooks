@@ -29,7 +29,9 @@ def _run_create_venv_playbook(folder_name=None, limit='tower', packages='psutil'
         extra_vars['venv_base'] = '/venv'
     if use_python is not None:
         extra_vars['remote_python'] = use_python
-    cmd = ("""ansible-playbook -v -i {} -l {} {} playbooks/create_custom_virtualenv.yml"""
+        if use_python == 'python3' and not docker:
+            extra_vars['remote_python'] = 'python36'
+    cmd = ("""ansible-playbook -vv -i {} -l {} {} playbooks/create_custom_virtualenv.yml"""
            .format(inv_path, limit, format_ev(extra_vars)))
     rc = subprocess.call(cmd, shell=True)
     assert rc == 0, "Received non-zero response code from '{}'".format(cmd)
@@ -45,6 +47,8 @@ def _run_teardown_venv_playbook(folder_name=None, limit='tower', use_python=None
         if docker:
             extra_vars['ansible_user'] = 0
             extra_vars['venv_base'] = '/venv'
+        if use_python == 'python3' and not docker:
+            extra_vars['remote_python'] = 'python36'
         cmd = ("ansible-playbook -i {} -l {} {} "
                "playbooks/create_custom_virtualenv.yml"
                .format(inv_path, limit, format_ev(extra_vars)))
@@ -83,7 +87,7 @@ def create_venv(request, venv_path, is_docker):
 
 
 @pytest.fixture(scope='class')
-def shared_custom_venvs(request, venv_path, is_docker):
+def shared_custom_venvs(request, venv_path, is_docker, is_traditional_cluster_class):
     """Create custom venvs to be shared by whole class and tear down after.
 
        For classes using this fixture, provide a list of dictionaries that
@@ -120,8 +124,7 @@ def shared_custom_venvs(request, venv_path, is_docker):
             See doc string of this fixture for more details on usage.
             ''')
     else:
-        cluster = fixture_args.kwargs.get('cluster', False)
-        limit = 'instance_group_ordinary_instances' if cluster else 'tower'
+        limit = 'instance_group_ordinary_instances' if is_traditional_cluster_class else 'tower'
         if is_docker:
             limit = 'tower'
         if 'venvs' not in fixture_args.kwargs.keys():

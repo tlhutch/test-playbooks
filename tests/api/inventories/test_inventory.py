@@ -19,8 +19,8 @@ class TestInventory(APITest):
     def test_inventory_names(self, factories):
         """Test that we can have inventories with the same name in different organizations."""
         name = fauxfactory.gen_alphanumeric()
-        factories.inventory(name=name)
-        factories.inventory(name=name)
+        factories.v2_inventory(name=name)
+        factories.v2_inventory(name=name)
 
     def test_host_without_group(self, host_without_group):
         """Verify that inventories/N/script includes hosts that are not a member of any group.

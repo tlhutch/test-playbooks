@@ -125,7 +125,7 @@ class Test_Workflow_Job_Templates(APITest):
     def test_workflow_workflow_node_rejected_prompts(self, factories):
         wfjt_outer = factories.workflow_job_template(
             extra_vars={'outer_var': 'foo'},  # inner WFJT does not prompt, should not use these
-            inventory=factories.inventory()
+            inventory=factories.v2_inventory()
         )
         wfjt_inner = factories.workflow_job_template(
             extra_vars={'inner_var': 'bar'}
@@ -414,7 +414,7 @@ class Test_Workflow_Job_Templates(APITest):
         'rejected'   # test that if JT does not prompt for inventory, does not take effect
     ))
     def test_launch_with_workflow_inventory(self, factories, source):
-        inventory = factories.inventory()
+        inventory = factories.v2_inventory()
         if source == 'prompt':
             wfjt = factories.workflow_job_template(ask_inventory_on_launch=True)
         else:
@@ -447,7 +447,7 @@ class Test_Workflow_Job_Templates(APITest):
             assert job.inventory == inventory.id
 
     def test_deleted_workflow_inventory_has_no_effect(self, factories):
-        inventory = factories.inventory()
+        inventory = factories.v2_inventory()
         wfjt = factories.workflow_job_template(inventory=inventory)
         assert wfjt.inventory is not None
         jt = factories.job_template(ask_inventory_on_launch=True)
@@ -477,7 +477,7 @@ class Test_Workflow_Job_Templates(APITest):
     ))
     def test_workflow_inventory_is_used_when_job_has_no_default(self, factories, source):
         inv_vars = {'amazing': 'cow', 'foo': 'bar'}
-        inventory = factories.inventory(variables=inv_vars)
+        inventory = factories.v2_inventory(variables=inv_vars)
         if source == 'prompt':
             wfjt = factories.workflow_job_template(ask_inventory_on_launch=True)
         else:
@@ -513,7 +513,7 @@ class Test_Workflow_Job_Templates(APITest):
         the workflow, this test checks that the workflow JT itself will reject
         an inventory if it is not set to prompt for inventory.
         """
-        inventory = factories.inventory()
+        inventory = factories.v2_inventory()
         # By default, WFJTs do not prompt for inventory
         wfjt = factories.workflow_job_template()
         with pytest.raises(BadRequest) as e:

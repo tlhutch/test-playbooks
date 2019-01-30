@@ -113,7 +113,7 @@ class TestActivityStream(APITest):
 
     def test_inventory_id_in_group_activity_stream(self, factories):
         """Confirms that inventory_id is included in the group summary_fields for all non-delete operations"""
-        inventory = factories.inventory()
+        inventory = factories.v2_inventory()
         group = factories.group(inventory=inventory)
         host = factories.host(inventory=inventory)
 
