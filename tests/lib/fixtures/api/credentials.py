@@ -56,7 +56,7 @@ def ssh_credential_multi_ask(request, admin_user, factories):
     if request.param not in ('sudo', 'su', 'pbrun', 'pfexec', 'dzdo'):
         raise Exception("Unsupported parameter value: %s" % request.param)
 
-    cred = factories.credential(description="machine credential with mulit-ASK password - %s" % fauxfactory.gen_utf8(),
+    cred = factories.credential(description="machine credential with multi-ASK password - %s" % fauxfactory.gen_utf8(),
                                 kind='ssh', user=admin_user, password='ASK', ssh_key_unlock='ASK',
                                 ssh_key_data=config.credentials.ssh.encrypted.ssh_key_data,
                                 become_method=request.param, become_password='ASK')
