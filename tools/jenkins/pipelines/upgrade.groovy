@@ -92,11 +92,7 @@ Bundle?: ${params.BUNDLE}"""
             steps {
                 script {
                     if (params.TOWERQA_BRANCH == '') {
-                        if (params.TOWER_VERSION == 'devel') {
-                            branch_name = 'devel'
-                        } else {
-                            branch_name = "release_${params.TOWER_VERSION}"
-                        }
+                        branch_name = "release_${params.TOWER_VERSION_TO_UPGRADE_FROM}"
                     } else {
                         branch_name = params.TOWERQA_BRANCH
                     }
@@ -143,7 +139,7 @@ Bundle?: ${params.BUNDLE}"""
             }
         }
 
-        stage('Clean cache') {
+        stage('Clean cache and newer tower-qa') {
             steps {
                 sshagent(credentials : ['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
                     script {
@@ -155,6 +151,24 @@ Bundle?: ${params.BUNDLE}"""
                     }
                     sh "if [[ ! \"${params.PLATFORM}\" =~ \"ubuntu\" ]]; then ansible cloud -i ${playbook} -m command -a 'yum --enablerepo=ansible-tower,ansible-tower-dependencies clean all' -e ansible_become=true; fi"
                }
+               script {
+                   if (params.TOWERQA_BRANCH == '') {
+                       if (params.TOWER_VERSION_TO_UPGRADE_TO == 'devel') {
+                           branch_name = 'devel'
+                       } else {
+                           branch_name = "release_${params.TOWER_VERSION_TO_UPGRADE_TO}"
+                       }
+                   } else {
+                       branch_name = params.TOWERQA_BRANCH
+                   }
+               }
+               checkout([
+                   $class: 'GitSCM',
+                   branches: [[name: "*/${branch_name}" ]],
+                   userRemoteConfigs: [
+                       [credentialsId: 'd2d4d16b-dc9a-461b-bceb-601f9515c98a', url: 'git@github.com:ansible/tower-qa.git']
+                   ]
+               ])
             }
         }
 
