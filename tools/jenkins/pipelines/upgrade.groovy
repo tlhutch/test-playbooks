@@ -153,7 +153,7 @@ Bundle?: ${params.BUNDLE}"""
                             playbook = 'playbooks/inventory.cluster'
                         }
                     }
-                    sh "ansible cloud -i ${playbook} -m command -a 'yum --enablerepo=ansible-tower,ansible-tower-dependencies clean all' -e ansible_become=true"
+                    sh "if [[ ! \"${params.PLATFORM}\" =~ \"ubuntu\" ]]; then ansible cloud -i ${playbook} -m command -a 'yum --enablerepo=ansible-tower,ansible-tower-dependencies clean all' -e ansible_become=true; fi"
                }
             }
         }

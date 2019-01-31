@@ -84,7 +84,9 @@ if [ "$LOAD_TOWER" = true ]; then
     scripts/resource_loading/load_tower.py --inventory ${LOAD_DATA_INVENTORY} ${LOADING_ARGS} | tee 02-resource-loading.log
 fi
 
-ansible cloud -i ${LOAD_DATA_INVENTORY} -m command -a 'yum --enablerepo=ansible-tower,ansible-tower-dependencies clean all' -e ansible_become=true
+if [[ ! "${PLATFORM}" =~ "ubuntu"  ]]; then
+    ansible cloud -i ${LOAD_DATA_INVENTORY} -m command -a 'yum --enablerepo=ansible-tower,ansible-tower-dependencies clean all' -e ansible_become=true
+fi
 
 cat << EOF > upgrade_vars.yml
 ---
