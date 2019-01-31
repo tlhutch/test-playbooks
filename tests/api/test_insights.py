@@ -1,4 +1,6 @@
 import os
+import base64
+import json
 
 import towerkit.exceptions as exc
 import pytest
@@ -182,3 +184,24 @@ class TestInsights(APITest):
         version_path = os.path.join(v2.config.get().project_base_dir, project.local_path, ".version")
         contacted = ansible_runner.shell('cat {0}'.format(version_path))
         assert list(contacted.values())[0]['stdout'] == project.scm_revision
+
+
+@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited', 'skip_if_not_rhel')
+class TestInsightsAnalytics(APITest):
+
+    def test_awxmanage_gather_analytics_generates_valid_tar(self, ansible_runner):
+        result = ansible_runner.shell('awx-manage gather_analytics').values()[0]
+        analytics_payload = [l for l in result['stderr_lines'] if "tar.gz" in l][0]
+        tempdir = ansible_runner.tempfile(state='directory', suffix='insights_test').values()[0]['path']
+        ansible_runner.unarchive(src=analytics_payload, dest=tempdir, remote_src=True).values()[0]
+        files = [f['path'] for f in ansible_runner.find(paths=tempdir).values()[0]['files']]
+        expected_files = ['config.json', 'counts.json', 'projects_by_scm_type.json']
+        for f in expected_files:
+            filepath = '{}/{}'.format(tempdir, f)
+            assert filepath in files
+            content = ansible_runner.slurp(path=filepath).values()[0]['content']
+            try:
+                json_dict = json.loads(base64.b64decode(content))
+                assert type(json_dict) == dict
+            except:
+                raise Exception('{} is not valid json'.format(filepath))
