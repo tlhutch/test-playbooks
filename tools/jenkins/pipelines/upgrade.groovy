@@ -124,7 +124,8 @@ Bundle?: ${params.BUNDLE}"""
                     withEnv(["AWS_SECRET_KEY=${AWS_SECRET_KEY}",
                              "AWS_ACCESS_KEY=${AWS_ACCESS_KEY}",
                              "AWX_ADMIN_PASSWORD=${AWX_ADMIN_PASSWORD}",
-                             "TOWER_VERSION=${params.TOWER_VERSION_TO_UPGRADE_FROM}"]) {
+                             "TOWER_VERSION=${params.TOWER_VERSION_TO_UPGRADE_FROM}",
+                             "AWX_APPLY_ISOLATED_GROUPS_FW_RULES=false"]) {
                         sshagent(credentials : ['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
                             sh './tools/jenkins/scripts/install.sh'
                         }
