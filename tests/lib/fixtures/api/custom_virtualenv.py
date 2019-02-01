@@ -122,6 +122,8 @@ def shared_custom_venvs(request, venv_path, is_docker):
     else:
         cluster = fixture_args.kwargs.get('cluster', False)
         limit = 'instance_group_ordinary_instances' if cluster else 'tower'
+        if is_docker:
+            limit = 'tower'
         if 'venvs' not in fixture_args.kwargs.keys():
             pytest.fail('''
             Must provide "venvs" to create in fixture_args!
@@ -150,14 +152,15 @@ def shared_custom_venvs(request, venv_path, is_docker):
                 teardown_venv = functools.partial(
                     _run_teardown_venv_playbook, *teardown_playbook_args
                     )
-                request.addfinalizer(teardown_venv)
+                if not config.prevent_teardown:
+                    request.addfinalizer(teardown_venv)
                 try:
                     _run_create_venv_playbook(*setup_playbook_args)
                     venv_paths.append(venv_path(venv_name))
-                except AssertionError:
+                except AssertionError as e:
                     pytest.fail(
-                        'Failed to create {} with packages {} using python interpreter {}'.format(
-                            venv_name, packages, use_python
+                        'Failed to create {} with packages {} using python interpreter {}:\n{}'.format(
+                            venv_name, packages, use_python, e
                             )
                         )
         return venv_paths
