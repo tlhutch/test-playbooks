@@ -177,7 +177,6 @@ class TestCredentialTypes(APITest):
     def test_managed_by_tower_ssh_credential_type(self, managed_by_tower_fields):
         ssh = managed_by_tower_fields['Machine']
         assert ssh.kind == 'ssh'
-        assert set(ssh.become_method.choices) == set(['', 'runas', 'sudo', 'su', 'pbrun', 'pfexec', 'dzdo', 'pmrun', 'enable', 'doas'])
         assert ssh.become_method.label == 'Privilege Escalation Method'
         assert ssh.become_password.ask_at_runtime is True
         assert ssh.become_password.label == 'Privilege Escalation Password'
