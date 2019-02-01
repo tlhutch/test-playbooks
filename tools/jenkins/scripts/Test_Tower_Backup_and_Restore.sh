@@ -78,7 +78,7 @@ ansible tower -i playbooks/inventory.log -a "chdir=/tmp/setup ./setup.sh -b -e @
 echo "### TRANSFER BACKUP TO AGENT ###"
 INSTALL_HOSTNAME=$(ansible tower -i playbooks/inventory.log --list-hosts | tail -n 1 | awk 'NR==1{print $1}')
 INSTALL_USER=$(ansible tower -i playbooks/inventory.log -m debug -a "msg={{ ansible_ssh_user }}" | tail -n 2 | awk 'NR==1{print $2}' | sed -e 's/"//g')
-rsync -L ${INSTALL_USER}@${INSTALL_HOSTNAME}:/tmp/setup/tower-backup-latest.tar.gz .
+rsync -e 'ssh -o StrictHostKeyChecking=no' -L ${INSTALL_USER}@${INSTALL_HOSTNAME}:/tmp/setup/tower-backup-latest.tar.gz .
 
 
 echo "### INSTALL ON NEW INSTANCE ###"
@@ -89,7 +89,7 @@ echo "### TRANSFER BACKUP TO INSTANCE ###"
 INSTALL_HOSTNAME=$(ansible tower -i playbooks/inventory.log --list-hosts | tail -n 1 | awk 'NR==1{print $1}')
 INSTALL_USER=$(ansible tower -i playbooks/inventory.log -m debug -a "msg={{ ansible_ssh_user }}" | tail -n 2 | awk 'NR==1{print $2}' | sed -e 's/"//g')
 ansible tower -i playbooks/inventory.log -a "chmod a+w /tmp /tmp/setup" -e ansible_become=true
-rsync tower-backup-latest.tar.gz ${INSTALL_USER}@${INSTALL_HOSTNAME}:/tmp/setup/
+rsync -e 'ssh -o StrictHostKeyChecking=no' tower-backup-latest.tar.gz ${INSTALL_USER}@${INSTALL_HOSTNAME}:/tmp/setup/
 
 
 echo "### RUN RESTORE ###"
