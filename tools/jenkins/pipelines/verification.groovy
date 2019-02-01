@@ -74,7 +74,6 @@ Platform under test: ${params.PLATFORM}"""
                                             string(name: 'SCENARIO', value: 'standalone'),
                                             string(name: 'PLATFORM', value: params.PLATFORM),
                                             string(name: 'BUNDLE', value: 'no'),
-                                            string(name: 'TOWERQA_BRANCH', value: branch_name),
                                             string(name: 'DEPLOYMENT_NAME', value: 'jenkins-tower-plain-standalone-minor-upgrade')
                                         ]
                                     )
@@ -93,7 +92,6 @@ Platform under test: ${params.PLATFORM}"""
                                         string(name: 'SCENARIO', value: 'standalone'),
                                         string(name: 'PLATFORM', value: params.PLATFORM),
                                         string(name: 'BUNDLE', value: 'no'),
-                                        string(name: 'TOWERQA_BRANCH', value: branch_name),
                                         string(name: 'DEPLOYMENT_NAME', value: 'jenkins-tower-plain-standalone-major-upgrade')
                                     ]
                                 )
@@ -110,7 +108,6 @@ Platform under test: ${params.PLATFORM}"""
                                         string(name: 'SCENARIO', value: 'standalone'),
                                         string(name: 'PLATFORM', value: params.PLATFORM),
                                         string(name: 'BUNDLE', value: 'no'),
-                                        string(name: 'TOWERQA_BRANCH', value: branch_name),
                                         string(name: 'DEPLOYMENT_NAME', value: 'jenkins-tower-plain-standalone-backup-and-restore')
                                     ]
                                 )
@@ -127,7 +124,6 @@ Platform under test: ${params.PLATFORM}"""
                                         string(name: 'SCENARIO', value: 'standalone'),
                                         string(name: 'PLATFORM', value: params.PLATFORM),
                                         string(name: 'BUNDLE', value: 'no'),
-                                        string(name: 'TOWERQA_BRANCH', value: branch_name),
                                         string(name: 'DEPLOYMENT_NAME', value: 'jenkins-tower-plain-standalone-integration')
                                     ]
                                 )
@@ -150,7 +146,6 @@ Platform under test: ${params.PLATFORM}"""
                                             string(name: 'SCENARIO', value: 'cluster'),
                                             string(name: 'PLATFORM', value: params.PLATFORM),
                                             string(name: 'BUNDLE', value: 'no'),
-                                            string(name: 'TOWERQA_BRANCH', value: branch_name),
                                             string(name: 'DEPLOYMENT_NAME', value: 'jenkins-tower-plain-cluster-minor-upgrade')
                                         ]
                                     )
@@ -169,7 +164,6 @@ Platform under test: ${params.PLATFORM}"""
                                         string(name: 'SCENARIO', value: 'cluster'),
                                         string(name: 'PLATFORM', value: params.PLATFORM),
                                         string(name: 'BUNDLE', value: 'no'),
-                                        string(name: 'TOWERQA_BRANCH', value: branch_name),
                                         string(name: 'DEPLOYMENT_NAME', value: 'jenkins-tower-plain-cluster-major-upgrade')
                                     ]
                                 )
@@ -186,7 +180,6 @@ Platform under test: ${params.PLATFORM}"""
                                         string(name: 'SCENARIO', value: 'cluster'),
                                         string(name: 'PLATFORM', value: params.PLATFORM),
                                         string(name: 'BUNDLE', value: 'no'),
-                                        string(name: 'TOWERQA_BRANCH', value: branch_name),
                                         string(name: 'DEPLOYMENT_NAME', value: 'jenkins-tower-plain-cluster-backup-and-restore')
                                     ]
                                 )
@@ -203,7 +196,6 @@ Platform under test: ${params.PLATFORM}"""
                                         string(name: 'SCENARIO', value: 'cluster'),
                                         string(name: 'PLATFORM', value: params.PLATFORM),
                                         string(name: 'BUNDLE', value: 'no'),
-                                        string(name: 'TOWERQA_BRANCH', value: branch_name),
                                         string(name: 'DEPLOYMENT_NAME', value: 'jenkins-tower-plain-cluster-integration')
                                     ]
                                 )
@@ -226,7 +218,6 @@ Platform under test: ${params.PLATFORM}"""
                                             string(name: 'SCENARIO', value: 'standalone'),
                                             string(name: 'PLATFORM', value: params.PLATFORM),
                                             string(name: 'BUNDLE', value: 'yes'),
-                                            string(name: 'TOWERQA_BRANCH', value: branch_name),
                                             string(name: 'DEPLOYMENT_NAME', value: 'jenkins-tower-bundle-standalone-minor-upgrade')
                                         ]
                                     )
@@ -245,7 +236,6 @@ Platform under test: ${params.PLATFORM}"""
                                         string(name: 'SCENARIO', value: 'standalone'),
                                         string(name: 'PLATFORM', value: params.PLATFORM),
                                         string(name: 'BUNDLE', value: 'yes'),
-                                        string(name: 'TOWERQA_BRANCH', value: branch_name),
                                         string(name: 'DEPLOYMENT_NAME', value: 'jenkins-tower-bundle-standalone-major-upgrade')
                                     ]
                                 )
@@ -262,7 +252,6 @@ Platform under test: ${params.PLATFORM}"""
                                         string(name: 'SCENARIO', value: 'standalone'),
                                         string(name: 'PLATFORM', value: params.PLATFORM),
                                         string(name: 'BUNDLE', value: 'yes'),
-                                        string(name: 'TOWERQA_BRANCH', value: branch_name),
                                         string(name: 'DEPLOYMENT_NAME', value: 'jenkins-tower-bundle-standalone-backup-and-restore')
                                     ]
                                 )
@@ -279,7 +268,6 @@ Platform under test: ${params.PLATFORM}"""
                                         string(name: 'SCENARIO', value: 'standalone'),
                                         string(name: 'PLATFORM', value: params.PLATFORM),
                                         string(name: 'BUNDLE', value: 'yes'),
-                                        string(name: 'TOWERQA_BRANCH', value: branch_name),
                                         string(name: 'DEPLOYMENT_NAME', value: 'jenkins-tower-bundle-standalone-integration')
                                     ]
                                 )
@@ -302,7 +290,6 @@ Platform under test: ${params.PLATFORM}"""
                                             string(name: 'SCENARIO', value: 'cluster'),
                                             string(name: 'PLATFORM', value: params.PLATFORM),
                                             string(name: 'BUNDLE', value: 'yes'),
-                                            string(name: 'TOWERQA_BRANCH', value: branch_name),
                                             string(name: 'DEPLOYMENT_NAME', value: 'jenkins-tower-bundle-cluster-minor-upgrade')
                                         ]
                                     )
@@ -321,7 +308,6 @@ Platform under test: ${params.PLATFORM}"""
                                         string(name: 'SCENARIO', value: 'cluster'),
                                         string(name: 'PLATFORM', value: params.PLATFORM),
                                         string(name: 'BUNDLE', value: 'yes'),
-                                        string(name: 'TOWERQA_BRANCH', value: branch_name),
                                         string(name: 'DEPLOYMENT_NAME', value: 'jenkins-tower-bundle-cluster-major-upgrade')
                                     ]
                                 )
@@ -338,7 +324,6 @@ Platform under test: ${params.PLATFORM}"""
                                         string(name: 'SCENARIO', value: 'cluster'),
                                         string(name: 'PLATFORM', value: params.PLATFORM),
                                         string(name: 'BUNDLE', value: 'yes'),
-                                        string(name: 'TOWERQA_BRANCH', value: branch_name),
                                         string(name: 'DEPLOYMENT_NAME', value: 'jenkins-tower-bundle-cluster-backup-and-restore')
                                     ]
                                 )
@@ -355,7 +340,6 @@ Platform under test: ${params.PLATFORM}"""
                                         string(name: 'SCENARIO', value: 'cluster'),
                                         string(name: 'PLATFORM', value: params.PLATFORM),
                                         string(name: 'BUNDLE', value: 'yes'),
-                                        string(name: 'TOWERQA_BRANCH', value: branch_name),
                                         string(name: 'DEPLOYMENT_NAME', value: 'jenkins-tower-bundle-cluster-integration')
                                     ]
                                 )
