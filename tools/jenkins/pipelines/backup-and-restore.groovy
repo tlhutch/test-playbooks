@@ -41,7 +41,7 @@ pipeline {
         string(
             name: 'DEPLOYMENT_NAME',
             description: 'Deployment name. Will match VM name being spawned in the cloud',
-            defaultValue: 'jenkins-tower-backup-and-restore'
+            defaultValue: 'evergreen-jenkins-tower-backup-and-restore'
         )
         choice(
             name: 'VERBOSE',

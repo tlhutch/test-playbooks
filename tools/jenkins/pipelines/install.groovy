@@ -41,7 +41,7 @@ pipeline {
         string(
             name: 'DEPLOYMENT_NAME',
             description: 'Deployment name. Will match VM name being spawned in the cloud',
-            defaultValue: 'jenkins-tower-install'
+            defaultValue: 'evergreen-jenkins-tower-install'
         )
         choice(
             name: 'VERBOSE',
