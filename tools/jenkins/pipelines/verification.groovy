@@ -350,4 +350,14 @@ Platform under test: ${params.PLATFORM}"""
             }
         }
     }
+    post {
+        always {
+            node('jenkins-jnlp-agent') {
+                script {
+                    json = "{\"os\":\"${params.PLATFORM}\", \"ansible\":\"${params.ANSIBLE_VERSION}\", \"tower\": \"${params.TOWER_VERSION}\", \"status\": \"${currentBuild.currentResult}\", \"url\": \"${env.RUN_DISPLAY_URL}\"}"
+                }
+                sh "curl -X POST 'http://tower-qe-dashboard.ansible.eng.rdu2.redhat.com/jenkins/results' -H 'Content-type: application/json' -d '${json}'"
+            }
+        }
+    }
 }
