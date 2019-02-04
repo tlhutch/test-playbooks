@@ -312,7 +312,7 @@ for update in project_updates:
     if not update.is_successful:
         update.get()
         if '429 Too Many Requests' not in update.result_stdout:  # GH rate limit
-            assert update.is_successful
+            assert update.is_successful, update.result_stdout
 
 log.info('Verifying updated inventory sources are successful')
 source_updates = []
