@@ -2,10 +2,30 @@ import os
 import base64
 import json
 
+from towerkit import config
 import towerkit.exceptions as exc
 import pytest
 
 from tests.api import APITest
+
+
+@pytest.fixture(scope="class")
+def register_rhn_and_insights(ansible_runner_class):
+    rhn_username = config.credentials.insights.username
+    rhn_password = config.credentials.insights.password
+    ansible_runner_class.redhat_subscription(state='present',
+                                             username=rhn_username,
+                                             password=rhn_password,
+                                             auto_attach=True)
+
+    ansible_runner_class.yum(state='installed', name='insights-client')
+    ansible_runner_class.shell('insights-client --register')
+    yield
+    ansible_runner_class.shell('insights-client --unregister')
+    ansible_runner_class.redhat_subscription(state='absent',
+                                             username=rhn_username,
+                                             password=rhn_password)
+    ansible_runner_class.yum(state='absent', name='insights-client')
 
 
 @pytest.mark.api
@@ -186,7 +206,7 @@ class TestInsights(APITest):
         assert list(contacted.values())[0]['stdout'] == project.scm_revision
 
 
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited', 'skip_if_not_rhel')
+@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited', 'skip_if_not_rhel', 'register_rhn_and_insights')
 class TestInsightsAnalytics(APITest):
 
     def test_awxmanage_gather_analytics_generates_valid_tar(self, ansible_runner):
