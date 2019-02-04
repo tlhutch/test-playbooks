@@ -140,7 +140,9 @@ Bundle?: ${params.BUNDLE}"""
         }
 
         cleanup {
-            sh './tools/jenkins/scripts/cleanup.sh'
+            sshagent(credentials : ['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
+                sh './tools/jenkins/scripts/cleanup.sh'
+            }
         }
     }
 }
