@@ -179,6 +179,10 @@ Bundle?: ${params.BUNDLE}"""
             sh './tools/jenkins/scripts/version.sh'
             archiveArtifacts artifacts: 'version.log,playbooks/inventory.log,playbooks/inventory.cluster,playbooks/vars.yml,tower_url,reports/junit/results.xml,tower/awx/ui/test/e2e/reports/*.xml'
         }
+
+        cleanup {
+            sh './tools/jenkins/scripts/cleanup.sh'
+        }
     }
 
 }
