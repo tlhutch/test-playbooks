@@ -5,7 +5,7 @@ set -euo pipefail
 
 ## FIXME(spredzy): While https://github.com/ansible/ansible/issues/51662 is being fixed
 sed -i 's/await_instances(instance_ids)/await_instances(instance_ids, "EXISTS")/g' /root/.venv/lib/python2.7/site-packages/ansible/modules/cloud/amazon/ec2_instance.py
-rm  /root/.venv/lib/python2.7/site-packages/ansible/modules/cloud/amazon/ec2_instance.pyc
+rm  /root/.venv/lib/python2.7/site-packages/ansible/modules/cloud/amazon/ec2_instance.pyc || true
 
 # Script variables
 #
