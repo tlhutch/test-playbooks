@@ -48,7 +48,6 @@ Additionally, RHEL-based Tower installations will be able to upload metrics to R
     * [ ] Failure to push tarball is recoverable
     * [ ] Feature is not enabled on non-rhel platforms
   * [ ] Metrics
-    * [ ] Prometheus-like Metrics Support
     * [ ] Counts are incremented correctly
     * [ ] Custom Modules are reported
     * [ ] Metrics are readable by
