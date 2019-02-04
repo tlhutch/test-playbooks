@@ -2,13 +2,11 @@
 
 ## Feature Summary
 
-New metrics and analytics endpoints will be added to Tower for monitoring by Prometheus or similar timeseries tools.
+A new endpoint will be added to Tower for monitoring by Prometheus or similar timeseries tools.
 
-* Analytics:
-  * Anomalous tasks and hosts
-  * Module Utilization
-  * Time Savings with Automation
-  * Federated view of Automation
+Additionally, RHEL-based Tower installations will be able to upload metrics to Red Hat Insights.
+
+
 * Metrics:
   * Job runs
     * Successful
@@ -42,20 +40,13 @@ New metrics and analytics endpoints will be added to Tower for monitoring by Pro
 ## Acceptance criteria
 
 * [ ] API
-  * [ ] Analytics
-    * [ ] Module Utilization counts are accurate
-      * [ ] Setup is excluded
-      * [ ] Custom modules are included
-    * [ ] Time Savings with automation is accurate based on inputs
-    * [ ] Anomalous tasks
-      * [ ] Are Reported
-      * [ ] Can recover from this state
-    * [ ] Anomalous Hosts
-      * [ ] Are reported
-      * [ ] Can recover from this state
-    * [ ] RBAC
-    * [ ] This feature can be disabled
+  * [ ] Red Hat Insights
+    * [ ] The tarball produced is valid and the data is valid JSON
     * [ ] Data can be consumed by insights
+    * [ ] Change to system state is reflected in data
+    * [ ] Management task triggers as intended (manual observation)
+    * [ ] Failure to push tarball is recoverable
+    * [ ] Feature is not enabled on non-rhel platforms
   * [ ] Metrics
     * [ ] Prometheus-like Metrics Support
     * [ ] Counts are incremented correctly
