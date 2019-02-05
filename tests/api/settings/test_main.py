@@ -256,6 +256,35 @@ class TestGeneralSettings(APITest):
         for job in jobs.results:
             job.wait_until_completed()
 
+    def test_schedule_max_jobs_workflow_level(self, factories, api_settings_jobs_pg, update_setting_pg):
+        host = factories.v2_host()
+        jt = factories.v2_job_template(
+            inventory=host.ds.inventory, playbook='sleep.yml', extra_vars='{"sleep_interval": 120}'
+        )
+        wfjt = factories.v2_workflow_job_template()
+        factories.v2_workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt)
+
+        payload = dict(SCHEDULE_MAX_JOBS=1)
+        update_setting_pg(api_settings_jobs_pg, payload)
+
+        schedules_pg = wfjt.get_related('schedules')
+        payload = dict(
+            name="Schedule - %s" % fauxfactory.gen_utf8(),
+            rrule="DTSTART:20160926T040000Z RRULE:FREQ=MINUTELY;INTERVAL=1"
+        )
+        schedules_pg.post(payload)
+
+        wfjobs = wfjt.get_related('workflow_jobs')
+        try:
+            poll_until(lambda: getattr(wfjobs.get(), 'count') == 2, interval=5, timeout=120)
+            assert False, "Workflow JobTemplate does not respect SCHEDULE_MAX_JOBS"
+        except exc.WaitUntilTimeout:
+            pass
+
+        wfjt.get_related('schedules').results.pop().delete()
+        for job in wfjobs.results:
+            job.wait_until_completed()
+
     @pytest.mark.parametrize('timeout, default_job_timeout, status, job_explanation', [
         (0, 1, 'failed', 'Job terminated due to timeout'),
         (60, 1, 'successful', ''),
