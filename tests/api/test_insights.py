@@ -218,15 +218,30 @@ class TestInsightsAnalytics(APITest):
         files = [f['path'] for f in ansible_runner.find(paths=tempdir).values()[0]['files']]
         return tempdir, files
 
+    def read_json_file(self, file, ansible_runner):
+        content = ansible_runner.slurp(path=file).values()[0]['content']
+        return json.loads(base64.b64decode(content))
+
     def test_awxmanage_gather_analytics_generates_valid_tar(self, ansible_runner):
         tempdir, files = self.gather_analytics(ansible_runner)
         expected_files = ['config.json', 'counts.json', 'projects_by_scm_type.json']
         for f in expected_files:
             filepath = '{}/{}'.format(tempdir, f)
             assert filepath in files
-            content = ansible_runner.slurp(path=filepath).values()[0]['content']
-            try:
-                json_dict = json.loads(base64.b64decode(content))
-                assert type(json_dict) == dict
-            except:
-                raise Exception('{} is not valid json'.format(filepath))
+            content = self.read_json_file(filepath, ansible_runner)
+            assert type(content) == dict
+
+    def test_awxmanage_project_count_incremented(self, ansible_runner, factories):
+        tempdir, files = self.gather_analytics(ansible_runner)
+        counts_file = '{}/{}'.format(tempdir, 'counts.json')
+        counts = self.read_json_file(counts_file, ansible_runner)
+        projects_before = counts['project']
+
+        factories.v2_project()
+
+        tempdir, files = self.gather_analytics(ansible_runner)
+        counts_file = '{}/{}'.format(tempdir, 'counts.json')
+        counts = self.read_json_file(counts_file, ansible_runner)
+        projects_after = counts['project']
+
+        assert projects_after == projects_before + 1
