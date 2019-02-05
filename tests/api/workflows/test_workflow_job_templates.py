@@ -512,3 +512,27 @@ class Test_Workflow_Job_Templates(APITest):
             wfjt.get_related('launch').post({'inventory': inventory.id})
 
         assert e.value.msg == {'inventory': ['Field is not configured to prompt on launch.']}
+
+    def test_workflow_workflow_jt_user_variables(self, factories):
+        host = factories.v2_host()
+        jt = factories.v2_job_template(
+            inventory=host.ds.inventory, playbook='debug_hostvars_inventory_hostname.yml',
+        )
+        wfjt_outer = factories.v2_workflow_job_template()
+        wfjt_inner = factories.v2_workflow_job_template()
+        factories.v2_workflow_job_template_node(workflow_job_template=wfjt_inner, unified_job_template=jt)
+
+        # HACK: unified_job_template does not work with the dependency store
+        node = wfjt_outer.get_related('workflow_nodes').post(dict(
+            unified_job_template=wfjt_inner.id,
+        ))
+
+        wfj_outer = wfjt_outer.launch()
+        node = wfj_outer.get_related('workflow_nodes').results.pop().wait_for_job()
+        wfj_inner = node.get_related('job')
+        wfj_inner.wait_until_completed()
+
+        job_events = wfj_inner.get_related('workflow_nodes').results.pop().get_related('job').get_related('job_events').results
+        hostvars_stdout = [j for j in job_events if j['event'] == "runner_on_ok"][1]['event_data']
+        assert 'awx_user_email' in str(hostvars_stdout)
+        assert 'tower_user_email' in str(hostvars_stdout)
