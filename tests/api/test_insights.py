@@ -206,15 +206,20 @@ class TestInsights(APITest):
         assert list(contacted.values())[0]['stdout'] == project.scm_revision
 
 
+@pytest.mark.mp_group('Insights', 'serial')
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited', 'skip_if_not_rhel', 'register_rhn_and_insights')
 class TestInsightsAnalytics(APITest):
 
-    def test_awxmanage_gather_analytics_generates_valid_tar(self, ansible_runner):
+    def gather_analytics(self, ansible_runner):
         result = ansible_runner.shell('awx-manage gather_analytics').values()[0]
         analytics_payload = [l for l in result['stderr_lines'] if "tar.gz" in l][0]
         tempdir = ansible_runner.tempfile(state='directory', suffix='insights_test').values()[0]['path']
         ansible_runner.unarchive(src=analytics_payload, dest=tempdir, remote_src=True).values()[0]
         files = [f['path'] for f in ansible_runner.find(paths=tempdir).values()[0]['files']]
+        return tempdir, files
+
+    def test_awxmanage_gather_analytics_generates_valid_tar(self, ansible_runner):
+        tempdir, files = self.gather_analytics(ansible_runner)
         expected_files = ['config.json', 'counts.json', 'projects_by_scm_type.json']
         for f in expected_files:
             filepath = '{}/{}'.format(tempdir, f)
