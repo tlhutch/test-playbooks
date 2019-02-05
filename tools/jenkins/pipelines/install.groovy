@@ -111,6 +111,7 @@ Bundle?: ${params.BUNDLE}"""
                         sh 'pip install -U pip setuptools ansible'
                         sh 'pip install -I -r requirements.txt'
                         sh 'ansible-vault decrypt --vault-password-file="${VAULT_FILE}" config/credentials.vault --output=config/credentials.yml'
+                        sh 'ansible-vault decrypt --vault-password-file="${VAULT_FILE}" config/credentials-pkcs8.vault --output=config/credentials-pkcs8.yml || true'
                     }
                 }
             }
