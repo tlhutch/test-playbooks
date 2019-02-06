@@ -190,6 +190,7 @@ class TestSchedules(SchedulesTest):
             with pytest.raises(exc.NotFound):
                 schedule.get()
 
+    @pytest.mark.flaky(reruns=3)
     def test_schedule_triggers_launch_without_count(self, v2_unified_job_template):
         rule = self.minutely_rrule()
         schedule = v2_unified_job_template.add_schedule(rrule=rule)
@@ -199,16 +200,12 @@ class TestSchedules(SchedulesTest):
         poll_until(lambda: unified_jobs.get().count == 1, interval=15, timeout=5 * 60)
         job = unified_jobs.results.pop()
         job.wait_until_completed().assert_successful()
-        # FIXME(spredzy): For some reason, schedule.get().next_run
-        # is sometime ahead of his time in a flaky maneer. It happens
-        # on CI but never locally. This would remove the flaky failure
-        # from popping in our nightly results.
-        assert schedule.get().next_run in rule.next_runs(count=2)
+        assert schedule.get().next_run == rule.next_run
 
+    @pytest.mark.flaky(reruns=3)
     def test_schedule_triggers_launch_with_count(self, v2_unified_job_template):
         rule = self.minutely_rrule(count=2)
         schedule = v2_unified_job_template.add_schedule(rrule=rule)
-        poll_until(lambda: schedule.next_run, interval=1, timeout=30)
         assert schedule.next_run == rule.next_run
 
         unified_jobs = schedule.related.unified_jobs.get()
