@@ -4,22 +4,30 @@
   include_vars: "{{ ansible_os_family }}.yml"
 
 - name: Install the required packages in Redhat derivatives
-  yum: name={{ item }} state=installed
-  with_items: "{{ ntp_pkgs }}"
+  yum:
+    name: "{{ ntp_pkgs }}"
+    state: installed
   when: ansible_os_family == 'RedHat'
 
 - name: Install the required packages in Debian derivatives
-  apt: name={{ item }} state=installed update_cache=yes
-  with_items: "{{ ntp_pkgs }}"
+  apt:
+    name: "{{ ntp_pkgs }}"
+    state: installed
+    update_cache: yes
   environment:
     RUNLEVEL: 1
   when: ansible_os_family == 'Debian'
 
 - name: Copy the ntp.conf template file
-  template: src=ntp.conf.j2 dest=/etc/ntp.conf
+  template:
+    src: ntp.conf.j2
+    dest: /etc/ntp.conf
   notify: restart ntp
 
 # Using a handler will wait until the play completes, I'd like this to happen
 # sooner to give ntpd a chance to catch up.
 - name: Ensure ntp is started and enabled
-  service: name={{ ntp_svc_name }} state=started enabled=yes
+  service:
+    name: '{{ ntp_svc_name }}'
+    state: started
+    enabled: yes

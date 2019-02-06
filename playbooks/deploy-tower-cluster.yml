@@ -26,7 +26,7 @@
     - name: Run FIPS Role
       include_role:
         name: fips
-      when: "'7.5' in ansible_distribution_version and {{ fips_enabled|default(true) }}"
+      when: "'7.5' in ansible_distribution_version and fips_enabled | default(true)"
 
 - name: 'Add authorized keys on non-installer instances'
   hosts: 'tower:instance_group_*:database:haproxy:managed_hosts:!cluster_installer'

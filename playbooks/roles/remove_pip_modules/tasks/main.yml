@@ -1,6 +1,8 @@
 ---
 - name: detect if PyYAML rpm is installed
   command: rpm -q PyYAML
+  args:
+    warn: False
   changed_when: false
   ignore_errors: true
   register: is_pyyaml_pkg_installed
@@ -24,4 +26,4 @@
   pip:
     state: absent
     name: PyYAML
-  when: installed_pips|success and 'PyYAML' in installed_pips.stdout and is_pyyaml_pkg_installed|failed
+  when: installed_pips is success and 'PyYAML' in installed_pips.stdout and is_pyyaml_pkg_installed is failed

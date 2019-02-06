@@ -70,7 +70,7 @@
       'tag:Name': '{{ name_to_tagged_name.values()|list }}'
       instance-state-name: ['pending', 'running']
   register: ec2_instance_vars
-  until: "{{ ec2_images|length }} == {{ ec2_instance_vars.instances|length }} and {{ ec2_instance_vars.instances|selectattr('public_dns_name', 'match', '^.+$')|list|length }} == {{ ec2_instance_vars.instances|length }}"
+  until: "ec2_images | length == ec2_instance_vars.instances | length and ec2_instance_vars.instances | selectattr('public_dns_name', 'match', '^.+$') | list | length  ==  ec2_instance_vars.instances | length"
   retries: 60
   delay: 15
 

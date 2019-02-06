@@ -1,24 +1,19 @@
 ---
 # Download ansible-tower-setup and run the setup playbook
 
-- name: download ansible-tower-setup tarball
-  get_url:
-    url: '{{aw_repo_url}}/{{awx_setup_path}}'
-    dest: '/tmp/{{ awx_setup_path | basename }}'
-    mode: 0640
-  register: tarball
-
 - name: remove any previously extracted tarball files
   file:
     path: '/tmp/setup'
     state: absent
-  when: tarball.changed
 
 - name: untar ansible-tower-setup
-  command: tar -xvf {{tarball.dest}} --transform "s|^[^/]*|setup|"
-  args:
-      chdir: /tmp
-  when: tarball.changed
+  unarchive:
+    src: '{{aw_repo_url}}/{{awx_setup_path}}'
+    dest: '/tmp/'
+    remote_src: yes
+    extra_opts:
+      - --transform
+      - s|^[^/]*|setup|
 
 - name: is awx already installed?
   stat:

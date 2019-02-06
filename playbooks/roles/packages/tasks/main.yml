@@ -46,9 +46,8 @@
 
 - name: install playbook dependency debs
   apt:
-    pkg: '{{item}}'
+    pkg: '{{ deb_role_dependencies }}'
     state: latest
-  with_items: '{{ deb_role_dependencies }}'
   when: ansible_pkg_mgr == 'apt'
 
 - name: include rhui tasks
@@ -61,9 +60,8 @@
 
 - name: install playbook dependency rpms
   yum:
-    name: '{{item}}'
+    name: '{{ rpm_role_dependencies }}'
     state: latest
-  with_items: '{{ rpm_role_dependencies }}'
   when: ansible_pkg_mgr == 'yum'
 
 # https://bugzilla.redhat.com/show_bug.cgi?id=1405175
@@ -84,6 +82,8 @@
 
 - name: yum clean cached ansible repository information
   command: yum clean all --disablerepo=* --enablerepo=ansible-nightly
+  args:
+    warn: False
   when: yum_repo is defined and yum_repo.changed
 
 # install ansible nightly apt repo (optional)
@@ -119,6 +119,8 @@
 
 - name: gather ansible nightly dependencies
   command: yum deplist --disablerepo=* --enablerepo=ansible-nightly ansible
+  args:
+    warn: False
   register: nightly_dep_candidates
   when: ansible_pkg_mgr == 'yum' and ansible_install_method == 'nightly'
 
@@ -132,9 +134,8 @@
 
 - name: install ansible nightly dependencies
   yum:
-    name: '{{ item }}'
+    name: '{{ nightly_ansible_dependencies }}'
     state: latest
-  with_items: '{{ nightly_ansible_dependencies }}'
   when: ansible_pkg_mgr == 'yum' and ansible_install_method == 'nightly' and nightly_ansible_dependencies is defined
 
 - name: install ansible rpm (nightly)
