@@ -149,6 +149,9 @@ Bundle?: ${params.BUNDLE}"""
                 sshagent(credentials : ['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
                     sh './tools/jenkins/scripts/backup.sh'
                 }
+                archiveArtifacts(
+                    artifacts: 'tower-backup-latest.tar.gz'
+                )
             }
         }
 
