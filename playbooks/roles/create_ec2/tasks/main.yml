@@ -41,7 +41,7 @@
     network:
         assign_public_ip: '{{ create_ec2_assign_public_ip|default(omit) }}'
     user_data: '{{ item.user_data|default(omit) }}'
-    wait: '{{ create_ec2_wait_upon_creation|default(false) }}'
+    wait: '{{ create_ec2_wait_upon_creation | default(false) | bool }}'
     wait_timeout: '{{ create_ec2_wait_upon_creation_timeout|default(600) }}'
     tags:
         ANSIBLE_INSTALL_METHOD: '{{ ansible_install_method|default("nightly") }}'

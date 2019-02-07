@@ -53,12 +53,12 @@
         - name: Pip install required packages
           command: "{{ venv_base }}/{{ venv_folder_name }}/bin/pip install -I -U {{ venv_packages|default('python-memcached psutil') }}"
           when: venv_packages != ''
-      become: "{{ use_become | default('true')}}"
-      when: not remove_virtualenv|default(false)
+      become: "{{ use_become | default('true') | bool}}"
+      when: not remove_virtualenv | default(false) | bool
 
     - name: Remove custom virtualenv
       file:
         path: "{{ venv_base }}/{{ venv_folder_name }}"
         state: absent
-      become: "{{ use_become | default('true')}}"
-      when: remove_virtualenv|default(false)
+      become: "{{ use_become | default('true') | bool}}"
+      when: remove_virtualenv | default(false) | bool
