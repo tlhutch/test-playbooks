@@ -190,7 +190,7 @@ class TestSchedules(SchedulesTest):
             with pytest.raises(exc.NotFound):
                 schedule.get()
 
-    @pytest.mark.flaky(reruns=3)
+    @pytest.mark.flaky(reruns=3, reruns_delay=30)
     def test_schedule_triggers_launch_without_count(self, v2_unified_job_template):
         rule = self.minutely_rrule()
         schedule = v2_unified_job_template.add_schedule(rrule=rule)
@@ -202,7 +202,7 @@ class TestSchedules(SchedulesTest):
         job.wait_until_completed().assert_successful()
         assert schedule.get().next_run == rule.next_run
 
-    @pytest.mark.flaky(reruns=3)
+    @pytest.mark.flaky(reruns=3, reruns_delay=30)
     def test_schedule_triggers_launch_with_count(self, v2_unified_job_template):
         rule = self.minutely_rrule(count=2)
         schedule = v2_unified_job_template.add_schedule(rrule=rule)
