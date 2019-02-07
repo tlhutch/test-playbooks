@@ -202,7 +202,7 @@ def skip_if_fips_enabled(is_fips_enabled):
         pytest.skip('Cannot run on a FIPS enabled platform')
 
 
-@pytest.fixture(scope='class')
+@pytest.fixture
 def is_fips_enabled(is_docker, ansible_module):
     if is_docker:
         return False
