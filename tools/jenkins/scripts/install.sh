@@ -30,6 +30,7 @@ export ANSIBLE_NIGHTLY_BRANCH=${ANSIBLE_VERSION}
 export AW_REPO_URL=${AW_REPO_URL:-"http://nightlies.testing.ansible.com/ansible-tower_nightlies_m8u16fz56qr6q7/devel"}
 export AWX_SETUP_PATH=${AWX_SETUP_PATH:-"/setup/ansible-tower-setup-latest.tar.gz"}
 export IPV6_DEPLOYMENT=${AWX_IPV6_DEPLOYMENT:-no}
+export ANSIBLE_FORCE_COLOR=${ANSIBLE_FORCE_COLOR:-True}
 
 ANSIBLE_NIGHTLY_REPO=${ANSIBLE_NIGHTLY_REPO}/${ANSIBLE_VERSION}
 
