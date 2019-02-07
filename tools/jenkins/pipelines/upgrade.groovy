@@ -128,7 +128,9 @@ Bundle?: ${params.BUNDLE}"""
                              "TOWER_VERSION=${params.TOWER_VERSION_TO_UPGRADE_FROM}",
                              "AWX_APPLY_ISOLATED_GROUPS_FW_RULES=false"]) {
                         sshagent(credentials : ['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
-                            sh './tools/jenkins/scripts/install.sh'
+                            retry(2) {
+                                sh './tools/jenkins/scripts/install.sh'
+                            }
                         }
                     }
                 }
@@ -188,7 +190,9 @@ Bundle?: ${params.BUNDLE}"""
                              "CLEAN_DEPLOYMENT_BEFORE_JOB_RUN=no",
                              "AWX_UPGRADE=true"]) {
                         sshagent(credentials : ['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
-                            sh './tools/jenkins/scripts/install.sh'
+                            retry(2) {
+                                sh './tools/jenkins/scripts/install.sh'
+                            }
                         }
                     }
                 }

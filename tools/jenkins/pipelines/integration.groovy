@@ -131,7 +131,9 @@ Bundle?: ${params.BUNDLE}"""
                              "AWS_ACCESS_KEY=${AWS_ACCESS_KEY}",
                              "AWX_ADMIN_PASSWORD=${AWX_ADMIN_PASSWORD}"]) {
                         sshagent(credentials : ['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
-                            sh './tools/jenkins/scripts/install.sh'
+                            retry(2) {
+                                sh './tools/jenkins/scripts/install.sh'
+                            }
                         }
                     }
                 }
