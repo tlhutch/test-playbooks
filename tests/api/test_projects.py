@@ -374,10 +374,6 @@ class Test_Projects(APITest):
                                        **scm_params)
 
         (event_unforced, event_forced) = self.get_project_update_galaxy_update_task(project, job_type='check')
-        assert False is event_unforced.changed, \
-            "Project update of type check should never process requirements.yml"
-        assert False is event_forced.changed, \
-            "Project update of type check should never process requirements.yml"
 
         jt = factories.v2_job_template(project=project, playbook='debug.yml')
 
