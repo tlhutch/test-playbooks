@@ -245,3 +245,11 @@ class TestInsightsAnalytics(APITest):
         projects_after = counts['project']
 
         assert projects_after == projects_before + 1
+
+    def test_ship_insights_succeeds(self, ansible_runner):
+        logfile = '/var/log/insights-client/insights-client.log'
+        ansible_runner.file(path=logfile, state='absent')
+        result = ansible_runner.shell('awx-manage gather_analytics --ship').values()[0]['stderr_lines']
+        assert [l for l in result if "Successfully uploaded report" in l]
+        log_content = base64.b64decode(ansible_runner.slurp(path=logfile).values()[0]['content']).splitlines()
+        assert [l for l in log_content if "insights.client.connection Upload status: 202 Accepted" in l]
