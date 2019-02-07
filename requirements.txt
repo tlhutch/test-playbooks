@@ -2,6 +2,7 @@ azure
 boto
 boto3
 botocore
+elasticsearch
 inflect
 junit2html
 junit-xml
