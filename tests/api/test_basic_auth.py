@@ -47,6 +47,7 @@ class TestBasicAuth(APITest):
         return session
 
     @pytest.mark.parametrize('max_logins', range(1, 4))
+    @pytest.mark.flaky(reruns=3, reruns_delay=30)
     def test_authtoken_maximum_concurrent_sessions(self, factories, v2, update_setting_pg, max_logins):
         total = 3
         update_setting_pg(v2.settings.get().get_endpoint(

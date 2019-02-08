@@ -208,6 +208,7 @@ class TestInventorySource(APITest):
         )
         self.update_and_delete_resources(inv_source)
 
+    @pytest.mark.flaky(reruns=3, reruns_delay=30)
     def test_simultaneous_delete_sublist_resources_ec2(self, factories):
         # Reported custom issue where server error, deadlocks, occured
         inv_source = factories.v2_inventory_source(
