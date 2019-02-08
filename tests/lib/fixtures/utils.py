@@ -196,7 +196,7 @@ def _skip_docker(request, is_docker):
         pytest.skip(docker_skip_msg)
 
 
-@pytest.fixture(scope='class')
+@pytest.fixture
 def skip_if_fips_enabled(is_fips_enabled):
     if is_fips_enabled:
         pytest.skip('Cannot run on a FIPS enabled platform')
