@@ -23,8 +23,14 @@
             state: present
           when: ansible_pkg_mgr == 'apt' and ansible_distribution_major_version != '14'
 
+        - name: Check if the virtualenv already exists
+          stat:
+            path: "{{ venv_base }}/{{ venv_folder_name }}"
+          register: existing_folder
+
         - name: Create custom virtualenv
           command: "virtualenv -p {{ remote_python }} --system-site-packages {{ venv_base }}/{{ venv_folder_name }}"
+          when: not existing_folder.stat.exists
 
         - name: Print packages to install
           debug:
@@ -52,7 +58,9 @@
 
         - name: Pip install required packages
           command: "{{ venv_base }}/{{ venv_folder_name }}/bin/pip install -I -U {{ venv_packages|default('python-memcached psutil') }}"
-          when: venv_packages != ''
+          when:
+            - venv_packages != ''
+            - not existing_folder.stat.exists
       become: "{{ use_become | default('true') | bool}}"
       when: not remove_virtualenv | default(false) | bool
 
