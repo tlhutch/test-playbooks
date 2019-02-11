@@ -33,3 +33,4 @@ This will involve creating a credential to access the secret manager, and defini
   * [ ] RBAC
     * [ ] A user granted access to a credential that uses the SM credential can use it in a job template without access to the SM credential
     * [ ] A user with admin access on a credential cannot change it if they don't have access to the SM credential
+* [ ] [UI Testplan](https://docs.google.com/document/d/1Np7akJ4FEmr5iZA52eRw9KoySM-602wN_K8NCi9OZRQ/edit)
