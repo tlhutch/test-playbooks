@@ -1,0 +1,22 @@
+---
+create_ec2_assign_public_ip: true
+create_ec2_vpc_id: vpc-552da032
+create_ec2_vpc_subnet_id: subnet-9cdddbb0
+
+ec2_images:
+    - id: ami-9887c6e7
+      name: centos-7.latest-x86_64
+      user: centos
+      groups: test-runner
+      type: m5.large
+      security_group: Tower-TestRunner
+
+ec2_security_groups:
+    - name: Tower-TestRunner
+      description: Security group for Tower-TestRunner instances
+      rules:
+        - proto: tcp
+          from_port: 22
+          to_port: 22
+          cidr_ip: 0.0.0.0/0
+          cidr_ipv6: ::/0

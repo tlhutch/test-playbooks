@@ -60,13 +60,23 @@ function setup_env_based_on_deployment_scenario {
            PLAYBOOK=playbooks/deploy-tower.yml
            INVENTORY=playbooks/inventory.log
            IMAGE_VARS=playbooks/images-ec2.yml
+           VARS_FILE=playbooks/vars.yml
            ;;
        cluster)
            PLAYBOOK=playbooks/deploy-tower-cluster.yml
            INVENTORY=playbooks/inventory.cluster
            IMAGE_VARS=playbooks/images-isolated-groups.yml
+           VARS_FILE=playbooks/vars.yml
            export CLUSTER_SETUP=true
            export AWX_APPLY_ISOLATED_GROUPS_FW_RULES=false
+           ;;
+       test_runner)
+           PLAYBOOK=playbooks/deploy-tower-cluster.yml
+           INVENTORY=playbooks/inventory.test_runner
+           VARS_FILE=playbooks/test_runner_vars.yml
+           IMAGE_VARS=playbooks/images-test-runner.yml
+           INSTANCE_NAME_PREFIX=test-runner-${INSTANCE_NAME_PREFIX}
+           PLATFORM=centos-7.latest-x86_64
            ;;
        *)
            (>&2 echo "\"${scenario}\" is not a supported scenario. Supported scenarios: standalone, cluster.")
@@ -195,4 +205,12 @@ function setup_python3_env {
 
     # Ensure pip is updated
     pip install -U pip
+}
+
+function retrieve_value_from_vars_file {
+
+    FILE=$1
+    KEY=$2
+
+    grep "${KEY}" "${FILE}" | cut -d' ' -f2
 }

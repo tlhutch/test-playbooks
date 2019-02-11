@@ -1,0 +1,7 @@
+---
+- hosts: test-runner
+  tasks:
+    - name: Run Verifying Data
+      command: ./tools/jenkins/scripts/verify.sh
+      args:
+        chdir: ~/tower-qa

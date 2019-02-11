@@ -1,0 +1,7 @@
+---
+- hosts: test-runner
+  tasks:
+    - name: Run Loading Data
+      command: ./tools/jenkins/scripts/load.sh
+      args:
+        chdir: ~/tower-qa

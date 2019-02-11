@@ -1,0 +1,7 @@
+---
+- hosts: test-runner
+  tasks:
+    - name: Run Installer
+      command: ./tools/jenkins/scripts/install.sh
+      args:
+        chdir: ~/tower-qa

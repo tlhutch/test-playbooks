@@ -1,0 +1,7 @@
+---
+- hosts: test-runner
+  tasks:
+    - name: Run Integration Tests
+      command: ./tools/jenkins/scripts/test.sh
+      args:
+        chdir: ~/tower-qa

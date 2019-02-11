@@ -1,0 +1,7 @@
+---
+- hosts: test-runner
+  tasks:
+    - name: Run Backuping Data
+      command: ./tools/jenkins/scripts/backup.sh
+      args:
+        chdir: ~/tower-qa

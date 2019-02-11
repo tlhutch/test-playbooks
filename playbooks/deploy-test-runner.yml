@@ -1,0 +1,22 @@
+---
+- name: Deploy cloud hosts
+  hosts: local
+  tasks:
+    - include_role:
+        name: create_ec2
+
+    - include_role:
+        name: save_inventory
+      vars:
+        my_inventory_file: '{{inventory_dir}}/inventory.test_runner'
+
+- name: "Configure test-runner"
+  hosts: test-runner
+  tasks:
+    - name: Add authorized keys
+      include_role:
+        name: auth_keys
+
+    - name: Configure test-runner
+      include_role:
+        name: test_runner

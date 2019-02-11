@@ -1,0 +1,60 @@
+---
+- name: Disable selinux
+  become: True
+  selinux:
+    state: disabled
+
+- name: Reboot
+  become: True
+  reboot:
+
+- name: Copy public key over test-runner server
+  copy:
+    src: ~/.ssh/id_rsa.pub
+    dest: ~/.ssh
+
+- name: Install required repositories
+  become: true
+  package:
+    name:
+      - epel-release
+      - https://centos7.iuscommunity.org/ius-release.rpm
+
+- name: Install required packages
+  become: true
+  package:
+    name:
+      - git
+      - gcc
+      - python36u
+      - python36u-libs
+      - python36u-devel
+      - python36u-pip
+      - ansible
+
+- name: Create python3 symlink
+  become: true
+  file:
+    src: '{{ item.src }}'
+    dest: '{{ item.dest }}'
+    state: link
+  with_items:
+    - {src: '/usr/bin/python3.6', dest: '/usr/bin/python3'}
+    - {src: '/usr/bin/pip3.6', dest: '/usr/bin/pip'}
+
+- name: Retrieve proper reference to ansible/tower-qa
+  git:
+    repo: git@github.com:ansible/tower-qa
+    version: spredzy_test_runner_final
+    dest: tower-qa
+    ssh_opts: -o StrictHostKeyChecking=no
+
+- name: Copy file to test-runner
+  copy:
+    src: '{{ item.src }}'
+    dest: '{{ item.dest }}'
+  ignore_errors: yes
+  with_items:
+    - {src: "{{ lookup('env', 'PWD') }}/playbooks/vars.yml", dest: '~/tower-qa/playbooks'}
+    - {src: "{{ lookup('env', 'PWD') }}/config/credentials.yml", dest: '~/tower-qa/config'}
+    - {src: "{{ lookup('env', 'PWD') }}/config/credentials-pkcs8.yml", dest: '~/tower-qa/config'}
