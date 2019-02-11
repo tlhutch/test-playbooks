@@ -47,7 +47,7 @@ pipeline {
             steps {
                 script {
                     def tasks = [:]
-                    def oses = ['rhel-7.4-x86_64', 'rhel-7.5-x86_64', 'rhel-7.6-x86_64', 'centos-7.latest-x86_64', 'ol-7.5-x86_64']
+                    def oses = ['rhel-7.4-x86_64', 'rhel-7.5-x86_64', 'rhel-7.6-x86_64', 'centos-7.latest-x86_64', 'ol-7.6-x86_64']
 
                     for (int i=0;i<oses.size(); i++) {
                          def os = oses[i]
