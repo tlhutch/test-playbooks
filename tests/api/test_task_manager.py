@@ -162,7 +162,7 @@ def confirm_unified_jobs(jobs, check_sequential=True, check_order=True):
 
 def check_chain_canceled_job_explanation(canceled_job, chain_canceled_jobs):
     for chain_job in chain_canceled_jobs:
-        assert chain_job.job_explanation.startswith(u'Previous Task Canceled:'), \
+        assert chain_job.job_explanation.startswith('Previous Task Canceled:'), \
             "Unexpected job_explanation: %s." % chain_job.job_explanation
         try:
             job_explanation = json.loads(chain_job.job_explanation[24:])
@@ -709,8 +709,8 @@ class Test_Cascade_Fail_Dependent_Jobs(APITest):
         # identify the sequence of the inventory updates and navigate to cancel_pg
         second_first = update_1_started > update_2_started
         update_page = update_2 if second_first else update_1
-        assert update_page.related.cancel.get().can_cancel, utils.to_str(
-            u"Inventory update is not cancelable, it may have already completed - {}.".format(update_page.get()))
+        assert update_page.related.cancel.get().can_cancel, \
+            "Inventory update is not cancelable, it may have already completed - {}.".format(update_page.get())
         inv_1_pgs = update_1, sources[0]
         inv_2_pgs = update_2, sources[1]
         first_inv_update_pg, first_inv_source_pg = inv_2_pgs if second_first else inv_1_pgs

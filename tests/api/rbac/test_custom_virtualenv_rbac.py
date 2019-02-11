@@ -4,15 +4,15 @@ import pytest
 
 from tests.api import APITest
 
+RESOURCES_WITH_VENV = ('v2_job_template', 'v2_project', 'v2_organization')
+
 
 @pytest.mark.api
 @pytest.mark.rbac
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited', 'skip_if_cluster')
 class TestCustomVirtualenvRBAC(APITest):
 
-    resources_with_venv = ('v2_job_template', 'v2_project', 'v2_organization')
-
-    @pytest.mark.parametrize('resource_name', resources_with_venv)
+    @pytest.mark.parametrize('resource_name', RESOURCES_WITH_VENV)
     def test_org_admin_can_set_venv_on_org_resources(self, factories, resource_name, create_venv, venv_path, org_admin):
         org = org_admin.related.organizations.get().results.pop()
         other_org = factories.v2_organization()
@@ -46,7 +46,7 @@ class TestCustomVirtualenvRBAC(APITest):
                     other_resource.put(json)
             assert other_resource.get().custom_virtualenv == original_venv
 
-    @pytest.mark.parametrize('agent,resource_name', [(a, r) for a in ('user', 'team') for r in resources_with_venv
+    @pytest.mark.parametrize('agent,resource_name', [(a, r) for a in ('user', 'team') for r in RESOURCES_WITH_VENV
                                                      if not (a == 'team' and 'organization' in r)])
     def test_admin_role_can_set_venv_on_resource(self, factories, resource_name, agent, create_venv, venv_path,
                                                  set_test_roles):
@@ -62,7 +62,7 @@ class TestCustomVirtualenvRBAC(APITest):
                 resource.custom_virtualenv = venv_path(folder_name)
                 resource.put(json)
 
-    @pytest.mark.parametrize('agent,resource_name', [(a, r) for a in ('user', 'team') for r in resources_with_venv
+    @pytest.mark.parametrize('agent,resource_name', [(a, r) for a in ('user', 'team') for r in RESOURCES_WITH_VENV
                                                      if not (a == 'team' and 'organization' in r)])
     def test_non_admin_roles_cannot_set_venv_on_resource(self, factories, resource_name, agent, create_venv, venv_path,
                                                          set_test_roles):
@@ -89,7 +89,7 @@ class TestCustomVirtualenvRBAC(APITest):
                 set_test_roles(user, resource, agent, role, disassociate=True)
 
     @pytest.mark.parametrize('user_type', ['org_user', 'anonymous_user', 'system_auditor'])
-    @pytest.mark.parametrize('resource_name', resources_with_venv)
+    @pytest.mark.parametrize('resource_name', RESOURCES_WITH_VENV)
     def test_non_superuser_and_non_org_admin_roles_cannot_set_venv_on_resource(self, request, factories, resource_name,
                                                                                user_type, create_venv, venv_path):
         user = request.getfixturevalue(user_type)

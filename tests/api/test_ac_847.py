@@ -913,18 +913,17 @@ EOF""".format(json.dumps(inventory_dict, indent=4)))
         # Verify the import completed in a timely manner
         # Asserting the time is kind of hard.  It depends on the type of system used to test (CPU+Mem)
         assert seconds <= 60.0
-        print "Import took %s seconds" % seconds
+        print("Import took %s seconds" % seconds)
 
         # Verify the import created the expected groups
         imported_groups = inventory.get_related('groups').count
         expected_groups = len(inventory_dict.keys())
         assert expected_groups == imported_groups
-        print "Number of groups imported: %s" % imported_groups
+        print("Number of groups imported: %s" % imported_groups)
 
         # Count the number of unique hosts in the all groups
-        # host_count = len({host:None for hosts in inventory_dict.values() for host in hosts })
-        host_count = len(dict((host, None) for hosts in inventory_dict.values() for host in hosts))
+        host_count = len({host for hosts in inventory_dict.values() for host in hosts})
         # Count the number of hosts imported
         inv_hosts = inventory.get_related('hosts').count
         assert inv_hosts == host_count
-        print "Number of hosts imported: %s" % inv_hosts
+        print("Number of hosts imported: %s" % inv_hosts)

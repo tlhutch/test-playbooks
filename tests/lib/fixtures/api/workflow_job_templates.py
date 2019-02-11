@@ -16,12 +16,12 @@ def workflow_job_template_with_extra_vars(request):
 @pytest.fixture
 def workflow_job_template_with_json_vars(factories):
     """WFJT with a set of JSON extra_vars."""
-    return factories.workflow_job_template(description=u"WFJT with extra_vars - {0}.".format(fauxfactory.gen_utf8()),
+    return factories.workflow_job_template(description="WFJT with extra_vars - {0}.".format(fauxfactory.gen_utf8()),
                                            extra_vars='{"wfjt_var": 1.0, "intersection": "wfjt"}')
 
 
 @pytest.fixture
 def workflow_job_template_with_yaml_vars(factories):
     """WFJT with a set of YAML extra_vars."""
-    return factories.workflow_job_template(description=u"WFJT with extra_vars - {0}.".format(fauxfactory.gen_utf8()),
+    return factories.workflow_job_template(description="WFJT with extra_vars - {0}.".format(fauxfactory.gen_utf8()),
                                            extra_vars="---\nwfjt_var: 1.0\nintersection: wfjt")

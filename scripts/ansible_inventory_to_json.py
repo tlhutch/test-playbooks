@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-
 # Needs to be updated to return ansible_host values
 # See https://github.com/ansible/tower-qa/issues/2481 for details
 
@@ -24,7 +23,7 @@ args = parser.parse_args()
 group_map = dict()
 
 # Get group names
-file = open(args.inventory_file, 'r')
+file = open(args.inventory_file, mode='r', encoding='utf-8')
 for line in file:
     match = re.search(r'\[(.*)\]', line)
     if not match or 'vars' in match.group(1):
@@ -35,7 +34,7 @@ for line in file:
     group_map[section] = []
 
     # Get hosts
-    output = subprocess.check_output(['ansible', '-i', args.inventory_file, '--list-hosts', section])
+    output = subprocess.check_output(['ansible', '-i', args.inventory_file, '--list-hosts', section], encoding='utf-8')
     for line in output.split('\n'):
         line = line.strip()
         if len(line) and not any(expr in line for expr in discard_host_strings):

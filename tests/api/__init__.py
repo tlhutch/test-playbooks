@@ -1,4 +1,4 @@
-from StringIO import StringIO
+from io import StringIO
 import logging
 import re
 
@@ -15,9 +15,9 @@ error_pattern = re.compile(r'SchemaValidationError\:.*\n')
 class APITest(object):
     """Base class"""
 
-    @classmethod
-    def setup_class(cls):
-        cls.connections = pytest.config.pluginmanager.getplugin('plugins.pytest_restqa.plugin').connections
+    @pytest.fixture(autouse=True)
+    def access_connections(self, request):
+        setattr(self, 'connections', request.config.pluginmanager.getplugin('plugins.pytest_restqa.plugin').connections)
 
     @pytest.fixture(autouse=True)
     def attach_stream_handler_and_validate_schema_on_teardown(self, request):

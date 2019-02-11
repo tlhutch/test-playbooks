@@ -1,7 +1,7 @@
 from collections import namedtuple
 
 import pytest
-import httplib
+import http.client
 
 import towerkit.exceptions
 from tests.lib.helpers.rbac_utils import (
@@ -99,7 +99,7 @@ class Test_Organization_RBAC(APITest):
             check_read_access(organization, unprivileged=True)
 
             # check put/patch/delete
-            assert_response_raised(organization, httplib.FORBIDDEN)
+            assert_response_raised(organization, http.client.FORBIDDEN)
 
     def test_auditor_role(self, factories):
         """A user with organization 'auditor' should be able to:
@@ -119,7 +119,7 @@ class Test_Organization_RBAC(APITest):
             check_read_access(organization)
 
             # check put/patch/delete
-            assert_response_raised(organization, httplib.FORBIDDEN)
+            assert_response_raised(organization, http.client.FORBIDDEN)
 
     def test_admin_role(self, factories):
         """A user with organization 'admin' should be able to:
@@ -138,7 +138,7 @@ class Test_Organization_RBAC(APITest):
             check_read_access(organization)
 
             # check put/patch/delete
-            assert_response_raised(organization, httplib.OK)
+            assert_response_raised(organization, http.client.OK)
 
     def test_member_role(self, factories):
         """A user with organization 'member' should be able to:
@@ -158,7 +158,7 @@ class Test_Organization_RBAC(APITest):
             check_read_access(organization)
 
             # check put/patch/delete
-            assert_response_raised(organization, httplib.FORBIDDEN)
+            assert_response_raised(organization, http.client.FORBIDDEN)
 
     def test_read_role(self, factories):
         """A user with organization 'read' should be able to:
@@ -178,7 +178,7 @@ class Test_Organization_RBAC(APITest):
             check_read_access(organization)
 
             # check put/patch/delete
-            assert_response_raised(organization, httplib.FORBIDDEN)
+            assert_response_raised(organization, http.client.FORBIDDEN)
 
     @pytest.mark.parametrize('role', ['admin', 'auditor', 'member', 'read'])
     def test_user_capabilities(self, factories, api_organizations_pg, role):
@@ -436,7 +436,7 @@ class Test_Organization_RBAC(APITest):
         resource = self.create_resource(factories, resource_mapping.resource_type, org)
 
         with self.current_user(resource_admin):
-            assert_response_raised(resource, httplib.OK)
+            assert_response_raised(resource, http.client.OK)
 
     @pytest.mark.parametrize('resource_mapping',
                              [m for m in org_resource_admin_mappings
@@ -492,7 +492,7 @@ class Test_Organization_RBAC(APITest):
                 # Skip notification_templates because they do not have object-level permissions
                 with pytest.raises(towerkit.exceptions.Forbidden):
                     resource.set_object_roles(user, 'admin')
-            assert_response_raised(resource, httplib.FORBIDDEN)
+            assert_response_raised(resource, http.client.FORBIDDEN)
 
     @pytest.mark.parametrize('resource_mapping',
                              org_resource_admin_mappings,
@@ -514,7 +514,7 @@ class Test_Organization_RBAC(APITest):
                 # Skip notification_templates because they do not have object-level permissions
                 with pytest.raises(towerkit.exceptions.Forbidden):
                     resource.set_object_roles(user, 'admin')
-            assert_response_raised(resource, httplib.FORBIDDEN)
+            assert_response_raised(resource, http.client.FORBIDDEN)
 
     def test_workflow_admins_cannot_add_templates_to_workflows_without_permission(self, factories):
         org = factories.v2_organization()

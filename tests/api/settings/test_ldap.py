@@ -73,7 +73,7 @@ class TestLDAP(APITest):
         [clean_user_orgs_and_teams(v2.users.get(username=u).results.pop()) for u in superusers]
 
     def test_ldap_organization_creation_and_user_sourcing(self, v2, update_setting_pg, clean_user_orgs_and_teams):
-        org_name = u'LDAP_Organization_{}'.format(random_title())
+        org_name = 'LDAP_Organization_{}'.format(random_title())
         ldap_settings = deepcopy(self.base_ldap_settings)
         ldap_settings['AUTH_LDAP_ORGANIZATION_MAP'] = {
             org_name: dict(admins='cn=bobsburgers_admins,cn=groups,cn=accounts,dc=testing,dc=ansible,dc=com',
@@ -95,8 +95,8 @@ class TestLDAP(APITest):
         assert admins.results.pop().id == linda.id
 
     def test_ldap_team_creation_and_user_sourcing(self, v2, update_setting_pg, clean_user_orgs_and_teams):
-        org_name = u'Bobs Burgers {}'.format(random_title())
-        team_name = u'Bobs Burgers Admin Club {}'.format(random_title())
+        org_name = 'Bobs Burgers {}'.format(random_title())
+        team_name = 'Bobs Burgers Admin Club {}'.format(random_title())
         ldap_settings = deepcopy(self.base_ldap_settings)
         ldap_settings['AUTH_LDAP_ORGANIZATION_MAP'] = {
             org_name: dict(admins='cn=bobsburgers_admins,cn=groups,cn=accounts,dc=testing,dc=ansible,dc=com',

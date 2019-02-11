@@ -28,7 +28,7 @@ def cleanup_jobs(request, cleanup_jobs_template):
     payload = dict()
 
     # optionally override days
-    fixture_args = getattr(request.function, 'fixture_args', None)
+    fixture_args = request.node.get_closest_marker('fixture_args')
     if fixture_args and fixture_args.kwargs.get('days', False):
         payload.update(extra_vars=dict(days=fixture_args.kwargs['days']))
 
@@ -45,7 +45,7 @@ def cleanup_activitystream(request, cleanup_activitystream_template):
     payload = dict()
 
     # optionally override days
-    fixture_args = getattr(request.function, 'fixture_args', None)
+    fixture_args = request.node.get_closest_marker('fixture_args')
     if fixture_args and fixture_args.kwargs.get('days', False):
         payload.update(extra_vars=dict(days=fixture_args.kwargs['days']))
 

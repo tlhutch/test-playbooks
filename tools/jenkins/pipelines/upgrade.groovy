@@ -109,7 +109,7 @@ Bundle?: ${params.BUNDLE}"""
                     sshagent(credentials : ['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
                         sh 'mkdir -p ~/.ssh && cp ${PUBLIC_KEY} ~/.ssh/id_rsa.pub'
                         sh 'pip install -U pip setuptools ansible'
-                        sh 'pip install -I -r requirements.txt'
+                        sh 'pip install -Ur requirements.txt'
                         sh 'ansible-vault decrypt --vault-password-file="${VAULT_FILE}" config/credentials.vault --output=config/credentials.yml'
                         sh 'ansible-vault decrypt --vault-password-file="${VAULT_FILE}" config/credentials-pkcs8.vault --output=config/credentials-pkcs8.yml || true'
                     }

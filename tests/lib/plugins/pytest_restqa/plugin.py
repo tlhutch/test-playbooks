@@ -1,4 +1,4 @@
-import httplib
+import http.client
 import logging
 import sys
 
@@ -78,15 +78,15 @@ def pytest_configure(config):
         if config.option.base_url:
             try:
                 r = requests.get(config.option.base_url, verify=False, timeout=5)
-            except (requests.exceptions.Timeout, requests.exceptions.ConnectionError), e:
+            except (requests.exceptions.Timeout, requests.exceptions.ConnectionError) as e:
                 errstr = "Unable to connect to %s, %s" % (config.option.base_url, e)
                 py.test.fail(msg=errstr)
                 # I'm unclear why the following does not emit the error to stdout
                 # py.test.exit(errstr)
 
-            assert r.status_code == httplib.OK, \
+            assert r.status_code == http.client.OK, \
                 "Base URL did not return status code %s. (URL: %s, Response: %s)" % \
-                (httplib.OK, config.option.base_url, r.status_code)
+                (http.client.OK, config.option.base_url, r.status_code)
 
             qe_config.base_url = config.option.base_url
 

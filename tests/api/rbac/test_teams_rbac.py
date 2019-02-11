@@ -1,5 +1,5 @@
 import pytest
-import httplib
+import http.client
 
 import towerkit.exceptions
 from tests.lib.helpers.rbac_utils import (
@@ -30,7 +30,7 @@ class Test_Team_RBAC(APITest):
             check_read_access(team, unprivileged=True)
 
             # check put/patch/delete
-            assert_response_raised(team, httplib.FORBIDDEN)
+            assert_response_raised(team, http.client.FORBIDDEN)
 
     @pytest.mark.parametrize("agent", ["user", "team"])
     def test_admin_role(self, factories, set_test_roles, agent):
@@ -51,7 +51,7 @@ class Test_Team_RBAC(APITest):
             check_read_access(team, ['organization'])
 
             # check put/patch/delete
-            assert_response_raised(team, httplib.OK)
+            assert_response_raised(team, http.client.OK)
 
     @pytest.mark.parametrize("agent", ["user", "team"])
     def test_member_role(self, factories, set_test_roles, agent):
@@ -73,7 +73,7 @@ class Test_Team_RBAC(APITest):
             check_read_access(team, ['organization'])
 
             # check put/patch/delete
-            assert_response_raised(team, httplib.FORBIDDEN)
+            assert_response_raised(team, http.client.FORBIDDEN)
 
     @pytest.mark.parametrize("agent", ["user", "team"])
     def test_read_role(self, factories, set_test_roles, agent):
@@ -95,7 +95,7 @@ class Test_Team_RBAC(APITest):
             check_read_access(team, ['organization'])
 
             # check put/patch/delete
-            assert_response_raised(team, httplib.FORBIDDEN)
+            assert_response_raised(team, http.client.FORBIDDEN)
 
     @pytest.mark.parametrize('role', ['admin', 'member', 'read'])
     def test_user_capabilities(self, factories, api_teams_pg, role):

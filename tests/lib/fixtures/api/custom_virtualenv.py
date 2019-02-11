@@ -29,7 +29,7 @@ def _run_create_venv_playbook(folder_name=None, limit='tower', packages='python-
         extra_vars['venv_base'] = '/venv'
     if use_python is not None:
         extra_vars['remote_python'] = use_python
-    cmd = (u"""ansible-playbook -v -i {} -l {} {} playbooks/create_custom_virtualenv.yml"""
+    cmd = ("""ansible-playbook -v -i {} -l {} {} playbooks/create_custom_virtualenv.yml"""
            .format(inv_path, limit, format_ev(extra_vars)))
     rc = subprocess.call(cmd, shell=True)
     assert rc == 0, "Received non-zero response code from '{}'".format(cmd)
@@ -45,7 +45,7 @@ def _run_teardown_venv_playbook(folder_name=None, limit='tower', use_python=None
         if docker:
             extra_vars['ansible_user'] = 0
             extra_vars['venv_base'] = '/venv'
-        cmd = (u"ansible-playbook -i {} -l {} {} "
+        cmd = ("ansible-playbook -i {} -l {} {} "
                "playbooks/create_custom_virtualenv.yml"
                .format(inv_path, limit, format_ev(extra_vars)))
         rc = subprocess.call(cmd, shell=True)

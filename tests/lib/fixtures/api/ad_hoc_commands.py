@@ -4,7 +4,7 @@ import pytest
 @pytest.fixture(scope="function")
 def ad_hoc_command(request, factories, host, ssh_credential):
     kwargs = dict(inventory=host.ds.inventory, credential=ssh_credential)
-    fixture_args = getattr(request.function, 'fixture_args', None)
+    fixture_args = request.node.get_closest_marker('fixture_args')
     if fixture_args:
         for key in ('module_name', 'module_args', 'job_type'):
             if key in fixture_args.kwargs:

@@ -4,7 +4,7 @@ import sys
 
 from towerkit import api
 
-from benchmarking import delete_all_created, no_op, write_results  # noqa
+from .benchmarking import delete_all_created, no_op, write_results  # noqa
 
 
 logging.basicConfig(level='DEBUG')

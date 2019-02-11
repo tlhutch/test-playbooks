@@ -114,7 +114,7 @@ class TestGeneralSettings(APITest):
         update_setting_pg(api_settings_jobs_pg, payload)
 
         # assess options choices
-        assert ad_hoc_module_name_choices() == [[u'shell', u'shell']], \
+        assert ad_hoc_module_name_choices() == [['shell', 'shell']], \
             "Ad hoc command OPTIONS not updated for updated AD_HOC_COMMANDS."
 
         # create payload
@@ -178,7 +178,7 @@ class TestGeneralSettings(APITest):
         result = exc_info.value[1]
 
         # assess result
-        assert result == {u'module_name': [u'"ping" is not a valid choice.']}, \
+        assert result == {'module_name': ['"ping" is not a valid choice.']}, \
             "Unexpected response when relaunching ad hoc command whose module " \
             "has been removed from AD_HOC_COMMANDS: %s." % json.dumps(result)
 
@@ -583,7 +583,7 @@ class TestGeneralSettings(APITest):
         log.debug("Installing enterprise license for test_system_license.")
         license_info = generate_license(
             days=365,
-            instance_count=sys.maxint,
+            instance_count=sys.maxsize,
             license_type='enterprise')
         api_config_pg.post(license_info)
         del license_info['eula_accepted']
@@ -609,14 +609,14 @@ class TestGeneralSettings(APITest):
         """
         payload = modify_settings()
         settings_changed = api_settings_changed_pg.get()
-        optional_read_only_fields = [u'AWX_ISOLATED_PRIVATE_KEY', 'AWX_ISOLATED_PUBLIC_KEY']
+        optional_read_only_fields = ['AWX_ISOLATED_PRIVATE_KEY', 'AWX_ISOLATED_PUBLIC_KEY']
 
         # check that all of our updated settings are present under /api/v1/settings/changed/
         assert all([item in settings_changed.json.items() for item in payload.items()]), \
             "Not all changed entries listed under /api/v1/settings/changed/."
         # check for two additional entries under /api/v1/settings/changed/
         assert set(settings_changed.json.keys()) - set(payload.keys()) - set(optional_read_only_fields) == \
-            set([u'TOWER_URL_BASE', u'LICENSE']), "Unexpected additional items listed under /api/v1/settings/changed/."
+            set(['TOWER_URL_BASE', 'LICENSE']), "Unexpected additional items listed under /api/v1/settings/changed/."
 
     def test_setting_obfuscation(self, api_settings_pg, modify_obfuscated_settings):
         """Verifies that sensitive setting values get obfuscated."""
@@ -677,7 +677,7 @@ class TestGeneralSettings(APITest):
         job.assert_successful()
 
         assert job.job_env.SOME_TEST_ENV_VAR == desired_val
-        debug_event = job.related.job_events.get(task='debug', host=host.id).results[0]
+        debug_event = job.related.job_events.get(task='debug', host=host.id, event__startswith='runner_on_ok').results[0]
         assert debug_event.event_data.res.ansible_env.SOME_TEST_ENV_VAR == desired_val
 
         project_update = jt.ds.project.related.project_updates.get().results[0]

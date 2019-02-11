@@ -6,20 +6,20 @@ import yaml
 
 # Allow for folded/literal yaml blocks (see
 # http://stackoverflow.com/questions/6432605/any-yaml-libraries-in-python-that-support-dumping-of-long-strings-as-block-liter)
-class folded(unicode):
+class folded(str):
     pass
 
 
 def folded_representer(dumper, data):
-    return dumper.represent_scalar(u'tag:yaml.org,2002:str', data, style='>')
+    return dumper.represent_scalar('tag:yaml.org,2002:str', data, style='>')
 
 
-class literal(unicode):
+class literal(str):
     pass
 
 
 def literal_representer(dumper, data):
-    return dumper.represent_scalar(u'tag:yaml.org,2002:str', data, style='|')
+    return dumper.represent_scalar('tag:yaml.org,2002:str', data, style='|')
 
 
 yaml.add_representer(folded, folded_representer)
@@ -31,7 +31,7 @@ yaml.add_representer(literal, literal_representer)
 if __name__ == '__main__':
 
     if len(sys.argv) != 3:
-        print "usage: %s <template> <output_file>" % sys.argv[0]
+        print("usage: %s <template> <output_file>" % sys.argv[0])
         sys.exit(1)
 
     # FIXME - support optparser parameters
@@ -60,7 +60,7 @@ if __name__ == '__main__':
         os.environ["AZURE_CLASSIC_KEY_DATA"] = os.path.expandvars("$HOME/.ssh/id_rsa.azure_classic.pem")
 
     # Import credentials.template
-    cfg = yaml.load(open(credentials_template, 'r'))
+    cfg = yaml.load(open(credentials_template, mode='r', encoding='utf-8'))
 
     # Set default admin password
     cfg['default']['password'] = os.environ.get("AWX_ADMIN_PASSWORD", "")
@@ -73,11 +73,11 @@ if __name__ == '__main__':
     # Set gce info
     cfg['cloud']['gce']['username'] = os.environ.get("GCE_USERNAME", "")
     cfg['cloud']['gce']['project'] = os.environ.get("GCE_PROJECT", "")
-    cfg['cloud']['gce']['ssh_key_data'] = literal(open(os.environ["GCE_KEY_DATA"], 'r').read())
+    cfg['cloud']['gce']['ssh_key_data'] = literal(open(os.environ["GCE_KEY_DATA"], mode='r', encoding='utf-8').read())
 
     # Set azure classic info
     cfg['cloud']['azure_classic']['username'] = os.environ.get("AZURE_CLASSIC_USERNAME", "")
-    cfg['cloud']['azure_classic']['ssh_key_data'] = literal(open(os.environ["AZURE_CLASSIC_KEY_DATA"], 'r').read())
+    cfg['cloud']['azure_classic']['ssh_key_data'] = literal(open(os.environ["AZURE_CLASSIC_KEY_DATA"], mode='r', encoding='utf-8').read())
 
     # Set azure info
     cfg['cloud']['azure']['subscription_id'] = os.environ.get("AZURE_SUBSCRIPTION_ID", "")
@@ -116,14 +116,14 @@ if __name__ == '__main__':
 
     # Set SCM info
     cfg['scm']['password'] = os.environ.get("SCM_PASSWORD", "")
-    cfg['scm']['ssh_key_data'] = literal(open(os.environ["SCM_KEY_DATA"], 'r').read())
-    cfg['scm']['encrypted']['ssh_key_data'] = literal(open(os.environ["SCM_KEY_DATA_ENCRYPTED"], 'r').read())
+    cfg['scm']['ssh_key_data'] = literal(open(os.environ["SCM_KEY_DATA"], mode='r', encoding='utf-8').read())
+    cfg['scm']['encrypted']['ssh_key_data'] = literal(open(os.environ["SCM_KEY_DATA_ENCRYPTED"], mode='r', encoding='utf-8').read())
     cfg['scm']['encrypted']['ssh_key_unlock'] = os.environ.get("SCM_KEY_UNLOCK", "")
 
     # Set SSH info
     cfg['ssh']['password'] = os.environ.get("SSH_PASSWORD", "")
-    cfg['ssh']['ssh_key_data'] = literal(open(os.environ["SSH_KEY_DATA"], 'r').read())
-    cfg['ssh']['encrypted']['ssh_key_data'] = literal(open(os.environ["SSH_KEY_DATA_ENCRYPTED"], 'r').read())
+    cfg['ssh']['ssh_key_data'] = literal(open(os.environ["SSH_KEY_DATA"], mode='r', encoding='utf-8').read())
+    cfg['ssh']['encrypted']['ssh_key_data'] = literal(open(os.environ["SSH_KEY_DATA_ENCRYPTED"], mode='r', encoding='utf-8').read())
     cfg['ssh']['encrypted']['ssh_key_unlock'] = os.environ.get("SSH_KEY_UNLOCK", "")
     cfg['ssh']['vault_password'] = os.environ.get("VAULT_PASSWORD", "")
     cfg['ssh']['sudo_username'] = os.environ.get("SUDO_USERNAME", "")
@@ -136,7 +136,7 @@ if __name__ == '__main__':
     # Set network info
     cfg['network']['password'] = os.environ.get("NET_PASSWORD", "")
     cfg['network']['authorize'] = os.environ.get("NET_AUTHORIZE", "")
-    cfg['network']['ssh_key_data'] = literal(open(os.environ["NET_KEY_DATA"], 'r').read())
+    cfg['network']['ssh_key_data'] = literal(open(os.environ["NET_KEY_DATA"], mode='r', encoding='utf-8').read())
 
     # Set github info
     cfg['github']['username'] = os.environ.get("GITHUB_USERNAME", "")
@@ -197,4 +197,4 @@ if __name__ == '__main__':
     cfg['notification_services']['webhook']['gce_body_field'] = os.environ.get("WEBHOOK_BODY_FIELD", "")
     cfg['notification_services']['webhook']['gce_headers_field'] = os.environ.get("WEBHOOK_HEADERS_FIELD", "")
 
-    yaml.dump(cfg, open(credentials_file, 'w+'))
+    yaml.dump(cfg, open(credentials_file, mode='w+', encoding='utf-8'))

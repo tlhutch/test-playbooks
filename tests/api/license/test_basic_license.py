@@ -14,7 +14,7 @@ class TestBasicLicense(LicenseTest):
 
     def test_metadata(self, api_config_pg):
         conf = api_config_pg.get()
-        print json.dumps(conf.json, indent=4)
+        print(json.dumps(conf.json, indent=4))
 
         # Assert NOT Demo mode
         assert not conf.is_demo_license
@@ -38,15 +38,15 @@ class TestBasicLicense(LicenseTest):
             "Incorrect license_type returned. Expected 'basic,' " \
             "returned %s." % conf.license_info['license_type']
 
-        default_features = {u'surveys': False,
-                            u'multiple_organizations': False,
-                            u'activity_streams': False,
-                            u'ldap': False,
-                            u'ha': False,
-                            u'system_tracking': False,
-                            u'enterprise_auth': False,
-                            u'rebranding': False,
-                            u'workflows': False}
+        default_features = {'surveys': False,
+                            'multiple_organizations': False,
+                            'activity_streams': False,
+                            'ldap': False,
+                            'ha': False,
+                            'system_tracking': False,
+                            'enterprise_auth': False,
+                            'rebranding': False,
+                            'workflows': False}
 
         # assess default features
         assert conf.license_info['features'] == default_features, \
@@ -86,7 +86,7 @@ class TestBasicLicense(LicenseTest):
         """Verify that GET requests to /api/v1/activity_stream/ raise 402s."""
         exc_info = pytest.raises(exc.PaymentRequired, v1.activity_stream.get)
         result = exc_info.value[1]
-        result == {u'detail': u'Your license does not allow use of the activity stream.'}, (
+        result == {'detail': 'Your license does not allow use of the activity stream.'}, (
             "Unexpected API response when issuing a GET to /api/v1/activity_stream/ with a basic license - %s."
             % json.dumps(result))
 
@@ -95,7 +95,7 @@ class TestBasicLicense(LicenseTest):
         exc_info = pytest.raises(exc.PaymentRequired, host_local.get_related, 'fact_versions')
         result = exc_info.value[1]
 
-        assert result == {u'detail': u'Your license does not permit use of system tracking.'}, (
+        assert result == {'detail': 'Your license does not permit use of system tracking.'}, (
             "Unexpected JSON response upon attempting to navigate to fact_versions with a basic license - %s."
             % json.dumps(result))
 
@@ -141,7 +141,7 @@ class TestBasicLicense(LicenseTest):
                                        credential=credential)
         with pytest.raises(exc.PaymentRequired) as e:
             jt.job_slice_count = 2
-        assert e.value.msg == {u'job_slice_count': [u'Job slicing is a workflows-based feature and your license does not allow use of workflows.']}
+        assert e.value.msg == {'job_slice_count': ['Job slicing is a workflows-based feature and your license does not allow use of workflows.']}
 
 
 @pytest.mark.api

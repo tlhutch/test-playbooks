@@ -30,13 +30,14 @@ if [[ -e "./run_integration_tests" ]]; then
     cd $WORKSPACE
     mkdir -p ~/.ssh/
     cp $PUBLIC_KEY ~/.ssh/id_rsa.pub
+    if [ "$(grep -s "python3" tox.ini)" ]; then
+    python3 -m venv $PWD/venv
+    source $PWD/venv/bin/activate
+    fi
+    which python
+    python --version
 
-    pip install -U pip setuptools
-    pip install -U setuptools
-    pip install sphinx==1.5.6
-    pip install -U pyrax boto boto3 botocore azure apache-libcloud
-    pip install -U argparse # required by pyrax -> novaclient, but not explicitly listed
-    pip install -U junit-xml
+    pip install -Ur scripts/requirements.install
 
     # Increase ssh timeout
     export ANSIBLE_TIMEOUT=30
@@ -53,25 +54,23 @@ if [[ -e "./run_integration_tests" ]]; then
     ANSIBLE_NIGHTLY_REPO="${ANSIBLE_NIGHTLY_REPO}/${ANSIBLE_NIGHTLY_BRANCH}" \
     python scripts/cloud_vars_from_env.py --cloud-provider ${CLOUD_PROVIDER} --platform ${PLATFORM} > vars.yml
     ansible-playbook -i playbooks/inventory -e @vars.yml playbooks/deploy-tower.yml
-    
-    TOWER_URL=`python scripts/ansible_inventory_to_json.py --inventory playbooks/inventory.log | jq -r .tower\[0\]`
+
+    TOWER_URL=`ansible -i playbooks/inventory.log --list-hosts tower | grep -v -m 1 hosts | xargs`
     TOWER_VERSION=`curl -ks https://${TOWER_URL}/api/v1/ping/ | jq -r .version | cut -d . -f 1-3`
     echo ${TOWER_VERSION}
-    
+
     #
     # Run Tests
     #
-    
-    pip install -U -r requirements.txt
-    
+
     # extract tower hostname
     ANSIBLE_INVENTORY=playbooks/inventory.log
     INVENTORY_GROUP="${PLATFORM}:&${CLOUD_PROVIDER}"
     INVENTORY_HOST=$(ansible -i ${ANSIBLE_INVENTORY} --list-hosts ${INVENTORY_GROUP} | tail -n 1 | awk 'NR==1{print $1}')
-    
+
     # decrypt credentials
     ansible-vault decrypt --vault-password-file="${VAULT_FILE}" config/credentials.vault --output=config/credentials.yml
-    
+
     run_tests_and_generate_html(){
         set +e
     	py.test ${PYTEST_ARGS} \
@@ -81,18 +80,18 @@ if [[ -e "./run_integration_tests" ]]; then
         --base-url="https://${INVENTORY_HOST}" \
         --mp --np 4 \
         tests/api
-        
+
         TEST_STATUS=$?
-    
+
         mkdir -p reports/html
         junit2html reports/junit/results.xml reports/html/index.html
         ansible-playbook -i playbooks/inventory.log -e @vars.yml playbooks/reap-tower-ec2.yml
-    
+
     	set -e
         return $TEST_STATUS
     }
     run_tests_and_generate_html
-    
+
     echo "### DESTROY CLOUD ###"
     bash -e scripts/jenkins_runplay.sh playbooks/destroy.yml | tee destroy.log
 

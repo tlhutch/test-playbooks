@@ -1,5 +1,5 @@
-from urlparse import urlparse
-import httplib
+from urllib.parse import urlparse
+import http.client
 import socket
 import json
 import requests
@@ -26,25 +26,22 @@ class TestJobTemplateCallbacks(APITest):
             max_possible = 128  # arbitrary. raise if needed.
             bytes = max_possible * 32
             s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-            names = array.array('B', '\0' * bytes)
+            names = array.array('B', b'\0' * bytes)
             outbytes = struct.unpack('iL', fcntl.ioctl(
                 s.fileno(),
                 0x8912,  # SIOCGIFCONF
                 struct.pack('iL', bytes, names.buffer_info()[0])
             ))[0]
-            namestr = names.tostring()
+            namestr = names.tobytes()
             lst = []
             for i in range(0, outbytes, 40):
-                name = namestr[i:i + 16].split('\0', 1)[0]
+                name = namestr[i:i + 16].split(b'\0', 1)[0]
                 ip = namestr[i + 20:i + 24]
                 lst.append((name, ip))
             return lst
 
         def format_ip(addr):
-            return str(ord(addr[0])) + '.' + \
-               str(ord(addr[1])) + '.' + \
-               str(ord(addr[2])) + '.' + \
-               str(ord(addr[3]))
+            return '{}.{}.{}.{}'.format(addr[0], addr[1], addr[2], addr[3])
 
         ifs = all_interfaces()
 
@@ -52,11 +49,12 @@ class TestJobTemplateCallbacks(APITest):
         # OpenShift does unexpected routing. When these tests are running from
         # a container in openshift and Tower is running in a container in OpenShift,
         # the requesting host is seen to be the Node.
-        for i in xrange(0, 20):
+        for i in range(0, 20):
             hosts.append('openshift-node-{}.ansible.eng.rdu2.redhat.com'.format(i))
         for i in ifs:
             hosts.append(i[0])
             hosts.append(format_ip(i[1]))
+        hosts = [host.decode() if isinstance(host, bytes) else host for host in hosts]
         return hosts
 
     def get_job_id_from_location_header(self, resp):
@@ -65,9 +63,15 @@ class TestJobTemplateCallbacks(APITest):
     @pytest.fixture
     def job_template_with_host_config_key(self, factories, remote_hosts, host_config_key):
         jt = factories.v2_job_template(host_config_key=host_config_key)
-        map(lambda h: factories.v2_host(inventory=jt.ds.inventory,
-                                        name=h,
-                                        variables=dict(ansible_host=h, ansible_connection='local')), remote_hosts)
+        for h in remote_hosts:
+            factories.v2_host(
+                inventory=jt.ds.inventory,
+                name=h,
+                variables=dict(
+                        ansible_host=h,
+                        ansible_connection='local'
+                        )
+                )
         return jt
 
     def test_assignment_of_host_config_key(self, job_template, host_config_key):
@@ -101,19 +105,19 @@ class TestJobTemplateCallbacks(APITest):
         job_template.host_config_key = host_config_key
 
         contacted = ansible_runner.uri(method="GET",
-                                       status_code=httplib.OK,
+                                       status_code=http.client.OK,
                                        url='{0}{1.related.callback}'.format(callback_host, job_template),
                                        user=config.credentials.users.admin.username,
                                        password=config.credentials.users.admin.password,
                                        force_basic_auth=True,
                                        validate_certs=False)
 
-        result = contacted.values().pop()
-        assert result['status'] == httplib.OK
+        result = list(contacted.values()).pop()
+        assert result['status'] == http.client.OK
         assert not result['changed']
         assert not result.get('failed')
 
-        matching_hosts = contacted.values()[0]['json']['matching_hosts']
+        matching_hosts = list(contacted.values())[0]['json']['matching_hosts']
         assert len(matching_hosts) == 1
         # account for dev container
         desired_hostname = 'local' if 'localhost' in callback_host else host_with_default_ipv4_in_variables.name
@@ -125,14 +129,14 @@ class TestJobTemplateCallbacks(APITest):
         job_template.host_config_key = host_config_key
 
         contacted = ansible_runner.uri(method="POST",
-                                       status_code=httplib.CREATED,
+                                       status_code=http.client.CREATED,
                                        url='{0}{1.related.callback}'.format(callback_host, job_template),
                                        body_format='json',
                                        body=dict(host_config_key=host_config_key),
                                        validate_certs=False)
 
-        result = contacted.values().pop()
-        assert result['status'] == httplib.BAD_REQUEST
+        result = list(contacted.values()).pop()
+        assert result['status'] == http.client.BAD_REQUEST
         assert result.get('failed', True)
         assert result['json']['msg'] == 'No matching host could be found!'
 
@@ -170,15 +174,15 @@ class TestJobTemplateCallbacks(APITest):
         job_template.host_config_key = host_config_key
 
         contacted = ansible_runner.uri(method="POST",
-                                       status_code=httplib.CREATED,
+                                       status_code=http.client.CREATED,
                                        url='{0}{1.related.callback}'.format(callback_host, job_template),
                                        body_format='json',
                                        body=dict(host_config_key=host_config_key),
                                        validate_certs=False)
 
-        result = contacted.values().pop()
+        result = list(contacted.values()).pop()
         assert 'status' in result
-        assert result['status'] == httplib.BAD_REQUEST
+        assert result['status'] == http.client.BAD_REQUEST
         assert result.get('failed', True)
         assert result['json']['msg'] == 'No matching host could be found!'
 
@@ -198,14 +202,14 @@ class TestJobTemplateCallbacks(APITest):
         job_template.host_config_key = host_config_key
 
         contacted = ansible_runner.uri(method="POST",
-                                       status_code=httplib.CREATED,
+                                       status_code=http.client.CREATED,
                                        url='{0}{1.related.callback}'.format(callback_host, job_template),
                                        body_format='json',
                                        body=dict(host_config_key=host_config_key),
                                        validate_certs=False)
 
-        result = contacted.values().pop()
-        assert result['status'] == httplib.BAD_REQUEST
+        result = list(contacted.values()).pop()
+        assert result['status'] == http.client.BAD_REQUEST
         assert result.get('failed', True)
         assert result['json']['msg'] == 'Multiple hosts matched the request!'
 
@@ -216,14 +220,14 @@ class TestJobTemplateCallbacks(APITest):
         job_template.host_config_key = host_config_key
 
         contacted = ansible_runner.uri(method="POST",
-                                       status_code=httplib.CREATED,
+                                       status_code=http.client.CREATED,
                                        url='{0}{1.related.callback}'.format(callback_host, job_template),
                                        body_format='json',
                                        body=dict(host_config_key='BOGUS'),
                                        validate_certs=False)
 
-        result = contacted.values().pop()
-        assert result['status'] == httplib.FORBIDDEN
+        result = list(contacted.values()).pop()
+        assert result['status'] == http.client.FORBIDDEN
         assert result.get('failed', True)
         assert result['json']['detail'] == 'You do not have permission to perform this action.'
 
@@ -235,14 +239,14 @@ class TestJobTemplateCallbacks(APITest):
         job_template.ds.inventory.delete()
 
         contacted = ansible_runner.uri(method="POST",
-                                       status_code=httplib.CREATED,
+                                       status_code=http.client.CREATED,
                                        url='{0}{1.related.callback}'.format(callback_host, job_template),
                                        body_format='json',
                                        body=dict(host_config_key=host_config_key),
                                        validate_certs=False)
 
-        result = contacted.values().pop()
-        assert result['status'] == httplib.BAD_REQUEST
+        result = list(contacted.values()).pop()
+        assert result['status'] == http.client.BAD_REQUEST
         assert result.get('failed', True)
         assert result['json']['msg'] == 'Cannot start automatically, user input required!'
 
@@ -252,14 +256,14 @@ class TestJobTemplateCallbacks(APITest):
         job_template_ask.host_config_key = host_config_key
 
         contacted = ansible_runner.uri(method="POST",
-                                       status_code=httplib.CREATED,
+                                       status_code=http.client.CREATED,
                                        url='{0}{1.related.callback}'.format(callback_host, job_template_ask),
                                        body_format='json',
                                        body=dict(host_config_key=host_config_key),
                                        validate_certs=False)
 
-        result = contacted.values().pop()
-        assert result['status'] == httplib.BAD_REQUEST
+        result = list(contacted.values()).pop()
+        assert result['status'] == http.client.BAD_REQUEST
         assert result.get('failed', True)
         assert result['json']['msg'] == 'Cannot start automatically, user input required!'
 
@@ -271,15 +275,15 @@ class TestJobTemplateCallbacks(APITest):
         job_template_variables_needed_to_start.host_config_key = host_config_key
 
         contacted = ansible_runner.uri(method="POST",
-                                       status_code=httplib.CREATED,
+                                       status_code=http.client.CREATED,
                                        url='{0}{1.related.callback}'.format(callback_host,
                                                                             job_template_variables_needed_to_start),
                                        body_format='json',
                                        body=dict(host_config_key=host_config_key),
                                        validate_certs=False)
 
-        result = contacted.values().pop()
-        assert result['status'] == httplib.BAD_REQUEST
+        result = list(contacted.values()).pop()
+        assert result['status'] == http.client.BAD_REQUEST
         assert result.get('failed', True)
         assert result['json']['msg'] == 'Cannot start automatically, user input required!'
 
@@ -291,7 +295,7 @@ class TestJobTemplateCallbacks(APITest):
         job_template_variables_needed_to_start.host_config_key = host_config_key
 
         contacted = ansible_runner.uri(method="POST",
-                                       status_code=httplib.CREATED,
+                                       status_code=http.client.CREATED,
                                        url='{0}{1.related.callback}'.format(callback_host,
                                                                             job_template_variables_needed_to_start),
                                        body_format='json',
@@ -300,8 +304,8 @@ class TestJobTemplateCallbacks(APITest):
                                                                  favorite_color='red')),
                                        validate_certs=False)
 
-        result = contacted.values().pop()
-        assert result['status'] == httplib.CREATED
+        result = list(contacted.values()).pop()
+        assert result['status'] == http.client.CREATED
         assert not result['changed']
         assert not result.get('failed')
 
@@ -317,13 +321,13 @@ class TestJobTemplateCallbacks(APITest):
         assert job_template.ds.inventory.get_related('hosts').count == 2
         job_template.job_slice_count = 2
 
-        contacted = ansible_runner.uri(method="POST", timeout=90, status_code=httplib.CREATED,
+        contacted = ansible_runner.uri(method="POST", timeout=90, status_code=http.client.CREATED,
                                        url='{0}{1.related.callback}'.format(callback_host, job_template),
                                        body_format='json', validate_certs=False,
                                        body=dict(host_config_key=host_config_key))
 
-        result = contacted.values().pop()
-        assert result['status'] == httplib.CREATED
+        result = list(contacted.values()).pop()
+        assert result['status'] == http.client.CREATED
         assert not result['changed']
         assert not result.get('failed')
 
@@ -347,15 +351,15 @@ class TestJobTemplateCallbacks(APITest):
 
         contacted = ansible_runner.uri(method="POST",
                                        timeout=60,
-                                       status_code=httplib.CREATED,
+                                       status_code=http.client.CREATED,
                                        url='{0}{1.related.callback}'.format(callback_host,
                                                                             job_template_with_random_limit),
                                        body_format='json',
                                        body=dict(host_config_key=host_config_key),
                                        validate_certs=False)
 
-        result = contacted.values().pop()
-        assert result['status'] == httplib.CREATED
+        result = list(contacted.values()).pop()
+        assert result['status'] == http.client.CREATED
         assert not result['changed']
         assert not result.get('failed')
 
@@ -385,13 +389,13 @@ class TestJobTemplateCallbacks(APITest):
         job_template.host_config_key = host_config_key
         job_template.ask_variables_on_launch = ask_on_launch
 
-        contacted = ansible_runner.uri(method="POST", timeout=90, status_code=httplib.CREATED,
+        contacted = ansible_runner.uri(method="POST", timeout=90, status_code=http.client.CREATED,
                                        url='{0}{1.related.callback}'.format(callback_host, job_template),
                                        body_format='json', validate_certs=False,
                                        body=dict(host_config_key=host_config_key, extra_vars=provided_extra_vars))
 
-        result = contacted.values().pop()
-        assert result['status'] == httplib.CREATED
+        result = list(contacted.values()).pop()
+        assert result['status'] == http.client.CREATED
         assert not result['changed']
         assert not result.get('failed')
 
@@ -418,13 +422,13 @@ class TestJobTemplateCallbacks(APITest):
         job_template.host_config_key = host_config_key
         job_template.ask_variables_on_launch = True
 
-        contacted = ansible_runner.uri(method="POST", timeout=90, status_code=httplib.CREATED,
+        contacted = ansible_runner.uri(method="POST", timeout=90, status_code=http.client.CREATED,
                                        url='{0}{1.related.callback}'.format(callback_host, job_template),
                                        body_format='json', validate_certs=False,
                                        body=dict(host_config_key=host_config_key))
 
-        callback_result = contacted.values().pop()
-        assert callback_result['status'] == httplib.BAD_REQUEST
+        callback_result = list(contacted.values()).pop()
+        assert callback_result['status'] == http.client.BAD_REQUEST
         assert callback_result.get('failed', True)
         assert callback_result['json']['msg'] == 'Cannot start automatically, user input required!'
 
@@ -440,20 +444,20 @@ class TestJobTemplateCallbacks(APITest):
         for attempt in range(3):
             contacted = ansible_runner.uri(method="POST",
                                            timeout=60,
-                                           status_code=httplib.CREATED,
+                                           status_code=http.client.CREATED,
                                            url='{0}{1.related.callback}'.format(callback_host, job_template),
                                            body_format='json',
                                            body=dict(host_config_key=host_config_key),
                                            validate_certs=False)
 
-            result = contacted.values().pop()
+            result = list(contacted.values()).pop()
             if attempt == 0:
-                assert result['status'] == httplib.CREATED
+                assert result['status'] == http.client.CREATED
                 assert not result['changed']
                 assert not result.get('failed')
                 job_id = result['location'].split('jobs/')[1].split('/')[0]
             else:
-                assert result['status'] == httplib.BAD_REQUEST
+                assert result['status'] == http.client.BAD_REQUEST
                 assert result.get('failed', True)
 
         job = job_template.related.jobs.get(id=job_id).results.pop().wait_until_completed()
@@ -477,14 +481,14 @@ class TestJobTemplateCallbacks(APITest):
         """
         ansible_host = '127.0.0.1' if 'localhost' in callback_host else ansible_default_ipv4
         script = '\n'.join([
-            u'#!/usr/bin/env python',
-            u'# -*- coding: utf-8 -*-',
-            u'import json',
-            u'inventory = dict()',
-            u'inventory["some_group"] = dict()',
-            u'inventory["some_group"]["hosts"] = ["{}"]',
-            u'inventory["some_group"]["vars"] = dict(ansible_connection="local")',
-            u'print json.dumps(inventory)'
+            '#!/usr/bin/env python',
+            '# -*- coding: utf-8 -*-',
+            'import json',
+            'inventory = dict()',
+            'inventory["some_group"] = dict()',
+            'inventory["some_group"]["hosts"] = ["{}"]',
+            'inventory["some_group"]["vars"] = dict(ansible_connection="local")',
+            'print json.dumps(inventory)'
         ]).format(ansible_host)
 
         inv_script = factories.v2_inventory_script(script=script)
@@ -497,15 +501,15 @@ class TestJobTemplateCallbacks(APITest):
         assert custom_source.last_updated is None
 
         contacted = ansible_runner.uri(method="POST",
-                                       status_code=httplib.CREATED,
+                                       status_code=http.client.CREATED,
                                        url='{0}{1.related.callback}'.format(callback_host, job_template),
                                        body_format='json',
                                        body=dict(host_config_key=host_config_key),
                                        validate_certs=False)
 
-        result = contacted.values().pop()
+        result = list(contacted.values()).pop()
         assert not result.get('failed')
-        assert result['status'] == httplib.CREATED
+        assert result['status'] == http.client.CREATED
         assert not result['changed']
         job_id = result['location'].split('jobs/')[1].split('/')[0]
         job = job_template.related.jobs.get(id=job_id).results.pop().wait_until_completed()
@@ -524,13 +528,13 @@ class TestJobTemplateCallbacks(APITest):
         still runs and the job runs successfully against that host.
         """
         script = '\n'.join([
-            u'#!/usr/bin/env python',
-            u'# -*- coding: utf-8 -*-',
-            u'import json',
-            u'inventory = dict()',
-            u'inventory["some_group"] = dict()',
-            u'inventory["some_group"]["hosts"] = ["169.254.1.0"]',
-            u'print json.dumps(inventory)'
+            '#!/usr/bin/env python',
+            '# -*- coding: utf-8 -*-',
+            'import json',
+            'inventory = dict()',
+            'inventory["some_group"] = dict()',
+            'inventory["some_group"]["hosts"] = ["169.254.1.0"]',
+            'print json.dumps(inventory)'
         ])
 
         inv_script = factories.v2_inventory_script(script=script)
@@ -547,15 +551,15 @@ class TestJobTemplateCallbacks(APITest):
         assert custom_source.last_updated is None
 
         contacted = ansible_runner.uri(method="POST",
-                                       status_code=httplib.CREATED,
+                                       status_code=http.client.CREATED,
                                        url='{0}{1.related.callback}'.format(callback_host, job_template),
                                        body_format='json',
                                        body=dict(host_config_key=host_config_key),
                                        validate_certs=False)
 
-        result = contacted.values().pop()
+        result = list(contacted.values()).pop()
         assert not result.get('failed')
-        assert result['status'] == httplib.CREATED
+        assert result['status'] == http.client.CREATED
         assert not result['changed']
         job_id = result['location'].split('jobs/')[1].split('/')[0]
         job = job_template.related.jobs.get(id=job_id).results.pop().wait_until_completed()
@@ -586,14 +590,14 @@ class TestJobTemplateCallbacks(APITest):
 
         contacted = ansible_runner.uri(method="POST",
                                        timeout=60,
-                                       status_code=httplib.CREATED,
+                                       status_code=http.client.CREATED,
                                        url='{0}{1.related.callback}'.format(callback_host, job_template),
                                        body_format='json',
                                        body=dict(host_config_key=host_config_key),
                                        validate_certs=False)
 
-        result = contacted.values().pop()
-        assert result['status'] == httplib.CREATED
+        result = list(contacted.values()).pop()
+        assert result['status'] == http.client.CREATED
         assert not result.get('failed')
         assert not result['changed']
         job_id = result['location'].split('jobs/')[1].split('/')[0]
@@ -624,7 +628,8 @@ class TestJobTemplateCallbacks(APITest):
 
         user = factories.v2_user()
         jt.ds.inventory.ds.organization.set_object_roles(user, 'member')
-        map(lambda resource: jt.ds[resource].set_object_roles(user, 'use'), ['credential', 'project', 'inventory'])
+        [jt.ds[resource].set_object_roles(user, 'use')
+            for resource in ['credential', 'project', 'inventory']]
         jt.set_object_roles(user, 'execute')
 
         with self.current_user(user):

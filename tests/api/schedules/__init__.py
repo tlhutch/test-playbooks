@@ -1,1 +1,1 @@
-from schedules import SchedulesTest  # NOQA
+from .schedules import SchedulesTest  # NOQA

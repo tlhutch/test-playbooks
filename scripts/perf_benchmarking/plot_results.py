@@ -19,10 +19,10 @@ parser.add_argument('--summary', dest='summary', help=_summary_help)
 args = parser.parse_args()
 
 
-data_file = open(args.data)
+data_file = open(args.data, encoding='utf-8')
 reader = csv.DictReader(data_file)
 
-summary_file = open(args.summary, 'wb')
+summary_file = open(args.summary, mode='wb', encoding='utf-8')
 summary_fields = ['phase', 'average', 'median', 'stdev', 'min', 'max', 'query_count']
 writer = csv.DictWriter(summary_file, fieldnames=summary_fields)
 writer.writeheader()

@@ -1,11 +1,16 @@
 #!/usr/bin/env bash
 set -euxo pipefail
 
+# Enable python3 if this version of tower-qa uses it
+if [ "$(grep -s "python3" tox.ini)" ]; then
+python3 -m venv $PWD/venv
+source $PWD/venv/bin/activate
+fi
+
 yum remove -y python-requests
 
-pip install -U appdirs # https://github.com/ActiveState/appdirs/issues/89
-pip install -U pip setuptools ansible
-pip install -Ir requirements.txt
+pip install -Ur scripts/requirements.install
+pip install -Ur requirements.txt
 
 
 ## default ssh public key

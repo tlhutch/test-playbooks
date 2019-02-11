@@ -2,7 +2,7 @@
 
 # Note: Git plugin sets GIT_BRANCH to branch that triggered job
 # See https://wiki.jenkins-ci.org/display/JENKINS/Git+Plugin#GitPlugin-Environmentvariables
-    
+
 set -euxo pipefail
 
 echo "GIT_PREVIOUS_COMMIT: ${GIT_PREVIOUS_COMMIT}"

@@ -1,4 +1,4 @@
-import httplib
+import http.client
 
 from towerkit.api.schema.schema import validate
 import fauxfactory
@@ -14,34 +14,34 @@ class Test_Api_Basics(APITest):
 
     def test_get_200(self, connection):
         r = connection.get('/api/')
-        assert r.status_code == httplib.OK, "Unable to connect"
+        assert r.status_code == http.client.OK, "Unable to connect"
 
     def test_get_404(self, connection):
         r = connection.get('/api/%s/' % fauxfactory.gen_utf8())
-        assert r.status_code == httplib.NOT_FOUND
+        assert r.status_code == http.client.NOT_FOUND
 
     def test_get_schema(self, connection):
         r = connection.get('/api/')
-        assert r.status_code == httplib.OK
+        assert r.status_code == http.client.OK
         validate(r.json(), '/api/', 'get')
 
     def test_options_schema(self, connection):
         r = connection.options('/api/')
-        assert r.status_code == httplib.OK
+        assert r.status_code == http.client.OK
         validate(r.json(), '/api/', 'options')
 
     def test_head_empty(self, connection):
         r = connection.head('/api/')
         assert r.text == '', 'Expected no output from HEAD request'
-        assert r.status_code == httplib.OK
+        assert r.status_code == http.client.OK
 
     def test_post_fail(self, connection):
         r = connection.post('/api/', {})
-        assert r.status_code == httplib.METHOD_NOT_ALLOWED
+        assert r.status_code == http.client.METHOD_NOT_ALLOWED
 
     def test_patch_fail(self, connection):
         r = connection.patch('/api/', {})
-        assert r.status_code == httplib.METHOD_NOT_ALLOWED
+        assert r.status_code == http.client.METHOD_NOT_ALLOWED
 
     def test_current_version(self, connection):
         r = connection.get('/api/')
@@ -51,11 +51,11 @@ class Test_Api_Basics(APITest):
         assert current_version in available_versions.values(), \
             "Unable to find current_version (%s) in list of " \
             "available_versions (%s)" % \
-            (current_version, available_versions.values())
+            (current_version, list(available_versions.values()))
 
         # Does current_version path work?
         r = connection.get(current_version)
-        assert r.status_code == httplib.OK, 'Unexpected response code'
+        assert r.status_code == http.client.OK, 'Unexpected response code'
         assert isinstance(r.json(), dict), 'Unexpected response data'
 
     def test_description(self, connection):

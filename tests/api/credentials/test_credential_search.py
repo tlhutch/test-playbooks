@@ -30,7 +30,7 @@ class TestCredentialSearch(APITest):
         self.confirm_sole_credential_in_related_search(v2, cred, ad_hoc_commands__search=ahc.name)
 
     def test_search_by_organization(self, v2, factories):
-        cred = factories.v2_credential(organization=(True, dict(name=u'unique_org_{}'.format(fauxfactory.gen_utf8()))))
+        cred = factories.v2_credential(organization=(True, dict(name='unique_org_{}'.format(fauxfactory.gen_utf8()))))
         self.confirm_sole_credential_in_related_search(v2, cred, organization__search=cred.ds.organization.name)
 
     def test_search_by_creator(self, v2, factories):

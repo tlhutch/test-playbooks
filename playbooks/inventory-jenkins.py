@@ -4,19 +4,19 @@ import os
 import sys
 import json
 import requests
-import httplib
+import http.client
 import argparse
 import tempfile
-import ConfigParser
+import configparser
 import ansible
 import ansible.inventory
 from pkg_resources import parse_version
-from urlparse import urljoin
+from urllib.parse import urljoin
 
 has_ansible_v2 = parse_version(ansible.__version__) >= parse_version('2.0.0')
 if has_ansible_v2:
     from ansible.parsing.dataloader import DataLoader
-    from ansible.vars import VariableManager
+    from ansible.vars.manager import VariableManager
     from ansible.utils.vars import load_extra_vars
 
 job_path = '/job/Test_Tower_Install/ANSIBLE_NIGHTLY_BRANCH={ansible_nightly_branch},PLATFORM={platform},label={label}/lastBuild'
@@ -26,7 +26,7 @@ supported_platforms = ['rhel-7.2-x86_64', 'centos-7.latest-x86_64', 'ol-7.2-x86_
                        'ubuntu-14.04-x86_64', 'ubuntu-16.04-x86_64', ]
 
 
-class AnsibleInventory(ConfigParser.SafeConfigParser):
+class AnsibleInventory(configparser.ConfigParser):
 
     def write_ini(self, fp):
         """Write an .ini-format representation of the configuration state."""
@@ -77,7 +77,7 @@ def parse_args():
 
 def download_url(url, verify=False, auth=None):
     r = requests.get(url, verify=verify, auth=auth)
-    if r.status_code != httplib.OK:
+    if r.status_code != http.client.OK:
         return None
 
     local_f = tempfile.NamedTemporaryFile(suffix='.ini', delete=False)
@@ -113,7 +113,7 @@ if __name__ == "__main__":
                     if local_inventory:
                         try:
                             cfg.read(local_inventory)
-                        except (ConfigParser.MissingSectionHeaderError, ConfigParser.ParsingError) as e:
+                        except (configparser.MissingSectionHeaderError, configparser.ParsingError) as e:
                             sys.stderr.write("Failed to download inventory.log: %s\n" % url)
 
                         if has_ansible_v2:
@@ -155,4 +155,4 @@ if __name__ == "__main__":
             if args.ini:
                 cfg.write_ini(sys.stdout)
             else:
-                print json.dumps(master_inv, indent=2)
+                print(json.dumps(master_inv, indent=2))

@@ -46,8 +46,8 @@ class Test_Copy_Workflow_Job_Template(APITest):
 
     def create_wfjt_with_nodes(self, v2, factories, num_nodes):
         post_options = v2.workflow_job_template_nodes.options().actions.POST
-        job_types = dict(post_options.job_type.choices).keys()
-        verbosities = dict(post_options.verbosity.choices).keys()
+        job_types = list(dict(post_options.job_type.choices).keys())
+        verbosities = list(dict(post_options.verbosity.choices).keys())
         wfjt = factories.v2_workflow_job_template()
         nodes = []
         for i in range(4):

@@ -1,5 +1,5 @@
 import towerkit.exceptions as exc
-from towerkit.utils import to_str, random_title
+from towerkit.utils import random_title
 import pytest
 
 from tests.api import APITest
@@ -16,7 +16,7 @@ class TestCustomCredentials(APITest):
 
         with pytest.raises(exc.BadRequest) as e:
             factories.v2_credential(credential_type=credential_type, inputs={})
-        assert e.value.msg == {'inputs': {'field': [u"required for {0.name}".format(credential_type)]}}
+        assert e.value.msg == {'inputs': {'field': ["required for {0.name}".format(credential_type)]}}
 
     def test_ssh_private_key_input_field_validated(self, factories):
         credential_type = factories.credential_type(inputs=dict(fields=[dict(id='field_name',
@@ -73,7 +73,7 @@ class TestCustomCredentials(APITest):
         job = jt.launch().wait_until_completed()
         job.assert_successful()
 
-        hostvars = job.related.job_events.get(host=host.id, task='debug').results.pop().event_data.res.hostvars
+        hostvars = job.related.job_events.get(host=host.id, task='debug', event__startswith='runner_on_ok').results.pop().event_data.res.hostvars
         for field, value in input_values.items():
             assert hostvars[host.name][field_to_var[field]] == str(value)
 
@@ -103,7 +103,7 @@ class TestCustomCredentials(APITest):
         assert job.job_env.EXTRA_VAR_FROM_FIELD_THREE == 'False'
         assert job.job_env.EXTRA_VAR_FROM_FIELD_FOUR == 'True'
 
-        ansible_env = job.related.job_events.get(host=host.id, task='debug').results.pop().event_data.res.ansible_env
+        ansible_env = job.related.job_events.get(host=host.id, task='debug', event__startswith='runner_on_ok').results.pop().event_data.res.ansible_env
         assert ansible_env.EXTRA_VAR_FROM_FIELD_ONE == 'FieldOneVal'
         assert ansible_env.EXTRA_VAR_FROM_FIELD_TWO == 'True'
         assert ansible_env.EXTRA_VAR_FROM_FIELD_THREE == 'False'
@@ -127,7 +127,7 @@ class TestCustomCredentials(APITest):
         job = jt.launch().wait_until_completed()
         job.assert_successful()
 
-        stdout = job.related.job_events.get(host=host.id, task='debug').results.pop().event_data.res.cat.stdout
+        stdout = job.related.job_events.get(host=host.id, task='debug', event__startswith='runner_on_ok').results.pop().event_data.res.cat.stdout
         assert stdout == file_contents
 
     @pytest.mark.parametrize('injector_var',
@@ -151,8 +151,8 @@ class TestCustomCredentials(APITest):
         job = jt.launch().wait_until_completed()
         job.assert_successful()
 
-        stdout = job.related.job_events.get(host=host.id, task='debug').results.pop().event_data.res.cat.stdout
-        assert stdout == (one_contents if 'one' in injector_var.values().pop().values().pop() else two_contents)
+        stdout = job.related.job_events.get(host=host.id, task='debug', event__startswith='runner_on_ok').results.pop().event_data.res.cat.stdout
+        assert stdout == (one_contents if 'one' in list(list(injector_var.values()).pop().values()).pop() else two_contents)
 
     @pytest.mark.parametrize('injector_vars',
                              [dict(extra_vars=dict(file_to_cat1='{{ tower.filename.one }}', file_to_cat2='{{ tower.filename.two }}')),
@@ -172,7 +172,7 @@ class TestCustomCredentials(APITest):
         job = jt.launch().wait_until_completed()
         job.assert_successful()
 
-        job_events = job.related.job_events.get(host=host.id, task='debug', order_by='counter')
+        job_events = job.related.job_events.get(host=host.id, task='debug', order_by='counter', event__startswith='runner_on_ok')
         assert job_events.results[0].event_data.res.cat1.stdout == one_contents
         assert job_events.results[1].event_data.res.cat2.stdout == two_contents
 
@@ -194,7 +194,7 @@ class TestCustomCredentials(APITest):
 
         for stream_endpoint in (credential_type.related.activity_stream, credential.related.activity_stream,
                                 jt.related.activity_stream, job.related.activity_stream):
-            stream = to_str(stream_endpoint.get())
+            stream = str(stream_endpoint.get())
             for secret in ('FieldOneVal', 'FieldTwoVal', 'md5'):
                 assert secret not in stream
 

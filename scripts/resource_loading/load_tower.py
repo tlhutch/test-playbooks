@@ -7,7 +7,7 @@ import sys
 from towerkit import api, config, exceptions, utils
 from towerkit.tower.utils import uses_sessions
 
-from loading import resources, delete_all_created  # noqa
+from .loading import resources, delete_all_created  # noqa
 
 
 logging.basicConfig(level='DEBUG')
@@ -75,7 +75,7 @@ for credential in resources.credentials:
     else:
         config_credential = config.credentials[credential.kind]
 
-    for field in filter(lambda x: x in credential, config_credential):
+    for field in [x for x in config_credential if x in credential]:
         value = credential[field].format(**config_credential)
         credential[field] = value
 

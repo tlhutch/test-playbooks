@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import json
 
-from towerkit.utils import random_title, to_str
+from towerkit.utils import random_title
 import fauxfactory
 import pytest
 
@@ -170,7 +170,7 @@ class TestFactCache(APITest):
 
         # verify ingested facts
         assert ansible_facts.string == "abc"
-        assert to_str(ansible_facts.unicode_string) == "鵟犭酜귃ꔀꈛ竳䙭韽ࠔ"
+        assert str(ansible_facts.unicode_string) == "鵟犭酜귃ꔀꈛ竳䙭韽ࠔ"
         assert ansible_facts.int == 1
         assert ansible_facts.float == 1.0
         assert ansible_facts.bool is True
@@ -187,7 +187,7 @@ class TestFactCache(APITest):
         # verify facts consumption
         result_stdout = job.result_stdout
         assert '"msg": "abc"' in result_stdout
-        assert '"msg": "鵟犭酜귃ꔀꈛ竳䙭韽ࠔ"' in to_str(result_stdout)
+        assert '"msg": "鵟犭酜귃ꔀꈛ竳䙭韽ࠔ"' in result_stdout
         assert '"msg": 1' in result_stdout
         assert '"msg": 1.0' in result_stdout
         assert '"msg": true' in result_stdout
@@ -252,11 +252,11 @@ class TestFactCache(APITest):
         request.addfinalizer(lambda: jobs_settings.patch(AWX_PROOT_SHOW_PATHS=prev_proot_show_paths))
 
         dir_path = '{}/directory/traversal/is/working'.format(test_dir)
-        res = ansible_runner.file(path=dir_path, state='directory').values()[0]
+        res = list(ansible_runner.file(path=dir_path, state='directory').values())[0]
         assert not res.get('failed') and res.get('changed')
 
         file_path = dir_path + '/some_file'
-        res = ansible_runner.file(path=file_path, state='touch').values()[0]
+        res = list(ansible_runner.file(path=file_path, state='touch').values())[0]
         assert not res.get('failed') and res.get('changed')
 
         extra_vars = dict(scan_file_paths=test_dir, scan_use_recursive=True)

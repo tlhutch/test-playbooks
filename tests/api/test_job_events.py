@@ -57,12 +57,12 @@ class Test_Job_Events(APITest):
         return self.get_job_events(job, dict(event__icontains=event_type))
 
     def verify_desired_tasks(self, job, job_event_type, desired_tasks):
-        event_tasks = Counter(map(lambda x: x.task, self.get_job_events_by_event_type(job, job_event_type)))
+        event_tasks = Counter([x.task for x in self.get_job_events_by_event_type(job, job_event_type)])
         assert event_tasks == desired_tasks
 
     def verify_desired_stdout(self, job, job_event_type, desired_stdout_contents):
         desired_stdout = list(desired_stdout_contents)
-        actual_stdout = map(lambda x: x.stdout, self.get_job_events_by_event_type(job, job_event_type))
+        actual_stdout = [x.stdout for x in self.get_job_events_by_event_type(job, job_event_type)]
         for actual in list(actual_stdout):
             for desired in list(desired_stdout):
                 if desired in actual:
@@ -89,8 +89,7 @@ class Test_Job_Events(APITest):
         playbook_on_start = self.get_job_events_by_event_type(job, 'playbook_on_start')
         assert len(playbook_on_start) == 1
 
-        playbook_on_play_start = set(map(lambda x: x.play,
-                                         self.get_job_events_by_event_type(job, 'playbook_on_play_start')))
+        playbook_on_play_start = set([x.play for x in self.get_job_events_by_event_type(job, 'playbook_on_play_start')])
         desired_play_names = set(("add hosts to inventory",
                                   "various task responses on dynamic inventory",
                                   "shrink inventory to 1 host",
@@ -114,8 +113,7 @@ class Test_Job_Events(APITest):
         else:
             gathering_facts_task_name = "setup"
 
-        playbook_on_task_start = set(map(lambda x: (x.play, x.task),
-                                         self.get_job_events_by_event_type(job, 'playbook_on_task_start')))
+        playbook_on_task_start = set([(x.play, x.task) for x in self.get_job_events_by_event_type(job, 'playbook_on_task_start')])
         desired_play_task_tuples = set((("add hosts to inventory", gathering_facts_task_name),
                                         ("add hosts to inventory", "create inventory"),
                                         ("add hosts to inventory", "single host handler"),
@@ -197,9 +195,9 @@ class Test_Job_Events(APITest):
         assert len(self.get_job_events_by_event_type(job, 'playbook_on_stats')) == 1
 
         events = self.get_job_events(job)
-        non_verbose = filter(lambda x: x.event != 'verbose', events)
-        assert not filter(lambda x: not x.uuid, non_verbose)
-        assert not filter(lambda x: x.playbook != 'dynamic_inventory.yml', non_verbose)
+        non_verbose = [x for x in events if x.event != 'verbose']
+        assert not [x for x in non_verbose if not x.uuid]
+        assert not [x for x in non_verbose if x.playbook != 'dynamic_inventory.yml']
 
     @pytest.mark.ansible_integration
     def test_async_tasks(self, factories, ansible_version_cmp):
@@ -217,7 +215,7 @@ class Test_Job_Events(APITest):
         playbook_on_start = self.get_job_events_by_event_type(job, 'playbook_on_start')
         assert len(playbook_on_start) == 1
 
-        playbook_on_play_start = map(lambda x: x.play, self.get_job_events_by_event_type(job, 'playbook_on_play_start'))
+        playbook_on_play_start = [x.play for x in self.get_job_events_by_event_type(job, 'playbook_on_play_start')]
         assert playbook_on_play_start == ['all']
 
         task_counts = {"debug": 3,
@@ -237,7 +235,7 @@ class Test_Job_Events(APITest):
         self.verify_desired_tasks(job, 'runner_on_ok', task_counts)
 
         # asserted retry counts are a major source of flake, so just confirm that retries happened
-        runner_retry_tasks = set(map(lambda x: x.task, self.get_job_events_by_event_type(job, 'runner_retry')))
+        runner_retry_tasks = set([x.task for x in self.get_job_events_by_event_type(job, 'runner_retry')])
         assert runner_retry_tasks == {"Examine slow command", "Examine slow reversal"}
 
         assert len(self.get_job_events_by_event_type(job, 'playbook_on_stats')) == 1
@@ -251,9 +249,9 @@ class Test_Job_Events(APITest):
         self.verify_desired_stdout(job, 'verbose', desired_stdout_contents)
 
         events = self.get_job_events(job)
-        non_verbose = filter(lambda x: x.event != 'verbose', events)
-        assert not filter(lambda x: not x.uuid, non_verbose)
-        assert not filter(lambda x: x.playbook != 'async_tasks.yml', non_verbose)
+        non_verbose = [x for x in events if x.event != 'verbose']
+        assert not [x for x in non_verbose if not x.uuid]
+        assert not [x for x in non_verbose if x.playbook != 'async_tasks.yml']
 
     @pytest.mark.ansible_integration
     def test_free_strategy(self, factories, ansible_version_cmp):
@@ -271,7 +269,7 @@ class Test_Job_Events(APITest):
         playbook_on_start = self.get_job_events_by_event_type(job, 'playbook_on_start')
         assert len(playbook_on_start) == 1
 
-        playbook_on_play_start = map(lambda x: x.play, self.get_job_events_by_event_type(job, 'playbook_on_play_start'))
+        playbook_on_play_start = [x.play for x in self.get_job_events_by_event_type(job, 'playbook_on_play_start')]
         assert playbook_on_play_start == ['all']
 
         task_counts = {"debug": 11,
@@ -295,9 +293,9 @@ class Test_Job_Events(APITest):
         self.verify_desired_stdout(job, 'verbose', desired_stdout_contents)
 
         events = self.get_job_events(job)
-        non_verbose = filter(lambda x: x.event != 'verbose', events)
-        assert not filter(lambda x: not x.uuid, non_verbose)
-        assert not filter(lambda x: x.playbook != 'free_waiter.yml', non_verbose)
+        non_verbose = [x for x in events if x.event != 'verbose']
+        assert not [x for x in non_verbose if not x.uuid]
+        assert not [x for x in non_verbose if x.playbook != 'free_waiter.yml']
 
     @pytest.mark.ansible_integration
     def test_no_log(self, ansible_version_cmp, factories):
@@ -316,19 +314,19 @@ class Test_Job_Events(APITest):
         assert job.status == 'failed'
 
         playbook_on_task_start = self.get_job_events_by_event_type(job, 'playbook_on_task_start')
-        task_start_task_args = map(lambda x: x.event_data.get('task_args', ''), playbook_on_task_start)
-        assert not filter(lambda task_args: 'DO_NOT_LOG' in task_args, task_start_task_args)
+        task_start_task_args = [x.event_data.get('task_args', '') for x in playbook_on_task_start]
+        assert not [task_args for task_args in task_start_task_args if 'DO_NOT_LOG' in task_args]
 
         events = self.get_job_events_by_event_type(job, 'runner')
-        assert not filter(lambda event: 'DO_NOT_LOG' in event.stdout, events)
-        assert not filter(lambda data: 'DO_NOT_LOG' in data.task_args, map(lambda event: event.event_data, events))
+        assert not [event for event in events if 'DO_NOT_LOG' in event.stdout]
+        assert not [data for data in [event.event_data for event in events] if 'DO_NOT_LOG' in data.task_args]
 
         hidden_prefix = 'the output has been hidden'
         for event in events:
             data = event.event_data
             if 'res' not in data:
                 if event.event not in ['runner_on_skipped', 'runner_on_start']:
-                    raise(Exception('Unexpected lack of result in event_data: {0}'.format(event)))
+                    raise Exception('Unexpected lack of result in event_data: {0}'.format(event))
                 continue
             if 'results' in data.res:
                 results = data.res.results

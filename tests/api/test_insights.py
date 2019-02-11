@@ -76,7 +76,7 @@ class TestInsights(APITest):
         for host in hosts:
             with pytest.raises(exc.NotFound) as e:
                 host.related.insights.get()
-        assert e.value[1] == {'error': u'The Insights Credential for "{0}" was not found.'.format(insights_inventory.name)}
+        assert e.value[1] == {'error': 'The Insights Credential for "{0}" was not found.'.format(insights_inventory.name)}
 
     def test_access_insights_with_valid_credential_and_registered_host(self, skip_if_cluster, factories, insights_inventory):
         """Verify that attempts to access Insights from a registered host with a valid Insights credential succeed."""
@@ -181,4 +181,4 @@ class TestInsights(APITest):
         # verify contents of .version file
         version_path = os.path.join(v2.config.get().project_base_dir, project.local_path, ".version")
         contacted = ansible_runner.shell('cat {0}'.format(version_path))
-        assert contacted.values()[0]['stdout'] == project.scm_revision
+        assert list(contacted.values())[0]['stdout'] == project.scm_revision

@@ -1,5 +1,5 @@
 import pytest
-import httplib
+import http.client
 
 import towerkit.exceptions
 from tests.lib.helpers.rbac_utils import (
@@ -55,7 +55,7 @@ class TestInventoryRBAC(APITest):
 
             # check put/patch/delete on inventory and inventory resources
             for resource in [host, group, aws_inv_source, inventory]:
-                assert_response_raised(resource, httplib.FORBIDDEN)
+                assert_response_raised(resource, http.client.FORBIDDEN)
 
     @pytest.mark.parametrize("agent", ["user", "team"])
     def test_admin_role(self, set_test_roles, agent, factories):
@@ -83,7 +83,7 @@ class TestInventoryRBAC(APITest):
 
             # check put/patch/delete on inventory and inventory resources
             for resource in [host, group, inv_source, inventory]:
-                assert_response_raised(resource, httplib.OK)
+                assert_response_raised(resource, http.client.OK)
 
     @pytest.mark.parametrize("agent", ["user", "team"])
     def test_use_role(self, set_test_roles, agent, factories):
@@ -118,7 +118,7 @@ class TestInventoryRBAC(APITest):
 
             # check put/patch/delete on inventory and inventory resoures
             for resource in [host, group, inv_source, inventory]:
-                assert_response_raised(resource, httplib.FORBIDDEN)
+                assert_response_raised(resource, http.client.FORBIDDEN)
 
     @pytest.mark.parametrize("agent", ["user", "team"])
     def test_adhoc_role(self, set_test_roles, agent, factories):
@@ -153,7 +153,7 @@ class TestInventoryRBAC(APITest):
 
             # check put/patch/delete on inventory and inventory resources
             for resource in [host, group, inv_source, inventory]:
-                assert_response_raised(resource, httplib.FORBIDDEN)
+                assert_response_raised(resource, http.client.FORBIDDEN)
 
     @pytest.mark.parametrize("agent", ["user", "team"])
     def test_update_role(self, set_test_roles, agent, factories):
@@ -188,7 +188,7 @@ class TestInventoryRBAC(APITest):
 
             # check put/patch/delete on inventory, group, and host
             for resource in [host, group, inv_source, inventory]:
-                assert_response_raised(resource, httplib.FORBIDDEN)
+                assert_response_raised(resource, http.client.FORBIDDEN)
 
     @pytest.mark.parametrize("agent", ["user", "team"])
     def test_read_role(self, set_test_roles, agent, factories):
@@ -223,7 +223,7 @@ class TestInventoryRBAC(APITest):
 
             # check put/patch/delete on inventory, group, and host
             for resource in [host, group, inv_source, inventory]:
-                assert_response_raised(resource, httplib.FORBIDDEN)
+                assert_response_raised(resource, http.client.FORBIDDEN)
 
     @pytest.mark.parametrize('agent', ['user', 'team'])
     @pytest.mark.parametrize('role', ['admin', 'use', 'ad hoc', 'update', 'read'])

@@ -76,7 +76,7 @@ def utf8_template(request, authtoken, api_job_templates_pg, project_ansible_play
                    job_type='run',
                    project=project_ansible_playbooks_git.id,
                    credential=ssh_credential.id,
-                   playbook=u'utf-8-䉪ቒ칸ⱷꯔ噂폄蔆㪗輥.yml',)
+                   playbook='utf-8-䉪ቒ칸ⱷꯔ噂폄蔆㪗輥.yml',)
     obj = api_job_templates_pg.post(payload)
     request.addfinalizer(obj.delete)
     return obj
@@ -107,15 +107,15 @@ def expected_net_env_vars():
         if getattr(network_credential, "username", None):
             expected_env_vars["ANSIBLE_NET_USERNAME"] = config.credentials['network']['username']
         if getattr(network_credential, "password", None):
-            expected_env_vars["ANSIBLE_NET_PASSWORD"] = u"**********"
+            expected_env_vars["ANSIBLE_NET_PASSWORD"] = "**********"
         if getattr(network_credential, "ssh_key_data", None):
-            expected_env_vars["ANSIBLE_NET_SSH_KEYFILE"] = u"**********"
+            expected_env_vars["ANSIBLE_NET_SSH_KEYFILE"] = "**********"
         if getattr(network_credential, "authorize", None):
             expected_env_vars["ANSIBLE_NET_AUTHORIZE"] = "1"
         else:
             expected_env_vars["ANSIBLE_NET_AUTHORIZE"] = "0"
         if getattr(network_credential, "authorize_password", None):
-            expected_env_vars["ANSIBLE_NET_AUTH_PASS"] = u"**********"
+            expected_env_vars["ANSIBLE_NET_AUTH_PASS"] = "**********"
         return expected_env_vars
     return func
 
@@ -637,7 +637,7 @@ class Test_Job_Env(APITest):
             self.has_credentials('cloud', cloud_credential.kind, ['username'])
             expected_env_vars = dict(
                 AWS_ACCESS_KEY_ID=self.credentials['cloud'][cloud_credential.kind]['username'],
-                AWS_SECRET_ACCESS_KEY=u'**********'
+                AWS_SECRET_ACCESS_KEY='**********'
             )
         elif cloud_credential.kind == 'gce':
             self.has_credentials('cloud', cloud_credential.kind, ['username', 'project'])
@@ -652,20 +652,20 @@ class Test_Job_Env(APITest):
                 AZURE_CLIENT_ID=self.credentials['cloud']['azure']['client_id'],
                 AZURE_TENANT=self.credentials['cloud']['azure']['tenant'],
                 AZURE_SUBSCRIPTION_ID=self.credentials['cloud']['azure']['subscription_id'],
-                AZURE_SECRET=u'**********',
+                AZURE_SECRET='**********',
             )
         elif cloud_credential.kind == 'azure_rm' and azure_type(cloud_credential) == 'azure_ad':
             self.has_credentials('cloud', 'azure_ad', ['subscription_id', 'ad_user', 'password'])
             expected_env_vars = dict(
                 AZURE_SUBSCRIPTION_ID=self.credentials['cloud']['azure']['subscription_id'],
                 AZURE_AD_USER=self.credentials['cloud']['azure_ad']['ad_user'],
-                AZURE_PASSWORD=u'**********',
+                AZURE_PASSWORD='**********',
             )
         elif cloud_credential.kind == 'vmware':
             self.has_credentials('cloud', cloud_credential.kind, ['username', 'host'])
             expected_env_vars = dict(
                 VMWARE_USER=self.credentials['cloud'][cloud_credential.kind]['username'],
-                VMWARE_PASSWORD=u'**********',
+                VMWARE_PASSWORD='**********',
                 VMWARE_HOST=self.credentials['cloud'][cloud_credential.kind]['host']
             )
         elif cloud_credential.kind == 'openstack':

@@ -19,13 +19,13 @@ def pause_awx_task_system(request, skip_docker, ansible_runner):
     def teardown():
         log.debug("calling supervisorctl teardown pause_awx_task_system")
         contacted = ansible_runner.supervisorctl(name='tower-processes:awx-dispatcher', state='started')
-        result = contacted.values()[0]
+        result = list(contacted.values())[0]
         if result.get('failed'):
             pytest.exit("tower-processes:awx-dispatcher failed to restart - {0}.".format(json.dumps(result, indent=2)))
     request.addfinalizer(teardown)
 
     log.debug("calling supervisorctl fixture pause_awx_task_system")
     contacted = ansible_runner.supervisorctl(name='tower-processes:awx-dispatcher', state='stopped')
-    result = contacted.values()[0]
+    result = list(contacted.values())[0]
     assert(not result.get('failed')
            ), "Stopping tower-processes:awx-dispatcher failed - {0}.".format(json.dumps(result, indent=2))

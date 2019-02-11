@@ -41,21 +41,21 @@ class TestTowerServices(APITest):
 
         # issue ansible-tower-service command
         contacted = ansible_runner.command('ansible-tower-service ' + command)
-        result = contacted.values()[0]
+        result = list(contacted.values())[0]
         assert result['rc'] == 0, "ansible-tower-service {0} failed. Command stderr: \n{1}".format(command, result['stderr'])
 
         # determine expected_processes
         contacted = ansible_runner.shell('cat /etc/sysconfig/ansible-tower')
-        stdout = contacted.values()[0]['stdout']
+        stdout = list(contacted.values())[0]['stdout']
         match = re.search("TOWER_SERVICES=\"(.*?)\"", stdout)
         processes = match.group(1).split()
 
         # assess process statuses
         for process in processes:
             contacted = ansible_runner.command('systemctl status {}'.format(process))
-            result = contacted.values()[0]
+            result = list(contacted.values())[0]
             assert ("Active: active (running)" in result['stdout']) is active, \
-                u"Unexpected process status for process {0} after executing ansible-tower-service {1}\n\nstdout:\n{2}"\
+                "Unexpected process status for process {0} after executing ansible-tower-service {1}\n\nstdout:\n{2}"\
                 .format(process, command, result['stdout'])
 
     def test_tower_restart(self, install_enterprise_license_unlimited, factories, v2, ansible_runner):
@@ -67,12 +67,12 @@ class TestTowerServices(APITest):
 
         try:
             contacted = ansible_runner.command('ansible-tower-service stop')
-            result = contacted.values()[0]
+            result = list(contacted.values())[0]
             assert result['rc'] == 0, "ansible-tower-service {0} failed. Command stderr: \n{1}".format(result['stderr'])
             time.sleep(30)
         finally:
             contacted = ansible_runner.command('ansible-tower-service start')
-            result = contacted.values()[0]
+            result = list(contacted.values())[0]
             assert result['rc'] == 0, "ansible-tower-service {0} failed. Command stderr: \n{1}".format(result['stderr'])
 
         def online():
@@ -105,7 +105,7 @@ class TestTowerServices(APITest):
 
         try:
             contacted = ansible_runner.service(name='rabbitmq-server', state='stopped')
-            result = contacted.values()[0]
+            result = list(contacted.values())[0]
             assert not result.get('failed', False), \
                 "Stopping rabbitmq failed. Command stderr: \n{0}\n\nCommand stdout: \n{1}"\
                 .format(result['stderr'], result['stdout'])
@@ -113,7 +113,7 @@ class TestTowerServices(APITest):
             time.sleep(30)
         finally:
             contacted = ansible_runner.service(name='rabbitmq-server', state='started')
-            result = contacted.values()[0]
+            result = list(contacted.values())[0]
             assert not result.get('failed', False), \
                 "Starting rabbitmq failed. Command stderr: \n{0}\n\nCommand stdout: \n{1}"\
                 .format(result['stderr'], result['stdout'])
@@ -164,7 +164,7 @@ class TestTowerServices(APITest):
 
         try:
             contacted = db_host.service(name=pg_service, state='stopped')
-            result = contacted.values()[0]
+            result = list(contacted.values())[0]
             assert not result.get('failed', False), \
                 "Stopping postgres failed. Command stderr: \n{0}\n\nCommand stdout: \n{1}"\
                 .format(result['stderr'], result['stdout'])
@@ -172,7 +172,7 @@ class TestTowerServices(APITest):
             time.sleep(60)
         finally:
             contacted = db_host.service(name=pg_service, state='started')
-            result = contacted.values()[0]
+            result = list(contacted.values())[0]
             assert not result.get('failed', False), \
                 "Starting postgres failed. Command stderr: \n{0}\n\nCommand stdout: \n{1}"\
                 .format(result['stderr'], result['stdout'])

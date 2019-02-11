@@ -12,7 +12,7 @@ def PARALLELIZE = ''
 
 stage ('Prepare Build') {
   node('jenkins-jnlp-agent') {
-    
+
     def scmVars = checkout changelog: false, poll: false, scm: [$class: 'GitSCM', branches: [[name: '*/${TOWER_BRANCH}']], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'CloneOption', depth: 0, noTags: true, reference: '', shallow: true]], submoduleCfg: [], userRemoteConfigs: [[credentialsId: 'd2d4d16b-dc9a-461b-bceb-601f9515c98a', url: 'git@github.com:${TOWER_FORK}/${PRODUCT}.git']]]
     def commitHash = scmVars.GIT_COMMIT
 
@@ -42,7 +42,7 @@ stage ('Prepare Build') {
       returnStdout: true,
       script: 'echo ${TOWERKIT_BRANCH##*/}'
     ).trim()
-    
+
     NIGHTLY_REPO_DIR = "${params.TOWER_BRANCH}-${commitHash}"
   }
 }

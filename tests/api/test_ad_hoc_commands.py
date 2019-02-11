@@ -217,7 +217,7 @@ class Test_Ad_Hoc_Commands_Main(APITest):
         result = exc_info.value[1]
 
         # assess result
-        assert result == {u'module_args': [u'No argument passed to command module.']}, \
+        assert result == {'module_args': ['No argument passed to command module.']}, \
             "Unexpected response upon launching ad hoc command 'command' without " \
             "specifying module_args. %s" % json.dumps(result)
 
@@ -354,7 +354,9 @@ print json.dumps(inv, indent=2)
         #                Cluster) while we get to the bottom of it we will filter on
         #                `runner_on_ok` for now.
         events_pg = command_pg.get_related('events', event__startswith='runner_on_ok')
-        assert events_pg.count == expected_count
+        all_events = command_pg.get_related('events')
+        assert events_pg.count == expected_count, \
+            'Events did not match, expected {} runner_on_ok event but found {}'.format(expected_count, all_events)
 
     @pytest.mark.ansible_integration
     def test_launch_with_unmatched_limit_value(self, host, ssh_credential, api_ad_hoc_commands_pg, ansible_version_cmp):

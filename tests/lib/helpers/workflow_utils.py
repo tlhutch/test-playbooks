@@ -56,12 +56,10 @@ class WorkflowTree(object):
             output.append('(No nodes)')
             return '\n'.join(output)
 
-        nodes = self._graph.keys()
-        nodes.sort()
+        nodes = sorted(self._graph.keys())
         for node in nodes:
             line = '{0:<5}  '.format(node)
-            conditions = self._graph[node].keys()
-            conditions.sort()
+            conditions = sorted(self._graph[node].keys())
             for condition in conditions:
                 line += '{0}: {1} '.format(condition, list(self._graph[node][condition]))
             output.append(line)

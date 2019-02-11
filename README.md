@@ -5,7 +5,7 @@ You will need:
 * `docker`
 * `gcloud`
   * (quickstart for linux)[https://cloud.google.com/sdk/docs/quickstart-linux]
-* python 2.7
+* python 3.6 (for devel and future versions)
 
 ## Tower Integration Tests
 
@@ -13,10 +13,11 @@ In order to run integration tests you'll need a working Tower or AWX install to
 run tests against. The following steps describe building and configuring the
 Tower dev containers and running tests against them.
 
-> Note: tower-qa currently works with Python 2.7
+> Note: tower-qa currently works with Python 3.6. Release branches <
+> release_3.5.x use Python 2.7, if you are checking out those branches, ensure
+> you use the right Python version.
 
 To run tests you'll need an appropriate config file and inventory, tower-qa ships with several useful examples.
-
 
 ```
 git clone git@github.com:ansible/tower.git
@@ -62,33 +63,41 @@ docker exec --user=0 -it tools_awx_1 bash
 source /venv/awx/bin/activate
 pip install awx_devel/tower-license/
 ```
-> Note: when cloning the tower-license repo, you can do so in the container, but will need to use a 
+> Note: when cloning the tower-license repo, you can do so in the container, but will need to use a
 [GitHub OAuth key](https://help.github.com/articles/creating-a-personal-access-token-for-the-command-line/)
-because your local ssh credentials will not be accessible from inside the container.  
+because your local ssh credentials will not be accessible from inside the container.
+
 
 
 ### Run Integration Tests
+
+Note: It is reccomended you run Python 3.6.6 if possible to match what is
+running on Jenkins.  There are some notable differences between Python 3.6 and
+Python 3.7, which is the default python on Fedora 29+. You can install multiple
+Python versions on Fedora, see [the
+docs](https://developer.fedoraproject.org/tech/languages/python/multiple-pythons.html)
+for more information.
 
 ```
 # navigate to tower-qa on your local file system
 exit
 cd ../tower-qa
- 
+
 # Tweak the location of the virtualenv to taste
-virtualenv -p $(which python2.7) ~/venvs/tower-qa
+python3.6 -m venv ~/venvs/tower-qa
 source ~/venvs/tower-qa/bin/activate
 pip install -r requirements.txt
 ansible-vault decrypt config/credentials.vault --output=config/credentials.yml    # you will need the vault password
 py.test -c config/docker.cfg --base-url='https://localhost:8013'
 ```
 
-> Note: if running tests against a production instance, use: 
+> Note: if running tests against a production instance, use:
 py.test -c config/api.cfg --base-url='https://<tower-host\>'
 
 
 ### Using with local Towerkit
 
-If you intend to make modifications to towerkit as well, you should pip install tkit with the `-e` 
+If you intend to make modifications to towerkit as well, you should pip install tkit with the `-e`
 so that you changes are picked up automatically.
 ```
 cd ~/
@@ -110,7 +119,7 @@ docker rmi -f $(docker images -aq)
 gcloud docker -- pull gcr.io/ansible-tower-engineering/awx_devel:devel
 ```
 
-> Note: this will delete _all_ containers and images, not just those related to AWX/Tower.  
+> Note: this will delete _all_ containers and images, not just those related to AWX/Tower.
 
 ## Other Helpful Snippets
 

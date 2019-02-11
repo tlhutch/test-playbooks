@@ -41,8 +41,8 @@ class TestInstanceGroupPolicies(APITest):
 
         # Add all instances to newly created instance group, in parallel
         threads = [threading.Thread(target=do_associate_instance, args=(inst,)) for inst in instances]
-        map(lambda t: t.start(), threads)
-        map(lambda t: t.join(), threads)
+        [t.start() for t in threads]
+        [t.join() for t in threads]
 
         assert set(ig.get().policy_instance_list) == set(inst.hostname for inst in instances)
 
@@ -51,8 +51,8 @@ class TestInstanceGroupPolicies(APITest):
 
         # Remove all instances from newly created instance group, in parallel
         threads = [threading.Thread(target=do_disassociate_instance, args=(inst,)) for inst in instances]
-        map(lambda t: t.start(), threads)
-        map(lambda t: t.join(), threads)
+        [t.start() for t in threads]
+        [t.join() for t in threads]
 
         assert ig.get().policy_instance_list == []
 

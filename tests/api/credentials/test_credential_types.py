@@ -1,4 +1,4 @@
-from towerkit.utils import credential_type_kinds, to_str, PseudoNamespace
+from towerkit.utils import credential_type_kinds, PseudoNamespace
 from towerkit import exceptions as exc
 import fauxfactory
 import pytest
@@ -40,7 +40,7 @@ class TestCredentialTypes(APITest):
             assert undesired_type not in creating_help_text
 
     def test_v1_credential_options_dont_contain_credential_type(self, v1):
-        options = to_str(v1.credentials.options()).lower()
+        options = str(v1.credentials.options()).lower()
         assert "credential type" not in options
         assert "credential_type" not in options
 
@@ -380,7 +380,7 @@ class TestCredentialTypes(APITest):
         ct_payload = factories.credential_type.payload(inputs={})
 
         for var in self.invalid_vars:
-            ct_payload.inputs.fields = [dict(id=to_str(var), label=fauxfactory.gen_utf8())]
+            ct_payload.inputs.fields = [dict(id=var, label=fauxfactory.gen_utf8())]
             with pytest.raises(exc.BadRequest) as e:
                 v2.credential_types.post(ct_payload)
             assert e.value.msg == {'inputs': ['%s is an invalid variable name' % var]}

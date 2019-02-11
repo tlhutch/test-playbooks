@@ -25,7 +25,7 @@ def get_vm_ip(vmxfile):
     try:
         ip = subprocess.check_output([VMRUN, 'getGuestIPAddress', vmxfile]).strip()
         return ip
-    except Exception, error:
+    except Exception as error:
         return None
 
 
@@ -72,4 +72,4 @@ if __name__ == "__main__":
         for host in inventory.get('fusion', []):
             inventory['_meta']['hostvars'][host] = dict(ansible_user='root')
 
-    print json.dumps(inventory)
+    print(json.dumps(inventory))

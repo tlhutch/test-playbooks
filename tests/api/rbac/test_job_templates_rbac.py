@@ -1,5 +1,5 @@
 import pytest
-import httplib
+import http.client
 import json
 
 import towerkit.exceptions
@@ -38,7 +38,7 @@ class Test_Job_Template_RBAC(APITest):
                 job_template.related.launch.post()
 
             # check put/patch/delete
-            assert_response_raised(job_template, httplib.FORBIDDEN)
+            assert_response_raised(job_template, http.client.FORBIDDEN)
 
     @pytest.mark.parametrize("agent", ["user", "team"])
     def test_admin_role(self, factories, set_test_roles, agent):
@@ -59,7 +59,7 @@ class Test_Job_Template_RBAC(APITest):
             check_read_access(job_template, ["credential", "inventory", "project"])
 
             # check put/patch/delete
-            assert_response_raised(job_template.get(), httplib.OK)
+            assert_response_raised(job_template.get(), http.client.OK)
 
     @pytest.mark.parametrize("agent", ["user", "team"])
     def test_execute_role(self, factories, set_test_roles, agent):
@@ -81,7 +81,7 @@ class Test_Job_Template_RBAC(APITest):
             check_read_access(job_template, ["credential", "inventory", "project"])
 
             # check put/patch/delete
-            assert_response_raised(job_template, httplib.FORBIDDEN)
+            assert_response_raised(job_template, http.client.FORBIDDEN)
 
     @pytest.mark.parametrize("agent", ["user", "team"])
     def test_read_role(self, factories, set_test_roles, agent):
@@ -103,7 +103,7 @@ class Test_Job_Template_RBAC(APITest):
             check_read_access(job_template, ["credential", "inventory", "project"])
 
             # check put/patch/delete
-            assert_response_raised(job_template, httplib.FORBIDDEN)
+            assert_response_raised(job_template, http.client.FORBIDDEN)
 
     @pytest.mark.parametrize('role', ['admin', 'execute', 'read'])
     def test_user_capabilities(self, factories, api_job_templates_pg, role):
@@ -140,19 +140,19 @@ class Test_Job_Template_RBAC(APITest):
         (
             # After multi-credential refactor, related credential use role not needed for no-op
             {'credential': ['read'], 'inventory': ['use'], 'project': ['use']},
-            {'PATCH': httplib.OK, 'PUT': httplib.OK}
+            {'PATCH': http.client.OK, 'PUT': http.client.OK}
         ),
         (
             {'credential': ['use'], 'inventory': ['read'], 'project': ['use']},
-            {'PATCH': httplib.FORBIDDEN, 'PUT': httplib.FORBIDDEN}
+            {'PATCH': http.client.FORBIDDEN, 'PUT': http.client.FORBIDDEN}
         ),
         (
             {'credential': ['use'], 'inventory': ['use'], 'project': ['read']},
-            {'PATCH': httplib.FORBIDDEN, 'PUT': httplib.FORBIDDEN}
+            {'PATCH': http.client.FORBIDDEN, 'PUT': http.client.FORBIDDEN}
         ),
         (
             {'credential': ['use'], 'inventory': ['use'], 'project': ['use']},
-            {'PATCH': httplib.OK, 'PUT': httplib.OK}
+            {'PATCH': http.client.OK, 'PUT': http.client.OK}
         ),
     ])
     def test_job_template_change_request_without_usage_role_returns_code_403(self,
@@ -172,11 +172,11 @@ class Test_Job_Template_RBAC(APITest):
         jt_payload = factories.job_template.payload(inventory=job_template.ds.inventory,
                                                     credential=job_template.ds.credential)
         # assign test permissions
-        for name, roles in payload_resource_roles.iteritems():
+        for name, roles in payload_resource_roles.items():
             jt_payload.ds[name].set_object_roles(user, *roles)
         # check access
         with self.current_user(username=user.username, password=user.password):
-            for method, code in response_codes.iteritems():
+            for method, code in response_codes.items():
                 check_request(job_template, method, code, data=jt_payload)
 
     @pytest.mark.parametrize('role', ['admin', 'execute', 'read'])

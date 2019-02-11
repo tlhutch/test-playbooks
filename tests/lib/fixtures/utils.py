@@ -5,8 +5,6 @@ import logging
 import fauxfactory
 import pytest
 
-from pytest_ansible.fixtures import ansible_facts as uncalled_ansible_facts
-
 
 @pytest.fixture
 def subrequest(request):
@@ -66,10 +64,10 @@ def get_pg_dump(request, ansible_runner, skip_docker, hostvars_for_host):
         contacted = ansible_runner.slurp(src=pg_dump_path)
         restore_log_level()
 
-        res = contacted.values().pop()
+        res = list(contacted.values()).pop()
 
         assert not res.get('failed') and res['content']
-        return b64decode(res['content'])
+        return b64decode(res['content']).decode()
 
     return _pg_dump
 
@@ -203,11 +201,10 @@ def skip_if_fips_enabled(is_fips_enabled):
 
 
 @pytest.fixture
-def is_fips_enabled(is_docker, ansible_module):
+def is_fips_enabled(is_docker, ansible_facts):
     if is_docker:
         return False
-    ansible_facts = uncalled_ansible_facts(ansible_module)
-    return True in [dict(facts)['ansible_facts']['ansible_fips'] for host, facts in ansible_facts.contacted.iteritems()]
+    return True in [dict(facts)['ansible_facts']['ansible_fips'] for host, facts in ansible_facts.contacted.items()]
 
 
 @pytest.fixture(scope='class')
@@ -256,13 +253,12 @@ def is_cluster(is_traditional_cluster, is_openshift_cluster):
 
 
 @pytest.fixture(scope='class')
-def is_rhel(ansible_module):
-    ansible_facts = uncalled_ansible_facts(ansible_module)
+def is_rhel(ansible_facts):
     return 'RedHat' in [ansible_facts[host]['ansible_facts']
            ['ansible_distribution'] for host in ansible_facts.contacted]
 
 
 @pytest.fixture(scope='class')
-def skip_if_not_rhel(is_rhel, ansible_module):
+def skip_if_not_rhel(is_rhel):
     if not is_rhel:
         pytest.skip('Cannot run on platforms other than RHEL')

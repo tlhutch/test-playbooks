@@ -155,7 +155,7 @@ class TestInventorySource(APITest):
 
         with pytest.raises(exc.Conflict) as e:
             inv_source.delete()
-        assert e.value[1] == {'error': 'Resource is being used by running jobs.', 'active_jobs': [{'type': 'inventory_update', u'id': inv_update.id}]}
+        assert e.value[1] == {'error': 'Resource is being used by running jobs.', 'active_jobs': [{'type': 'inventory_update', 'id': inv_update.id}]}
 
         inv_source.wait_until_completed().assert_successful()
         inv_update.get().assert_successful()
@@ -174,8 +174,10 @@ class TestInventorySource(APITest):
             threading.Thread(target=groups.delete),
             threading.Thread(target=hosts.delete)
         ]
-        map(lambda t: t.start(), threads)
-        map(lambda t: t.join(), threads)
+        for t in threads:
+            t.start()
+        for t in threads:
+            t.join()
 
         with pytest.raises(exc.NotFound):
             groups.results[0].get()  # canary, actual groups span multiple pages

@@ -1,5 +1,5 @@
 import pytest
-import httplib
+import http.client
 
 import towerkit.exceptions
 from tests.lib.helpers.rbac_utils import (
@@ -31,7 +31,7 @@ class Test_Credential_RBAC(APITest):
             check_read_access(credential, unprivileged=True)
 
             # check put/patch/delete
-            assert_response_raised(credential, httplib.FORBIDDEN)
+            assert_response_raised(credential, http.client.FORBIDDEN)
 
     @pytest.mark.parametrize("agent", ["user", "team"])
     def test_admin_role(self, factories, set_test_roles, agent):
@@ -52,7 +52,7 @@ class Test_Credential_RBAC(APITest):
             check_read_access(credential)
 
             # check put/patch/delete
-            assert_response_raised(credential, httplib.OK)
+            assert_response_raised(credential, http.client.OK)
 
     @pytest.mark.parametrize("agent", ["user", "team"])
     def test_use_role(self, factories, set_test_roles, agent):
@@ -74,7 +74,7 @@ class Test_Credential_RBAC(APITest):
             check_read_access(credential, ['user'])
 
             # check put/patch/delete
-            assert_response_raised(credential, httplib.FORBIDDEN)
+            assert_response_raised(credential, http.client.FORBIDDEN)
 
     @pytest.mark.parametrize("agent", ["user", "team"])
     def test_read_role(self, factories, set_test_roles, agent):
@@ -96,7 +96,7 @@ class Test_Credential_RBAC(APITest):
             check_read_access(credential, ['user'])
 
             # check put/patch/delete
-            assert_response_raised(credential, httplib.FORBIDDEN)
+            assert_response_raised(credential, http.client.FORBIDDEN)
 
     @pytest.mark.parametrize('role', ['admin', 'use', 'read'])
     def test_user_capabilities(self, factories, api_credentials_pg, role):

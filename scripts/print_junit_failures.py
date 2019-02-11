@@ -46,9 +46,9 @@ for test in xml:
 
 for test in success:
     printout("[success] ", GREEN)
-    print(u"{}::{}".format(test.classname, test.name))
+    print("{}::{}".format(test.classname, test.name))
 
 
 for test in failed:
     printout("[failed] ", RED)
-    print(u"{}::{}\n{}\n".format(test.classname, test.name, test.result.message))
+    print("{}::{}\n{}\n".format(test.classname, test.name, test.result.message))

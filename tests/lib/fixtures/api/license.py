@@ -20,7 +20,7 @@ def apply_license_until_effective(config, license_info):
         config.post(license_info)
     except BadRequest:
         if config.is_awx_license:
-            log.warn('Detected AWX instead of Tower, see README "Set up Tower-License module", proceed at own risk.')
+            log.warning('Detected AWX instead of Tower, see README "Set up Tower-License module", proceed at own risk.')
             return
         else:
             raise
@@ -99,7 +99,7 @@ def apply_license(api, mp_trail, mp_message_board):
                     if license_type is None:
                         delete_license_until_effective(config)
                     else:
-                        instance_count = kwargs.pop('instance_count', sys.maxint)
+                        instance_count = kwargs.pop('instance_count', sys.maxsize)
                         license_info = generate_license(instance_count=instance_count,
                                                         days=days,
                                                         license_type=license_type, **kwargs)

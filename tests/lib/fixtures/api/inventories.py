@@ -53,7 +53,7 @@ def ansible_default_ipv4(ansible_facts):
     if len(ansible_facts) > 1:
         log.warning("ansible_facts for {0} systems found, but returning "
                     "only the first".format(len(ansible_facts)))
-    return ansible_facts.values()[0]['ansible_facts']['ansible_default_ipv4']['address']
+    return list(ansible_facts.values())[0]['ansible_facts']['ansible_default_ipv4']['address']
 
 
 @pytest.fixture(scope="function")
@@ -126,21 +126,21 @@ def host(factories, inventory, group):
 
 @pytest.fixture(scope="function")
 def script_source(request):
-    fixture_args = getattr(request.function, 'fixture_args', None)
+    fixture_args = request.node.get_closest_marker('fixture_args')
     if fixture_args and 'source_script' in fixture_args.kwargs:
         return fixture_args.kwargs['source_script']
 
-    group_name = re.sub(r"[\']", "", u"group-%s" % fauxfactory.gen_utf8())
-    script = u"""#!/usr/bin/env python
+    group_name = re.sub(r"[\']", "", "group-%s" % fauxfactory.gen_utf8())
+    script = """#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import json
 inventory = dict()
 inventory['{0}'] = list()
 """.format(group_name)
     for i in range(5):
-        host_name = re.sub(r"[\':]", "", u"host-%s" % fauxfactory.gen_utf8())
-        script += u"inventory['{0}'].append('{1}')\n".format(group_name, host_name)
-    script += u"print json.dumps(inventory)\n"
+        host_name = re.sub(r"[\':]", "", "host-%s" % fauxfactory.gen_utf8())
+        script += "inventory['{0}'].append('{1}')\n".format(group_name, host_name)
+    script += "print json.dumps(inventory)\n"
     log.debug(script)
     return script
 

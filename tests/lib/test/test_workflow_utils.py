@@ -84,22 +84,27 @@ def test_add_node_with_edge_to_node_that_does_not_exist():
     """
     t = WorkflowTree()
     error = 'Should not be able to create node with edge to node that does not exist.'
-    with pytest.raises(Exception, msg=error):
+    with pytest.raises(Exception):
         t.add_node(1, always_nodes=[2])
+        pytest.fail(error)
 
-    with pytest.raises(Exception, msg=error):
+    with pytest.raises(Exception):
         t.add_node(1, always_nodes=[2, 3])
+        pytest.fail(error)
 
     t.add_nodes(2)
-    with pytest.raises(Exception, msg=error):
+    with pytest.raises(Exception):
         t.add_node(1, always_nodes=[2, 3])  # Still missing node 3
+        pytest.fail(error)
 
-    with pytest.raises(Exception, msg=error):
+    with pytest.raises(Exception):
         t.add_node(1, always_nodes=[2], success_nodes=[3])
+        pytest.fail(error)
 
     t.add_nodes(3)
-    with pytest.raises(Exception, msg=error):
+    with pytest.raises(Exception):
         t.add_node(1, always_nodes=[2], success_nodes=[3, 4])  # Missing node 4
+        pytest.fail(error)
 
 
 def test_add_node_with_edges():
@@ -123,8 +128,9 @@ def test_add_node_with_edges():
 def test_remove_node_that_does_not_exist(node):
     """Confirm that removing node that does not exist raises `Exception`"""
     t = WorkflowTree()
-    with pytest.raises(Exception, msg='Expect `Exception` when deleting node that does not exist'):
+    with pytest.raises(Exception):
         t.remove_nodes(node)
+        pytest.fail('Expect `Exception` when deleting node that does not exist')
 
 
 def test_remove_node():
@@ -157,17 +163,20 @@ def test_add_edge_when_nodes_missing():
     """Confirms cannot add edge when either node is missing"""
     t = WorkflowTree()
 
-    with pytest.raises(Exception, msg='Should not be able to add edge when both nodes missing.'):
+    with pytest.raises(Exception):
         t.add_edge(1, 2, 'always')
+        pytest.fail('Should not be able to add edge when second node missing.')
 
     t.add_nodes(2)
-    with pytest.raises(Exception, msg='Should not be able to add edge when first node missing.'):
+    with pytest.raises(Exception):
         t.add_edge(1, 2, 'always')
+        pytest.fail('Should not be able to add edge when second node missing.')
 
     t.remove_nodes(2)
     t.add_nodes(1)
-    with pytest.raises(Exception, msg='Should not be able to add edge when second node missing.'):
+    with pytest.raises(Exception):
         t.add_edge(1, 2, 'always')
+        pytest.fail('Should not be able to add edge when second node missing.')
 
 
 def test_add_edge():
@@ -189,18 +198,20 @@ def test_remove_edge_that_does_not_exist():
     t = WorkflowTree()
 
     # Remove edge when nodes do not exist
-    with pytest.raises(Exception, msg='Removing edge that does not exist should raise `Exception`'):
+    with pytest.raises(Exception):
         t.remove_edge(1, 2, 'always')
+        pytest.fail('Removing edge that does not exist should raise `Exception`')
 
     t.add_nodes(1)
     # Remove edge when second node do not exist
-    with pytest.raises(Exception, msg='Removing edge that does not exist should raise `Exception`'):
-        t.remove_edge(1, 2, 'always')
+    with pytest.raises(Exception):
+        pytest.fail('Removing edge that does not exist should raise `Exception`')
 
     t.add_nodes(2)
     # Remove edge when edge does not exist
-    with pytest.raises(Exception, msg='Removing edge that does not exist should raise `Exception`'):
+    with pytest.raises(Exception):
         t.remove_edge(1, 2, 'always')
+        pytest.fail('Removing edge that does not exist should raise `Exception`')
 
 
 def test_remove_edges():

@@ -4,12 +4,13 @@ set -euxo pipefail
 mkdir -p ~/.ssh/
 cp $PUBLIC_KEY ~/.ssh/id_rsa.pub
 
-pip install -U pip setuptools
-pip install -U setuptools
-pip install sphinx==1.5.6
-pip install -U pyrax boto boto3 botocore azure apache-libcloud
-pip install -U argparse # required by pyrax -> novaclient, but not explicitly listed
-pip install -U junit-xml
+# Enable python3 if this version of tower-qa uses it
+if [ "$(grep -s "python3" tox.ini)" ]; then
+python3 -m venv $PWD/venv
+source $PWD/venv/bin/activate
+fi
+
+pip install -Ur scripts/requirements.install
 
 # Increase ssh timeout
 export ANSIBLE_TIMEOUT=30
@@ -34,7 +35,7 @@ ANSIBLE_NIGHTLY_REPO="${ANSIBLE_NIGHTLY_REPO}/${ANSIBLE_NIGHTLY_BRANCH}" \
 python scripts/cloud_vars_from_env.py --cloud-provider ${CLOUD_PROVIDER} --platform ${PLATFORM} > playbooks/vars.yml
 ansible-playbook -i playbooks/inventory -e @playbooks/vars.yml playbooks/deploy-tower.yml
 
-TOWER_URL=`python scripts/ansible_inventory_to_json.py --inventory playbooks/inventory.log | jq -r .tower\[0\]`
+TOWER_URL=`ansible -i playbooks/inventory.log --list-hosts tower | grep -v -m 1 hosts | xargs`
 TOWER_VERSION=`curl -ks https://${TOWER_URL}/api/v1/ping/ | jq -r .version | cut -d . -f 1-3`
 echo ${TOWER_VERSION}
 

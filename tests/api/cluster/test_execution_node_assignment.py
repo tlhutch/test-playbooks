@@ -37,7 +37,7 @@ class TestExecutionNodeAssignment(APITest):
         capacity = sum([instance.capacity for instance in instances])
         if any([uj_impact > instance.capacity for instance in instances]):
             raise RuntimeError('Method not valid for cases where jobs exceed instance capacity')
-        return capacity / uj_impact + 1
+        return capacity // uj_impact + 1
 
     @pytest.fixture
     def largest_capacity(self, v2):
@@ -57,8 +57,7 @@ class TestExecutionNodeAssignment(APITest):
                                            playbook='sleep.yml',
                                            extra_vars=dict(sleep_interval=60),
                                            limit="all[0]")
-            map(lambda i: factories.v2_host(inventory=jt.ds.inventory),
-                xrange(0, capacity_size + 1))
+            [factories.v2_host(inventory=jt.ds.inventory) for _ in range(0, capacity_size + 1)]
             return jt
         return fn
 
@@ -394,9 +393,9 @@ class TestExecutionNodeAssignment(APITest):
         jt = jt_generator_for_consuming_given_capacity(forks)
 
         # Launch jobs quickly in order to get them in same task manager run
-        threads = [threading.Thread(target=jt.launch, args=()) for i in xrange(0, jobs_count)]
-        map(lambda t: t.start(), threads)
-        map(lambda t: t.join(), threads)
+        threads = [threading.Thread(target=jt.launch, args=()) for i in range(0, jobs_count)]
+        [t.start() for t in threads]
+        [t.join() for t in threads]
 
         # Wait for jobs to obtain running state, note jobs list is ordered
         jobs = jt.related.jobs.get(order_by='created').results
@@ -464,7 +463,7 @@ class TestExecutionNodeAssignment(APITest):
         instances = random.sample(tower_ig_instances, max(3, len(tower_ig_instances)))
 
         jobs_count = len(instances) * 2
-        forks = (largest_capacity - 1) / 2
+        forks = (largest_capacity - 1) // 2
         # 2 Jobs per Instance
 
         jt = jt_generator_for_consuming_given_capacity(forks)
@@ -485,8 +484,8 @@ class TestExecutionNodeAssignment(APITest):
             for ig in v2.instance_groups.get(id__in=','.join([str(ig.id) for ig in
                 instance_groups])).results]) == len(instances), interval=5, timeout=120)
 
-        map(lambda ig: jt.add_instance_group(ig), instance_groups)
-        jobs = [jt.launch() for x in xrange(0, jobs_count)]
+        [jt.add_instance_group(ig) for ig in instance_groups]
+        jobs = [jt.launch() for x in range(0, jobs_count)]
         jobs = [j.wait_until_completed() for j in jobs]
 
         # Verify all jobs ran overlapping

@@ -1,6 +1,5 @@
 import json
 
-from towerkit.utils import to_str
 import towerkit.exceptions as exc
 import fauxfactory
 import pytest
@@ -49,7 +48,7 @@ class Test_Users(APITest):
         with self.current_user(org_admin.username, user_password):
             for is_superuser in (None, False, 'false', 'False', 'f', 0, '0'):
                 payload = user_payload(is_superuser=is_superuser)
-                print json.dumps(payload, indent=2)
+                print(json.dumps(payload, indent=2))
                 obj = users_pg.post(payload)
                 request.addfinalizer(obj.delete)
                 assert not obj.is_superuser, "Unexpectedly created a superuser with the following payload\n%s." % json.dumps(obj.json, indent=2)
@@ -103,6 +102,6 @@ class Test_Users(APITest):
 
     def test_user_creation_doesnt_leak_password_into_activity_stream(self, v2, factories):
         superuser = factories.v2_user(is_superuser=True)
-        user_activity_stream = to_str(superuser.related.activity_stream.get())
+        user_activity_stream = str(superuser.related.activity_stream.get())
         for secret in (superuser.password, 'md5'):
             assert secret not in user_activity_stream

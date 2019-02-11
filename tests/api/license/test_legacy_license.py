@@ -19,7 +19,7 @@ class TestLegacyLicense(LicenseTest):
 
     def test_metadata(self, api_config_pg):
         conf = api_config_pg.get()
-        print json.dumps(conf.json, indent=4)
+        print(json.dumps(conf.json, indent=4))
 
         # Assert NOT Demo mode
         assert not conf.is_demo_license
@@ -43,15 +43,15 @@ class TestLegacyLicense(LicenseTest):
             "Incorrect license_type returned. Expected 'legacy,' " \
             "returned %s." % conf.license_info['license_type']
 
-        default_features = {u'surveys': True,
-                            u'multiple_organizations': True,
-                            u'activity_streams': True,
-                            u'ldap': True,
-                            u'ha': True,
-                            u'system_tracking': False,
-                            u'enterprise_auth': False,
-                            u'rebranding': False,
-                            u'workflows': False}
+        default_features = {'surveys': True,
+                            'multiple_organizations': True,
+                            'activity_streams': True,
+                            'ldap': True,
+                            'ha': True,
+                            'system_tracking': False,
+                            'enterprise_auth': False,
+                            'rebranding': False,
+                            'workflows': False}
 
         # Assess default features
         assert conf.license_info['features'] == default_features, \
@@ -86,7 +86,7 @@ class TestLegacyLicense(LicenseTest):
         exc_info = pytest.raises(exc.PaymentRequired, host_local.get_related, 'fact_versions')
         result = exc_info.value[1]
 
-        assert result == {u'detail': u'Your license does not permit use of system tracking.'}, (
+        assert result == {'detail': 'Your license does not permit use of system tracking.'}, (
             "Unexpected API response upon attempting to navigate to fact_versions with a legacy license - %s."
             % json.dumps(result))
 
@@ -177,7 +177,7 @@ class TestLegacyLicenseWarning(LicenseTest):
 
     def test_metadata(self, api_config_pg):
         conf = api_config_pg.get()
-        print json.dumps(conf.json, indent=4)
+        print(json.dumps(conf.json, indent=4))
 
         # Assert NOT Demo mode
         assert not conf.is_demo_license
@@ -232,7 +232,7 @@ class TestLegacyLicenseGracePeriod(LicenseTest):
 
     def test_metadata(self, api_config_pg):
         conf = api_config_pg.get()
-        print json.dumps(conf.json, indent=4)
+        print(json.dumps(conf.json, indent=4))
 
         # Assert NOT Demo mode
         assert not conf.is_demo_license
@@ -275,7 +275,7 @@ class TestLegacyLicenseExpired(LicenseTest):
 
     def test_metadata(self, api_config_pg):
         conf = api_config_pg.get()
-        print json.dumps(conf.json, indent=4)
+        print(json.dumps(conf.json, indent=4))
 
         # Assert NOT Demo mode
         assert not conf.is_demo_license
@@ -322,18 +322,18 @@ class TestLegacyLicenseExpired(LicenseTest):
 @pytest.mark.usefixtures('authtoken', 'install_legacy_license_expired')
 class TestLegacyLicenseExpiredSerial(LicenseTest):
 
-    def test_job_launch(self, request, factories, apply_generated_license):
+    def test_job_launch(self, request, factories, apply_generated_license, legacy_license_json):
         """Verify that job_templates cannot be launched"""
-        with apply_generated_license(self.legacy_license_json()):
+        with apply_generated_license(legacy_license_json):
             job_template = factories.v2_job_template()
 
         with pytest.raises(exc.LicenseExceeded):
             job_template.launch_job()
 
     def test_unable_to_launch_ad_hoc_command(self, request, apply_generated_license, api_ad_hoc_commands_pg,
-                                             ssh_credential):
+                                             ssh_credential, legacy_license_json):
         """Verify that ad hoc commands cannot be launched from all four ad hoc endpoints."""
-        with apply_generated_license(self.legacy_license_json()):
+        with apply_generated_license(legacy_license_json):
             host_local = request.getfixturevalue('host_local')
 
         ad_hoc_commands_pg = api_ad_hoc_commands_pg.get()
@@ -380,7 +380,7 @@ class TestLegacyTrialLicense(LicenseTest):
 
     def test_metadata(self, api_config_pg):
         conf = api_config_pg.get()
-        print json.dumps(conf.json, indent=4)
+        print(json.dumps(conf.json, indent=4))
 
         # Assert NOT Demo mode
         assert not conf.is_demo_license
@@ -405,13 +405,13 @@ class TestLegacyTrialLicense(LicenseTest):
 
     def test_key_visibility_superuser(self, api_config_pg):
         conf = api_config_pg.get()
-        print json.dumps(conf.json, indent=4)
+        print(json.dumps(conf.json, indent=4))
         assert conf.is_trial_license
 
     def test_key_visibility_non_superuser(self, api_config_pg, non_superuser, user_password):
         with self.current_user(non_superuser.username, user_password):
             conf = api_config_pg.get()
-            print json.dumps(conf.json, indent=4)
+            print(json.dumps(conf.json, indent=4))
 
             if non_superuser.is_system_auditor:
                 assert 'license_key' in conf.license_info

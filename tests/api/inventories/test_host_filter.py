@@ -1,5 +1,3 @@
-import types
-
 from towerkit.utils import random_title, PseudoNamespace
 import towerkit.exceptions
 import fauxfactory
@@ -175,7 +173,7 @@ class TestHostFilter(APITest):
         ansible_facts = host.related.ansible_facts.get()
 
         raw_value = getattr(ansible_facts, ansible_fact)
-        expected_value = str(raw_value).lower() if isinstance(raw_value, types.BooleanType) else raw_value
+        expected_value = str(raw_value).lower() if isinstance(raw_value, bool) else raw_value
 
         host_filter = "ansible_facts__{0}={1}".format(ansible_fact, expected_value)
         response = v2.hosts.get(host_filter=host_filter.format(**inventory_item_names), page_size=200)
@@ -313,10 +311,10 @@ class TestHostFilter(APITest):
         name, description = fauxfactory.gen_utf8(), fauxfactory.gen_utf8()
         host = factories.host(name=name, description=description)
 
-        host_filters = [u"search={0}".format(name),
-                        u"search={0}".format(description),
-                        u"search={0}".format(name)[:10],
-                        u"search={0}".format(description)[:10]]
+        host_filters = ["search={0}".format(name),
+                        "search={0}".format(description),
+                        "search={0}".format(name)[:10],
+                        "search={0}".format(description)[:10]]
         for host_filter in host_filters:
             response = v2.hosts.get(host_filter=host_filter)
             assert response.count == 1
@@ -338,7 +336,7 @@ class TestHostFilter(APITest):
         host = factories.host(name=host_name, inventory=group.ds.inventory)
         group.add_host(host)
 
-        host_filters = [u"name={0}".format(host_name), u"groups__name={0}".format(group_name)]
+        host_filters = ["name={0}".format(host_name), "groups__name={0}".format(group_name)]
         for host_filter in host_filters:
             response = v2.hosts.get(host_filter=host_filter, page_size=200)
             assert response.count == 1

@@ -8,7 +8,7 @@ import re
 from towerkit import api, config
 from towerkit.tower.utils import uses_sessions
 
-from loading import args, resources, delete_all_created  # noqa
+from .loading import args, resources, delete_all_created  # noqa
 
 
 logging.basicConfig(level='DEBUG')
@@ -135,10 +135,9 @@ def confirm_related_field(field, found, desired):
 
 def resolve_duplicates_by_description(potential_duplicates, desired_object):
     if len(potential_duplicates) == 1 or 'description' not in desired_object:
-        return potential_duplicates.values().pop()
+        return list(potential_duplicates.values()).pop()
 
-    return filter(lambda x: x.description == desired_object.description,
-                  potential_duplicates.values()).pop()
+    return [x for x in potential_duplicates.values() if x.description == desired_object.description].pop()
 
 
 log.info('Verifying users')
@@ -146,7 +145,7 @@ for username, desired_user in desired_users.items():
     found_user = found_users[username]
 
     # password isn't exposed via the api
-    for field in filter(lambda x: x != 'password', desired_user):
+    for field in [x for x in desired_user if x != 'password']:
         assert getattr(found_user, field) == getattr(desired_user, field)
 
 log.info('Verifying organizations')
@@ -199,7 +198,7 @@ log.info('Verifying projects')
 projects_to_update = []
 for name, desired_project in desired_projects.items():
     found_project = found_projects[name]
-    for field in filter(lambda x: x != 'name', desired_project):
+    for field in [x for x in desired_project if x != 'name']:
         if field in ('organization', 'credential'):
             assert confirm_related_field(field, found_project, desired_project)
         else:
@@ -209,7 +208,7 @@ for name, desired_project in desired_projects.items():
 log.info('Verifying inventory scripts')
 for name, desired_script in desired_inventory_scripts.items():
     found_script = found_inventory_scripts[name].get()
-    for field in filter(lambda x: x != 'name', desired_script):
+    for field in [x for x in desired_script if x != 'name']:
         if field in ('organization',):
             assert confirm_related_field(field, found_script, desired_script)
         else:
@@ -225,7 +224,7 @@ for name, desired_inventory in desired_inventories.items():
         else:
             raise
 
-    for field in filter(lambda x: x != 'name', desired_inventory):
+    for field in [x for x in desired_inventory if x != 'name']:
         if field in ('organization',):
             assert confirm_related_field(field, found_inventory, desired_inventory)
         else:
@@ -247,7 +246,7 @@ for name, desired_group in desired_groups.items():
 log.info('Verifying hosts')
 for name, desired_host in desired_hosts.items():
     found_host = resolve_duplicates_by_description(found_hosts[name], desired_host)
-    for field in filter(lambda x: x not in ('name', 'description'), desired_host):
+    for field in [x for x in desired_host if x not in ('name', 'description')]:
         if field == 'inventory':
             assert confirm_related_field('inventory', found_host, desired_host)
         elif field == 'groups':
@@ -266,7 +265,7 @@ for name, desired_inventory_source in desired_inventory_sources.items():
         try:  # We need to filter by what the inventory source will likely be named in tower for implicit inv srcs
             internal_name = re.compile(r'^{0} \({1}'.format(desired_inventory_source.group,
                                                            desired_inventory_source.name.split('/')[0]))
-            source_name = filter(lambda x: internal_name.match(x), found_inventory_sources)[0]
+            source_name = [x for x in found_inventory_sources if internal_name.match(x)][0]
             found_inventory_source = found_inventory_sources[source_name]
         except IndexError:
             if 'azure' in desired_inventory_source.name.lower() and args.no_azure:
@@ -279,7 +278,7 @@ for name, desired_inventory_source in desired_inventory_sources.items():
     else:
         inclusion = ('credential', 'inventory', 'group')
         exclusion = ('update_interval', 'name')
-    for field in filter(lambda x: x not in exclusion, desired_inventory_source):
+    for field in [x for x in desired_inventory_source if x not in exclusion]:
         if field in inclusion:
             assert confirm_related_field(field, found_inventory_source, desired_inventory_source)
         elif field == 'source_script':
@@ -293,7 +292,7 @@ log.info('Verifying job templates')
 job_templates_to_check = []
 for name, desired_job_template in desired_job_templates.items():
     found_job_template = found_job_templates[name]
-    for field in filter(lambda x: x != 'name', desired_job_template):
+    for field in [x for x in desired_job_template if x != 'name']:
         if field in ('credential', 'group', 'inventory', 'project'):
             assert confirm_related_field(field, found_job_template, desired_job_template)
         elif field == 'playbook' and desired_job_template.playbook == 'Default':

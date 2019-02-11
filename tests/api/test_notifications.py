@@ -1,4 +1,4 @@
-from itertools import ifilter
+
 import logging
 
 from towerkit.notification_services import (confirm_notification, can_confirm_notification)
@@ -190,7 +190,7 @@ class Test_Notifications(APITest):
         # Find the notification that matches the expected template
         notifications_pg = job.get_related('notifications').wait_until_count(notifications_expected)
         notification_pg = next(
-            ifilter(lambda x: x.notification_template == notification_template.id, notifications_pg.results),
+            filter(lambda x: x.notification_template == notification_template.id, notifications_pg.results),
             None
         )
 

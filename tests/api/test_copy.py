@@ -22,5 +22,6 @@ class TestCopying(APITest):
         assert 'copy' in getattr(factories, 'v2_{}'.format(obj))().related
         x = getattr(factories, obj)()
         assert 'copy' not in x.related
-        with pytest.raises(exc.NotFound, message='Action only possible starting with v2 API.'):
+        with pytest.raises(exc.NotFound):
             v1.walk(x.url + 'copy/').post({'name': 'Some Copy'})
+            pytest.fail('Action only possible starting with v2 API.')

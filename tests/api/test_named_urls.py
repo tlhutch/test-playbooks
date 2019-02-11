@@ -11,9 +11,7 @@ log = logging.getLogger(__name__)
 
 
 def escape_pluses(name):
-    """escape plusses for named urls and return a bytestring"""
-    if isinstance(name, unicode):
-        name = name.encode('utf8')
+    """escape plus signs for named urls and return a string"""
     return name.replace('+', '[+]')
 
 
@@ -53,24 +51,24 @@ class TestNamedURLs(APITest):
         # backwards incompatible and needs to be checked (i.e. have url formats changed
         # unexpectedly).
         expected = {
-            u'applications': u'<name>++<organization.name>',
-            u'credential_types': u'<name>+<kind>',
-            u'credentials': u'<name>++<credential_type.name>+<credential_type.kind>++<organization.name>',
-            u'groups': u'<name>++<inventory.name>++<organization.name>',
-            u'hosts': u'<name>++<inventory.name>++<organization.name>',
-            u'instance_groups': u'<name>',
-            u'instances': u'<hostname>',
-            u'inventories': u'<name>++<organization.name>',
-            u'inventory_scripts': u'<name>++<organization.name>',
-            u'inventory_sources': u'<name>++<inventory.name>++<organization.name>',
-            u'job_templates': u'<name>',
-            u'labels': u'<name>++<organization.name>',
-            u'notification_templates': u'<name>++<organization.name>',
-            u'organizations': u'<name>',
-            u'projects': u'<name>++<organization.name>',
-            u'teams': u'<name>++<organization.name>',
-            u'users': u'<username>',
-            u'workflow_job_templates': u'<name>++<organization.name>'
+            'applications': '<name>++<organization.name>',
+            'credential_types': '<name>+<kind>',
+            'credentials': '<name>++<credential_type.name>+<credential_type.kind>++<organization.name>',
+            'groups': '<name>++<inventory.name>++<organization.name>',
+            'hosts': '<name>++<inventory.name>++<organization.name>',
+            'instance_groups': '<name>',
+            'instances': '<hostname>',
+            'inventories': '<name>++<organization.name>',
+            'inventory_scripts': '<name>++<organization.name>',
+            'inventory_sources': '<name>++<inventory.name>++<organization.name>',
+            'job_templates': '<name>',
+            'labels': '<name>++<organization.name>',
+            'notification_templates': '<name>++<organization.name>',
+            'organizations': '<name>',
+            'projects': '<name>++<organization.name>',
+            'teams': '<name>++<organization.name>',
+            'users': '<username>',
+            'workflow_job_templates': '<name>++<organization.name>'
         }
 
         settings = v2.settings.get().get_endpoint('named-url')

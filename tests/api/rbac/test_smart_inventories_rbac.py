@@ -1,4 +1,4 @@
-import httplib
+import http.client
 
 import towerkit.exceptions as exc
 import pytest
@@ -34,8 +34,8 @@ class TestSmartInventoryRBAC(APITest):
                 inventory.related.ad_hoc_commands.post()
 
             self.check_host_filter_edit(inventory, allowed=False)
-            assert_response_raised(host, httplib.FORBIDDEN)
-            assert_response_raised(inventory, httplib.FORBIDDEN)
+            assert_response_raised(host, http.client.FORBIDDEN)
+            assert_response_raised(inventory, http.client.FORBIDDEN)
 
     def test_organization_admin(self, factories):
         host = factories.v2_host()
@@ -47,8 +47,8 @@ class TestSmartInventoryRBAC(APITest):
         with self.current_user(user):
             check_read_access(inventory)
             self.check_host_filter_edit(inventory, allowed=True)
-            assert_response_raised(host, httplib.OK)
-            assert_response_raised(inventory, httplib.OK)
+            assert_response_raised(host, http.client.OK)
+            assert_response_raised(inventory, http.client.OK)
 
     @pytest.mark.parametrize("agent", ["user", "team"])
     def test_admin_role(self, set_test_roles, agent, factories):
@@ -62,8 +62,8 @@ class TestSmartInventoryRBAC(APITest):
         with self.current_user(username=user.username, password=user.password):
             check_read_access(inventory, ["organization"])
             self.check_host_filter_edit(inventory, allowed=False)
-            assert_response_raised(host, httplib.FORBIDDEN)
-            assert_response_raised(inventory, httplib.OK)
+            assert_response_raised(host, http.client.FORBIDDEN)
+            assert_response_raised(inventory, http.client.OK)
 
     @pytest.mark.parametrize("agent", ["user", "team"])
     def test_use_role(self, set_test_roles, agent, factories):
@@ -77,8 +77,8 @@ class TestSmartInventoryRBAC(APITest):
         with self.current_user(username=user.username, password=user.password):
             check_read_access(inventory, ["organization"])
             self.check_host_filter_edit(inventory, allowed=False)
-            assert_response_raised(host, httplib.FORBIDDEN)
-            assert_response_raised(inventory, httplib.FORBIDDEN)
+            assert_response_raised(host, http.client.FORBIDDEN)
+            assert_response_raised(inventory, http.client.FORBIDDEN)
 
     @pytest.mark.parametrize("agent", ["user", "team"])
     def test_adhoc_role(self, set_test_roles, agent, factories):
@@ -92,8 +92,8 @@ class TestSmartInventoryRBAC(APITest):
         with self.current_user(username=user.username, password=user.password):
             check_read_access(inventory, ["organization"])
             self.check_host_filter_edit(inventory, allowed=False)
-            assert_response_raised(host, httplib.FORBIDDEN)
-            assert_response_raised(inventory, httplib.FORBIDDEN)
+            assert_response_raised(host, http.client.FORBIDDEN)
+            assert_response_raised(inventory, http.client.FORBIDDEN)
 
     @pytest.mark.parametrize("agent", ["user", "team"])
     def test_read_role(self, set_test_roles, agent, factories):
@@ -107,8 +107,8 @@ class TestSmartInventoryRBAC(APITest):
         with self.current_user(username=user.username, password=user.password):
             check_read_access(inventory, ["organization"])
             self.check_host_filter_edit(inventory, allowed=False)
-            assert_response_raised(host, httplib.FORBIDDEN)
-            assert_response_raised(inventory, httplib.FORBIDDEN)
+            assert_response_raised(host, http.client.FORBIDDEN)
+            assert_response_raised(inventory, http.client.FORBIDDEN)
 
     @pytest.mark.parametrize('role', ['admin', 'use', 'ad hoc', 'read'])
     def test_launch_command_with_smart_inventory(self, factories, role):

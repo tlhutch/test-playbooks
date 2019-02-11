@@ -1,5 +1,5 @@
 import pytest
-import httplib
+import http.client
 
 from tests.lib.helpers.rbac_utils import (
     assert_response_raised,
@@ -28,7 +28,7 @@ class Test_Inventory_Script_RBAC(APITest):
             check_read_access(inventory_script, unprivileged=True)
 
             # check put/patch/delete
-            assert_response_raised(inventory_script, httplib.FORBIDDEN)
+            assert_response_raised(inventory_script, http.client.FORBIDDEN)
 
     @pytest.mark.parametrize("agent", ["user", "team"])
     def test_admin_role(self, factories, inventory_script, set_test_roles, agent):
@@ -56,7 +56,7 @@ class Test_Inventory_Script_RBAC(APITest):
                 "Unexpected value for 'script'; expected %s but got %s." % (script, inventory_script.script)
 
             # check put/patch/delete
-            assert_response_raised(inventory_script, httplib.OK)
+            assert_response_raised(inventory_script, http.client.OK)
 
     @pytest.mark.parametrize("agent", ["user", "team"])
     def test_read_role(self, factories, inventory_script, set_test_roles, agent):
@@ -84,7 +84,7 @@ class Test_Inventory_Script_RBAC(APITest):
                 "Unexpected value for 'script'; expected null but got %s." % inventory_script.script
 
             # check put/patch/delete
-            assert_response_raised(inventory_script, httplib.FORBIDDEN)
+            assert_response_raised(inventory_script, http.client.FORBIDDEN)
 
     @pytest.mark.parametrize('role', ['admin', 'read'])
     def test_user_capabilities(self, factories, inventory_script, api_inventory_scripts_pg, role):

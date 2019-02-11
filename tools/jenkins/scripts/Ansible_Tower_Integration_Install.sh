@@ -7,12 +7,13 @@ cp $PUBLIC_KEY ~/.ssh/id_rsa.pub
 # Enable junit XML output
 # export ANSIBLE_CALLBACK_PLUGINS="playbooks/library/callbacks"
 
-pip install pip==9.0.2 # temp workaround for pip 10
-pip install -U setuptools #pip
-pip install -U setuptools pbr
-pip install -U -I pyrax boto boto3 botocore azure apache-libcloud
-pip install -U -I argparse # required by pyrax -> novaclient, but not explicitly listed
-pip install -U -I junit-xml
+# Enable python3 if this version of tower-qa uses it
+if [ "$(grep -s "python3" tox.ini)" ]; then
+python3 -m venv $PWD/venv
+source $PWD/venv/bin/activate
+fi
+
+pip install -Ur scripts/requirements.install
 
 # Increase ssh timeout
 export ANSIBLE_TIMEOUT=30

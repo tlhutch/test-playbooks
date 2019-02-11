@@ -19,7 +19,7 @@ class TestPrompts(APITest):
                         ask_credential_on_launch=True)
 
     def format_dtstart(self, schedule):
-        return utils.to_str(schedule.dtstart).translate(None, '-:')
+        return str(schedule.dtstart).translate(str.maketrans('', '', '-:'))
 
     def test_created_schedule_with_default_jt(self, factories):
         jt = factories.v2_job_template()

@@ -57,8 +57,8 @@ class TestJobTemplateExtraVars(APITest):
                 (['a', 'b', 'c'], 'Input type `list` is not a dictionary'),
                 ('["a", "b", "c"]', 'Input type `list` is not a dictionary')):
             with pytest.raises(towerkit.exceptions.BadRequest) as e:
-                print utils.to_str(invalid)
-                jt.extra_vars = utils.to_str(invalid)
+                print(invalid)
+                jt.extra_vars = str(invalid)
             assert 'extra_vars' in e.value.msg
             assert message in e.value.msg['extra_vars'][0]
 
@@ -191,7 +191,7 @@ class TestJobTemplateExtraVars(APITest):
         launch_pg = job_template_variables_needed_to_start.get_related('launch')
         survey_spec = job_template_variables_needed_to_start.get_related('survey_spec')
 
-        print json.dumps(launch_pg.json, indent=2)
+        print(json.dumps(launch_pg.json, indent=2))
 
         # assert values on launch resource
         assert not launch_pg.can_start_without_user_input

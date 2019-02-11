@@ -42,7 +42,7 @@ def custom_inventory_source_vars_bad(request):
 
 @pytest.fixture(scope="function")
 def custom_inventory_source_with_vars(request, custom_inventory_source, custom_inventory_source_vars_good, custom_inventory_source_vars_bad):
-    custom_inventory_source.patch(source_vars=json.dumps(dict(custom_inventory_source_vars_good.items() + custom_inventory_source_vars_bad.items())))
+    custom_inventory_source.patch(source_vars=json.dumps(dict(list(custom_inventory_source_vars_good.items()) + list(custom_inventory_source_vars_bad.items()))))
     return custom_inventory_source
 
 
@@ -79,7 +79,7 @@ class Test_Inventory_Scripts(APITest):
                        organization=organization.id)
         exc_info = pytest.raises(exc.BadRequest, api_inventory_scripts_pg.post, payload)
         result = exc_info.value[1]
-        assert result == {u'name': [u'This field is required.']}, \
+        assert result == {'name': ['This field is required.']}, \
             "Unexpected API response when posting an inventory_script with a missing value for 'name': %s." % json.dumps(result)
 
         # without script
@@ -87,7 +87,7 @@ class Test_Inventory_Scripts(APITest):
                        organization=organization.id)
         exc_info = pytest.raises(exc.BadRequest, api_inventory_scripts_pg.post, payload)
         result = exc_info.value[1]
-        assert result == {u'script': [u'This field is required.']}, \
+        assert result == {'script': ['This field is required.']}, \
             "Unexpected API response when posting an inventory_script with a missing value for 'script': %s." % json.dumps(result)
 
         # without script that includes hashbang
@@ -96,7 +96,7 @@ class Test_Inventory_Scripts(APITest):
                        script='import json\nprint json.dumps({})')
         exc_info = pytest.raises(exc.BadRequest, api_inventory_scripts_pg.post, payload)
         result = exc_info.value[1]
-        assert result == {u'script': [u'Script must begin with a hashbang sequence: i.e.... #!/usr/bin/env python']}, \
+        assert result == {'script': ['Script must begin with a hashbang sequence: i.e.... #!/usr/bin/env python']}, \
             "Unexpected API response when posting an inventory_script with a script that does not begin with a hashbang sequence: %s." % json.dumps(result)
 
         # without organization
@@ -104,7 +104,7 @@ class Test_Inventory_Scripts(APITest):
                        script=script_source)
         exc_info = pytest.raises(exc.BadRequest, api_inventory_scripts_pg.post, payload)
         result = exc_info.value[1]
-        assert result == {u'organization': [u'This field is required.']}, \
+        assert result == {'organization': ['This field is required.']}, \
             "Unexpected API response when posting an inventory_script with a missing value for 'organization': %s." % json.dumps(result)
 
     def test_get_as_privileged_user(self, inventory_script, privileged_user, user_password):
@@ -144,14 +144,14 @@ class Test_Inventory_Scripts(APITest):
 
     def test_unique(self, request, api_inventory_scripts_pg, inventory_script, another_organization):
         """Verify response when POSTing a duplicate to /inventory_scripts"""
-        print json.dumps(inventory_script.json, indent=2)
+        print(json.dumps(inventory_script.json, indent=2))
         payload = dict(name=inventory_script.name,
                        description=inventory_script.description,
                        organization=another_organization.id)
 
         payload = inventory_script.json
         payload['organization'] = another_organization.id
-        print json.dumps(payload, indent=2)
+        print(json.dumps(payload, indent=2))
 
         # assert successful POST
         obj = api_inventory_scripts_pg.post(payload)
@@ -258,7 +258,7 @@ class Test_Inventory_Scripts(APITest):
         assert num_hosts > 0, "Unexpected number of hosts were imported as a result of an inventory_update" % num_hosts
 
         # assert expected environment variables
-        print json.dumps(update_pg.job_env, indent=2)
+        print(json.dumps(update_pg.job_env, indent=2))
 
         # assert existing shell environment variables are *not* replaced
         for key, val in custom_inventory_source_vars_bad.items():
@@ -293,4 +293,4 @@ class Test_Inventory_Scripts(APITest):
         update_pg = custom_inventory_source.update().wait_until_completed()
 
         # assert failed inventory_update
-        assert not update_pg.is_successful, u"update completed successfully, but was expected to fail  - %s " % update_pg
+        assert not update_pg.is_successful, "update completed successfully, but was expected to fail  - %s " % update_pg

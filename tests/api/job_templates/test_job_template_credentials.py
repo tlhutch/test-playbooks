@@ -164,7 +164,7 @@ class TestJobTemplateLaunchCredentials(APITest):
         # support for OpenSSH credentials was introduced in OpenSSH 6.5
         if credential_type == "unencrypted_open":
             contacted = ansible_runner.command('ssh -V')
-            if LooseVersion(contacted.values()[0]['stderr'].split(" ")[0].split("_")[1]) >= LooseVersion("6.5"):
+            if LooseVersion(list(contacted.values())[0]['stderr'].split(" ")[0].split("_")[1]) >= LooseVersion("6.5"):
                 job.assert_successful()
             else:
                 assert job.status == 'error'
@@ -181,7 +181,7 @@ class TestJobTemplateLaunchCredentials(APITest):
         job_template.credential = credential.id
 
         launch = job_template.get_related('launch')
-        assert launch.passwords_needed_to_start == [u'ssh_key_unlock']
+        assert launch.passwords_needed_to_start == ['ssh_key_unlock']
 
         job = job_template.launch(dict(ssh_key_unlock='fo0m4nchU'))
         job.wait_until_completed()
@@ -189,7 +189,7 @@ class TestJobTemplateLaunchCredentials(APITest):
         # support for OpenSSH credentials was introduced in OpenSSH 6.5
         if credential_type == "encrypted_open":
             contacted = ansible_runner.command('ssh -V')
-            if LooseVersion(contacted.values()[0]['stderr'].split(" ")[0].split("_")[1]) >= LooseVersion("6.5"):
+            if LooseVersion(list(contacted.values())[0]['stderr'].split(" ")[0].split("_")[1]) >= LooseVersion("6.5"):
                 job.assert_successful()
             else:
                 assert job.status == 'error'
@@ -262,7 +262,7 @@ class TestJobTemplateLaunchCredentials(APITest):
 
         with pytest.raises(exc.BadRequest) as e:
             jt.launch(dict(credentials=[vault_cred2.id]))
-        error_msg = (u'Removing Vault (id={0.inputs.vault_id}) credential at launch time without replacement '
+        error_msg = ('Removing Vault (id={0.inputs.vault_id}) credential at launch time without replacement '
                      'is not supported. Provided list lacked credential(s): {0.name}-{0.id}.').format(vault_cred1)
         assert e.value.msg == {'credentials': [error_msg]}
 
@@ -325,7 +325,7 @@ class TestJobTemplateVaultCredentials(APITest):
 
         debug_tasks = job.related.job_events.get(host_name=host.name, task='debug', event__startswith='runner_on_ok').results
         assert len(debug_tasks) == 1
-        assert debug_tasks[0].event_data.res.hostvars.keys() == [host.name]
+        assert list(debug_tasks[0].event_data.res.hostvars.keys()) == [host.name]
 
     @pytest.mark.parametrize('v, cred_args', [['v1', dict(vault_password='ASK', username='', password='',
                                                           ssh_key_data='', become_password='')],
@@ -350,7 +350,7 @@ class TestJobTemplateVaultCredentials(APITest):
 
         debug_tasks = job.related.job_events.get(host_name=host.name, task='debug', event__startswith='runner_on_ok').results
         assert len(debug_tasks) == 1
-        assert debug_tasks[0].event_data.res.hostvars.keys() == [host.name]
+        assert list(debug_tasks[0].event_data.res.hostvars.keys()) == [host.name]
 
     def test_decrypt_vaulted_playbook_with_multiple_vault_credentials(self, factories):
         host = factories.v2_host()
@@ -512,7 +512,7 @@ class TestJobTemplateExtraCredentials(APITest):
         for env_var in env_vars:
             assert env_var in job.job_env
 
-        ansible_env = job.related.job_events.get(host=host.id, task='debug').results.pop().event_data.res.ansible_env
+        ansible_env = job.related.job_events.get(host=host.id, task='debug', event__startswith='runner_on_ok').results.pop().event_data.res.ansible_env
 
         for env_var in env_vars:
             assert env_var in ansible_env
@@ -568,7 +568,7 @@ class TestJobTemplateExtraCredentials(APITest):
         for env_var in env_vars:
             assert env_var in job.job_env
 
-        ansible_env = job.related.job_events.get(host=host.id, task='debug').results.pop().event_data.res.ansible_env
+        ansible_env = job.related.job_events.get(host=host.id, task='debug', event__startswith='runner_on_ok').results.pop().event_data.res.ansible_env
 
         for env_var in env_vars:
             assert env_var in ansible_env

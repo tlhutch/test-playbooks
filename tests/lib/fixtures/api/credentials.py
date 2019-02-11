@@ -44,7 +44,7 @@ def ssh_credential_with_ssh_key_data_and_sudo(ansible_adhoc, admin_user, factori
     # FIXME: should get facts from managed host
     # managed host is unreachable, but will almost always be same as other nodes
     ansible_facts = getattr(ansible_adhoc(), 'tower[0]').setup()
-    sudo_user = ansible_facts.values()[0]['ansible_facts']['ansible_env'].get('SUDO_USER', 'root')
+    sudo_user = list(ansible_facts.values())[0]['ansible_facts']['ansible_env'].get('SUDO_USER', 'root')
     cred = factories.credential(kind='ssh', user=admin_user, username=sudo_user, become_method="sudo", password=None,
                                 become_password=None)
     return cred

@@ -15,7 +15,7 @@ class TestEnterpriseLicense(LicenseTest):
 
     def test_metadata(self, api_config_pg):
         conf = api_config_pg.get()
-        print json.dumps(conf.json, indent=4)
+        print(json.dumps(conf.json, indent=4))
 
         # Assert NOT Demo mode
         assert not conf.is_demo_license
@@ -39,15 +39,15 @@ class TestEnterpriseLicense(LicenseTest):
             "Incorrect license_type returned. Expected 'enterprise,' " \
             "returned %s." % conf.license_info['license_type']
 
-        default_features = {u'surveys': True,
-                            u'multiple_organizations': True,
-                            u'activity_streams': True,
-                            u'ldap': True,
-                            u'ha': True,
-                            u'system_tracking': True,
-                            u'enterprise_auth': True,
-                            u'rebranding': True,
-                            u'workflows': True}
+        default_features = {'surveys': True,
+                            'multiple_organizations': True,
+                            'activity_streams': True,
+                            'ldap': True,
+                            'ha': True,
+                            'system_tracking': True,
+                            'enterprise_auth': True,
+                            'rebranding': True,
+                            'workflows': True}
 
         # assess default features
         assert conf.license_info['features'] == default_features, \
@@ -167,7 +167,7 @@ class TestEnterpriseLicenseExpired(LicenseTest):
 
     def test_metadata(self, api_config_pg):
         conf = api_config_pg.get()
-        print json.dumps(conf.json, indent=4)
+        print(json.dumps(conf.json, indent=4))
 
         # Assert NOT Demo mode
         assert not conf.is_demo_license

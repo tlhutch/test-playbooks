@@ -4,7 +4,7 @@ from datetime import datetime
 from dateutil.parser import parse
 from dateutil.relativedelta import relativedelta
 import traceback
-import StringIO
+import io
 
 import pytest
 from towerkit import exceptions as exc, config
@@ -66,8 +66,9 @@ class TestSchedules(SchedulesTest):
             ('DTSTART:20030925T104941Z RRULE:FREQ=DAILY;INTERVAL=10;COUNT=500;UNTIL=20040925T104941Z', 'RRULE may not contain both COUNT and UNTIL'),
         ]
         for invalid, expected in invalid_rrules:
-            with pytest.raises(exc.BadRequest, message='Failed to raise for invalid rrule "{}"'.format(invalid)) as e:
+            with pytest.raises(exc.BadRequest) as e:
                 v2_unified_job_template.add_schedule(rrule=invalid)
+                pytest.fail('Failed to raise for invalid rrule "{}"'.format(invalid))
             assert e.value[1].get('rrule', [e.value[1]])[0] == expected
 
     def test_schedule_basic_integrity(self, v2_unified_job_template):
@@ -293,7 +294,7 @@ class TestSchedules(SchedulesTest):
             return '2035-0{}-01T00:00:01{}:{}'.format(month, offset[:3], offset[3:]) if offset != '+0000' else '2035-0{}-01T00:00:01Z'.format(month)
 
         failed_zones = []
-        error_stream = StringIO.StringIO()
+        error_stream = io.StringIO()
         for zone in zones:
             if zone in ['Africa/Khartoum', 'Africa/Sao_Tome', 'Africa/Windhoek', 'America/Grand_Turk',
                         'Antarctica/Casey', 'Asia/Famagusta', 'Asia/Pyongyang', 'Pacific/Tongatapu',

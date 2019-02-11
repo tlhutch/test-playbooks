@@ -1,4 +1,4 @@
-import httplib
+import http.client
 import random
 
 from towerkit import utils
@@ -38,7 +38,7 @@ class TestInstanceGroupRBAC(APITest):
         with self.current_user(user):
             with pytest.raises(exc.Forbidden):
                 ig.remove_instance(instance)
-            assert_response_raised(ig, httplib.FORBIDDEN)
+            assert_response_raised(ig, http.client.FORBIDDEN)
 
     def test_org_admin(self, v2, factories):
         """An organization admin should be able to:
@@ -75,7 +75,7 @@ class TestInstanceGroupRBAC(APITest):
             assert instances.count == 1
             assert len(instances.results) == 1
             check_read_access(instance)
-            assert_response_raised(ig, httplib.FORBIDDEN)
+            assert_response_raised(ig, http.client.FORBIDDEN)
             with pytest.raises(exc.Forbidden):
                 ig.remove_instance(instance)
 

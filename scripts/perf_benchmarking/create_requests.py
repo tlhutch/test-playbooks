@@ -10,7 +10,7 @@ import sys
 from towerkit import api, utils
 from towerkit import exceptions as exc
 
-from benchmarking import (delete_all_created, no_op, write_results, get_all,  # noqa
+from .benchmarking import (delete_all_created, no_op, write_results, get_all,  # noqa
                           determine_execution_node_counts, determine_job_event_count)  # noqa
 
 
@@ -73,7 +73,7 @@ cloud_cred_creation_time = cloud_cred.last_elapsed
 write_results(cloud_cred_creation_time, operation='create a cloud cred', user='admin',
               endpoint=str(v1.credentials), method='post')
 
-key_data = open("authorized_key_material").read()  # TODO: obtain via arg
+key_data = open("authorized_key_material", encoding='utf-8').read()  # TODO: obtain via arg
 machine_cred = v1.credentials.create(name='machine_cred', kind='ssh',
                                      ssh_key_data=key_data,
                                      organization=org,

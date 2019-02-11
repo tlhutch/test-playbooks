@@ -181,13 +181,13 @@ class Test_Host_Fork(APITest):
         assert 'ansible' in self.metrics
         assert len(self.metrics['tower']) == len(self.metrics['ansible'])
 
-        print
-        print "Playbook Performance (%s hosts)" % NUM_HOSTS
-        print
-        print "%-12s %12s %15s %15s %15s" % ('Playbook', 'Num_Forks', 'Ansible', 'Tower', 'Event_Delay')
-        print "%s=%s=%s=%s=%s" % ('=' * 12, '=' * 12, '=' * 15, '=' * 15, '=' * 15)
+        print()
+        print("Playbook Performance (%s hosts)" % NUM_HOSTS)
+        print()
+        print("%-12s %12s %15s %15s %15s" % ('Playbook', 'Num_Forks', 'Ansible', 'Tower', 'Event_Delay'))
+        print("%s=%s=%s=%s=%s" % ('=' * 12, '=' * 12, '=' * 15, '=' * 15, '=' * 15))
         for (tower, ansible) in zip(self.metrics['tower'], self.metrics['ansible']):
             assert tower['playbook'] == ansible['playbook']
             assert tower['forks'] == ansible['forks']
-            print "%-12s %12s %15.2f %15.2f %15.2f" % \
-                (tower['playbook'], tower['forks'], ansible['runtime'], tower['runtime'], tower['event_time'],)
+            print("%-12s %12s %15.2f %15.2f %15.2f" %
+                (tower['playbook'], tower['forks'], ansible['runtime'], tower['runtime'], tower['event_time'],))

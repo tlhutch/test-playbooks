@@ -605,7 +605,7 @@ class TestGroup(APITest):
         group = factories.v2_group()
         with pytest.raises(exc.BadRequest) as e:
             group.add_group(group)
-        assert e.value[1] == {u'error': u'Cyclical Group association.'}
+        assert e.value[1] == {'error': 'Cyclical Group association.'}
 
     def test_duplicate_groups_allowed_in_different_inventories(self, factories):
         """Verify that duplicate groups are allowed in different inventories."""

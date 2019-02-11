@@ -248,10 +248,12 @@ class Test_Workflow_Job_Templates(APITest):
 
         # Delete WFJT
         wfjt.delete()
-        with pytest.raises(NotFound, message='Expected WFJT to be deleted'):
+        with pytest.raises(NotFound):
             wfjt.get()
-        with pytest.raises(NotFound, message='Expected WFJT node to be deleted'):
+            pytest.fail('Expected WFJT to be deleted')
+        with pytest.raises(NotFound):
             node.get()
+            pytest.fail('Expected WFJT node to be deleted')
         try:
             jt.get()
         except NotFound:
@@ -285,11 +287,14 @@ class Test_Workflow_Job_Templates(APITest):
 
         # Delete WFJT
         wfjt.delete()
-        with pytest.raises(NotFound, message='Expected WFJT to be deleted:\n{}'.format(wfjt)):
+        with pytest.raises(NotFound):
             wfjt.get()
+            pytest.fail('Expected WFJT to be deleted:\n{}'.format(wfjt))
+
         for node in nodes:
-            with pytest.raises(NotFound, message='Expected WFJT node to be deleted:\n{}'.format(node)):
+            with pytest.raises(NotFound):
                 node.get()
+                pytest.fail('Expected WFJT node to be deleted:\n{}'.format(node))
         try:
             jt.get()
         except NotFound:
@@ -324,8 +329,9 @@ class Test_Workflow_Job_Templates(APITest):
 
         # Delete node
         n1.delete()
-        with pytest.raises(NotFound, message='Expected WFJT node to be deleted:\n{}'.format(n2)):
+        with pytest.raises(NotFound):
             n1.get()
+            pytest.fail('Expected WFJT node to be deleted:\n{}'.format(n2))
 
         # Get tree for workflow
         tree = WorkflowTree(workflow=wfjt)
@@ -359,8 +365,9 @@ class Test_Workflow_Job_Templates(APITest):
 
         # Delete node
         n2.delete()
-        with pytest.raises(NotFound, message='Expected WFJT node to be deleted:\n{}'.format(n2)):
+        with pytest.raises(NotFound):
             n2.get()
+            pytest.fail('Expected WFJT node to be deleted:\n{}'.format(n2))
 
         # Get tree for workflow
         tree = WorkflowTree(workflow=wfjt)
@@ -387,8 +394,9 @@ class Test_Workflow_Job_Templates(APITest):
 
         # Delete node
         n2.delete()
-        with pytest.raises(NotFound, message='Expected WFJT node to be deleted:\n{}'.format(n2)):
+        with pytest.raises(NotFound):
             n2.get()
+            pytest.fail('Expected WFJT node to be deleted:\n{}'.format(n2))
 
         # Confirm intermediate node updated
         try:

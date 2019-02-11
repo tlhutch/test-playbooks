@@ -92,7 +92,7 @@ class Test_Workflow_Nodes(APITest):
         assert json.loads(job.extra_vars) == {'var1': 'wf_var', 'var2': '$encrypted$'}
 
         # verify job sources wf node and not JT
-        jt_fields = filter(lambda field: field not in ('project', 'playbook'), self.select_jt_fields)
+        jt_fields = [field for field in self.select_jt_fields if field not in ('project', 'playbook')]
         for field in jt_fields:
             assert getattr(ask_everything_jt, field) != getattr(job, field)
         for field in self.promptable_fields:

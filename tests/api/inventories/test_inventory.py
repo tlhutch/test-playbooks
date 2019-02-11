@@ -231,7 +231,7 @@ class TestInventory(APITest):
         start = time.time()
         inv.update_inventory_sources(wait=True)
         creation_entry_ct = v2.activity_stream.get(changes__icontains=search_kernel).count
-        log.warn('Inventory import of {} hosts took {}, producing {} entries.'.format(
+        log.warning('Inventory import of {} hosts took {}, producing {} entries.'.format(
             total, time.time() - start, creation_entry_ct
         ))
 
@@ -239,7 +239,7 @@ class TestInventory(APITest):
         inv.delete()
         utils.poll_until(lambda: v2.inventory.get(name__icontains=search_kernel).count == 0, interval=1, timeout=60 * 5)
         deletion_entries = v2.activity_stream.get(changes__icontains=search_kernel, operation='delete')
-        log.warn('Deletion of inventory took roughly {}, producing {} entries.'.format(
+        log.warning('Deletion of inventory took roughly {}, producing {} entries.'.format(
             time.time() - start, deletion_entries.count
         ))
         for entry in deletion_entries.results:

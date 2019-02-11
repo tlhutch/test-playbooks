@@ -1,8 +1,13 @@
 #!/usr/bin/env bash
 set -euxo pipefail
 
-pip install -U jenkinsapi
-pip install -U slacker
+# Enable python3 if this version of tower-qa uses it
+if [ "$(grep -s "python3" tox.ini)" ]; then
+python3 -m venv $PWD/venv
+source $PWD/venv/bin/activate
+fi
+
+pip install -Ur scripts/requirements.bots
 
 SKIP="false"
 export SLACK_CHANNEL="#ship_it"

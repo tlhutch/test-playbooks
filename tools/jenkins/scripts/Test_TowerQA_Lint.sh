@@ -1,10 +1,14 @@
 #!/usr/bin/env bash
 set -euxo pipefail
 
-pip install -U pip
-pip install -r requirements.txt
-pip install setuptools-lint
+if [ "$(grep -s "python3" tox.ini)" ]; then
+python3 -m venv $PWD/venv
+source $PWD/venv/bin/activate
+fi
+which python
+python --version
 
-pycodestyle --config=.flake8 . | tee pycodestyle.log
+pip install -Ur scripts/requirements.lint
+pip install -Ur requirements.txt
 
-flake8 --output-file=flake8.log || :
+tox

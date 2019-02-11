@@ -56,7 +56,7 @@ def parse_args():
 
 
 def random_password():
-    return binascii.b2a_hex(os.urandom(5))
+    return binascii.b2a_hex(os.urandom(5)).decode()
 
 
 def prune_image_vars(image_vars):
@@ -139,7 +139,7 @@ def main():
         image_path = os.path.join(tqa_root, 'playbooks/images-{0.cloud_provider}.yml'
                                             .format(args))
 
-    image_vars = yaml.load(open(image_path)) if image_path else {}
+    image_vars = yaml.load(open(image_path, encoding='utf-8')) if image_path else {}
     image_vars = cloud_image_vars(image_vars, args)
     image_vars.update(password_vars(image_vars))
     image_vars.update(variables_from_env_vars())

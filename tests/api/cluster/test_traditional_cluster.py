@@ -157,7 +157,7 @@ class TestTraditionalCluster(APITest):
         contacted = ansible_runner.script(cmd)
         assert len(contacted.values()) == 1, "Failed to run script against Tower instance"
 
-        group_mapping = json.loads(contacted.values().pop()['stdout'])
+        group_mapping = json.loads(list(contacted.values()).pop()['stdout'])
         for group in group_mapping.keys():
             match = re.search('(instance_group_|isolated_group_)(.*)', group)
             if match:
@@ -560,6 +560,8 @@ class TestTraditionalCluster(APITest):
                 cmd = "ANSIBLE_BECOME=true ansible {} -i {} -m shell -a 'rabbitmqctl list_queues -p tower --local'".format(host, inventory_file)
                 proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
                 stdout, stderr = proc.communicate()
+                stdout = stdout.decode()
+                stderr = stderr.decode()
                 if 'awx_private_queue' in stdout:
                     return host
             else:
@@ -867,7 +869,7 @@ class TestTraditionalCluster(APITest):
             for host in hosts_in_group('instance_group_ordinary_instances'):
                 def tower_serving_homepage():
                     contacted = ansible_adhoc()[host].uri(url='https://' + host + '/api', validate_certs='no')
-                    return contacted.values()[0]['status'] == 200
+                    return list(contacted.values())[0]['status'] == 200
                 utils.poll_until(tower_serving_homepage, interval=10, timeout=60)
 
         # Confirm that new jobs can be launched on each instance
@@ -934,7 +936,7 @@ class TestTraditionalCluster(APITest):
         job_events = job.get_related('job_events').results
         for job_event in job_events:
             if job_event.event == 'runner_on_ok':
-                assert job_event.event_data.res.hostvars.values()[0].should_be_preserved == u'\x0c"'  # \x0c is equivalent to \f
+                assert list(job_event.event_data.res.hostvars.values())[0].should_be_preserved == '\x0c"'  # \x0c is equivalent to \f
                 break
         else:
             pytest.fail('Failed to find job event with hostvar information')

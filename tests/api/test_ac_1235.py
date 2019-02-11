@@ -22173,15 +22173,17 @@ cat <<EOF
 {}
 EOF""".format(json.dumps(inventory_dict, indent=4)))
         request.addfinalizer(lambda: ansible_runner.file(path=inv_filename, state='absent'))
-        for result in contacted.values():
-            assert not result.get('failed'), "Failed to create inventory file: %s" % result
+        for host, result in contacted.contacted.items():
+            if host != '127.0.0.1' and host != 'localhost':
+                assert not result.get('failed'), "Failed to create inventory file: %s" % result
 
         # Run awx-manage inventory_import
         contacted = ansible_runner.command('awx-manage inventory_import --inventory-id {0.id} --source {1}'
                                            .format(inventory, inv_filename))
-        for result in contacted.values():
-            assert result['rc'] == 0, "awx-manage inventory_import failed: %s" % json.dumps(result, indent=2)
-            print json.dumps(result, indent=2)
+        for host, result in contacted.contacted.items():
+            if host != '127.0.0.1' and host != 'localhost':
+                assert result['rc'] == 0, "awx-manage inventory_import failed: %s" % json.dumps(result, indent=2)
+                print(json.dumps(result, indent=2))
 
         # The expected delta format is - H:MM:SS.SSSSS
         (hours, minutes, seconds) = result['delta'].split(':')
@@ -22193,20 +22195,20 @@ EOF""".format(json.dumps(inventory_dict, indent=4)))
         # Asserting the time is kind of hard.  It depends on the type of system used to test (CPU+Mem)
         # On a m3.medium EC2 instance, the import should take ~300 seconds
         assert seconds <= 300, "Import took longer than 300 seconds (%f seconds)" % seconds
-        print "Import took %s seconds" % seconds
+        print("Import took %s seconds" % seconds)
 
         # Verify the import created the expected groups
         groups_created = inventory.get_related('groups').count
         groups_expected = len([group for group in inventory_dict.keys() if group not in ('all', '_meta')])
         assert groups_created == groups_expected
-        print "Number of groups imported: %s" % groups_created
+        print("Number of groups imported: %s" % groups_created)
 
         # Verify the import created the expected hosts
         # Count the number of unique hosts in the all groups
-        # host_count = len({host:None for hosts in inventory_dict.values() for host in hosts })
         hosts_created = inventory.get_related('hosts').count
-        hosts_expected = len(dict((host, None) for group in inventory_dict.values() for host in group.get('hosts', [])))
+        hosts = {host for group in inventory_dict.values() for host in group.get('hosts', [])}
+        hosts_expected = len(hosts)
 
         # Verify the number of hosts matches what was imported
         assert hosts_created == hosts_expected
-        print "Number of hosts imported: %s" % hosts_created
+        print("Number of hosts imported: %s" % hosts_created)

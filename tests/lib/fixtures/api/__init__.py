@@ -18,8 +18,8 @@ def available_versions(api):
 def get_api_version(available_versions):
     def _get_api_version(desired_version):
         if desired_version not in available_versions:
-            raise(Exception("Requested tower version '{0}' not available.  Choices include: {1}"
-                            .format(desired_version, available_versions)))
+            raise Exception("Requested tower version '{0}' not available.  Choices include: {1}"
+                            .format(desired_version, available_versions))
         return available_versions.get(desired_version)
     return _get_api_version
 

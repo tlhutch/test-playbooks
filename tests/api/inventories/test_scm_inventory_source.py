@@ -115,7 +115,9 @@ class TestSCMInventorySource(APITest):
         if uses_group_vars:
             group_one_vars = [group_one.variables, group_one.related.variable_data.get()]
         else:
-            group_one_vars = [host.variables, host.related.variable_data.get()]
+            group_one_vars = []
+            for host in group_one_hosts:
+                group_one_vars.extend([host.variables, host.related.variable_data.get()])
         for host in group_one_hosts:
             for group_vars in group_one_vars:
                 assert group_vars.is_in_group_one
@@ -432,7 +434,7 @@ class TestSCMInventorySource(APITest):
                                                        update_on_project_update=True)
         with pytest.raises(exc.BadRequest) as e:
             scm_inv_source.add_schedule()
-        assert e.value.msg == {'unified_job_template': [u'Inventory sources with `update_on_project_update` cannot'
+        assert e.value.msg == {'unified_job_template': ['Inventory sources with `update_on_project_update` cannot'
                                                             ' be scheduled. Schedule its source project `{0.name}` '
                                                             'instead.'.format(scm_inv_source.ds.project)]}
 

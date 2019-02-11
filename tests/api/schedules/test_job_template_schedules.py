@@ -68,7 +68,7 @@ class TestJobTemplateSchedules(SchedulesTest):
             if key == 'extra_data':
                 msg = ('Variables {} are not allowed on launch. Check the Prompt '
                        'on Launch setting on the Job Template to include Extra Variables.'.format(
-                            schedule_prompts['extra_data'].keys()[0]))
+                            list(schedule_prompts['extra_data'].keys())[0]))
             assert e.value[1] == {key: [msg]}
 
     def test_schedule_creation_rejected_when_jt_ask_credential_disabled(self, factories):
@@ -139,7 +139,7 @@ class TestJobTemplateSchedules(SchedulesTest):
         job.wait_until_completed().assert_successful()
         assert json.loads(job.extra_vars) == {'var1': 'schedule', 'var2': '$encrypted$'}
 
-        fields = filter(lambda field: field not in ('extra_data', 'rrule'), payload)
+        fields = [field for field in payload if field not in ('extra_data', 'rrule')]
         for field in fields:
             assert payload[field] == getattr(job, field)
         job_cred_ids = [cred.id for cred in job.related.credentials.get().results]

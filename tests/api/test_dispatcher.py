@@ -24,7 +24,7 @@ class TestDispatcher(APITest):
     def run_remote_command(self, ansible_runner):
         def _run_remote_command(cmd):
             contacted = ansible_runner.command(cmd)
-            result = contacted.values()[0]
+            result = list(contacted.values())[0]
             assert result['rc'] == 0, "{0} failed. {1}".format(cmd, self.runner_output(result))
             return result
         return _run_remote_command

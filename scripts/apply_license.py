@@ -2,7 +2,7 @@
 import argparse
 import base64
 import json
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 import ssl
 
 LICENSE = {
@@ -44,11 +44,11 @@ def run():
     ctx = ssl.create_default_context()
     ctx.check_hostname = False
     ctx.verify_mode = ssl.CERT_NONE
-    https_handler = urllib2.HTTPSHandler(context=ctx)
+    https_handler = urllib.request.HTTPSHandler(context=ctx)
 
     # create url opener
-    opener = urllib2.build_opener(https_handler)
-    urllib2.install_opener(opener)
+    opener = urllib.request.build_opener(https_handler)
+    urllib.request.install_opener(opener)
 
     # encode credentials
     encoded_credentials = base64.b64encode('%s:%s' % (args.username, args.password))
@@ -58,13 +58,13 @@ def run():
         'Authorization': 'Basic %s' % encoded_credentials,
         'Content-type': 'application/json'
     }
-    request = urllib2.Request(
+    request = urllib.request.Request(
         args.base_url + '/api/v2/config/',
         json.dumps(LICENSE),
         headers
     )
 
-    urllib2.urlopen(request)
+    urllib.request.urlopen(request)
 
 
 if __name__ == '__main__':

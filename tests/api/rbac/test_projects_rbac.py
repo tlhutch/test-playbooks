@@ -1,5 +1,5 @@
 import pytest
-import httplib
+import http.client
 
 import towerkit.exceptions
 from tests.lib.helpers.rbac_utils import (
@@ -36,7 +36,7 @@ class Test_Project_RBAC(APITest):
                 update.post()
 
             # check put/patch/delete
-            assert_response_raised(project, httplib.FORBIDDEN)
+            assert_response_raised(project, http.client.FORBIDDEN)
 
     @pytest.mark.parametrize("agent", ["user", "team"])
     def test_admin_role(self, factories, set_test_roles, agent):
@@ -57,7 +57,7 @@ class Test_Project_RBAC(APITest):
             check_read_access(project, ["organization"])
 
             # check put/patch/delete
-            assert_response_raised(project, httplib.OK)
+            assert_response_raised(project, http.client.OK)
 
     @pytest.mark.parametrize("agent", ["user", "team"])
     def test_update_role(self, factories, set_test_roles, agent):
@@ -79,7 +79,7 @@ class Test_Project_RBAC(APITest):
             check_read_access(project, ["organization"])
 
             # check put/patch/delete
-            assert_response_raised(project, httplib.FORBIDDEN)
+            assert_response_raised(project, http.client.FORBIDDEN)
 
     @pytest.mark.parametrize("agent", ["user", "team"])
     def test_use_role(self, factories, set_test_roles, agent):
@@ -101,7 +101,7 @@ class Test_Project_RBAC(APITest):
             check_read_access(project, ["organization"])
 
             # check put/patch/delete
-            assert_response_raised(project, httplib.FORBIDDEN)
+            assert_response_raised(project, http.client.FORBIDDEN)
 
     @pytest.mark.parametrize("agent", ["user", "team"])
     def test_read_role(self, factories, set_test_roles, agent):
@@ -123,7 +123,7 @@ class Test_Project_RBAC(APITest):
             check_read_access(project, ["organization"])
 
             # check put/patch/delete
-            assert_response_raised(project, httplib.FORBIDDEN)
+            assert_response_raised(project, http.client.FORBIDDEN)
 
     @pytest.mark.parametrize('role', ['admin', 'update', 'use', 'read'])
     def test_user_capabilities(self, factories, api_projects_pg, role):

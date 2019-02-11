@@ -1,1 +1,1 @@
-from license import LicenseTest  # NOQA
+from .license import LicenseTest  # NOQA

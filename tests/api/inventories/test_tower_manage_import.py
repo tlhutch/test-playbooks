@@ -113,7 +113,7 @@ class TestTowerManageInventoryImport(APITest):
         """Verify successful import by inventory name."""
         dest = upload_inventory(ansible_runner, nhosts=10)
 
-        contacted = ansible_runner.shell(u'awx-manage inventory_import --inventory-name "{0}" --source {1}'.format(inventory.name, dest))
+        contacted = ansible_runner.shell('awx-manage inventory_import --inventory-name "{0}" --source {1}'.format(inventory.name, dest))
         for result in contacted.values():
             assert result['rc'] == 0, "awx-manage inventory_import failed." \
                 "\n[stdout]\n%s\n[stderr]\n%s" % (result['stdout'], result['stderr'])
@@ -126,7 +126,7 @@ class TestTowerManageInventoryImport(APITest):
         """Verify successful import using an .INI file."""
         dest = upload_inventory(ansible_runner, nhosts=10, ini=True)
 
-        contacted = ansible_runner.shell(u'awx-manage inventory_import --inventory-name "{0}" --source {1}'.format(inventory.name, dest))
+        contacted = ansible_runner.shell('awx-manage inventory_import --inventory-name "{0}" --source {1}'.format(inventory.name, dest))
         for result in contacted.values():
             assert result['rc'] == 0, "awx-manage inventory_import failed." \
                 "\n[stdout]\n%s\n[stderr]\n%s" % (result['stdout'], result['stderr'])

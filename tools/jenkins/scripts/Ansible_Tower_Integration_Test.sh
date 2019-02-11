@@ -1,8 +1,14 @@
 #!/usr/bin/env bash
 set -euxo pipefail
 
-pip install -U setuptools pbr
-pip install -r requirements.txt
+# Enable python3 if this version of tower-qa uses it
+if [ "$(grep -s "python3" tox.ini)" ]; then
+python3 -m venv $PWD/venv
+source $PWD/venv/bin/activate
+fi
+
+pip install -Ur scripts/requirements.install
+pip install -Ur requirements.txt
 
 # extract tower hostname from upstream build artifact
 ANSIBLE_INVENTORY=playbooks/inventory.log
@@ -11,9 +17,6 @@ INVENTORY_HOST=$(ansible -i ${ANSIBLE_INVENTORY} --list-hosts ${INVENTORY_GROUP}
 
 # decrypt credentials
 ansible-vault decrypt --vault-password-file="${VAULT_FILE}" config/credentials.vault --output=config/credentials.yml
-
-# temp force pip install requests
-pip install requests==2.19.0
 
 # determine if any ansible issues are still unresolved
 py.test -c config/api.cfg --ansible-host-pattern="${INVENTORY_HOST}" --ansible-inventory="${ANSIBLE_INVENTORY}" -k "${TESTEXPR}" --base-url="https://${INVENTORY_HOST}" --github-summary tests/api > github_issues.txt
@@ -33,7 +36,7 @@ run_tests_and_generate_html(){
     -k "${TESTEXPR}" \
     --base-url="https://${INVENTORY_HOST}" \
     tests/api
-    
+
     TEST_STATUS=$?
 
     mkdir -p reports/html

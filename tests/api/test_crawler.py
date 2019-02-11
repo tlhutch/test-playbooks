@@ -1,4 +1,4 @@
-import httplib
+import http.client
 
 from towerkit.api.client import Connection
 from towerkit.config import config
@@ -16,7 +16,7 @@ def pytest_generate_tests(metafunc):
             test_set = list()
 
             # Skip if running with --help or --collectonly
-            if pytest.config.option.help or pytest.config.option.collectonly:
+            if metafunc.config.option.help or metafunc.config.option.collectonly:
                 return
 
             if fixture == 'method':
@@ -34,10 +34,10 @@ def pytest_generate_tests(metafunc):
                     test_set.extend(api_resources)
 
             if test_set:
-                metafunc.parametrize(fixture, test_set, ids=list(test_set))
+                metafunc.parametrize(fixture, test_set, ids=test_set)
 
 
-def assert_response(connection, resource, method, response_code=httplib.OK, response_schema='unauthorized', data={}):
+def assert_response(connection, resource, method, response_code=http.client.OK, response_schema='unauthorized', data={}):
     """Issue the desired API method on the provided resource.  Assert that the
     http response is as expected.
     """
@@ -55,36 +55,36 @@ def assert_response(connection, resource, method, response_code=httplib.OK, resp
     assert r.status_code == response_code
 
 
-bad_request = (httplib.BAD_REQUEST, 'bad_request')
-forbidden = (httplib.FORBIDDEN, 'forbidden')
-method_not_allowed = (httplib.METHOD_NOT_ALLOWED, 'method_not_allowed')
-payment_required = (httplib.PAYMENT_REQUIRED, 'payment_required')
-unauthorized = (httplib.UNAUTHORIZED, 'unauthorized')
+bad_request = (http.client.BAD_REQUEST, 'bad_request')
+forbidden = (http.client.FORBIDDEN, 'forbidden')
+method_not_allowed = (http.client.METHOD_NOT_ALLOWED, 'method_not_allowed')
+payment_required = (http.client.PAYMENT_REQUIRED, 'payment_required')
+unauthorized = (http.client.UNAUTHORIZED, 'unauthorized')
 
 
 @pytest.mark.api
 @pytest.mark.nondestructive
 @pytest.mark.mp_group('TestCrawler', 'isolated_free')
 def test_unauthenticated(authtoken, resource, method):
-    expected = {'HEAD': (httplib.UNAUTHORIZED, 'head'),
+    expected = {'HEAD': (http.client.UNAUTHORIZED, 'head'),
                 'GET': unauthorized,
                 'OPTIONS': unauthorized,
                 'PATCH': unauthorized,
                 'POST': unauthorized,
                 'PUT': unauthorized}
 
-    exceptions = {'authtoken/': {'HEAD': (httplib.METHOD_NOT_ALLOWED, 'head'),
-                                 'GET': (httplib.METHOD_NOT_ALLOWED, 'get'),
-                                 'OPTIONS': (httplib.OK, 'options'),
-                                 'PATCH': (httplib.METHOD_NOT_ALLOWED, 'patch'),
+    exceptions = {'authtoken/': {'HEAD': (http.client.METHOD_NOT_ALLOWED, 'head'),
+                                 'GET': (http.client.METHOD_NOT_ALLOWED, 'get'),
+                                 'OPTIONS': (http.client.OK, 'options'),
+                                 'PATCH': (http.client.METHOD_NOT_ALLOWED, 'patch'),
                                  'POST': bad_request,
-                                 'PUT': (httplib.METHOD_NOT_ALLOWED, 'put')},
-                  'ping/': {'HEAD': (httplib.OK, 'head'),
-                            'GET': (httplib.OK, 'get'),
-                            'OPTIONS': (httplib.OK, 'options'),
-                            'PATCH': (httplib.METHOD_NOT_ALLOWED, 'patch'),
-                            'POST': (httplib.METHOD_NOT_ALLOWED, 'post'),
-                            'PUT': (httplib.METHOD_NOT_ALLOWED, 'put')}}
+                                 'PUT': (http.client.METHOD_NOT_ALLOWED, 'put')},
+                  'ping/': {'HEAD': (http.client.OK, 'head'),
+                            'GET': (http.client.OK, 'get'),
+                            'OPTIONS': (http.client.OK, 'options'),
+                            'PATCH': (http.client.METHOD_NOT_ALLOWED, 'patch'),
+                            'POST': (http.client.METHOD_NOT_ALLOWED, 'post'),
+                            'PUT': (http.client.METHOD_NOT_ALLOWED, 'put')}}
 
     # Generic response
     (expected_response_code, expected_response_schema) = expected[method]
@@ -104,29 +104,29 @@ def test_unauthenticated(authtoken, resource, method):
 @pytest.mark.mp_group('TestCrawler')
 def test_authenticated(connection, authtoken, no_license, resource, method):
 
-    expected = {'HEAD': (httplib.OK, 'head'),
-                'GET': (httplib.OK, 'get'),
+    expected = {'HEAD': (http.client.OK, 'head'),
+                'GET': (http.client.OK, 'get'),
                 'POST': bad_request,
                 'PUT': method_not_allowed,
                 'PATCH': method_not_allowed,
-                'OPTIONS': (httplib.OK, 'options')}
+                'OPTIONS': (http.client.OK, 'options')}
 
-    exceptions = {'activity_stream/': {'HEAD': (httplib.PAYMENT_REQUIRED, 'head'),
+    exceptions = {'activity_stream/': {'HEAD': (http.client.PAYMENT_REQUIRED, 'head'),
                                        'GET': payment_required,
                                        'OPTIONS': payment_required,
                                        'PATCH': payment_required,
                                        'POST': payment_required,
                                        'PUT': payment_required},
-                  'authtoken/': {'HEAD': (httplib.METHOD_NOT_ALLOWED, 'head'),
+                  'authtoken/': {'HEAD': (http.client.METHOD_NOT_ALLOWED, 'head'),
                                  'GET': method_not_allowed},
-                  'config/': {'POST': (httplib.BAD_REQUEST, 'license_invalid')},
+                  'config/': {'POST': (http.client.BAD_REQUEST, 'license_invalid')},
                   'dashboard/': {'POST': method_not_allowed},
                   'instances/': {'POST': method_not_allowed},
                   '/api/v1/inventory_sources/': {'POST': method_not_allowed},
                   'inventory_updates/': {'POST': method_not_allowed},
                   'job_events/': {'POST': method_not_allowed},
                   '/api/v2/jobs/': {'POST': method_not_allowed},
-                  '/api/v2/tokens/': {'POST': (httplib.CREATED, 'post')},
+                  '/api/v2/tokens/': {'POST': (http.client.CREATED, 'post')},
                   'me/': {'POST': method_not_allowed},
                   'notifications/': {'POST': method_not_allowed},
                   'organizations/': {'POST': payment_required},
@@ -137,11 +137,11 @@ def test_authenticated(connection, authtoken, no_license, resource, method):
                   'system_job_templates/': {'POST': method_not_allowed},
                   'unified_jobs/': {'POST': method_not_allowed},
                   'unified_job_templates/': {'POST': method_not_allowed},
-                  'workflow_job_nodes/': {'HEAD': (httplib.PAYMENT_REQUIRED, 'head'),
+                  'workflow_job_nodes/': {'HEAD': (http.client.PAYMENT_REQUIRED, 'head'),
                                           'PATCH': payment_required,
                                           'POST': payment_required,
                                           'PUT': payment_required},
-                  'workflow_job_template_nodes/': {'HEAD': (httplib.PAYMENT_REQUIRED, 'head'),
+                  'workflow_job_template_nodes/': {'HEAD': (http.client.PAYMENT_REQUIRED, 'head'),
                                                    'PATCH': payment_required,
                                                    'POST': payment_required,
                                                    'PUT': payment_required},
@@ -149,7 +149,7 @@ def test_authenticated(connection, authtoken, no_license, resource, method):
                                               'PATCH': method_not_allowed,
                                               'POST': payment_required,
                                               'PUT': method_not_allowed},
-                  'workflow_jobs/': {'HEAD': (httplib.PAYMENT_REQUIRED, 'head'),
+                  'workflow_jobs/': {'HEAD': (http.client.PAYMENT_REQUIRED, 'head'),
                                      'PATCH': payment_required,
                                      'POST': payment_required,
                                      'PUT': payment_required}}

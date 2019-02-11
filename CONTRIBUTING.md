@@ -42,7 +42,9 @@ Main development branch of `ansible/tower-qa` is `devel`.
 Then each minor releases have their own branch `release_3.3.1`, `release_3.2.8`, etc...
 As soon as a new minor release is actually released a new branch is created `release X.Y.z+1`.
 
-When making a PR to `ansible/tower-qa` please think about if this contribution makes sense to be backported to currently active release branches.
+When making a PR to `ansible/tower-qa` please think about if this
+contribution makes sense to be backported to currently active release
+branches.
 
 
 ## Running tests locally
@@ -52,3 +54,43 @@ As a contributor, you can run part of the tests suite run by Jenkins locally.
 In order to do so, you need to have `tox` installed.
 
 Then at the root of this repository simply run `tox`
+
+
+## Techdebt and upgrades
+
+Please file issues in the libraries we depend on if version changes
+break our usage or if deprecation warnings are emitted.
+
+If our own usage is causing deprecation warnings to show in test runs locally
+or on Jenkins, file an issue in the applicable project.
+
+PRs to delete dead code or update stale code are always welcome! :)
+
+## Maintaining compatiblity with old versions of tower-qa and towerkit
+
+Our jenkins jobs are used to run various versions of the project. For
+this reason, we need to maintain the ability to run the jobs for old and
+new versions.
+
+This means we should keep requirements under source control in the
+project itself. There are still some requirements hiding out in various
+jenkins jobs, feel free to refactor.
+
+We also need to detect the version of python supported by the branch we
+are running.
+
+The current best practice for doing this, since the current Jenkins
+infrastructure uses python2 as the system python, is to look for `python3`
+in the `tox.ini` file and create a virtual environment if it is found.
+
+Example:
+
+```
+# Enable python3 if this version of tower-qa uses it
+if [ "$(grep -s "python3" tox.ini)" ]; then
+python3 -m venv $PWD/venv
+source $PWD/venv/bin/activate
+fi
+```
+
+This should happen before pip installing anything.

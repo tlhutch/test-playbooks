@@ -453,9 +453,9 @@ print json.dumps(inv, indent=2)
         failed = [False] * thread_count
         threads = [threading.Thread(target=do_get_jobs, args=(100, failed, i)) for i in range(thread_count)]
         t_delete = threading.Thread(target=delete_job_template, args=(jt.id, 2))
-
-        map(lambda t: t.start(), threads + [t_delete])
-        map(lambda t: t.join(), threads + [t_delete])
+        all_threads = threads + [t_delete]
+        [t.start() for t in all_threads]
+        [t.join() for t in all_threads]
 
         for failure in failed:
             assert False is failure, \

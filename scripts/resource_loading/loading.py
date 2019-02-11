@@ -67,9 +67,9 @@ resources = utils.PseudoNamespace(yaml_file.load_file(args.resources))
 config.validate_schema = args.validate
 
 try:
-    group = filter(lambda potential: potential in inventory_manager.groups, ['tower'])[0]
+    group = [potential for potential in ['tower'] if potential in inventory_manager.groups][0]
 except IndexError:
-    raise(Exception('{0.inventory} is without desired "tower" group.'.format(args)))
+    raise Exception('{0.inventory} is without desired "tower" group.'.format(args))
 
 config.base_url = "https://{0}".format(inventory_manager.groups[group].hosts[0].address)
 

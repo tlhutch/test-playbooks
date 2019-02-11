@@ -29,10 +29,10 @@ class TestInstanceGroups(APITest):
     def check_resource_is_being_used(self, error, unified_job):
         assert 'error' in error.value[1]
         assert 'active_jobs' in error.value[1]
-        assert error.value[1]['error'] == u'Resource is being used by running jobs.'
+        assert error.value[1]['error'] == 'Resource is being used by running jobs.'
         assert {
-            u'type': unicode(unified_job.type),
-            u'id': unified_job.id
+            'type': str(unified_job.type),
+            'id': unified_job.id
         } in error.value[1]['active_jobs']
 
     def test_instance_group_capacity_should_be_sum_of_individual_instances(self, factories, active_instances):

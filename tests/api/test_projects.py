@@ -173,7 +173,7 @@ class Test_Projects(APITest):
                 if result['stat']['exists']:
                     not_deleted.append(host)
             if not_deleted:
-                log.warn('Project folder {} still exists on {}'.format(expected_project_path, not_deleted))
+                log.warning('Project folder {} still exists on {}'.format(expected_project_path, not_deleted))
                 return False
             return True
 
@@ -418,7 +418,7 @@ class Test_Projects(APITest):
         path = '/home/at_3207_test/'
         request.addfinalizer(lambda: ansible_runner.file(path=path, state='absent'))
         sync = ansible_runner.git(repo='git://github.com/ansible/test-playbooks.git', dest=path)
-        rev = sync.values().pop()['after']
+        rev = list(sync.values()).pop()['after']
         assert rev
         project = factories.project(scm_url='file://{0}'.format(path))
         project.assert_successful()

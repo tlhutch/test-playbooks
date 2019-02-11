@@ -23,7 +23,7 @@ parser.add_argument('--credentials', dest='credentials', help=_cred_help,
                     default=os.path.join(cwd, '..', '..', 'config/credentials.yml'))
 args = parser.parse_args()
 
-results_file = open(args.results, 'wb')
+results_file = open(args.results, mode='wb', encoding='utf-8')
 fieldnames = ['operation', 'user', 'endpoint', 'method', 'elapsed']
 result_writer = csv.DictWriter(results_file, fieldnames=fieldnames)
 result_writer.writeheader()

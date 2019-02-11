@@ -108,7 +108,7 @@ class TestActivityStream(APITest):
                 assert result.summary_fields.user[0].username == user.username
             except AttributeError:
                 # roll JSON_Wrapper Attribute errors in here too
-                raise(Exception("Unprivileged user has access to unexpected activity stream content."))
+                raise Exception("Unprivileged user has access to unexpected activity stream content.")
 
     def test_inventory_id_in_group_activity_stream(self, factories):
         """Confirms that inventory_id is included in the group summary_fields for all non-delete operations"""
@@ -188,7 +188,7 @@ class TestActivityStream(APITest):
 
         # copied JT has 3 labels and no associate activity stream entries for the labels
         copied = jt.get_related('copy').post({'name': six.text_type('{} (Copied)').format(jt.name)})
-        utils.poll_until(lambda: copied.related.labels.count > 0, interval=10, timeout=30)
+        utils.poll_until(lambda: copied.related.labels.get().count > 0, interval=10, timeout=30)
         assert copied.related.activity_stream.get(operation='create').count == 1
         assert copied.related.activity_stream.get(operation='associate', object2='label').count == 0
 
@@ -255,7 +255,7 @@ class TestActivityStream(APITest):
                     pass
         sub_items = []
         if isinstance(dict_content, dict):
-            sub_items = [(k, v) for k, v in dict_content.iteritems()]
+            sub_items = [(k, v) for k, v in dict_content.items()]
         elif isinstance(dict_content, list):
             sub_items = [(i, v) for i, v in enumerate(dict_content)]
         for key, item in sub_items:

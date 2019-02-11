@@ -1,5 +1,5 @@
 import logging
-import httplib
+import http.client
 import os
 
 import towerkit.exceptions
@@ -54,12 +54,12 @@ def check_request(model, method, code, data=None):
         pytest.fail(msg.format(method, response.status_code, code))
 
 
-def assert_response_raised(tower_object, response=httplib.OK, methods=('put', 'patch', 'delete')):
+def assert_response_raised(tower_object, response=http.client.OK, methods=('put', 'patch', 'delete')):
     """Check PUT, PATCH, and DELETE against a Tower resource."""
     exc_dict = {
-        httplib.OK: None,
-        httplib.NOT_FOUND: towerkit.exceptions.NotFound,
-        httplib.FORBIDDEN: towerkit.exceptions.Forbidden,
+        http.client.OK: None,
+        http.client.NOT_FOUND: towerkit.exceptions.NotFound,
+        http.client.FORBIDDEN: towerkit.exceptions.Forbidden,
     }
     exc = exc_dict[response]
     for method in methods:
@@ -98,7 +98,7 @@ def check_read_access(tower_object, expected_forbidden=[], unprivileged=False):
 
 def get_resource_roles(resource):
     """Helper function that returns a list containing a Tower resource's role names."""
-    return [role.replace("_role", "").replace("_", " ").replace("adhoc", "ad hoc") for role in resource.summary_fields.object_roles.keys()]
+    return [role.replace("_role", "").replace("_", " ").replace("adhoc", "ad hoc") for role in list(resource.summary_fields.object_roles.keys())]
 
 
 def get_nt_endpoints(notifiable_resource):

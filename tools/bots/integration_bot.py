@@ -52,7 +52,7 @@ def get_test_results():
         output = build.get_console()
         if 'Started by timer' not in output:
             user = re.search(r'Started by user ([\w ]+)', output).group(1)
-            print 'Skipping {} (manually launched by {})'.format(build.name, user)
+            print('Skipping {} (manually launched by {})'.format(build.name, user))
             continue
         runs = []
         if matrix_job.lower() == 'true':
