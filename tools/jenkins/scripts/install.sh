@@ -67,7 +67,7 @@ python scripts/cloud_vars_from_env.py \
 ansible-playbook "${VERBOSITY}" -i playbooks/inventory -e @playbooks/vars.yml "${PLAYBOOK}"
 
 TOWER_URL="https://$(retrieve_tower_server_from_inventory "${INVENTORY}")"
-_TOWER_VERSION=$(curl -ks "${TOWER_URL}"/api/v1/ping/ | python -c 'import json,sys; print json.loads(sys.stdin.read())["version"]' | cut -d . -f 1-3)
+_TOWER_VERSION=$(curl -ks "${TOWER_URL}"/api/v1/ping/ | python -c 'import json,sys; print(json.loads(sys.stdin.read())["version"])' | cut -d . -f 1-3)
 
 echo "${_TOWER_VERSION}"
 echo "${TOWER_URL}" > tower_url
