@@ -1,6 +1,6 @@
 pipeline {
 
-    agent { label 'unit-test-runner' }
+    agent { label 'jenkins-jnlp-agent' }
 
     parameters {
         choice(
