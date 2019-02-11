@@ -350,9 +350,9 @@ CUSTOM_VENVS = [
 @pytest.mark.usefixtures(
     'authtoken',
     'install_enterprise_license_unlimited',
-    'shared_custom_venvs'
+    'shared_custom_venvs',
+    'skip_if_not_traditional_cluster'
     )
-@pytest.mark.requires_traditional_cluster
 @pytest.mark.mp_group('CustomVirtualenv', 'isolated_serial')
 class TestCustomVirtualenvTraditionalCluster(APITest):
 
