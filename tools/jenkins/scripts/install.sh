@@ -2,18 +2,6 @@
 
 set -euo pipefail
 
-# Enable python3 if this version of tower-qa uses it
-if [ "$(grep -s "python3" tox.ini)" ]; then
-deactivate
-python3 -m venv $PWD/venv
-source $PWD/venv/bin/activate
-fi
-
-pip install -Ur scripts/requirements.install
-
-## FIXME(spredzy): While https://github.com/ansible/ansible/issues/51662 is being fixed
-sed -i 's/await_instances(instance_ids)/await_instances(instance_ids, "EXISTS")/g' /root/.venv/lib/python2.7/site-packages/ansible/modules/cloud/amazon/ec2_instance.py
-rm  /root/.venv/lib/python2.7/site-packages/ansible/modules/cloud/amazon/ec2_instance.pyc || true
 
 # Script variables
 #
@@ -61,6 +49,8 @@ if [[ "${AWS_ACCESS_KEY}" == "" ]] || [[ "${AWS_SECRET_KEY}" == "" ]]; then
     exit 1
 fi
 
+
+setup_python3_env
 setup_env_based_on_deployment_scenario "${SCENARIO}"
 IPV6_DEPLOYMENT=$(retrieve_boolean_value "${IPV6_DEPLOYMENT}")
 DELETE_ON_START=$(retrieve_boolean_value "${DELETE_ON_START}")
