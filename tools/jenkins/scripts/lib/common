@@ -189,4 +189,5 @@ function setup_python3_env {
     fi
 
     pip install -Ur scripts/requirements.install
+    pip install -r requirements.txt
 }

@@ -2,14 +2,6 @@
 
 set -euxo pipefail
 
-# Enable python3 if this version of tower-qa uses it
-if [ "$(grep -s "python3" tox.ini)" ]; then
-python3 -m venv $PWD/venv
-source $PWD/venv/bin/activate
-fi
-
-pip install -Ur scripts/requirements.install
-
 DATA=${DATA:-scripts/resource_loading/data_latest_loading.yml}
 
 # -- Start
@@ -17,6 +9,7 @@ DATA=${DATA:-scripts/resource_loading/data_latest_loading.yml}
 # shellcheck source=lib/common
 source "$(dirname "${0}")"/lib/common
 
+setup_python3_env
 INVENTORY=$(retrieve_inventory_file)
 TOWER_HOST="$(retrieve_tower_server_from_inventory "${INVENTORY}")"
 CREDS=$(retrieve_credential_file "${INVENTORY}")
