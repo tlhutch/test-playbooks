@@ -20,7 +20,7 @@ CREDS=$(retrieve_credential_file "${INVENTORY}")
 TOWER_URL="https://${TOWER_HOST}"
 until is_tower_ready "${TOWER_URL}"; do :; done
 
-scripts/resource_loading/load_tower.py \
+python3 -m scripts.resource_loading.load_tower \
     --inventory "${INVENTORY}" \
     --credentials "${CREDS}" \
     --resources "${DATA}"
