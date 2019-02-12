@@ -21,3 +21,4 @@ pytest-rerunfailures
 python-dateutil
 pytz
 requests
+git+ssh://git@github.com/ansible/towerkit.git
