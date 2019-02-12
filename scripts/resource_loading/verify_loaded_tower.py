@@ -340,3 +340,23 @@ for job in jobs:
         assert job.job_explanation == ''
     else:
         assert job.is_successful
+
+# Verify IG rebuild mapping
+log.info('Verify IG rebuild mapping')
+all_orgs = v.organizations.get().results
+for org in all_orgs:
+    if org['name'].startswith('igmapping Org - '):
+        assert org['name'][16:] == \
+            v.organizations.get(id=org['id']).results.pop().get_related('instance_groups').results.pop().name
+
+all_jts = v.job_templates.get().results
+for jt in all_jts:
+    if jt['name'].startswith('igmapping JT - '):
+        assert jt['name'][15:] == \
+            v.job_templates.get(id=jt['id']).results.pop().get_related('instance_groups').results.pop().name
+
+all_invs = v.inventory.get().results
+for inv in all_invs:
+    if inv['name'].startswith('igmapping Inventory - '):
+        assert inv['name'][22:] == \
+            v.inventory.get(id=inv['id']).results.pop().get_related('instance_groups').results.pop().name

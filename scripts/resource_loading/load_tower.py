@@ -201,3 +201,16 @@ for job in jobs:
             assert job.is_successful
     except Exception as e:
         log.exception(e)
+
+igs = v1.instance_groups.get().results
+proj = v1.projects.create()
+
+for ig in igs:
+    jt = v1.job_templates.create(project=proj, name=u'igmapping JT - {}'.format(ig.name))
+    jt.add_instance_group(ig)
+for ig in igs:
+    inv = v1.inventory.create(name=u'igmapping Inventory - {}'.format(ig.name))
+    inv.add_instance_group(ig)
+for ig in igs:
+    org = v1.organizations.create(name=u'igmapping Org - {}'.format(ig.name))
+    org.add_instance_group(ig)
