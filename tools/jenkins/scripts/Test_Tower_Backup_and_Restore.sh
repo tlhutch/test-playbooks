@@ -1,18 +1,15 @@
 #!/usr/bin/env bash
 set -euxo pipefail
 
-# Enable python3 if this version of tower-qa uses it
-if [ "$(grep -s "python3" tox.ini)" ]; then
-python3 -m venv $PWD/venv
-source $PWD/venv/bin/activate
-fi
-
 # HACK: jnlp container installs requests using yum. Remove yum installation so that it doesn't overlap with the following pip install
 yum remove -y python-requests
 
+# shellcheck source=lib/common
+source "$(dirname "${0}")"/lib/common
+setup_python3_env
+
 pip install -Ur scripts/requirements.install
 pip install -Ur requirements.txt
-
 
 ## default ssh public key
 mkdir -p ~/.ssh/

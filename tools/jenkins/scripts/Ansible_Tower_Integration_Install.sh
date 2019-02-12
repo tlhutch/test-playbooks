@@ -7,11 +7,9 @@ cp $PUBLIC_KEY ~/.ssh/id_rsa.pub
 # Enable junit XML output
 # export ANSIBLE_CALLBACK_PLUGINS="playbooks/library/callbacks"
 
-# Enable python3 if this version of tower-qa uses it
-if [ "$(grep -s "python3" tox.ini)" ]; then
-python3 -m venv $PWD/venv
-source $PWD/venv/bin/activate
-fi
+# shellcheck source=lib/common
+source "$(dirname "${0}")"/lib/common
+setup_python3_env
 
 pip install -Ur scripts/requirements.install
 
@@ -42,6 +40,6 @@ ansible-playbook -i playbooks/inventory -e @playbooks/vars.yml playbooks/deploy-
 # Changes to job parameters don't persist across shell sections; create .downstream_build_params here to pick up changes to INSTANCE_NAME_PREFIX
 if [[ $TRIGGER == true ]]; then
 cat << EOF > .trigger
-INSTANCE_NAME_PREFIX=${INSTANCE_NAME_PREFIX}    
+INSTANCE_NAME_PREFIX=${INSTANCE_NAME_PREFIX}
 EOF
 fi

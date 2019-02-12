@@ -51,6 +51,10 @@ fi
 
 
 setup_python3_env
+
+pip install -Ur scripts/requirements.install
+pip install -Ur requirements.txt
+
 setup_env_based_on_deployment_scenario "${SCENARIO}"
 IPV6_DEPLOYMENT=$(retrieve_boolean_value "${IPV6_DEPLOYMENT}")
 DELETE_ON_START=$(retrieve_boolean_value "${DELETE_ON_START}")
