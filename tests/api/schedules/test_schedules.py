@@ -25,9 +25,9 @@ class TestSchedules(SchedulesTest):
     def test_duplicate_schedules_disallowed(self, v2_unified_job_template):
         schedule = v2_unified_job_template.add_schedule()
 
-        with pytest.raises(exc.Duplicate) as e:
+        with pytest.raises(exc.BadRequest) as e:
             v2_unified_job_template.add_schedule(name=schedule.name)
-        assert e.value[1]['name'] == ['Schedule with this Name already exists.']
+        assert e.match('Schedule with this Unified job template and Name already exists.')
 
     def test_invalid_rrules_are_rejected(self, v2_unified_job_template):
         invalid_rrules = [
