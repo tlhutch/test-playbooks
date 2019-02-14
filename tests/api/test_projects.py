@@ -330,7 +330,6 @@ class Test_Projects(APITest):
         last_update_pg.assert_successful()
 
         # create a JT with our project and launch a job with this JT
-        # note: we do this since only 'run' project updates download galaxy roles
         job_template_pg = factories.job_template(project=project_with_galaxy_requirements, playbook="debug.yml")
         job_pg = job_template_pg.launch().wait_until_completed()
         job_pg.assert_successful()
@@ -361,36 +360,6 @@ class Test_Projects(APITest):
         (event_unforced, event_forced) = self.get_project_update_galaxy_update_task(project_with_requirements)
 
         assert 'runner_on_ok' in [event_unforced.event, event_forced.event]
-
-    @pytest.mark.parametrize("scm_params", [
-        dict(scm_clean=False, scm_delete_on_update=False),
-        dict(scm_clean=True, scm_delete_on_update=False),
-        dict(scm_clean=False, scm_delete_on_update=True),
-    ], ids=('first_time', 'scm_clean', 'scm_delete_on_update'))
-    def test_project_with_galaxy_requirements_updated_when(self, factories, scm_params):
-        project = factories.v2_project(scm_url='https://github.com/ansible/test-playbooks.git',
-                                       scm_branch='with_requirements',
-                                       scm_update_on_launch=False,
-                                       **scm_params)
-
-        (event_unforced, event_forced) = self.get_project_update_galaxy_update_task(project, job_type='check')
-        assert False is event_unforced.changed, \
-            "Project update of type check should never process requirements.yml"
-        assert False is event_forced.changed, \
-            "Project update of type check should never process requirements.yml"
-
-        jt = factories.v2_job_template(project=project, playbook='debug.yml')
-
-        jt.launch().wait_until_completed().assert_successful(msg="Job Template that triggers SCM update that processes requirements.yml failed")
-        (event_unforced, event_forced) = self.get_project_update_galaxy_update_task(project)
-        assert 'runner_on_ok' == event_unforced.event, \
-            "Empty project directory expected to trigger the processing of requirements.yml"
-        assert True is event_unforced.changed, \
-            "Empty project directory expected to trigger the processing of requirements.yml"
-        assert 'runner_on_skipped' == event_forced.event
-
-        assert 'runner_on_ok' in [event_unforced.event, event_forced.event]
-        assert True in [event_unforced.changed, event_forced.changed]
 
     @pytest.mark.parametrize("scm_url, use_credential",
                              [('https://github.com/ansible/tower.git', True),
