@@ -68,3 +68,32 @@ class Test_Organizations(APITest):
         job_templates_count = scan_job_templates_count + other_job_templates_count
         assert job_templates_count == related_field_counts['job_templates'], \
             "Incorrect value for job_templates. Expected %s, got %s." % (job_templates_count, related_field_counts['job_templates'])
+
+    def test_organization_host_limits_do_not_allow_adding_too_many_hosts(self, factories):
+        org = factories.v2_organization()
+        org.max_hosts = 2
+        inv = factories.v2_inventory(organization=org)
+        [inv.add_host() for _ in range(2)]
+        with pytest.raises(towerkit.exceptions.Forbidden) as e:
+            inv.add_host()
+        assert e.value.msg['detail'] == 'The organization host limit has been exceeded.'
+
+    def test_organization_host_limits_apply_across_all_inventories(self, factories):
+        org = factories.v2_organization()
+        org.max_hosts = 2
+        inv = factories.v2_inventory(organization=org)
+        [inv.add_host() for _ in range(2)]
+        inv2 = factories.v2_inventory(organization=org)
+        with pytest.raises(towerkit.exceptions.Forbidden) as e:
+            inv2.add_host()
+        assert e.value.msg['detail'] == 'The organization host limit has been exceeded.'
+
+    def test_organization_host_limits_no_longer_apply_to_inventory_if_org_changed(self, factories):
+        org = factories.v2_organization()
+        org2 = factories.v2_organization()
+        org.max_hosts = 2
+        inv = factories.v2_inventory(organization=org)
+        [inv.add_host() for _ in range(2)]
+        inv.patch(organization=org2.id)
+        inv.add_host()
+        assert inv.get().total_hosts == 3
