@@ -1,12 +1,15 @@
 import pytest
 
 
-@pytest.fixture(scope="function", params=["email", "irc", "mattermost", "pagerduty", "slack", "twilio",
-                                          "webhook"])
+@pytest.fixture(scope="function", params=[
+    "email",
+    "irc",
+    "mattermost",
+    "pagerduty",
+    "slack",
+    ])
 def notification_template(request):
-    """All notification templates"""
-    if request.param == 'twilio':
-        pytest.xfail('Unable to send twilio notifications will account inactive')
+    """All notification templates."""
     return request.getfixturevalue(request.param + "_notification_template")
 
 
@@ -37,14 +40,13 @@ def slack_notification_template(factories):
 @pytest.fixture(scope="function")
 def twilio_notification_template(factories):
     """Twilio notification template"""
-    return factories.notification_template(notification_type="twilio")
+    raise NotImplementedError("We don't have the backend setup for twilio")
 
 
 @pytest.fixture(scope="function")
 def webhook_notification_template(factories):
     """Webhook notification template"""
-    headers = {'key1': 'value1', 'key2': 'value2'}   # TODO: Use fauxfactory to generate keys / values
-    return factories.notification_template(notification_type='webhook', headers=headers)
+    raise NotImplementedError("We don't have GCE creds setup right now see https://github.com/ansible/tower-qa/issues/2839")
 
 
 @pytest.fixture(scope="function")

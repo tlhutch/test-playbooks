@@ -66,11 +66,11 @@ def expected_job_notification(tower_url, notification_template_pg, job_pg, job_r
     """
     nt_type = notification_template_pg.notification_type
     job_description = ("System " if job_pg.type == 'system_job' else "") + "Job"
-
     if tower_message:
         msg = (job_description + " #%s '%s' succeeded: %s/#/jobs/" +
                ("system" if job_pg.type == "system_job" else "playbook") + "/%s") % \
               (job_pg.id, job_pg.name, tower_url, job_pg.id)
+
     elif nt_type == "slack":
         msg = (job_description + " #%s '%s' succeeded: <%s/#/jobs/" +
                ("system" if job_pg.type == "system_job" else "playbook") + "/%s>") % \
@@ -156,11 +156,10 @@ class Test_Notification_Templates(APITest):
 class Test_Notifications(APITest):
     """Notification tests"""
 
-    @pytest.mark.github('https://github.com/ansible/tower-qa/issues/2294')
     def test_test_notification(self, request, notification_template):
         """Generate test notifications for each notification type"""
         # Trigger test notification
-        notification_pg = notification_template.test().wait_until_completed()
+        notification_pg = notification_template.test().wait_until_completed(timeout=30)
         notification_pg.assert_successful()
 
         # Confirm test notification delivered
