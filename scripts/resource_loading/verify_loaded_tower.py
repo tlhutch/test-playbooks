@@ -124,7 +124,7 @@ def confirm_field(field, found, desired, desired_to_json=False):
     found_attr = getattr(found, field)
     desired_attr = getattr(desired, field)
     if desired_to_json:
-        return found_attr == json.dumps(desired_attr)
+        return json.loads(found_attr) == desired_attr
     return found_attr == desired_attr
 
 
