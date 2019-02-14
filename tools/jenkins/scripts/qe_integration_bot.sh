@@ -23,7 +23,7 @@ elif [[ ${JOB_NAME} == Test_Tower_Integration_Patch ]]; then
   fi
 elif [[ ${JOB_NAME} == Test_Tower_Integration_Cluster ]]; then
   export MATRIX_JOB="True"
-  export BUILD_LABEL=""
+  export BUILD_LABEL="rhel-7.6-x86_64 / stable-2.7"
   export SHOW_BUTTON_OWNER="False"
 else
   # Test_Tower_OpenShift_Integration
