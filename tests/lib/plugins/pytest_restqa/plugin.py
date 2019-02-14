@@ -4,7 +4,6 @@ import sys
 
 import requests
 import pytest
-import py
 
 from towerkit.tower.utils import uses_sessions
 from towerkit.utils import load_credentials
@@ -50,6 +49,36 @@ def pytest_addoption(parser):
 connections = {}
 
 
+def set_connection(base_url, config):
+    """Attempt to establish a connection with the given tower base url."""
+    try:
+        r = requests.get(base_url, verify=False, timeout=5)
+    except (requests.exceptions.Timeout, requests.exceptions.ConnectionError) as e:
+        errstr = "Unable to connect to %s, %s" % (config.option.base_url, e)
+        pytest.fail(msg=errstr)
+        # I'm unclear why the following does not emit the error to stdout
+        # py.test.exit(errstr)
+
+    assert r.status_code == http.client.OK, \
+        "Base URL did not return status code %s. (URL: %s, Response: %s)" % \
+        (http.client.OK, base_url, r.status_code)
+
+    qe_config.base_url = base_url
+
+    # Load credentials.yaml
+    if config.option.credentials_file:
+        qe_config.credentials = load_credentials(config.option.credentials_file)
+
+    qe_config.assume_untrusted = config.getvalue('assume_untrusted')
+
+    # Making requests with the shared connection is destructive to multiprocessed page fixtures
+    # for an undetermined reason. All pre-run env checks must be done with separate requests session.
+    env_connection = Connection(qe_config.base_url, verify=not qe_config.assume_untrusted)
+    qe_config.use_sessions = uses_sessions(env_connection)
+
+    connections['root'] = Connection(qe_config.base_url, verify=not qe_config.assume_untrusted)
+
+
 def pytest_configure(config):
     if not hasattr(config, 'slaveinput'):
         config.addinivalue_line(
@@ -76,33 +105,7 @@ def pytest_configure(config):
 
     if not (config.option.help or config.option.collectonly or config.option.showfixtures or config.option.markers):
         if config.option.base_url:
-            try:
-                r = requests.get(config.option.base_url, verify=False, timeout=5)
-            except (requests.exceptions.Timeout, requests.exceptions.ConnectionError) as e:
-                errstr = "Unable to connect to %s, %s" % (config.option.base_url, e)
-                py.test.fail(msg=errstr)
-                # I'm unclear why the following does not emit the error to stdout
-                # py.test.exit(errstr)
-
-            assert r.status_code == http.client.OK, \
-                "Base URL did not return status code %s. (URL: %s, Response: %s)" % \
-                (http.client.OK, config.option.base_url, r.status_code)
-
-            qe_config.base_url = config.option.base_url
-
-            # Load credentials.yaml
-            if config.option.credentials_file:
-                qe_config.credentials = load_credentials(config.option.credentials_file)
-
-            qe_config.assume_untrusted = config.getvalue('assume_untrusted')
-
-            # Making requests with the shared connection is destructive to multiprocessed page fixtures
-            # for an undetermined reason. All pre-run env checks must be done with separate requests session.
-            env_connection = Connection(qe_config.base_url, verify=not qe_config.assume_untrusted)
-            qe_config.use_sessions = uses_sessions(env_connection)
-
-            connections['root'] = Connection(qe_config.base_url, verify=not qe_config.assume_untrusted)
-
+            set_connection(config.option.base_url, config)
             if config.option.debug_rest and hasattr(config, '_debug_rest_hdlr'):
                 for mod in ('towerkit.api.client', 'towerkit.ws'):
                     logger = logging.getLogger(mod)
@@ -118,7 +121,10 @@ def connection():
     had been changed _within a test_. In order to get the current connection, see `current_connection`
     fixture.
     """
-    return connections['root']
+    if connections.get('root'):
+        return connections['root']
+    else:
+        pytest.fail('No root connection found, try providing a --base-url to the pytest invocation')
 
 
 @pytest.fixture(scope='session')
