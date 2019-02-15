@@ -132,49 +132,115 @@ class TestInventoryUpdate(APITest):
             inventory.update_inventory_sources()
         assert e.value[1] == {'detail': 'No inventory sources to update.'}
 
-    def test_update_with_overwrite(self, factories):
-        """Verify inventory update with overwrite.
-        * Hosts and groups created within our script-spawned group should get promoted.
-        * Hosts and groups created outside of our custom group should persist.
+    def _contents_same(self, *args):
+        """Given list1 and list2 which are both lists of pages of API objects
+        this asserts that both lists contain the same objects by name
         """
-        inv_source = factories.v2_inventory_source(overwrite=True)
-        inventory = inv_source.ds.inventory
-        inv_source.update().wait_until_completed()
-        spawned_group = inv_source.related.groups.get().results.pop()
-        spawned_host_ids = [host.id for host in spawned_group.related.hosts.get().results]
+        assert len(args) > 1
+        compare_list = []
+        for arg in args:
+            if isinstance(arg, (list, tuple)):
+                # is a results list
+                compare_list.append(set([item.name for item in arg]))
+            elif hasattr(arg, 'results'):
+                # is a page object
+                compare_list.append(set(item.name for item in arg.results))
+            else:
+                # is a single object
+                compare_list.append(set([arg.name]))
+        for item in compare_list[1:]:
+            assert item == compare_list[0]
 
-        # associate group and host with script-spawned group
-        included_group = factories.group(inventory=inventory)
-        included_host = factories.host(inventory=inventory)
-        spawned_group.add_group(included_group)
-        for group in [spawned_group, included_group]:
-            group.add_host(included_host)
+    def test_update_with_overwrite_deletion(self, factories):
+        """Verify inventory update with overwrite will not persist old stuff that it imported.
+        * Memberships created within our script-spawned group should removed by a 2nd import.
+        * Hosts, groups, and memberships created outside of our custom group should persist.
+        """
+        inv_script = factories.v2_inventory_script(script="""#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+import json
+print json.dumps({
+    '_meta': {'hostvars': {'host_1': {}, 'host_2': {}}},
+    'ungrouped': {'hosts': ['will_remove_host']},
+    'child_group': {'hosts': ['host_of_child']},
+    'child_group2': {'hosts': ['host_of_child']},
+    'not_child': {'hosts': ['host_of_not_child']},
+    'switch1': {'hosts': ['host_switch1']},
+    'switch2': {'hosts': ['host_switch2']},
+    'parent_switch1': {'children': ['switch1']},
+    'parent_switch2': {'children': ['switch2']},
+    'will_remove_group': {'hosts': ['host_2']},
+    'parent_group': {'hosts': ['host_1', 'host_2'], 'children': ['child_group', 'child_group2']}
+})""")
+        inv_source = factories.v2_inventory_source(
+            overwrite=True,
+            inventory_script=inv_script
+        )
 
-        # create additional inventory resources
-        excluded_group = factories.group(inventory=inventory)
-        excluded_host, isolated_host = [factories.host(inventory=inventory) for _ in range(2)]
-        excluded_group.add_host(excluded_host)
-
+        # update and load objects into in-memory dictionaries
         inv_source.update().wait_until_completed().assert_successful()
+        groups = {}
+        for group in inv_source.related.groups.get().results:
+            groups[group.name] = group
+        hosts = {}
+        for host in inv_source.related.hosts.get().results:
+            hosts[host.name] = host
 
-        # verify our script-spawned group contents
-        assert spawned_group.related.children.get().count == 0
-        assert spawned_host_ids == [host.id for host in spawned_group.related.hosts.get().results]
+        # make sure content was imported
+        assert 'will_remove_host' in hosts
+        assert 'will_remove_group' in groups
+        self._contents_same(groups['switch1'].get_related('hosts'), hosts['host_switch1'])
+        self._contents_same(groups['switch2'].get_related('hosts'), hosts['host_switch2'])
+        self._contents_same(groups['parent_switch1'].get_related('children'), groups['switch1'])
+        self._contents_same(groups['parent_switch2'].get_related('children'), groups['switch2'])
+        self._contents_same(groups['parent_group'].get_related('hosts'), (hosts['host_1'], hosts['host_2']))
+        self._contents_same(groups['parent_group'].get_related('children'), (groups['child_group'], groups['child_group2']))
 
-        # verify that additional inventory resources persist
-        for resource in [included_group, included_host, excluded_group, excluded_host, isolated_host]:
-            resource.get()
+        # manually add not_child to parent_group
+        groups['parent_group'].add_group(groups['not_child'])
+        # manually remove child group from parent_group
+        groups['parent_group'].remove_group(groups['child_group'])
 
-        # verify associations between additional inventory resources
-        included_group_hosts = included_group.related.hosts.get()
-        assert included_group_hosts.count == 1
-        assert included_host.id == included_group_hosts.results.pop().id
-        root_groups = inventory.related.root_groups.get()
-        assert included_group.id in [group.id for group in root_groups.results]
+        # Change script to modify relationships
+        # changes made:
+        # - host_1 is removed from parent group (but still present in import)
+        # - child_group2 is removed from parent group (but still present in import)
+        # - switch1 and switch2 trade hosts
+        # - child_switch1 and 2 trade child groups
+        # - "will remove" host / group are removed
+        inv_script.script = """#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+import json
+print json.dumps({
+    '_meta': {'hostvars': {'host_1': {}, 'host_2': {}}},
+    'child_group': {'hosts': ['host_of_child']},
+    'child_group2': {'hosts': ['host_of_child']},
+    'not_child': {'hosts': ['host_of_not_child']},
+    'switch1': {'hosts': ['host_switch2']},
+    'switch2': {'hosts': ['host_switch1']},
+    'parent_switch1': {'children': ['switch2']},
+    'parent_switch2': {'children': ['switch1']},
+    'parent_group': {'hosts': ['host_2'], 'children': ['child_group']}
+})"""
 
-        excluded_group_hosts = excluded_group.related.hosts.get()
-        assert excluded_group_hosts.count == 1
-        assert excluded_host.id == excluded_group_hosts.results.pop().id
+        # update and load objects into in-memory dictionaries, again
+        inv_source.update().wait_until_completed().assert_successful()
+        groups = {}
+        for group in inv_source.related.groups.get().results:
+            groups[group.name] = group
+        hosts = {}
+        for host in inv_source.related.hosts.get().results:
+            hosts[host.name] = host
+
+        # verify changes
+        assert 'will_remove_host' not in hosts
+        assert 'will_remove_group' not in groups
+        self._contents_same(groups['switch1'].get_related('hosts'), hosts['host_switch2'])
+        self._contents_same(groups['switch2'].get_related('hosts'), hosts['host_switch1'])
+        self._contents_same(groups['parent_switch1'].get_related('children'), groups['switch2'])
+        self._contents_same(groups['parent_switch2'].get_related('children'), groups['switch1'])
+        self._contents_same(groups['parent_group'].get_related('hosts'), hosts['host_2'])  # should have removed host_1
+        self._contents_same(groups['parent_group'].get_related('children'), groups['child_group'])
 
     def test_update_without_overwrite(self, factories):
         """Verify inventory update without overwrite.
