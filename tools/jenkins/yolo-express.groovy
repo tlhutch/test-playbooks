@@ -6,7 +6,7 @@ def NIGHTLY_REPO_DIR
 def TOWER_QA_BRANCH
 def TOWERKIT_BRANCH
 def TEST_TOWER_INSTALL_BUILD_ID = 'lastBuild'
-def PARALLELIZE = ''
+def PROCESSES = '1'
 
 
 
@@ -17,7 +17,7 @@ stage ('Prepare Build') {
     def commitHash = scmVars.GIT_COMMIT
 
     if (params.PARALLEL) {
-      PARALLELIZE = '--mp --np 4'
+      PROCESSES = '4'
       echo "Parallel forks set to ${params.PARALLEL}"
       } else {
         echo "Running tests in serial"
@@ -44,6 +44,7 @@ stage ('Prepare Build') {
     ).trim()
 
     NIGHTLY_REPO_DIR = "${params.TOWER_BRANCH}-${commitHash}"
+
   }
 }
 
@@ -117,7 +118,8 @@ stage('Test Tower Integration') {
           string(name: 'TOWERQA_GIT_BRANCH', value: "origin/${TOWER_QA_BRANCH_NAME}"),
           string(name: 'TOWERKIT_GIT_BRANCH', value: "${TOWERKIT_BRANCH_NAME}"),
           string(name: 'PLATFORM', value: "${params.PLATFORM}"),
-          string(name: 'ANSIBLE_NIGHTLY_BRANCH', value: "${params.ANSIBLE_NIGHTLY_BRANCH}")
+          string(name: 'ANSIBLE_NIGHTLY_BRANCH', value: "${params.ANSIBLE_NIGHTLY_BRANCH}"),
+          string(name: 'PYTEST_MP_PROCESSES', value: PROCESSES)
         ]
       )
     } else {
