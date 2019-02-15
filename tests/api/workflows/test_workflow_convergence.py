@@ -77,12 +77,11 @@ class Test_Workflow_Convergence(APITest):
     # jobs are sourced from system clock on pod which may be on different
     # compute nodes
     # Re-visit when we are no longer running on Atomic Host
-    @pytest.mark.skip_openshift
     @pytest.mark.parametrize(
         'test_case', convergence_node_parent_node_test_cases, ids=[
             case.case_name for case in convergence_node_parent_node_test_cases])
     def test_convergence_node_runs_after_all_parents_reach_definitive_state(
-            self, factories, test_case):
+            self, skip_if_openshift, factories, test_case):
         """Confirm that convergence job does not start running until triggering nodes have reached terminal state.
 
         All parent nodes should have completed or been marked with new do_not_run field before the convergence node
