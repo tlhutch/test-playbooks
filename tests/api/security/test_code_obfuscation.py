@@ -4,8 +4,11 @@ from tests.api import APITest
 
 
 @pytest.mark.api
-@pytest.mark.skip_openshift
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+@pytest.mark.usefixtures(
+    'skip_if_openshift',
+    'authtoken',
+    'install_enterprise_license_unlimited',
+)
 class TestTowerLicense(APITest):
 
     def test_tower_license_source_is_hidden(self, ansible_runner):
