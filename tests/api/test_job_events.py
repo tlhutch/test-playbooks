@@ -272,14 +272,10 @@ class Test_Job_Events(APITest):
         playbook_on_play_start = [x.play for x in self.get_job_events_by_event_type(job, 'playbook_on_play_start')]
         assert playbook_on_play_start == ['all']
 
-        task_counts = {"debug": 11,
-                       "wait_for": 10,
-                       "set_fact": 10}
-        self.verify_desired_tasks(job, 'playbook_on_task_start', task_counts)
-
         task_counts = {"debug": 55,
                        "wait_for": 50,
                        "set_fact": 50}
+        self.verify_desired_tasks(job, 'playbook_on_task_start', task_counts)
         self.verify_desired_tasks(job, 'runner_on_ok', task_counts)
 
         assert len(self.get_job_events_by_event_type(job, 'playbook_on_stats')) == 1
