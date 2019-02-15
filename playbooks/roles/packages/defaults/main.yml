@@ -29,18 +29,7 @@ redhat_rhsm_conf_path: '/etc/rhsm/rhsm.conf'
 redhat_rhsm_repos: []
 
 # RPM dependencies needed for the role
-rpm_role_dependencies:
-    - libselinux-python
-    - python-devel
-    - autoconf
-    - make
-    - gcc
-    - git
-    - yum-utils
-    - python-crypto
-    - openssl
-    - nss
-    - curl
+rpm_role_dependencies: []
 
 # DEB dependencies needed for the role
 deb_role_dependencies:

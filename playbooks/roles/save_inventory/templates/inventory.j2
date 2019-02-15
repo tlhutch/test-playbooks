@@ -2,9 +2,9 @@
 [{{ grp }}]
 {% for host in groups[grp] %}
 {% if host == '127.0.0.1' or host == 'localhost' %}
-{{ host }} ansible_connection=local ansible_python_interpreter="/usr/bin/env python"
+{{ host }} ansible_connection=local ansible_python_interpreter="{{ hostvars[host]['remote_ansible_python_interpreter'] }}"
 {% else %}
-{{ host }} ansible_user={{ hostvars[host]['ansible_user'] }} ansible_host={{ hostvars[host]['ansible_host'] }}
+{{ host }} ansible_user={{ hostvars[host]['ansible_user'] }} ansible_host={{ hostvars[host]['ansible_host'] }} ansible_python_interpreter="{{ hostvars['localhost']['remote_ansible_python_interpreter'] }}"
 {% endif %}
 {% endfor %}
 

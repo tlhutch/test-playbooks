@@ -139,12 +139,23 @@
     timeout: '{{ create_ec2_wait_for_22_timeout|default(600) }}'
   with_items: '{{ ec2_host_vars|default([]) }}'
 
+- name: Set ansible_python_interpreter (RHEL8)
+  set_fact:
+    remote_ansible_python_interpreter: /usr/libexec/platform-python
+  when: ec2_images[0].name == 'rhel-8.0-x86_64'
+
+- name: Set ansible_python_interpreter (Debian/Pre RHEL8)
+  set_fact:
+    remote_ansible_python_interpreter: /usr/bin/env python
+  when: not (ec2_images[0].name == 'rhel-8.0-x86_64')
+
 - name: add_host
   add_host:
     name: '{{ instance_id_to_public_dns[item.id] }}'
     groups: 'cloud,ec2,{{ item.name }},{{item.groups|default("")}}'
     ansible_user: '{{ item.user }}'
     ansible_host: '{{ item.public_ip }}'
+    ansible_python_interpreter: '{{ remote_ansible_python_interpreter }}'
     controller: '{{item.controller|default("")}}'
     # ansible_ssh_private_key_file: '{{ ec2_keypair_private }}'
   with_items: '{{ ec2_host_vars|default([]) }}'

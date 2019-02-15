@@ -1,0 +1,14 @@
+---
+# RPM dependencies needed for the role
+rpm_role_dependencies:
+    - python3-libselinux
+    - python3-cryptography
+    - platform-python-devel
+    - autoconf
+    - make
+    - gcc
+    - git
+    - dnf-utils
+    - openssl
+    - nss
+    - curl

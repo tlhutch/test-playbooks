@@ -28,6 +28,10 @@ else
 INSTANCE_NAME_PREFIX="${INSTANCE_NAME_PREFIX}-ansible-${ANSIBLE_NIGHTLY_BRANCH}"
 fi
 
+if [[ "${PLATFORM}" == "rhel-8.0-x86_64"  ]]; then
+    export ANSIBLE_INSTALL_METHOD=pip
+fi
+
 python scripts/cloud_vars_from_env.py --cloud-provider ec2 --image-vars ${IMAGES_FILE_PATH} --platform ${PLATFORM} > cloud_vars.yml
 
 ansible-playbook \

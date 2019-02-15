@@ -18,12 +18,33 @@
       - python-crypto
   when: ansible_distribution == 'OracleLinux'
 
+
+# FIXME(spredzy): Remove me once the RHEL8 ec2 image is updated
+# and proper rh-amazon-rhui-client-beta > 3.0.12 is installed
+- name: update rh-amazon-rhui-client-beta
+  package:
+    name: rh-amazon-rhui-client-beta
+    state: latest
+  when: ansible_distribution == 'RedHat' and ansible_distribution_major_version == '8'
+
+
 - name: update yum
   yum:
     name: yum
     state: latest
     update_cache: yes
   when: ansible_pkg_mgr == 'yum'
+  retries: 5
+  delay: 10
+  register: result
+  until: result is succeeded
+
+- name: update dnf
+  dnf:
+    name: dnf
+    state: latest
+    update_cache: yes
+  when: ansible_pkg_mgr == 'dnf'
   retries: 5
   delay: 10
   register: result
@@ -59,17 +80,17 @@
   when: ansible_distribution == 'RedHat'
 
 - name: install playbook dependency rpms
-  yum:
+  package:
     name: '{{ rpm_role_dependencies }}'
     state: latest
-  when: ansible_pkg_mgr == 'yum'
+  when: ansible_pkg_mgr in ['yum', 'dnf']
 
 # https://bugzilla.redhat.com/show_bug.cgi?id=1405175
 - name: update selinux-policy
-  yum:
+  package:
     name: selinux-policy
     state: latest
-  when: ansible_pkg_mgr == 'yum'
+  when: ansible_pkg_mgr in ['yum', 'dnf']
 
 # install ansible nightly yum repo (optional)
 
@@ -78,7 +99,7 @@
     src: files/ansible_yum.repo.j2
     dest: /etc/yum.repos.d/ansible.repo
   register: yum_repo
-  when: ansible_pkg_mgr == 'yum' and ansible_install_method == 'nightly'
+  when: ansible_pkg_mgr in ['yum', 'dnf'] and ansible_install_method == 'nightly'
 
 - name: yum clean cached ansible repository information
   command: yum clean all --disablerepo=* --enablerepo=ansible-nightly
@@ -97,8 +118,8 @@
 # enable ansible-nightly repo (optional)
 
 - name: Enable ansible repo (nightly)
-  command: yum-config-manager --enable ansible-nightly
-  when: ansible_pkg_mgr == 'yum' and ansible_install_method == 'nightly'
+  command: yum-config-manager --enablerepo ansible-nightly
+  when: ansible_pkg_mgr in ['yum', 'dnf'] and ansible_install_method == 'nightly'
 
 # install ansible ppa
 
@@ -112,17 +133,17 @@
 # install ansible
 
 - name: install ansible rpm (stable/testing)
-  yum:
+  package:
     name: '{{ ansible_package_name }}'
     state: latest
-  when: ansible_pkg_mgr == 'yum' and ansible_install_method in ['stable', 'testing']
+  when: ansible_pkg_mgr in ['yum', 'dnf'] and ansible_install_method in ['stable', 'testing']
 
 - name: gather ansible nightly dependencies
   command: yum deplist --disablerepo=* --enablerepo=ansible-nightly ansible
   args:
     warn: False
   register: nightly_dep_candidates
-  when: ansible_pkg_mgr == 'yum' and ansible_install_method == 'nightly'
+  when: ansible_pkg_mgr in ['yum', 'dnf'] and ansible_install_method == 'nightly'
 
 - name: filter nightly ansible dependency candidates
   set_fact:
@@ -130,21 +151,21 @@
       {{ nightly_dep_candidates.stdout_lines|map("regex_search", ".*dependency.*")
       |select("string")|map("regex_replace", "  dependency: ", "")
       |map("regex_search", "^[a-zA-Z0-9\-]+$")|select("string")|list|unique }}
-  when: ansible_pkg_mgr == 'yum' and ansible_install_method == 'nightly' and nightly_dep_candidates is defined
+  when: ansible_pkg_mgr in ['yum', 'dnf'] and ansible_install_method == 'nightly' and nightly_dep_candidates is defined
 
 - name: install ansible nightly dependencies
-  yum:
+  package:
     name: '{{ nightly_ansible_dependencies }}'
     state: latest
-  when: ansible_pkg_mgr == 'yum' and ansible_install_method == 'nightly' and nightly_ansible_dependencies is defined
+  when: ansible_pkg_mgr in ['yum', 'dnf'] and ansible_install_method == 'nightly' and nightly_ansible_dependencies is defined
 
 - name: install ansible rpm (nightly)
-  yum:
+  package:
     name: '{{ ansible_package_name }}'
     state: latest
     disablerepo: '*'
     enablerepo: ansible-nightly
-  when: ansible_pkg_mgr == 'yum' and ansible_install_method == 'nightly'
+  when: ansible_pkg_mgr in ['yum', 'dnf'] and ansible_install_method == 'nightly'
 
 - name: install ansible deb
   apt:
@@ -155,10 +176,23 @@
   when: ansible_pkg_mgr == 'apt' and ansible_install_method in ['stable', 'testing', 'nightly']
 
 - name: install pip rpm
-  yum:
+  package:
     name: python-pip
     state: installed
   when: ansible_install_method == 'pip' and ansible_pkg_mgr == 'yum'
+
+- name: install pip rpm
+  package:
+    name: python3-pip
+    state: installed
+  when: ansible_install_method == 'pip' and ansible_pkg_mgr == 'dnf'
+
+- name: Symlink pip3.6 tot pip3
+  file:
+    src: /usr/bin/pip-3.6
+    dest: /usr/bin/pip3
+    state: link
+  when: ansible_install_method == 'pip' and ansible_pkg_mgr == 'dnf'
 
 - name: install pip deb
   apt:

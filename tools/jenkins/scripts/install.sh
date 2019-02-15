@@ -64,10 +64,15 @@ AWX_SETUP_PATH=$(retrieve_awx_setup_path_based_on_version_and_scenario "${TOWER_
 INSTANCE_NAME_PREFIX=$(generate_instance_name_prefix "${INSTANCE_NAME_PREFIX}" "${PLATFORM}" "${ANSIBLE_VERSION}" "${TOWER_VERSION}")
 VERBOSITY=$(retrieve_verbosity_string)
 
+if [[ "${PLATFORM}" == "rhel-8.0-x86_64" ]]; then
+    export ANSIBLE_INSTALL_METHOD=pip
+fi
+
 python scripts/cloud_vars_from_env.py \
     --cloud-provider "${CLOUD_PROVIDER}" --platform "${PLATFORM}" --image-vars "${IMAGE_VARS}" \
     > playbooks/vars.yml
 
+ansible --version
 ansible-playbook "${VERBOSITY}" -i playbooks/inventory -e @playbooks/vars.yml "${PLAYBOOK}"
 
 TOWER_URL="https://$(retrieve_tower_server_from_inventory "${INVENTORY}")"
