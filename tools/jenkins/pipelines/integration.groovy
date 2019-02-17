@@ -87,6 +87,10 @@ Bundle?: ${params.BUNDLE}"""
                     if (params.TOWERQA_BRANCH == '') {
                         if (params.TOWER_VERSION == 'devel') {
                             towerqa_branch_name = 'devel'
+                        } else if (params.TOWER_VERSION =~ /3\.1\.[0-9]*/) {
+                            towerqa_branch_name = 'release_3.1'
+                        } else if (params.TOWER_VERSION =~ /3\.2\.[0-9]*/) {
+                            towerqa_branch_name = 'release_3.2'
                         } else {
                             towerqa_branch_name = "release_${params.TOWER_VERSION}"
                         }
