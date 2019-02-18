@@ -47,3 +47,4 @@ Regression verifications:
   * [ ] API regression - Traditional Cluster with isolated nodes
   * [ ] E2E against Standalone
   * [ ] E2E against Cluster
+  * [ ] [UI Manual Regression Testing](https://docs.google.com/document/d/1c1m63MB52T3McNhWNoyjTizcsPVtgCgEf1hlL9G_Hlo/edit#heading=h.nkkhxexfvgsb)
