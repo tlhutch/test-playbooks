@@ -123,6 +123,15 @@ class Test_Organizations(APITest):
         inv.organization = org.id
         org.max_hosts = 4
         inv.update_inventory_sources(wait=True)
-        import pdb; pdb.set_trace()
+        #TODO: Finish
 
-    # def test_organization_host_limits_cannot_launch_jt_if_limit_exceeded(self, factories):
+    def test_organization_host_limits_cannot_launch_jt_if_limit_exceeded(self, factories):
+        org = factories.v2_organization()
+        org.max_hosts = 5
+        inv = factories.v2_inventory(organization=org)
+        [inv.add_host() for _ in range(5)]
+        org.max_hosts = 1
+        jt = factories.v2_job_template(inventory=inv)
+        with pytest.raises(towerkit.exceptions.Forbidden) as e:
+            jt.launch()
+        assert e.value.msg['detail'] == 'The organization host limit has been exceeded.'
