@@ -294,6 +294,62 @@ class Test_Job_Events(APITest):
         assert not [x for x in non_verbose if x.playbook != 'free_waiter.yml']
 
     @pytest.mark.ansible_integration
+    def test_serial_strategy(self, factories, ansible_version_cmp):
+        """Runs a single play with serial strategy and confirms desired events at related endpoint"""
+
+        number_of_hosts = 2
+        credential = factories.credential(password='passphrase')
+        inventory = factories.inventory()
+        for _ in range(number_of_hosts):
+            factories.host(inventory=inventory)
+        jt = factories.job_template(credential=credential,
+                                    inventory=inventory,
+                                    playbook='serial.yml')
+        job = jt.launch().wait_until_completed()
+        job.assert_successful()
+
+        playbook_on_start = self.get_job_events_by_event_type(job, 'playbook_on_start')
+        assert len(playbook_on_start) == 1
+
+        playbook_on_play_start = [x.play for x in self.get_job_events_by_event_type(job, 'playbook_on_play_start')]
+        # serial.yml has two plays, 1 with serial: 1 and one with default (linear)
+        # each play of serial: 1 get a playbook_on_play_start itself. So with 2 nodes
+        # that makes 2 times play 1 + 1 time play 2 -> hence number_of_hosts + 1
+        assert len(playbook_on_play_start) == number_of_hosts + 1
+
+        task_counts = {
+            'Gathering Facts': number_of_hosts + 1,
+            'Play1 Debug1 task': number_of_hosts,
+            'Play1 Debug2 task': number_of_hosts,
+            'Play2 Debug1 task': 1,
+            'Play2 Debug2 task': 1,
+        }
+        self.verify_desired_tasks(job, 'playbook_on_task_start', task_counts)
+        task_counts = {
+            'Gathering Facts': number_of_hosts * 2,
+            'Play2 Debug1 task': number_of_hosts,
+            'Play2 Debug2 task': number_of_hosts,
+            'Play1 Debug2 task': number_of_hosts,
+            'Play1 Debug1 task': number_of_hosts
+        }
+        self.verify_desired_tasks(job, 'runner_on_ok', task_counts)
+
+        assert len(self.get_job_events_by_event_type(job, 'playbook_on_stats')) == 1
+
+        desired_stdout_contents = ["SSH password:", "Identity added:", "SUDO password"]
+        # https://github.com/ansible/tower/issues/1441
+        if ansible_version_cmp('2.5.1') == 0:
+            desired_stdout_contents.extend([' [ERROR]:', ''])
+        if ansible_version_cmp('2.8.0') >= 0:
+            desired_stdout_contents = ["SSH password:", "Identity added:", "BECOME password"]
+        self.verify_desired_stdout(job, 'verbose', desired_stdout_contents)
+
+        events = self.get_job_events(job)
+        non_verbose = [x for x in events if x.event != 'verbose']
+        assert not [x for x in non_verbose if not x.uuid]
+        assert not [x for x in non_verbose if x.playbook != 'serial.yml']
+
+    @pytest.mark.ansible_integration
     def test_no_log(self, ansible_version_cmp, factories):
         """Runs Ansible's no_log integration test playbook and confirms Tower's callback receiver offers
         near equivalent censoring.
