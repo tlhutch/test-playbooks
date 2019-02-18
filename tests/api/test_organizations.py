@@ -97,3 +97,32 @@ class Test_Organizations(APITest):
         inv.patch(organization=org2.id)
         inv.add_host()
         assert inv.get().total_hosts == 3
+
+    def test_organization_host_limits_no_longer_apply_if_max_hosts_zero(self, factories):
+        org = factories.v2_organization()
+        org.max_hosts = 2
+        inv = factories.v2_inventory(organization=org)
+        [inv.add_host() for _ in range(2)]
+        org.max_hosts = 0
+        inv.add_host()
+        assert org.get().summary_fields.related_field_counts.hosts == 3
+
+    def test_organization_host_limits_rbac_only_superuser_can_change_max_hosts(self, factories):
+        org = factories.v2_organization()
+        user = factories.user()
+        with self.current_user(username=user.username, password=user.password):
+            with pytest.raises(towerkit.exceptions.Forbidden) as e:
+                org.max_hosts = 5
+        assert e.value.msg['detail'] == 'You do not have permission to perform this action.'
+
+    def test_organization_host_limits_dynamic_inventory(self, factories, host_script):
+        org = factories.v2_organization()
+        inv_script = factories.v2_inventory_script(script=host_script(5))
+        inv_source = factories.v2_inventory_source(inventory_script=inv_script)
+        inv = inv_source.ds.inventory
+        inv.organization = org.id
+        org.max_hosts = 4
+        inv.update_inventory_sources(wait=True)
+        import pdb; pdb.set_trace()
+
+    # def test_organization_host_limits_cannot_launch_jt_if_limit_exceeded(self, factories):
