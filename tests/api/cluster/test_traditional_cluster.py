@@ -1,9 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from contextlib import contextmanager
-import json
 import logging
-import os
 import random
 import re
 import subprocess
@@ -151,21 +149,18 @@ class TestTraditionalCluster(APITest):
                 break
             time.sleep(interval)
 
-    def test_instance_group_creation(self, authtoken, v2, ansible_runner, hosts_in_group):
-        inventory_path = os.environ.get('TQA_INVENTORY_FILE_PATH', '/tmp/setup/inventory')
-        cmd = 'scripts/ansible_inventory_to_json.py --inventory {0} --group-filter tower,instance_group_,isolated_group_'.format(inventory_path)
-        contacted = ansible_runner.script(cmd)
-        assert len(contacted.values()) == 1, "Failed to run script against Tower instance"
-
-        group_mapping = json.loads(list(contacted.values()).pop()['stdout'])
+    def test_instance_group_creation(self, authtoken, v2, ansible_adhoc, hosts_in_group):
+        group_mapping = ansible_adhoc().options['inventory_manager'].get_groups_dict()
+        inventory_file_instance_groups = {}
+        inventory_file_instance_groups['tower'] = group_mapping.get('tower', 'Something is busted, no tower group found!')
         for group in group_mapping.keys():
             match = re.search('(instance_group_|isolated_group_)(.*)', group)
             if match:
-                group_mapping[match.group(2)] = group_mapping.pop(group)
+                inventory_file_instance_groups[match.group(2)] = group_mapping[group]
 
         instance_groups = [group.name for group in v2.instance_groups.get().results]
-        assert len(instance_groups) == len(group_mapping.keys())
-        assert set(instance_groups) == set(group_mapping.keys())
+        assert len(instance_groups) == len(inventory_file_instance_groups.keys())
+        assert set(instance_groups) == set(inventory_file_instance_groups.keys())
 
         # group_mapping maps instance groups to fqdns, but we need ip addresses
         # relate the two to eachother via the ansible_host var passed with each
@@ -174,10 +169,14 @@ class TestTraditionalCluster(APITest):
         hostname_map = hosts_in_group('all', return_map=True)
         for group in v2.instance_groups.get().results:
             instances = [instance.hostname for instance in group.get_related('instances').results]
-            assert len(instances) == len(group_mapping[group.name])
+            assert len(instances) == len(inventory_file_instance_groups[group.name])
             # Using default of host allows us to cope with situations when
             # there is no "ansible_host" defined
-            assert set(instances) == set([hostname_map.get(host, host) for host in group_mapping[group.name]])
+            if re.search('\d*\.\d*\.\d*\.\d*', instances[0]):
+                # instances are using ip addresses
+                assert set(instances) == set([hostname_map.get(host, host) for host in inventory_file_instance_groups[group.name]])
+            else:
+                assert set(instances) == set(inventory_file_instance_groups[group.name])
 
     def test_instance_groups_do_not_include_isolated_instances(self, v2):
         igs = [ig for ig in v2.instance_groups.get().results if not ig.controller]
