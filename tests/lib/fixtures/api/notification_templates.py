@@ -1,7 +1,7 @@
 import pytest
 
 
-@pytest.fixture(scope="function", params=["email", "hipchat", "irc", "mattermost", "pagerduty", "slack", "twilio",
+@pytest.fixture(scope="function", params=["email", "irc", "mattermost", "pagerduty", "slack", "twilio",
                                           "webhook"])
 def notification_template(request):
     """All notification templates"""
@@ -14,12 +14,6 @@ def notification_template(request):
 def email_notification_template(factories):
     """Email notification template"""
     return factories.notification_template(notification_type="email")
-
-
-@pytest.fixture(scope="function")
-def hipchat_notification_template(factories):
-    """Hipchat notification template"""
-    return factories.notification_template(notification_type="hipchat")
 
 
 @pytest.fixture(scope="function")

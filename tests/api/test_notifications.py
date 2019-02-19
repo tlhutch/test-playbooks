@@ -45,7 +45,7 @@ def expected_test_notification(tower_url, notification_template_pg, tower_messag
     nt_id = notification_template_pg.id
     nt_type = notification_template_pg.notification_type
 
-    if tower_message or nt_type == "hipchat":
+    if tower_message:
         msg = "Tower Notification Test %s %s" % (nt_id, tower_url)
     elif nt_type == "slack":
         msg = "Tower Notification Test %s <%s>" % (nt_id, tower_url)
@@ -67,7 +67,7 @@ def expected_job_notification(tower_url, notification_template_pg, job_pg, job_r
     nt_type = notification_template_pg.notification_type
     job_description = ("System " if job_pg.type == 'system_job' else "") + "Job"
 
-    if tower_message or nt_type == "hipchat":
+    if tower_message:
         msg = (job_description + " #%s '%s' succeeded: %s/#/jobs/" +
                ("system" if job_pg.type == "system_job" else "playbook") + "/%s") % \
               (job_pg.id, job_pg.name, tower_url, job_pg.id)
@@ -173,9 +173,9 @@ class Test_Notifications(APITest):
 
     @pytest.mark.mp_group('SystemJobNotifications', 'serial')
     @pytest.mark.parametrize("job_result", ['any', 'error', 'success'])
-    def test_system_job_notifications(self, request, system_job_template, hipchat_notification_template, job_result):
+    def test_system_job_notifications(self, request, system_job_template, slack_notification_template, job_result):
         """Test notification templates attached to system job templates"""
-        notification_template = hipchat_notification_template
+        notification_template = slack_notification_template
         existing_notifications = system_job_template.get_related('notification_templates_any').count + \
             system_job_template.get_related('notification_templates_success').count
         notifications_expected = existing_notifications + (1 if job_result in ('any', 'success') else 0)
@@ -219,10 +219,10 @@ class Test_Notifications(APITest):
 
     @pytest.mark.parametrize("job_result", ['any', 'error', 'success'])
     @pytest.mark.parametrize("resource", ['organization', 'project', 'job_template'])
-    def test_notification_inheritance(self, request, resource, job_template, hipchat_notification_template, job_result):
+    def test_notification_inheritance(self, request, resource, job_template, slack_notification_template, job_result):
         """Test inheritance of notifications when notification template attached to various tower resources"""
         # Get reference to resource
-        notification_template = hipchat_notification_template
+        notification_template = slack_notification_template
         if resource == "organization":
             resource = job_template.get_related('project').get_related('organization')
         elif resource == "project":

@@ -154,16 +154,6 @@ if __name__ == '__main__':
     cfg['notification_services']['email']['use_tls'] = os.environ.get("EMAIL_USE_TLS", "").lower() == 'true'
     cfg['notification_services']['email']['username'] = os.environ.get("EMAIL_USERNAME", "")
 
-    # Set hipchat service info
-    cfg['notification_services']['hipchat']['message_from'] = os.environ.get("HIPCHAT_MESSAGE_FROM", "")
-    cfg['notification_services']['hipchat']['api_url'] = os.environ.get("HIPCHAT_API_URL", "")
-    cfg['notification_services']['hipchat']['color'] = os.environ.get("HIPCHAT_COLOR", "")
-    # FIXME: Turn into proper list
-    cfg['notification_services']['hipchat']['rooms'] = [os.environ.get("HIPCHAT_ROOMS", "")]
-    cfg['notification_services']['hipchat']['bot_token'] = os.environ.get("HIPCHAT_BOT_TOKEN", "")
-    cfg['notification_services']['hipchat']['user_token'] = os.environ.get("HIPCHAT_USER_TOKEN", "")
-    cfg['notification_services']['hipchat']['notify'] = os.environ.get("HIPCHAT_NOTIFY", "").lower() == 'true'
-
     # Set irc service info
     cfg['notification_services']['irc']['server'] = os.environ.get("IRC_SERVER", "")
     cfg['notification_services']['irc']['port'] = int(os.environ.get("IRC_PORT", 6667))
