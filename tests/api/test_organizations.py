@@ -110,6 +110,7 @@ class Test_Organizations(APITest):
     def test_organization_host_limits_rbac_only_superuser_can_change_max_hosts(self, factories):
         org = factories.v2_organization()
         user = factories.user()
+        org.set_object_roles(user, 'admin')
         with self.current_user(username=user.username, password=user.password):
             with pytest.raises(towerkit.exceptions.Forbidden) as e:
                 org.max_hosts = 5
@@ -122,8 +123,8 @@ class Test_Organizations(APITest):
         inv = inv_source.ds.inventory
         inv.organization = org.id
         org.max_hosts = 4
-        inv.update_inventory_sources(wait=True)
-        #TODO: Finish
+        job = inv.update_inventory_sources(wait=True)
+        assert job.pop().org_host_limit_error is True
 
     def test_organization_host_limits_cannot_launch_jt_if_limit_exceeded(self, factories):
         org = factories.v2_organization()
