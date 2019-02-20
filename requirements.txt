@@ -1,4 +1,3 @@
-azure
 boto
 boto3
 botocore
