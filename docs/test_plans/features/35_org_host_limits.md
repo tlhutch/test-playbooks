@@ -11,7 +11,7 @@ This is helpful in multitenant situations, preventing a given org from using mor
 
 ## Acceptance criteria
 
-* [ ] API
+* [x] API
   * [x] Hosts cannot be added to an inventory if they would bring it out of compliance
   * [x] Max hosts applies across all inventories of an organization 
   * [x] Inventories shared between orgs do not count against the org recieving permission
@@ -21,5 +21,5 @@ This is helpful in multitenant situations, preventing a given org from using mor
   * [x] RBAC
     * [x] Only Super Users can change these settings
   * [x] If the limit is set below the current host count for an org, jobs can't launch until rectified
-  * [ ] If a dynamic inventory update would bring an org out of compliance, the update will fail in a similar way to an update that would bring Tower out of license compliance.
+  * [x] If a dynamic inventory update would bring an org out of compliance, the update will fail in a similar way to an update that would bring Tower out of license compliance.
   
