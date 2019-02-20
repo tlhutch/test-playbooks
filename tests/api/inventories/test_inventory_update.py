@@ -684,7 +684,7 @@ print json.dumps({
         assert 'SyntaxError' not in inv_update.result_stdout
 
     # Skip for Openshift because of Github Issue: https://github.com/ansible/tower-qa/issues/2591
-    def test_inventory_events_are_inserted_in_the_background(self, skip_if_openshift, factories):
+    def test_inventory_events_are_inserted_in_the_background(self, factories):
         aws_cred = factories.v2_credential(kind='aws')
         ec2_source = factories.v2_inventory_source(source='ec2', credential=aws_cred)
         inv_update = ec2_source.update().wait_until_completed()
@@ -695,9 +695,16 @@ print json.dumps({
         # the job is in "running" state
         events = inv_update.related.events.get(order='id').results
         assert len(events) > 0, "Problem with fixture, AWS inventory update did not produce any events"
-        for event in events[:10]:
-            assert parse(event.created) > parse(inv_update.created)
-            assert parse(event.created) < parse(inv_update.finished)
+        '''
+        Check for correctness, events should only be created after the job is created.
+        '''
+        assert all(parse(event.created) > parse(inv_update.created) for event in events)
+
+        '''
+        Ensure there is at least 1 event that is saved before the job finishes.
+        Note: This isn't gauranteed, but we are pretty sure we can find at least 1 event.
+        '''
+        assert any(parse(event.created) < parse(inv_update.finished) for event in events)
 
     def test_inventory_events_are_searchable(self, factories):
         aws_cred = factories.v2_credential(kind='aws')
