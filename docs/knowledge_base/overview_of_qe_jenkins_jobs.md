@@ -99,10 +99,6 @@ Written by [Jim Ladd](mailto:jladd@redhat.com) (Github: jladdjr) Oct 15, 2018.
 * _`Test_Tower_Integration` doesn’t run full integration on all Ansible versions, right?_
     * No, Full integration is run with latest ansible version on each OS. So, right now, ansible stable-2.7 on each OS ( a whole column of matrix ).
     * The rest run `-m test_crawler or ansible_integration`. `test_crawler` hits each endpoint to make sure it is responsive. `ansible_integration` is a marker that marks any tests that specifically test how Tower uses ansible
-* Are there plans to run API schema validation on more of the test matrix than Oracle Linux?
-    * What is schema?
-	* schema represents how the data is presented in the api (string, list, dictionary, etc) along with if fields are required or optional.
-    * Long story short: No. Current schema validation that is done with towerkit is broken. We are looking into schema validation in pre-merge checks on the AWX side.
 
 * _How do you find results?_
     * _How do you tell when it was a nightly run versus a YOLO run?_

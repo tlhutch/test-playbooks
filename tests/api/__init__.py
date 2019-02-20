@@ -1,14 +1,10 @@
 from io import StringIO
 import logging
-import re
 
 from towerkit.config import config
 from towerkit.tower import utils
 import contextlib
 import pytest
-
-
-error_pattern = re.compile(r'SchemaValidationError\:.*\n')
 
 
 @pytest.mark.api
@@ -20,7 +16,7 @@ class APITest(object):
         setattr(self, 'connections', request.config.pluginmanager.getplugin('plugins.pytest_restqa.plugin').connections)
 
     @pytest.fixture(autouse=True)
-    def attach_stream_handler_and_validate_schema_on_teardown(self, request):
+    def attach_stream_handler(self, request):
         stream = StringIO()
         handler = logging.StreamHandler(stream)
         handler.setLevel('ERROR')
@@ -29,19 +25,6 @@ class APITest(object):
         # TODO: implement per-test suite logging system
         log = logging.getLogger('towerkit.api.pages.page')
         log.addHandler(handler)
-
-        def _raise_on_teardown_if_validation_error():
-            stream.flush()
-            stream.seek(0)
-            test_log = ''.join(stream.readlines())
-            errors = error_pattern.findall(test_log)
-
-            log.removeHandler(handler)
-
-            if errors:
-                raise Exception('Found SchemaValidationError: {0}'.format(''.join(errors)))
-
-        request.addfinalizer(_raise_on_teardown_if_validation_error)
 
     @property
     def credentials(self):

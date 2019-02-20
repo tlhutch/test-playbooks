@@ -1,6 +1,5 @@
 import http.client
 
-from towerkit.api.schema.schema import validate
 import fauxfactory
 import pytest
 
@@ -20,15 +19,9 @@ class Test_Api_Basics(APITest):
         r = connection.get('/api/%s/' % fauxfactory.gen_utf8())
         assert r.status_code == http.client.NOT_FOUND
 
-    def test_get_schema(self, connection):
-        r = connection.get('/api/')
-        assert r.status_code == http.client.OK
-        validate(r.json(), '/api/', 'get')
-
-    def test_options_schema(self, connection):
+    def test_options(self, connection):
         r = connection.options('/api/')
         assert r.status_code == http.client.OK
-        validate(r.json(), '/api/', 'options')
 
     def test_head_empty(self, connection):
         r = connection.head('/api/')

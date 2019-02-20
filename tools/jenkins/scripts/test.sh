@@ -21,7 +21,7 @@ CREDS=$(retrieve_credential_file "${INVENTORY}")
 
 set +e
 
-TOWERKIT_SCHEMA_VALIDATION=off pytest -c config/api.cfg \
+pytest -c config/api.cfg \
     --ansible-host-pattern="${TOWER_HOST}" \
     --ansible-inventory="${INVENTORY}" \
     --api-credentials="${CREDS}" \

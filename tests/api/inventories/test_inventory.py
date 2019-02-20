@@ -159,7 +159,7 @@ class TestInventory(APITest):
     def test_duplicate_inventories_disallowed_by_organization(self, factories):
         inv = factories.v2_inventory()
 
-        with pytest.raises(exc.BadRequest) as e:
+        with pytest.raises(exc.Duplicate) as e:
             factories.v2_inventory(name=inv.name, organization=inv.ds.organization)
         assert e.value[1]['__all__'] == ['Inventory with this Name and Organization already exists.']
 

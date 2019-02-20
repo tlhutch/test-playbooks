@@ -30,7 +30,7 @@ class TestUnifiedJobTemplates(APITest):
 
         ujt_factory(**ujt_factory_kwargs)
 
-        with pytest.raises(exc.BadRequest) as e:
+        with pytest.raises(exc.Duplicate) as e:
             ujt_factory(**ujt_factory_kwargs)
 
         assert re.match(

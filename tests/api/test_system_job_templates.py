@@ -29,8 +29,6 @@ class Test_System_Job_Template(APITest):
         resource.
         """
         results = api_system_job_templates_pg.get()
-        # NOTE: validation on the system_job_template name+description happens
-        # during JSON schema validation
         assert results.count > 0, "Unexpected system_job_template count (%s)" % \
             results.count
 

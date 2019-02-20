@@ -29,7 +29,6 @@ result_writer = csv.DictWriter(results_file, fieldnames=fieldnames)
 result_writer.writeheader()
 
 
-config.validate_schema = False
 config.base_url = "https://{0}".format(args.instance)
 if utils.to_bool(args.credentials):
     config.credentials = utils.load_credentials(args.credentials)

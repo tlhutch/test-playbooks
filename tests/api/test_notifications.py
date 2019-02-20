@@ -145,7 +145,7 @@ class Test_Notification_Templates(APITest):
         factories.v2_notification_template(name='SharedName')
 
         shared_org = nt_a.ds.organization
-        with pytest.raises(exc.BadRequest) as e:
+        with pytest.raises(exc.Duplicate) as e:
             factories.v2_notification_template(name='SharedName', organization=shared_org)
         assert e.value.msg['__all__'] == ['Notification template with this Organization and Name already exists.']
 

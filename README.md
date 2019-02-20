@@ -144,5 +144,4 @@ flake8
 
 # Setting Environment Variables (add before the invocation of pytest on the same command)
 TOWERKIT_PREVENT_TEARDOWN=1  # bypass teardown
-TOWERKIT_SCHEMA_VALIDATION=0 # skip validation
 ```
