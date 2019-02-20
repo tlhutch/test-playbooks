@@ -295,7 +295,7 @@ class TestJobTemplateSlicing(APITest):
         schedule = jt.add_schedule(
             rrule=RRule(rrule.MINUTELY, dtstart=datetime.utcnow() + relativedelta(minutes=-1, seconds=+30))
         )
-        poll_until(lambda: schedule.related.unified_jobs.get().count == 1, interval=15, timeout=60)
+        poll_until(lambda: schedule.related.unified_jobs.get().count == 1, interval=15, timeout=120)
         workflow_job = schedule.related.unified_jobs.get().results.pop()
         # teardown does not delete schedules created in v2
         schedule.delete()
