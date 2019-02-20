@@ -1,6 +1,7 @@
 import pytest
 import towerkit.exceptions
 from tests.api import APITest
+import fauxfactory
 
 
 @pytest.fixture(scope="function", params=['job_template',
@@ -76,7 +77,7 @@ class Test_Organizations(APITest):
         [inv.add_host() for _ in range(2)]
         with pytest.raises(towerkit.exceptions.Forbidden) as e:
             inv.add_host()
-        assert e.value.msg['detail'] == 'The organization host limit has been exceeded.'
+        assert e.value.msg['detail'] == 'Organization host limit of 2 has been exceeded, 2 hosts active.'
 
     def test_organization_host_limits_apply_across_all_inventories(self, factories):
         org = factories.v2_organization()
@@ -86,7 +87,22 @@ class Test_Organizations(APITest):
         inv2 = factories.v2_inventory(organization=org)
         with pytest.raises(towerkit.exceptions.Forbidden) as e:
             inv2.add_host()
-        assert e.value.msg['detail'] == 'The organization host limit has been exceeded.'
+        assert e.value.msg['detail'] == 'Organization host limit of 2 has been exceeded, 2 hosts active.'
+
+    def test_organization_host_limits_allow_same_host_multiple_inventories(self, factories):
+        org = factories.v2_organization()
+        org.max_hosts = 2
+        inv = factories.v2_inventory(organization=org)
+        hosts = [inv.add_host() for _ in range(2)]
+        inv2 = factories.v2_inventory(organization=org)
+        factories.v2_host(name=hosts[1].name, inventory=inv2)
+        assert inv.get().total_hosts == 2
+        assert inv2.get().total_hosts == 1
+        host_set = set()
+        for i in org.get().related.inventories.get().results:
+            for h in i.related.hosts.get().results:
+                host_set.add(h.name)
+        assert len(host_set) == 2
 
     def test_organization_host_limits_no_longer_apply_to_inventory_if_org_changed(self, factories):
         org = factories.v2_organization()
@@ -105,16 +121,17 @@ class Test_Organizations(APITest):
         [inv.add_host() for _ in range(2)]
         org.max_hosts = 0
         inv.add_host()
-        assert org.get().summary_fields.related_field_counts.hosts == 3
+        print(org.get().summary_fields.related_field_counts)
+        assert inv.get().total_hosts == 3
 
     def test_organization_host_limits_rbac_only_superuser_can_change_max_hosts(self, factories):
         org = factories.v2_organization()
         user = factories.user()
         org.set_object_roles(user, 'admin')
         with self.current_user(username=user.username, password=user.password):
-            with pytest.raises(towerkit.exceptions.Forbidden) as e:
+            with pytest.raises(towerkit.exceptions.BadRequest) as e:
                 org.max_hosts = 5
-        assert e.value.msg['detail'] == 'You do not have permission to perform this action.'
+        assert e.value.msg['__all__'] == ['Cannot change max_hosts.']
 
     def test_organization_host_limits_dynamic_inventory(self, factories, host_script):
         org = factories.v2_organization()
@@ -135,4 +152,27 @@ class Test_Organizations(APITest):
         jt = factories.v2_job_template(inventory=inv)
         with pytest.raises(towerkit.exceptions.Forbidden) as e:
             jt.launch()
-        assert e.value.msg['detail'] == 'The organization host limit has been exceeded.'
+        assert e.value.msg['detail'] == 'Organization host limit of 1 has been exceeded, 5 hosts active.'
+
+    def test_organization_host_limits_apply_to_awxmanage_imports(self, ansible_runner, factories):
+        inventory_content = """
+        hostA
+        hostB
+        hostC
+        """
+        inv_filename = '/tmp/inventory_{}.ini'.format(fauxfactory.gen_alphanumeric())
+        ansible_runner.copy(dest=inv_filename,
+                            force=True,
+                            mode='0644',
+                            content=inventory_content)
+        org = factories.v2_organization()
+        org.max_hosts = 2
+        inv = factories.v2_inventory(organization=org)
+        contacted = ansible_runner.shell(
+            "awx-manage inventory_import --overwrite --inventory-id {0.id} "
+            "--source {1}".format(inv, inv_filename)
+            )
+        for results in contacted.values():
+            assert results['rc'] == 1, "awx-manage inventory_import failed: %s" % results
+        assert inv.get_related('hosts').count == 0
+        # TODO: Specific error once this gets fixed
