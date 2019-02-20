@@ -281,7 +281,9 @@ class TestFactCache(APITest):
         files = host.related.ansible_facts.get().files
 
         for file in files:
-            if not file.isdir and file.roth:
+            # Ensure the selected files aren't things like socket, directory, etc. and that
+            # we have permission to read them
+            if not file.isdir and file.roth and file.isreg:
                 assert file.checksum
 
     @pytest.mark.ansible_integration
