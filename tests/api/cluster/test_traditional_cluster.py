@@ -82,6 +82,18 @@ class SafeStop(object):
         return 'Exceptions raised {} nodes:\n\n{}\n\n'.format(event, error_info)
 
 
+def instances_using_ipv4(v2):
+    """Return true if instances are specified by ipv4 addresses."""
+    groups = v2.instance_groups.get().results
+    for group in groups:
+        instances = [instance.hostname for instance in group.get_related('instances').results]
+        if instances:
+            return re.search('\d*\.\d*\.\d*\.\d*', instances[0])
+        else:
+            continue
+    return False
+
+
 @pytest.mark.api
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited', 'skip_if_not_traditional_cluster')
 class TestTraditionalCluster(APITest):
@@ -172,7 +184,7 @@ class TestTraditionalCluster(APITest):
             assert len(instances) == len(inventory_file_instance_groups[group.name])
             # Using default of host allows us to cope with situations when
             # there is no "ansible_host" defined
-            if re.search('\d*\.\d*\.\d*\.\d*', instances[0]):
+            if instances_using_ipv4(v2):
                 # instances are using ip addresses
                 assert set(instances) == set([hostname_map.get(host, host) for host in inventory_file_instance_groups[group.name]])
             else:
@@ -566,8 +578,12 @@ class TestTraditionalCluster(APITest):
             else:
                 raise Exception('Failed to find rabbit master')
 
-        hosts = hosts_in_group('instance_group_ordinary_instances')
-        host = inventory_hostname_map(get_rabbit_master())
+        if instances_using_ipv4(v2):
+            hosts = hosts_in_group('instance_group_ordinary_instances')
+            host = inventory_hostname_map(get_rabbit_master())
+        else:
+            hosts = hosts_in_group('instance_group_ordinary_instances', return_hostnames=True)
+            host = get_rabbit_master()
         instance = v2.instances.get(hostname=host).results.pop()
 
         active_host = hosts[1] if hosts[0] == host else hosts[0]
