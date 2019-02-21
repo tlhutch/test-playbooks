@@ -77,7 +77,7 @@ class Test_Organizations(APITest):
         [inv.add_host() for _ in range(2)]
         with pytest.raises(towerkit.exceptions.Forbidden) as e:
             inv.add_host()
-        assert e.value.msg['detail'] == 'Organization host limit of 2 has been exceeded, 2 hosts active.'
+        assert e.value.msg['detail'] == 'Organization host limit of 2 would be exceeded, 2 hosts active.'
 
     def test_organization_host_limits_apply_across_all_inventories(self, factories):
         org = factories.v2_organization()
@@ -87,7 +87,7 @@ class Test_Organizations(APITest):
         inv2 = factories.v2_inventory(organization=org)
         with pytest.raises(towerkit.exceptions.Forbidden) as e:
             inv2.add_host()
-        assert e.value.msg['detail'] == 'Organization host limit of 2 has been exceeded, 2 hosts active.'
+        assert e.value.msg['detail'] == 'Organization host limit of 2 would be exceeded, 2 hosts active.'
 
     def test_organization_host_limits_allow_same_host_multiple_inventories(self, factories):
         org = factories.v2_organization()
