@@ -37,6 +37,13 @@ ANSIBLE_NIGHTLY_REPO="${ANSIBLE_NIGHTLY_REPO}/${ANSIBLE_NIGHTLY_BRANCH}" \
 python scripts/cloud_vars_from_env.py --cloud-provider ${CLOUD_PROVIDER} --platform ${PLATFORM} > playbooks/vars.yml
 ansible-playbook -i playbooks/inventory -e @playbooks/vars.yml playbooks/deploy-tower.yml
 
+# Execute ansible --version on the tower host to find out exactly what got
+# installed This is to help debug if we are getting the right builds because we
+# have had trouble with stale RPMs in the past
+ansible tower -i playbooks/inventory.log -m shell -a "ansible --version"  -e @playbooks/vars.yml -e ansible_user="{{ ec2_images[0].user }}" | tee ansible.version.output
+# Also archive results of rpm -qa | grep ansible to get names of all ansible and ansible tower packages installed
+ansible tower -i playbooks/inventory.log -m shell -a "rpm -qa | grep ansible"  -e @playbooks/vars.yml -e ansible_user="{{ ec2_images[0].user }}" | tee ansible.rpm.version
+
 # Changes to job parameters don't persist across shell sections; create .downstream_build_params here to pick up changes to INSTANCE_NAME_PREFIX
 if [[ $TRIGGER == true ]]; then
 cat << EOF > .trigger
