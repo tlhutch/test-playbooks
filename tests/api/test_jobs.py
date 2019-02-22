@@ -389,6 +389,28 @@ class Test_Job(APITest):
         assert relaunched_job.related.relaunch.get().retry_counts.all == num_failed_hosts
         assert relaunched_job.related.relaunch.get().retry_counts.failed == 0
 
+    def test_job_host_summary_status(self, factories, ansible_version_cmp):
+        if ansible_version_cmp("2.8") >= 0:
+            pytest.skip()
+        job_statuses = ['ignored', 'skipped', 'ok', 'changed', 'failed', 'failures', 'rescued', 'skipped']
+        jt = factories.v2_job_template(playbook='gen_host_status.yml')
+        [factories.v2_host(name=name, inventory=jt.ds.inventory, variables={}) for name in
+                 ('1_ok', '2_skipped', '3_changed', '4_failed', '5_ignored', '6_rescued')]
+        job = jt.launch().wait_until_completed()
+        assert not job.is_successful
+        job_host_summaries = job.related.job_host_summaries.get().results
+        summary_dict = dict()
+        for host in job_host_summaries:
+            summary_dict[host['host_name']] = dict()
+            for status in job_statuses:
+                summary_dict[host['host_name']][status] = host[status]
+        assert summary_dict['1_ok'] == {'ignored': 0, 'skipped': 6, 'ok': 1, 'changed': 0, 'failed': False, 'failures': 0, 'rescued': 0}
+        assert summary_dict['2_skipped'] == {'ignored': 0, 'skipped': 7, 'ok': 0, 'changed': 0, 'failed': False, 'failures': 0, 'rescued': 0}
+        assert summary_dict['3_changed'] == {'ignored': 0, 'skipped': 5, 'ok': 2, 'changed': 1, 'failed': False, 'failures': 0, 'rescued': 0}
+        assert summary_dict['4_failed'] == {'ignored': 0, 'skipped': 1, 'ok': 1, 'changed': 0, 'failed': True, 'failures': 1, 'rescued': 0}
+        assert summary_dict['5_ignored'] == {'ignored': 1, 'skipped': 5, 'ok': 2, 'changed': 0, 'failed': False, 'failures': 0, 'rescued': 0}
+        assert summary_dict['6_rescued'] == {'ignored': 0, 'skipped': 5, 'ok': 2, 'changed': 0, 'failed': False, 'failures': 0, 'rescued': 1}
+
     def test_password_survey_launched_with_empty_extra_vars(self, factories):
         """Confirms that password surveys with defaults are displayed (and encrypted) when
         job template is launched with empty extra_vars, and those without defaults are not.
