@@ -98,7 +98,7 @@ class TestApplications(APITest):
             client_type='public'
         )
 
-        with pytest.raises(exc.BadRequest) as e:
+        with pytest.raises(exc.Duplicate) as e:
             factories.application(
                 name=app['name'],
                 organization=app.ds.organization,

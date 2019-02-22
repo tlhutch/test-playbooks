@@ -29,13 +29,6 @@ About dependency stores:
 u'/api/v2/credentials/137/'
 ```
 
-Next about schema validation:
-* Everytime we make a REST request to the API, we [validate](https://github.com/ansible/towerkit/blob/master/towerkit/api/pages/page.py#L149) the JSON structure that the API returns to us.
-* We do this to ensure that we have a stable API: changes in API JSON output should be intentional. One of the main reasons why our customers buy Tower is because of our API and we want to respect customer integrations with the Tower backend.
-* We keep static [Python files](https://github.com/ansible/towerkit/blob/master/towerkit/api/schema/v1/ping.py) that serve as the source of truth when validating schema. In other words, if API JSON differs from these Python schema files, we will raise a schema validation error if schema validation is enabled.
-* As of June 20th, 2018, we only enable schema validation on our Oracle Linux standalone Tower integration runs.
-* You may turn schema validation off [here](https://github.com/ansible/towerkit/blob/master/towerkit/config.py#L29).
-
 Tips for writing good tests:
 * Be iterative. Write a chunk of code, then throw in `pdb` break, inspect output to ensure code quality, and move on.
 ```
