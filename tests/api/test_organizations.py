@@ -175,4 +175,4 @@ class Test_Organizations(APITest):
         for results in contacted.values():
             assert results['rc'] == 1, "awx-manage inventory_import failed: %s" % results
         assert inv.get_related('hosts').count == 0
-        # TODO: Specific error once this gets fixed
+        assert "Host limit for organization exceeded!" in results['stderr']
