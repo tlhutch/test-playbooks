@@ -1,14 +1,14 @@
 {% if 'cluster_installer' in groups %}
 [tower]
 {% for host in groups['tower'] %}
-{{ host }} ansible_user={{ hostvars[host]['ansible_user'] }} ansible_python_interpreter="{{ hostvars['localhost']['remote_ansible_python_interpreter'] }} ansible_host={{ hostvars[host]['ansible_host'] }}
+{{ host }} ansible_user={{ hostvars[host]['ansible_user'] }} ansible_python_interpreter="{{ hostvars['localhost']['remote_ansible_python_interpreter'] }}" ansible_host={{ hostvars[host]['ansible_host'] }}
 {% endfor %}
 
 {% for group in groups %}
 {% if 'instance_group_' in group or 'isolated_group_' in group %}
 [{{ group }}]
 {% for host in groups[group] %}
-{{ host }} ansible_user={{ hostvars[host]['ansible_user'] }} ansible_python_interpreter="{{ hostvars['localhost']['remote_ansible_python_interpreter'] }} ansible_host={{ hostvars[host]['ansible_host'] }} {% if hostvars[host]['controller']|length > 0 %} controller={{ hostvars[host]['controller'] }}
+{{ host }} ansible_user={{ hostvars[host]['ansible_user'] }} ansible_python_interpreter="{{ hostvars['localhost']['remote_ansible_python_interpreter'] }}" ansible_host={{ hostvars[host]['ansible_host'] }} {% if hostvars[host]['controller']|length > 0 %} controller={{ hostvars[host]['controller'] }}
 {% endif %}
 
 {% endfor %}
@@ -21,9 +21,9 @@
 [database]
 {% for host in groups['database'] %}
 {% if awx_ipv6_deployment | default(false) %}
-{{ hostvars[host].ansible_default_ipv6.address }} ansible_python_interpreter="{{ hostvars['localhost']['remote_ansible_python_interpreter'] }} ansible_user={{ hostvars[host]['ansible_user'] }} ansible_ssh_private_key_file=~/.ssh/cluster_key
+{{ hostvars[host].ansible_default_ipv6.address }} ansible_python_interpreter="{{ hostvars['localhost']['remote_ansible_python_interpreter'] }}" ansible_user={{ hostvars[host]['ansible_user'] }} ansible_ssh_private_key_file=~/.ssh/cluster_key
 {% else %}
-{{ hostvars[host].ansible_default_ipv4.address }} ansible_python_interpreter="{{ hostvars['localhost']['remote_ansible_python_interpreter'] }} ansible_user={{ hostvars[host]['ansible_user'] }} ansible_ssh_private_key_file=~/.ssh/cluster_key
+{{ hostvars[host].ansible_default_ipv4.address }} ansible_python_interpreter="{{ hostvars['localhost']['remote_ansible_python_interpreter'] }}" ansible_user={{ hostvars[host]['ansible_user'] }} ansible_ssh_private_key_file=~/.ssh/cluster_key
 {% endif %}
 {% endfor %}
 {% endif %}
