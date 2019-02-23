@@ -436,3 +436,31 @@ class Test_Job_Events(APITest):
         task = on_ok.results.pop()['task']
         assert len(task) == 1024
         assert task.endswith('...')
+
+    def test_playbook_on_stats_events_are_accurate(self, factories, ansible_version_cmp):
+        if ansible_version_cmp("2.8") >= 0:
+            pytest.skip()
+        job_statuses = ['ignored', 'skipped', 'ok', 'changed', 'failed', 'failures', 'rescued', 'skipped']
+        jt = factories.v2_job_template(playbook='gen_host_status.yml')
+        [factories.v2_host(name=name, inventory=jt.ds.inventory, variables={}) for name in
+                 ('1_ok', '2_skipped', '3_changed', '4_failed', '5_ignored', '6_rescued')]
+        job = jt.launch().wait_until_completed()
+        assert not job.is_successful
+        event_data = self.get_job_events_by_event_type(job, 'playbook_on_stats')[0]['event_data']
+        status_data = {k: event_data[k] for k in event_data if k in job_statuses}
+        assert status_data == {'ignored': {'5_ignored': 1},
+                               'skipped': {'1_ok': 6,
+                                           '2_skipped': 7,
+                                           '3_changed': 5,
+                                           '4_failed': 1,
+                                           '5_ignored': 5,
+                                           '6_rescued': 5},
+                               'ok': {'1_ok': 1,
+                                      '3_changed': 2,
+                                      '4_failed': 1,
+                                      '5_ignored': 2,
+                                      '6_rescued': 2},
+                               'rescued': {'6_rescued': 1},
+                               'changed': {'3_changed': 1},
+                               'failures': {'4_failed': 1},
+                               }

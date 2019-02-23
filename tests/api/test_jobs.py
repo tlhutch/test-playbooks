@@ -389,7 +389,7 @@ class Test_Job(APITest):
         assert relaunched_job.related.relaunch.get().retry_counts.all == num_failed_hosts
         assert relaunched_job.related.relaunch.get().retry_counts.failed == 0
 
-    def test_job_host_summary_status(self, factories, ansible_version_cmp):
+    def test_job_host_summary_status_are_accurate(self, factories, ansible_version_cmp):
         if ansible_version_cmp("2.8") >= 0:
             pytest.skip()
         job_statuses = ['ignored', 'skipped', 'ok', 'changed', 'failed', 'failures', 'rescued', 'skipped']
