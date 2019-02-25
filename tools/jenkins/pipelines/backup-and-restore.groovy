@@ -81,7 +81,7 @@ Bundle?: ${params.BUNDLE}"""
             }
         }
 
-        stage('Setup') {
+        stage('Checkout tower-qa') {
             steps {
                 script {
                     if (params.TOWERQA_BRANCH == '') {
@@ -108,92 +108,85 @@ Bundle?: ${params.BUNDLE}"""
                         ]
                     ]
                 ])
+            }
+        }
+
+        stage('Deploy test-runner node') {
+            steps {
                 withCredentials([file(credentialsId: '171764d8-e57c-4332-bff8-453670d0d99f', variable: 'PUBLIC_KEY'),
-                                 file(credentialsId: 'abcd0260-fb83-404e-860f-f9697911a0bc', variable: 'VAULT_FILE')]) {
-                    sshagent(credentials : ['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
-                        sh 'mkdir -p ~/.ssh && cp ${PUBLIC_KEY} ~/.ssh/id_rsa.pub'
-                        sh 'pip install -U pip setuptools ansible'
-                        sh 'pip install -Ur requirements.txt'
-                        sh 'ansible-vault decrypt --vault-password-file="${VAULT_FILE}" config/credentials.vault --output=config/credentials.yml'
-                        sh 'ansible-vault decrypt --vault-password-file="${VAULT_FILE}" config/credentials-pkcs8.vault --output=config/credentials-pkcs8.yml || true'
-                    }
-                }
-            }
-        }
-
-        stage('Install') {
-            steps {
-                withCredentials([string(credentialsId: 'aws_access_key', variable: 'AWS_ACCESS_KEY'),
+                                 file(credentialsId: 'abcd0260-fb83-404e-860f-f9697911a0bc', variable: 'VAULT_FILE'),
+                                 string(credentialsId: 'aws_access_key', variable: 'AWS_ACCESS_KEY'),
                                  string(credentialsId: 'aws_secret_key', variable: 'AWS_SECRET_KEY'),
                                  string(credentialsId: 'awx_admin_password', variable: 'AWX_ADMIN_PASSWORD')]) {
                     withEnv(["AWS_SECRET_KEY=${AWS_SECRET_KEY}",
                              "AWS_ACCESS_KEY=${AWS_ACCESS_KEY}",
                              "AWX_ADMIN_PASSWORD=${AWX_ADMIN_PASSWORD}"]) {
                         sshagent(credentials : ['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
-                            retry(2) {
-                                sh './tools/jenkins/scripts/install.sh'
-                            }
-                        }
-                    }
-                }
-                archiveArtifacts(
-                    artifacts: 'playbooks/inventory.log,playbooks/inventory.cluster,playbooks/vars.yml,tower_url'
-                )
-            }
-        }
+                            sh 'mkdir -p ~/.ssh && cp ${PUBLIC_KEY} ~/.ssh/id_rsa.pub'
+                            sh 'ansible-vault decrypt --vault-password-file="${VAULT_FILE}" config/credentials.vault --output=config/credentials.yml'
+                            sh 'ansible-vault decrypt --vault-password-file="${VAULT_FILE}" config/credentials-pkcs8.vault --output=config/credentials-pkcs8.yml || true'
 
-        stage('Load data') {
-            steps {
-                sshagent(credentials : ['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
-                    sh './tools/jenkins/scripts/load.sh'
-                }
-            }
-        }
+                            // Generate variable file for test runner
+                            sh 'SCENARIO=test_runner ./tools/jenkins/scripts/generate_vars.sh'
 
-        stage('Backup Instance') {
-            steps {
-                sshagent(credentials : ['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
-                    sh './tools/jenkins/scripts/backup.sh'
-                }
-                archiveArtifacts(
-                    artifacts: 'tower-backup-latest.tar.gz'
-                )
-            }
-        }
+                            // Generate variable file for tower deployment
+                            sh './tools/jenkins/scripts/generate_vars.sh'
 
-        stage('Wipe and Reinstall Tower') {
-            steps {
-                withCredentials([string(credentialsId: 'aws_access_key', variable: 'AWS_ACCESS_KEY'),
-                                 string(credentialsId: 'aws_secret_key', variable: 'AWS_SECRET_KEY'),
-                                 string(credentialsId: 'awx_admin_password', variable: 'AWX_ADMIN_PASSWORD')]) {
-                    withEnv(["AWS_SECRET_KEY=${AWS_SECRET_KEY}",
-                             "AWS_ACCESS_KEY=${AWS_ACCESS_KEY}",
-                             "AWX_ADMIN_PASSWORD=${AWX_ADMIN_PASSWORD}"]) {
-                        sshagent(credentials : ['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
-                            retry(2) {
-                                sh './tools/jenkins/scripts/install.sh'
-                            }
+                            sh 'ansible-playbook -v -i playbooks/inventory -e @playbooks/test_runner_vars.yml playbooks/deploy-test-runner.yml'
                         }
                     }
                 }
             }
         }
 
-        stage('Restore backup') {
+        stage ('Install') {
             steps {
-                sshagent(credentials : ['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
-                    sh './tools/jenkins/scripts/restore.sh'
+               sshagent(credentials : ['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
+                   sh 'ansible-playbook -v -i playbooks/inventory.test_runner playbooks/test_runner/run_install.yml'
                 }
             }
         }
 
-        stage('Verify data integrity') {
+        stage ('Load data') {
             steps {
-                sshagent(credentials : ['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
-                    sh './tools/jenkins/scripts/verify.sh'
+               sshagent(credentials : ['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
+                   sh 'ansible-playbook -v -i playbooks/inventory.test_runner playbooks/test_runner/run_load.yml'
                 }
             }
         }
+
+        stage ('Backup instance') {
+            steps {
+               sshagent(credentials : ['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
+                   sh 'ansible-playbook -v -i playbooks/inventory.test_runner playbooks/test_runner/run_backup.yml'
+                }
+            }
+        }
+
+        stage ('Re-Install') {
+            steps {
+               sshagent(credentials : ['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
+                   sh 'ansible-playbook -v -i playbooks/inventory.test_runner playbooks/test_runner/run_install.yml'
+                }
+            }
+        }
+
+        stage ('Restore backup') {
+            steps {
+               sshagent(credentials : ['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
+                   sh 'ansible-playbook -v -i playbooks/inventory.test_runner playbooks/test_runner/run_restore.yml'
+                }
+            }
+        }
+
+        stage ('Verify data integrity') {
+            steps {
+               sshagent(credentials : ['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
+                   sh 'ansible-playbook -v -i playbooks/inventory.test_runner playbooks/test_runner/run_verify.yml'
+                }
+            }
+        }
+
     }
 
     post {
@@ -208,5 +201,4 @@ Bundle?: ${params.BUNDLE}"""
             }
         }
     }
-
 }

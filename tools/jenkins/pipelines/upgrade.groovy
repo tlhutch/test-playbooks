@@ -80,15 +80,16 @@ pipeline {
 
         stage('Build Information') {
             steps {
-                echo """Tower Version to upgrade from: ${params.TOWER_VERSION_TO_UPGRADE_FROM}
+echo """Tower Version to upgrade from: ${params.TOWER_VERSION_TO_UPGRADE_FROM}
 Tower Version to upgrade to: ${params.TOWER_VERSION_TO_UPGRADE_TO}
-Ansible Version: ${params.ANSIBLE_VERSION}
+Ansible Version under test: ${params.ANSIBLE_VERSION}
+Platform under test: ${params.PLATFORM}
 Scenario: ${params.SCENARIO}
 Bundle?: ${params.BUNDLE}"""
             }
         }
 
-        stage('Setup') {
+        stage('Checkout tower-qa') {
             steps {
                 script {
                     if (params.TOWERQA_BRANCH == '') {
@@ -107,25 +108,20 @@ Bundle?: ${params.BUNDLE}"""
                     $class: 'GitSCM',
                     branches: [[name: "*/${branch_name}" ]],
                     userRemoteConfigs: [
-                        [credentialsId: 'd2d4d16b-dc9a-461b-bceb-601f9515c98a', url: 'git@github.com:ansible/tower-qa.git']
+                        [
+                            credentialsId: 'd2d4d16b-dc9a-461b-bceb-601f9515c98a',
+                            url: 'git@github.com:ansible/tower-qa.git'
+                        ]
                     ]
                 ])
-                withCredentials([file(credentialsId: '171764d8-e57c-4332-bff8-453670d0d99f', variable: 'PUBLIC_KEY'),
-                                 file(credentialsId: 'abcd0260-fb83-404e-860f-f9697911a0bc', variable: 'VAULT_FILE')]) {
-                    sshagent(credentials : ['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
-                        sh 'mkdir -p ~/.ssh && cp ${PUBLIC_KEY} ~/.ssh/id_rsa.pub'
-                        sh 'pip install -U pip setuptools ansible'
-                        sh 'pip install -Ur requirements.txt'
-                        sh 'ansible-vault decrypt --vault-password-file="${VAULT_FILE}" config/credentials.vault --output=config/credentials.yml'
-                        sh 'ansible-vault decrypt --vault-password-file="${VAULT_FILE}" config/credentials-pkcs8.vault --output=config/credentials-pkcs8.yml || true'
-                    }
-                }
             }
         }
 
-        stage('Install') {
+        stage('Deploy test-runner node') {
             steps {
-                withCredentials([string(credentialsId: 'aws_access_key', variable: 'AWS_ACCESS_KEY'),
+                withCredentials([file(credentialsId: '171764d8-e57c-4332-bff8-453670d0d99f', variable: 'PUBLIC_KEY'),
+                                 file(credentialsId: 'abcd0260-fb83-404e-860f-f9697911a0bc', variable: 'VAULT_FILE'),
+                                 string(credentialsId: 'aws_access_key', variable: 'AWS_ACCESS_KEY'),
                                  string(credentialsId: 'aws_secret_key', variable: 'AWS_SECRET_KEY'),
                                  string(credentialsId: 'awx_admin_password', variable: 'AWX_ADMIN_PASSWORD')]) {
                     withEnv(["AWS_SECRET_KEY=${AWS_SECRET_KEY}",
@@ -134,19 +130,35 @@ Bundle?: ${params.BUNDLE}"""
                              "TOWER_VERSION=${params.TOWER_VERSION_TO_UPGRADE_FROM}",
                              "AWX_APPLY_ISOLATED_GROUPS_FW_RULES=false"]) {
                         sshagent(credentials : ['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
-                            retry(2) {
-                                sh './tools/jenkins/scripts/install.sh'
-                            }
+                            sh 'mkdir -p ~/.ssh && cp ${PUBLIC_KEY} ~/.ssh/id_rsa.pub'
+                            sh 'ansible-vault decrypt --vault-password-file="${VAULT_FILE}" config/credentials.vault --output=config/credentials.yml'
+                            sh 'ansible-vault decrypt --vault-password-file="${VAULT_FILE}" config/credentials-pkcs8.vault --output=config/credentials-pkcs8.yml || true'
+
+                            // Generate variable file for test runner
+                            sh 'SCENARIO=test_runner ./tools/jenkins/scripts/generate_vars.sh'
+
+                            // Generate variable file for tower deployment
+                            sh './tools/jenkins/scripts/generate_vars.sh'
+
+                            sh 'ansible-playbook -v -i playbooks/inventory -e @playbooks/test_runner_vars.yml playbooks/deploy-test-runner.yml'
                         }
                     }
                 }
             }
         }
 
-        stage('Load data') {
+        stage ('Install') {
             steps {
-                sshagent(credentials : ['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
-                    sh './tools/jenkins/scripts/load.sh'
+               sshagent(credentials : ['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
+                   sh 'ansible-playbook -v -i playbooks/inventory.test_runner playbooks/test_runner/run_install.yml'
+                }
+            }
+        }
+
+        stage ('Load data') {
+            steps {
+               sshagent(credentials : ['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
+                   sh 'ansible-playbook -v -i playbooks/inventory.test_runner playbooks/test_runner/run_load.yml'
                 }
             }
         }
@@ -183,37 +195,39 @@ Bundle?: ${params.BUNDLE}"""
                        [credentialsId: 'd2d4d16b-dc9a-461b-bceb-601f9515c98a', url: 'git@github.com:ansible/tower-qa.git']
                    ]
                ])
+               withCredentials([string(credentialsId: 'aws_access_key', variable: 'AWS_ACCESS_KEY'),
+                                string(credentialsId: 'aws_secret_key', variable: 'AWS_SECRET_KEY'),
+                                string(credentialsId: 'awx_admin_password', variable: 'AWX_ADMIN_PASSWORD')]) {
+                   withEnv(["AWS_SECRET_KEY=${AWS_SECRET_KEY}",
+                            "AWS_ACCESS_KEY=${AWS_ACCESS_KEY}",
+                            "AWX_ADMIN_PASSWORD=${AWX_ADMIN_PASSWORD}",
+                            "TOWER_VERSION=${params.TOWER_VERSION_TO_UPGRADE_TO}",
+                            "CLEAN_DEPLOYMENT_BEFORE_JOB_RUN=no",
+                            "AWX_UPGRADE=true"]) {
+                       sshagent(credentials : ['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
+                           sh './tools/jenkins/scripts/generate_vars.sh'
+                       }
+                   }
+               }
             }
         }
 
-        stage('Upgrade') {
+        stage ('Upgrade') {
             steps {
-                withCredentials([string(credentialsId: 'aws_access_key', variable: 'AWS_ACCESS_KEY'),
-                                 string(credentialsId: 'aws_secret_key', variable: 'AWS_SECRET_KEY'),
-                                 string(credentialsId: 'awx_admin_password', variable: 'AWX_ADMIN_PASSWORD')]) {
-                    withEnv(["AWS_SECRET_KEY=${AWS_SECRET_KEY}",
-                             "AWS_ACCESS_KEY=${AWS_ACCESS_KEY}",
-                             "AWX_ADMIN_PASSWORD=${AWX_ADMIN_PASSWORD}",
-                             "TOWER_VERSION=${params.TOWER_VERSION_TO_UPGRADE_TO}",
-                             "CLEAN_DEPLOYMENT_BEFORE_JOB_RUN=no",
-                             "AWX_UPGRADE=true"]) {
-                        sshagent(credentials : ['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
-                            retry(2) {
-                                sh './tools/jenkins/scripts/install.sh'
-                            }
-                        }
-                    }
+               sshagent(credentials : ['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
+                   sh 'ansible-playbook -v -i playbooks/inventory.test_runner playbooks/test_runner/run_install.yml'
                 }
             }
         }
 
-        stage('Verify data integrity') {
+        stage ('Verify data integrity') {
             steps {
-                sshagent(credentials : ['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
-                    sh './tools/jenkins/scripts/verify.sh'
+               sshagent(credentials : ['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
+                   sh 'ansible-playbook -v -i playbooks/inventory.test_runner playbooks/test_runner/run_verify.yml'
                 }
             }
         }
+
     }
 
     post {
@@ -228,6 +242,4 @@ Bundle?: ${params.BUNDLE}"""
             }
         }
     }
-
 }
-
