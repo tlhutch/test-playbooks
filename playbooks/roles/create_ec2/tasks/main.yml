@@ -97,11 +97,11 @@
 
 - name: extract helpful ec2_create_vars (IPv4)
   set_fact:
-    instance_id_to_public_dns: '{{ instance_id_to_public_dns|default({}) | combine({item.instance_id: item.public_dns_name}) }}'
     ec2_host_vars: "{{  ec2_host_vars|default([]) + [{'id': item.instance_id,
                                                       'name': item.tags['host-type'],
                                                       'groups': item.tags['towerqe-groups'],
                                                       'public_ip': item.public_ip_address,
+                                                      'public_dns_name': item.public_dns_name,
                                                       'user': item.tags['towerqe-user'],
                                                       'controller': item.tags['controller']|default('') }] }}"
   with_items: '{{ ec2_instance_vars.instances|default([]) }}'
@@ -109,34 +109,23 @@
 
 - name: extract helpful ec2_create_vars (IPv6)
   set_fact:
-    instance_id_to_public_dns: '{{ instance_id_to_public_dns|default({}) | combine({item.instance_id: item.public_dns_name}) }}'
     ec2_host_vars: "{{  ec2_host_vars|default([]) + [{'id': item.instance_id,
                                                       'name': item.tags['host-type'],
                                                       'groups': item.tags['towerqe-groups'],
                                                       'public_ip': item.network_interfaces[0].ipv6_addresses[0].ipv6_address,
+                                                      'public_dns_name': item.public_dns_name,
                                                       'user': item.tags['towerqe-user'],
                                                       'controller': item.tags['controller']|default('') }] }}"
   with_items: '{{ ec2_instance_vars.instances|default([]) }}'
   when: awx_ipv6_deployment | default(false) | bool
 
-
-- name: store public dns for all created instances
-  set_fact:
-    instance_id_to_public_dns: '{{ instance_id_to_public_dns | combine({item.instance_id: item.public_dns_name}) }}'
-  with_items: '{{ ec2_instance_vars.instances|default([]) }}'
-
-- name: debug instance_id_to_public_dns
-  debug: msg='{{ instance_id_to_public_dns }}'
-
-# Despite using `wait` on the ec2 module, instances aren't accepting ssh
-# connections immediately.  The following will ensure systems are ready for use
-# before proceeding.
 - name: wait for instances to listen on port:22
   wait_for:
     state: started
-    host: '{{ instance_id_to_public_dns[item.id] }}'
+    host: '{{ item.public_dns_name }}'
     port: 22
     timeout: '{{ create_ec2_wait_for_22_timeout|default(600) }}'
+    search_regex: OpenSSH
   with_items: '{{ ec2_host_vars|default([]) }}'
 
 - name: Set ansible_python_interpreter (RHEL8)
@@ -151,7 +140,7 @@
 
 - name: add_host
   add_host:
-    name: '{{ instance_id_to_public_dns[item.id] }}'
+    name: '{{ item.public_dns_name }}'
     groups: 'cloud,ec2,{{ item.name }},{{item.groups|default("")}}'
     ansible_user: '{{ item.user }}'
     ansible_host: '{{ item.public_ip }}'
@@ -159,9 +148,3 @@
     controller: '{{item.controller|default("")}}'
     # ansible_ssh_private_key_file: '{{ ec2_keypair_private }}'
   with_items: '{{ ec2_host_vars|default([]) }}'
-
-# HACK While sshd may be listening, it may not fully accept connections immediately
-- name: wait for instances to accept connections
-  pause:
-    seconds: 90
-  when: ec2_create_vars.changed

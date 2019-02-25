@@ -1,8 +1,14 @@
 ---
-- name: 'Deploy cloud hosts'
+- name: Deploy cloud hosts
   hosts: local
-  roles:
-    - { role: deploy_cloud }
+  tasks:
+    - include_role:
+        name: create_ec2
+
+    - include_role:
+        name: save_inventory
+      vars:
+        my_inventory_file: '{{inventory_dir}}/inventory.log'
 
 - name: 'Add authorized keys on database'
   hosts: 'database'

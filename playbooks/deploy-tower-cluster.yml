@@ -1,11 +1,14 @@
 ---
-- name: create instance(s)
+- name: Deploy cloud hosts
   hosts: local
-  roles:
-    - role: create_ec2
-    - role: create_rds
-    - role: save_inventory
-      my_inventory_file: '{{inventory_dir}}/inventory.cluster'
+  tasks:
+    - include_role:
+        name: create_ec2
+
+    - include_role:
+        name: save_inventory
+      vars:
+        my_inventory_file: '{{inventory_dir}}/inventory.cluster'
 
 - name: Retrieve Public IPs of all instances
   hosts: all
