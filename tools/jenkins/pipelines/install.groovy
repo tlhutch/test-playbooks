@@ -135,6 +135,7 @@ Bundle?: ${params.BUNDLE}"""
                             sh 'ansible-playbook -v -i playbooks/inventory -e @playbooks/test_runner_vars.yml playbooks/deploy-test-runner.yml'
                         }
                     }
+                }
             }
         }
 
@@ -145,7 +146,6 @@ Bundle?: ${params.BUNDLE}"""
                 }
             }
         }
-
     }
 
     post {
