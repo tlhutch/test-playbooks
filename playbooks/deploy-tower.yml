@@ -39,6 +39,6 @@
   become: true
   become_method: sudo
   environment:
-    PATH: "/usr/local/bin:/usr/local/sbin:{{ lookup('env', 'PATH') }}"
+    PATH: "/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin"
   roles:
     - { role: awx_setup }
