@@ -33,6 +33,11 @@ pipeline {
             description: 'Should the bundle version be used ?',
             choices: ['no', 'yes']
         )
+        choice(
+            name: 'AWX_IPV6_DEPLOYMENT',
+            description: 'Should the deployment use IPv6 ?',
+            choices: ['no', 'yes']
+        )
         string(
             name: 'TOWERQA_BRANCH',
             description: 'ansible/tower-qa branch to use (Empty will do the right thing)',

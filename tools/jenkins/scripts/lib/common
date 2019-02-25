@@ -77,6 +77,7 @@ function setup_env_based_on_deployment_scenario {
            IMAGE_VARS=playbooks/images-test-runner.yml
            INSTANCE_NAME_PREFIX=test-runner-${INSTANCE_NAME_PREFIX}
            PLATFORM=centos-7.latest-x86_64
+           AWX_IPV6_DEPLOYMENT=no
            ;;
        *)
            (>&2 echo "\"${scenario}\" is not a supported scenario. Supported scenarios: standalone, cluster.")
@@ -212,5 +213,5 @@ function retrieve_value_from_vars_file {
     FILE=$1
     KEY=$2
 
-    grep "${KEY}" "${FILE}" | cut -d' ' -f2
+    grep "^${KEY}:" "${FILE}" | cut -d' ' -f2
 }

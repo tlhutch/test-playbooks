@@ -28,7 +28,7 @@ export VERBOSE=${VERBOSE:-no}
 export ANSIBLE_NIGHTLY_BRANCH=${ANSIBLE_VERSION}
 export AW_REPO_URL=${AW_REPO_URL:-"http://nightlies.testing.ansible.com/ansible-tower_nightlies_m8u16fz56qr6q7/devel"}
 export AWX_SETUP_PATH=${AWX_SETUP_PATH:-"/setup/ansible-tower-setup-latest.tar.gz"}
-export IPV6_DEPLOYMENT=${AWX_IPV6_DEPLOYMENT:-no}
+export AWX_IPV6_DEPLOYMENT=${AWX_IPV6_DEPLOYMENT:-no}
 export ANSIBLE_FORCE_COLOR=${ANSIBLE_FORCE_COLOR:-True}
 
 ANSIBLE_NIGHTLY_REPO=${ANSIBLE_NIGHTLY_REPO}/${ANSIBLE_VERSION}
@@ -46,7 +46,7 @@ fi
 setup_python3_env
 pip install PyYAML argparse
 setup_env_based_on_deployment_scenario "${SCENARIO}"
-IPV6_DEPLOYMENT=$(retrieve_boolean_value "${IPV6_DEPLOYMENT}")
+AWX_IPV6_DEPLOYMENT=$(retrieve_boolean_value "${AWX_IPV6_DEPLOYMENT}")
 DELETE_ON_START=$(retrieve_boolean_value "${DELETE_ON_START}")
 REAP_INSTANCES=$(retrieve_boolean_value "${REAP_INSTANCES}")
 AW_REPO_URL=$(retrieve_aw_repo_url_based_on_version "${TOWER_VERSION}")
