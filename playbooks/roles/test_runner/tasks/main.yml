@@ -45,7 +45,7 @@
 - name: Retrieve proper reference to ansible/tower-qa
   git:
     repo: git@github.com:ansible/tower-qa
-    version: spredzy_test_runner_final
+    version: '{{ tower_qa_branch | default("devel") }}'
     dest: tower-qa
     ssh_opts: -o StrictHostKeyChecking=no
 
