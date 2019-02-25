@@ -1,8 +1,0 @@
----
-# This playbook terminates any matching cluod instances
-
-- name: 'terminate cloud instances'
-  hosts: local
-
-  roles:
-    - { role: destroy_cloud }

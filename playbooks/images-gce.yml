@@ -1,5 +1,0 @@
----
-# Use `gcutil listimages --project=<project_id>` to list available images
-gce_images:
-    - {'name': 'centos-6',  'image': 'centos-6',  'machine_type': 'n1-standard-1', 'zone': 'us-central1-a', }
-    - {'name': 'rhel-6',    'image': 'rhel-6',    'machine_type': 'n1-standard-1', 'zone': 'us-central1-a', }

@@ -1,6 +1,3 @@
 dependencies:
 - { role: create_ec2 }
-- { role: create_gce }
-- { role: create_azure }
-- { role: create_rds }
 - { role: save_inventory }

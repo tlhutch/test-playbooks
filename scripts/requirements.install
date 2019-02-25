@@ -9,6 +9,5 @@ junit-xml
 pbr
 pip
 pyaml
-pyrax
 setuptools
 sphinx

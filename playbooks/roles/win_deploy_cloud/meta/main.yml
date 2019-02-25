@@ -1,5 +1,3 @@
 dependencies:
 - { role: win_create_ec2 }
-#- { role: create_gce }
-#- { role: create_azure }
 - { role: win_save_inventory }
