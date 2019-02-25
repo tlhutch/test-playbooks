@@ -3,6 +3,7 @@
 set -euxo pipefail
 
 TEST_SELECTION=${TEST_SELECTION:-'*'}
+VARS_FILE=${VARS_FILE:-playbooks/vars.yml}
 
 
 # -- Start
@@ -13,6 +14,7 @@ source "$(dirname "${0}")"/lib/common
 INVENTORY=$(retrieve_inventory_file)
 TOWER_URL="https://$(retrieve_tower_server_from_inventory "${INVENTORY}")"
 DEPLOYMENT_TYPE=$(retrieve_deployment_type "${TOWER_URL}")
+AWX_ADMIN_PASSWORD=$(retrieve_value_from_vars_file "${VARS_FILE}" admin_password)
 
 
 if [[ "$DEPLOYMENT_TYPE" == "tower" ]]; then
