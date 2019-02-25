@@ -122,7 +122,7 @@
 - name: wait for instances to listen on port:22
   wait_for:
     state: started
-    host: '{{ item.public_dns_name }}'
+    host: '{{ item.public_ip }}'
     port: 22
     timeout: '{{ create_ec2_wait_for_22_timeout|default(600) }}'
     search_regex: OpenSSH
