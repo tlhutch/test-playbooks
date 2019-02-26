@@ -438,7 +438,7 @@ class Test_Job_Events(APITest):
         assert task.endswith('...')
 
     def test_playbook_on_stats_events_are_accurate(self, factories, ansible_version_cmp):
-        if ansible_version_cmp("2.8") >= 0:
+        if ansible_version_cmp("2.8") < 0:
             pytest.skip()
         job_statuses = ['ignored', 'skipped', 'ok', 'changed', 'failed', 'failures', 'rescued', 'skipped']
         jt = factories.v2_job_template(playbook='gen_host_status.yml')
