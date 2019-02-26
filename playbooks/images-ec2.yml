@@ -4,6 +4,9 @@ create_ec2_assign_public_ip: true
 create_ec2_vpc_id: vpc-552da032
 create_ec2_vpc_subnet_id: subnet-9cdddbb0
 
+user_data_install_py2: &install_py2
+  "{{ lookup('file', 'files/install_py2.sh') }}"
+
 ec2_images:
     - {'name': 'centos-7.0-x86_64',      'user': 'centos',      'id': 'ami-96a818fe', 'type': 'm3.medium', 'groups': 'tower,instance_group_non_default', 'security_group': 'Tower' }
     # Latest CentOS7: need to confirm that the ami id remains valid when the image is updated
@@ -17,7 +20,7 @@ ec2_images:
     - {'name': 'rhel-7.6-x86_64',        'user': 'ec2-user',    'id': 'ami-06fd194eff2ab1451', 'type': 'm5.large', 'groups': 'tower,instance_group_non_default', 'security_group': 'Tower' }
     - {'name': 'rhel-8.0-x86_64',        'user': 'ec2-user',    'id': 'ami-0246ade505622f05f', 'type': 'm5.large', 'groups': 'tower,instance_group_non_default', 'security_group': 'Tower' }
     - {'name': 'ubuntu-14.04-x86_64',    'user': 'ubuntu',      'id': 'ami-ec601593', 'type': 'm5.large', 'groups': 'tower,instance_group_non_default', 'security_group': 'Tower' }
-    - {'name': 'ubuntu-16.04-x86_64',    'user': 'ubuntu',      'id': 'ami-077b0e78', 'type': 'm5.large', 'groups': 'tower,instance_group_non_default', 'security_group': 'Tower' }
+    - {'name': 'ubuntu-16.04-x86_64',    'user': 'ubuntu',      'id': 'ami-077b0e78', 'type': 'm5.large', 'groups': 'tower,instance_group_non_default', 'security_group': 'Tower', 'user_data': *install_py2 }
     - {'name': 'ol-7.2-x86_64',          'user': 'ec2-user',    'id': 'ami-b9c38ad3', 'type': 'm3.medium', 'groups': 'tower,instance_group_non_default', 'security_group': 'Tower' }
     - {'name': 'ol-7.3-x86_64',          'user': 'ec2-user',    'id': 'ami-7c4b7e6b', 'type': 'm3.medium', 'groups': 'tower,instance_group_non_default', 'security_group': 'Tower' }
     - {'name': 'ol-7.4-x86_64',          'user': 'ec2-user',    'id': 'ami-75bde60f', 'type': 'm3.medium', 'groups': 'tower,instance_group_non_default', 'security_group': 'Tower' }
