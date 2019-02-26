@@ -15,7 +15,7 @@ Ansible Core 2.8 introduces two new statistics to the playbook summary: "Ignored
 
 * [x] API
   * [x] Tasks with `ignore_errors: True` set are counted among the `ignored` by tower
-  * [x] Tasks executed in a rescue block are counted among the `rescured` by tower
+  * [x] Tasks executed in a rescue block are counted among the `rescued` by tower
   * [x] Ignored tasks and Rescued tasks are accurately reflected in job host summaries
   * [x] Ignored tasks and Rescued tasks are accurately reflected in playbook_on_stats events
 
