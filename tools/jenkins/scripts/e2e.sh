@@ -4,6 +4,7 @@ set -euxo pipefail
 
 TEST_SELECTION=${TEST_SELECTION:-'*'}
 VARS_FILE=${VARS_FILE:-playbooks/vars.yml}
+JSON_KEY_FILE_PATH=${JSON_KEY_FILE_PATH:-json_key_file}
 
 
 # -- Start
@@ -26,7 +27,7 @@ else
 fi
 
 
-docker login -u _json_key -p "$(cat "${JSON_KEY_FILE}")" https://gcr.io
+docker login -u _json_key -p "$(cat "${JSON_KEY_FILE_PATH}")" https://gcr.io
 docker pull gcr.io/ansible-tower-engineering/"${CONTAINER_IMAGE_NAME}":latest
 docker tag gcr.io/ansible-tower-engineering/"${CONTAINER_IMAGE_NAME}":latest  awx_e2e:latest
 docker-compose -f tower/awx/ui/test/e2e/cluster/docker-compose.yml run \

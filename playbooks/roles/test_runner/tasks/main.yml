@@ -55,6 +55,7 @@
     dest: '{{ item.dest }}'
   ignore_errors: yes
   with_items:
+    - {src: "{{ lookup('env', 'PWD') }}/json_key_file", dest: '~/tower-qa/json_key_file'}
     - {src: "{{ lookup('env', 'PWD') }}/playbooks/vars.yml", dest: '~/tower-qa/playbooks'}
     - {src: "{{ lookup('env', 'PWD') }}/config/credentials.yml", dest: '~/tower-qa/config'}
     - {src: "{{ lookup('env', 'PWD') }}/config/credentials-pkcs8.yml", dest: '~/tower-qa/config'}

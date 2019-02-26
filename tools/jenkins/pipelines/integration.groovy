@@ -125,6 +125,7 @@ Bundle?: ${params.BUNDLE}"""
             steps {
                 withCredentials([file(credentialsId: '171764d8-e57c-4332-bff8-453670d0d99f', variable: 'PUBLIC_KEY'),
                                  file(credentialsId: 'abcd0260-fb83-404e-860f-f9697911a0bc', variable: 'VAULT_FILE'),
+                                 file(credentialsId: '86ed99e9-dad9-49e9-b0db-9257fb563bad', variable: 'JSON_KEY_FILE'),
                                  string(credentialsId: 'aws_access_key', variable: 'AWS_ACCESS_KEY'),
                                  string(credentialsId: 'aws_secret_key', variable: 'AWS_SECRET_KEY'),
                                  string(credentialsId: 'awx_admin_password', variable: 'AWX_ADMIN_PASSWORD')]) {
@@ -133,6 +134,7 @@ Bundle?: ${params.BUNDLE}"""
                              "AWX_ADMIN_PASSWORD=${AWX_ADMIN_PASSWORD}"]) {
                         sshagent(credentials : ['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
                             sh 'mkdir -p ~/.ssh && cp ${PUBLIC_KEY} ~/.ssh/id_rsa.pub'
+                            sh 'cp ${JSON_KEY_FILE} json_key_file'
                             sh 'ansible-vault decrypt --vault-password-file="${VAULT_FILE}" config/credentials.vault --output=config/credentials.yml'
                             sh 'ansible-vault decrypt --vault-password-file="${VAULT_FILE}" config/credentials-pkcs8.vault --output=config/credentials-pkcs8.yml || true'
 
@@ -160,6 +162,18 @@ Bundle?: ${params.BUNDLE}"""
         stage ('E2E Tests') {
             steps {
                sshagent(credentials : ['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
+                   dir('tower') {
+                       checkout([
+                           $class: 'GitSCM',
+                           branches: [[name: "*/${tower_branch_name}" ]],
+                           userRemoteConfigs: [
+                               [
+                                   credentialsId: 'd2d4d16b-dc9a-461b-bceb-601f9515c98a',
+                                   url: 'git@github.com:ansible/tower.git'
+                               ]
+                           ]
+                       ])
+                   }
                    sh 'ansible-playbook -v -i playbooks/inventory.test_runner playbooks/test_runner/run_e2e_test.yml'
                 }
             }
