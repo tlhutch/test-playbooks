@@ -7,9 +7,6 @@ create_ec2_assign_public_ip: true
 create_ec2_vpc_id: vpc-552da032
 create_ec2_vpc_subnet_id: subnet-9cdddbb0
 
-user_data_install_py2: &install_py2
-  "{{ lookup('file', 'files/install_py2.sh') }}"
-
 ec2_images:
     # - {'name': 'haproxy-rhel-7.4-x86_64', 'user': 'ec2-user', 'id': 'ami-7a96b801', 'type': 'm5.large', 'groups': 'haproxy', 'security_group': 'tower-cluster'}
     - {'name': 'cluster-1-rhel-7.4-x86_64', 'user': 'ec2-user', 'id': 'ami-7a96b801', 'type': 'm5.large', 'groups': 'tower, cluster_installer, instance_group_ordinary_instances, instance_group_partition_1, instance_group_1, instance_group_ッ_ッ', 'security_group': 'tower-cluster'}
@@ -77,21 +74,13 @@ ec2_images:
     - {'name': 'cluster-pg-centos-7.latest-x86_64', 'user': 'centos', 'id': 'ami-9887c6e7', 'type': 'm5.large', 'groups': 'database', 'security_group': 'tower-cluster'}
     - {'name': 'cluster-managed-host-centos-7.latest-x86_64', 'user': 'centos', 'id': 'ami-9887c6e7', 'type': 'm5.large', 'groups': 'managed_hosts', 'security_group': 'tower-cluster'}
 
-    - {'name': 'cluster-1-ubuntu-14.04-x86_64', 'user': 'ubuntu', 'id': 'ami-ec601593', 'type': 'm5.large', 'groups': 'tower,cluster_installer,instance_group_ordinary_instance,instance_group_partition1,instance_group_1,instance_group_ッ_ッ', 'security_group': 'tower-cluster', 'user_data': *install_py2 }
-    - {'name': 'cluster-2-ubuntu-14.04-x86_64', 'user': 'ubuntu', 'id': 'ami-ec601593', 'type': 'm5.large', 'groups': 'tower, instance_group_ordinary_instances, instance_group_partition_1, instance_group_2, instance_group_6', 'security_group': 'tower-cluster', 'user_data': *install_py2 }
-    - {'name': 'cluster-3-ubuntu-14.04-x86_64', 'user': 'ubuntu', 'id': 'ami-ec601593', 'type': 'm5.large', 'groups': 'tower, instance_group_ordinary_instances, instance_group_partition_2, instance_group_3, instance_group_6, instance_group_7', 'security_group': 'tower-cluster', 'user_data': *install_py2 }
-    - {'name': 'cluster-4-ubuntu-14.04-x86_64', 'user': 'ubuntu', 'id': 'ami-ec601593', 'type': 'm5.large', 'groups': 'tower, instance_group_ordinary_instances, instance_group_partition_2, instance_group_4, instance_group_7', 'security_group': 'tower-cluster', 'user_data': *install_py2 }
-    - {'name': 'cluster-5-ubuntu-14.04-x86_64', 'user': 'ubuntu', 'id': 'ami-ec601593', 'type': 'm5.large', 'groups': 'tower, instance_group_ordinary_instances, instance_group_partition_2, instance_group_5, instance_group_7', 'security_group': 'tower-cluster', 'user_data': *install_py2 }
-    - {'name': 'cluster-pg-ubuntu-14.04-x86_64', 'user': 'ubuntu', 'id': 'ami-ec601593', 'type': 'm5.large', 'groups': 'database', 'security_group': 'tower-cluster', 'user_data': *install_py2 }
-    - {'name': 'cluster-managed-host-ubuntu-14.04-x86_64', 'user': 'ubuntu', 'id': 'ami-ec601593', 'type': 'm5.large', 'groups': 'managed_hosts', 'security_group': 'tower-cluster', 'user_data': *install_py2 }
-
-    - {'name': 'cluster-1-ubuntu-16.04-x86_64', 'user': 'ubuntu', 'id': 'ami-077b0e78', 'type': 'm5.large', 'groups': 'tower,cluster_installer,instance_group_ordinary_instance,instance_group_partition1,instance_group_1,instance_group_ッ_ッ', 'security_group': 'tower-cluster', 'user_data': *install_py2 }
-    - {'name': 'cluster-2-ubuntu-16.04-x86_64', 'user': 'ubuntu', 'id': 'ami-077b0e78', 'type': 'm5.large', 'groups': 'tower, instance_group_ordinary_instances, instance_group_partition_1, instance_group_2, instance_group_6', 'security_group': 'tower-cluster', 'user_data': *install_py2 }
-    - {'name': 'cluster-3-ubuntu-16.04-x86_64', 'user': 'ubuntu', 'id': 'ami-077b0e78', 'type': 'm5.large', 'groups': 'tower, instance_group_ordinary_instances, instance_group_partition_2, instance_group_3, instance_group_6, instance_group_7', 'security_group': 'tower-cluster', 'user_data': *install_py2 }
-    - {'name': 'cluster-4-ubuntu-16.04-x86_64', 'user': 'ubuntu', 'id': 'ami-077b0e78', 'type': 'm5.large', 'groups': 'tower, instance_group_ordinary_instances, instance_group_partition_2, instance_group_4, instance_group_7', 'security_group': 'tower-cluster', 'user_data': *install_py2 }
-    - {'name': 'cluster-5-ubuntu-16.04-x86_64', 'user': 'ubuntu', 'id': 'ami-077b0e78', 'type': 'm5.large', 'groups': 'tower, instance_group_ordinary_instances, instance_group_partition_2, instance_group_5, instance_group_7', 'security_group': 'tower-cluster', 'user_data': *install_py2 }
-    - {'name': 'cluster-pg-ubuntu-16.04-x86_64', 'user': 'ubuntu', 'id': 'ami-077b0e78', 'type': 'm5.large', 'groups': 'database', 'security_group': 'tower-cluster', 'user_data': *install_py2 }
-    - {'name': 'cluster-managed-host-ubuntu-16.04-x86_64', 'user': 'ubuntu', 'id': 'ami-077b0e78', 'type': 'm5.large', 'groups': 'managed_hosts', 'security_group': 'tower-cluster', 'user_data': *install_py2 }
+    - {'name': 'cluster-1-ubuntu-16.04-x86_64', 'user': 'ubuntu', 'id': 'ami-077b0e78', 'type': 'm5.large', 'groups': 'tower,cluster_installer,instance_group_ordinary_instance,instance_group_partition1,instance_group_1,instance_group_ッ_ッ', 'security_group': 'tower-cluster' }
+    - {'name': 'cluster-2-ubuntu-16.04-x86_64', 'user': 'ubuntu', 'id': 'ami-077b0e78', 'type': 'm5.large', 'groups': 'tower, instance_group_ordinary_instances, instance_group_partition_1, instance_group_2, instance_group_6', 'security_group': 'tower-cluster' }
+    - {'name': 'cluster-3-ubuntu-16.04-x86_64', 'user': 'ubuntu', 'id': 'ami-077b0e78', 'type': 'm5.large', 'groups': 'tower, instance_group_ordinary_instances, instance_group_partition_2, instance_group_3, instance_group_6, instance_group_7', 'security_group': 'tower-cluster' }
+    - {'name': 'cluster-4-ubuntu-16.04-x86_64', 'user': 'ubuntu', 'id': 'ami-077b0e78', 'type': 'm5.large', 'groups': 'tower, instance_group_ordinary_instances, instance_group_partition_2, instance_group_4, instance_group_7', 'security_group': 'tower-cluster' }
+    - {'name': 'cluster-5-ubuntu-16.04-x86_64', 'user': 'ubuntu', 'id': 'ami-077b0e78', 'type': 'm5.large', 'groups': 'tower, instance_group_ordinary_instances, instance_group_partition_2, instance_group_5, instance_group_7', 'security_group': 'tower-cluster' }
+    - {'name': 'cluster-pg-ubuntu-16.04-x86_64', 'user': 'ubuntu', 'id': 'ami-077b0e78', 'type': 'm5.large', 'groups': 'database', 'security_group': 'tower-cluster' }
+    - {'name': 'cluster-managed-host-ubuntu-16.04-x86_64', 'user': 'ubuntu', 'id': 'ami-077b0e78', 'type': 'm5.large', 'groups': 'managed_hosts', 'security_group': 'tower-cluster' }
 
 ec2_security_groups:
     - name: tower-cluster
