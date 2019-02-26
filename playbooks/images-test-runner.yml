@@ -8,7 +8,7 @@ ec2_images:
       name: centos-7.latest-x86_64
       user: centos
       groups: test-runner
-      type: m5.large
+      type: m5.xlarge
       security_group: Tower-TestRunner
 
 ec2_security_groups:
