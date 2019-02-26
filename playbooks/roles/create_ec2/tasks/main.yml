@@ -135,7 +135,7 @@
 
 - name: Set ansible_python_interpreter (Debian/Pre RHEL8)
   set_fact:
-    remote_ansible_python_interpreter: /usr/bin/python
+    remote_ansible_python_interpreter: /usr/bin/env python
   when: not (ec2_images[0].name == 'rhel-8.0-x86_64')
 
 - name: add_host
@@ -148,3 +148,12 @@
     controller: '{{item.controller|default("")}}'
     # ansible_ssh_private_key_file: '{{ ec2_keypair_private }}'
   with_items: '{{ ec2_host_vars|default([]) }}'
+
+- name: wait for python2 to be installed by cloud-init in ubuntu
+  raw: 'ssh -o StrictHostKeyChecking=no -o ForwardAgent=yes {{ item.user  }}@{{ item.public_ip  }} "/bin/sh -c \"/usr/bin/env python --version\""'
+  register: python
+  until: python.rc == 0
+  retries: 18
+  delay: 10
+  with_items: '{{ ec2_host_vars|default([]) }}'
+  when: ec2_images[0].name == 'ubuntu-16.04-x86_64'
