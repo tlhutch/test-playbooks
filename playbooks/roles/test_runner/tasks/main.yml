@@ -75,10 +75,8 @@
   git:
     repo: git@github.com:ansible/tower
     version: '{{ tower_branch | default("devel") }}'
-    dest: tower
+    dest: tower-qa/tower
     ssh_opts: -o StrictHostKeyChecking=no
-  args:
-    chdir: ~/tower-qa
 
 - name: Copy file to test-runner
   copy:
