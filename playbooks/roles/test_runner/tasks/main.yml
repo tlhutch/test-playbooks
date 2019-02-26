@@ -1,13 +1,4 @@
 ---
-- name: Disable selinux
-  become: True
-  selinux:
-    state: disabled
-
-- name: Reboot
-  become: True
-  reboot:
-
 - name: Copy public key over test-runner server
   copy:
     src: ~/.ssh/id_rsa.pub
@@ -31,6 +22,28 @@
       - python36u-devel
       - python36u-pip
       - ansible
+      - docker
+      - docker-compose
+
+- name: Add user to dockerroot
+  become: true
+  user:
+    name: centos
+    append: yes
+    groups: dockerroot
+
+- name: Copy docker configuration
+  become: true
+  copy:
+    dest: /etc/docker/daemon.json
+    content: '{ "live-restore": true, "group": "dockerroot" }'
+
+- name: Start docker service
+  become: true
+  service:
+    name: docker
+    state: started
+    enabled: yes
 
 - name: Create python3 symlink
   become: true
@@ -41,6 +54,15 @@
   with_items:
     - {src: '/usr/bin/python3.6', dest: '/usr/bin/python3'}
     - {src: '/usr/bin/pip3.6', dest: '/usr/bin/pip'}
+
+- name: Disable selinux
+  become: True
+  selinux:
+    state: disabled
+
+- name: Reboot
+  become: True
+  reboot:
 
 - name: Retrieve proper reference to ansible/tower-qa
   git:
