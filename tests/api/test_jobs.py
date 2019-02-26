@@ -391,8 +391,83 @@ class Test_Job(APITest):
 
     def test_job_host_summary_status_are_accurate(self, factories, ansible_version_cmp):
         if ansible_version_cmp("2.8") < 0:
-            pytest.skip()
-        job_statuses = ['ignored', 'skipped', 'ok', 'changed', 'failed', 'failures', 'rescued', 'skipped']
+            job_statuses = ['skipped', 'ok', 'changed', 'failed', 'failures', 'skipped']
+            desired_state = {'1_ok': {'skipped': 6,
+                                     'ok': 1,
+                                     'changed': 0,
+                                     'failed': False,
+                                     'failures': 0},
+                             '2_skipped': {'skipped': 7,
+                                           'ok': 0,
+                                           'changed': 0,
+                                           'failed': False,
+                                           'failures': 0},
+                             '3_changed': {'skipped': 5,
+                                           'ok': 2,
+                                           'changed': 1,
+                                           'failed': False,
+                                           'failures': 0},
+                             '4_failed': {'skipped': 1,
+                                          'ok': 1,
+                                          'changed': 0,
+                                          'failed': True,
+                                          'failures': 1},
+                             '5_ignored': {'skipped': 5,
+                                           'ok': 2,
+                                           'changed': 0,
+                                           'failed': False,
+                                           'failures': 0},
+                             '6_rescued': {'skipped': 5,
+                                           'ok': 2,
+                                           'changed': 0,
+                                           'failed': True,
+                                           'failures': 1}
+                                           }
+        else:
+            job_statuses = ['ignored', 'skipped', 'ok', 'changed', 'failed', 'failures', 'rescued', 'skipped']
+            desired_state = {'1_ok': {'ignored': 0,
+                                     'skipped': 6,
+                                     'ok': 1,
+                                     'changed': 0,
+                                     'failed': False,
+                                     'failures': 0,
+                                     'rescued': 0},
+                             '2_skipped': {'ignored': 0,
+                                           'skipped': 7,
+                                           'ok': 0,
+                                           'changed': 0,
+                                           'failed': False,
+                                           'failures': 0,
+                                           'rescued': 0},
+                             '3_changed': {'ignored': 0,
+                                           'skipped': 5,
+                                           'ok': 2,
+                                           'changed': 1,
+                                           'failed': False,
+                                           'failures': 0,
+                                           'rescued': 0},
+                             '4_failed': {'ignored': 0,
+                                          'skipped': 1,
+                                          'ok': 1,
+                                          'changed': 0,
+                                          'failed': True,
+                                          'failures': 1,
+                                          'rescued': 0},
+                             '5_ignored': {'ignored': 1,
+                                           'skipped': 5,
+                                           'ok': 2,
+                                           'changed': 0,
+                                           'failed': False,
+                                           'failures': 0,
+                                           'rescued': 0},
+                             '6_rescued': {'ignored': 0,
+                                           'skipped': 5,
+                                           'ok': 2,
+                                           'changed': 0,
+                                           'failed': False,
+                                           'failures': 0,
+                                           'rescued': 1}
+                                           }
         jt = factories.v2_job_template(playbook='gen_host_status.yml')
         [factories.v2_host(name=name, inventory=jt.ds.inventory, variables={}) for name in
                  ('1_ok', '2_skipped', '3_changed', '4_failed', '5_ignored', '6_rescued')]
@@ -404,12 +479,7 @@ class Test_Job(APITest):
             summary_dict[host['host_name']] = dict()
             for status in job_statuses:
                 summary_dict[host['host_name']][status] = host[status]
-        assert summary_dict['1_ok'] == {'ignored': 0, 'skipped': 6, 'ok': 1, 'changed': 0, 'failed': False, 'failures': 0, 'rescued': 0}
-        assert summary_dict['2_skipped'] == {'ignored': 0, 'skipped': 7, 'ok': 0, 'changed': 0, 'failed': False, 'failures': 0, 'rescued': 0}
-        assert summary_dict['3_changed'] == {'ignored': 0, 'skipped': 5, 'ok': 2, 'changed': 1, 'failed': False, 'failures': 0, 'rescued': 0}
-        assert summary_dict['4_failed'] == {'ignored': 0, 'skipped': 1, 'ok': 1, 'changed': 0, 'failed': True, 'failures': 1, 'rescued': 0}
-        assert summary_dict['5_ignored'] == {'ignored': 1, 'skipped': 5, 'ok': 2, 'changed': 0, 'failed': False, 'failures': 0, 'rescued': 0}
-        assert summary_dict['6_rescued'] == {'ignored': 0, 'skipped': 5, 'ok': 2, 'changed': 0, 'failed': False, 'failures': 0, 'rescued': 1}
+        assert summary_dict == desired_state
 
     def test_password_survey_launched_with_empty_extra_vars(self, factories):
         """Confirms that password surveys with defaults are displayed (and encrypted) when
