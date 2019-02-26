@@ -71,6 +71,15 @@
     dest: tower-qa
     ssh_opts: -o StrictHostKeyChecking=no
 
+- name: Retrieve proper reference to ansible/tower
+  git:
+    repo: git@github.com:ansible/tower
+    version: '{{ tower_branch | default("devel") }}'
+    dest: tower
+    ssh_opts: -o StrictHostKeyChecking=no
+  args:
+    chdir: ~/tower-qa
+
 - name: Copy file to test-runner
   copy:
     src: '{{ item.src }}'

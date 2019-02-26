@@ -162,18 +162,6 @@ Bundle?: ${params.BUNDLE}"""
         stage ('E2E Tests') {
             steps {
                sshagent(credentials : ['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
-                   dir('tower') {
-                       checkout([
-                           $class: 'GitSCM',
-                           branches: [[name: "*/${tower_branch_name}" ]],
-                           userRemoteConfigs: [
-                               [
-                                   credentialsId: 'd2d4d16b-dc9a-461b-bceb-601f9515c98a',
-                                   url: 'git@github.com:ansible/tower.git'
-                               ]
-                           ]
-                       ])
-                   }
                    sh 'ansible-playbook -v -i playbooks/inventory.test_runner playbooks/test_runner/run_e2e_test.yml'
                 }
             }
