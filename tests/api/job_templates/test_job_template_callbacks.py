@@ -488,7 +488,7 @@ class TestJobTemplateCallbacks(APITest):
             'inventory["some_group"] = dict()',
             'inventory["some_group"]["hosts"] = ["{}"]',
             'inventory["some_group"]["vars"] = dict(ansible_connection="local")',
-            'print json.dumps(inventory)'
+            'print(json.dumps(inventory))'
         ]).format(ansible_host)
 
         inv_script = factories.v2_inventory_script(script=script)
@@ -534,7 +534,7 @@ class TestJobTemplateCallbacks(APITest):
             'inventory = dict()',
             'inventory["some_group"] = dict()',
             'inventory["some_group"]["hosts"] = ["169.254.1.0"]',
-            'print json.dumps(inventory)'
+            'print(json.dumps(inventory))'
         ])
 
         inv_script = factories.v2_inventory_script(script=script)

@@ -113,7 +113,7 @@ if errors:
 
     raise Exception(err_str)
 
-print json.dumps({})
+print(json.dumps({}))
 """)
     def test_inventory_script_isolation(self, api_unified_jobs_pg, custom_inventory_source, api_settings_jobs_pg,
                                         update_setting_pg):
