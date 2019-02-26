@@ -31,7 +31,7 @@ class TestCredentials(APITest):
                                              become_username=fauxfactory.gen_alphanumeric(),
                                              become_password=fauxfactory.gen_utf8()),
                                         dict(name=fauxfactory.gen_utf8(),
-                                             description='',
+                                             description=fauxfactory.gen_utf8(),
                                              username=fauxfactory.gen_alphanumeric(),
                                              password=fauxfactory.gen_utf8(),
                                              ssh_key_data='',
@@ -40,7 +40,7 @@ class TestCredentials(APITest):
                                              become_username=fauxfactory.gen_alphanumeric(),
                                              become_password=fauxfactory.gen_utf8()),
                                         dict(name=fauxfactory.gen_utf8(),
-                                             description='',
+                                             description=fauxfactory.gen_utf8(),
                                              username=fauxfactory.gen_alphanumeric(),
                                              password=fauxfactory.gen_utf8(),
                                              ssh_key_data='',
@@ -49,7 +49,7 @@ class TestCredentials(APITest):
                                              become_username=fauxfactory.gen_alphanumeric(),
                                              become_password=fauxfactory.gen_utf8()),
                                         dict(name=fauxfactory.gen_utf8(),
-                                             description='',
+                                             description=fauxfactory.gen_utf8(),
                                              username='',
                                              password='',
                                              ssh_key_data='',
@@ -57,14 +57,12 @@ class TestCredentials(APITest):
                                              become_method='',
                                              become_username='',
                                              become_password='')])
-    def test_v1_ssh_credential_valid_payload_field_integrity(self, request, factories, v1, fields):
-        payload = factories.credential.payload(kind='ssh', **fields)
-        credential = v1.credentials.post(payload)
-        request.addfinalizer(credential.silent_delete)
+    def test_v1_ssh_credential_valid_payload_field_integrity(self, factories, v1, fields):
+        credential = factories.credential(kind='ssh', **fields)
 
         def validate_fields():
             for field in ('name', 'description', 'username', 'become_method', 'become_username'):
-                assert credential[field] == payload[field]
+                assert credential[field] == fields[field]
 
         validate_fields()
         credential.put()
@@ -91,20 +89,16 @@ class TestCredentials(APITest):
                                                    become_method='',
                                                    become_username='',
                                                    become_password='')])
-    def test_v2_ssh_credential_valid_payload_field_integrity(self, request, factories, v2, input_fields):
+    def test_v2_ssh_credential_valid_payload_field_integrity(self, factories, v2, input_fields):
         cred_type = v2.credential_types.get(managed_by_tower=True, kind='ssh').results.pop()
-        payload = factories.v2_credential.payload(name=fauxfactory.gen_utf8(),
-                                                  description=fauxfactory.gen_utf8(),
-                                                  credential_type=cred_type,
-                                                  inputs=input_fields)
-        credential = v2.credentials.post(payload)
-        request.addfinalizer(credential.silent_delete)
+        kwargs = {'name': fauxfactory.gen_utf8(), 'description': fauxfactory.gen_utf8()}
+        credential = factories.v2_credential(credential_type=cred_type, inputs=input_fields, **kwargs)
 
         def validate_fields():
             for field in ('name', 'description'):
-                assert credential[field] == payload[field]
+                assert credential[field] == kwargs[field]
             for field in ('username', 'become_method', 'become_username'):
-                assert credential.inputs[field] == payload.inputs[field]
+                assert credential.inputs[field] == input_fields[field]
 
         validate_fields()
         credential.put()
