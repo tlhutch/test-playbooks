@@ -8,6 +8,11 @@ pipeline {
             description: 'Tower version to deploy',
             choices: ['devel', '3.4.2', '3.3.5', '3.2.9']
         )
+        choice(
+            name: 'SCOPE',
+            description: 'What is the scope of the verification? (Full will run all supported permutation, latest only on latest OSes)',
+            choices: ['latest', 'full']
+        )
     }
 
     stages {
@@ -50,10 +55,11 @@ pipeline {
                     def tasks = [:]
                     def oses = [:]
 
-                    if (params.TOWER_VERSION in ['3.3.5', '3.2.9']) {
-                        oses = ['ubuntu-14.04-x86_64', 'ubuntu-16.04-x86_64']
-                    } else {
+
+                    if (params.SCOPE == 'latest' or params.TOWER_VERSION !=~ /3\.[0-3]*\.[0-9]*/) {
                         oses = ['ubuntu-16.04-x86_64']
+                    } else {
+                        oses = ['ubuntu-14.04-x86_64', 'ubuntu-16.04-x86_64']
                     }
 
                     for (int i=0;i<oses.size(); i++) {

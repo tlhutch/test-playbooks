@@ -8,13 +8,19 @@ pipeline {
             description: 'Tower version to deploy',
             choices: ['devel', '3.4.2', '3.3.5', '3.2.9']
         )
+        choice(
+            name: 'SCOPE',
+            description: 'What is the scope of the verification? (Full will run all supported permutation, latest only on latest OSes)',
+            choices: ['latest', 'full']
+        )
     }
 
     stages {
 
         stage ('Build Information') {
             steps {
-                echo "Tower version under test: ${params.TOWER_VERSION}"
+                echo """Tower version under test: ${params.TOWER_VERSION}
+Scope selected: ${params.SCOPE}"""
             }
         }
 
@@ -44,6 +50,7 @@ pipeline {
                             job: 'debian-pipeline',
                             parameters: [
                                 string(name: 'TOWER_VERSION', value: params.TOWER_VERSION),
+                                string(name: 'SCOPE', value: params.SCOPE),
                             ]
                         )
                     }
@@ -54,6 +61,7 @@ pipeline {
                             job: 'redhat-pipeline',
                             parameters: [
                                 string(name: 'TOWER_VERSION', value: params.TOWER_VERSION),
+                                string(name: 'SCOPE', value: params.SCOPE),
                             ]
                         )
                     }
