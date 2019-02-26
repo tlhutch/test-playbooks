@@ -135,7 +135,7 @@
 
 - name: Set ansible_python_interpreter (Debian/Pre RHEL8)
   set_fact:
-    remote_ansible_python_interpreter: /usr/bin/env python
+    remote_ansible_python_interpreter: /usr/bin/python
   when: not (ec2_images[0].name == 'rhel-8.0-x86_64')
 
 - name: add_host
