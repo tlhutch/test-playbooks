@@ -326,7 +326,7 @@ for grp, hosts in inv.items():
     for host in hosts:
         inv['_meta']['hostvars'][host] = dict(ansible_host='127.0.0.1', ansible_connection='local')
 
-print json.dumps(inv, indent=2)
+print(json.dumps(inv, indent=2))
 """)
     def test_launch_with_matched_limit_value(
             self, limit_value,

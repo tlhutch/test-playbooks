@@ -54,7 +54,7 @@ class TestInventorySource(APITest):
                 'import json',
                 '',
                 '',
-                'print json.dumps({',
+                'print(json.dumps({',
                 '    "_meta": {',
                 '        "hostvars": {',
                 '            "h01": {}, "h02": {}, "h03": {}',
@@ -63,7 +63,7 @@ class TestInventorySource(APITest):
                 '    "agroup": {',
                 '        "hosts": ["h01", "h02", "h03"]',
                 '    }',
-                '})'
+                '}))'
             ]))
         )
         inv_src = factories.v2_inventory_source(inventory=inventory, inventory_script=inv_script)
@@ -108,7 +108,7 @@ class TestInventorySource(APITest):
                 'import json',
                 '',
                 '',
-                'print json.dumps({',
+                'print(json.dumps({',
                 '    "_meta": {',
                 '        "hostvars": {',
                 '            "foobar": {',
@@ -121,7 +121,7 @@ class TestInventorySource(APITest):
                 '    "ungrouped": {',
                 '        "hosts": ["foobar"]',
                 '    }',
-                '})'
+                '}))'
             ]))
         )
         inv_src = factories.v2_inventory_source(inventory=inventory, inventory_script=inv_script)
@@ -204,7 +204,7 @@ class TestInventorySource(APITest):
                     "data = {'_meta': {'hostvars': {}}}",
                     "for i in range(%s):" % Ng,
                     "   data['Group-{}'.format(i)] = {'hosts': hosts}",
-                    "print json.dumps(data, indent=2)"
+                    "print(json.dumps(data, indent=2))"
                 ])
             )
         )

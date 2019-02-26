@@ -295,7 +295,7 @@ inv = dict(somegroup{0}=dict(hosts=['somehost{0}'],
                                        ansible_connection='local',
                                        cruft='x' * 1024 ** 2)))
 
-print json.dumps(inv)""".format(random_title(non_ascii=False))
+print(json.dumps(inv))""".format(random_title(non_ascii=False))
         inv_src = factories.v2_inventory_source(inventory_script=(True, dict(script=script)))
         inv_src.update().wait_until_completed().assert_successful()
         jt = factories.v2_job_template(inventory=inv_src.ds.inventory,

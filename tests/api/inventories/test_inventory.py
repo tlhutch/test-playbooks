@@ -204,7 +204,7 @@ class TestInventory(APITest):
                 "   data.setdefault('ungrouped', []).append('Host-{}'.format(i))",
                 "for i in range({}):".format(groups),
                 "   data['Group-{}'.format(i)] = {'vars': {'foo': 'bar'}}",
-                "print json.dumps(data, indent=2)"
+                "print(json.dumps(data, indent=2))"
             ])
         return give_me_text
 

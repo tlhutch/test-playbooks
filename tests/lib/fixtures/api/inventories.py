@@ -140,7 +140,7 @@ inventory['{0}'] = list()
     for i in range(5):
         host_name = re.sub(r"[\':]", "", "host-%s" % fauxfactory.gen_utf8())
         script += "inventory['{0}'].append('{1}')\n".format(group_name, host_name)
-    script += "print json.dumps(inventory)\n"
+    script += "print(json.dumps(inventory))\n"
     log.debug(script)
     return script
 

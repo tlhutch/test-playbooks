@@ -13,7 +13,7 @@ def sleeping_inventory_script(factories):
 import json, time
 time.sleep(300)
 inventory = dict()
-print json.dumps(inventory)
+print(json.dumps(inventory))
 """
     return factories.v2_inventory_script(script=source_script)
 

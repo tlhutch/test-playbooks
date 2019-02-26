@@ -159,7 +159,7 @@ class TestInventoryUpdate(APITest):
         inv_script = factories.v2_inventory_script(script="""#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import json
-print json.dumps({
+print(json.dumps({
     '_meta': {'hostvars': {'host_1': {}, 'host_2': {}}},
     'ungrouped': {'hosts': ['will_remove_host']},
     'child_group': {'hosts': ['host_of_child']},
@@ -171,7 +171,7 @@ print json.dumps({
     'parent_switch2': {'children': ['switch2']},
     'will_remove_group': {'hosts': ['host_2']},
     'parent_group': {'hosts': ['host_1', 'host_2'], 'children': ['child_group', 'child_group2']}
-})""")
+}))""")
         inv_source = factories.v2_inventory_source(
             overwrite=True,
             inventory_script=inv_script
@@ -211,7 +211,7 @@ print json.dumps({
         inv_script.script = """#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import json
-print json.dumps({
+print(json.dumps({
     '_meta': {'hostvars': {'host_1': {}, 'host_2': {}}},
     'child_group': {'hosts': ['host_of_child']},
     'child_group2': {'hosts': ['host_of_child']},
@@ -221,7 +221,7 @@ print json.dumps({
     'parent_switch1': {'children': ['switch2']},
     'parent_switch2': {'children': ['switch1']},
     'parent_group': {'hosts': ['host_2'], 'children': ['child_group']}
-})"""
+}))"""
 
         # update and load objects into in-memory dictionaries, again
         inv_source.update().wait_until_completed().assert_successful()

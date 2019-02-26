@@ -17,7 +17,7 @@ sys.exit(1)
 """,
     """#!env python
 import json
-print json.dumps({})
+print(json.dumps({}))
 """]
 
 
@@ -93,7 +93,7 @@ class Test_Inventory_Scripts(APITest):
         # without script that includes hashbang
         payload = dict(name=fauxfactory.gen_utf8(),
                        organization=organization.id,
-                       script='import json\nprint json.dumps({})')
+                       script='import json\nprint(json.dumps({}))')
         exc_info = pytest.raises(exc.BadRequest, api_inventory_scripts_pg.post, payload)
         result = exc_info.value[1]
         assert result == {'script': ['Script must begin with a hashbang sequence: i.e.... #!/usr/bin/env python']}, \
