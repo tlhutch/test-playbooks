@@ -10,23 +10,23 @@ import pytest
 from tests.api import APITest
 
 
-@pytest.fixture(scope="class")
-def register_rhn_and_insights(ansible_runner_class):
+@pytest.fixture(scope="function")
+def register_rhn_and_insights(ansible_runner):
     rhn_username = config.credentials.insights.username
     rhn_password = config.credentials.insights.password
-    ansible_runner_class.redhat_subscription(state='present',
+    ansible_runner.redhat_subscription(state='present',
                                              username=rhn_username,
                                              password=rhn_password,
                                              auto_attach=True)
 
-    ansible_runner_class.yum(state='installed', name='insights-client')
-    ansible_runner_class.shell('insights-client --register')
+    ansible_runner.yum(state='installed', name='insights-client')
+    ansible_runner.shell('insights-client --register')
     yield
-    ansible_runner_class.shell('insights-client --unregister')
-    ansible_runner_class.redhat_subscription(state='absent',
+    ansible_runner.shell('insights-client --unregister')
+    ansible_runner.redhat_subscription(state='absent',
                                              username=rhn_username,
                                              password=rhn_password)
-    ansible_runner_class.yum(state='absent', name='insights-client')
+    ansible_runner.yum(state='absent', name='insights-client')
 
 
 @pytest.mark.api
@@ -208,7 +208,7 @@ class TestInsights(APITest):
 
 
 @pytest.mark.mp_group('Insights', 'serial')
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited') # TODO: fix rhel check due to python 3's tyrrany
+@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestInsightsAnalytics(APITest):
 
     def gather_analytics(self, ansible_runner):
@@ -223,7 +223,7 @@ class TestInsightsAnalytics(APITest):
         content = ansible_runner.slurp(path=file).values()[0]['content']
         return json.loads(base64.b64decode(content))
 
-    def test_awxmanage_gather_analytics_generates_valid_tar(self, ansible_runner):
+    def test_awxmanage_gather_analytics_generates_valid_tar(self, ansible_runner, skip_if_not_rhel):
         tempdir, files = self.gather_analytics(ansible_runner)
         expected_files = ['config.json', 'counts.json', 'projects_by_scm_type.json']
         for f in expected_files:
@@ -232,7 +232,7 @@ class TestInsightsAnalytics(APITest):
             content = self.read_json_file(filepath, ansible_runner)
             assert type(content) == dict
 
-    def test_awxmanage_project_count_incremented(self, ansible_runner, factories):
+    def test_awxmanage_project_count_incremented(self, ansible_runner, factories, skip_if_not_rhel):
         tempdir, files = self.gather_analytics(ansible_runner)
         counts_file = '{}/{}'.format(tempdir, 'counts.json')
         counts = self.read_json_file(counts_file, ansible_runner)
@@ -247,7 +247,7 @@ class TestInsightsAnalytics(APITest):
 
         assert projects_after == projects_before + 1
 
-    def test_ship_insights_succeeds(self, ansible_runner):
+    def test_ship_insights_succeeds(self, ansible_runner, skip_if_not_rhel, register_rhn_and_insights):
         logfile = '/var/log/insights-client/insights-client.log'
         ansible_runner.file(path=logfile, state='absent')
         result = ansible_runner.shell('awx-manage gather_analytics --ship').values()[0]['stderr_lines']
@@ -255,7 +255,7 @@ class TestInsightsAnalytics(APITest):
         log_content = base64.b64decode(ansible_runner.slurp(path=logfile).values()[0]['content']).splitlines()
         assert [l for l in log_content if "insights.client.connection Upload status: 202 Accepted" in l]
 
-    def test_system_uuid_same_across_cluster(self, ansible_runner, skip_if_not_cluster):
+    def test_system_uuid_same_across_cluster(self, ansible_runner, skip_if_not_cluster, skip_if_not_rhel):
         uuid_regex = re.compile('[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}', re.I)
         ha_config = '/etc/tower/conf.d/ha.py'
         ha_content = ansible_runner.slurp(path=ha_config).values()
