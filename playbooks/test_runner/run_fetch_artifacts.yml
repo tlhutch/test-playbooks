@@ -18,4 +18,3 @@
         - {src: '~/tower-qa/playbooks/inventory.log', dest: '{{ lookup("env", "PWD") }}/artifacts/inventory.log'}
         - {src: '~/tower-qa/playbooks/inventory.cluster', dest: '{{ lookup("env", "PWD") }}/artifacts/inventory.cluster'}
         - {src: '~/tower-qa/tower_url', dest: '{{ lookup("env", "PWD") }}/artifacts/tower_url'}
-        - {src: '~/tower-qa/reports/junit/results.xml', dest: '{{ lookup("env", "PWD") }}/artifacts/results.xml'}

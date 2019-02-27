@@ -5,3 +5,15 @@
       command: ./tools/jenkins/scripts/test.sh
       args:
         chdir: ~/tower-qa
+
+    - name: Ensure the artifacts directory exist
+      file:
+        path: '{{ lookup("env", "PWD") }}/artifacts'
+        state: directory
+      delegate_to: localhost
+
+    - name: Retrieve junit results
+      fetch:
+        src: ~/tower-qa/reports/junit/results.xml
+        dest: '{{ lookup("env", "PWD") }}/artifacts/results.xml'
+        flat: yes
