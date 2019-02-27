@@ -86,12 +86,17 @@
     when: inventory_hostname in groups['managed_hosts']
     with_items: "{{ groups['isolated_group_protected'] }}"
 
+  - name: Install at
+    package:
+      name: at
+
+  - name: Start atd
+    service:
+      name: atd
+      state: started
+
+  # Using at so we don't get immediately kicked off
   - name: Remove general access to ssh from public zone
-    firewalld:
-      service: ssh
-      state: disabled
-      zone: public
-      permanent: true
-      immediate: true
+    shell: echo 'firewall-cmd --zone=public --remove-service=ssh --permanent && firewall-cmd --reload' | at now + 1 minute
 
   when: ansible_os_family == 'RedHat'
