@@ -1,0 +1,21 @@
+---
+- hosts: test-runner
+  tasks:
+    - name: Ensure the artifacts directory exist
+      file:
+        path: '{{ lookup("env", "PWD") }}/artifacts'
+        state: directory
+      delegate_to: localhost
+
+    - name: Retrieve artifacts from test runner
+      fetch:
+        src: '{{ item.src }}'
+        dest: '{{ item.dest }}'
+        flat: yes
+      ignore_errors: yes
+      with_items:
+        - {src: '~/tower-qa/playbooks/vars.yml', dest: '{{ lookup("env", "PWD") }}/artifacts/vars.yml'}
+        - {src: '~/tower-qa/playbooks/inventory.log', dest: '{{ lookup("env", "PWD") }}/artifacts/inventory.log'}
+        - {src: '~/tower-qa/playbooks/inventory.cluster', dest: '{{ lookup("env", "PWD") }}/artifacts/inventory.cluster'}
+        - {src: '~/tower-qa/tower_url', dest: '{{ lookup("env", "PWD") }}/artifacts/tower_url'}
+        - {src: '~/tower-qa/reports/junit/results.xml', dest: '{{ lookup("env", "PWD") }}/artifacts/results.xml'}

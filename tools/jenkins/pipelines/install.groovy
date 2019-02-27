@@ -155,8 +155,10 @@ Bundle?: ${params.BUNDLE}"""
 
     post {
         always {
-            sh './tools/jenkins/scripts/version.sh'
-            archiveArtifacts artifacts: 'version.log,playbooks/inventory.log,playbooks/inventory.cluster,playbooks/vars.yml,tower_url'
+            sshagent(credentials : ['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
+                sh 'ansible-playbook -v -i playbooks/inventory.test_runner playbooks/test_runner/run_fetch_artifacts.yml'
+            }
+            archiveArtifacts artifacts: 'artifacts/*'
         }
 
         cleanup {
