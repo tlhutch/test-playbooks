@@ -21,7 +21,7 @@ CREDS=$(retrieve_credential_file "${INVENTORY}")
 
 set +e
 
-pytest -c config/api.cfg \
+pytest --mp --np 4 -c config/api.cfg \
     --ansible-host-pattern="${TOWER_HOST}" \
     --ansible-inventory="${INVENTORY}" \
     --api-credentials="${CREDS}" \
