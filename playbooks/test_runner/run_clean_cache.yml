@@ -1,0 +1,7 @@
+---
+- hosts: test-runner
+  tasks:
+    - name: Run Clean Cache
+      command: ./tools/jenkins/scripts/clean_cache.sh
+      args:
+        chdir: ~/tower-qa
