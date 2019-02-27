@@ -1,6 +1,7 @@
 import os
 import base64
 import json
+import re
 
 from towerkit import config
 import towerkit.exceptions as exc
@@ -207,7 +208,7 @@ class TestInsights(APITest):
 
 
 @pytest.mark.mp_group('Insights', 'serial')
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited', 'skip_if_not_rhel', 'register_rhn_and_insights')
+@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited') # TODO: fix rhel check due to python 3's tyrrany
 class TestInsightsAnalytics(APITest):
 
     def gather_analytics(self, ansible_runner):
@@ -253,3 +254,14 @@ class TestInsightsAnalytics(APITest):
         assert [l for l in result if "Successfully uploaded report" in l]
         log_content = base64.b64decode(ansible_runner.slurp(path=logfile).values()[0]['content']).splitlines()
         assert [l for l in log_content if "insights.client.connection Upload status: 202 Accepted" in l]
+
+    def test_system_uuid_same_across_cluster(self, ansible_runner, skip_if_not_cluster):
+        uuid_regex = re.compile('[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}', re.I)
+        ha_config = '/etc/tower/conf.d/ha.py'
+        ha_content = ansible_runner.slurp(path=ha_config).values()
+        node_system_uuids = set()
+        for n in ha_content:
+            decoded = base64.b64decode(n['content']).decode('utf-8')
+            uuid = uuid_regex.search(decoded)
+            node_system_uuids.add(uuid.group(0))
+        assert len(node_system_uuids) == 1
