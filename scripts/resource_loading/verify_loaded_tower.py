@@ -208,7 +208,7 @@ for name, desired_project in desired_projects.items():
 log.info('Verifying inventory scripts')
 for name, desired_script in desired_inventory_scripts.items():
     found_script = found_inventory_scripts[name].get()
-    for field in [x for x in desired_script if x != 'name']:
+    for field in [x for x in desired_script if x not in ['name', 'script']]:
         if field in ('organization',):
             assert confirm_related_field(field, found_script, desired_script)
         else:
