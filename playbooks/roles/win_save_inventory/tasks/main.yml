@@ -1,5 +1,0 @@
----
-# Tasks to save in-memory host inventory
-
-- name: generate static inventory file
-  template: src=win_inventory.j2 dest=./win_inventory.log mode=0644

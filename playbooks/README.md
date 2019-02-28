@@ -20,7 +20,6 @@ Ansible Tower and related services.
 ## Variable files
 
  * `credentials.yml` - credentials needed for various cloud providers
- * `images-azure.yml` - variables to describe supported Microsoft Azure instances
  * `images-ec2.yml` - variables to describe supported Amazon Machine Images (AMI)
  * `images-gce.yml` - variables to describe supported Google Compute Engine instances
  * `images-rds.yml` - variables to describe an AWS RDS instance

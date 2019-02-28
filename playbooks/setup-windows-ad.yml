@@ -1,8 +1,0 @@
----
-# This playbook configures Active Directory Domain Services on matching
-# instances.
-
-- name: setup active directory domain services
-  hosts: windows
-  roles:
-    - { role: win_setup_ad }

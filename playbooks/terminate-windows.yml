@@ -1,9 +1,0 @@
----
-# This playbook terminates any matching windows cloud instances
-
-- name: 'terminate windows cloud instances'
-  hosts: local
-  vars_files:
-    - 'images-win-ec2.yml'
-  roles:
-    - { role: win_terminate_ec2 }

@@ -1,3 +1,0 @@
-dependencies:
-- { role: win_create_ec2 }
-- { role: win_save_inventory }

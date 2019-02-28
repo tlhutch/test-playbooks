@@ -1,9 +1,0 @@
----
-
-azure_images:
-    - {'name': 'alpha-0', 'storage_account': 'ansibleeast', 'location': 'East US', 'image': 'b39f27a8b8c64d52b05eac6a62ebad85__Ubuntu-12_04_4-LTS-amd64-server-20140514-en-us-30GB' }
-    - {'name': 'alpha-1', 'storage_account': 'ansibleeast', 'location': 'East US' }
-    - {'name': 'beta-0', 'storage_account': 'ansibleeast2', 'location': 'East US 2' }
-    - {'name': 'cat-0', 'storage_account': 'ansiblewest', 'location': 'West US' }
-    - {'name': 'cat-1', 'storage_account': 'ansiblewest', 'location': 'West US' }
-    - {'name': 'cat-2', 'storage_account': 'ansiblewest', 'location': 'West US' }
