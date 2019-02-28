@@ -128,6 +128,7 @@ def test_authenticated(connection, authtoken, no_license, resource, method):
                   '/api/v2/jobs/': {'POST': method_not_allowed},
                   '/api/v2/tokens/': {'POST': (http.client.CREATED, 'post')},
                   'me/': {'POST': method_not_allowed},
+                  'metrics/': {'POST': method_not_allowed},
                   'notifications/': {'POST': method_not_allowed},
                   'organizations/': {'POST': payment_required},
                   'ping/': {'POST': method_not_allowed},
