@@ -55,45 +55,16 @@
   with_items: '{{ ec2_images }}'
   register: ec2_create_vars
 
-- name: map name to instance-id and Name tag
-  set_fact:
-    name_to_instance_id: '{{ name_to_instance_id|default({}) | combine({item.item.name: item.instance_ids[0] }) }}'
-    name_to_tagged_name: "{{ name_to_tagged_name|default({}) | combine({item.item.name: item.spec.TagSpecifications[0].Tags | selectattr(\"Key\", \"equalto\", \"Name\") | map(attribute='Value') | join(',')}) }}"
-  with_items: '{{ ec2_create_vars.results }}'
-
 - name: ensure public dns name provided by aws
   ec2_instance_facts:
     aws_access_key: '{{ aws_access_key }}'
     aws_secret_key: '{{ aws_secret_key }}'
     region: '{{ ec2_region }}'
-    filters:
-      'tag:Name': '{{ name_to_tagged_name.values()|list }}'
-      instance-state-name: ['pending', 'running']
+    instance_ids: '{{ ec2_create_vars.results | sum(attribute="instance_ids", start=[]) }}'
   register: ec2_instance_vars
   until: "ec2_images | length == ec2_instance_vars.instances | length and ec2_instance_vars.instances | selectattr('public_dns_name', 'match', '^.+$') | list | length  ==  ec2_instance_vars.instances | length"
   retries: 60
   delay: 15
-
-- name: wait for running state for instances using elastic ips
-  ec2_instance:
-    aws_access_key: '{{ aws_access_key }}'
-    aws_secret_key: '{{ aws_secret_key }}'
-    instance_id: '{{ name_to_instance_id[item.name] }}'
-    region: "{{ ec2_region }}"
-    state: running
-    wait: true
-  when: item.eip is defined
-  with_items: '{{ ec2_images }}'
-
-- name: assign elastic ips
-  ec2_eip:
-    aws_access_key: '{{ aws_access_key }}'
-    aws_secret_key: '{{ aws_secret_key }}'
-    ec2_region: "{{ ec2_region }}"
-    device_id: '{{ name_to_instance_id[item.name] }}'
-    public_ip: '{{ item.eip }}'
-  when: item.eip is defined
-  with_items: '{{ ec2_images }}'
 
 - name: extract helpful ec2_create_vars (IPv4)
   set_fact:
