@@ -17,6 +17,8 @@
     name:
       - git
       - gcc
+      - python-devel
+      - python-pip
       - python36u
       - python36u-libs
       - python36u-devel
@@ -48,12 +50,9 @@
 - name: Create python3 symlink
   become: true
   file:
-    src: '{{ item.src }}'
-    dest: '{{ item.dest }}'
+    src: /usr/bin/python3.6
+    dest: /usr/bin/python3
     state: link
-  with_items:
-    - {src: '/usr/bin/python3.6', dest: '/usr/bin/python3'}
-    - {src: '/usr/bin/pip3.6', dest: '/usr/bin/pip'}
 
 - name: Disable selinux
   become: True
