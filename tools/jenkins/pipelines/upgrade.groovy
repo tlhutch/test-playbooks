@@ -184,10 +184,23 @@ Bundle?: ${params.BUNDLE}"""
                        branch_name = params.TOWERQA_BRANCH
                    }
                }
-               sshagent(credentials : ['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
-                   sh 'ansible-playbook -v -i playbooks/inventory.test_runner playbooks/test_runner/run_clean_cache.yml'
-                   sh "ansible test-runner -i playbooks/inventory.test_runner -m git -a 'repo=git@github.com:ansible/tower-qa version=${branch_name} dest=tower-qa ssh_opts=\"-o StrictHostKeyChecking=no\" force=yes'"
-               }
+                withCredentials([string(credentialsId: 'aws_access_key', variable: 'AWS_ACCESS_KEY'),
+                                 string(credentialsId: 'aws_secret_key', variable: 'AWS_SECRET_KEY'),
+                                 string(credentialsId: 'awx_admin_password', variable: 'AWX_ADMIN_PASSWORD')]) {
+                    withEnv(["AWS_SECRET_KEY=${AWS_SECRET_KEY}",
+                             "AWS_ACCESS_KEY=${AWS_ACCESS_KEY}",
+                             "AWX_ADMIN_PASSWORD=${AWX_ADMIN_PASSWORD}",
+                             "TOWER_VERSION=${params.TOWER_VERSION_TO_UPGRADE_TO}",
+                             "AWX_UPGRADE=true",
+                             "CLEAN_DEPLOYMENT_BEFORE_JOB_RUN=no"]) {
+                        sshagent(credentials : ['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
+                            sh 'ansible-playbook -v -i playbooks/inventory.test_runner playbooks/test_runner/run_clean_cache.yml'
+                            sh './tools/jenkins/scripts/generate_vars.sh'
+                            sh "ansible test-runner -i playbooks/inventory.test_runner -m copy -a 'src=playbooks/vars.yml dest=/home/centos/tower-qa/playbooks/vars.yml'"
+                            sh "ansible test-runner -i playbooks/inventory.test_runner -m git -a 'repo=git@github.com:ansible/tower-qa version=${branch_name} dest=tower-qa ssh_opts=\"-o StrictHostKeyChecking=no\" force=yes'"
+                        }
+                    }
+                }
             }
         }
 
