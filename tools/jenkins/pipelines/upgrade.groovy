@@ -197,7 +197,7 @@ Bundle?: ${params.BUNDLE}"""
                    sh 'ansible-playbook -v -i playbooks/inventory.test_runner playbooks/test_runner/run_install.yml'
 
                    // NOTE(spredzy): To change cleanly
-                   sh "ansible test-runner -i playbooks/inventory.test_runner -a 'sed -i \"/delete_on_start/d\" /home/centos/tower-qa/playbooks/vars.yml'"
+                   sh "ansible test-runner -i playbooks/inventory.test_runner -a 'sed -i \"s/delete_on_start: .*/delete_on_start: true/g\" /home/centos/tower-qa/playbooks/vars.yml'"
                 }
             }
         }
