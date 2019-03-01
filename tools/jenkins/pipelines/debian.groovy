@@ -56,7 +56,7 @@ pipeline {
                     def oses = [:]
 
 
-                    if (params.SCOPE == 'latest' or params.TOWER_VERSION !=~ /3\.[0-3]*\.[0-9]*/) {
+                    if (params.SCOPE == 'latest' || params.TOWER_VERSION !=~ /3\.[0-3]*\.[0-9]*/) {
                         oses = ['ubuntu-16.04-x86_64']
                     } else {
                         oses = ['ubuntu-14.04-x86_64', 'ubuntu-16.04-x86_64']
