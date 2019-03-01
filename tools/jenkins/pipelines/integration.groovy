@@ -190,7 +190,7 @@ Bundle?: ${params.BUNDLE}"""
 
         cleanup {
             sshagent(credentials : ['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
-                sh './tools/jenkins/scripts/cleanup.sh'
+                sh 'ansible-playbook -v -i playbooks/inventory.test_runner playbooks/test_runner/run_cleanup.yml'
             }
         }
     }
