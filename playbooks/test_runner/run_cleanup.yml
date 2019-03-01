@@ -1,0 +1,7 @@
+---
+- hosts: test-runner
+  tasks:
+    - name: Run Cleanup
+      command: ./tools/jenkins/scripts/cleanup.sh
+      args:
+        chdir: ~/tower-qa
