@@ -7,6 +7,10 @@ set -euxo pipefail
 # shellcheck source=lib/common
 source "$(dirname "${0}")"/lib/common
 
+setup_python3_env
+
+pip install -U boto boto3 botocore ansible pip
+
 INVENTORY=$(retrieve_inventory_file)
 
 if [[ -e "${INVENTORY}" ]]; then
