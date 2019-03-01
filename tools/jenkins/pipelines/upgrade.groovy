@@ -195,6 +195,9 @@ Bundle?: ${params.BUNDLE}"""
             steps {
                sshagent(credentials : ['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
                    sh 'ansible-playbook -v -i playbooks/inventory.test_runner playbooks/test_runner/run_install.yml'
+
+                   // NOTE(spredzy): To change cleanly
+                   sh "ansible test-runner -i playbooks/inventory.test_runner -a 'sed -i \"/delete_on_start/d\" /home/centos/tower-qa/playbooks/vars.yml'"
                 }
             }
         }
@@ -220,6 +223,7 @@ Bundle?: ${params.BUNDLE}"""
         cleanup {
             sshagent(credentials : ['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
                 sh 'ansible-playbook -v -i playbooks/inventory.test_runner playbooks/test_runner/run_cleanup.yml'
+                sh 'ansible-playbook -v -i playbooks/inventory -e @playbooks/test_runner_vars.yml playbooks/reap-tower-ec2.yml'
             }
         }
     }
