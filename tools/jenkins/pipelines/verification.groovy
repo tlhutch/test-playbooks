@@ -205,6 +205,11 @@ Platform under test: ${params.PLATFORM}"""
                 }
 
                 stage ('Bundle Standalone') {
+                    when {
+                        expression {
+                            return ! params.PLATFORM.contains('ubuntu');
+                        }
+                    }
                     steps {
                         script {
                             if (params.TOWER_VERSION != 'devel' && !(params.TOWER_VERSION ==~ /[0-9]*.[0-9]*.0/) ) {
@@ -277,6 +282,11 @@ Platform under test: ${params.PLATFORM}"""
                 }
 
                 stage ('Bundle Cluster') {
+                    when {
+                        expression {
+                            return ! params.PLATFORM.contains('ubuntu');
+                        }
+                    }
                     steps {
                         script {
                             if (params.TOWER_VERSION != 'devel' && !(params.TOWER_VERSION ==~ /[0-9]*.[0-9]*.0/) ) {
