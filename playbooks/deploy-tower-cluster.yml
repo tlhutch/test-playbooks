@@ -15,14 +15,6 @@
   tasks:
     - ipify_facts:
 
-- name: Configure /etc/hosts to have the proper ipv6 entries
-  hosts: tower
-  tasks:
-    - name: Include hosts role
-      include_role:
-        name: hosts
-      when: awx_ipv6_deployment | default(false) | bool
-
 - name: Enable FIPS for isolated nodes
   hosts: 'tower:isolated_group*:instance_group*'
   tasks:
@@ -71,3 +63,20 @@
     - include_role:
         name: isolated_group_firewall_rules
       when: awx_apply_isolated_groups_fw_rules | default(true) | bool
+
+- name: Remove IPV4
+  hosts: tower
+  tasks:
+    - include_role:
+        name: ipv6
+      when: awx_ipv6_deployment | default(false) | bool
+
+    - name: Save ipv6 to name resolution locally
+      become: true
+      delegate_to: localhost
+      blockinfile:
+        path: /etc/hosts
+        block: |
+          {{ hostvars[item]["ansible_default_ipv6"]["address"] }} {{ hostvars[item]["inventory_hostname"] }}
+      with_items: '{{ groups["tower"] }}'
+      when: awx_ipv6_deployment | default(false) | bool
