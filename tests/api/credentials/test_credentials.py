@@ -265,7 +265,7 @@ class TestCredentials(APITest):
         assert not inv_source.credential
         update = inv_source.update().wait_until_completed()
         assert update.failed
-        assert 'NoAuthHandlerFound' in update.result_stdout
+        assert ('NoAuthHandlerFound' in update.result_stdout) or ('Insufficient boto credentials found' in update.result_stdout)
 
     @pytest.mark.mp_group(group="get_pg_dump", strategy="serial")
     def test_confirm_no_plaintext_secrets_in_db(self, skip_if_cluster, v2, factories, get_pg_dump):
