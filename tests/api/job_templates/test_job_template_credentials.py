@@ -201,19 +201,47 @@ class TestJobTemplateLaunchCredentials(APITest):
     @pytest.mark.ansible_integration
     def test_launch_with_bad_become_plugin(self, factories, ansible_version_cmp):
         cred = factories.credential(kind='ssh', become_method='foobar')
-        jt = factories.v2_job_template(credential=cred)
+        jt = factories.v2_job_template(credential=cred, playbook='become.yml')
 
         job = jt.launch().wait_until_completed()
 
+        assert job.status == 'failed'
         if ansible_version_cmp('2.8.0') < 0:
-            assert job.status == 'failed'
             playbook_error = "option --become-method: invalid choice: u'foobar'"
-            assert playbook_error in job.result_stdout
         else:
-            # After become plugins were introduced, Ansible could no longer determine at CLI parse time if a become method
-            # was valid. It's possible, for example, for a role to provide the necessary become plugin.
-            # See https://github.com/ansible/ansible/issues/52751
-            job.assert_successful()
+            playbook_error = "Invalid become method specified, could not find matching plugin: 'foobar'"
+        assert playbook_error in job.result_stdout
+
+    @pytest.mark.ansible_integration
+    def test_launch_with_no_become_plugin(self, factories, ansible_version_cmp):
+        """Ensure sudo is used when no become plugin is specified."""
+
+        cred = factories.credential(kind='ssh')
+        jt = factories.v2_job_template(credential=cred, playbook='become.yml')
+        job = jt.launch().wait_until_completed()
+        assert ' --become ' not in job.job_args[0]
+        assert 'sudo' in job.result_stdout
+
+    @pytest.mark.parametrize('become_plugin', ['doas', 'enable', 'ksu', 'pbrun', 'pmrun', 'runas', 'sesu', 'su', 'sudo'])
+    @pytest.mark.ansible_integration
+    def test_launch_with_ansible_shipped_become_plugin(self, skip_if_pre_ansible28, factories, become_plugin):
+        """Ensure ansible built-in become plugins can be used."""
+
+        cred = factories.credential(kind='ssh', become_method=become_plugin)
+        jt = factories.v2_job_template(credential=cred, playbook='become.yml')
+        job = jt.launch().wait_until_completed()
+        playbook_error = "Invalid become method specified, could not find matching plugin: '%s'" % become_plugin
+
+        assert playbook_error not in job.result_stdout
+
+    @pytest.mark.ansible_integration
+    def test_launch_with_custom_become_plugin(self, skip_if_pre_ansible28, factories):
+        """Ensure custom become plugins can be used."""
+
+        cred = factories.credential(kind='ssh', become_method='custom_plugin', become_username='awx')
+        jt = factories.v2_job_template(credential=cred, playbook='become.yml')
+        job = jt.launch().wait_until_completed()
+        job.assert_successful()
 
     def test_launch_with_team_credential(self, factories, job_template_prompt_for_credential, team, team_ssh_credential):
         """Verifies that a team user can use a team credential to launch a job template."""
