@@ -268,3 +268,22 @@ def skip_if_not_rhel(is_rhel):
 def skip_if_pre_ansible28(ansible_version_cmp):
     if ansible_version_cmp('2.8.0') < 0:
         pytest.skip('Cannot run with version of Ansible pre 2.8.0')
+
+
+@pytest.fixture
+def host_script():
+    """Given N, this produces text which can be used in an inventory script
+    that prints JSON output that defines an inventory with N hosts
+    """
+    def give_me_text(hosts=0, groups=0):
+        return '\n'.join([
+            "#!/usr/bin/env python",
+            "import json",
+            "data = {'_meta': {'hostvars': {}}}",
+            "for i in range({}):".format(hosts),
+            "   data.setdefault('ungrouped', []).append('Host-{}'.format(i))",
+            "for i in range({}):".format(groups),
+            "   data['Group-{}'.format(i)] = {'vars': {'foo': 'bar'}}",
+            "print json.dumps(data, indent=2)"
+        ])
+    return give_me_text
