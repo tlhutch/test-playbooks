@@ -247,13 +247,13 @@ class TestInsightsAnalytics(APITest):
 
         assert projects_after == projects_before + 1
 
-    def test_ship_insights_succeeds(self, ansible_runner, skip_if_not_rhel, register_rhn_and_insights):
-        logfile = '/var/log/insights-client/insights-client.log'
-        ansible_runner.file(path=logfile, state='absent')
-        result = ansible_runner.shell('awx-manage gather_analytics --ship').values()[0]['stderr_lines']
-        assert [l for l in result if "Successfully uploaded report" in l]
-        log_content = base64.b64decode(ansible_runner.slurp(path=logfile).values()[0]['content']).splitlines()
-        assert [l for l in log_content if "insights.client.connection Upload status: 202 Accepted" in l]
+    # def test_ship_insights_succeeds(self, ansible_runner, skip_if_not_rhel, register_rhn_and_insights):
+    #     logfile = '/var/log/insights-client/insights-client.log'
+    #     ansible_runner.file(path=logfile, state='absent')
+    #     result = ansible_runner.shell('awx-manage gather_analytics --ship').values()[0]['stderr_lines']
+    #     assert [l for l in result if "Successfully uploaded report" in l]
+    #     log_content = base64.b64decode(ansible_runner.slurp(path=logfile).values()[0]['content']).splitlines()
+    #     assert [l for l in log_content if "insights.client.connection Upload status: 202 Accepted" in l]
 
     def test_system_uuid_same_across_cluster(self, ansible_runner, skip_if_not_cluster, skip_if_not_rhel):
         uuid_regex = re.compile('[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}', re.I)
