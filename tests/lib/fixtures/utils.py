@@ -262,3 +262,9 @@ def is_rhel(ansible_facts):
 def skip_if_not_rhel(is_rhel):
     if not is_rhel:
         pytest.skip('Cannot run on platforms other than RHEL')
+
+
+@pytest.fixture(scope='class')
+def skip_if_pre_ansible28(ansible_version_cmp):
+    if ansible_version_cmp('2.8.0') < 0:
+        pytest.skip('Cannot run with version of Ansible pre 2.8.0')
