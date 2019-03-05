@@ -2,6 +2,7 @@ import os
 import base64
 import json
 import re
+import boto3
 
 from towerkit import config
 import towerkit.exceptions as exc
@@ -223,6 +224,7 @@ class TestInsightsAnalytics(APITest):
         content = ansible_runner.slurp(path=file).values()[0]['content']
         return json.loads(base64.b64decode(content))
 
+    @pytest.mark.ansible(host_pattern='tower[0]')
     def test_awxmanage_gather_analytics_generates_valid_tar(self, ansible_runner, skip_if_not_rhel):
         tempdir, files = self.gather_analytics(ansible_runner)
         expected_files = ['config.json', 'counts.json', 'projects_by_scm_type.json']
@@ -232,6 +234,7 @@ class TestInsightsAnalytics(APITest):
             content = self.read_json_file(filepath, ansible_runner)
             assert type(content) == dict
 
+    @pytest.mark.ansible(host_pattern='tower[0]')
     def test_awxmanage_project_count_incremented(self, ansible_runner, factories, skip_if_not_rhel):
         tempdir, files = self.gather_analytics(ansible_runner)
         counts_file = '{}/{}'.format(tempdir, 'counts.json')
@@ -247,6 +250,7 @@ class TestInsightsAnalytics(APITest):
 
         assert projects_after == projects_before + 1
 
+    # Commented out due to logistical concerns with contacting insights dev API from AWS
     # def test_ship_insights_succeeds(self, ansible_runner, skip_if_not_rhel, register_rhn_and_insights):
     #     logfile = '/var/log/insights-client/insights-client.log'
     #     ansible_runner.file(path=logfile, state='absent')
@@ -254,6 +258,23 @@ class TestInsightsAnalytics(APITest):
     #     assert [l for l in result if "Successfully uploaded report" in l]
     #     log_content = base64.b64decode(ansible_runner.slurp(path=logfile).values()[0]['content']).splitlines()
     #     assert [l for l in log_content if "insights.client.connection Upload status: 202 Accepted" in l]
+
+    # This "test" is temporary, it is being used by @bender to generate data for a summit demo
+    # Please contact @bender if you want to remove it
+    @pytest.mark.ansible(host_pattern='tower[0]')
+    def test_ship_insights_tar_to_s3(self, ansible_runner, skip_if_not_rhel):
+        s3_bucket_name = 'tower-analytics-data'
+        s3 = boto3.client('s3',
+                          aws_access_key_id=config.credentials.cloud.aws.username,
+                          aws_secret_access_key=config.credentials.cloud.aws.password,
+                          region_name='us-east-1')
+        gather_result = ansible_runner.shell('awx-manage gather_analytics').values()[0]
+        analytics_file = [l for l in gather_result['stderr_lines'] if "tar.gz" in l][0]
+        local_file = ansible_runner.fetch(src=analytics_file, dest='/tmp/', flat=True).values()[0]['dest']
+        s3_path = 'integration_data/{}'.format(local_file.split('/')[-1])
+        s3.upload_file(local_file, s3_bucket_name, s3_path)
+
+        assert s3.get_object(Bucket=s3_bucket_name, Key=s3_path)['ResponseMetadata']['HTTPStatusCode'] == 200
 
     def test_system_uuid_same_across_cluster(self, ansible_runner, skip_if_not_cluster, skip_if_not_rhel):
         uuid_regex = re.compile('[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}', re.I)
