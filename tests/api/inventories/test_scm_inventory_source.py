@@ -630,10 +630,10 @@ class TestSCMInventorySource(APITest):
         scm_inv_source = factories.v2_inventory_source(source='scm', project=project,
                                                        source_path=source_path, update_on_project_update=True)
         scm_inv_source.wait_until_completed()
-        assert scm_inv_source.status == 'failed'
+        scm_inv_source.assert_status('failed')
 
         inv_update = scm_inv_source.related.inventory_updates.get().results.pop()
-        assert expected_error in inv_update.result_stdout.replace('\n', ' ')
+        inv_update.assert_text_in_stdout(expected_error, replace_newlines=' ')
 
         project_updates = project.related.project_updates.get(launch_type='sync').results
         assert len(project_updates) == 1
