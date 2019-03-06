@@ -667,6 +667,7 @@ print(json.dumps({
     def test_aws_update_with_only_group_by(self, aws_group, only_group_by, expected_group_names):
         """Tests that expected groups are created when supplying value for only_group_by."""
         inv_source = aws_group.get_related('inventory_source')
+        inv_source.compatibility_mode = True
         inv_source.group_by = only_group_by
 
         update = inv_source.update().wait_until_completed()
@@ -674,8 +675,11 @@ print(json.dumps({
         inv_source.get().assert_successful()
 
         groups = aws_group.ds.inventory.related.root_groups.get()
-        actual_group_names = [group.name for group in groups.results if group.name != aws_group.name]
-        assert set(actual_group_names) == set(expected_group_names)
+        actual_group_names = set([group.name for group in groups.results if group.name != aws_group.name])
+        # extra group name returned by the plugin
+        if 'aws_ec2' in actual_group_names:
+            actual_group_names.remove('aws_ec2')
+        assert actual_group_names == set(expected_group_names)
 
         # confirm desired auth env vars are in update context
         assert 'AWS_ACCESS_KEY_ID' in update.job_env
