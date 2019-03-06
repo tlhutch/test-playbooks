@@ -90,8 +90,8 @@ class TestAnsibleTowerInventorySource(APITest):
         tower_inv_source = factories.v2_inventory_source(source='tower', credential=tower_cred,
                                                          instance_filters='NotATowerInventory')
         update = tower_inv_source.update().wait_until_completed()
+        update.assert_status('failed')
         assert update.failed
-        assert update.status == 'failed'
 
     def test_user_credentials_without_inventory_access_cause_failed_update(self, factories, remote_tower_hostname):
         custom_inv_src = factories.v2_inventory_source()
@@ -104,6 +104,6 @@ class TestAnsibleTowerInventorySource(APITest):
         tower_inv_src = factories.v2_inventory_source(source='tower', credential=tower_cred,
                                                       instance_filters=custom_inv_src.ds.inventory.id)
         update = tower_inv_src.update().wait_until_completed()
+        update.assert_status('failed')
         assert update.failed
-        assert update.status == 'failed'
         assert "You do not have permission to perform this action." in update.result_stdout.replace('\n', ' ')
