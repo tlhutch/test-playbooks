@@ -1,0 +1,2 @@
+---
+my_inventory_file: '{{inventory_dir}}/inventory.log'

@@ -1,0 +1,38 @@
+---
+- name: Make sure node(s) are absent
+  os_server:
+    name: '{{ item.name }}'
+    state: absent
+
+
+- name: Deploy node(s)
+  os_server:
+    name: '{{ item.name }}'
+    key_name: ansible-jenkins
+    security_groups: tower
+    flavor: m1.medium
+    image: rhel-nightly
+    nics:
+      - net-id: 6a32627e-d98d-40d8-9324-5da7cf1452fc
+    meta:
+      groups: '{{ item.groups }}'
+  register: openstack_node
+
+- name: wait for instances to listen on port:22
+  wait_for:
+    state: started
+    host: '{{ openstack_node.openstack.accessIPv4 }}'
+    port: 22
+    search_regex: OpenSSH
+
+- set_fact:
+    remote_ansible_python_interpreter: /usr/libexec/platform-python
+
+- name: add host
+  add_host:
+    name: '{{ item.name }}'
+    groups: 'cloud,rhel-8.0-x86_64,ec2,{{openstack_node.openstack.metadata.groups}}'
+    ansible_user: cloud-user
+    ansible_host: '{{ openstack_node.openstack.accessIPv4 }}'
+    ansible_python_interpreter: '{{ remote_ansible_python_interpreter }}'
+    controller: '{{ item.controller | default("") }}'

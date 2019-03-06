@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+
+set -euxo pipefail
+
+TESTEXPR=${TESTEXPR:-''}
+SCENARIO=${SCENARIO:-'standalone'}
+
+# shellcheck source=lib/common
+source "$(dirname "${0}")"/lib/common
+
+ansible-vault decrypt --vault-password-file="${VAULT_FILE}" config/credentials.vault --output=config/credentials.yml
+
+setup_python3_env
+pip install -U openstackclient ansible pip
+
+# Export the necessary items for authentication
+#
+export OS_AUTH_URL=https://rhos-d.infra.prod.upshift.rdu2.redhat.com:13000/v3
+export OS_PROJECT_ID=0ac6ff23baf344e78d6f81fb5d5b2aa8
+export OS_PROJECT_NAME="ansible-tower"
+export OS_USER_DOMAIN_NAME="redhat.com"
+export OS_PROJECT_DOMAIN_ID="62cf1b5ec006489db99e2b0ebfb55f57"
+export OS_USERNAME="yguenane"
+export OS_REGION_NAME="regionOne"
+export OS_ENDPOINT_TYPE=publicURL
+export OS_IDENTITY_API_VERSION=3
+
+AWX_IPV6_DEPLOYMENT=no AWS_ACCESS_KEY=dummy AWS_SECRET_KEY=dummy ./tools/jenkins/scripts/generate_vars.sh
+
+if [[ "${SCENARIO}" == "standalone" ]]; then
+    ansible-playbook -v -i playbooks/inventory -e @playbooks/vars.yml playbooks/deploy-tower-rhel8.yml
+else
+    ansible-playbook -v -i playbooks/inventory -e @playbooks/vars.yml playbooks/deploy-tower-rhel8-cluster.yml
+fi
+
+if [[ "${RUN_TESTS}" == "true" ]]; then
+    TESTEXPR="${TESTEXPR}" ./tools/jenkins/scripts/test.sh
+fi

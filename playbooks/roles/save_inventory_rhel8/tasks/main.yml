@@ -1,0 +1,9 @@
+---
+# Tasks to save in-memory host inventory
+
+- name: generate static inventory file
+  template:
+    src: 'inventory.j2'
+    dest: '{{my_inventory_file}}'
+    mode: '0644'
+  when: my_inventory_file != ""

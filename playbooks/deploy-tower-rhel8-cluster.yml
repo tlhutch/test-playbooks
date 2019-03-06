@@ -1,0 +1,120 @@
+---
+- name: Deploy cloud hosts
+  hosts: localhost
+  tasks:
+    - include_tasks: openstack.yml
+      with_items:
+        - name: '{{ lookup("env", "INSTANCE_NAME_PREFIX") | default("rhel8-osp") }}-cluster-1-rhel8'
+          groups: 'tower, cluster_installer, instance_group_ordinary_instances, instance_group_partition_1, instance_group_1'
+        - name: '{{ lookup("env", "INSTANCE_NAME_PREFIX") | default("rhel8-osp") }}-cluster-2-rhel8'
+          groups: 'tower, instance_group_ordinary_instances, instance_group_partition_1, instance_group_2, instance_group_6'
+        - name: '{{ lookup("env", "INSTANCE_NAME_PREFIX") | default("rhel8-osp") }}-cluster-3-rhel8'
+          groups: 'tower, instance_group_ordinary_instances, instance_group_future_controller, instance_group_partition_2, instance_group_3, instance_group_6, instance_group_7'
+        - name: '{{ lookup("env", "INSTANCE_NAME_PREFIX") | default("rhel8-osp") }}-cluster-4-rhel8'
+          groups: 'tower, instance_group_ordinary_instances, instance_group_controller, instance_group_partition_2, instance_group_4, instance_group_7'
+        - name: '{{ lookup("env", "INSTANCE_NAME_PREFIX") | default("rhel8-osp") }}-cluster-5-rhel8'
+          groups: 'tower, instance_group_ordinary_instances, instance_group_controller, instance_group_partition_2, instance_group_5, instance_group_7'
+        - name: '{{ lookup("env", "INSTANCE_NAME_PREFIX") | default("rhel8-osp") }}-cluster-6-rhel8'
+          groups: 'isolated_group_protected, isolated_group_protected_cdg, isolated_group_protected_rdu, isolated_group_protected_lhr'
+          controller: controller
+        - name: '{{ lookup("env", "INSTANCE_NAME_PREFIX") | default("rhel8-osp") }}-cluster-7-rhel8'
+          groups: 'isolated_group_protected, isolated_group_protected_sfo, isolated_group_protected_lax'
+          controller: controller
+        - name: '{{ lookup("env", "INSTANCE_NAME_PREFIX") | default("rhel8-osp") }}-cluster-pg-rhel8'
+          groups: 'database'
+        - name: '{{ lookup("env", "INSTANCE_NAME_PREFIX") | default("rhel8-osp") }}-cluster-managed-host-rhel8'
+          groups: 'managed_hosts'
+
+    - include_role:
+        name: save_inventory_rhel8
+      vars:
+        my_inventory_file: '{{inventory_dir}}/inventory.cluster'
+
+- name: Setup before proceeding
+  hosts: all:!localhost
+  become: yes
+  environment:
+    PATH: "/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin"
+  tasks:
+    - copy:
+        src: redhat.repo
+        dest: /etc/yum.repos.d/redhat.repo
+
+    - command: ln -s /usr/libexec/platform-python /usr/bin/python
+    - command: dnf -y update
+    - command: dnf -y module install python36
+    - command: dnf -y install git
+    - command: dnf -y install http://download.eng.bos.redhat.com/brewroot/vol/rhel-8/packages/python-paramiko/2.4.2/1.module+el8+2824+e1854afe/noarch/python3-paramiko-2.4.2-1.module+el8+2824+e1854afe.noarch.rpm http://download.eng.bos.redhat.com/brewroot/vol/rhel-8/packages/python-bcrypt/3.1.4/4.module+el8+2824+e1854afe/x86_64/python3-bcrypt-3.1.4-4.module+el8+2824+e1854afe.x86_64.rpm http://download.eng.bos.redhat.com/brewroot/vol/rhel-8/packages/python-pynacl/1.2.1/3.module+el8+2824+e1854afe/x86_64/python3-pynacl-1.2.1-3.module+el8+2824+e1854afe.x86_64.rpm http://download.eng.bos.redhat.com/brewroot/vol/rhel-8/packages/libsodium/1.0.16/4.module+el8+2824+e1854afe/x86_64/libsodium-1.0.16-4.module+el8+2824+e1854afe.x86_64.rpm http://download.eng.bos.redhat.com/brewroot/vol/rhel-8/packages/libsodium/1.0.16/4.module+el8+2824+e1854afe/x86_64/libsodium-devel-1.0.16-4.module+el8+2824+e1854afe.x86_64.rpm
+
+- name: Retrieve Public IPs of all instances
+  hosts: all
+  tasks:
+    - ipify_facts:
+
+- name: 'Add authorized keys on non-installer instances'
+  hosts: 'tower:instance_group_*:database:haproxy:managed_hosts:!cluster_installer'
+  roles:
+    - role: auth_keys
+
+- name: 'Group hosts by distribution_major_version'
+  hosts: 'tower,instance_group_*'
+  tasks:
+   - name: group hosts by distribution_major_version
+     action: group_by key="{{ansible_distribution}}-{{ansible_distribution_major_version}}"
+
+- name: 'Configure cluster ssh keys'
+  hosts: 'tower:instance_group_*:isolated_group_*:database'
+  roles:
+    - { role: cluster_key_config, install_group: cluster_installer }
+
+- name: 'Install cluster tower on installer instance'
+  hosts: 'cluster_installer'
+  become: true
+  become_method: sudo
+  roles:
+    - role: awx_setup_rhel8
+
+- name: 'install and configure haproxy'
+  hosts: 'haproxy'
+  roles:
+    - role: haproxy
+  gather_facts: no
+  become: true
+  become_method: sudo
+
+- name: 'Configure firewall rules for isolated groups'
+  hosts: 'isolated_group_protected:managed_hosts'
+  become: true
+  become_method: sudo
+  tasks:
+    - include_role:
+        name: isolated_group_firewall_rules
+      when: awx_apply_isolated_groups_fw_rules | default(true) | bool
+
+- name: Remove IPV4
+  hosts: tower
+  tasks:
+    - include_role:
+        name: ipv6
+      when: awx_ipv6_deployment | default(false) | bool
+
+    - name: Save ipv6 to name resolution locally
+      become: true
+      delegate_to: localhost
+      blockinfile:
+        path: /etc/hosts
+        block: |
+          {{ hostvars[item]["ansible_default_ipv6"]["address"] }} {{ hostvars[item]["inventory_hostname"] }}
+      with_items: '{{ groups["tower"] }}'
+      when: awx_ipv6_deployment | default(false) | bool
+
+- name: Setup before proceeding
+  hosts: all:!localhost
+  become: yes
+  ignore_errors: yes
+  environment:
+    PATH: "/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin"
+  tasks:
+    - command: ln -sf /usr/libexec/platform-python /usr/bin/python
+    - command: /var/lib/awx/venv/awx/bin/pip install git+https://github.com/ansible/ansible.git@devel
+    - command: /var/lib/awx/venv/ansible/bin/pip install git+https://github.com/ansible/ansible.git@devel
