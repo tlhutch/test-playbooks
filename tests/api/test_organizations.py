@@ -1,5 +1,6 @@
 import pytest
 import towerkit.exceptions
+from towerkit import utils
 from tests.api import APITest
 import fauxfactory
 
@@ -96,6 +97,7 @@ class Test_Organizations(APITest):
         hosts = [inv.add_host() for _ in range(2)]
         inv2 = factories.v2_inventory(organization=org)
         factories.v2_host(name=hosts[1].name, inventory=inv2)
+        utils.logged_sleep(5)
         assert inv.get().total_hosts == 2
         assert inv2.get().total_hosts == 1
         host_set = set()
@@ -112,6 +114,7 @@ class Test_Organizations(APITest):
         [inv.add_host() for _ in range(2)]
         inv.patch(organization=org2.id)
         inv.add_host()
+        utils.logged_sleep(5)
         assert inv.get().total_hosts == 3
 
     def test_organization_host_limits_no_longer_apply_if_max_hosts_zero(self, factories):
@@ -121,7 +124,7 @@ class Test_Organizations(APITest):
         [inv.add_host() for _ in range(2)]
         org.max_hosts = 0
         inv.add_host()
-        print(org.get().summary_fields.related_field_counts)
+        utils.logged_sleep(5)
         assert inv.get().total_hosts == 3
 
     def test_organization_host_limits_rbac_only_superuser_can_change_max_hosts(self, factories):
@@ -150,6 +153,7 @@ class Test_Organizations(APITest):
         [inv.add_host() for _ in range(5)]
         org.max_hosts = 1
         jt = factories.v2_job_template(inventory=inv)
+        utils.logged_sleep(5)
         with pytest.raises(towerkit.exceptions.Forbidden) as e:
             jt.launch()
         assert e.value.msg['detail'] == 'Organization host limit of 1 has been exceeded, 5 hosts active.'
