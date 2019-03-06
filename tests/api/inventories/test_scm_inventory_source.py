@@ -610,6 +610,7 @@ class TestSCMInventorySource(APITest):
 
         project.wait_until_completed().assert_successful()
 
+    @pytest.mark.github('https://github.com/ansible/awx/issues/171', ids=['OpenStack auth issue'])
     @pytest.mark.parametrize('scm_url, branch, source_path, expected_error',
                              [('https://github.com/ansible/test-playbooks.git', '', 'inventories/invalid_inventory.ini',
                                "Invalid section entry: '[syntax ?? error]'"),
@@ -618,9 +619,9 @@ class TestSCMInventorySource(APITest):
                                'bad data for the host list'),
                               ('https://github.com/ansible/test-playbooks.git', '', 'not_a_source_path',
                                'Source does not exist'),
-                              ('https://github.com/ansible/ansible.git', 'stable-2.3', 'contrib/inventory/ec2.py',
+                              ('https://github.com/ansible/ansible.git', 'stable-2.6', 'contrib/inventory/ec2.py',
                                'Check your credentials'),
-                              ('https://github.com/ansible/ansible.git', 'stable-2.3', 'contrib/inventory/openstack.py',
+                              ('https://github.com/ansible/ansible.git', 'stable-2.6', 'contrib/inventory/openstack_inventory.py',
                                'Auth plugin requires parameters which were not given')],
                              ids=['invalid static', 'invalid dynamic', 'missing from project',
                                   'ec2 auth issue', 'OpenStack auth issue'])
