@@ -21,6 +21,7 @@ class Test_Copy_Project(APITest):
         check_fields(v2_project, new_project, self.identical_fields, self.unequal_fields)
         assert new_project.related.current_update
 
+    @pytest.mark.yolo
     def test_copy_project_with_non_default_values(self, factories, copy_with_teardown):
         max_int32 = 1 << 31 - 1
         v2_project = factories.v2_project(

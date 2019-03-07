@@ -69,6 +69,7 @@ class Test_User_RBAC(APITest):
             with self.current_user(system_user):
                 system_user.get()
 
+    @pytest.mark.yolo
     def test_org_admin_can_only_edit_users_from_own_organization(self, factories, org_users, organization):
         first_pass, second_pass = [utils.random_title() for _ in range(2)]
 

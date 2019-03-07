@@ -96,7 +96,7 @@ class TestSCMInventorySource(APITest):
                                          group_three_host_01.related.variable_data.get()]:
             assert group_three_host_01_vars.group_three_host_01_has_this_var
 
-    @pytest.mark.github('https://github.com/ansible/tower-qa/issues/2301')
+    @pytest.mark.github('https://github.com/ansible/tower-qa/issues/2301', skip=True)
     @pytest.mark.ansible_integration
     def test_scm_inventory_groups_and_group_vars(self, scm_inv_source_with_group_and_host_var_dirs, uses_group_vars):
         inv_source = scm_inv_source_with_group_and_host_var_dirs
@@ -177,7 +177,6 @@ class TestSCMInventorySource(APITest):
             hosts = related_hosts.get(page_size=200).results
             assert set([host.name for host in hosts]) == self.more_inventory_hostnames
 
-    @pytest.mark.github('https://github.com/ansible/tower-qa/issues/2297')
     @pytest.mark.parametrize('source_paths',
                              [('inventories/inventory.ini', 'inventories/more_inventories/inventory.ini',
                                'inventories/more_inventories/even_more_inventories/inventory.ini'),
@@ -255,7 +254,7 @@ class TestSCMInventorySource(APITest):
         host = inv_source.ds.inventory.related.hosts.get(name='localhost').results.pop()
         assert host.variables.test_env == 'TEST_ENV_1'
 
-    @pytest.mark.github('https://github.com/ansible/tower-qa/issues/2296')
+    @pytest.mark.github('https://github.com/ansible/tower-qa/issues/2296', skip=True)
     @pytest.mark.mp_group('ProjectUpdateWithSCMChange', 'serial')
     @pytest.mark.parametrize('source_path', ['inventories/inventory.ini', 'inventories/dyn_inventory.py'])
     def test_project_launch_using_update_on_project_update_with_scm_change(self, skip_if_openshift, factories, v2,
@@ -307,6 +306,7 @@ class TestSCMInventorySource(APITest):
         assert project.related.project_updates.get(launch_type='sync').count == 1
         assert inv_source.related.inventory_updates.get().count == 1
 
+    @pytest.mark.yolo
     def test_inventory_update_using_update_on_project_update_without_scm_change(self, factories, v2,
                                                                                 write_access_git_credential):
         """Verifies that an scm inventory sync runs even without changes to scm"""
@@ -325,7 +325,8 @@ class TestSCMInventorySource(APITest):
         assert project.related.project_updates.get(launch_type='sync').count == 2
         assert inv_source.related.inventory_updates.get().count == 2
 
-    @pytest.mark.github('https://github.com/ansible/tower-qa/issues/2326')
+    # @pytest.mark.github('https://github.com/ansible/tower-qa/issues/2326', skip=True)
+    @pytest.mark.flaky(reruns=3, reruns_delay=30)
     @pytest.mark.mp_group('ProjectUpdateWithSCMChange', 'serial')
     def test_cancel_shared_parent_project_update_after_source_change(self, factories, write_access_git_credential):
         project = factories.v2_project(scm_url='https://github.com/rmfitzpatrick/ansible-playbooks.git',
@@ -363,7 +364,8 @@ class TestSCMInventorySource(APITest):
 
         assert project.get().status == 'canceled'
 
-    @pytest.mark.github('https://github.com/ansible/tower-qa/issues/2432')
+    # @pytest.mark.github('https://github.com/ansible/tower-qa/issues/2432', skip=True)
+    @pytest.mark.flaky(reruns=3, reruns_delay=30)
     @pytest.mark.ansible_integration
     def test_custom_credential_affects_ansible_env_of_scm_inventory(self, factories,
                                                                     scm_inv_source_with_group_and_host_var_dirs):
@@ -464,6 +466,7 @@ class TestSCMInventorySource(APITest):
             inv_source.update_on_launch = True
         assert e.value.msg == desired_error
 
+    @pytest.mark.yolo
     def test_scm_inv_source_with_update_on_launch_is_synced_on_job_launch(self, factories):
         inv_source = factories.v2_inventory_source(source='scm', source_path='inventories/inventory.ini',
                                                    update_on_launch=True)
@@ -546,7 +549,7 @@ class TestSCMInventorySource(APITest):
         assert parent_update.finished > inv_update.finished
         assert parent_update.finished < subsequent_update.started
 
-    def test_scm_inv_source_and_project_with_update_on_lauch(self, factories):
+    def test_scm_inv_source_and_project_with_update_on_launch(self, factories):
         project = factories.v2_project(scm_type='git', scm_delete_on_update=True, scm_update_on_launch=True)
         inv_source = factories.v2_inventory_source(
             source='scm', source_path='inventories/inventory.ini',
@@ -610,7 +613,7 @@ class TestSCMInventorySource(APITest):
 
         project.wait_until_completed().assert_successful()
 
-    @pytest.mark.github('https://github.com/ansible/awx/issues/171', ids=['OpenStack auth issue'])
+    @pytest.mark.github('https://github.com/ansible/awx/issues/171', ids=['OpenStack auth issue'], skip=True)
     @pytest.mark.parametrize('scm_url, branch, source_path, expected_error',
                              [('https://github.com/ansible/test-playbooks.git', '', 'inventories/invalid_inventory.ini',
                                "Invalid section entry: '[syntax ?? error]'"),

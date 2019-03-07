@@ -193,6 +193,7 @@ class Test_Sequential_Jobs(APITest):
         # confirm unified jobs ran as expected
         confirm_unified_jobs(ordered_updates)
 
+    @pytest.mark.yolo
     def test_inventory_update(self, custom_inventory_source):
         """Test an inventory source may only have one inventory update running at a time. Here,
         we launch three inventory updates on the same inventory source and then check that:
@@ -440,6 +441,7 @@ class Test_Autospawned_Jobs(APITest):
         sorted_unified_jobs = [inv_update, job]
         confirm_unified_jobs(sorted_unified_jobs)
 
+    @pytest.mark.yolo
     def test_inventory_multiple(self, job_template, aws_inventory_source, gce_inventory_source):
         """Verify that multiple inventory updates are triggered by job launch. Job ordering
         should be as follows:

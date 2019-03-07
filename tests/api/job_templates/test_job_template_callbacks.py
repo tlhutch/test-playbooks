@@ -231,7 +231,7 @@ class TestJobTemplateCallbacks(APITest):
         assert result.get('failed', True)
         assert result['json']['detail'] == 'You do not have permission to perform this action.'
 
-    @pytest.mark.github('https://github.com/ansible/tower/issues/2579')
+    @pytest.mark.github('https://github.com/ansible/tower/issues/2579', skip=True)
     def test_provision_failure_without_inventory(self, skip_if_openshift, ansible_runner, job_template,
                                                  host_with_default_ipv4_in_variables, host_config_key, callback_host):
         """Verify launch failure when launching a job_template with no inventory"""
@@ -287,6 +287,7 @@ class TestJobTemplateCallbacks(APITest):
         assert result.get('failed', True)
         assert result['json']['msg'] == 'Cannot start automatically, user input required!'
 
+    @pytest.mark.yolo
     def test_provision_with_provided_variables_needed_to_start(self, skip_if_openshift, ansible_runner,
                                                                job_template_variables_needed_to_start,
                                                                host_with_default_ipv4_in_variables, host_config_key,
@@ -341,6 +342,7 @@ class TestJobTemplateCallbacks(APITest):
         assert job.limit == 'local' if 'localhost' in callback_host else host_with_default_ipv4_in_variables.name
         assert job.get_related('job_host_summaries').count == 1  # double-check that only ran against 1 host
 
+    @pytest.mark.yolo
     def test_provision_job_template_with_limit(self, skip_if_openshift, api_jobs_url, ansible_runner, job_template_with_random_limit,
                                                host_with_default_ipv4_in_variables, host_config_key, callback_host):
         """Assert that launching a callback job against a job_template with an
@@ -635,6 +637,7 @@ class TestJobTemplateCallbacks(APITest):
         with self.current_user(user):
             job1.relaunch()
 
+    @pytest.mark.yolo
     def test_job_triggered_by_callback_sources_venv(self, skip_if_cluster, v2, factories, create_venv, job_template_with_host_config_key,
                                                     host_config_key, remote_hosts, venv_path):
         folder_name = utils.random_title(non_ascii=False)

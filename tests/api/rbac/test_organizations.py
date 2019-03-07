@@ -38,6 +38,7 @@ class Test_Organizations(APITest):
         matches = api_organizations_pg.get(id=organization.id)
         assert matches.count == 0, "An organization was deleted, but is still visible from the /api/v1/organizations/ endpoint"
 
+    @pytest.mark.yolo
     def test_organization_related_counts(self, organization, related_organization_object, api_job_templates_pg):
         """Verify summary_fields 'related_field_counts' content."""
         # determine the expected JTs count
@@ -90,6 +91,7 @@ class Test_Organizations(APITest):
             inv2.add_host()
         assert e.value.msg['detail'] == 'You have already reached the maximum number of 2 hosts allowed for your organization. Contact your System Administrator for assistance.'
 
+    @pytest.mark.yolo
     def test_organization_host_limits_allow_same_host_multiple_inventories(self, factories):
         org = factories.v2_organization()
         org.max_hosts = 2

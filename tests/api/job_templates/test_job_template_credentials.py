@@ -254,6 +254,7 @@ class TestJobTemplateLaunchCredentials(APITest):
             job.assert_successful()
             assert job.credential == team_ssh_credential.id
 
+    @pytest.mark.yolo
     def test_launch_with_multiple_credentials(self, v2, factories, custom_cloud_credentials, custom_network_credentials):
         machine_cred = factories.v2_credential()
         vault_cred1 = factories.v2_credential(kind='vault', vault_password='tower', vault_id='vault1')
@@ -287,6 +288,7 @@ class TestJobTemplateLaunchCredentials(APITest):
         job.wait_until_completed().assert_successful()
         assert job.related.credentials.get().count == 0
 
+    @pytest.mark.yolo
     def test_provide_additional_vault_credential_on_launch(self, v2, factories):
         jt = factories.v2_job_template(credential=None, ask_credential_on_launch=True)
         jt.ds.inventory.add_host()
@@ -404,6 +406,7 @@ class TestJobTemplateVaultCredentials(APITest):
         assert any('First!' in task.stdout for task in debug_tasks)
         assert any('Second!' in task.stdout for task in debug_tasks)
 
+    @pytest.mark.yolo
     def test_decrypt_vaulted_playbook_with_multiple_ask_on_launch_vault_credentials(self, factories):
         host = factories.v2_host()
         jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='multivault.yml')

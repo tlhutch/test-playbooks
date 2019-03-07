@@ -238,6 +238,7 @@ class Test_Inventory_Scripts(APITest):
             "attribute still has a value (%s != None)" % \
             custom_inventory_source_with_vars.source_script
 
+    @pytest.mark.yolo
     @pytest.mark.ansible_integration
     def test_import(self, custom_inventory_source_with_vars, api_unified_jobs_pg, inventory_script,
                     custom_inventory_source_vars_good, custom_inventory_source_vars_bad):

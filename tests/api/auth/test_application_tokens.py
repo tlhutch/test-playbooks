@@ -588,6 +588,7 @@ class TestTokenAuthentication(TestTokenAuthenticationBase):
         res = self.me(token.token)
         assert res.results.pop().username == user.username
 
+    @pytest.mark.yolo
     def test_access_token_revocation(self, v2, factories):
         user = factories.v2_user(organization=factories.v2_organization())
         with self.current_user(user):
@@ -851,6 +852,7 @@ class TestDjangoOAuthToolkitTokenManagement(TestTokenAuthenticationBase):
         )
         assert resp.status_code == 200
 
+    @pytest.mark.yolo
     @pytest.mark.parametrize('scope', ['read', 'write'])
     def test_refresh_token(self, factories, scope):
         app = factories.application(organization=factories.v2_organization(),

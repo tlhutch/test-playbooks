@@ -55,6 +55,7 @@ class TestJobTemplates(APITest):
         tmpl = v2.job_templates.get(id=job_template_ping.id).results.pop()
         assert tmpl.summary_fields.get('modified_by', {}).get('username') == config.credentials.users.admin.username
 
+    @pytest.mark.yolo
     @pytest.mark.ansible_integration
     def test_launch_with_limit_in_payload(self, job_template_with_random_limit):
         """Verifies that a value for 'limit' may be passed at launch-time."""
@@ -80,6 +81,7 @@ class TestJobTemplates(APITest):
         limit_index = job_pg.job_args.index('-l') + 1
         assert job_pg.job_args[limit_index] == "local", "Limit value not passed to job_args."
 
+    @pytest.mark.yolo
     @pytest.mark.ansible_integration
     @pytest.mark.parametrize("patch_payload, launch_payload", [
         (
@@ -134,6 +136,7 @@ class TestJobTemplates(APITest):
             assert '--skip-tags=%s' % launch_payload['skip_tags'] in job_pg.job_args, \
                 "Value for skip_tags not represented in job args."
 
+    @pytest.mark.yolo
     @pytest.mark.parametrize('diff_mode', [True, False])
     def test_launch_with_diff_mode_in_payload(self, factories, diff_mode):
         host = factories.v2_host()
@@ -429,7 +432,7 @@ print(json.dumps(inv, indent=2))
 
         job.wait_until_completed().assert_successful()
 
-    @pytest.mark.github('https://github.com/ansible/tower/issues/789')
+    @pytest.mark.github('https://github.com/ansible/tower/issues/789', skip=True)
     def test_job_listing_after_delete_does_not_500(self, factories, v2):
         num_jobs = 2
         host = factories.v2_host()

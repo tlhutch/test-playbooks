@@ -370,7 +370,7 @@ class TestExecutionNodeAssignment(APITest):
         job.wait_until_completed(timeout=300).assert_successful()
         assert job.execution_node == instance.hostname
 
-    @pytest.mark.github('https://github.com/ansible/tower/issues/2763')
+    @pytest.mark.github('https://github.com/ansible/tower/issues/2763', skip=True)
     def test_jobs_larger_than_max_instance_capacity_assigned_to_instances_with_greatest_capacity_first(self, v2,
                                                                                                        largest_capacity,
                                                                                                        jt_generator_for_consuming_given_capacity,

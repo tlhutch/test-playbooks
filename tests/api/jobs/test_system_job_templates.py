@@ -71,6 +71,7 @@ class Test_System_Job_Template(APITest):
                 with pytest.raises(towerkit.exceptions.Forbidden):
                     launch_pg.post()
 
+    @pytest.mark.yolo
     def test_launch_with_extra_vars(self, system_job_template):
         """Verify successful launch of a system_job_template with extra_vars."""
         launch_pg = system_job_template.get_related('launch')

@@ -56,6 +56,7 @@ class TestActivityStream(APITest):
         assert as_entry.summary_fields.actor.first_name == superuser.first_name
         assert as_entry.summary_fields.actor.last_name == superuser.last_name
 
+    @pytest.mark.yolo
     @pytest.mark.parametrize('fixture, method', [('job_template', 'launch'),
                                                  ('workflow_job_template', 'launch'),
                                                  ('ad_hoc_command', None),
@@ -266,6 +267,7 @@ class TestActivityStream(APITest):
                     'In position {}: {}'.format(key, e)
                 )
 
+    @pytest.mark.yolo
     @pytest.mark.second_to_last
     def test_fish_for_sensitive_content(self, v2):
         ct = 0

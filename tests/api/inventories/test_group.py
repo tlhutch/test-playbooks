@@ -505,6 +505,7 @@ class TestGroup(APITest):
             # Verify that the parent.all_hosts has changed
             assert parent_group.get_related('all_hosts').count == total_parent_all_hosts
 
+    @pytest.mark.yolo
     def test_reassociate_with_non_root_group(self, skip_if_openshift, non_root_variation):
         """Verify expected behavior for moving a group from one non-root-group to another
         POST {id=M} /groups/<new_parent>/children

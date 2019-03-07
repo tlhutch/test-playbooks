@@ -65,6 +65,7 @@ class Test_Main_RBAC(APITest):
                 resource.set_object_roles(user, role)
                 resource.set_object_roles(user, role, disassociate=True)
 
+    @pytest.mark.yolo
     @pytest.mark.parametrize(
         'resource_name',
         ['organization', 'team', 'project', 'inventory', 'inventory_script', 'credential', 'job_template', 'workflow_job_template']

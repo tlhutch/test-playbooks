@@ -282,6 +282,7 @@ class TestJobTemplateExtraVars(APITest):
         assert job_vars['favorite_color'] == launch_time_vars['favorite_color']
         assert job_vars['intersection'] == survey_spec.get_variable_default('intersection')
 
+    @pytest.mark.yolo
     def test_launch_with_variables_needed_to_start_and_extra_vars_at_launch(self, job_template_with_extra_vars, required_survey_spec,
                                                                             launch_time_extra_vars):
         """Verify that when launch-time extra_vars are provided, that job

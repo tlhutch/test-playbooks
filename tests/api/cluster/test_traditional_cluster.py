@@ -224,7 +224,7 @@ class TestTraditionalCluster(APITest):
         utils.poll_until(isolated_heartbeats_advanced, interval=30, timeout=650)
 
     @pytest.mark.mp_group(group="check_instance_stats_during_quiet_period", strategy="isolated_serial")
-    @pytest.mark.github('https://github.com/ansible/tower/issues/2310')
+    @pytest.mark.github('https://github.com/ansible/tower/issues/2310', skip=True)
     def test_default_instance_attributes(self, v2):
         for instance in v2.instances.get().results:
             assert instance.enabled
@@ -471,7 +471,6 @@ class TestTraditionalCluster(APITest):
             assert instance.get().consumed_capacity > 0
             assert instance.percent_capacity_remaining == round(float(instance.capacity - instance.consumed_capacity) * 100 / instance.capacity, 2)
 
-    @pytest.mark.github('https://github.com/ansible/tower/issues/743')
     @pytest.mark.mp_group(group="pytest_mark_requires_isolation", strategy="isolated_serial")
     def test_controller_removal(self, admin_user, hosts_in_group, hostvars_for_host, factories, user_password, v2):
         """

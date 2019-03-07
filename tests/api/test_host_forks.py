@@ -86,12 +86,6 @@ def job_template(request, api_job_templates_pg, inventory, random_project, crede
     return obj
 
 
-# For some reason, the following 'mark' causes all subsequent tests to skip as
-# well.  Setting 'pytestmark' works around this issue.
-# @pytest.mark.performance
-pytestmark = [pytest.mark.performance]
-
-
 @pytest.mark.api
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class Test_Host_Fork(APITest):

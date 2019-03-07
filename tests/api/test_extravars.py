@@ -120,9 +120,11 @@ def job_templates_yaml(request, authtoken, api_job_templates_pg, project, ssh_cr
 @pytest.mark.api
 @pytest.mark.nondestructive
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
-class Test_AC_1035(APITest):
+class TestExtraVarsStoreRetreiveJsonYaml(APITest):
     """For API objects that support a 'variables' (or 'extra_vars') attribute,
     verify they support storing and retrieving JSON/YAML data.
+
+    From AC 1035
     """
 
     #
@@ -230,6 +232,7 @@ class Test_AC_1035(APITest):
     #
     # /job_templates
     #
+    @pytest.mark.yolo
     def test_job_templates_extra_var_attr_yaml_post(self, job_templates_yaml):
         """Assert that valid yaml is properly stored/retrieved in extra_vars"""
         try:
@@ -237,6 +240,7 @@ class Test_AC_1035(APITest):
         except Exception:
             pytest.fail("job_templates extra_vars not stored as YAML data: %s" % job_templates_yaml.json.extra_vars)
 
+    @pytest.mark.yolo
     def test_job_templates_extra_var_attr_json_post(self, job_templates_json):
         """Assert that valid json is properly stored/retrieved in extra_vars"""
         try:

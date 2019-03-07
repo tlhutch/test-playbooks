@@ -243,6 +243,7 @@ class TestJobTemplateSurveys(APITest):
             "launch_pg.survey_enabled is False even though JT survey_enabled is True \
             and valid survey posted."
 
+    @pytest.mark.yolo
     def test_launch_with_optional_survey_spec(self, job_template_ping, optional_survey_spec):
         """Verify launch_pg attributes with an optional survey spec and job extra_vars."""
         job_template_ping.add_survey(spec=optional_survey_spec)
@@ -276,6 +277,7 @@ class TestJobTemplateSurveys(APITest):
         survey_spec = jt.related.survey_spec.get().spec
         assert survey_spec.pop()['default'] == '$encrypted$'
 
+    @pytest.mark.yolo
     def test_confirm_survey_secret_extra_vars_not_in_activity_stream(self, factories):
         host = factories.v2_host()
         jt = factories.v2_job_template(inventory=host.ds.inventory, ask_variables_on_launch=True)

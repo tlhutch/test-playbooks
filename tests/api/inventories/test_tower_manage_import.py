@@ -109,6 +109,7 @@ class TestTowerManageInventoryImport(APITest):
         assert inventory.get_related('groups').count == 13
         assert inventory.get_related('hosts').count == 10
 
+    @pytest.mark.yolo
     def test_import_by_name(self, ansible_runner, inventory):
         """Verify successful import by inventory name."""
         dest = upload_inventory(ansible_runner, nhosts=10)

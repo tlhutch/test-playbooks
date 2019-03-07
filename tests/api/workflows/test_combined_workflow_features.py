@@ -250,6 +250,7 @@ class TestCombinedWorkflowFeatures(APITest):
             assert job.inventory == self.outer_inventory.id
             assert json.loads(job.extra_vars).get('outer_var', 'MISSING VAR!') == 'outer_var', 'Inner unified job template did not inherit extra var!'
 
+    @pytest.mark.yolo
     def test_dense_workflow(self, factories): # noqa C901
         wfjt = factories.workflow_job_template(
             extra_vars={'outer_var': 'outer_var'},

@@ -157,7 +157,7 @@ class TestHostFilter(APITest):
         assert find_hosts(response) == items_from_item_list(expected_hosts)
 
     @pytest.mark.mp_group('HostFactSearch', 'serial')
-    @pytest.mark.github('https://github.com/ansible/tower/issues/702')
+    @pytest.mark.github('https://github.com/ansible/tower/issues/702', skip=True)
     @pytest.mark.parametrize('ansible_fact',
         [
             "ansible_python_version", # string
@@ -320,6 +320,7 @@ class TestHostFilter(APITest):
             assert response.count == 1
             assert response.results.pop().id == host.id
 
+    @pytest.mark.yolo
     def test_nested_list_password_search(self, v2):
         host_filters = ['created_by__password__icontains=pas3w3rd',
                         'search=foo or created_by__password__icontains=pas3w3rd',
@@ -329,6 +330,7 @@ class TestHostFilter(APITest):
                 v2.hosts.get(host_filter=host_filter, page_size=200)
             assert "Filtering on password is not allowed." in str(e)
 
+    @pytest.mark.yolo
     def test_unicode_search(self, v2, factories):
         host_name = fauxfactory.gen_utf8()
         group_name = fauxfactory.gen_utf8()

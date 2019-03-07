@@ -12,6 +12,7 @@ from tests.api import APITest
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestBasicAuth(APITest):
 
+    @pytest.mark.yolo
     def test_basic_auth(self, factories):
         conn = Connection(qe_config.base_url)
         conn.session.auth = (
@@ -24,6 +25,7 @@ class TestBasicAuth(APITest):
         assert 'sessionid' not in resp.headers.get('Set-Cookie', '')
         assert 'csrftoken' not in resp.headers.get('Set-Cookie', '')
 
+    @pytest.mark.yolo
     def test_basic_auth_disabled(self, factories, v2, update_setting_pg):
         auth_settings = v2.settings.get().get_endpoint('authentication')
         update_setting_pg(auth_settings, {'AUTH_BASIC_ENABLED': False})

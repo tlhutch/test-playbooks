@@ -279,6 +279,7 @@ class Test_Job(APITest):
         expected_password_list = expected_passwords.replace(' ', '').split(',')
         assert sorted(credential.expected_passwords_needed_to_start) == sorted(expected_password_list)
 
+    @pytest.mark.yolo
     def test_relaunch_uses_extra_vars_from_job(self, job_with_extra_vars):
         """Verify that when you relaunch a job containing extra_vars in the
         launch-time payload, the resulting extra_vars *and* the job_template
@@ -389,6 +390,7 @@ class Test_Job(APITest):
         assert relaunched_job.related.relaunch.get().retry_counts.all == num_failed_hosts
         assert relaunched_job.related.relaunch.get().retry_counts.failed == 0
 
+    @pytest.mark.yolo
     def test_job_host_summary_status_are_accurate(self, factories, ansible_version_cmp):
         if ansible_version_cmp("2.8") < 0:
             job_statuses = ['skipped', 'ok', 'changed', 'failed', 'failures', 'skipped']

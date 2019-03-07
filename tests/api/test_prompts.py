@@ -262,6 +262,7 @@ class TestPrompts(APITest):
         assert schedule.rrule == "DTSTART:{0} RRULE:FREQ=MONTHLY;INTERVAL=1".format(self.format_dtstart(schedule))
         assert not schedule.dtend
 
+    @pytest.mark.yolo
     def test_created_schedule_from_wfj_with_ask_jt(self, factories):
         inventory = factories.v2_inventory()
         credential = factories.v2_credential()
@@ -385,6 +386,7 @@ class TestPrompts(APITest):
         schedule = create_schedule.post()
         assert schedule.extra_data == dict(var1='launch', var2='$encrypted$', var3='launch')
 
+    @pytest.mark.yolo
     def test_launch_credentials_override_default_wfjn_credentials(self, factories):
         jt_vault, launch_vault = [factories.v2_credential(kind='vault', inputs=dict(vault_password='fake')) for _ in range(2)]
         jt_aws, jt_vmware = [factories.v2_credential(kind=kind) for kind in ('aws', 'vmware')]
