@@ -22,9 +22,3 @@
   roles:
     - role: freeipa
       when: '{{ configure_freeipa|default(True)|bool }}'
-
-- name: Configure Ipsilon
-  hosts: freeipa
-  roles:
-    - role: ipsilon
-      when: '{{ configure_ipsilon|default(False)|bool }}'
