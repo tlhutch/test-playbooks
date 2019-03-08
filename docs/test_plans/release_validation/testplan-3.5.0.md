@@ -142,6 +142,11 @@
 
 ### Upgrade
 
+  * [ ] Check ansible version check that is [hardcoded in tower-packaging](https://github.com/ansible/tower-packaging/blob/f8d3d4cd6d1cf35cad6e09de88068440d667ff42/setup/roles/preflight/defaults/main.yml#L6)
+  * [ ] Bundle from 3.1.x -> 3.5.0
+  * [ ] Bundle from 3.2.x -> 3.5.0
+  * [ ] Bundle from 3.3.x -> 3.5.0
+  * [ ] Bundle from 3.4.x -> 3.5.0
   * [ ] Standalone from latest minor
   * [ ] Standalone from latest major
   * [ ] Traditional Cluster with isolated nodes from latest minor
