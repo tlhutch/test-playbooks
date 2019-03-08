@@ -111,19 +111,19 @@ class TestClusterCommon(APITest):
             for job in jobs:
                 assert job.get().host_status_counts['changed'] == 1
 
+    @pytest.mark.mp_group('InstanceGroupPolicies', 'isolated_serial')
     @pytest.mark.parametrize('resource', ['job_template', 'inventory', 'organization'])
     def test_job_template_executes_on_assigned_instance_group(self, v2, factories, resource, get_resource_from_jt):
         instance_groups = v2.instance_groups.get().results
+        jt = factories.v2_job_template()
         for ig in instance_groups:
             if not ig.capacity:
                 continue  # skip dead groups
-            jt = factories.v2_job_template()
-            get_resource_from_jt(jt, resource).add_instance_group(ig)
+            resource_to_modify = get_resource_from_jt(jt, resource)
+            resource_to_modify.remove_all_instance_groups()
+            resource_to_modify.add_instance_group(ig)
 
-            jt.launch()
-            jt.wait_until_completed()
-            job = jt.get_related('last_job')
-            job.wait_until_completed()
+            job = jt.launch().wait_until_completed()
             assert job.instance_group == ig.id, "Job instance group differs from job template instance group"
 
             execution_host = job.execution_node
