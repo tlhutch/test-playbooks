@@ -1,7 +1,0 @@
----
-# This playbook launches systems in the cloud
-
-- name: 'deploy cloud instances'
-  hosts: local
-  roles:
-    - { role: deploy_cloud }

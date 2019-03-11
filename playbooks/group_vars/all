@@ -8,7 +8,3 @@ delete_on_start: false
 # Instance name prefix.  Any deployed cloud instances will be prefixed with the
 # the value of the environment variable $USER
 instance_name_prefix: "{{ lookup('env','USER') }}"
-
-# Windows instance name prefix.  Any deployed cloud instances will be prefixed
-# with the following string:
-win_instance_name_prefix: "{{ lookup('env','USER') }}"

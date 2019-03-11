@@ -1,8 +1,0 @@
----
-rds_images:
-    - name: 'tower'
-      db_name: 'tower'
-      db_engine: '{{rds_db_engine}}'
-      engine_version: '{{rds_engine_version}}'
-      instance_type: '{{rds_instance_type}}'
-      size: '{{rds_size}}'
