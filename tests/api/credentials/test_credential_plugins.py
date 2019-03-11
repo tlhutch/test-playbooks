@@ -14,6 +14,7 @@ from towerkit.config import config
 from tests.api import APITest
 
 
+@pytest.mark.github('https://github.com/ansible/tower-qa/issues/3048')
 @pytest.mark.api
 @pytest.mark.destructive
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
@@ -145,6 +146,7 @@ class TestConjurCredential(APITest):
         assert 'requests.exceptions.HTTPError: 401 Client Error: Unauthorized' in job.result_traceback
 
 
+@pytest.mark.github('https://github.com/ansible/tower-qa/issues/3048')
 @pytest.mark.api
 @pytest.mark.destructive
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
@@ -309,6 +311,7 @@ class TestHashiCorpVaultCredentials(APITest):
         assert '403 Client Error: Forbidden' in job.result_traceback
 
 
+@pytest.mark.github('https://github.com/ansible/tower-qa/issues/3048')
 @pytest.mark.api
 @pytest.mark.destructive
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
@@ -454,6 +457,7 @@ class TestHashiCorpSSHEngine(APITest):
         assert 'requests.exceptions.HTTPError: 400 Client Error' in job.result_traceback
 
 
+@pytest.mark.github('https://github.com/ansible/tower-qa/issues/3048')
 @pytest.mark.api
 @pytest.mark.destructive
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
