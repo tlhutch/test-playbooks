@@ -27,4 +27,7 @@ The images in tower-qa have already been vetted to ensure that they come from an
 8. Do a new search by owner - `Owner : 679593333241` (note: the space after Owner is required)
 9. Sort the list by AMI Name. Find the OS version needed.
 
+
+Note: Oracle Owner ID is 131827586825
+
 Written by [Jim Ladd](mailto:jladd@redhat.com) (Github: jladdjr) Aug 27, 2018.
