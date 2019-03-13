@@ -109,13 +109,13 @@ pipeline {
     stages {
         stage('Build Information') {
             steps {
-                echo "TODO: Show Build Information here"
                 script {
-                    if (params.TOWER_BRANCH == 'devel' and params.TOWER_PACKAGING_BRANCH == 'devel') {
+                    if (params.TOWER_BRANCH == 'devel' && params.TOWER_PACKAGING_BRANCH == 'devel') {
                         NIGHTLY_REPO_DIR = 'devel'
                     } else {
-                        NIGHTLY_REPO_DIR = "tower-${params.TOWER_BRANCH}-packaging-${params.TOWER_PACKAGING_BRANCH}"
+                        NIGHTLY_REPO_DIR = "tower_${params.TOWER_BRANCH}_packaging_${params.TOWER_PACKAGING_BRANCH}"
                     }
+                }
             }
         }
 
