@@ -3,6 +3,7 @@ import base64
 import json
 import re
 import boto3
+import csv
 
 from towerkit import config
 import towerkit.exceptions as exc
@@ -284,6 +285,29 @@ class TestInsightsAnalytics(APITest):
             success_after += counts['job_instance_counts'][h].get('successful', 0)
         assert sync_before == sync_after
         assert success_after == success_before + 1
+
+    @pytest.mark.ansible(host_pattern='tower[0]')
+    def test_awxmanage_events_table_accurate(self, ansible_runner, factories, skip_if_not_rhel):
+        jt = factories.v2_job_template()
+        job = jt.launch().wait_until_completed()
+
+        events = []
+        job_events = job.related.job_events.get()
+        while True:
+            events.extend(job_events.results)
+            if not job_events.next:
+                break
+            job_events = job_events.next.get()
+
+        tempdir, files = self.gather_analytics(ansible_runner)
+        csv_file = ansible_runner.fetch(src='{}/{}'.format(tempdir, 'events_table.csv'), dest='/tmp/fetched').values()[0]['dest']
+        uuids = set()
+        with open(csv_file) as c:
+            reader = csv.reader(c, delimiter='\t')
+            for row in reader:
+                uuids.add(row[6])
+        for e in events:
+            assert e['uuid'] in uuids
 
     # Commented out due to logistical concerns with contacting insights dev API from AWS
     # def test_ship_insights_succeeds(self, ansible_runner, skip_if_not_rhel, register_rhn_and_insights):
