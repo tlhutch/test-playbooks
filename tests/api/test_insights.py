@@ -224,6 +224,11 @@ class TestInsightsAnalytics(APITest):
         content = ansible_runner.slurp(path=file).values()[0]['content']
         return json.loads(base64.b64decode(content))
 
+    def collect_counts(self, ansible_runner):
+        tempdir, files = self.gather_analytics(ansible_runner)
+        counts_file = '{}/{}'.format(tempdir, 'counts.json')
+        return self.read_json_file(counts_file, ansible_runner)
+
     @pytest.mark.ansible(host_pattern='tower[0]')
     def test_awxmanage_gather_analytics_generates_valid_tar(self, ansible_runner, skip_if_not_rhel):
         tempdir, files = self.gather_analytics(ansible_runner)
@@ -236,16 +241,10 @@ class TestInsightsAnalytics(APITest):
 
     @pytest.mark.ansible(host_pattern='tower[0]')
     def test_awxmanage_project_count_incremented(self, ansible_runner, factories, skip_if_not_rhel):
-        tempdir, files = self.gather_analytics(ansible_runner)
-        counts_file = '{}/{}'.format(tempdir, 'counts.json')
-        counts = self.read_json_file(counts_file, ansible_runner)
+        counts = self.collect_counts(ansible_runner)
         projects_before = counts['project']
-
         factories.v2_project()
-
-        tempdir, files = self.gather_analytics(ansible_runner)
-        counts_file = '{}/{}'.format(tempdir, 'counts.json')
-        counts = self.read_json_file(counts_file, ansible_runner)
+        counts = self.collect_counts(ansible_runner)
         projects_after = counts['project']
 
         assert projects_after == projects_before + 1
