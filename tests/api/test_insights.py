@@ -252,6 +252,39 @@ class TestInsightsAnalytics(APITest):
 
         assert projects_after == projects_before + 1
 
+    @pytest.mark.ansible(host_pattern='tower[0]')
+    def test_awxmanage_job_status_manual_launch_count_incremented(self, ansible_runner, factories, skip_if_not_rhel):
+        jt = factories.v2_job_template()
+        counts = self.collect_stats(['job_counts'], ansible_runner)
+        manual_launch_before = counts['job_counts']['launch_type']['manual']
+
+        jt.launch()
+        counts = self.collect_stats(['job_counts'], ansible_runner)
+        manual_launch_after = counts['job_counts']['launch_type']['manual']
+
+        assert manual_launch_after == manual_launch_before + 1
+
+    @pytest.mark.ansible(host_pattern='tower[0]')
+    def test_awxmanage_job_status_counts_incremented(self, ansible_runner, factories, skip_if_not_rhel):
+        jt = factories.v2_job_template()
+        jt.ds.project.patch(scm_update_on_launch=False)
+        jt.ds.project.update().wait_until_completed()
+        counts = self.collect_stats(['job_instance_counts'], ansible_runner)
+        sync_before = 0
+        success_before = 0
+        for h in counts['job_instance_counts'].keys():
+            sync_before += counts['job_instance_counts'][h].get('sync', 0)
+            success_before += counts['job_instance_counts'][h].get('successful', 0)
+        jt.launch()
+        counts = self.collect_stats(['job_instance_counts'], ansible_runner)
+        sync_after = 0
+        success_after = 0
+        for h in counts['job_instance_counts'].keys():
+            sync_after += counts['job_instance_counts'][h].get('sync', 0)
+            success_after += counts['job_instance_counts'][h].get('successful', 0)
+        assert sync_before == sync_after
+        assert success_after == success_before + 1
+
     # Commented out due to logistical concerns with contacting insights dev API from AWS
     # def test_ship_insights_succeeds(self, ansible_runner, skip_if_not_rhel, register_rhn_and_insights):
     #     logfile = '/var/log/insights-client/insights-client.log'
