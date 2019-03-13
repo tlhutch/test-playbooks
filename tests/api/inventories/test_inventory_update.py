@@ -686,27 +686,31 @@ print(json.dumps({
         assert 'AWS_SECRET_ACCESS_KEY' in update.job_env
 
     @pytest.mark.ansible_integration
-    def test_aws_replace_dash_in_groups_source_variable(self, job_template, aws_group, host_local):
+    def test_aws_replace_dash_in_groups_source_variable(self, factories):
         """Tests that AWS inventory groups will be registered with underscores instead of hyphens
         when using "replace_dash_in_groups" source variable
         """
-        job_template.patch(inventory=aws_group.inventory, limit=host_local.name)
-        aws_group.get_related('inventory_source').patch(update_on_launch=True,
-                                                        source_vars=json.dumps(dict(replace_dash_in_groups=True)))
+        inv_source = factories.v2_inventory_source(
+            source='ec2',
+            source_regions='us-east-1',  # region where the flag is located, to reduce import size
+            group_by='tag_keys',  # assure the tag groups are returned in all cases
+            credential=factories.v2_credential(kind='aws'),
+            source_vars=json.dumps(dict(replace_dash_in_groups=True))
+        )
 
-        # Launch job and check results
-        job_pg = job_template.launch().wait_until_completed(timeout=3 * 60)
-        job_pg.assert_successful()
-
-        # Assert that the inventory_update is marked as successful
-        inv_source_pg = aws_group.get_related('inventory_source')
-        inv_source_pg.assert_successful()
+        # Update and assert that the inventory_update is marked as successful
+        inv_update = inv_source.update().wait_until_completed()
+        inv_update.assert_successful()
 
         # Assert that hyphen containing tag groups are registered with underscores
+        flag_like_group_names = set(
+            group.name for group in inv_source.get_related('groups', name__icontains='flag').results
+        )
+        assert flag_like_group_names, 'Inventory update produced no group corresponding to expected tag'
         for group_name in ['tag_Test_Flag_2202', 'tag_Test_Flag_2202_Replace_Dash_In_Groups']:
-            inv_groups_pg = inv_source_pg.get_related('groups', name__in=group_name)
-            assert inv_groups_pg.count, ('An inventory sync was launched with "replace_dash_in_groups: true", '
-                                         'but desired group with sanitized tag "{0}" not found.'.format(group_name))
+            assert group_name in flag_like_group_names, (
+                'An inventory sync was launched with "replace_dash_in_groups: true", '
+                'but desired group with sanitized tag "{0}" not found.'.format(group_name))
 
     @pytest.mark.ansible_integration
     @pytest.mark.parametrize('timeout, status, job_explanation', [
