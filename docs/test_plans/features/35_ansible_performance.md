@@ -15,15 +15,22 @@ This will gather resource usage information from playbook runs and store it in T
 
 * [ ] API
   * [ ] This feature can be enabled and disabled
+      * TBD on how that is going to happen
+      * If on all the time, would be annoying with tons of info and cause database bloat
+      * Default, OFF. useful for development and debugging
   * [ ] Stats can be collected separately for jobs running simultaneously on the same node
+      * performance info is exclusive to the run
   * [ ] If enabled, venvs using an older version of ansible can still be used.
-  * [ ] Stats can be viewed at the api endpoint for the job
-  * [ ] Stats endpoint can be accessed while a job is running
-  * [ ] Stats endpoint is not available on
-    * [ ] System Jobs
-    * [ ] Workflow Jobs
+      * collect performance stats "if available"
+  * [ ] Stats can be viewed as information on job events
+      * stats will be associate with each job event
+      * final job event will have summary information showing max cpu, max memory, etc.
   * [ ] Stats are collected for jobs on isolated nodes
   * [ ] Stats can be collected in an OpenShift deployment of tower
   * [ ] Jobs spawned by workflows or sliced jobs have stats
-  * [ ] Stats are removed by cleanup jobs
+       * will be influenced how we choose to enable/disable stat collection
   * [ ] (Manual) verify that cpu/memory intensive jobs actually show spikes
+ 
+* [ ] UI
+  * [ ] TBD how do we let users decide to turn on/off in UI
+  * [ ] Confirm STDOUT view does not freak out or redact desired output
