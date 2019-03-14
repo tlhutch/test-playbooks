@@ -67,7 +67,7 @@
 
 - name: verify Tower API is accepting connections
   uri:
-      url: "{{'http' if disable_ssl else 'https'}}://localhost/api/v1/config/"
+      url: "{{'http' if disable_ssl else 'https'}}://localhost/api/v2/config/"
       validate_certs: false
       user: 'admin'
       password: '{{ admin_password }}'
