@@ -150,7 +150,7 @@
 
     - name: verify Tower API is accepting connections
       uri:
-          url: 'https://localhost/api/v1/ping/'
+          url: 'https://localhost/api/v2/ping/'
           validate_certs: no
           user: 'admin'
           password: '{{ admin_password }}'
