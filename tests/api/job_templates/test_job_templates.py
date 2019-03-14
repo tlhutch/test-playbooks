@@ -147,8 +147,10 @@ class TestJobTemplates(APITest):
 
     @pytest.mark.parametrize('verbosity, stdout_lines',
         [(0, ['TASK [ping]', 'PLAY RECAP']),
-         (1, ['TASK [ping]', 'PLAY RECAP', '{"changed": false, "ping": "pong"}']),
-         (2, ['TASK [ping]', 'PLAY RECAP', '{"changed": false, "ping": "pong"}', 'PLAYBOOK: ping.yml',
+         # NOTE: the changed status is inside ansible_facts dict, which could include "discovered_interpreter_python"
+         # keys are alphabetical, so this still works because "d" < "p", but it is brittle
+         (1, ['TASK [ping]', 'PLAY RECAP', '"changed": false, "ping": "pong"']),
+         (2, ['TASK [ping]', 'PLAY RECAP', '"changed": false, "ping": "pong"', 'PLAYBOOK: ping.yml',
               'META: ran handlers']),
          (3, ['TASK [ping]', 'PLAY RECAP', 'PLAYBOOK: ping.yml', 'META: ran handlers',
               re.compile("EXEC /bin/sh -c 'echo ~(awx)? && sleep 0'")]),
