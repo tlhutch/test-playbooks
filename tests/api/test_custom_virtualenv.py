@@ -176,6 +176,25 @@ class TestCustomVirtualenv(APITest):
             job.assert_successful()
             assert job.job_env['VIRTUAL_ENV'].rstrip('/') == job.custom_virtualenv.rstrip('/') == venv_path(folder_name).rstrip('/')
 
+    @pytest.mark.mp_group('CustomVenvPathSetting', 'isolated_free')
+    def test_custom_venv_path_setting(self, v2, factories, create_venv, venv_path, update_setting_pg):
+        folder_name = random_title(non_ascii=False)
+        custom_venv_base = '/tmp'
+        custom_venv_path = venv_path(folder_name, custom_venv_base)
+        with create_venv(folder_name, 'python-memcached psutil ansible', custom_venv_base=custom_venv_base):
+            update_setting_pg(
+                v2.settings.get().get_endpoint('system'),
+                dict(CUSTOM_VENV_PATHS=[custom_venv_base])
+            )
+            poll_until(lambda: custom_venv_path in v2.config.get().custom_virtualenvs, interval=1, timeout=15)
+            jt = factories.v2_job_template(playbook='run_command.yml', extra_vars='{"command": "ansible --version"}')
+            jt.ds.inventory.add_host()
+            assert jt.custom_virtualenv is None
+            jt.custom_virtualenv = custom_venv_path
+            job = jt.launch().wait_until_completed()
+            job.assert_successful()
+            assert job.job_env['VIRTUAL_ENV'].rstrip('/') == job.custom_virtualenv.rstrip('/') == custom_venv_path.rstrip('/')
+
     def test_venv_with_missing_requirements(self, v2, factories, create_venv, ansible_version, venv_path, venv_root):
         folder_name = random_title(non_ascii=False)
         with create_venv(folder_name, ''):

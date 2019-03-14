@@ -17,7 +17,7 @@ def format_ev(extra_vars):
     )
 
 
-def _run_create_venv_playbook(folder_name=None, limit='tower', packages='psutil', use_python=None, docker=False, inv_path=''):
+def _run_create_venv_playbook(folder_name=None, limit='tower', packages='psutil', use_python=None, docker=False, inv_path='', custom_venv_base=None):
     extra_vars = {
         'venv_folder_name': folder_name,
         'venv_packages': packages,
@@ -27,6 +27,8 @@ def _run_create_venv_playbook(folder_name=None, limit='tower', packages='psutil'
         # AWX user not allowed to install software in containers
         extra_vars['ansible_user'] = 0
         extra_vars['venv_base'] = '/venv'
+    if custom_venv_base:
+        extra_vars['venv_base'] = custom_venv_base
     if use_python is not None:
         extra_vars['remote_python'] = use_python
         if use_python == 'python3' and not docker:
@@ -37,7 +39,7 @@ def _run_create_venv_playbook(folder_name=None, limit='tower', packages='psutil'
     assert rc == 0, "Received non-zero response code from '{}'".format(cmd)
 
 
-def _run_teardown_venv_playbook(folder_name=None, limit='tower', use_python=None, docker=False, inv_path=''):
+def _run_teardown_venv_playbook(folder_name=None, limit='tower', use_python=None, docker=False, inv_path='', custom_venv_base=None):
     if not config.prevent_teardown:
         extra_vars = {
             'venv_folder_name': folder_name,
@@ -47,8 +49,13 @@ def _run_teardown_venv_playbook(folder_name=None, limit='tower', use_python=None
         if docker:
             extra_vars['ansible_user'] = 0
             extra_vars['venv_base'] = '/venv'
+
         if use_python == 'python3' and not docker:
             extra_vars['remote_python'] = 'python36'
+
+        if custom_venv_base:
+            extra_vars['venv_base'] = custom_venv_base
+
         cmd = ("ansible-playbook -i {} -l {} {} "
                "playbooks/create_custom_virtualenv.yml"
                .format(inv_path, limit, format_ev(extra_vars)))
@@ -58,7 +65,9 @@ def _run_teardown_venv_playbook(folder_name=None, limit='tower', use_python=None
 
 @pytest.fixture(scope='class')
 def venv_path(is_docker):
-    def _venv_path(folder_name='ansible'):
+    def _venv_path(folder_name='ansible', custom_venv_base=None):
+        if custom_venv_base:
+            return f'{custom_venv_base}/{folder_name}/'
         if is_docker:
             base = '/venv/{}/'
         else:
@@ -72,17 +81,17 @@ def create_venv(request, venv_path, is_docker):
     inv_path = request.config.getoption('--ansible-inventory')
 
     @contextmanager
-    def _create_venv(folder_name=None, packages='psutil', cluster=False, use_python=None):
+    def _create_venv(folder_name=None, packages='psutil', cluster=False, use_python=None, custom_venv_base=None):
         if not folder_name:
             folder_name = random_title(non_ascii=False)
         limit = 'instance_group_ordinary_instances' if cluster else 'tower'
         try:
-            _run_create_venv_playbook(folder_name, limit, packages, use_python, is_docker, inv_path)
-            yield venv_path(folder_name)
+            _run_create_venv_playbook(folder_name, limit, packages, use_python, is_docker, inv_path, custom_venv_base)
+            yield venv_path(folder_name, custom_venv_base)
         finally:
             # If user is running with teardown prevention on, then leave the
             # virtual environments in-tact.
-            _run_teardown_venv_playbook(folder_name, limit, use_python, is_docker, inv_path)
+            _run_teardown_venv_playbook(folder_name, limit, use_python, is_docker, inv_path, custom_venv_base)
     return _create_venv
 
 
