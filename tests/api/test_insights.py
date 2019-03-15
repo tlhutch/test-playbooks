@@ -288,6 +288,8 @@ class TestInsightsAnalytics(APITest):
 
     @pytest.mark.ansible(host_pattern='tower[0]')
     def test_awxmanage_events_table_accurate(self, ansible_runner, factories, skip_if_not_rhel):
+        # Gather analytics to set last_run
+        self.gather_analytics(ansible_runner)
         jt = factories.v2_job_template()
         job = jt.launch().wait_until_completed()
 
@@ -301,13 +303,15 @@ class TestInsightsAnalytics(APITest):
 
         tempdir, files = self.gather_analytics(ansible_runner)
         csv_file = ansible_runner.fetch(src='{}/{}'.format(tempdir, 'events_table.csv'), dest='/tmp/fetched').values()[0]['dest']
-        uuids = set()
+        csv_uuids = set()
+        event_uuids = set()
         with open(csv_file) as c:
             reader = csv.reader(c, delimiter='\t')
             for row in reader:
-                uuids.add(row[6])
+                csv_uuids.add(row[6])
         for e in events:
-            assert e['uuid'] in uuids
+            event_uuids.add(e['uuid'])
+        assert csv_uuids == event_uuids
 
     # Commented out due to logistical concerns with contacting insights dev API from AWS
     # def test_ship_insights_succeeds(self, ansible_runner, skip_if_not_rhel, register_rhn_and_insights):
