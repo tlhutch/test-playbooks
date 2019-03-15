@@ -3,10 +3,10 @@ import googleapiclient.discovery
 import kubernetes.client
 import base64
 from google.oauth2 import service_account
-#import yaml
 
-def create_gke_client():
-    def create_client(credentials):
+
+def create_gke_clients():
+    def create_clients(credentials):
         sa_creds = service_account.Credentials.from_service_account_info(credentials['cloud']['gke']['serviceaccount']['key'])
         gke = googleapiclient.discovery.build('container', 'v1', credentials=sa_creds)
         name = credentials['cloud']['gke']['cluster']
@@ -22,12 +22,14 @@ def create_gke_client():
             f.write(base64.decodestring(gke_cluster['masterAuth']['clusterCaCertificate'].encode()))
         client = kubernetes.client.ApiClient(configuration=kube_config)
         return kubernetes.client.AppsV1Api(client), kubernetes.client.CoreV1Api(client)
-    return create_client
+    return create_clients
+
 
 @pytest.fixture
 def gke_client_fscope():
-    return create_gke_client()
+    return create_gke_clients()
+
 
 @pytest.fixture(scope='class')
 def gke_client_cscope():
-    return create_gke_client()
+    return create_gke_clients()
