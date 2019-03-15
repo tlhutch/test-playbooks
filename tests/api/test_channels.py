@@ -1,5 +1,8 @@
 import json
 
+from pprint import pformat
+
+
 from towerkit.config import config as qe_config
 from towerkit import utils, WSClient
 import pytest
@@ -317,7 +320,7 @@ class TestInventoryChannels(ChannelsTest, APITest):
                            inventory_id=inv_update.related.inventory_source.get().inventory)
         if desired_status == 'waiting':
             desired_msg['instance_group_name'] = 'tower'
-        assert desired_msg in events
+        assert desired_msg in events, f'{pformat(desired_msg)} not found in {pformat(events)}'
 
     @pytest.mark.ansible_integration
     @pytest.mark.mp_group('TestInventoryChannelsSerial', 'serial')
@@ -335,7 +338,7 @@ class TestInventoryChannels(ChannelsTest, APITest):
                                                                              group_name='inventory_update_events',
                                                                              type='inventory_update_event'))
         for expected in expected_ahc_events:
-            assert expected in filtered_ws_events
+            assert expected in filtered_ws_events, f'{pformat(expected)} not found in {pformat(filtered_ws_events)}'
 
     def test_inventory_update_events_unsubscribe(self, factories, ws_client):
         ws = ws_client.connect()
