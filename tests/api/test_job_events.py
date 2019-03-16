@@ -450,6 +450,8 @@ class Test_Job_Events(APITest):
                                       '4_failed': 1,
                                       '5_ignored': 2,
                                       '6_rescued': 2},
+                               'rescued': 0,
+                               'ignored': 0,
                                'changed': {'3_changed': 1},
                                'failures': {'4_failed': 1,
                                             '6_rescued': 1},
