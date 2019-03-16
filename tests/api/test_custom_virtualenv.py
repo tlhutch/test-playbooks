@@ -94,14 +94,12 @@ class TestCustomVirtualenv(APITest):
         if python_interpreter:
             folder_name.rstrip('/')
             folder_name += '_' + python_interpreter
-        packages = 'psutil'
         if python_interpreter == 'python3':
-            packages += ' ansible'
             contacted = ansible_adhoc()['tower[0]'].command('which python3')
             for host, result in contacted.items():
                 if result['rc'] != 0:
                     pytest.skip('python3 is not installed on host.')
-        with create_venv(folder_name, packages=packages, use_python=python_interpreter):
+        with create_venv(folder_name, packages='psutil ansible', use_python=python_interpreter):
             poll_until(lambda: venv_path(folder_name) in v2.config.get().custom_virtualenvs, interval=1, timeout=15)
             jt = factories.v2_job_template()
             jt.ds.inventory.add_host()
@@ -156,7 +154,7 @@ class TestCustomVirtualenv(APITest):
                 job.assert_successful()
                 assert job.job_env['VIRTUAL_ENV'].rstrip('/') == venv_path(folder_names[1]).rstrip('/')
 
-    @pytest.mark.parametrize('ansible_version', ['2.6.1', '2.5.6', '2.4.6.0', '2.3.3.0', '2.2.3.0'])
+    @pytest.mark.parametrize('ansible_version', ['2.6.1', '2.5.6', '2.4.6.0', '2.3.3.0'])
     def test_venv_with_ansible(self, v2, factories, create_venv, ansible_version, venv_path):
         folder_name = random_title(non_ascii=False)
         with create_venv(folder_name, 'psutil ansible=={}'.format(ansible_version)):
