@@ -266,6 +266,34 @@ class TestInsightsAnalytics(APITest):
         assert manual_launch_after == manual_launch_before + 1
 
     @pytest.mark.ansible(host_pattern='tower[0]')
+    def test_awxmanage_inventory_counts_incremented(self, ansible_runner, factories, skip_if_not_rhel):
+        counts = self.collect_stats(['counts'], ansible_runner)
+        inventory_types_before = counts['counts']['inventories']
+        [factories.v2_inventory() for _ in range(2)]
+        factories.v2_inventory(kind='smart', host_filter='search=foo')
+        counts = self.collect_stats(['counts'], ansible_runner)
+        inventory_types_after = counts['counts']['inventories']
+
+        assert inventory_types_after['normal'] == inventory_types_before['normal'] + 2
+        assert inventory_types_after['smart'] == inventory_types_before['smart'] + 1
+
+    @pytest.mark.ansible(host_pattern='tower[0]')
+    def test_awxmanage_inventory_host_counts_incremented(self, ansible_runner, factories, skip_if_not_rhel):
+        org = factories.v2_organization()
+        empty_inventory = factories.v2_inventory(organization=org)
+        two_host_inventory = factories.v2_inventory(organization=org)
+        smart_inventory = factories.v2_inventory(kind='smart', host_filter='search=smart-test', organization=org)
+        inventory_counts_before = self.collect_stats(['inventory_counts'], ansible_runner)
+        [factories.v2_host(name="smart-test_{0}".format(i), inventory=two_host_inventory) for i in range(2)]
+        factories.v2_host(organization=org)
+
+        inventory_counts_after = self.collect_stats(['inventory_counts'], ansible_runner)
+
+        assert inventory_counts_after['inventory_counts'][str(empty_inventory.id)]['hosts'] == inventory_counts_before['inventory_counts'][str(empty_inventory.id)]['hosts'] == 0
+        assert inventory_counts_after['inventory_counts'][str(two_host_inventory.id)]['hosts'] == inventory_counts_before['inventory_counts'][str(two_host_inventory.id)]['hosts'] + 2 == 2
+        assert inventory_counts_after['inventory_counts'][str(smart_inventory.id)]['num_hosts'] == inventory_counts_before['inventory_counts'][str(smart_inventory.id)]['num_hosts'] + 2 == 2
+
+    @pytest.mark.ansible(host_pattern='tower[0]')
     def test_awxmanage_job_status_counts_incremented(self, ansible_runner, factories, skip_if_not_rhel):
         jt = factories.v2_job_template()
         jt.ds.project.patch(scm_update_on_launch=False)
