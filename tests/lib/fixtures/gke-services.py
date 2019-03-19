@@ -22,7 +22,7 @@ class K8sClient(object):
         deploymentname = '{}-{}'.format(prefix, fauxfactory.gen_string('alphanumeric', 5)).lower()
         deployment.api_version = 'apps/v1'
         deployment.metadata = {'name': deploymentname,
-                               'integration': 'true'}
+                               'labels': {'integration': 'True'}}
         deployment.spec = {}
         deployment.spec['selector'] = {'matchLabels': {'run': deploymentname}}
         deployment.spec['template'] = {}
@@ -30,6 +30,19 @@ class K8sClient(object):
         deployment.spec['template']['spec'] = {'containers': containerspec}
 
         return deploymentname, deployment
+
+    def generate_service(self, deploymentname, portspec):
+        service = self.serviceobject
+        service.api_version = 'v1'
+        service.metadata = {'name': deploymentname,
+                            'labels': {'run': deploymentname,
+                                       'integration': 'True'}}
+        service.spec = {}
+        service.spec['ports'] = portspec
+        service.spec['selector'] = {'run': deploymentname}
+        service.spec['type'] = 'NodePort'
+
+        return service
 
     def destroy(self, deploymentname):
         self.core.delete_namespaced_service(deploymentname, 'default', body=kubernetes.client.V1DeleteOptions())
