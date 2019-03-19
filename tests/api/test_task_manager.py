@@ -855,7 +855,7 @@ class Test_Cascade_Fail_Dependent_Jobs(APITest):
         failed_update.wait_until_completed()
         job = jt.launch().wait_until_completed()
 
-        assert job.status == 'error'
+        job.assert_status('error')
         assert job.failed
         assert job.job_explanation == (
             'The project revision for this job template is unknown due to a failed update.'
