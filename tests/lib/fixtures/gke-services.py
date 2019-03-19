@@ -3,10 +3,54 @@ import googleapiclient.discovery
 import kubernetes.client
 import base64
 from google.oauth2 import service_account
+import fauxfactory
 
 
-def create_gke_clients():
-    def create_clients(credentials):
+class K8sClient(object):
+    def __init__(self, client):
+        self.client = client
+        self.apps = kubernetes.client.AppsV1Api(self.client)
+        self.core = kubernetes.client.CoreV1Api(self.client)
+        self.storage = kubernetes.client.StorageV1Api(self.client)
+        self.deploymentobject = kubernetes.client.V1Deployment()
+        self.serviceobject = kubernetes.client.V1Service()
+        self.secretobject = kubernetes.client.V1Secret()
+        self.configmapobject = kubernetes.client.V1ConfigMap()
+
+    def generate_deployment(self, prefix, containerspec):
+        deployment = self.deploymentobject
+        deploymentname = '{}-{}'.format(prefix, fauxfactory.gen_string('alphanumeric', 5)).lower()
+        deployment.api_version = 'apps/v1'
+        deployment.metadata = {'name': deploymentname,
+                               'labels': {'integration': 'True'}}
+        deployment.spec = {}
+        deployment.spec['selector'] = {'matchLabels': {'run': deploymentname}}
+        deployment.spec['template'] = {}
+        deployment.spec['template']['metadata'] = {'labels': {'run': deploymentname}}
+        deployment.spec['template']['spec'] = {'containers': containerspec}
+
+        return deploymentname, deployment
+
+    def generate_service(self, deploymentname, portspec):
+        service = self.serviceobject
+        service.api_version = 'v1'
+        service.metadata = {'name': deploymentname,
+                            'labels': {'run': deploymentname,
+                                       'integration': 'True'}}
+        service.spec = {}
+        service.spec['ports'] = portspec
+        service.spec['selector'] = {'run': deploymentname}
+        service.spec['type'] = 'NodePort'
+
+        return service
+
+    def destroy(self, deploymentname):
+        self.core.delete_namespaced_service(deploymentname, 'default', body=kubernetes.client.V1DeleteOptions())
+        self.apps.delete_namespaced_deployment(deploymentname, 'default', body=kubernetes.client.V1DeleteOptions())
+
+
+def create_gke_client():
+    def create_client(credentials):
         sa_creds = service_account.Credentials.from_service_account_info(credentials['cloud']['gke']['serviceaccount']['key'])
         gke = googleapiclient.discovery.build('container', 'v1', credentials=sa_creds)
         name = credentials['cloud']['gke']['cluster']
@@ -21,15 +65,15 @@ def create_gke_clients():
         with open(kube_config.ssl_ca_cert, 'wb') as f:
             f.write(base64.decodestring(gke_cluster['masterAuth']['clusterCaCertificate'].encode()))
         client = kubernetes.client.ApiClient(configuration=kube_config)
-        return kubernetes.client.AppsV1Api(client), kubernetes.client.CoreV1Api(client)
-    return create_clients
+        return K8sClient(client)
+    return create_client
 
 
 @pytest.fixture
 def gke_client_fscope():
-    return create_gke_clients()
+    return create_gke_client()
 
 
 @pytest.fixture(scope='class')
 def gke_client_cscope():
-    return create_gke_clients()
+    return create_gke_client()
