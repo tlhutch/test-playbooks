@@ -146,60 +146,107 @@ class TestConjurCredential(APITest):
         assert 'requests.exceptions.HTTPError: 401 Client Error: Unauthorized' in job.result_traceback
 
 
-@pytest.mark.github('https://github.com/ansible/tower-qa/issues/3048')
+@pytest.fixture(scope='class')
+def k8s_vault(gke_client_cscope, request):
+    K8sClient = gke_client_cscope(config.credentials)
+    prefix = 'vault'
+    cluster_domain = 'services.k8s.tower-qe.testing.ansible.com'
+    containerspec = [{'name': prefix,
+                        'image': 'vault',
+                        'ports': [{'containerPort': 1234, 'protocol': 'TCP'}],
+                        'env': [{'name': 'VAULT_DEV_LISTEN_ADDRESS',
+                                'value': '0.0.0.0:1234'},
+                                {'name': 'VAULT_DEV_ROOT_TOKEN_ID',
+                                 'value': config.credentials.hashivault.token}],
+                        'securityContext': {'capabilities': {'add': ['IPC_LOCK']}}}]
+    portspec = [{'name': prefix,
+                     'port': 1234,
+                     'protocol': 'TCP',
+                     'targetPort': 1234}]
+    deployment_name, vault_deployment = K8sClient.generate_deployment(prefix, containerspec)
+    vault_service = K8sClient.generate_service(deployment_name, portspec)
+    K8sClient.apps.create_namespaced_deployment(body=vault_deployment, namespace='default')
+    K8sClient.core.create_namespaced_service(body=vault_service, namespace='default')
+    vault_url = "https://http-{}-port-1234.{}".format(deployment_name, cluster_domain)
+
+    sess = requests.Session()
+    sess.headers['Authorization'] = 'Bearer {}'.format(config.credentials.hashivault.token)
+
+    # if a secret engine mount exists at /kv, delete it
+    sess.delete('{}/v1/sys/mounts/kv'.format(vault_url))
+    # enable a v1 secret engine at path /kv
+    sess.post('{}/v1/sys/mounts/kv'.format(vault_url), json={
+        "type": "kv",
+        "options": {"version": 1},
+    })
+
+    # if a secret engine mount exists at /versioned, delete it
+    sess.delete('{}/v1/sys/mounts/versioned'.format(vault_url))
+    # enable a v2 secret engine at path /versioned
+    sess.post('{}/v1/sys/mounts/versioned'.format(vault_url), json={
+        "type": "kv",
+        "options": {"version": 2},
+    })
+
+    # add a v1 secret
+    sess.post('{}/v1/kv/example-user'.format(vault_url), json={
+        "username": "unversioned-username"
+    })
+
+    # add a few v2 secrets (an old and a new version)
+    sess.post('{}/v1/versioned/data/example-user'.format(vault_url), json={
+        "data": {
+            "username": "old-username"
+        }
+    })
+    sess.post('{}/v1/versioned/data/example-user'.format(vault_url), json={
+        "data": {
+            "username": "latest-username"
+        }
+    })
+    sess.delete('{}/v1/sys/mounts/my-signer'.format(vault_url))
+    # enable a secret engine at path /my-signer
+    sess.post('{}/v1/sys/mounts/my-signer'.format(vault_url), json={
+        "type": "ssh",
+    })
+    # generate a signing key
+    sess.post('{}/v1/my-signer/config/ca'.format(vault_url), json={
+        "generate_signing_key": True,
+    })
+    # generate a role
+    sess.post('{}/v1/my-signer/roles/my-role'.format(vault_url), json={
+        "allow_user_certificates": True,
+        "allowed_users": "ec2-user",
+        "default_extensions": [
+            {"permit-pty": ""}
+        ],
+        "key_type": "ca",
+        "default_user": "ec2-user",
+        "ttl": "0m30s"
+    })
+    # read the generated public key
+    resp = sess.get('{}/v1/my-signer/config/ca'.format(vault_url))
+
+    #
+    # On a _managed host_ that we intend to SSH into, add the public_key
+    # /etc/ssh/sshd_config
+    # ...
+    # TrustedUserCAKeys /etc/ssh/trusted-user-ca-keys.pem
+
+    # ...and restart the SSH service.
+    public_key = resp.json()['data']['public_key']  # noqa
+    yield vault_url
+    K8sClient.destroy(deployment_name)
+
+
 @pytest.mark.api
 @pytest.mark.destructive
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestHashiCorpVaultCredentials(APITest):
 
-    def setup_class(cls):
-        if config.credentials.hashivault.url is not None:
-            host = config.credentials.hashivault.url
-            sess = requests.Session()
-            sess.headers['Authorization'] = 'Bearer {}'.format(config.credentials.hashivault.token)
+    def launch_job(self, factories, v2, api_version, secret_version, path, url=None,
+                    token=config.credentials.hashivault.token, secret_key='username'):
 
-            # if a secret engine mount exists at /kv, delete it
-            sess.delete('{}/v1/sys/mounts/kv'.format(host))
-            # enable a v1 secret engine at path /kv
-            sess.post('{}/v1/sys/mounts/kv'.format(host), json={
-                "type": "kv",
-                "options": {"version": 1},
-            })
-
-            # if a secret engine mount exists at /versioned, delete it
-            sess.delete('{}/v1/sys/mounts/versioned'.format(host))
-            # enable a v2 secret engine at path /versioned
-            sess.post('{}/v1/sys/mounts/versioned'.format(host), json={
-                "type": "kv",
-                "options": {"version": 2},
-            })
-
-            # add a v1 secret
-            sess.post('{}/v1/kv/example-user'.format(host), json={
-                "username": "unversioned-username"
-            })
-
-            # add a few v2 secrets (an old and a new version)
-            sess.post('{}/v1/versioned/data/example-user'.format(host), json={
-                "data": {
-                    "username": "old-username"
-                }
-            })
-            sess.post('{}/v1/versioned/data/example-user'.format(host), json={
-                "data": {
-                    "username": "latest-username"
-                }
-            })
-
-    def launch_job(self, factories, v2, api_version, secret_version, path,
-                   url=None, token=None, secret_key='username'):
-        try:
-            config.credentials.hashivault.url is not None
-        except Exception:
-            pytest.skip('no hashivault creds configured')
-
-        url = url or config.credentials.hashivault.url
-        token = token or config.credentials.hashivault.token
         # create a credential w/ a hashicorp token
         cred_type = v2.credential_types.get(
             managed_by_tower=True,
@@ -252,7 +299,7 @@ class TestHashiCorpVaultCredentials(APITest):
         ['v2', '1', '/versioned/example-user', 'old-username'],
     ])
     def test_hashicorp_vault_kv_lookup(self, factories, v2, api_version,
-                                       secret_version, path, expected):
+                                       secret_version, path, expected, k8s_vault):
         """
         Verify that a v1 KV secret can be pulled from a Hashicorp Vault API
         and injected into an ansible-playbook run.
@@ -266,7 +313,7 @@ class TestHashiCorpVaultCredentials(APITest):
         provides a versioned value for the "username" key lookup (with at least
         two versions)
         """
-        job = self.launch_job(factories, v2, api_version, secret_version, path)
+        job = self.launch_job(factories, v2, api_version, secret_version, path, url=k8s_vault)
         job.assert_successful()
         assert '-u {}'.format(expected) in ' '.join(job.job_args)
 
@@ -276,8 +323,8 @@ class TestHashiCorpVaultCredentials(APITest):
         '/missing/',
         'a',
     ])
-    def test_hashicorp_vault_kv_bad_path(self, factories, v2, api_version, path):
-        job = self.launch_job(factories, v2, api_version, None, path)
+    def test_hashicorp_vault_kv_bad_path(self, factories, v2, api_version, path, k8s_vault):
+        job = self.launch_job(factories, v2, api_version, None, path, url=k8s_vault)
         assert not job.is_successful
         assert 'requests.exceptions.HTTPError: 404 Client Error' in job.result_traceback
 
@@ -287,8 +334,8 @@ class TestHashiCorpVaultCredentials(APITest):
         ['v2', '1', '/versioned/example-user'],
     ])
     def test_hashicorp_vault_kv_bad_key(self, factories, v2, api_version,
-                                        secret_version, path):
-        job = self.launch_job(factories, v2, api_version, secret_version, path,
+                                        secret_version, path, k8s_vault):
+        job = self.launch_job(factories, v2, api_version, secret_version, path, url=k8s_vault,
                           secret_key='key-does-not-exist')
         assert not job.is_successful
         assert '{} is not present at {}'.format(
@@ -298,72 +345,26 @@ class TestHashiCorpVaultCredentials(APITest):
 
     @pytest.mark.parametrize('api_version', ['v1', 'v2'])
     def test_hashicorp_vault_kv_bad_url(self, factories, v2, api_version):
-        job = self.launch_job(factories, v2, api_version, None, '/any/path',
-                          url='http://missing.local:8200')
+        job = self.launch_job(factories, v2, api_version, None, '/any/path', url='http://missing.local:8200')
         assert not job.is_successful
         assert 'Failed to establish a new connection: [Errno -2] Name or service not known' in job.result_traceback
 
     @pytest.mark.parametrize('api_version', ['v1', 'v2'])
-    def test_hashicorp_vault_kv_bad_token(self, factories, v2, api_version):
-        job = self.launch_job(factories, v2, api_version, None, '/any/path',
+    def test_hashicorp_vault_kv_bad_token(self, factories, v2, api_version, k8s_vault):
+        job = self.launch_job(factories, v2, api_version, None, '/any/path', url=k8s_vault,
                           token='totally-incorrect-token')
         assert not job.is_successful
         assert '403 Client Error: Forbidden' in job.result_traceback
 
 
-@pytest.mark.github('https://github.com/ansible/tower-qa/issues/3048')
 @pytest.mark.api
 @pytest.mark.destructive
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestHashiCorpSSHEngine(APITest):
 
-    def setup_class(cls):
-        if config.credentials.hashivault.url is not None:
-            host = config.credentials.hashivault.url
-            sess = requests.Session()
-            sess.headers['Authorization'] = 'Bearer {}'.format(config.credentials.hashivault.token)
-
-            # if an ssh engine mount exists at /my-signer, delete it
-            sess.delete('{}/v1/sys/mounts/my-signer'.format(host))
-            # enable a secret engine at path /my-signer
-            sess.post('{}/v1/sys/mounts/my-signer'.format(host), json={
-                "type": "ssh",
-            })
-            # generate a signing key
-            sess.post('{}/v1/my-signer/config/ca'.format(host), json={
-                "generate_signing_key": True,
-            })
-            # generate a role
-            sess.post('{}/v1/my-signer/roles/my-role'.format(host), json={
-                "allow_user_certificates": True,
-                "allowed_users": "ec2-user",
-                "default_extensions": [
-                    {"permit-pty": ""}
-                ],
-                "key_type": "ca",
-                "default_user": "ec2-user",
-                "ttl": "0m30s"
-            })
-            # read the generated public key
-            resp = sess.get('{}/v1/my-signer/config/ca'.format(host))
-
-            #
-            # On a _managed host_ that we intend to SSH into, add the public_key
-            # /etc/ssh/sshd_config
-            # ...
-            # TrustedUserCAKeys /etc/ssh/trusted-user-ca-keys.pem
-
-            # ...and restart the SSH service.
-            public_key = resp.json()['data']['public_key']  # noqa
-
     def launch_job(self, factories, v2, path, role, passphrase,
                    valid_principals=None, url=None, token=None):
-        try:
-            config.credentials.hashivault.url is not None
-        except Exception:
-            pytest.skip('no hashivault creds configured')
 
-        url = url or config.credentials.hashivault.url
         token = token or config.credentials.hashivault.token
         # create a credential w/ a hashicorp token
         cred_type = v2.credential_types.get(
@@ -398,7 +399,7 @@ class TestHashiCorpSSHEngine(APITest):
             inputs={
                 'ssh_key_data': key.private_bytes(
                     encoding=serialization.Encoding.PEM,
-                    format=serialization.PrivateFormat.TraditionalOpenSSL,
+                    format=serialization.PrivateFormat.PKCS8,
                     encryption_algorithm=encryption
                 ).decode('utf-8'),
                 'ssh_key_unlock': passphrase or '',
@@ -430,11 +431,11 @@ class TestHashiCorpSSHEngine(APITest):
         return jt.launch().wait_until_completed()
 
     @pytest.mark.parametrize('passphrase', [None, 'some-pass'])
-    def test_hashicorp_ssh_signer(self, factories, v2, passphrase):
+    def test_hashicorp_ssh_signer(self, factories, v2, passphrase, k8s_vault):
         """
         Test support for https://www.vaultproject.io/docs/secrets/ssh/signed-ssh-certificates.html
         """
-        job = self.launch_job(factories, v2, 'my-signer', 'my-role', passphrase)
+        job = self.launch_job(factories, v2, 'my-signer', 'my-role', passphrase, url=k8s_vault)
         job.assert_successful()
         assert re.search(
             'Identity added: /tmp/awx_[^/]+/credential_{}'.format(job.credential),
@@ -445,14 +446,14 @@ class TestHashiCorpSSHEngine(APITest):
             job.result_stdout
         ) is not None, job.result_stdout
 
-    def test_hashicorp_ssh_signer_bad_path(self, factories, v2):
-        job = self.launch_job(factories, v2, 'missing-backend', 'foo', None)
+    def test_hashicorp_ssh_signer_bad_path(self, factories, v2, k8s_vault):
+        job = self.launch_job(factories, v2, 'missing-backend', 'foo', None, url=k8s_vault)
         assert job.is_successful is False
         assert 'requests.exceptions.HTTPError: 404 Client Error' in job.result_traceback
 
-    def test_hashicorp_ssh_signer_restricted_user(self, factories, v2):
+    def test_hashicorp_ssh_signer_restricted_user(self, factories, v2, k8s_vault):
         job = self.launch_job(factories, v2, 'my-signer', 'my-role', None,
-                          valid_principals='root')
+                          valid_principals='root', url=k8s_vault)
         assert job.is_successful is False
         assert 'requests.exceptions.HTTPError: 400 Client Error' in job.result_traceback
 
