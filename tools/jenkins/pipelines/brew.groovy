@@ -19,7 +19,7 @@ pipeline {
         stage('Build Tower Brew RPM') {
             steps {
                 build(
-                    job: 'Brew/Build_Tower_Brew_RPM',
+                    job: '../Brew/Build_Tower_Brew_RPM',
                     parameters: [
                         string(name: 'TOWER_PACKAGING_BRANCH', value: "origin/${params.TOWER_RELEASE}"),
                         booleanParam(name: 'TRIGGER', value: false)
@@ -31,7 +31,7 @@ pipeline {
         stage('Build Tower Brew Container Images') {
             steps {
                 build(
-                    job: 'Brew/Build_Tower_Brew_Container_Image',
+                    job: '../Brew/Build_Tower_Brew_Container_Image',
                     parameters: [
                         string(name: 'TOWER_PACKAGING_BRANCH', value: "origin/${params.TOWER_RELEASE}"),
                         booleanParam(name: 'TRIGGER', value: false)
@@ -43,7 +43,7 @@ pipeline {
         stage('Push Brew Container Images') {
             steps {
                 build(
-                    job: 'Brew/Push_Brew_Container_Image',
+                    job: '../Brew/Push_Brew_Container_Image',
                     parameters: [
                         string(name: 'TOWER_PACKAGING_BRANCH', value: "origin/${params.TOWER_RELEASE}"),
                         booleanParam(name: 'TRIGGER', value: false)
