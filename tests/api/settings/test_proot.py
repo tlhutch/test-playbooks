@@ -39,6 +39,7 @@ class Test_Proot(APITest):
         jobs = [jt.launch() for jt in (proot_1, proot_2)]
         for job in jobs:
             job.wait_until_completed()
+            # The playbook itself asserts the proot setting took effect
             job.assert_successful()
 
         job_1, job_2 = jobs
@@ -48,11 +49,6 @@ class Test_Proot(APITest):
         assert du_parse(job_1.started) < du_parse(job_2.finished), \
             "Job#1 (id:%s) started (%s) after job#2 (id:%s) finished (%s)" % \
             (job_1.id, job_1.started, job_2.id, job_2.finished)
-
-        # assert that job#1 finished after job#2 started
-        assert du_parse(job_1.finished) > du_parse(job_2.started), \
-            "Job#1 (id:%s) finished (%s) before job#2 (id:%s) started (%s)" % \
-            (job_1.id, job_1.finished, job_2.id, job_2.started)
 
     @pytest.mark.fixture_args(source_script="""#!/usr/bin/env python
 import os
