@@ -111,22 +111,21 @@ class TestClusterCommon(APITest):
             for job in jobs:
                 assert job.get().host_status_counts['changed'] == 1
 
-    @pytest.mark.mp_group('InstanceGroupPolicies', 'isolated_serial')
     @pytest.mark.parametrize('resource', ['job_template', 'inventory', 'organization'])
     def test_job_template_executes_on_assigned_instance_group(self, v2, factories, resource, get_resource_from_jt):
-        instance_groups = v2.instance_groups.get().results
+        instances = v2.instances.get(rampart_groups__controller__isnull=True, page_size=200, capacity__gt=0).results
+        ig = factories.instance_group()
+        for inst in instances:
+            ig.add_instance(inst)
         jt = factories.v2_job_template()
-        for ig in instance_groups:
-            if not ig.capacity:
-                continue  # skip dead groups
-            resource_to_modify = get_resource_from_jt(jt, resource)
-            resource_to_modify.remove_all_instance_groups()
-            resource_to_modify.add_instance_group(ig)
+        resource_to_modify = get_resource_from_jt(jt, resource)
+        resource_to_modify.remove_all_instance_groups()
+        resource_to_modify.add_instance_group(ig)
 
-            job = jt.launch().wait_until_completed()
-            assert job.instance_group == ig.id, "Job instance group differs from job template instance group"
+        job = jt.launch().wait_until_completed()
+        assert job.instance_group == ig.id, "Job instance group differs from job template instance group"
 
-            execution_host = job.execution_node
-            instances = ig.get_related('instances').results
-            assert any(execution_host in instance.hostname for instance in instances), \
-                "Job not run on instance in assigned instance group"
+        execution_host = job.execution_node
+        instances = ig.get_related('instances').results
+        assert any(execution_host in instance.hostname for instance in instances), \
+            "Job not run on instance in assigned instance group"
