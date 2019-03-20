@@ -17,9 +17,8 @@ class K8sClient(object):
         self.secretobject = kubernetes.client.V1Secret()
         self.configmapobject = kubernetes.client.V1ConfigMap()
 
-    def generate_deployment(self, prefix, containerspec):
+    def generate_deployment(self, deploymentname, containerspec):
         deployment = self.deploymentobject
-        deploymentname = '{}-{}'.format(prefix, fauxfactory.gen_string('alphanumeric', 5)).lower()
         deployment.api_version = 'apps/v1'
         deployment.metadata = {'name': deploymentname,
                                'labels': {'integration': 'True'}}
@@ -29,7 +28,10 @@ class K8sClient(object):
         deployment.spec['template']['metadata'] = {'labels': {'run': deploymentname}}
         deployment.spec['template']['spec'] = {'containers': containerspec}
 
-        return deploymentname, deployment
+        return deployment
+
+    def random_deployment_name(self, prefix):
+        return '{}-{}'.format(prefix, fauxfactory.gen_string('alphanumeric', 5)).lower()
 
     def generate_service(self, deploymentname, portspec):
         service = self.serviceobject

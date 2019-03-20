@@ -10,66 +10,108 @@ from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 from towerkit.config import config
+from towerkit import utils
+from kubernetes.stream import stream
 
 from tests.api import APITest
 
 
-@pytest.mark.github('https://github.com/ansible/tower-qa/issues/3048')
+@pytest.fixture(scope='class')
+def k8s_conjur(gke_client_cscope, request):
+    K8sClient = gke_client_cscope(config.credentials)
+    prefix = 'conjur'
+    cluster_domain = 'services.k8s.tower-qe.testing.ansible.com'
+    deployment_name = K8sClient.random_deployment_name(prefix)
+    containerspec = [{'name': '{}-{}'.format(deployment_name, 'app'),
+                        'image': 'cyberark/conjur',
+                        'ports': [{'containerPort': 80, 'protocol': 'TCP'}],
+                        'env': [{'name': 'DATABASE_URL',
+                                'value': 'postgres://postgres@{}/postgres'.format(deployment_name)},
+                                {'name': 'CONJUR_DATA_KEY',
+                                 'value': config.credentials.conjur.datakey}],
+                        'command': ['conjurctl'],
+                        'args': ['server']},
+                     {'name': '{}-{}'.format(deployment_name, 'pg'),
+                      'image': 'postgres:9.3',
+                      'ports': [{'containerPort': 5432, 'protocol': 'TCP'}]}]
+    portspec = [{'name': 'conjur',
+                     'port': 80,
+                     'protocol': 'TCP',
+                     'targetPort': 80},
+                     {'name': 'postgres',
+                     'port': 5432,
+                     'protocol': 'TCP',
+                     'targetPort': 5432}]
+    conjur_deployment = K8sClient.generate_deployment(deployment_name, containerspec)
+    conjur_service = K8sClient.generate_service(deployment_name, portspec)
+    K8sClient.apps.create_namespaced_deployment(body=conjur_deployment, namespace='default')
+    K8sClient.core.create_namespaced_service(body=conjur_service, namespace='default')
+    pod_name = K8sClient.core.list_namespaced_pod('default', label_selector='run={}'.format(deployment_name)).items[0].metadata.name
+    utils.logged_sleep(60) # Sleeping for conjur to initialize the database. This will happen only once for the class.
+    api_key = None
+    conjur_url = "https://http-{}-port-80.{}".format(deployment_name, cluster_domain)
+    try:
+        deploy_info = stream(K8sClient.core.connect_get_namespaced_pod_exec,
+                             pod_name,
+                             'default',
+                             container='{}-app'.format(deployment_name),
+                             command=['conjurctl', 'account', 'create', 'test'],
+                             stderr=True,
+                             stdin=False,
+                             stdout=True,
+                             tty=False)
+        api_key = re.search(r'API key for admin: ([^\s]+)', deploy_info).group(1)
+    except:
+        pass # Passing because we want the teardown to run
+
+    try:
+        account = 'test'
+        username = 'admin'
+        resp = requests.post(
+            urljoin(conjur_url, '/'.join(['authn', account, username, 'authenticate'])),
+            headers={'Content-Type': 'text/plain'},
+            data=api_key
+        )
+        token = base64.b64encode(resp.content).decode('utf-8')
+        resp.raise_for_status()
+
+        # set a variable policy
+        policy = '- !policy\n  id: super\n  body:\n    - !variable secret'
+        path = urljoin(conjur_url, '/'.join([
+            'policies', account, 'policy', 'root'
+        ]))
+        resp = requests.put(
+            path,
+            data=policy,
+            headers={'Authorization': 'Token token="{}"'.format(token)}
+        )
+        resp.raise_for_status()
+
+        # set a secret variable value
+        path = urljoin(conjur_url, '/'.join([
+            'secrets', account, 'variable', 'super/secret'
+        ]))
+        resp = requests.post(
+            path,
+            data='CLASSIFIED',
+            headers={'Authorization': 'Token token="{}"'.format(token)}
+        )
+        resp.raise_for_status()
+    except:
+        pass # Passing because we want the teardown to run
+    conjur_info = {'url': conjur_url, 'api_key': api_key}
+    yield conjur_info
+    K8sClient.destroy(deployment_name)
+
+
 @pytest.mark.api
 @pytest.mark.destructive
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestConjurCredential(APITest):
 
-    def setup_class(cls):
-        if config.credentials.conjur.url is not None:
-            url = config.credentials.conjur.url
-            api_key = config.credentials.conjur.api_key
-            account = config.credentials.conjur.account
-            username = config.credentials.conjur.username
-
-            # get an auth token
-            resp = requests.post(
-                urljoin(url, '/'.join(['authn', account, username, 'authenticate'])),
-                headers={'Content-Type': 'text/plain'},
-                data=api_key
-            )
-            token = base64.b64encode(resp.content).decode('utf-8')
-            resp.raise_for_status()
-
-            # set a variable policy
-            policy = '- !policy\n  id: super\n  body:\n    - !variable secret'
-            path = urljoin(url, '/'.join([
-                'policies', account, 'policy', 'root'
-            ]))
-            resp = requests.put(
-                path,
-                data=policy,
-                headers={'Authorization': 'Token token="{}"'.format(token)}
-            )
-            resp.raise_for_status()
-
-            # set a secret variable value
-            path = urljoin(url, '/'.join([
-                'secrets', account, 'variable', 'super/secret'
-            ]))
-            resp = requests.post(
-                path,
-                data='CLASSIFIED',
-                headers={'Authorization': 'Token token="{}"'.format(token)}
-            )
-            resp.raise_for_status()
-
     def launch_job(self, factories, v2, path, secret_version=None,
                    url=None, api_key=None, account=None, username=None):
-        try:
-            config.credentials.conjur.url is not None
-        except Exception:
-            pytest.skip('no conjur creds configured')
 
-        url = url or config.credentials.conjur.url
-        api_key = api_key or config.credentials.conjur.api_key
-        account = account or config.credentials.conjur.account
-        username = username or config.credentials.conjur.username
         # create a credential w/ a conjur api_key
         cred_type = v2.credential_types.get(
             managed_by_tower=True,
@@ -120,28 +162,36 @@ class TestConjurCredential(APITest):
         ['super/secret', None, 'CLASSIFIED'],
         ['super/secret', '1', 'CLASSIFIED'],
     ])
-    def test_conjur_secret_lookup(self, factories, v2, path, secret_version, expected):
-        job = self.launch_job(factories, v2, path, secret_version)
+    def test_conjur_secret_lookup(self, factories, v2, path, secret_version, expected, k8s_conjur):
+        job = self.launch_job(factories, v2, path, secret_version, username='admin',
+                              account='test', url=k8s_conjur['url'], api_key=k8s_conjur['api_key'])
         job.assert_successful()
         assert '-u {}'.format(expected) in ' '.join(job.job_args)
 
-    def test_conjur_secret_bad_path(self, factories, v2):
-        job = self.launch_job(factories, v2, 'super/missing')
+    def test_conjur_secret_bad_path(self, factories, v2, k8s_conjur):
+        job = self.launch_job(factories, v2, 'super/missing', username='admin',
+                              account='test', url=k8s_conjur['url'], api_key=k8s_conjur['api_key'])
         assert not job.is_successful
         assert 'requests.exceptions.HTTPError: 404 Client Error' in job.result_traceback
 
-    def test_conjur_secret_bad_url(self, factories, v2):
+    def test_conjur_secret_bad_url(self, factories, v2, k8s_conjur):
         job = self.launch_job(factories, v2, '', url='http://missing.local:8200')
         assert not job.is_successful
         assert 'Failed to establish a new connection: [Errno -2] Name or service not known' in job.result_traceback
 
-    @pytest.mark.parametrize('kwargs', [
-        {'api_key': 'WRONG'},
-        {'account': 'missing-account'},
-        {'username': 'whodis'},
-    ])
-    def test_conjur_secret_bad_api_key(self, factories, v2, kwargs):
-        job = self.launch_job(factories, v2, '', **kwargs)
+    @pytest.mark.parametrize('api_key_permutations', [
+        {'api_key': False, 'account': 'test', 'username': 'admin'},
+        {'account': 'missing-account', 'username': 'admin', 'api_key': True},
+        {'username': 'whodis', 'account': 'test', 'api_key': True}],
+        ids=['wrong_key', 'wrong_account', 'wrong_user']
+    )
+    def test_conjur_secret_bad_api_key(self, factories, v2, k8s_conjur, api_key_permutations):
+        if api_key_permutations['api_key']:
+            api_key = k8s_conjur['api_key']
+        else:
+            api_key = "WRONG"
+        job = self.launch_job(factories, v2, '', url=k8s_conjur['url'], api_key=api_key,
+                              account=api_key_permutations['account'], username=api_key_permutations['username'])
         assert not job.is_successful
         assert 'requests.exceptions.HTTPError: 401 Client Error: Unauthorized' in job.result_traceback
 
@@ -150,8 +200,9 @@ class TestConjurCredential(APITest):
 def k8s_vault(gke_client_cscope, request):
     K8sClient = gke_client_cscope(config.credentials)
     prefix = 'vault'
+    deployment_name = K8sClient.random_deployment_name(prefix)
     cluster_domain = 'services.k8s.tower-qe.testing.ansible.com'
-    containerspec = [{'name': prefix,
+    containerspec = [{'name': 'vault',
                         'image': 'vault',
                         'ports': [{'containerPort': 1234, 'protocol': 'TCP'}],
                         'env': [{'name': 'VAULT_DEV_LISTEN_ADDRESS',
@@ -159,11 +210,11 @@ def k8s_vault(gke_client_cscope, request):
                                 {'name': 'VAULT_DEV_ROOT_TOKEN_ID',
                                  'value': config.credentials.hashivault.token}],
                         'securityContext': {'capabilities': {'add': ['IPC_LOCK']}}}]
-    portspec = [{'name': prefix,
+    portspec = [{'name': 'vault',
                      'port': 1234,
                      'protocol': 'TCP',
                      'targetPort': 1234}]
-    deployment_name, vault_deployment = K8sClient.generate_deployment(prefix, containerspec)
+    vault_deployment = K8sClient.generate_deployment(deployment_name, containerspec)
     vault_service = K8sClient.generate_service(deployment_name, portspec)
     K8sClient.apps.create_namespaced_deployment(body=vault_deployment, namespace='default')
     K8sClient.core.create_namespaced_service(body=vault_service, namespace='default')
