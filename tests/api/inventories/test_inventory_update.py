@@ -130,6 +130,30 @@ def assert_expected_hostgroups(inv_source, inv_update, cloud_inventory_hostgroup
 
 
 
+def assert_expected_hostnames(inv_source, cloud_hostvars_that_create_host_names):
+    """For given inventory, assert expected host names were created."""
+    kind = inv_source.summary_fields.credential.kind
+    inventory = inv_source.related.inventory.get()
+    expected_host_name_vars = cloud_hostvars_that_create_host_names.get(kind, [])
+
+    if expected_host_name_vars:
+        for host in inventory.get_related('hosts', page_size=200).results:
+            # https://github.com/ansible/awx/issues/3448
+            if host.name == 'demo-dj':
+                continue  # host and group name conflict, known to be broken
+            for hostvar in expected_host_name_vars:
+                if host.name == host.variables.get(hostvar, None):
+                    break  # host passes
+            else:
+                raise AssertionError(
+                    'Host {} name did not match vars {} in hostvars, values: {}, variables:\n{}'.format(
+                        host.name, expected_host_name_vars,
+                        [host.variables.get(v, None) for v in expected_host_name_vars],
+                        json.dumps(host.variables, indent=2)
+                    )
+                )
+
+
 @pytest.mark.api
 @pytest.mark.destructive
 @pytest.mark.usefixtures(
@@ -163,7 +187,8 @@ class TestInventoryUpdateWithVenvs(APITest):
             org_with_venv,
             cloud_inventory_hostvars,
             cloud_inventory_hostgroups,
-            cloud_hostvars_that_create_groups
+            cloud_hostvars_that_create_groups,
+            cloud_hostvars_that_create_host_names
             ):
         """Verify successful inventory import using /api/v2/inventory_sources/N/update/."""
         inv_source = cloud_inventory.related.inventory_sources.get().results.pop()
@@ -187,6 +212,7 @@ class TestInventoryUpdateWithVenvs(APITest):
         azure_bug = True if ansible_version_cmp('2.8.0') < 1 else False
         constructed_groups = assert_expected_hostvars(inv_source, inv_update, cloud_inventory_hostvars, cloud_hostvars_that_create_groups, azure_bug)
         assert_expected_hostgroups(inv_source, inv_update, cloud_inventory_hostgroups, constructed_groups)
+        assert_expected_hostnames(inv_source, cloud_hostvars_that_create_host_names)
 
 
 @pytest.mark.api

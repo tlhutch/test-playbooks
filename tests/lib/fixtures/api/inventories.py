@@ -407,6 +407,15 @@ def cloud_hostvars_that_create_groups():
 
 
 @pytest.fixture(scope="function")
+def cloud_hostvars_that_create_host_names():
+    return {
+        'aws': ['ec2_ip_address', 'ec2_dns_name'],
+        'gce': ['gce_name'],
+        'azure_rm': ['computer_name']  # also name
+    }
+
+
+@pytest.fixture(scope="function")
 def cloud_inventory_hostgroups(azure_inventory_hostgroups, gce_inventory_hostgroups, aws_inventory_hostgroups, openstack_inventory_hostgroups):
     """Return map to each inventory type's expected groups created when run in compatibility mode.
 
