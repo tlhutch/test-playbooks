@@ -8,7 +8,7 @@
   become: true
   package:
     name:
-      - epel-release
+      - https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
       - https://centos7.iuscommunity.org/ius-release.rpm
 
 - name: Install required packages
@@ -24,28 +24,30 @@
       - python36u-devel
       - python36u-pip
       - ansible
-      - docker
+      # TODO(spredzy): Look how to install it on RHEL7.6
+      # - docker
       - docker-compose
 
-- name: Add user to dockerroot
-  become: true
-  user:
-    name: centos
-    append: yes
-    groups: dockerroot
+# TODO(spredzy): Look how to install it on RHEL7.6
+# - name: Add user to dockerroot
+#   become: true
+#   user:
+#     name: centos
+#     append: yes
+#     groups: dockerroot
 
-- name: Copy docker configuration
-  become: true
-  copy:
-    dest: /etc/docker/daemon.json
-    content: '{ "live-restore": true, "group": "dockerroot" }'
+# - name: Copy docker configuration
+#   become: true
+#   copy:
+#     dest: /etc/docker/daemon.json
+#     content: '{ "live-restore": true, "group": "dockerroot" }'
 
-- name: Start docker service
-  become: true
-  service:
-    name: docker
-    state: started
-    enabled: yes
+# - name: Start docker service
+#   become: true
+#   service:
+#     name: docker
+#     state: started
+#     enabled: yes
 
 - name: Create python3 symlink
   become: true

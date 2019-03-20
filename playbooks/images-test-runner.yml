@@ -4,9 +4,9 @@ create_ec2_vpc_id: vpc-552da032
 create_ec2_vpc_subnet_id: subnet-9cdddbb0
 
 ec2_images:
-    - id: ami-9887c6e7
-      name: centos-7.latest-x86_64
-      user: centos
+    - id: ami-06fd194eff2ab1451
+      name: rhel-7.6-x86_64
+      user: ec2-user
       groups: test-runner
       type: m5.large
       security_group: Tower-TestRunner
