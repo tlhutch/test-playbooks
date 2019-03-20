@@ -17,6 +17,7 @@ class Test_Copy_Credential(APITest):
         new_credential = copy_with_teardown(v2_credential)
         check_fields(v2_credential, new_credential, self.identical_fields, self.unequal_fields)
 
+    @pytest.mark.yolo
     def test_check_copied_secret_input(self, factories, copy_with_teardown):
         ct_inputs = {"fields": [{"type": "string", "id": "var1", "label": "Var1", "secret": True}]}
         ct_injectors = {"extra_vars": {"var1": "{{var1}}"}}

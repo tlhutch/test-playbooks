@@ -43,6 +43,7 @@ class TestCredentialSearch(APITest):
 
         self.confirm_sole_credential_in_related_search(v2, cred, created_by__search=user.username)
 
+    @pytest.mark.yolo
     def test_search_by_modifier(self, v2, factories):
         org = factories.v2_organization()
         user = factories.v2_user()
@@ -97,6 +98,7 @@ class TestCredentialSearch(APITest):
 
         self.confirm_sole_credential_in_related_search(v2, cred, projectupdates__search=project.name)
 
+    @pytest.mark.yolo
     def test_search_by_sourcing_workflow_job_template_node_and_workflow_job_node(self, v2, factories):
         cred = factories.v2_credential()
         jt = factories.v2_job_template(ask_credential_on_launch=True)

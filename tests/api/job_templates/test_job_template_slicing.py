@@ -115,6 +115,7 @@ class TestJobTemplateSlicing(APITest):
             # The slices themselves should _always_ be simultaneous
             assert do_all_jobs_overlap(jobs)
 
+    @pytest.mark.yolo
     def test_job_template_slice_workflow_job_relaunch(self, factories, v2, sliced_jt_factory):
         """Tests relaunch for jobs which are sliced, including:
         * relaunch of the workflow job container for sliced jobs
@@ -196,7 +197,6 @@ class TestJobTemplateSlicing(APITest):
         relaunched_job.wait_until_completed()
         assert job.host_status_counts == relaunched_job.host_status_counts
 
-    @pytest.mark.github('https://github.com/ansible/awx/issues/2554')
     def test_relaunch_after_conversion(self, factories, sliced_jt_factory):
         jt = sliced_jt_factory(2)
         workflow_job = jt.launch()

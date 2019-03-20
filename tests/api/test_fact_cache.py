@@ -157,6 +157,7 @@ class TestFactCache(APITest):
         self.assert_updated_facts(ansible_facts)
         assert second_time in job.result_stdout
 
+    @pytest.mark.yolo
     def test_consume_facts_with_custom_ansible_module(self, factories):
         host = factories.v2_host()
         jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='scan_custom.yml', use_fact_cache=True)
@@ -286,6 +287,7 @@ class TestFactCache(APITest):
             if not file.isdir and file.roth and file.isreg:
                 assert file.checksum
 
+    @pytest.mark.yolo
     @pytest.mark.ansible_integration
     def test_use_fact_cache_for_host_with_large_hostvars(self, factories):
         script = """#!/usr/bin/env python

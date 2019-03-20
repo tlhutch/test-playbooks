@@ -101,6 +101,7 @@ class Test_Organization_RBAC(APITest):
             # check put/patch/delete
             assert_response_raised(organization, http.client.FORBIDDEN)
 
+    @pytest.mark.yolo
     def test_auditor_role(self, factories):
         """A user with organization 'auditor' should be able to:
         * Issue GETs to our organization details page

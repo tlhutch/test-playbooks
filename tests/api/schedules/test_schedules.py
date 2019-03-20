@@ -71,6 +71,7 @@ class TestSchedules(SchedulesTest):
                 pytest.fail('Failed to raise for invalid rrule "{}"'.format(invalid))
             assert e.value[1].get('rrule', [e.value[1]])[0] == expected
 
+    @pytest.mark.yolo
     def test_schedule_basic_integrity(self, v2_unified_job_template):
         if v2_unified_job_template.type in ('job_template', 'workflow_job_template'):
             v2_unified_job_template.ask_variables_on_launch = True
@@ -192,7 +193,7 @@ class TestSchedules(SchedulesTest):
                 schedule.get()
 
     @pytest.mark.flaky(reruns=3, reruns_delay=30)
-    @pytest.mark.github('https://github.com/ansible/tower-qa/issues/2591')
+    @pytest.mark.github('https://github.com/ansible/tower-qa/issues/2591', skip=True)
     def test_schedule_triggers_launch_without_count(self, v2_unified_job_template):
         rule = self.minutely_rrule()
         schedule = v2_unified_job_template.add_schedule(rrule=rule)
@@ -205,7 +206,7 @@ class TestSchedules(SchedulesTest):
         assert schedule.get().next_run == rule.next_run
 
     @pytest.mark.flaky(reruns=3, reruns_delay=30)
-    @pytest.mark.github('https://github.com/ansible/tower-qa/issues/2591')
+    @pytest.mark.github('https://github.com/ansible/tower-qa/issues/2591', skip=True)
     def test_schedule_triggers_launch_with_count(self, v2_unified_job_template):
         rule = self.minutely_rrule(count=2)
         schedule = v2_unified_job_template.add_schedule(rrule=rule)
@@ -242,7 +243,7 @@ class TestSchedules(SchedulesTest):
         job.wait_until_completed().assert_successful()
         assert '"var1": "{}"'.format(schedule.id) in job.result_stdout
 
-    @pytest.mark.github('https://github.com/ansible/tower/issues/891')
+    @pytest.mark.github('https://github.com/ansible/tower/issues/891', skip=True)
     def test_schedule_preview_accounts_for_missing_dst_hour(self, v2):
         schedules = v2.schedules.get()
         dst_starts = ('20190310', '20200308', '20210314', '20220313',

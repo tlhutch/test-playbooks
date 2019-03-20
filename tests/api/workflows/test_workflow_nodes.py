@@ -144,7 +144,6 @@ class Test_Workflow_Nodes(APITest):
         job = wfj_node.get_related('job')
         assert job.inventory == inventory.id
 
-    @pytest.mark.github('https://github.com/ansible/awx/issues/2255')
     @pytest.mark.parametrize('add_methods', ['add_success_node',
                                              'add_failure_node',
                                              'add_always_node',

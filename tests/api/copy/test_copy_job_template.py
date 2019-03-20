@@ -76,6 +76,7 @@ class Test_Copy_Job_Template(APITest):
         assert new_labels.count == old_labels.count
         assert new_labels.results[0].id == old_labels.results[0].id
 
+    @pytest.mark.yolo
     def test_copy_jt_survey_spec(self, factories, copy_with_teardown):
         jt = factories.v2_job_template()
         survey = [dict(required=False,

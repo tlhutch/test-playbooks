@@ -20,6 +20,7 @@ class TestInventoryUpdate(APITest):
         inv_update = inv_source.update().wait_until_completed()
         inv_update.assert_successful()
 
+    @pytest.mark.yolo
     @pytest.mark.ansible_integration
     def test_v2_update_inventory_source(self, cloud_inventory):
         """Verify successful inventory import using /api/v2/inventory_sources/N/update/."""
@@ -151,6 +152,7 @@ class TestInventoryUpdate(APITest):
         for item in compare_list[1:]:
             assert item == compare_list[0]
 
+    @pytest.mark.yolo
     def test_update_with_overwrite_attempt_deadlock(self, v2, factories):
         """Update an inventory with multiple sources that update same groups and hosts.'
 
@@ -422,6 +424,7 @@ print(json.dumps({
             # assert host.variables[custom_group.name]['vars'] == expected_vars
             assert host.variables[custom_group.name]['vars'] == {'ansible_host': '127.0.0.1', 'ansible_connection': 'local'}
 
+    @pytest.mark.yolo
     @pytest.mark.ansible_integration
     def test_update_with_stdout_injection(self, factories, ansible_version_cmp):
         """Verify that we can inject text to update stdout through our script."""

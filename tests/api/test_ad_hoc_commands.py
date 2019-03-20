@@ -239,6 +239,7 @@ class Test_Ad_Hoc_Commands_Main(APITest):
             "Unexpected command status after cancelling (expected " \
             "status:canceled) - %s" % ad_hoc_with_status_pending
 
+    @pytest.mark.yolo
     @pytest.mark.ansible_integration
     def test_launch_with_ask_credential_and_passwords_in_payload(self, host, ssh_credential_multi_ask, api_ad_hoc_commands_pg):
         """Verifies that launching a command with an ask credential succeeds when supplied with proper passwords."""
@@ -541,6 +542,7 @@ print(json.dumps(inv, indent=2))
         activity_stream_pg = ad_hoc_command_pg.get_related('activity_stream')
         assert activity_stream_pg.count == 1, "Activity stream not populated."
 
+    @pytest.mark.yolo
     def test_command_page_update(self, org_admin, user_password, host, ssh_credential, api_ad_hoc_commands_pg):
         """Tests that deleting related objects will be reflected in the updated command page."""
         use_role_pg = ssh_credential.get_object_role('use_role')

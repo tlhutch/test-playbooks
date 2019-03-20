@@ -117,6 +117,7 @@ class TestSmartInventory(APITest):
         inventory.patch(host_filter="", kind="")
         assert inventory.related.hosts.get().count == 0
 
+    @pytest.mark.yolo
     def test_launch_ahc_with_smart_inventory(self, factories):
         inventory = factories.v2_inventory()
         parent_group, child_group = [factories.v2_group(inventory=inventory) for _ in range(2)]
@@ -142,6 +143,7 @@ class TestSmartInventory(APITest):
         assert activity_stream.count == 1
         assert activity_stream.results.pop().operation == 'create'
 
+    @pytest.mark.yolo
     def test_launch_job_template_with_smart_inventory(self, factories):
         inventory = factories.v2_inventory()
         parent_group, child_group = [factories.v2_group(inventory=inventory) for _ in range(2)]

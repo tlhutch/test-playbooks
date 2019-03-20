@@ -42,7 +42,7 @@ class TestInventorySource(APITest):
             assert e.value[1] == error
 
     @pytest.mark.ansible_integration
-    @pytest.mark.github('https://github.com/ansible/awx/issues/2240')
+    @pytest.mark.github('https://github.com/ansible/awx/issues/2240', skip=True)
     def test_imported_host_ordering(self, factories):
         inventory = factories.v2_inventory()
         org = inventory.ds.organization
@@ -76,6 +76,7 @@ class TestInventorySource(APITest):
         script_data = inventory.get_related('script')
         assert script_data['agroup']['hosts'] == ['h01', 'h02', 'h03']
 
+    @pytest.mark.yolo
     @pytest.mark.ansible_integration
     def test_inventory_source_with_vaulted_vars(self, factories, ansible_version_cmp):
         # Feature was introduced in Ansible 2.6

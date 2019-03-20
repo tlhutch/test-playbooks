@@ -134,7 +134,7 @@ class TestAdHocCommandChannels(ChannelsTest, APITest):
         for expected in expected_ahc_events:
             assert expected in filtered_ws_events
 
-    @pytest.mark.github('https://github.com/ansible/tower-qa/issues/2299')
+    @pytest.mark.github('https://github.com/ansible/tower-qa/issues/2299', skip=True)
     def test_ad_hoc_command_events_unsubscribe(self, factories, ws_client):
         host = factories.v2_host()
 
@@ -186,6 +186,7 @@ class TestJobChannels(ChannelsTest, APITest):
             desired_msg['instance_group_name'] = 'tower'
         assert desired_msg in events
 
+    @pytest.mark.yolo
     @pytest.mark.ansible_integration
     @pytest.mark.mp_group('TestJobChannelsSerial', 'serial')
     def test_job_events_subscribe(self, job_and_ws_events):
@@ -228,7 +229,7 @@ class TestJobChannels(ChannelsTest, APITest):
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestWorkflowChannels(ChannelsTest, APITest):
 
-    @pytest.mark.github('https://github.com/ansible/tower-qa/issues/2487')
+    @pytest.mark.github('https://github.com/ansible/tower-qa/issues/2487', skip=True)
     @pytest.mark.ansible_integration
     def test_workflow_events(self, factories, ws_client, v2):
         ws = ws_client.connect()
@@ -243,7 +244,7 @@ class TestWorkflowChannels(ChannelsTest, APITest):
         ws.status_changes()
         self.sleep_and_clear_messages(ws)
 
-        # Do not call wfjt.launc() directly since it invokes multiple requests
+        # Do not call wfjt.launch() directly since it invokes multiple requests
         # Multiple requests are problematic because we want to listen to workflow
         # events as quick as possible so that we don't miss events
         wfj_id = wfjt.get_related('launch').post({})['id']
@@ -322,6 +323,7 @@ class TestInventoryChannels(ChannelsTest, APITest):
             desired_msg['instance_group_name'] = 'tower'
         assert desired_msg in events, f'{pformat(desired_msg)} not found in {pformat(events)}'
 
+    @pytest.mark.yolo
     @pytest.mark.ansible_integration
     @pytest.mark.mp_group('TestInventoryChannelsSerial', 'serial')
     def test_inventory_update_events_subscribe(self, inv_update_and_ws_events):
@@ -388,7 +390,7 @@ class TestProjectUpdateChannels(ChannelsTest, APITest):
             desired_msg['instance_group_name'] = 'tower'
         assert desired_msg in events
 
-    @pytest.mark.github('https://github.com/ansible/tower-qa/issues/2212')
+    @pytest.mark.github('https://github.com/ansible/tower-qa/issues/2212', skip=True)
     @pytest.mark.ansible_integration
     @pytest.mark.mp_group('TestProjectUpdateChannelsSerial', 'serial')
     def test_project_update_events_subscribe(self, project_update_and_ws_events):

@@ -110,6 +110,7 @@ class Test_Copy_Workflow_Job_Template(APITest):
         check_fields(wfjt, new_wfjt, self.identical_fields, self.unequal_fields)
         assert new_survey == old_survey
 
+    @pytest.mark.yolo
     def test_copy_wfjt_nodes(self, v2, factories, copy_with_teardown):
         # Create a forest of wfjt nodes
         wfjt = self.create_wfjt_with_nodes(v2, factories, num_nodes=4)

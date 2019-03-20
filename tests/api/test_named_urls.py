@@ -24,6 +24,7 @@ def make_api_url(resource_name, format_string, *params):
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestNamedURLs(APITest):
 
+    @pytest.mark.yolo
     def assert_resource_available_by_name(self, resource, named_url):
         # refetch the resource to get the latest vesrsion.
         resource.get()
@@ -46,6 +47,7 @@ class TestNamedURLs(APITest):
 
         assert resource.related.named_url == named_url
 
+    @pytest.mark.yolo
     def test_named_url_formats(self, v2):
         # If this test fails then the named url formats have changed, which is potentially
         # backwards incompatible and needs to be checked (i.e. have url formats changed

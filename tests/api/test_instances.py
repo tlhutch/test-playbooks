@@ -65,6 +65,7 @@ class TestInstances(APITest):
 
         job.wait_until_completed(timeout=120).assert_successful()
 
+    @pytest.mark.yolo
     def test_disabiling_instance_should_not_impact_currently_running_jobs(self, request, v2, factories,
                                                                           tower_version):
         ig = factories.instance_group()
@@ -83,6 +84,7 @@ class TestInstances(APITest):
         instance.enabled = False
         job.wait_until_completed().assert_successful()
 
+    @pytest.mark.yolo
     def test_disabiling_instance_should_set_capacity_to_zero(self, request, v2, factories):
         instance = v2.instances.get(rampart_groups__controller__isnull=True).results.pop()
         initial_mem_capacity = instance.mem_capacity

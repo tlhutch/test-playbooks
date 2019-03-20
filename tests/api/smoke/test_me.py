@@ -8,6 +8,7 @@ from tests.api import APITest
 class Test_Me(APITest):
     """Verify the /me endpoint displays the expected information based on the current user"""
 
+    @pytest.mark.yolo
     def test_get(self, api_me_pg, all_users, user_password):
         """Verify that the /api/v1/me endpoint returns the expected information
         when authenticated as various user types.

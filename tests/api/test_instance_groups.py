@@ -43,6 +43,7 @@ class TestInstanceGroups(APITest):
         assert ig.get().capacity == self.find_expected_capacity(ig)
         assert ig.consumed_capacity == self.find_expected_consumed_capacity(ig)
 
+    @pytest.mark.yolo
     def test_instance_group_capacity_should_update_for_added_instances(self, factories, active_instances):
         ig = factories.instance_group()
         assert ig.instances == 0
@@ -160,6 +161,7 @@ class TestInstanceGroups(APITest):
 
         self.check_resource_is_being_used(error, iu)
 
+    @pytest.mark.yolo
     def test_verify_tower_instance_group_is_a_partially_protected_group(self, tower_instance_group):
         instances = [instance for instance in tower_instance_group.related.instances.get().results]
 

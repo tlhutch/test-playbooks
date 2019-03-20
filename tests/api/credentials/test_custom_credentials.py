@@ -109,6 +109,7 @@ class TestCustomCredentials(APITest):
         assert ansible_env.EXTRA_VAR_FROM_FIELD_THREE == 'False'
         assert ansible_env.EXTRA_VAR_FROM_FIELD_FOUR == 'True'
 
+    @pytest.mark.yolo
     @pytest.mark.parametrize('injector_var',
                              [dict(extra_vars=dict(file_to_cat='{{ tower.filename }}')),
                               dict(env=dict(AP_FILE_TO_CAT='{{ tower.filename }}'))],
@@ -176,6 +177,7 @@ class TestCustomCredentials(APITest):
         assert job_events.results[0].event_data.res.cat1.stdout == one_contents
         assert job_events.results[1].event_data.res.cat2.stdout == two_contents
 
+    @pytest.mark.yolo
     def test_credential_creation_and_usage_dont_leak_fields_into_activity_stream(self, factories):
         inputs = dict(fields=[dict(id='field_one', label='FieldOne', secret=True),
                               dict(id='field_two', label='FieldTwo', secret=True)])

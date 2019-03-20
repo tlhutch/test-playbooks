@@ -123,6 +123,7 @@ class Test_Labels(APITest):
         with pytest.raises(exc.NotFound):
             label.get()
 
+    @pytest.mark.yolo
     def test_reference_delete_with_job_template_disassociation(self, job_template, another_job_template, label):
         """Tests that a label attached to JTs get reference deleted after getting disassociated with its last JT
         in the absence of jobs that use this label.
