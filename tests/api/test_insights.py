@@ -312,17 +312,17 @@ class TestInsightsAnalytics(APITest):
         sync_before = 0
         success_before = 0
         for h in counts['job_instance_counts'].keys():
-            sync_before += counts['job_instance_counts'][h].get('sync', 0)
-            success_before += counts['job_instance_counts'][h].get('successful', 0)
-        jt.launch()
+            sync_before += counts['job_instance_counts'][h]['status'].get('sync', 0)
+            success_before += counts['job_instance_counts'][h]['launch_type'].get('successful', 0)
+        jt.launch().wait_until_completed()
         counts = self.collect_stats(['job_instance_counts'], ansible_runner)
         sync_after = 0
         success_after = 0
         for h in counts['job_instance_counts'].keys():
-            sync_after += counts['job_instance_counts'][h].get('sync', 0)
-            success_after += counts['job_instance_counts'][h].get('successful', 0)
-        assert sync_before == sync_after
+            sync_after += counts['job_instance_counts'][h]['status'].get('sync', 0)
+            success_after += counts['job_instance_counts'][h]['launch_type'].get('successful', 0)
         assert success_after == success_before + 1
+        assert sync_before == sync_after
 
     @pytest.mark.ansible(host_pattern='tower[0]')
     def test_awxmanage_events_table_accurate(self, ansible_runner, factories, skip_if_not_rhel, analytics_enabled):
@@ -346,7 +346,7 @@ class TestInsightsAnalytics(APITest):
         with open(csv_file) as c:
             reader = csv.reader(c, delimiter='\t')
             for row in reader:
-                csv_uuids.add(row[6])
+                csv_uuids.add(row[2])
         for e in events:
             event_uuids.add(e['uuid'])
         assert csv_uuids == event_uuids
