@@ -34,7 +34,7 @@ As there are many issues, they have been put into an org level project
     - [x] Able to select what virtual environment an organization uses
        - [x] Confirm this is the virtual environment that an inventory update runs in that populates the inventory in this organization.
        - [x] Confirm that changing the venv at the org level also changes what venv the inventory update runs in.
-    - [ ] GCE
+    - [x] GCE
        - [x] Confirm plugin is used in virtual environments with ansible >= 2.8
        - [x] Confirm that script is used in venvs with ansible < 2.8
        - [x] Confirm that the inventory is populated with expected hosts
@@ -42,12 +42,12 @@ As there are many issues, they have been put into an org level project
        - [x] Assert critical groups present in compatiblity mode
        - [x] Confirm that the inventory update creates a usable inventory (manual because we need to know we connect to machine)
            * Ansible plugins should be tested by ansible core, but we need to confirm we are not mucking with output
-    - [ ] Azure
+    - [x] Azure
        - [x] Confirm plugin is used in virtual environments with ansible >= 2.8
        - [x] Confirm that script is used in venvs with ansible < 2.8
        - [x] Confirm that the inventory is populated with expected hosts
        - [x] Assert critical hostvars present in compatability mode
-       - [ ] Assert critical groups present in compatiblity mode -- done via source_vars as was done in scripts
+       - [x] Assert critical groups present in compatiblity mode -- done via source_vars as was done in scripts
     - [ ] EC2
        - [x] Confirm plugin is used in virtual environments with ansible >= 2.8
        - [x] Confirm that script is used in venvs with ansible < 2.8
@@ -55,13 +55,12 @@ As there are many issues, they have been put into an org level project
        - [x] Assert critical hostvars present in compatability mode
        - [x] Assert critical groups present in compatiblity mode
        - [ ] use AWS credential with an SCM inventory having an aws_ec2.yaml
-    - [ ] Tower
+    - [x] Tower
        - [x] Confirm plugin is used in virtual environments with ansible >= 2.8
        - [x] Confirm that script is used in venvs with ansible < 2.8
        - [x] Confirm that the inventory is populated with expected hosts
        - [x] Assert critical hostvars present in compatability mode
-       - [ ] Assert critical groups present in compatiblity mode
-    - [ ] Openstack
+    - [x] Openstack
        - [x] Confirm plugin is used in virtual environments with ansible >= 2.8
        - [x] Confirm that script is used in venvs with ansible < 2.8
        - [x] Confirm that the inventory is populated with expected hosts
