@@ -501,8 +501,15 @@ print(json.dumps({
         inv_update.assert_successful()
         assert inv_update.verbosity == inv_source.verbosity
         if verbosity == 0 and ansible_version_cmp('2.4.0') >= 1:
-            # https://github.com/ansible/awx/issues/792
-            assert inv_update.result_stdout == ''
+            if (ansible_version_cmp('2.8.0') >= 1):
+                for line in inv_update.result_stdout.split('\n'):
+                    if 'ERROR' in line:
+                        pass
+                    else:
+                        assert line == ''
+            else:
+                # https://github.com/ansible/awx/issues/792
+                assert inv_update.result_stdout == ''
         else:
             for line in stdout_lines:
                 assert line in inv_update.result_stdout
