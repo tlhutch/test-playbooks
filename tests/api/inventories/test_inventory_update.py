@@ -700,10 +700,9 @@ print(json.dumps({
 
         inv_update.assert_successful()
         assert inv_update.verbosity == inv_source.verbosity
-        if verbosity == 0 and (ansible_version_cmp('2.4.0') >= 1):
+        if verbosity == 0 and ansible_version_cmp('2.4.0') >= 1:
             if (ansible_version_cmp('2.8.0') >= 1):
                 for line in inv_update.result_stdout.split('\n'):
-                    # we get yelled at for unicode group names
                     if 'ERROR' in line:
                         pass
                     else:
