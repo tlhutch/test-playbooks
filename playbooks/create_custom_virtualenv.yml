@@ -34,7 +34,7 @@
 
         - name: Print packages to install
           debug:
-            msg: "Packages to install in venv: {{ venv_packages|default('python-memcached psutil (default packages)') }}"
+            msg: "Packages to install in venv: {{ venv_packages|default('psutil (default packages)') }}"
 
         - name: Install gcc (required by psutil) (EL-*)
           yum:
@@ -57,7 +57,7 @@
           when: ansible_pkg_mgr == 'apt'
 
         - name: Pip install required packages
-          command: "{{ venv_base }}/{{ venv_folder_name }}/bin/pip install -I -U {{ venv_packages|default('python-memcached psutil') }}"
+          command: "{{ venv_base }}/{{ venv_folder_name }}/bin/pip install -I -U {{ venv_packages|default('psutil') }}"
           when:
             - venv_packages != ''
             - not existing_folder.stat.exists

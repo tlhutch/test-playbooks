@@ -17,7 +17,7 @@ def format_ev(extra_vars):
     )
 
 
-def _run_create_venv_playbook(folder_name=None, limit='tower', packages='python-memcached psutil', use_python=None, docker=False, inv_path=''):
+def _run_create_venv_playbook(folder_name=None, limit='tower', packages='psutil', use_python=None, docker=False, inv_path=''):
     extra_vars = {
         'venv_folder_name': folder_name,
         'venv_packages': packages,
@@ -68,7 +68,7 @@ def create_venv(request, venv_path, is_docker):
     inv_path = request.config.getoption('--ansible-inventory')
 
     @contextmanager
-    def _create_venv(folder_name=None, packages='python-memcached psutil', cluster=False, use_python=None):
+    def _create_venv(folder_name=None, packages='psutil', cluster=False, use_python=None):
         if not folder_name:
             folder_name = random_title(non_ascii=False)
         limit = 'instance_group_ordinary_instances' if cluster else 'tower'
@@ -94,12 +94,12 @@ def shared_custom_venvs(request, venv_path, is_docker):
        CUSTOM_VENVS = [
            {
            'name': 'python2_ansible23',
-           'packages': 'psutil python-memcached ansible==2.3',
+           'packages': 'psutil ansible==2.3',
            'python_interpreter': 'python2'
            },
            {
            'name': 'python2_ansibledevel',
-           'packages': 'psutil python-memcached git+https://github.com/ansible/ansible.git',
+           'packages': 'psutil git+https://github.com/ansible/ansible.git',
            'python_interpreter': 'python2'
            },
            ]

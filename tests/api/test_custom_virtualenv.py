@@ -94,7 +94,7 @@ class TestCustomVirtualenv(APITest):
         if python_interpreter:
             folder_name.rstrip('/')
             folder_name += '_' + python_interpreter
-        packages = 'python-memcached psutil'
+        packages = 'psutil'
         if python_interpreter == 'python3':
             packages += ' ansible'
             contacted = ansible_adhoc()['tower[0]'].command('which python3')
@@ -117,7 +117,7 @@ class TestCustomVirtualenv(APITest):
         inventory = inv_src.ds.inventory
         org = inventory.ds.organization
         ansigit = 'git+https://github.com/ansible/ansible.git'
-        with create_venv(folder_name, 'python-memcached psutil {} linode_api4'.format(ansigit)):
+        with create_venv(folder_name, 'psutil {} linode_api4'.format(ansigit)):
             poll_until(lambda: venv_path(folder_name) in v2.config.get().custom_virtualenvs, interval=1, timeout=15)
             assert org.custom_virtualenv is None
             org.custom_virtualenv = venv_path(folder_name)
@@ -159,7 +159,7 @@ class TestCustomVirtualenv(APITest):
     @pytest.mark.parametrize('ansible_version', ['2.6.1', '2.5.6', '2.4.6.0', '2.3.3.0', '2.2.3.0'])
     def test_venv_with_ansible(self, v2, factories, create_venv, ansible_version, venv_path):
         folder_name = random_title(non_ascii=False)
-        with create_venv(folder_name, 'python-memcached psutil ansible=={}'.format(ansible_version)):
+        with create_venv(folder_name, 'psutil ansible=={}'.format(ansible_version)):
             poll_until(lambda: venv_path(folder_name) in v2.config.get().custom_virtualenvs, interval=1, timeout=15)
             jt = factories.v2_job_template(playbook='run_command.yml', extra_vars='{"command": "ansible --version"}')
             jt.ds.inventory.add_host()
@@ -187,7 +187,7 @@ class TestCustomVirtualenv(APITest):
             job = jt.launch().wait_until_completed()
             assert job.status == 'failed'
             assert job.job_explanation == ''
-            possible_error_msgs = ['{0} is missing; {2}/{1}/bin/pip install {0}'.format(pkg, folder_name, venv_root) for pkg in ('psutil', 'python-memcached')]
+            possible_error_msgs = ['{0} is missing; {2}/{1}/bin/pip install {0}'.format(pkg, folder_name, venv_root) for pkg in ('psutil',)]
             assert any(msg in job.result_stdout for msg in possible_error_msgs), (
                 'Could not find any of {} in job standard out: \n{}'.format(possible_error_msgs, job.result_stdout)
             )
@@ -333,12 +333,12 @@ class TestCustomVirtualenv(APITest):
 CUSTOM_VENVS = [
                 {
                 'name': 'python2_ansible23',
-                'packages': 'psutil python-memcached ansible==2.3',
+                'packages': 'psutil ansible==2.3',
                 'python_interpreter': 'python2'
                 },
                 {
                 'name': 'python2_ansibledevel',
-                'packages': 'psutil python-memcached git+https://github.com/ansible/ansible.git',
+                'packages': 'psutil git+https://github.com/ansible/ansible.git',
                 'python_interpreter': 'python2'
                 },
                 ]
