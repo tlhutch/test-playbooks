@@ -65,6 +65,30 @@ def k8s_conjur(gke_client_cscope, request):
     except:
         pytest.skip('Unable to get API Key')
 
+    def create_conjur_secrets(token, secret_id, var_value_tuples=[]):
+        policy_body = '\n    - !variable '.join([v[0] for v in var_value_tuples])
+        policy = '- !policy\n  id: {}\n  body:\n    - !variable {}'.format(secret_id, policy_body)
+        path = urljoin(conjur_url, '/'.join([
+            'policies', account, 'policy', 'root'
+        ]))
+        resp = requests.put(
+            path,
+            data=policy,
+            headers={'Authorization': 'Token token="{}"'.format(token)}
+        )
+        resp.raise_for_status()
+        for v in var_value_tuples:
+
+            # set a secret variable value
+            path = urljoin(conjur_url, '/'.join([
+                'secrets', account, 'variable', '{}/{}'.format(secret_id, v[0])
+            ]))
+            resp = requests.post(
+                path,
+                data=v[1],
+                headers={'Authorization': 'Token token="{}"'.format(token)}
+            )
+            resp.raise_for_status()
     try:
         account = 'test'
         username = 'admin'
@@ -75,29 +99,11 @@ def k8s_conjur(gke_client_cscope, request):
         )
         token = base64.b64encode(resp.content).decode('utf-8')
         resp.raise_for_status()
+        create_conjur_secrets(token, 'super', var_value_tuples=[('secret', 'CLASSIFIED'),
+                                                          ('vault_1', 'secret1'),
+                                                          ('vault_2', 'secret2'),
+                                                          ])
 
-        # set a variable policy
-        policy = '- !policy\n  id: super\n  body:\n    - !variable secret'
-        path = urljoin(conjur_url, '/'.join([
-            'policies', account, 'policy', 'root'
-        ]))
-        resp = requests.put(
-            path,
-            data=policy,
-            headers={'Authorization': 'Token token="{}"'.format(token)}
-        )
-        resp.raise_for_status()
-
-        # set a secret variable value
-        path = urljoin(conjur_url, '/'.join([
-            'secrets', account, 'variable', 'super/secret'
-        ]))
-        resp = requests.post(
-            path,
-            data='CLASSIFIED',
-            headers={'Authorization': 'Token token="{}"'.format(token)}
-        )
-        resp.raise_for_status()
     except:
         pytest.skip('Unable to populate conjur')
     conjur_info = {'url': conjur_url, 'api_key': api_key}
