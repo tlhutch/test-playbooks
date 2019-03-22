@@ -15,7 +15,7 @@ from tests.api import APITest
 CUSTOM_VENVS = [
                 {
                 'name': 'python3_ansible_devel',
-                'packages': 'psutil python-memcached git+https://github.com/ansible/ansible@devel#egg=ansible_devel openstacksdk libcloud_api boto3 boto botocore requests>=2.18.4 google-auth>=1.3.0 openstacksdk azure>=2.0.0',
+                'packages': 'psutil git+https://github.com/ansible/ansible@devel#egg=ansible_devel openstacksdk boto botocore requests>=2.18.4 google-auth>=1.3.0 openstacksdk azure>=2.0.0',
                 'python_interpreter': 'python3'
                 },
                 ]
