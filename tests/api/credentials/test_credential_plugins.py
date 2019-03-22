@@ -47,6 +47,7 @@ def k8s_conjur(gke_client_cscope, request):
     K8sClient.apps.create_namespaced_deployment(body=conjur_deployment, namespace='default')
     K8sClient.core.create_namespaced_service(body=conjur_service, namespace='default')
     pod_name = K8sClient.core.list_namespaced_pod('default', label_selector='run={}'.format(deployment_name)).items[0].metadata.name
+    request.addfinalizer(lambda: K8sClient.destroy(deployment_name))
     utils.logged_sleep(60) # Sleeping for conjur to initialize the database. This will happen only once for the class.
     api_key = None
     conjur_url = "https://http-{}-port-80.{}".format(deployment_name, cluster_domain)
@@ -62,7 +63,7 @@ def k8s_conjur(gke_client_cscope, request):
                              tty=False)
         api_key = re.search(r'API key for admin: ([^\s]+)', deploy_info).group(1)
     except:
-        pass # Passing because we want the teardown to run
+        pytest.skip('Unable to get API Key')
 
     try:
         account = 'test'
@@ -98,10 +99,9 @@ def k8s_conjur(gke_client_cscope, request):
         )
         resp.raise_for_status()
     except:
-        pass # Passing because we want the teardown to run
+        pytest.skip('Unable to populate conjur')
     conjur_info = {'url': conjur_url, 'api_key': api_key}
-    yield conjur_info
-    K8sClient.destroy(deployment_name)
+    return conjur_info
 
 
 @pytest.mark.api
@@ -175,7 +175,7 @@ class TestConjurCredential(APITest):
         assert 'requests.exceptions.HTTPError: 404 Client Error' in job.result_traceback
 
     def test_conjur_secret_bad_url(self, factories, v2, k8s_conjur):
-        job = self.launch_job(factories, v2, '', url='http://missing.local:8200')
+        job = self.launch_job(factories, v2, '', url='http://missing.local:8200', api_key=k8s_conjur['api_key'])
         assert not job.is_successful
         assert 'Failed to establish a new connection: [Errno -2] Name or service not known' in job.result_traceback
 
@@ -219,6 +219,7 @@ def k8s_vault(gke_client_cscope, request):
     K8sClient.apps.create_namespaced_deployment(body=vault_deployment, namespace='default')
     K8sClient.core.create_namespaced_service(body=vault_service, namespace='default')
     vault_url = "https://http-{}-port-1234.{}".format(deployment_name, cluster_domain)
+    request.addfinalizer(lambda: K8sClient.destroy(deployment_name))
 
     sess = requests.Session()
     sess.headers['Authorization'] = 'Bearer {}'.format(config.credentials.hashivault.token)
@@ -286,8 +287,7 @@ def k8s_vault(gke_client_cscope, request):
 
     # ...and restart the SSH service.
     public_key = resp.json()['data']['public_key']  # noqa
-    yield vault_url
-    K8sClient.destroy(deployment_name)
+    return vault_url
 
 
 @pytest.mark.api
