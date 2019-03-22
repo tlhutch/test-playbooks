@@ -187,7 +187,7 @@ class TestCustomVirtualenv(APITest):
             job = jt.launch().wait_until_completed()
             assert job.status == 'failed'
             assert job.job_explanation == ''
-            possible_error_msgs = ['{0} is missing; {2}/{1}/bin/pip install {0}'.format(pkg, folder_name, venv_root) for pkg in ('psutil',)]
+            possible_error_msgs = ['ERROR! Unexpected Exception, this is probably a bug: No module named {0}'.format(pkg) for pkg in ('psutil',)]
             assert any(msg in job.result_stdout for msg in possible_error_msgs), (
                 'Could not find any of {} in job standard out: \n{}'.format(possible_error_msgs, job.result_stdout)
             )
