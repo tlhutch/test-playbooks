@@ -325,8 +325,7 @@ class TestSCMInventorySource(APITest):
         assert project.related.project_updates.get(launch_type='sync').count == 2
         assert inv_source.related.inventory_updates.get().count == 2
 
-    # @pytest.mark.github('https://github.com/ansible/tower-qa/issues/2326', skip=True)
-    @pytest.mark.flaky(reruns=3, reruns_delay=30)
+    @pytest.mark.github('https://github.com/ansible/tower-qa/issues/2326', skip=True)
     @pytest.mark.mp_group('ProjectUpdateWithSCMChange', 'serial')
     def test_cancel_shared_parent_project_update_after_source_change(self, factories, write_access_git_credential):
         project = factories.v2_project(scm_url='https://github.com/rmfitzpatrick/ansible-playbooks.git',
@@ -364,8 +363,7 @@ class TestSCMInventorySource(APITest):
 
         assert project.get().status == 'canceled'
 
-    # @pytest.mark.github('https://github.com/ansible/tower-qa/issues/2432', skip=True)
-    @pytest.mark.flaky(reruns=3, reruns_delay=30)
+    @pytest.mark.github('https://github.com/ansible/tower-qa/issues/2432', skip=True)
     @pytest.mark.ansible_integration
     def test_custom_credential_affects_ansible_env_of_scm_inventory(self, factories,
                                                                     scm_inv_source_with_group_and_host_var_dirs):

@@ -18,7 +18,6 @@ pycrypto
 pytest
 pytest-benchmark
 pytest-ordering
-pytest-rerunfailures
 python-dateutil
 pytz
 requests
