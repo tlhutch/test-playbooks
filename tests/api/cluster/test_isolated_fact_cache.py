@@ -19,7 +19,7 @@ class TestIsolatedFactCache(APITest):
 
     def assert_job_ran_on_isolated_node(self, ansible_facts):
         assert ansible_facts.ansible_env.ANSIBLE_CALLBACK_PLUGINS == \
-            '/var/lib/awx/venv/awx/lib/python2.7/site-packages/awx/lib/isolated_callbacks'
+            '/usr/lib/python2.7/site-packages/ansible_runner/callbacks'
         assert ansible_facts.ansible_env.AWX_ISOLATED_DATA_DIR == ansible_facts.ansible_env.AWX_PRIVATE_DATA_DIR
 
     def test_ingest_facts_with_gather_facts_on_isolated_node(self, factories, isolated_instance_group):
