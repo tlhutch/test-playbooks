@@ -17,6 +17,10 @@
 """
 This script takes two junit files, and override the results from the test ids
 found in the second one onto the other one.
+
+The current pattern to run pytest is to run pytest, sleep and then rerun
+pytest --lf. Each pytest call generates its own junit output file. Goal of
+this script is to update first output with status of second output
 """
 
 import sys
