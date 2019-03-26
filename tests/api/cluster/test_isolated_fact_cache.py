@@ -17,11 +17,6 @@ class TestIsolatedFactCache(APITest):
         assert ansible_facts.ansible_machine == 'x86_64'
         assert ansible_facts.ansible_system == 'Linux'
 
-    def assert_job_ran_on_isolated_node(self, ansible_facts):
-        assert ansible_facts.ansible_env.ANSIBLE_CALLBACK_PLUGINS == \
-            '/usr/lib/python2.7/site-packages/ansible_runner/callbacks'
-        assert ansible_facts.ansible_env.AWX_ISOLATED_DATA_DIR == ansible_facts.ansible_env.AWX_PRIVATE_DATA_DIR
-
     def test_ingest_facts_with_gather_facts_on_isolated_node(self, factories, isolated_instance_group):
         host = factories.v2_host()
         ansible_facts = host.related.ansible_facts.get()
@@ -29,11 +24,14 @@ class TestIsolatedFactCache(APITest):
 
         jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='gather_facts.yml', use_fact_cache=True)
         jt.add_instance_group(isolated_instance_group)
-        jt.launch().wait_until_completed().assert_successful()
+        job = jt.launch()
+        job.wait_until_completed().assert_successful()
 
         ansible_facts = host.related.ansible_facts.get()
         self.assert_updated_facts(ansible_facts)
-        self.assert_job_ran_on_isolated_node(ansible_facts)
+        assert job.execution_node in [
+            instance.hostname for instance in isolated_instance_group.related.instances.get().results
+        ]
 
     def test_consume_facts_with_multiple_hosts_on_isolated_node(self, factories, isolated_instance_group):
         inventory = factories.v2_inventory()
@@ -42,9 +40,12 @@ class TestIsolatedFactCache(APITest):
 
         jt = factories.v2_job_template(inventory=hosts[0].ds.inventory, playbook='gather_facts.yml', use_fact_cache=True)
         jt.add_instance_group(isolated_instance_group)
-        jt.launch().wait_until_completed().assert_successful()
+        job = jt.launch()
+        job.wait_until_completed().assert_successful()
         self.assert_updated_facts(ansible_facts.get())
-        self.assert_job_ran_on_isolated_node(ansible_facts)
+        assert job.execution_node in [
+            instance.hostname for instance in isolated_instance_group.related.instances.get().results
+        ]
 
         jt.patch(playbook='use_facts.yml', job_tags='ansible_facts')
         job = jt.launch().wait_until_completed()
@@ -59,10 +60,13 @@ class TestIsolatedFactCache(APITest):
 
         jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='gather_facts.yml', use_fact_cache=True)
         jt.add_instance_group(isolated_instance_group)
-        jt.launch().wait_until_completed().assert_successful()
+        job = jt.launch()
+        job.wait_until_completed().assert_successful()
         ansible_facts = host.related.ansible_facts.get()
         self.assert_updated_facts(ansible_facts)
-        self.assert_job_ran_on_isolated_node(ansible_facts)
+        assert job.execution_node in [
+            instance.hostname for instance in isolated_instance_group.related.instances.get().results
+        ]
 
         jt.playbook = 'clear_facts.yml'
         jt.launch().wait_until_completed().assert_successful()
