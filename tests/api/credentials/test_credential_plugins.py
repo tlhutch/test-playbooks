@@ -599,11 +599,10 @@ class TestHashiCorpSSHEngine(APITest):
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestAzureKVCredentials(APITest):
 
-    def launch_job(self, factories, v2, url, secret_field, version=None):
-        # create a credential w/ a azure creds
+    def create_azurekv_credential(self, factories, v2, url):
         cred_type = v2.credential_types.get(
-            managed_by_tower=True,
-            name='Microsoft Azure Key Vault'
+        managed_by_tower=True,
+        name='Microsoft Azure Key Vault'
         ).results.pop()
         inputs = {
             'url': url,
@@ -617,7 +616,10 @@ class TestAzureKVCredentials(APITest):
             credential_type=cred_type,
             inputs=inputs
         )
-        azure_credential = v2.credentials.post(payload)
+        return v2.credentials.post(payload)
+
+    def launch_job(self, factories, v2, url, secret_field, version=None):
+        azure_credential = self.create_azurekv_credential(factories, v2, 'https://qecredplugin.vault.azure.net/')
 
         # create an SSH credential
         cred_type = v2.credential_types.get(managed_by_tower=True, kind='ssh').results.pop()
