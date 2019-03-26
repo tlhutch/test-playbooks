@@ -204,7 +204,7 @@ class TestConjurCredential(APITest):
         assert not job.is_successful
         assert 'requests.exceptions.HTTPError: 401 Client Error: Unauthorized' in job.result_traceback
 
-    def test_conjur_secret_can_decrypt_vault(self, factories, v2, k8s_conjur):
+    def test_conjur_secret_can_decrypt_ansible_vault(self, factories, v2, k8s_conjur):
         secrets = [('first', 'super/vault_1'), ('second', 'super/vault_2')]
         conjur_credential = self.create_conjur_credential(factories, v2, url=k8s_conjur['url'], api_key=k8s_conjur['api_key'], account='test', username='admin')
         jt = factories.v2_job_template(playbook='multivault.yml')
@@ -466,7 +466,7 @@ class TestHashiCorpVaultCredentials(APITest):
         assert not job.is_successful
         assert '403 Client Error: Forbidden' in job.result_traceback
 
-    def test_hashicorp_vault_secret_can_decrypt_vault(self, factories, v2, k8s_vault):
+    def test_hashicorp_vault_secret_can_decrypt_ansible_vault(self, factories, v2, k8s_vault):
         secrets = [('first', 'vault_1'), ('second', 'vault_2')]
         vault_credential = self.create_hashicorp_vault_credential(factories, v2, k8s_vault, config.credentials.hashivault.token, 'v1')
         jt = factories.v2_job_template(playbook='multivault.yml')
@@ -675,3 +675,29 @@ class TestAzureKVCredentials(APITest):
                           'incorrect-version')
         assert job.is_successful is False
         assert 'KeyVaultErrorException' in job.result_traceback
+
+    def test_azure_key_vault_cred_can_decrypt_ansible_vault(self, factories, v2):
+        jt = factories.v2_job_template(playbook='multivault.yml')
+        azure_credential = self.create_azurekv_credential(factories, v2, 'https://qecredplugin.vault.azure.net/')
+        for s in [('first', 'vault1'), ('second', 'vault2')]:
+            cred_type = v2.credential_types.get(managed_by_tower=True, kind='vault').results.pop()
+            payload = factories.v2_credential.payload(
+                name=fauxfactory.gen_utf8(),
+                description=fauxfactory.gen_utf8(),
+                credential_type=cred_type,
+                inputs={'vault_id': s[0]}
+            )
+            credential = v2.credentials.post(payload)
+
+            # associate cred.username -> azure_credential
+            metadata = {
+                'secret_field': s[1],
+            }
+            credential.related.input_sources.post(dict(
+                input_field_name='vault_password',
+                source_credential=azure_credential.id,
+                metadata=metadata,
+            ))
+            jt.add_credential(credential)
+        job = jt.launch().wait_until_completed()
+        assert job.is_successful
