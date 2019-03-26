@@ -100,8 +100,8 @@ class Test_Organizations(APITest):
         inv2 = factories.v2_inventory(organization=org)
         factories.v2_host(name=hosts[1].name, inventory=inv2)
         utils.logged_sleep(5)
-        assert inv.get().total_hosts == 2
-        assert inv2.get().total_hosts == 1
+        assert inv.get_related('hosts').count == 2
+        assert inv2.get_related('hosts').count == 1
         host_set = set()
         for i in org.get().related.inventories.get().results:
             for h in i.related.hosts.get().results:
