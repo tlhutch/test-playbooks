@@ -135,6 +135,26 @@ class TestConjurCredential(APITest):
         )
         return v2.credentials.post(payload)
 
+    def create_conjur_machine_credential(self, factories, v2, conjur_credential):
+        cred_type = v2.credential_types.get(managed_by_tower=True, kind='ssh').results.pop()
+        payload = factories.v2_credential.payload(
+            name=fauxfactory.gen_utf8(),
+            description=fauxfactory.gen_utf8(),
+            credential_type=cred_type
+        )
+        credential = v2.credentials.post(payload)
+
+        # associate cred.username -> conjur_cred
+        metadata = {
+            'secret_path': 'super/secret',
+        }
+        credential.related.input_sources.post(dict(
+            input_field_name='username',
+            source_credential=conjur_credential.id,
+            metadata=metadata
+        ))
+        return credential
+
     def launch_job(self, factories, v2, path, secret_version=None,
                    url=None, api_key=None, account=None, username=None):
 
@@ -252,6 +272,29 @@ class TestConjurCredential(APITest):
 
         hostvars = job.related.job_events.get(host=host.id, task='debug', event__startswith='runner_on_ok').results.pop().event_data.res.hostvars
         assert hostvars[host.name]['extra_var_from_field_one'] == 'CLASSIFIED'
+
+    def test_conjur_RBAC_users_can_be_assigned_use_on_credentials(self, factories, v2, k8s_conjur):
+        conjur_credential = self.create_conjur_credential(factories, v2, url=k8s_conjur['url'], api_key=k8s_conjur['api_key'], account='test', username='admin')
+        org = factories.v2_organization()
+        user = factories.user(organization=org)
+
+        # create an SSH credential
+        credential = self.create_conjur_machine_credential(factories, v2, conjur_credential)
+        credential.patch(organization=org.id)
+        credential.set_object_roles(user, 'use')
+
+        jt = factories.v2_job_template()
+        resources = ['inventory', 'credential', 'project']
+        for r in resources:
+            jt.ds[r].patch(organization=org.id)
+            jt.ds[r].set_object_roles(user, 'use')
+        jt.set_object_roles(user, 'admin')
+        utils.logged_sleep(5)
+
+        with self.current_user(username=user.username, password=user.password):
+            jt.patch(credential=credential.id)
+            job = jt.launch().wait_until_completed()
+        assert job.is_successful
 
 
 @pytest.fixture(scope='class')
