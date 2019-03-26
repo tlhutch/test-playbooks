@@ -229,6 +229,30 @@ class TestConjurCredential(APITest):
         job = jt.launch().wait_until_completed()
         assert job.is_successful
 
+    def test_conjur_custom_credential(self, factories, v2, k8s_conjur):
+        conjur_credential = self.create_conjur_credential(factories, v2, url=k8s_conjur['url'], api_key=k8s_conjur['api_key'], account='test', username='admin')
+        inputs = dict(fields=[dict(id='field_one', label='FieldOne', secret=True)])
+        injectors = dict(extra_vars=dict(extra_var_from_field_one='{{ field_one }}'))
+        credential_type = factories.credential_type(inputs=inputs, injectors=injectors)
+
+        credential = factories.v2_credential(credential_type=credential_type)
+        metadata = {
+            'secret_path': 'super/secret',
+        }
+        credential.related.input_sources.post(dict(
+            input_field_name='field_one',
+            source_credential=conjur_credential.id,
+            metadata=metadata
+            ))
+        host = factories.v2_host()
+        jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='debug_hostvars.yml')
+        jt.add_extra_credential(credential)
+        job = jt.launch().wait_until_completed()
+        job.assert_successful()
+
+        hostvars = job.related.job_events.get(host=host.id, task='debug', event__startswith='runner_on_ok').results.pop().event_data.res.hostvars
+        assert hostvars[host.name]['extra_var_from_field_one'] == 'CLASSIFIED'
+
 
 @pytest.fixture(scope='class')
 def k8s_vault(gke_client_cscope, request):
@@ -491,6 +515,31 @@ class TestHashiCorpVaultCredentials(APITest):
             jt.add_credential(credential)
         job = jt.launch().wait_until_completed()
         assert job.is_successful
+
+    def test_hashicorp_vault_custom_credential(self, factories, v2, k8s_vault):
+        vault_credential = self.create_hashicorp_vault_credential(factories, v2, k8s_vault, config.credentials.hashivault.token, 'v1')
+        inputs = dict(fields=[dict(id='field_one', label='FieldOne', secret=True)])
+        injectors = dict(extra_vars=dict(extra_var_from_field_one='{{ field_one }}'))
+        credential_type = factories.credential_type(inputs=inputs, injectors=injectors)
+
+        credential = factories.v2_credential(credential_type=credential_type)
+        metadata = {
+            'secret_path': 'example-user',
+            'secret_key': 'username'
+        }
+        credential.related.input_sources.post(dict(
+            input_field_name='field_one',
+            source_credential=vault_credential.id,
+            metadata=metadata
+            ))
+        host = factories.v2_host()
+        jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='debug_hostvars.yml')
+        jt.add_extra_credential(credential)
+        job = jt.launch().wait_until_completed()
+        job.assert_successful()
+
+        hostvars = job.related.job_events.get(host=host.id, task='debug', event__startswith='runner_on_ok').results.pop().event_data.res.hostvars
+        assert hostvars[host.name]['extra_var_from_field_one'] == 'CLASSIFIED'
 
 
 @pytest.mark.api
