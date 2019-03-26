@@ -209,7 +209,9 @@ class TestInventoryUpdateWithVenvs(APITest):
         inv_update.assert_successful()
         # There is a bug with old imports https://github.com/ansible/awx/issues/3448
         # we have chosen to ignore it
-        azure_bug = True if ansible_version_cmp('2.8.0') < 1 else False
+        # TODO: when Azure_rm plugin is enabled, add this back in
+        # azure_bug = True if ansible_version_cmp('2.8.0') < 1 else False
+        azure_bug = True
         constructed_groups = assert_expected_hostvars(inv_source, inv_update, cloud_inventory_hostvars, cloud_hostvars_that_create_groups, azure_bug)
         assert_expected_hostgroups(inv_source, inv_update, cloud_inventory_hostgroups, constructed_groups)
         assert_expected_hostnames(inv_source, cloud_hostvars_that_create_host_names)
