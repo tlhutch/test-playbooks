@@ -51,7 +51,7 @@ pipeline {
                 color: "good",
                 teamDomain: "ansible",
                 channel: "#cici",
-                message: "${TOWER_BRANCH} is <$JENKINS_BLUE_URL/$BUILD_NUMBER|Job Dun>"
+                message: "${TOWER_BRANCH} is <${env.RUN_DISPLAY_URL}|Job Dun>"
             )
         }
     }
