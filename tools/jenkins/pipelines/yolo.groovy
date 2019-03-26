@@ -92,7 +92,7 @@ pipeline {
             name: 'PLATFORM',
             description: 'The OS to install the Tower instance on',
             choices: ['rhel-7.6-x86_64', 'rhel-7.5-x86_64', 'rhel-7.4-x86_64',
-                      'ol-7.6-x86_64', 'centos-7.latest-x86_64',
+                      'rhel-8.0-x86_64', 'ol-7.6-x86_64', 'centos-7.latest-x86_64',
                       'ubuntu-16.04-x86_64', 'ubuntu-14.04-x86_64']
         )
         choice(
@@ -114,6 +114,14 @@ pipeline {
                         NIGHTLY_REPO_DIR = 'devel'
                     } else {
                         NIGHTLY_REPO_DIR = "tower_${params.TOWER_BRANCH}_packaging_${params.TOWER_PACKAGING_BRANCH}"
+                    }
+
+                    if (params.PLATFORM == 'rhel-8.0-x86_64') {
+                        target_dist = 'epel-8-x86_64'
+                        mock_cfg = 'rhel-8-x86_64'
+                    } else {
+                        target_dist = 'epel-7-x86_64'
+                        mock_cfg = 'rhel-7-x86_64'
                     }
                 }
             }
@@ -193,6 +201,14 @@ pipeline {
                                 name: 'NIGHTLY_REPO_DIR',
                                 value: NIGHTLY_REPO_DIR
                             ),
+                            string(
+                                name: 'TARGET_DIST',
+                                value: target_dist
+                            ),
+                            string(
+                                name: 'MOCK_CFG',
+                                value: mock_cfg
+                            ),
                             booleanParam(
                                 name: 'TRIGGER',
                                 value: false
@@ -212,41 +228,61 @@ pipeline {
 
             steps {
                 script {
-                    if (params.SCENARIO == 'standalone') {
-                        INSTALL_JOB_NAME='Test_Tower_Install_Plain'
+                    if (params.PLATFORM == 'rhel-8.0-x86_64') {
+                        install_build = build(
+                            job: 'rhel8/Install And Integration RHEL8',
+                            parameters: [
+                                string(
+                                    name: 'SCENARIO',
+                                    value: params.SCENARIO
+                                ),
+                                string(
+                                    name: 'TOWERQA_BRANCH',
+                                    value: "origin/${params.TOWER_QA_BRANCH}"
+                                ),
+                                string(
+                                    name: 'INSTANCE_NAME_PREFIX',
+                                    value: "yolo-build-${env.BUILD_ID}"
+                                )
+                            ]
+                        )
                     } else {
-                        INSTALL_JOB_NAME='Test_Tower_Install_Cluster_Plain'
-                    }
+                        if (params.SCENARIO == 'standalone') {
+                            INSTALL_JOB_NAME='Test_Tower_Install_Plain'
+                        } else {
+                            INSTALL_JOB_NAME='Test_Tower_Install_Cluster_Plain'
+                        }
 
-                    install_build = build(
-                        job: INSTALL_JOB_NAME,
-                        parameters: [
-                            string(
-                                name: 'INSTANCE_NAME_PREFIX',
-                                value: "yolo-build-${env.BUILD_ID}"
-                            ),
-                            string(
-                                name: 'AW_REPO_URL',
-                                value: "${AWX_NIGHTLY_REPO_URL}/${NIGHTLY_REPO_DIR}"
-                            ),
-                            string(
-                                name: 'TOWERQA_GIT_BRANCH',
-                                value: "origin/${params.TOWER_QA_BRANCH}"
-                            ),
-                            string(
-                                name: 'PLATFORM',
-                                value: "${params.PLATFORM}"
-                            ),
-                            string(
-                                name: 'ANSIBLE_NIGHTLY_BRANCH',
-                                value: "${params.ANSIBLE_NIGHTLY_BRANCH}"
-                            ),
-                            booleanParam(
-                                name: 'TRIGGER',
-                                value: false
-                            )
-                        ]
-                    )
+                        install_build = build(
+                            job: INSTALL_JOB_NAME,
+                            parameters: [
+                                string(
+                                    name: 'INSTANCE_NAME_PREFIX',
+                                    value: "yolo-build-${env.BUILD_ID}"
+                                ),
+                                string(
+                                    name: 'AW_REPO_URL',
+                                    value: "${AWX_NIGHTLY_REPO_URL}/${NIGHTLY_REPO_DIR}"
+                                ),
+                                string(
+                                    name: 'TOWERQA_GIT_BRANCH',
+                                    value: "origin/${params.TOWER_QA_BRANCH}"
+                                ),
+                                string(
+                                    name: 'PLATFORM',
+                                    value: "${params.PLATFORM}"
+                                ),
+                                string(
+                                    name: 'ANSIBLE_NIGHTLY_BRANCH',
+                                    value: "${params.ANSIBLE_NIGHTLY_BRANCH}"
+                                ),
+                                booleanParam(
+                                    name: 'TRIGGER',
+                                    value: false
+                                )
+                            ]
+                        )
+                    }
                     TOWER_INSTALL_BUILD_ID = install_build.getId()
                 }
             }
