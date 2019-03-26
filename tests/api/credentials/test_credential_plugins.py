@@ -115,9 +115,7 @@ def k8s_conjur(gke_client_cscope, request):
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestConjurCredential(APITest):
 
-    def launch_job(self, factories, v2, path, secret_version=None,
-                   url=None, api_key=None, account=None, username=None):
-
+    def create_conjur_credential(self, factories, v2, url, api_key, account, username):
         # create a credential w/ a conjur api_key
         cred_type = v2.credential_types.get(
             managed_by_tower=True,
@@ -135,7 +133,12 @@ class TestConjurCredential(APITest):
             credential_type=cred_type,
             inputs=inputs
         )
-        conjur_credential = v2.credentials.post(payload)
+        return v2.credentials.post(payload)
+
+    def launch_job(self, factories, v2, path, secret_version=None,
+                   url=None, api_key=None, account=None, username=None):
+
+        conjur_credential = self.create_conjur_credential(factories, v2, url=url, api_key=api_key, account=account, username=username)
 
         # create an SSH credential
         cred_type = v2.credential_types.get(managed_by_tower=True, kind='ssh').results.pop()
@@ -200,6 +203,31 @@ class TestConjurCredential(APITest):
                               account=api_key_permutations['account'], username=api_key_permutations['username'])
         assert not job.is_successful
         assert 'requests.exceptions.HTTPError: 401 Client Error: Unauthorized' in job.result_traceback
+
+    def test_conjur_secret_can_decrypt_vault(self, factories, v2, k8s_conjur):
+        secrets = [('first', 'super/vault_1'), ('second', 'super/vault_2')]
+        conjur_credential = self.create_conjur_credential(factories, v2, url=k8s_conjur['url'], api_key=k8s_conjur['api_key'], account='test', username='admin')
+        jt = factories.v2_job_template(playbook='multivault.yml')
+        for s in secrets:
+            cred_type = v2.credential_types.get(managed_by_tower=True, kind='vault').results.pop()
+            payload = factories.v2_credential.payload(
+                name=fauxfactory.gen_utf8(),
+                description=fauxfactory.gen_utf8(),
+                credential_type=cred_type,
+                inputs={'vault_id': s[0]}
+            )
+            credential = v2.credentials.post(payload)
+            metadata = {
+                'secret_path': s[1],
+            }
+            credential.related.input_sources.post(dict(
+                input_field_name='vault_password',
+                source_credential=conjur_credential.id,
+                metadata=metadata
+            ))
+            jt.add_credential(credential)
+        job = jt.launch().wait_until_completed()
+        assert job.is_successful
 
 
 @pytest.fixture(scope='class')
@@ -285,6 +313,13 @@ def k8s_vault(gke_client_cscope, request):
     # read the generated public key
     resp = sess.get('{}/v1/my-signer/config/ca'.format(vault_url))
 
+    # add ansible vault secrets
+    secrets = [('vault_1', 'secret1'), ('vault_2', 'secret2')]
+    for s in secrets:
+        sess.post('{}/v1/kv/{}'.format(vault_url, s[0]), json={
+            "password": s[1]
+        })
+
     #
     # On a _managed host_ that we intend to SSH into, add the public_key
     # /etc/ssh/sshd_config
@@ -300,6 +335,24 @@ def k8s_vault(gke_client_cscope, request):
 @pytest.mark.destructive
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestHashiCorpVaultCredentials(APITest):
+
+    def create_hashicorp_vault_credential(self, factories, v2, url, token, api_version):
+        cred_type = v2.credential_types.get(
+            managed_by_tower=True,
+            name='HashiCorp Vault Secret Lookup'
+        ).results.pop()
+        inputs = {
+            'url': url,
+            'token': token,
+            'api_version': api_version
+        }
+        payload = factories.v2_credential.payload(
+            name=fauxfactory.gen_utf8(),
+            description=fauxfactory.gen_utf8(),
+            credential_type=cred_type,
+            inputs=inputs
+        )
+        return v2.credentials.post(payload)
 
     def launch_job(self, factories, v2, api_version, secret_version, path, url=None,
                     token=config.credentials.hashivault.token, secret_key='username'):
@@ -320,7 +373,7 @@ class TestHashiCorpVaultCredentials(APITest):
             credential_type=cred_type,
             inputs=inputs
         )
-        hashi_credential = v2.credentials.post(payload)
+        hashi_credential = self.create_hashicorp_vault_credential(factories, v2, url, token, api_version)
 
         # create an SSH credential
         cred_type = v2.credential_types.get(managed_by_tower=True, kind='ssh').results.pop()
@@ -412,6 +465,32 @@ class TestHashiCorpVaultCredentials(APITest):
                           token='totally-incorrect-token')
         assert not job.is_successful
         assert '403 Client Error: Forbidden' in job.result_traceback
+
+    def test_hashicorp_vault_secret_can_decrypt_vault(self, factories, v2, k8s_vault):
+        secrets = [('first', 'vault_1'), ('second', 'vault_2')]
+        vault_credential = self.create_hashicorp_vault_credential(factories, v2, k8s_vault, config.credentials.hashivault.token, 'v1')
+        jt = factories.v2_job_template(playbook='multivault.yml')
+        for s in secrets:
+            cred_type = v2.credential_types.get(managed_by_tower=True, kind='vault').results.pop()
+            payload = factories.v2_credential.payload(
+                name=fauxfactory.gen_utf8(),
+                description=fauxfactory.gen_utf8(),
+                credential_type=cred_type,
+                inputs={'vault_id': s[0]}
+            )
+            credential = v2.credentials.post(payload)
+            metadata = {
+                'secret_path': s[1],
+                'secret_key': 'password'
+            }
+            credential.related.input_sources.post(dict(
+                input_field_name='vault_password',
+                source_credential=vault_credential.id,
+                metadata=metadata
+            ))
+            jt.add_credential(credential)
+        job = jt.launch().wait_until_completed()
+        assert job.is_successful
 
 
 @pytest.mark.api
