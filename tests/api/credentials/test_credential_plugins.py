@@ -539,7 +539,7 @@ class TestHashiCorpVaultCredentials(APITest):
         job.assert_successful()
 
         hostvars = job.related.job_events.get(host=host.id, task='debug', event__startswith='runner_on_ok').results.pop().event_data.res.hostvars
-        assert hostvars[host.name]['extra_var_from_field_one'] == 'CLASSIFIED'
+        assert hostvars[host.name]['extra_var_from_field_one'] == 'unversioned-username'
 
 
 @pytest.mark.api
@@ -750,3 +750,27 @@ class TestAzureKVCredentials(APITest):
             jt.add_credential(credential)
         job = jt.launch().wait_until_completed()
         assert job.is_successful
+
+    def test_azure_key_vault_custom_credential(self, factories, v2):
+        azure_credential = self.create_azurekv_credential(factories, v2, 'https://qecredplugin.vault.azure.net/')
+        inputs = dict(fields=[dict(id='field_one', label='FieldOne', secret=True)])
+        injectors = dict(extra_vars=dict(extra_var_from_field_one='{{ field_one }}'))
+        credential_type = factories.credential_type(inputs=inputs, injectors=injectors)
+
+        credential = factories.v2_credential(credential_type=credential_type)
+        metadata = {
+            'secret_field': 'example-user'
+        }
+        credential.related.input_sources.post(dict(
+            input_field_name='field_one',
+            source_credential=azure_credential.id,
+            metadata=metadata
+            ))
+        host = factories.v2_host()
+        jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='debug_hostvars.yml')
+        jt.add_extra_credential(credential)
+        job = jt.launch().wait_until_completed()
+        job.assert_successful()
+
+        hostvars = job.related.job_events.get(host=host.id, task='debug', event__startswith='runner_on_ok').results.pop().event_data.res.hostvars
+        assert hostvars[host.name]['extra_var_from_field_one'] == 'latest-username'
