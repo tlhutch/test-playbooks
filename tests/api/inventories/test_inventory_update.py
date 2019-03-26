@@ -900,6 +900,83 @@ print(json.dumps({
         assert 'AWS_SECRET_ACCESS_KEY' in update.job_env
 
     @pytest.mark.ansible_integration
+    @pytest.mark.parametrize("only_group_by", [None, 'location', 'os_family', 'resource_group', 'security_group'])
+    def test_azure_update_with_only_group_by(self, factories, only_group_by):
+        """Azure does not support group_by, but will apply options if given."""
+        group_by_dict = {
+            "group_by_resource_group": False,
+            "group_by_location": False,
+            "group_by_security_group": False,
+            "group_by_tag": False,
+            "group_by_os_family": False
+        }
+        if only_group_by:
+            group_by_dict['group_by_{}'.format(only_group_by)] = True
+        inv_source = factories.v2_inventory_source(
+            source='azure_rm',
+            credential=factories.credential(kind='azure_rm'),
+            source_vars=json.dumps(group_by_dict)
+        )
+
+        update = inv_source.update().wait_until_completed()
+        update.assert_successful()
+
+        groups = inv_source.get_related('groups', parents__isnull=True).results  # root groups
+        actual_group_names = set(group.name for group in groups)
+
+        if only_group_by == 'location':
+            actual_group_names.remove('azure')
+            for group_name in actual_group_names:
+                assert 'us' in group_name  # assuming all servers are in USA...
+        elif only_group_by == 'os_family':
+            assert actual_group_names == set(['azure', 'linux'])  # assuming no windows servers running
+        elif only_group_by == 'resource_group':
+            # potentially flaky if Azure resources are modified
+            assert actual_group_names == set(['azure', 'demo-dj', 'mperz'])  # Azure users could change
+        elif only_group_by == 'security_group':
+            actual_group_names.remove('azure')
+            actual_group_names.remove('demo-dj')
+            for group_name in actual_group_names:
+                assert group_name.startswith('mperz')  # assuming she is the only one who set these up
+        else:
+            assert actual_group_names == set(['azure'])
+
+    def test_azure_use_private_ip(self, factories):
+        source_vars = {"use_private_ip": True}
+        inv_source = factories.v2_inventory_source(
+            source='azure_rm',
+            credential=factories.credential(kind='azure_rm'),
+            source_vars=json.dumps(source_vars)
+        )
+
+        update = inv_source.update().wait_until_completed()
+        update.assert_successful()
+
+        host_results = inv_source.get_related('hosts')
+        assert host_results.count > 0  # this did an unfiltered import, so this should not fail
+        for host in host_results.results:
+            hostvars = host.variables
+            # normally this is the public IP, not the private IP
+            assert hostvars['private_ip'] == hostvars['ansible_host']
+
+    def test_azure_use_resource_group_filters(self, factories):
+        res_group = "demo-dj"
+        source_vars = {"resource_groups": res_group}
+        inv_source = factories.v2_inventory_source(
+            source='azure_rm',
+            credential=factories.credential(kind='azure_rm'),
+            source_vars=json.dumps(source_vars)
+        )
+
+        update = inv_source.update().wait_until_completed()
+        update.assert_successful()
+
+        host_results = inv_source.get_related('hosts')
+        assert host_results.count > 0  # test could be failing because account changed content
+        for host in host_results.results:
+            assert host.variables['resource_group'] == res_group
+
+    @pytest.mark.ansible_integration
     def test_aws_replace_dash_in_groups_source_variable(self, factories):
         """Tests that AWS inventory groups will be registered with underscores instead of hyphens
         when using "replace_dash_in_groups" source variable
