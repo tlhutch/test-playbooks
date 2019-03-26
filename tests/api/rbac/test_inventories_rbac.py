@@ -535,7 +535,7 @@ class TestInventoryRBAC(APITest):
         """Test that a user with inventory-admin may not patch an inventory source with another user's
         personal user credential.
         """
-        inventory = factories.inventory()
+        inventory = factories.v2_inventory()
         user = factories.user()
 
         inventory.set_object_roles(user, 'admin')

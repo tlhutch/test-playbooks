@@ -219,8 +219,8 @@ class Test_Organization_RBAC(APITest):
         org_admin = factories.user()
         org.add_admin(org_admin)
 
-        inv1 = factories.inventory(organization=org)
-        inv2 = factories.inventory()
+        inv1 = factories.v2_inventory(organization=org)
+        inv2 = factories.v2_inventory()
 
         # ahc organization is determined by its inventory
         ahc1, ahc2 = [factories.ad_hoc_command(module_name='shell', module_args='true', inventory=inv).wait_until_completed()
@@ -255,12 +255,12 @@ class Test_Organization_RBAC(APITest):
         org_admin = factories.user()
         org1.add_admin(org_admin)
 
-        inv1 = factories.inventory(organization=org1)
-        inv2 = factories.inventory(organization=org2)
+        inv1 = factories.v2_inventory(organization=org1)
+        inv2 = factories.v2_inventory(organization=org2)
 
         # create custom groups
-        inv_script1 = factories.inventory_script(organization=org1)
-        inv_script2 = factories.inventory_script(organization=org2)
+        inv_script1 = factories.v2_inventory_script(organization=org1)
+        inv_script2 = factories.v2_inventory_script(organization=org2)
         group1 = factories.group(inventory=inv1, inventory_script=inv_script1)
         group2 = factories.group(inventory=inv2, inventory_script=inv_script2)
 

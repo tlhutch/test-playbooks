@@ -700,7 +700,7 @@ class Test_Job(APITest):
         org.add_admin(operator)
 
         orphaned_project = factories.project(organization=None)
-        cross_inventory = factories.inventory(organization=factories.organization())
+        cross_inventory = factories.v2_inventory(organization=factories.organization())
         job_template = factories.job_template(organization=org,
                                               project=orphaned_project,
                                               inventory=cross_inventory)

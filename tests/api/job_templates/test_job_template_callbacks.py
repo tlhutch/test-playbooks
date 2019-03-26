@@ -189,7 +189,7 @@ class TestJobTemplateCallbacks(APITest):
     def test_provision_failure_with_multiple_host_matches(self, skip_if_openshift, ansible_runner, factories, ansible_default_ipv4,
                                                           host_config_key, callback_host):
         """Verify launch failure when launching a job_template where multiple hosts match"""
-        inventory = factories.inventory()
+        inventory = factories.v2_inventory()
 
         # account for dev container
         ansible_host = '127.0.0.1' if 'localhost' in callback_host else ansible_default_ipv4

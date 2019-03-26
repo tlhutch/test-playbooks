@@ -483,11 +483,7 @@ class TestWorkflowExtraVars(APITest):
         Doing this, we confirm that job2 receives the vars from artifacts,
         and we confirm that the non-job job is not in any way broken
         """
-        host = factories.v2_host()
-        set_stats_jt = factories.v2_job_template(
-            playbook='test_set_stats.yml',
-            inventory=host.ds.inventory
-        )
+        set_stats_jt = factories.v2_job_template(playbook='test_set_stats.yml')
 
         wfjt = factories.v2_workflow_job_template()
         stats_node = factories.v2_workflow_job_template_node(
@@ -516,14 +512,10 @@ class TestWorkflowExtraVars(APITest):
         workflow_job.wait_until_completed()
         workflow_job.assert_successful()
 
-    def test_artifacts_passed_to_workflow_nodes(self, factories, v2, artifacts_from_stats_playbook):
+    def test_artifacts_passed_to_workflow_nodes(self, factories, artifacts_from_stats_playbook):
         """Test artifacts used with workflows-in-workflows
         """
-        host = factories.v2_host()
-        set_stats_jt = factories.v2_job_template(
-            playbook='test_set_stats.yml',
-            inventory=host.ds.inventory
-        )
+        set_stats_jt = factories.v2_job_template(playbook='test_set_stats.yml')
 
         receiving_jt = factories.v2_job_template(ask_variables_on_launch=True)
         receiving_wfjt = factories.workflow_job_template(ask_variables_on_launch=True)
