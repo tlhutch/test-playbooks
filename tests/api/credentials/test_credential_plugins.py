@@ -594,7 +594,7 @@ class TestHashiCorpVaultCredentials(APITest):
         assert '403 Client Error: Forbidden' in job.result_traceback
 
     def test_hashicorp_vault_secret_can_decrypt_ansible_vault(self, factories, v2, k8s_vault):
-        secrets = [('first', 'vault_1'), ('second', 'vault_2')]
+        secrets = [('first', '/kv/vault_1'), ('second', '/kv/vault_2')]
         vault_credential = self.create_hashicorp_vault_credential(factories, v2, k8s_vault, config.credentials.hashivault.token, 'v1')
         jt = factories.v2_job_template(playbook='multivault.yml')
         for s in secrets:
