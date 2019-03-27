@@ -151,41 +151,43 @@ class TestCredentials(APITest):
         with pytest.raises(exc.Duplicate):
             version.credentials.post(payload)
 
-    @pytest.mark.parametrize("missing, expected_message",
-                             [('project', {"project": ["required for OpenStack"]}),
-                              ('password', {"password": ["required for OpenStack"]}),
-                              ('username', {"username": ["required for OpenStack"]}),
-                              ('host', {"host": ["required for OpenStack"]})],
-                             ids=['project', 'password', 'username', 'host'])
-    def test_invalid_v1_openstack_credential(self, factories, v1, missing, expected_message):
-        """Confirms that attempted openstack credential creation fails if missing required field"""
+    def test_credential_v1_with_missing_required_field_fails_job_prestart_check(self, factories, v1):
+        """Confirms that a credential with a missing required field causes the
+        job prestart check to fail.
+        """
         payload = factories.credential.payload(kind='openstack')
-        del payload[missing]
+        del payload['project'] # required for openstack
+        cred = v1.credentials.post(payload)
 
-        with pytest.raises(exc.BadRequest) as e:
-            v1.credentials.post(payload)
+        jt = factories.job_template()
+        jt.cloud_credential = cred.id
+        job = jt.launch().wait_until_completed()
 
-        assert e.value.msg == expected_message
+        assert job.status == 'failed'
+        assert 'Job cannot start' in job.job_explanation
+        assert 'does not provide one or more required fields (project)' in job.job_explanation
+        assert 'Task failed pre-start check' in job.job_explanation
 
     @pytest.fixture(scope='class')
     def openstack_credential_type(self, v2_class):
         return v2_class.credential_types.get(name__icontains='openstack', managed_by_tower=True).results.pop()
 
-    @pytest.mark.parametrize("missing, expected_message",
-                             [('project', {"project": ["required for OpenStack"]}),
-                              ('password', {"password": ["required for OpenStack"]}),
-                              ('username', {"username": ["required for OpenStack"]}),
-                              ('host', {"host": ["required for OpenStack"]})],
-                             ids=['project', 'password', 'username', 'host'])
-    def test_invalid_v2_openstack_credential(self, factories, v2, openstack_credential_type, missing, expected_message):
-        """Confirms that attempted openstack credential creation fails if missing required field"""
+    def test_credential_v2_with_missing_required_field_fails_job_prestart_check(self, factories, v2, openstack_credential_type):
+        """Confirms that a credential with a missing required field causes the
+        job prestart check to fail.
+        """
         payload = factories.v2_credential.payload(credential_type=openstack_credential_type)
-        del payload.inputs[missing]
+        del payload.inputs['project'] # required for openstack
+        cred = v2.credentials.post(payload)
 
-        with pytest.raises(exc.BadRequest) as e:
-            v2.credentials.post(payload)
+        jt = factories.v2_job_template()
+        jt.add_credential(cred)
+        job = jt.launch().wait_until_completed()
 
-        assert e.value.msg['inputs'] == expected_message
+        assert job.status == 'failed'
+        assert 'Job cannot start' in job.job_explanation
+        assert 'does not provide one or more required fields (project)' in job.job_explanation
+        assert 'Task failed pre-start check' in job.job_explanation
 
     @pytest.mark.parametrize('version', ('v1', 'v2'))
     def test_invalid_ssh_key_data_creation_attempt(self, request, factories, version):
