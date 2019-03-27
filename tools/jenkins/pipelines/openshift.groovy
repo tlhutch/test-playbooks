@@ -6,7 +6,7 @@ pipeline {
         choice(
             name: 'TOWER_VERSION',
             description: 'Tower version to test',
-            choices: ['devel', '3.4.3', '3.3.5', '3.2.9']
+            choices: ['devel', '3.4.4', '3.3.6', '3.2.9']
         )
         choice(
             name: 'TRIGGER_BREW_PIPELINE',
@@ -36,15 +36,15 @@ pipeline {
                     install_registry_namespace = upgrade_registry_namespace
 
                     if (params.TOWER_VERSION == 'devel') {
-                        prev_maj_version = '3.4.2'
+                        prev_maj_version = '3.4.3'
                     } else if (params.TOWER_VERSION ==~ /3.4.[0-9]*/) {
-                        prev_maj_version = '3.3.4'
-                        prev_min_version = '3.4.2'
+                        prev_maj_version = '3.3.5'
+                        prev_min_version = '3.4.3'
                         install_registry_namespace = 'ansible-tower-33'
                         upgrade_registry_namespace = 'ansible-tower-34'
                     } else {
                         prev_maj_version = '3.2.8'
-                        prev_min_version = '3.3.4'
+                        prev_min_version = '3.3.5'
                         upgrade_registry_namespace = 'ansible-tower-33'
                     }
                 }
