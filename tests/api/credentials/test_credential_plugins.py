@@ -273,6 +273,31 @@ class TestConjurCredential(APITest):
         hostvars = job.related.job_events.get(host=host.id, task='debug', event__startswith='runner_on_ok').results.pop().event_data.res.hostvars
         assert hostvars[host.name]['extra_var_from_field_one'] == 'CLASSIFIED'
 
+    def test_conjur_credentials_can_be_used_in_prompt(self, factories, v2, k8s_conjur, job_template_prompt_for_credential):
+        conjur_credential = self.create_conjur_credential(factories, v2, url=k8s_conjur['url'], api_key=k8s_conjur['api_key'], account='test', username='admin')
+
+        # create an SSH credential
+        cred_type = v2.credential_types.get(managed_by_tower=True, kind='ssh').results.pop()
+        payload = factories.v2_credential.payload(
+            name=fauxfactory.gen_utf8(),
+            description=fauxfactory.gen_utf8(),
+            credential_type=cred_type
+        )
+        credential = v2.credentials.post(payload)
+
+        metadata = {
+            'secret_path': 'super/secret',
+        }
+        credential.related.input_sources.post(dict(
+            input_field_name='username',
+            source_credential=conjur_credential.id,
+            metadata=metadata,
+        ))
+
+        job_template_prompt_for_credential.credential = credential.id
+        job = job_template_prompt_for_credential.launch().wait_until_completed()
+        job.assert_successful()
+
     def test_conjur_RBAC_users_can_be_assigned_use_on_credentials(self, factories, v2, k8s_conjur):
         conjur_credential = self.create_conjur_credential(factories, v2, url=k8s_conjur['url'], api_key=k8s_conjur['api_key'], account='test', username='admin')
         org = factories.v2_organization()
@@ -618,6 +643,32 @@ class TestHashiCorpVaultCredentials(APITest):
 
         hostvars = job.related.job_events.get(host=host.id, task='debug', event__startswith='runner_on_ok').results.pop().event_data.res.hostvars
         assert hostvars[host.name]['extra_var_from_field_one'] == 'unversioned-username'
+
+    def test_hashicorp_vault_credentials_can_be_used_in_prompt(self, factories, v2, k8s_vault, job_template_prompt_for_credential):
+        vault_credential = self.create_hashicorp_vault_credential(factories, v2, k8s_vault, config.credentials.hashivault.token, 'v1')
+
+        # create an SSH credential
+        cred_type = v2.credential_types.get(managed_by_tower=True, kind='ssh').results.pop()
+        payload = factories.v2_credential.payload(
+            name=fauxfactory.gen_utf8(),
+            description=fauxfactory.gen_utf8(),
+            credential_type=cred_type
+        )
+        credential = v2.credentials.post(payload)
+
+        metadata = {
+            'secret_path': '/kv/example-user/',
+            'secret_key': 'username'
+        }
+        credential.related.input_sources.post(dict(
+            input_field_name='username',
+            source_credential=vault_credential.id,
+            metadata=metadata,
+        ))
+
+        job_template_prompt_for_credential.credential = credential.id
+        job = job_template_prompt_for_credential.launch().wait_until_completed()
+        job.assert_successful()
 
     def test_hashicorp_vault_RBAC_users_can_be_assigned_use_on_credentials(self, factories, v2, k8s_vault):
         hashi_credential = self.create_hashicorp_vault_credential(factories, v2, k8s_vault, config.credentials.hashivault.token, 'v1')
@@ -1003,3 +1054,30 @@ class TestAzureKVCredentials(APITest):
             with pytest.raises(exceptions.Forbidden):
                 cred_source.patch(metadata=dangerous_metadata)
         assert credential.related.input_sources.get().results.pop().metadata == metadata
+
+    def test_azure_key_vault_credentials_can_be_used_in_prompt(self, factories, v2, job_template_prompt_for_credential):
+        azure_credential = self.create_azurekv_credential(factories, v2, 'https://qecredplugin.vault.azure.net/')
+
+        # create an SSH credential
+        cred_type = v2.credential_types.get(managed_by_tower=True, kind='ssh').results.pop()
+        payload = factories.v2_credential.payload(
+            name=fauxfactory.gen_utf8(),
+            description=fauxfactory.gen_utf8(),
+            credential_type=cred_type
+        )
+        credential = v2.credentials.post(payload)
+
+        metadata = {
+            'secret_field': 'example-user'
+        }
+        credential.related.input_sources.post(dict(
+            input_field_name='username',
+            source_credential=azure_credential.id,
+            metadata=metadata,
+        ))
+
+        job_template_prompt_for_credential.credential = credential.id
+
+        job = job_template_prompt_for_credential.launch().wait_until_completed()
+
+        job.assert_successful()
