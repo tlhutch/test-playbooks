@@ -10,7 +10,7 @@ from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 from towerkit.config import config
-from towerkit import utils
+from towerkit import utils, exceptions
 from kubernetes.stream import stream
 
 from tests.api import APITest
@@ -295,6 +295,41 @@ class TestConjurCredential(APITest):
             jt.patch(credential=credential.id)
             job = jt.launch().wait_until_completed()
         assert job.is_successful
+
+    def test_conjur_RBAC_users_cannot_change_linkage_without_lookup_cred_use(self, factories, v2, k8s_conjur):
+        conjur_credential = self.create_conjur_credential(factories, v2, url=k8s_conjur['url'], api_key=k8s_conjur['api_key'], account='test', username='admin')
+        org = factories.v2_organization()
+        user = factories.user(organization=org)
+
+        # create an SSH credential
+        cred_type = v2.credential_types.get(managed_by_tower=True, kind='ssh').results.pop()
+        payload = factories.v2_credential.payload(
+            name=fauxfactory.gen_utf8(),
+            description=fauxfactory.gen_utf8(),
+            credential_type=cred_type
+        )
+        credential = v2.credentials.post(payload)
+
+        credential.patch(organization=org.id)
+        credential.set_object_roles(user, 'admin')
+        conjur_credential.patch(org=org.id)
+
+        metadata = {
+            'secret_path': 'super/secret'
+        }
+        credential.related.input_sources.post(dict(
+            input_field_name='username',
+            source_credential=conjur_credential.id,
+            metadata=metadata,
+        ))
+        cred_source = credential.related.input_sources.get().results.pop()
+        dangerous_metadata = {
+            'secret_path': 'super/launch-codes'
+        }
+        with self.current_user(username=user.username, password=user.password):
+            with pytest.raises(exceptions.Forbidden):
+                cred_source.patch(metadata=dangerous_metadata)
+        assert credential.related.input_sources.get().results.pop().metadata == metadata
 
 
 @pytest.fixture(scope='class')
@@ -625,6 +660,43 @@ class TestHashiCorpVaultCredentials(APITest):
 
         assert job.is_successful
 
+    def test_hashicorp_vault_RBAC_users_cannot_change_linkage_without_lookup_cred_use(self, factories, v2, k8s_vault):
+        hashi_credential = self.create_hashicorp_vault_credential(factories, v2, k8s_vault, config.credentials.hashivault.token, 'v1')
+        org = factories.v2_organization()
+        user = factories.user(organization=org)
+
+        # create an SSH credential
+        cred_type = v2.credential_types.get(managed_by_tower=True, kind='ssh').results.pop()
+        payload = factories.v2_credential.payload(
+            name=fauxfactory.gen_utf8(),
+            description=fauxfactory.gen_utf8(),
+            credential_type=cred_type
+        )
+        credential = v2.credentials.post(payload)
+
+        credential.patch(organization=org.id)
+        credential.set_object_roles(user, 'admin')
+        hashi_credential.patch(org=org.id)
+
+        metadata = {
+            'secret_path': '/kv/example-user/',
+            'secret_key': 'username',
+        }
+        credential.related.input_sources.post(dict(
+            input_field_name='username',
+            source_credential=hashi_credential.id,
+            metadata=metadata,
+        ))
+        cred_source = credential.related.input_sources.get().results.pop()
+        dangerous_metadata = {
+            'secret_path': 'super/dangerous',
+            'secret_key': 'launch_codes'
+        }
+        with self.current_user(username=user.username, password=user.password):
+            with pytest.raises(exceptions.Forbidden):
+                cred_source.patch(metadata=dangerous_metadata)
+        assert credential.related.input_sources.get().results.pop().metadata == metadata
+
 
 @pytest.mark.api
 @pytest.mark.destructive
@@ -898,33 +970,36 @@ class TestAzureKVCredentials(APITest):
 
         assert job.is_successful
 
+    def test_azure_key_vault_RBAC_users_cannot_change_linkage_without_lookup_cred_use(self, factories, v2):
+        azure_credential = self.create_azurekv_credential(factories, v2, 'https://qecredplugin.vault.azure.net/')
+        org = factories.v2_organization()
+        user = factories.user(organization=org)
 
-    # def test_azure_key_vault_RBAC_users_cannot_change_linkage_without_lookup_cred_use(self, factories, v2):
-    #     azure_credential = self.create_azurekv_credential(factories, v2, 'https://qecredplugin.vault.azure.net/')
-    #     org = factories.v2_organization()
-    #     user = factories.user(organization=org)
+        cred_type = v2.credential_types.get(managed_by_tower=True, kind='ssh').results.pop()
+        payload = factories.v2_credential.payload(
+            name=fauxfactory.gen_utf8(),
+            description=fauxfactory.gen_utf8(),
+            credential_type=cred_type
+        )
+        credential = v2.credentials.post(payload)
 
-    #     # create an SSH credential
-    #     cred_type = v2.credential_types.get(managed_by_tower=True, kind='ssh').results.pop()
-    #     payload = factories.v2_credential.payload(
-    #         name=fauxfactory.gen_utf8(),
-    #         description=fauxfactory.gen_utf8(),
-    #         credential_type=cred_type
-    #     )
-    #     credential = v2.credentials.post(payload)
+        credential.patch(organization=org.id)
+        credential.set_object_roles(user, 'admin')
+        azure_credential.patch(org=org.id)
 
-    #     metadata = {
-    #         'secret_field': 'example-user'
-    #     }
-    #     credential.related.input_sources.post(dict(
-    #         input_field_name='username',
-    #         source_credential=azure_credential.id,
-    #         metadata=metadata,
-    #     ))
-
-    #     credential.patch(organization=org.id)
-    #     credential.set_object_roles(user, 'admin')
-    #     with self.current_user(username=user.username, password=user.password):
-    #         metadata = {
-    #             'secret_field': 'launch-codes'
-    #         }
+        metadata = {
+            'secret_field': 'example-user'
+        }
+        credential.related.input_sources.post(dict(
+            input_field_name='username',
+            source_credential=azure_credential.id,
+            metadata=metadata,
+        ))
+        cred_source = credential.related.input_sources.get().results.pop()
+        dangerous_metadata = {
+            'secret_field': 'launch-codes'
+        }
+        with self.current_user(username=user.username, password=user.password):
+            with pytest.raises(exceptions.Forbidden):
+                cred_source.patch(metadata=dangerous_metadata)
+        assert credential.related.input_sources.get().results.pop().metadata == metadata
