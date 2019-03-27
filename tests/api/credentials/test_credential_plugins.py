@@ -897,3 +897,34 @@ class TestAzureKVCredentials(APITest):
             job = jt.launch().wait_until_completed()
 
         assert job.is_successful
+
+
+    # def test_azure_key_vault_RBAC_users_cannot_change_linkage_without_lookup_cred_use(self, factories, v2):
+    #     azure_credential = self.create_azurekv_credential(factories, v2, 'https://qecredplugin.vault.azure.net/')
+    #     org = factories.v2_organization()
+    #     user = factories.user(organization=org)
+
+    #     # create an SSH credential
+    #     cred_type = v2.credential_types.get(managed_by_tower=True, kind='ssh').results.pop()
+    #     payload = factories.v2_credential.payload(
+    #         name=fauxfactory.gen_utf8(),
+    #         description=fauxfactory.gen_utf8(),
+    #         credential_type=cred_type
+    #     )
+    #     credential = v2.credentials.post(payload)
+
+    #     metadata = {
+    #         'secret_field': 'example-user'
+    #     }
+    #     credential.related.input_sources.post(dict(
+    #         input_field_name='username',
+    #         source_credential=azure_credential.id,
+    #         metadata=metadata,
+    #     ))
+
+    #     credential.patch(organization=org.id)
+    #     credential.set_object_roles(user, 'admin')
+    #     with self.current_user(username=user.username, password=user.password):
+    #         metadata = {
+    #             'secret_field': 'launch-codes'
+    #         }
