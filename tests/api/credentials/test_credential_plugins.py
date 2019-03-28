@@ -829,14 +829,7 @@ class TestHashiCorpSSHEngine(APITest):
         """
         job = self.launch_job(factories, v2, 'my-signer', 'my-role', passphrase, url=k8s_vault)
         job.assert_successful()
-        assert re.search(
-            'Identity added: /tmp/awx_[^/]+/credential_{}'.format(job.credential),
-            job.result_stdout
-        ) is not None, job.result_stdout
-        assert re.search(
-            'Certificate added: /tmp/awx_[^/]+/credential_{}-cert.pub'.format(job.credential),
-            job.result_stdout
-        ) is not None, job.result_stdout
+        assert re.search('Identity added', job.result_stdout) is not None, job.result_stdout
 
     def test_hashicorp_ssh_signer_bad_path(self, factories, v2, k8s_vault):
         job = self.launch_job(factories, v2, 'missing-backend', 'foo', None, url=k8s_vault)
