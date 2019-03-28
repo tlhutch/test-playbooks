@@ -239,7 +239,7 @@ def gce_inventory_hostvars():
     return {
         "ansible_ssh_host": "",
         "gce_id": "",
-        # "gce_image": "", core patch rejected because of horrible performance https://github.com/ansible/ansible/pull/52688
+        "gce_image": "",
         "gce_machine_type": "",
         "gce_metadata": "",
         "gce_name": "",
@@ -249,7 +249,7 @@ def gce_inventory_hostvars():
         "gce_status": "",
         "gce_subnetwork": "",
         "gce_tags": "",
-        # "gce_uuid": "", not recoverable, not was artifact of libcloud
+        # "gce_uuid": "", not recoverable, was artifact of libcloud
         "gce_zone": "",
     }
 
