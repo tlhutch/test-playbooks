@@ -10,13 +10,24 @@ from tests.api import APITest
 class TestCustomCredentials(APITest):
 
     @pytest.mark.parametrize('field_type', ['string', 'boolean'])
-    def test_unprovided_required_input_field(self, factories, field_type):
+    def test_unprovided_required_input_field(self, factories, v2, field_type):
+        """Verify that a custom credential with a missing required field causes the
+        job prestart check to fail.
+        """
         inputs = dict(fields=[dict(id='field', label='Field', type=field_type)], required=['field'])
         credential_type = factories.credential_type(inputs=inputs)
 
-        with pytest.raises(exc.BadRequest) as e:
-            factories.v2_credential(credential_type=credential_type, inputs={})
-        assert e.value.msg == {'inputs': {'field': ["required for {0.name}".format(credential_type)]}}
+        payload = factories.v2_credential.payload(credential_type=credential_type)
+        cred = v2.credentials.post(payload)
+
+        jt = factories.v2_job_template()
+        jt.add_credential(cred)
+        job = jt.launch().wait_until_completed()
+
+        assert job.status == 'failed'
+        assert 'Job cannot start' in job.job_explanation
+        assert 'does not provide one or more required fields (field)' in job.job_explanation
+        assert 'Task failed pre-start check' in job.job_explanation
 
     def test_ssh_private_key_input_field_validated(self, factories):
         credential_type = factories.credential_type(inputs=dict(fields=[dict(id='field_name',
