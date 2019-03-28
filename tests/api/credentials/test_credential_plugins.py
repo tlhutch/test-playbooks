@@ -1144,3 +1144,150 @@ class TestAzureKVCredentials(APITest):
         for c in dependent_creds:
             linkage = c.related.input_sources.get().results
             assert len(linkage) == 0
+
+
+@pytest.fixture(autouse=True)
+def _require_cyberark_aim(request):
+    """
+    Check for available cyberark aim credentials and that the server is
+    reachable from the system under test. Unless the credentials and server
+    are available, the suite is skipped.
+    """
+    if request.node.get_closest_marker('require_cyberark_aim'):
+        aim_config = getattr(config.credentials, 'cyberark_aim', None)
+        aim_url = getattr(aim_config, 'url', None)
+
+        if not aim_url:
+            pytest.skip('no cyberark aim credentials configured')
+
+        request.getfixturevalue('authtoken')
+        request.getfixturevalue('install_enterprise_license_unlimited')
+        factories = request.getfixturevalue('factories')
+        v2 = request.getfixturevalue('v2')
+
+        host = factories.v2_host()
+        cred = factories.v2_credential()
+        job = v2.ad_hoc_commands.post({
+            'inventory': host.inventory,
+            'credential': cred.id,
+            'module_name': 'shell',
+            'module_args': 'curl -k -i -s {0}'.format(aim_url)
+        })
+
+        job.wait_until_completed()
+        if job.status != 'successful':
+            pytest.skip('unable to check if cyberark aim server is available')
+
+        job_events = job.related.events.get()
+        if '200 OK' not in ''.join([e.stdout for e in job_events.results]):
+            pytest.skip('cyberark aim server is unavailable')
+
+
+@pytest.mark.require_cyberark_aim
+@pytest.mark.api
+@pytest.mark.destructive
+@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+class TestCyberArkAimCredentials(APITest):
+
+    def launch_job(self, factories, v2, object_query=None, object_query_format=None,
+                   url=None, app_id=None, client_cert=None, client_key=None,
+                   reason=None, verify=True):
+        aim_creds = config.credentials.cyberark_aim
+
+        url = url or aim_creds.url
+        client_cert = client_cert or aim_creds.client_cert
+        client_key = client_key or aim_creds.client_key
+        app_id = app_id or aim_creds.app_id
+        object_query = object_query or aim_creds.object_query
+        object_query_format = object_query_format or aim_creds.object_query_format
+
+        # create a credential w/ cyberark aim creds
+        cred_type = v2.credential_types.get(
+            managed_by_tower=True,
+            name='CyberArk AIM Secret Lookup'
+        ).results.pop()
+        inputs = {
+            'url': url,
+            'app_id': app_id,
+            'client_key': client_key,
+            'client_cert': client_cert,
+            'verify': verify
+        }
+        payload = factories.v2_credential.payload(
+            name=fauxfactory.gen_utf8(),
+            description=fauxfactory.gen_utf8(),
+            credential_type=cred_type,
+            inputs=inputs
+        )
+        aim_credential = v2.credentials.post(payload)
+
+        # create an SSH credential
+        cred_type = v2.credential_types.get(managed_by_tower=True, kind='ssh').results.pop()
+        payload = factories.v2_credential.payload(
+            name=fauxfactory.gen_utf8(),
+            description=fauxfactory.gen_utf8(),
+            credential_type=cred_type
+        )
+        credential = v2.credentials.post(payload)
+
+        # associate cred.username -> aim_cred
+        metadata = {
+            'object_query': object_query,
+            'object_query_format': object_query_format,
+        }
+        if reason:
+            metadata['reason'] = reason
+        credential.related.input_sources.post(dict(
+            input_field_name='username',
+            source_credential=aim_credential.id,
+            metadata=metadata
+        ))
+
+        # assign the SSH credential to a JT and run it
+        host = factories.v2_host()
+        jt = factories.v2_job_template(
+            inventory=host.ds.inventory,
+            playbook='ping.yml',
+            credential=credential
+        )
+        return jt.launch().wait_until_completed()
+
+    def test_cyberark_aim_lookup(self, factories, v2):
+        """
+        Verify that an object secret can be pulled from a cyberark aim API
+        and injected into an ansible-playbook run.
+
+        Setup of secret values (and authentication) on a cyberark aim server
+        involves restarting services on a Windows Server vm. We haven't
+        automated this yet, so for now we use a hard-coded object query and
+        expected value included with the server credentials.
+        """
+        expected_value = 'foobar123'
+        job = self.launch_job(factories, v2, verify=False)
+        job.assert_successful()
+        assert any([expected_value in args for args in job.job_args])
+
+    def test_cyberark_aim_secret_bad_query(self, factories, v2):
+        bad_query = 'Safe=TestSafe;Object=WrongObject'
+        job = self.launch_job(factories, v2, verify=False, object_query=bad_query)
+        assert not job.is_successful
+        assert 'requests.exceptions.HTTPError: 404 Client Error' in job.result_traceback
+        assert 'Not Found for url' in job.result_traceback
+
+    def test_cyberark_aim_secret_bad_url(self, factories, v2):
+        bad_url = 'http://missing.local:8200'
+        job = self.launch_job(factories, v2, verify=False, url=bad_url)
+        assert not job.is_successful
+        assert 'Failed to establish a new connection: [Errno -2] Name or service not known' in job.result_traceback
+
+    def test_cyberark_aim_secret_bad_client_cert(self, factories, v2):
+        bad_cert = '-----BEGIN CERTIFICATE-----AAAA-----END CERTIFICATE-----'
+        job = self.launch_job(factories, v2, verify=False, client_cert=bad_cert)
+        assert not job.is_successful
+        assert 'OpenSSL.SSL.Error' in job.result_traceback
+
+    def test_cyberark_aim_secret_bad_client_key(self, factories, v2):
+        bad_key = '-----BEGIN PRIVATE KEY-----BBBB-----END PRIVATE KEY-----'
+        job = self.launch_job(factories, v2, verify=False, client_key=bad_key)
+        assert not job.is_successful
+        assert 'OpenSSL.SSL.Error' in job.result_traceback
