@@ -62,7 +62,10 @@
     region: '{{ ec2_region }}'
     instance_ids: '{{ ec2_create_vars.results | sum(attribute="instance_ids", start=[]) }}'
   register: ec2_instance_vars
-  until: "ec2_images | length == ec2_instance_vars.instances | length and ec2_instance_vars.instances | selectattr('public_dns_name', 'match', '^.+$') | list | length  ==  ec2_instance_vars.instances | length"
+  until:
+    - "ec2_instance_vars.instances is defined"
+    - "ec2_images | length == ec2_instance_vars.instances | length"
+    - "ec2_instance_vars.instances | selectattr('public_dns_name', 'match', '^.+$') | list | length  ==  ec2_instance_vars.instances | length"
   retries: 60
   delay: 15
 
