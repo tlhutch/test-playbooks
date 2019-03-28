@@ -276,7 +276,6 @@ class TestConjurCredential(APITest):
     def test_conjur_credentials_can_be_used_in_prompt(self, factories, v2, k8s_conjur, job_template_prompt_for_credential):
         conjur_credential = self.create_conjur_credential(factories, v2, url=k8s_conjur['url'], api_key=k8s_conjur['api_key'], account='test', username='admin')
 
-        # create an SSH credential
         cred_type = v2.credential_types.get(managed_by_tower=True, kind='ssh').results.pop()
         payload = factories.v2_credential.payload(
             name=fauxfactory.gen_utf8(),
@@ -303,7 +302,6 @@ class TestConjurCredential(APITest):
         org = factories.v2_organization()
         user = factories.user(organization=org)
 
-        # create an SSH credential
         credential = self.create_conjur_machine_credential(factories, v2, conjur_credential)
         credential.patch(organization=org.id)
         credential.set_object_roles(user, 'use')
@@ -326,7 +324,6 @@ class TestConjurCredential(APITest):
         org = factories.v2_organization()
         user = factories.user(organization=org)
 
-        # create an SSH credential
         cred_type = v2.credential_types.get(managed_by_tower=True, kind='ssh').results.pop()
         payload = factories.v2_credential.payload(
             name=fauxfactory.gen_utf8(),
@@ -355,6 +352,32 @@ class TestConjurCredential(APITest):
             with pytest.raises(exceptions.Forbidden):
                 cred_source.patch(metadata=dangerous_metadata)
         assert credential.related.input_sources.get().results.pop().metadata == metadata
+
+    def test_conjur_delete_retrieval_cred(self, factories, v2, k8s_conjur):
+        conjur_credential = self.create_conjur_credential(factories, v2, url=k8s_conjur['url'], api_key=k8s_conjur['api_key'], account='test', username='admin')
+        dependent_creds = []
+        for _ in range(5):
+            cred_type = v2.credential_types.get(managed_by_tower=True, kind='ssh').results.pop()
+            payload = factories.v2_credential.payload(
+                name=fauxfactory.gen_utf8(),
+                description=fauxfactory.gen_utf8(),
+                credential_type=cred_type
+            )
+            credential = v2.credentials.post(payload)
+
+            metadata = {
+                'secret_path': 'super/secret'
+            }
+            credential.related.input_sources.post(dict(
+                input_field_name='username',
+                source_credential=conjur_credential.id,
+                metadata=metadata,
+            ))
+            dependent_creds.append(credential)
+        conjur_credential.delete()
+        for c in dependent_creds:
+            linkage = c.related.input_sources.get().results
+            assert len(linkage) == 0
 
 
 @pytest.fixture(scope='class')
@@ -647,7 +670,6 @@ class TestHashiCorpVaultCredentials(APITest):
     def test_hashicorp_vault_credentials_can_be_used_in_prompt(self, factories, v2, k8s_vault, job_template_prompt_for_credential):
         vault_credential = self.create_hashicorp_vault_credential(factories, v2, k8s_vault, config.credentials.hashivault.token, 'v1')
 
-        # create an SSH credential
         cred_type = v2.credential_types.get(managed_by_tower=True, kind='ssh').results.pop()
         payload = factories.v2_credential.payload(
             name=fauxfactory.gen_utf8(),
@@ -675,7 +697,6 @@ class TestHashiCorpVaultCredentials(APITest):
         org = factories.v2_organization()
         user = factories.user(organization=org)
 
-        # create an SSH credential
         cred_type = v2.credential_types.get(managed_by_tower=True, kind='ssh').results.pop()
         payload = factories.v2_credential.payload(
             name=fauxfactory.gen_utf8(),
@@ -684,7 +705,6 @@ class TestHashiCorpVaultCredentials(APITest):
         )
         credential = v2.credentials.post(payload)
 
-        # associate cred.username -> hashi_cred
         metadata = {
             'secret_path': '/kv/example-user/',
             'secret_key': 'username',
@@ -716,7 +736,6 @@ class TestHashiCorpVaultCredentials(APITest):
         org = factories.v2_organization()
         user = factories.user(organization=org)
 
-        # create an SSH credential
         cred_type = v2.credential_types.get(managed_by_tower=True, kind='ssh').results.pop()
         payload = factories.v2_credential.payload(
             name=fauxfactory.gen_utf8(),
@@ -747,6 +766,33 @@ class TestHashiCorpVaultCredentials(APITest):
             with pytest.raises(exceptions.Forbidden):
                 cred_source.patch(metadata=dangerous_metadata)
         assert credential.related.input_sources.get().results.pop().metadata == metadata
+
+    def test_hashicorp_vault_delete_retrieval_cred(self, factories, v2, k8s_vault):
+        hashi_credential = self.create_hashicorp_vault_credential(factories, v2, k8s_vault, config.credentials.hashivault.token, 'v1')
+        dependent_creds = []
+        for _ in range(5):
+            cred_type = v2.credential_types.get(managed_by_tower=True, kind='ssh').results.pop()
+            payload = factories.v2_credential.payload(
+                name=fauxfactory.gen_utf8(),
+                description=fauxfactory.gen_utf8(),
+                credential_type=cred_type
+            )
+            credential = v2.credentials.post(payload)
+
+            metadata = {
+                'secret_path': '/kv/example-user/',
+                'secret_key': 'username',
+            }
+            credential.related.input_sources.post(dict(
+                input_field_name='username',
+                source_credential=hashi_credential.id,
+                metadata=metadata,
+            ))
+            dependent_creds.append(credential)
+        hashi_credential.delete()
+        for c in dependent_creds:
+            linkage = c.related.input_sources.get().results
+            assert len(linkage) == 0
 
 
 @pytest.mark.api
@@ -980,7 +1026,6 @@ class TestAzureKVCredentials(APITest):
         org = factories.v2_organization()
         user = factories.user(organization=org)
 
-        # create an SSH credential
         cred_type = v2.credential_types.get(managed_by_tower=True, kind='ssh').results.pop()
         payload = factories.v2_credential.payload(
             name=fauxfactory.gen_utf8(),
@@ -1051,7 +1096,6 @@ class TestAzureKVCredentials(APITest):
     def test_azure_key_vault_credentials_can_be_used_in_prompt(self, factories, v2, job_template_prompt_for_credential):
         azure_credential = self.create_azurekv_credential(factories, v2, 'https://qecredplugin.vault.azure.net/')
 
-        # create an SSH credential
         cred_type = v2.credential_types.get(managed_by_tower=True, kind='ssh').results.pop()
         payload = factories.v2_credential.payload(
             name=fauxfactory.gen_utf8(),
@@ -1074,3 +1118,29 @@ class TestAzureKVCredentials(APITest):
         job = job_template_prompt_for_credential.launch().wait_until_completed()
 
         job.assert_successful()
+
+    def test_azure_key_vault_delete_retrieval_cred(self, factories, v2):
+        azure_credential = self.create_azurekv_credential(factories, v2, 'https://qecredplugin.vault.azure.net/')
+        dependent_creds = []
+        for _ in range(5):
+            cred_type = v2.credential_types.get(managed_by_tower=True, kind='ssh').results.pop()
+            payload = factories.v2_credential.payload(
+                name=fauxfactory.gen_utf8(),
+                description=fauxfactory.gen_utf8(),
+                credential_type=cred_type
+            )
+            credential = v2.credentials.post(payload)
+
+            metadata = {
+                'secret_field': 'example-user'
+            }
+            credential.related.input_sources.post(dict(
+                input_field_name='username',
+                source_credential=azure_credential.id,
+                metadata=metadata,
+            ))
+            dependent_creds.append(credential)
+        azure_credential.delete()
+        for c in dependent_creds:
+            linkage = c.related.input_sources.get().results
+            assert len(linkage) == 0
