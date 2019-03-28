@@ -13,7 +13,28 @@ from tests.api import APITest
 class Test_Proot(APITest):
     """Tests to assert correctness while running with AWX_PROOT_ENABLED=True"""
 
-    def test_job_isolation(self, skip_if_cluster, factories, api_settings_jobs_pg, update_setting_pg):
+    @pytest.fixture
+    def isolated_instance_group(self, v2):
+        return v2.instance_groups.get(name='protected').results.pop()
+
+    @pytest.fixture(scope='class', autouse=True)
+    def set_proot_true(self, authtoken, api_settings_jobs_pg, update_setting_pg_class):
+        # enable proot
+        update_setting_pg_class(api_settings_jobs_pg, dict(AWX_PROOT_ENABLED=True))
+
+    def test_isolated_nodes_use_bwrap(self, skip_if_not_traditional_cluster, v2, factories, isolated_instance_group):
+        """Test that isolated nodes invoke bwrap when they run jobs.
+
+        Regression test for https://github.com/ansible/tower/issues/3431
+        """
+        jt = factories.v2_job_template(playbook='chatty_tasks.yml')
+        jt.add_instance_group(isolated_instance_group)
+        job = jt.launch()
+        job.wait_until_completed().assert_successful()
+        assert job.job_args, "We should see what job args were passed"
+        assert 'bwrap' in job.job_args, "bwrap should have been in the args but it was not!"
+
+    def test_job_isolation(self, skip_if_cluster, factories):
         """Launch 2 jobs and verify that they each:
          - complete successfully
          - ran at the same time
@@ -27,9 +48,6 @@ class Test_Proot(APITest):
          - /etc/awx/settings.py - No such file or directory
          - /var/log/supervisor/* - Permission Denied
         """
-        # enable proot
-        update_setting_pg(api_settings_jobs_pg, dict(AWX_PROOT_ENABLED=True))
-
         project = factories.v2_project()
         host = factories.v2_host()
         proot_1, proot_2 = [factories.v2_job_template(inventory=host.ds.inventory,
@@ -126,10 +144,6 @@ print(json.dumps({}))
          - /etc/awx/settings.py - No such file or directory
          - /var/log/supervisor/* - Permission Denied
         """
-        # enable proot
-        payload = dict(AWX_PROOT_ENABLED=True)
-        update_setting_pg(api_settings_jobs_pg, payload)
-
         # TODO - pass tower directories as environment variables
         payload = dict()
         custom_inventory_source.patch(extra_vars=json.dumps(payload))
@@ -147,9 +161,6 @@ print(json.dumps({}))
         """Verify that jobs complete successfully when connecting to inventory
         using the default ansible connection type (e.g. not local).
         """
-        payload = dict(AWX_PROOT_ENABLED=True)
-        update_setting_pg(api_settings_jobs_pg, payload)
-
         # wait for completion
         job_with_ssh_connection = job_with_ssh_connection.wait_until_completed(timeout=60 * 2)
 

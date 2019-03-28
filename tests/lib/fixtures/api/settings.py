@@ -3,8 +3,8 @@ import fauxfactory
 import pytest
 
 
-@pytest.fixture
-def update_setting_pg(request):
+@pytest.fixture(scope='class')
+def update_setting_pg_class(request):
     """Helper fixture used in testing Tower settings."""
     def func(setting_pg, payload):
         """:param setting_pg: a settings page model.
@@ -23,6 +23,11 @@ def update_setting_pg(request):
         request.addfinalizer(teardown_settings)
         return setting_pg.patch(**payload)
     return func
+
+
+@pytest.fixture
+def update_setting_pg(update_setting_pg_class):
+    return update_setting_pg_class
 
 
 @pytest.fixture(scope="function", params=["all", "auth", "azuread", "changed", "github_org", "github_team", "google", "jobs",
