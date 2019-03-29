@@ -74,6 +74,26 @@
   roles:
     - role: awx_setup_rhel8
 
+- name: Install specific version of ansible-runner (if applies)
+  hosts: tower
+  gather_facts: no
+  become: yes
+  tasks:
+    - include_role:
+        name: ansible_runner
+      when: awx_ansible_runner_url is defined and awx_ansible_runner_url != ''
+
+- name: Install specific version of ansible-runner (if applies)
+  hosts: isolated_group*
+  gather_facts: no
+  become: yes
+  tasks:
+    - include_role:
+        name: ansible_runner
+      vars:
+        isolated: true
+      when: awx_ansible_runner_url is defined and awx_ansible_runner_url != ''
+
 - name: 'install and configure haproxy'
   hosts: 'haproxy'
   roles:

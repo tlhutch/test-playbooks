@@ -1,0 +1,36 @@
+---
+- block:
+  - set_fact:
+      pip_bin_name: pip
+
+  - name: Install epel (RHEL7)
+    package:
+      name:
+        - https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+
+  - name: Install needed packages (RHEL7)
+    package:
+      name:
+        - rh-python36-python-devel
+        - python-pip
+        - gcc
+        - git
+  when: ansible_distribution_major_version == '7'
+
+- block:
+  - set_fact:
+      pip_bin_name: pip3
+
+  - name: Install needed packages (RHEl8)
+    package:
+      name:
+        - python3-devel
+        - gcc
+        - git
+  when: ansible_distribution_major_version == '8'
+
+- command: '/var/lib/awx/venv/awx/bin/pip install -IU git+{{ awx_ansible_runner_url }}'
+  when: not isolated | default(false) | bool
+
+- command: '{{ pip_bin_name }} install -IU git+{{ awx_ansible_runner_url }}'
+  when: isolated | default(false) | bool
