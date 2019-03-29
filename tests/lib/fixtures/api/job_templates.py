@@ -144,9 +144,11 @@ def check_job_template(job_template):
 
 
 @pytest.fixture(scope="function")
-def job_template_sleep(job_template_ansible_playbooks_git):
+def job_template_sleep(job_template_ansible_playbooks_git, instance_group):
     """job_template that runs the sleep.yml playbook"""
-    return job_template_ansible_playbooks_git.patch(playbook='sleep.yml')
+    jt = job_template_ansible_playbooks_git.patch(playbook='sleep.yml')
+    jt.add_instance_group(instance_group)
+    return jt
 
 
 @pytest.fixture(scope="function")
