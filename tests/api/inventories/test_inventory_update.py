@@ -941,7 +941,7 @@ print(json.dumps({
         else:
             assert actual_group_names == set(['azure'])
 
-    def test_azure_use_private_ip(self, factories):
+    def test_azure_use_private_ip(self, factories, ansible_version_cmp):
         source_vars = {"use_private_ip": True}
         inv_source = factories.v2_inventory_source(
             source='azure_rm',
@@ -955,11 +955,21 @@ print(json.dumps({
         host_results = inv_source.get_related('hosts')
         assert host_results.count > 0  # this did an unfiltered import, so this should not fail
         for host in host_results.results:
+            if (ansible_version_cmp('2.8.0') < 1) and host.name == 'demo-dj':
+                # Fix for bug was merged into 2.8 https://github.com/ansible/ansible/pull/54099
+                # Bug in previous ansible versions caused host with same name as group to have hostvars stolen
+                continue
             hostvars = host.variables
+            priv_ip = hostvars.get('private_ip', 'NO KEY private_ip FOUND')
+            ansible_host = hostvars.get('ansible_host', 'NO KEY ansible_host FOUND')
             # normally this is the public IP, not the private IP
-            assert hostvars['private_ip'] == hostvars['ansible_host']
+            assert priv_ip == ansible_host, 'private_ip and ansible host do not match!\n' \
+                f'the source var to customize the anisble host was not respected! {priv_ip} != {ansible_host}\n' \
+                f' All host vars were as follows {pformat(hostvars)}'
 
-    def test_azure_use_resource_group_filters(self, factories):
+    def test_azure_use_resource_group_filters(self, skip_if_pre_ansible28, factories, ansible_version_cmp):
+        # Fix for bug was merged into 2.8 https://github.com/ansible/ansible/pull/54099
+        # Bug in previous ansible versions caused host with same name as group to have hostvars stolen
         res_group = "demo-dj"
         source_vars = {"resource_groups": res_group}
         inv_source = factories.v2_inventory_source(
@@ -974,7 +984,9 @@ print(json.dumps({
         host_results = inv_source.get_related('hosts')
         assert host_results.count > 0  # test could be failing because account changed content
         for host in host_results.results:
-            assert host.variables['resource_group'] == res_group
+            hostvars = host.variables
+            found_res_group = hostvars.get('resource_group', 'NO KEY resource_group FOUND')
+            assert found_res_group == res_group, f'Resource group {res_group} not found, only found \n {found_res_group}. All hostvars found were {pformat(hostvars)}'
 
     @pytest.mark.ansible_integration
     def test_aws_replace_dash_in_groups_source_variable(self, factories):
