@@ -53,6 +53,14 @@ pipeline {
             description: 'Branch to use for towerkit',
             defaultValue: 'devel'
         )
+        string(
+            name: 'RUNNER_FORK',
+            description: 'Fork of ansible-runner to deploy (Leave empty to rely on latest RPM)',
+        )
+        string(
+            name: 'RUNNER_BRANCH',
+            description: 'Branch to use for ansible-runner (Leave empty to rely on latest RPM)',
+        )
         booleanParam(
             name: 'BUILD_INSTALLER_AND_PACKAGE',
             description: 'Should the installer and the packages be built as part of this pipeline ?',
@@ -228,6 +236,12 @@ pipeline {
 
             steps {
                 script {
+                    if (params.RUNNER_FORK and params.RUNNER_BRANCH) {
+                        AWX_ANSIBLE_RUNNER_URL = "https://github.com/${params.RUNNER_FORK}/ansible-runner.git@${params.RUNNER_BRANCH}"
+                    } else {
+                        AWX_ANSIBLE_RUNNER_URL = ''
+                    }
+
                     if (params.PLATFORM == 'rhel-8.0-x86_64') {
                         install_build = build(
                             job: 'rhel8/Install And Integration RHEL8',
@@ -239,6 +253,10 @@ pipeline {
                                 string(
                                     name: 'TOWERQA_BRANCH',
                                     value: "origin/${params.TOWER_QA_BRANCH}"
+                                ),
+                                string(
+                                    name: 'AWX_ANSIBLE_RUNNER_URL',
+                                    value: AWX_ANSIBLE_RUNNER_URL
                                 ),
                                 string(
                                     name: 'INSTANCE_NAME_PREFIX',
@@ -271,6 +289,10 @@ pipeline {
                                 string(
                                     name: 'PLATFORM',
                                     value: "${params.PLATFORM}"
+                                ),
+                                string(
+                                    name: 'AWX_ANSIBLE_RUNNER_URL',
+                                    value: AWX_ANSIBLE_RUNNER_URL
                                 ),
                                 string(
                                     name: 'ANSIBLE_NIGHTLY_BRANCH',
