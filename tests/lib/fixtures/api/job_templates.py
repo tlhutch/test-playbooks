@@ -138,9 +138,11 @@ def job_template_with_yaml_vars(factories, organization, project, ssh_credential
 
 
 @pytest.fixture(scope="function")
-def check_job_template(job_template):
+def check_job_template(job_template, instance_group):
     """basic check job_template"""
-    return job_template.patch(job_type="check")
+    jt = job_template.patch(job_type="check")
+    jt.add_instance_group(instance_group)
+    return jt
 
 
 @pytest.fixture(scope="function")
