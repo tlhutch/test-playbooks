@@ -70,11 +70,13 @@ def job_template_ask(factories, organization, project, ssh_credential_ask, host_
 
 
 @pytest.fixture(scope="function")
-def job_template_multi_ask(factories, organization, project, ssh_credential_multi_ask, host_local):
+def job_template_multi_ask(factories, organization, project, ssh_credential_multi_ask, host_local, instance_group):
     """job template with a multiple ASK credential"""
-    return factories.job_template(description="job_template with multiple ASK credential - %s" % fauxfactory.gen_utf8(),
+    jt = factories.job_template(description="job_template with multiple ASK credential - %s" % fauxfactory.gen_utf8(),
                                   organization=organization, project=project, credential=ssh_credential_multi_ask,
                                   inventory=host_local.ds.inventory, playbook='debug.yml')
+    jt.add_instance_group(instance_group)
+    return jt
 
 
 @pytest.fixture
@@ -96,10 +98,12 @@ def job_template_ansible_playbooks_git(factories, organization, project_ansible_
 
 
 @pytest.fixture(scope="function")
-def job_template(factories, organization, project, ssh_credential, host_local):
+def job_template(factories, organization, project, ssh_credential, host_local, instance_group):
     """job_template with a valid machine credential"""
-    return factories.job_template(organization=organization, project=project, credential=ssh_credential,
+    jt = factories.job_template(organization=organization, project=project, credential=ssh_credential,
                                   inventory=host_local.ds.inventory, playbook='debug.yml')
+    jt.add_instance_group(instance_group)
+    return jt
 
 
 @pytest.fixture(scope="function")
@@ -171,13 +175,15 @@ def job_template_ask_variables_on_launch(job_template_ping):
 
 @pytest.fixture(scope="function")
 def job_template_with_ssh_connection(factories, organization, project, ssh_credential_with_ssh_key_data_and_sudo,
-                                     host_with_default_connection):
+                                     host_with_default_connection, instance_group):
     """job_template with a machine credential that uses 'ssh', instead of a 'local' connection"""
-    return factories.job_template(description="job_template without credentials - %s" % fauxfactory.gen_utf8(),
+    jt = factories.job_template(description="job_template without credentials - %s" % fauxfactory.gen_utf8(),
                                   organization=organization, project=project,
                                   credential=ssh_credential_with_ssh_key_data_and_sudo,
                                   inventory=host_with_default_connection.ds.inventory, playbook='debug.yml',
                                   verbosity=4)
+    jt.add_instance_group(instance_group)
+    return jt
 
 
 @pytest.fixture(scope="function")
