@@ -27,7 +27,8 @@ class Test_Proot(APITest):
 
         Regression test for https://github.com/ansible/tower/issues/3431
         """
-        jt = factories.v2_job_template(playbook='chatty_tasks.yml')
+        host = factories.v2_host()
+        jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='chatty_tasks.yml')
         jt.add_instance_group(isolated_instance_group)
         job = jt.launch()
         job.wait_until_completed().assert_successful()
