@@ -1189,9 +1189,9 @@ def _require_cyberark_aim(request):
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestCyberArkAimCredentials(APITest):
 
-    def launch_job(self, factories, v2, object_query=None, object_query_format=None,
-                   url=None, app_id=None, client_cert=None, client_key=None,
-                   reason=None, verify=True):
+    def create_aim_credential(self, factories, v2, object_query=None, object_query_format=None, url=None,
+                              app_id=None, client_cert=None, client_key=None, verify=False):
+
         aim_creds = config.credentials.cyberark_aim
 
         url = url or aim_creds.url
@@ -1200,7 +1200,6 @@ class TestCyberArkAimCredentials(APITest):
         app_id = app_id or aim_creds.app_id
         object_query = object_query or aim_creds.object_query
         object_query_format = object_query_format or aim_creds.object_query_format
-
         # create a credential w/ cyberark aim creds
         cred_type = v2.credential_types.get(
             managed_by_tower=True,
@@ -1219,8 +1218,21 @@ class TestCyberArkAimCredentials(APITest):
             credential_type=cred_type,
             inputs=inputs
         )
-        aim_credential = v2.credentials.post(payload)
+        return v2.credentials.post(payload)
 
+    def launch_job(self, factories, v2, object_query=None, object_query_format=None,
+                   url=None, app_id=None, client_cert=None, client_key=None,
+                   reason=None, verify=False):
+        aim_creds = config.credentials.cyberark_aim
+        url = url or aim_creds.url
+        client_cert = client_cert or aim_creds.client_cert
+        client_key = client_key or aim_creds.client_key
+        app_id = app_id or aim_creds.app_id
+        object_query = object_query or aim_creds.object_query
+        object_query_format = object_query_format or aim_creds.object_query_format
+        aim_credential = self.create_aim_credential(factories, v2, object_query=object_query, object_query_format=object_query_format,
+                                                    url=url, app_id=app_id, client_cert=client_cert, client_key=client_key,
+                                                    verify=False)
         # create an SSH credential
         cred_type = v2.credential_types.get(managed_by_tower=True, kind='ssh').results.pop()
         payload = factories.v2_credential.payload(
