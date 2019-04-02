@@ -1303,3 +1303,34 @@ class TestCyberArkAimCredentials(APITest):
         job = self.launch_job(factories, v2, verify=False, client_key=bad_key)
         assert not job.is_successful
         assert 'OpenSSL.SSL.Error' in job.result_traceback
+
+    def test_cyberark_aim_secret_can_decrypt_ansible_vault(self, factories, v2):
+        jt = factories.v2_job_template(playbook='multivault.yml')
+        aim_creds = config.credentials.cyberark_aim
+        aim_credential = self.create_aim_credential(factories, v2, object_query=aim_creds.object_query,
+                                                    object_query_format=aim_creds.object_query_format,
+                                                    url=aim_creds.url, app_id=aim_creds.app_id, client_cert=aim_creds.client_cert,
+                                                    client_key=aim_creds.client_key, verify=False)
+
+        for s in [('first', 'vault_1'), ('second', 'vault_2')]:
+            cred_type = v2.credential_types.get(managed_by_tower=True, kind='vault').results.pop()
+            payload = factories.v2_credential.payload(
+                name=fauxfactory.gen_utf8(),
+                description=fauxfactory.gen_utf8(),
+                credential_type=cred_type,
+                inputs={'vault_id': s[0]}
+            )
+            credential = v2.credentials.post(payload)
+            object_query = 'Safe=TestSafe;Object={}'.format(s[1])
+            metadata = {
+                'object_query': object_query,
+                'object_query_format': aim_creds.object_query_format,
+            }
+            credential.related.input_sources.post(dict(
+                input_field_name='vault_password',
+                source_credential=aim_credential.id,
+                metadata=metadata,
+            ))
+            jt.add_credential(credential)
+        job = jt.launch().wait_until_completed()
+        assert job.is_successful
