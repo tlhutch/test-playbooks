@@ -1149,7 +1149,8 @@ class TestAzureKVCredentials(APITest):
 @pytest.fixture(autouse=True)
 def _require_cyberark_aim(request):
     """
-    Check for available cyberark aim credentials and that the server is
+    Apply a '@pytest.mark.require_cyberark_aim' marker to a test suite to
+    check for available cyberark aim credentials and that the server is
     reachable from the system under test. Unless the credentials and server
     are available, the suite is skipped.
     """
@@ -1189,17 +1190,14 @@ def _require_cyberark_aim(request):
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestCyberArkAimCredentials(APITest):
 
-    def create_aim_credential(self, factories, v2, object_query=None, object_query_format=None, url=None,
+    def create_aim_credential(self, factories, v2, url=None,
                               app_id=None, client_cert=None, client_key=None, verify=False):
-
         aim_creds = config.credentials.cyberark_aim
 
         url = url or aim_creds.url
         client_cert = client_cert or aim_creds.client_cert
         client_key = client_key or aim_creds.client_key
         app_id = app_id or aim_creds.app_id
-        object_query = object_query or aim_creds.object_query
-        object_query_format = object_query_format or aim_creds.object_query_format
         # create a credential w/ cyberark aim creds
         cred_type = v2.credential_types.get(
             managed_by_tower=True,
@@ -1230,9 +1228,8 @@ class TestCyberArkAimCredentials(APITest):
         app_id = app_id or aim_creds.app_id
         object_query = object_query or aim_creds.object_query
         object_query_format = object_query_format or aim_creds.object_query_format
-        aim_credential = self.create_aim_credential(factories, v2, object_query=object_query, object_query_format=object_query_format,
-                                                    url=url, app_id=app_id, client_cert=client_cert, client_key=client_key,
-                                                    verify=False)
+        aim_credential = self.create_aim_credential(factories, v2, url=url, app_id=app_id, client_cert=client_cert,
+                                                    client_key=client_key, verify=False)
         # create an SSH credential
         cred_type = v2.credential_types.get(managed_by_tower=True, kind='ssh').results.pop()
         payload = factories.v2_credential.payload(
@@ -1307,11 +1304,9 @@ class TestCyberArkAimCredentials(APITest):
     def test_cyberark_aim_secret_can_decrypt_ansible_vault(self, factories, v2):
         jt = factories.v2_job_template(playbook='multivault.yml')
         aim_creds = config.credentials.cyberark_aim
-        aim_credential = self.create_aim_credential(factories, v2, object_query=aim_creds.object_query,
-                                                    object_query_format=aim_creds.object_query_format,
-                                                    url=aim_creds.url, app_id=aim_creds.app_id, client_cert=aim_creds.client_cert,
+        aim_credential = self.create_aim_credential(factories, v2, url=aim_creds.url,
+                                                    app_id=aim_creds.app_id, client_cert=aim_creds.client_cert,
                                                     client_key=aim_creds.client_key, verify=False)
-
         for s in [('first', 'vault_1'), ('second', 'vault_2')]:
             cred_type = v2.credential_types.get(managed_by_tower=True, kind='vault').results.pop()
             payload = factories.v2_credential.payload(
@@ -1334,3 +1329,135 @@ class TestCyberArkAimCredentials(APITest):
             jt.add_credential(credential)
         job = jt.launch().wait_until_completed()
         assert job.is_successful
+
+    def test_cyberark_aim_credentials_can_be_used_in_prompt(self, factories, v2, job_template_prompt_for_credential):
+        aim_creds = config.credentials.cyberark_aim
+        aim_credential = self.create_aim_credential(factories, v2, verify=False)
+
+        cred_type = v2.credential_types.get(managed_by_tower=True, kind='ssh').results.pop()
+        payload = factories.v2_credential.payload(
+            name=fauxfactory.gen_utf8(),
+            description=fauxfactory.gen_utf8(),
+            credential_type=cred_type
+        )
+        credential = v2.credentials.post(payload)
+
+        metadata = {
+            'object_query': aim_creds.object_query,
+            'object_query_format': aim_creds.object_query_format
+        }
+        credential.related.input_sources.post(dict(
+            input_field_name='username',
+            source_credential=aim_credential.id,
+            metadata=metadata,
+        ))
+
+        job_template_prompt_for_credential.credential = credential.id
+        job = job_template_prompt_for_credential.launch().wait_until_completed()
+        job.assert_successful()
+
+    def test_cyberark_aim_RBAC_users_can_be_assigned_use_on_credentials(self, factories, v2):
+        aim_creds = config.credentials.cyberark_aim
+        aim_credential = self.create_aim_credential(factories, v2, url=aim_creds.url,
+                                                    app_id=aim_creds.app_id, client_cert=aim_creds.client_cert,
+                                                    client_key=aim_creds.client_key, verify=False)
+        org = factories.v2_organization()
+        user = factories.user(organization=org)
+
+        cred_type = v2.credential_types.get(managed_by_tower=True, kind='ssh').results.pop()
+        payload = factories.v2_credential.payload(
+            name=fauxfactory.gen_utf8(),
+            description=fauxfactory.gen_utf8(),
+            credential_type=cred_type
+        )
+        credential = v2.credentials.post(payload)
+
+        metadata = {
+            'object_query': aim_creds.object_query,
+            'object_query_format': aim_creds.object_query_format
+        }
+        credential.related.input_sources.post(dict(
+            input_field_name='username',
+            source_credential=aim_credential.id,
+            metadata=metadata
+        ))
+        credential.patch(organization=org.id)
+        credential.set_object_roles(user, 'use')
+
+        jt = factories.v2_job_template()
+        resources = ['inventory', 'credential', 'project']
+        for r in resources:
+            jt.ds[r].patch(organization=org.id)
+            jt.ds[r].set_object_roles(user, 'use')
+        jt.set_object_roles(user, 'admin')
+
+        with self.current_user(username=user.username, password=user.password):
+            jt.patch(credential=credential.id)
+            job = jt.launch().wait_until_completed()
+
+        assert job.is_successful
+
+    def test_cyberark_aim_RBAC_users_cannot_change_linkage_without_lookup_cred_use(self, factories, v2):
+        aim_creds = config.credentials.cyberark_aim
+        aim_credential = self.create_aim_credential(factories, v2)
+        org = factories.v2_organization()
+        user = factories.user(organization=org)
+
+        cred_type = v2.credential_types.get(managed_by_tower=True, kind='ssh').results.pop()
+        payload = factories.v2_credential.payload(
+            name=fauxfactory.gen_utf8(),
+            description=fauxfactory.gen_utf8(),
+            credential_type=cred_type
+        )
+        credential = v2.credentials.post(payload)
+
+        credential.patch(organization=org.id)
+        credential.set_object_roles(user, 'admin')
+        aim_credential.patch(org=org.id)
+
+        metadata = {
+            'object_query': aim_creds.object_query,
+            'object_query_format': aim_creds.object_query_format
+        }
+        credential.related.input_sources.post(dict(
+            input_field_name='username',
+            source_credential=aim_credential.id,
+            metadata=metadata,
+        ))
+        cred_source = credential.related.input_sources.get().results.pop()
+        dangerous_metadata = {
+            'object_query': 'safe=Super;Object=Dangerous',
+            'object_query_format': 'Exact'
+        }
+        with self.current_user(username=user.username, password=user.password):
+            with pytest.raises(exceptions.Forbidden):
+                cred_source.patch(metadata=dangerous_metadata)
+        assert credential.related.input_sources.get().results.pop().metadata == metadata
+
+    def test_cyberark_aim_delete_retrieval_cred(self, factories, v2):
+        aim_creds = config.credentials.cyberark_aim
+        aim_credential = self.create_aim_credential(factories, v2)
+        dependent_creds = []
+        for _ in range(5):
+            cred_type = v2.credential_types.get(managed_by_tower=True, kind='ssh').results.pop()
+            payload = factories.v2_credential.payload(
+                name=fauxfactory.gen_utf8(),
+                description=fauxfactory.gen_utf8(),
+                credential_type=cred_type
+            )
+            credential = v2.credentials.post(payload)
+
+            metadata = {
+                'object_query': aim_creds.object_query,
+                'object_query_format': aim_creds.object_query_format
+            }
+            credential.related.input_sources.post(dict(
+                input_field_name='username',
+                source_credential=aim_credential.id,
+                metadata=metadata,
+            ))
+            dependent_creds.append(credential)
+        aim_credential.delete()
+        for c in dependent_creds:
+            linkage = c.related.input_sources.get().results
+            assert len(linkage) == 0
