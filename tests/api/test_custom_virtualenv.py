@@ -112,13 +112,11 @@ class TestCustomVirtualenv(APITest):
     def test_run_inventory_update_using_venv_with_required_packages(self, v2, factories, create_venv, venv_path):
         folder_name = random_title(non_ascii=False)
         inv_src = factories.v2_inventory_source(source='scm', source_path='inventories/linode.yml')
-        inventory = inv_src.ds.inventory
-        org = inventory.ds.organization
         ansigit = 'git+https://github.com/ansible/ansible.git'
         with create_venv(folder_name, 'psutil {} linode_api4'.format(ansigit)):
             poll_until(lambda: venv_path(folder_name) in v2.config.get().custom_virtualenvs, interval=1, timeout=15)
-            assert org.custom_virtualenv is None
-            org.custom_virtualenv = venv_path(folder_name)
+            assert inv_src.custom_virtualenv is None
+            inv_src.custom_virtualenv = venv_path(folder_name)
             iu = inv_src.update().wait_until_completed()
             assert iu.custom_virtualenv.rstrip('/') == venv_path(folder_name).rstrip('/')
             assert iu.status == 'failed'
