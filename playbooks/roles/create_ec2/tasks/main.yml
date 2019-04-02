@@ -93,13 +93,15 @@
   with_items: '{{ ec2_instance_vars.instances|default([]) }}'
   when: awx_ipv6_deployment | default(false) | bool
 
+# NOTE: We are not using `wait_for` module + search_regex OpenSSH
+# because a bug causes us to hit ConnectionResetError: [Errno 104] Connection reset by peer
+# from time to time
 - name: wait for instances to listen on port:22
-  wait_for:
-    state: started
-    host: '{{ item.public_ip }}'
-    port: 22
-    timeout: '{{ create_ec2_wait_for_22_timeout|default(600) }}'
-    search_regex: OpenSSH
+  raw: 'ssh -o StrictHostKeyChecking=no {{ item.user  }}@{{ item.public_ip  }} "/bin/sh -c \"ls\""'
+  register: ls
+  until: ls.rc == 0
+  retries: 60
+  delay: 10
   with_items: '{{ ec2_host_vars|default([]) }}'
 
 - name: Set ansible_python_interpreter (RHEL8)
