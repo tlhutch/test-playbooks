@@ -250,7 +250,7 @@ class TestApiPerformance(APITest):
         benchmark(self.launch_and_wait, jt)
 
     @pytest.mark.mp_group('Benchmarking', 'isolated_serial')
-    def test_workflow_repeated_jt(self, factories, benchmark):
+    def test_workflow_multiple_project_use(self, factories, benchmark):
         wfjt = factories.workflow_job_template()
         project = factories.project()
         for i in range(20):
