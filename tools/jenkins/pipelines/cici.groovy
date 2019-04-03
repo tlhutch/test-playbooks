@@ -6,7 +6,7 @@ pipeline {
         TOWER_BRANCH = 'release_3.4.3'
     }
     triggers {
-        upstream(upstreamProjects: 'CICI', threshold: hudson.model.Result.FAILURE)
+        cron('H */4 * * *')
     }
     options {
         disableConcurrentBuilds()
