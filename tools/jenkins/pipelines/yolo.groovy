@@ -236,7 +236,7 @@ pipeline {
 
             steps {
                 script {
-                    if (params.RUNNER_FORK and params.RUNNER_BRANCH) {
+                    if (params.RUNNER_FORK && params.RUNNER_BRANCH) {
                         AWX_ANSIBLE_RUNNER_URL = "https://github.com/${params.RUNNER_FORK}/ansible-runner.git@${params.RUNNER_BRANCH}"
                     } else {
                         AWX_ANSIBLE_RUNNER_URL = ''
