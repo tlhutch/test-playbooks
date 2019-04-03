@@ -32,7 +32,7 @@ def set_test_roles(factories):
     return func
 
 
-@pytest.fixture(scope="function", params=['organization', 'job_template', 'workflow_job_template', 'custom_inventory_source', 'project'])
+@pytest.fixture(scope="function", params=['organization', 'job_template_plain', 'workflow_job_template', 'custom_inventory_source', 'project'])
 def notifiable_resource(request, organization):
     """Iterates through the Tower objects that support notifications."""
     resource = request.getfixturevalue(request.param)

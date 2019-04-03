@@ -12,7 +12,7 @@ from tests.api import APITest
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestUnifiedJobs(APITest):
 
-    @pytest.mark.parametrize('fixture, method', [('job_template', 'launch'),
+    @pytest.mark.parametrize('fixture, method', [('job_template_plain', 'launch'),
                                                  ('workflow_job_template', 'launch'),
                                                  ('ad_hoc_command', None),
                                                  ('project', 'update'),
@@ -58,7 +58,7 @@ class TestUnifiedJobs(APITest):
         relaunched_uj.assert_successful()
         assert relaunched_uj.extra_vars == json.dumps(dict(var="$encrypted$"))
 
-    uj_with_stdout = ['job_template',
+    uj_with_stdout = ['job_template_plain',
                       'adhoc',
                       'inventory_source',
                       'project']
