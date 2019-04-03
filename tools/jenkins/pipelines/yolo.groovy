@@ -56,10 +56,12 @@ pipeline {
         string(
             name: 'RUNNER_FORK',
             description: 'Fork of ansible-runner to deploy (Leave empty to rely on latest RPM)',
+            defaultValue: ''
         )
         string(
             name: 'RUNNER_BRANCH',
             description: 'Branch to use for ansible-runner (Leave empty to rely on latest RPM)',
+            defaultValue: ''
         )
         booleanParam(
             name: 'BUILD_INSTALLER_AND_PACKAGE',
@@ -236,7 +238,7 @@ pipeline {
 
             steps {
                 script {
-                    if (params.RUNNER_FORK && params.RUNNER_BRANCH) {
+                    if (params.RUNNER_FORK != '' && params.RUNNER_BRANCH != '') {
                         AWX_ANSIBLE_RUNNER_URL = "https://github.com/${params.RUNNER_FORK}/ansible-runner.git@${params.RUNNER_BRANCH}"
                     } else {
                         AWX_ANSIBLE_RUNNER_URL = ''
