@@ -172,19 +172,18 @@ class TestInventoryUpdateWithVenvs(APITest):
     ALL_VENVS = [{'name': 'default'}]
     ALL_VENVS.extend(CUSTOM_VENVS)
     @pytest.fixture(params=ALL_VENVS, ids=[venv.get('name', 'default') for venv in ALL_VENVS])
-    def org_with_venv(self, request, venv_path, factories):
-        org = factories.organization()
+    def custom_venv_path(self, request, venv_path):
         if request.param['name'] != 'default':
-            path = venv_path(request.param['name'])
-            org.custom_virtualenv = path
-        return org
+            return venv_path(request.param['name'])
+        else:
+            return None
 
     @pytest.mark.custom_venvs
     @pytest.mark.ansible_integration
     def test_v2_update_inventory_source(self,
             ansible_version_cmp,
             cloud_inventory,
-            org_with_venv,
+            custom_venv_path,
             cloud_inventory_hostvars,
             cloud_inventory_hostgroups,
             cloud_hostvars_that_create_groups,
@@ -194,8 +193,7 @@ class TestInventoryUpdateWithVenvs(APITest):
         inv_source = cloud_inventory.related.inventory_sources.get().results.pop()
         # Set venv to use
         # Will use venvs defined in CUSTOM_VENVS as well as the default venv
-        venv_name = org_with_venv.custom_virtualenv
-        inv_source.related['inventory'].get().related.organization.get().custom_virtualenv = venv_name
+        inv_source.custom_virtualenv = custom_venv_path
         kind = inv_source.summary_fields.credential.kind
         if kind == 'azure_rm':
             inv_source.source_vars = json.dumps({
@@ -207,6 +205,10 @@ class TestInventoryUpdateWithVenvs(APITest):
                 })
         inv_update = inv_source.update().wait_until_completed()
         inv_update.assert_successful()
+        # Assert we used the right venv for the update
+        if custom_venv_path:
+            assert inv_update.custom_virtualenv == custom_venv_path
+            assert custom_venv_path in inv_update.job_args
         # There is a bug with old imports https://github.com/ansible/awx/issues/3448
         # we have chosen to ignore it
         # TODO: when Azure_rm plugin is enabled, add this back in
