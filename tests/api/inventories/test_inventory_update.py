@@ -356,6 +356,49 @@ class TestInventoryUpdate(APITest):
         for item in compare_list[1:]:
             assert item == compare_list[0]
 
+    def test_empty_groups_child_of_all_group(self, v2, factories):
+        shared_org = factories.organization()
+        parent_inv = factories.inventory(organization=shared_org)
+        custom_script = """#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+import json
+print(json.dumps({
+    "_meta": {
+        "hostvars": {
+            "old_host": {}
+        }
+    },
+    "ungrouped": {
+        "hosts": ["old_host"]
+    },
+    "ghost": {
+        "hosts": [],
+        "vars": {
+            "foobar": "hello_world"
+        }
+    },
+    "ghost2": {
+        "hosts": []
+    },
+    "all": {
+        "children": ["ghost3"]
+    }
+}))"""
+        inv_script = factories.v2_inventory_script(
+            script=custom_script,
+            organization=shared_org,
+        )
+        inv_source = factories.v2_inventory_source(
+            inventory_script=inv_script,
+            organization=shared_org,
+            inventory=parent_inv
+        )
+        inv_source.update().wait_until_completed().assert_successful()
+        groups = parent_inv.related.groups.get().results
+        assert len(groups) == 3
+        group_names = [group.name for group in groups]
+        assert set(group_names) == set(['ghost', 'ghost2', 'ghost3'])
+
     @pytest.mark.yolo
     def test_update_with_overwrite_attempt_deadlock(self, v2, factories):
         """Update an inventory with multiple sources that update same groups and hosts.'
