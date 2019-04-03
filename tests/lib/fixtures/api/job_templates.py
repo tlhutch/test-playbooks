@@ -99,11 +99,26 @@ def job_template_ansible_playbooks_git(factories, organization, project_ansible_
 
 @pytest.fixture(scope="function")
 def job_template(factories, organization, project, ssh_credential, host_local, instance_group):
-    """job_template with a valid machine credential"""
+    """job_template with a valid machine credential.
+
+    Uses instance_group fixture which is parametrized such that when we are running on a cluster,
+    tests will run once on an ordinary instance, and a second time on an isolated node.
+    """
     jt = factories.job_template(organization=organization, project=project, credential=ssh_credential,
                                   inventory=host_local.ds.inventory, playbook='debug.yml')
     jt.add_instance_group(instance_group)
     return jt
+
+
+@pytest.fixture(scope="function")
+def job_template_plain(factories, organization, project, ssh_credential, host_local):
+    """job_template with a valid machine credential.
+
+    This is an alternative to job_template for use in other parametrized fixtures that are
+    not compatible with consuming fixtures that are themselves parametrized.
+    """
+    return factories.job_template(organization=organization, project=project, credential=ssh_credential,
+                                  inventory=host_local.ds.inventory, playbook='debug.yml')
 
 
 @pytest.fixture(scope="function")

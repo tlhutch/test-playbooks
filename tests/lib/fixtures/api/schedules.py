@@ -1,17 +1,17 @@
 import pytest
 
 
-@pytest.fixture(scope="function", params=["project", "custom_inventory_source", "job_template", "cleanup_jobs_template"])
+@pytest.fixture(scope="function", params=["project", "custom_inventory_source", "job_template_plain", "cleanup_jobs_template"])
 def schedulable_resource_as_superuser(request):
     return request.getfixturevalue(request.param)
 
 
-@pytest.fixture(scope="function", params=["project", "custom_inventory_source", "job_template"])
+@pytest.fixture(scope="function", params=["project", "custom_inventory_source", "job_template_plain"])
 def schedulable_resource_as_org_admin(request):
     return request.getfixturevalue(request.param)
 
 
-@pytest.fixture(scope="function", params=["project", "custom_inventory_source", "job_template", "cleanup_jobs_template"])
+@pytest.fixture(scope="function", params=["project", "custom_inventory_source", "job_template_plain", "cleanup_jobs_template"])
 def resource_with_schedule(request):
     """Returns all schedulable Tower resources with a built-in schedule."""
     resource = request.getfixturevalue(request.param)
@@ -21,7 +21,7 @@ def resource_with_schedule(request):
     return resource
 
 
-@pytest.fixture(scope="function", params=["project", "custom_inventory_source", "job_template"])
+@pytest.fixture(scope="function", params=["project", "custom_inventory_source", "job_template_plain"])
 def organization_resource_with_schedule(request):
     """Returns all organization-scoped schedulable Tower resources with a built-in schedule."""
     resource = request.getfixturevalue(request.param)
