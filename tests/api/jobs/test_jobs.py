@@ -201,6 +201,70 @@ class Test_Job(APITest):
         assert custom_cred1.id not in creds_used
         assert custom_cred2.id in creds_used
 
+    def test_urls_are_sanitized_in_job_env(self, factories, job_template):
+
+        inputs = dict(fields=[
+                {
+                    "id": "url_with_creds",
+                    "type": "string",
+                    "label": "url with username and password",
+                    "secret": True
+                },
+                {
+                    "id": "password",
+                    "type": "string",
+                    "label": "password",
+                    "secret": True
+                },
+                {
+                    "id": "base_url",
+                    "type": "string",
+                    "label": "base url"
+                },
+                {
+                    "id": "username",
+                    "type": "string",
+                    "label": "username"
+                }
+            ])
+        COMPOSED_URL = "COMPOSED_URL"
+        URL_WITH_CREDS = "URL_WITH_CREDS"
+        JOB_ENV_SECRET_REPLACEMENT = '**********'
+        injectors = {
+            "env": {
+                    COMPOSED_URL: "https://{{username}}:{{password}}@{{base_url}}",
+                    URL_WITH_CREDS: "{{url_with_creds}}"
+            },
+            "extra_vars": {
+                    "also_url_var": "{{url_with_creds}}",
+                    "also_composed_url": "https://{{username}}:{{password}}@{{base_url}}"
+            }
+        }
+        cred_type = factories.credential_type(kind='cloud', inputs=inputs, injectors=injectors)
+        secret = fauxfactory.gen_utf8()
+        user = fauxfactory.gen_utf8()
+        base_url = 'example.com'
+        cred = factories.v2_credential(credential_type=cred_type, inputs={
+                            "url_with_creds": f"https://{user}:{secret}@{base_url}",
+                            "base_url": base_url,
+                            "password": secret,
+                            "username": user
+        })
+
+        job_template.add_extra_credential(cred)
+
+        job = job_template.launch().wait_until_completed()
+        job.assert_successful()
+        job_env = job.job_env
+        assert job_env.get(COMPOSED_URL, False), 'Env var not injected, found {} instead'.format(job_env)
+        assert user in job_env.get(COMPOSED_URL)
+        assert secret not in job_env.get(COMPOSED_URL)
+        assert JOB_ENV_SECRET_REPLACEMENT in job_env.get(COMPOSED_URL)
+        assert job_env.get(URL_WITH_CREDS, False), 'Env var not injected, found {} instead'.format(job_env)
+        assert user not in job_env.get(URL_WITH_CREDS)
+        assert secret not in job_env.get(URL_WITH_CREDS)
+        assert JOB_ENV_SECRET_REPLACEMENT in job_env.get(URL_WITH_CREDS)
+
     def test_relaunch_with_vault_credential_only(self, request, factories, v2):
         payload = factories.v2_job_template.payload()
         del payload['credential']
