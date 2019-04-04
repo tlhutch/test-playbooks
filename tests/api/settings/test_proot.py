@@ -130,8 +130,7 @@ if errors:
 
 print(json.dumps({}))
 """)
-    def test_inventory_script_isolation(self, api_unified_jobs_pg, custom_inventory_source, api_settings_jobs_pg,
-                                        update_setting_pg):
+    def test_inventory_script_isolation(self, api_unified_jobs_pg, custom_inventory_source):
         """Launch a custom inventory_script verify it:
          - completes successfully
          - is unable to view the following directories
@@ -158,7 +157,7 @@ print(json.dumps({}))
         # assert successful inventory_update
         job_pg.assert_successful()
 
-    def test_ssh_connections(self, skip_if_openshift, job_with_ssh_connection, api_settings_jobs_pg, update_setting_pg):
+    def test_ssh_connections(self, skip_if_openshift, job_with_ssh_connection):
         """Verify that jobs complete successfully when connecting to inventory
         using the default ansible connection type (e.g. not local).
         """
