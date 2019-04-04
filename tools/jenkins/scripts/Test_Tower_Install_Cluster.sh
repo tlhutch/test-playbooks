@@ -51,6 +51,7 @@ ansible-playbook \
 -e ansible_install_method=${ANSIBLE_INSTALL_METHOD} \
 -e admin_password=${AWX_ADMIN_PASSWORD} \
 -e pg_password=${AWX_ADMIN_PASSWORD} \
+-e awx_ansible_runner_url=https://github.com/ansible/ansible-runner.git@master \
 ${TOWER_INSTALL_PLAYBOOK}
 
 # Ansible was moved from EPEL to RHEL Extras (and to releases.ansible.com) - need to update OOB install steps
