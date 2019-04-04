@@ -65,7 +65,7 @@ class TestUnifiedJobs(APITest):
 
     @pytest.mark.parametrize('jobtype', uj_with_stdout)
     def test_job_stdout_can_be_downloaded(self, jobtype, factories, request):
-        if jobtype == 'job_template':
+        if jobtype == 'job_template_plain':
             job = factories.v2_job_template().launch().wait_until_completed()
         if jobtype == 'adhoc':
             job = factories.v2_ad_hoc_command().wait_until_completed()

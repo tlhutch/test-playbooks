@@ -5,8 +5,8 @@ from tests.api import APITest
 import fauxfactory
 
 
-@pytest.fixture(scope="function", params=['job_template',
-                                          'check_job_template',
+@pytest.fixture(scope="function", params=['job_template_plain',
+                                          'check_job_template_plain',
                                           'org_user',
                                           'team',
                                           'org_admin',

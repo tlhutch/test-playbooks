@@ -161,6 +161,12 @@ def check_job_template(job_template, instance_group):
 
 
 @pytest.fixture(scope="function")
+def check_job_template_plain(job_template_plain):
+    """basic check job_template_plain"""
+    return job_template_plain.patch(job_type="check")
+
+
+@pytest.fixture(scope="function")
 def job_template_sleep(job_template_ansible_playbooks_git, instance_group):
     """job_template that runs the sleep.yml playbook"""
     jt = job_template_ansible_playbooks_git.patch(playbook='sleep.yml')
