@@ -878,11 +878,11 @@ print(json.dumps({
 
     @pytest.mark.parametrize("instance_filter", ["tag-key=Name", "key-name=jenkins", "tag:Name=*"])
     @pytest.mark.ansible_integration
-    def test_update_with_matched_aws_instance_filter(self, factories, instance_filter):
+    def test_update_with_matched_aws_instance_filter(self, factories, instance_filter, aws_credential):
         """Tests inventory imports with matched AWS instance filters. NOTE: test may fail
         if our expected test hosts are down.
         """
-        aws_inventory_source = factories.v2_inventory_source(kind='ec2', instance_filters=instance_filter)
+        aws_inventory_source = factories.v2_inventory_source(source='ec2', instance_filters=instance_filter, credential=aws_credential)
         update = aws_inventory_source.update().wait_until_completed()
         update.assert_successful()
         aws_inventory_source.get().assert_successful()
@@ -1148,7 +1148,7 @@ print(json.dumps({
     @pytest.mark.ansible_integration
     def test_inventory_hosts_cannot_be_deleted_during_sync(self, factories):
         aws_cred = factories.v2_credential(kind='aws')
-        aws_inventory_source = factories.v2_inventory_source(kind='ec2', credential=aws_cred, verbosity=2)
+        aws_inventory_source = factories.v2_inventory_source(source='ec2', credential=aws_cred, verbosity=2)
 
         inv_update = aws_inventory_source.update().wait_until_completed()
         inv_update.assert_successful()
