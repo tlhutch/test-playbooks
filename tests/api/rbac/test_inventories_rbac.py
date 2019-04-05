@@ -15,7 +15,7 @@ from tests.api import APITest
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestInventoryRBAC(APITest):
 
-    def test_unprivileged_user(self, factories):
+    def test_unprivileged_user(self, factories, aws_credential):
         """An unprivileged user should not be able to:
         * Get the inventory detail page
         * Get all of the inventory related pages
@@ -28,7 +28,7 @@ class TestInventoryRBAC(APITest):
         group = factories.v2_group(inventory=inventory)
         host = factories.v2_host(inventory=inventory)
         custom_inv_source = factories.v2_inventory_source(inventory=inventory)
-        aws_inv_source = factories.v2_inventory_source(inventory=inventory, source='ec2')
+        aws_inv_source = factories.v2_inventory_source(inventory=inventory, source='ec2', credential=aws_credential)
         user = factories.user()
 
         with self.current_user(username=user.username, password=user.password):
