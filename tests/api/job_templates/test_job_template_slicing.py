@@ -90,12 +90,15 @@ class TestJobTemplateSlicing(APITest):
         """
         jt = factories.v2_job_template(job_slice_count=2)
         inventory = jt.ds.inventory
-        inventory.related.hosts.post(payload=dict(name='foo',variables='ansible_connection: local'))
+        inventory.related.hosts.post(payload=dict(name='foo', variables='ansible_connection: local'))
 
         job = jt.launch()
         assert job.type != 'workflow_job'
         job.wait_until_completed()
         job.assert_successful()
+
+        # Check that sparkline only reflects the job
+        assert len(jt.get().summary_fields.recent_jobs) == 1
 
     @pytest.mark.mp_group('JobTemplateSlicing', 'isolated_serial')
     @pytest.mark.parametrize('allow_sim', (True, False))
