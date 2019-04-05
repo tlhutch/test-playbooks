@@ -1124,7 +1124,7 @@ print(json.dumps({
         # created date and _before_ the job's finished date; this means that
         # events are being asynchronously inserted into the database _while_
         # the job is in "running" state
-        events = inv_update.related.events.get(order='id').results
+        events = inv_update.related.events.get(order='id', page_size=200).results
         assert len(events) > 0, "Problem with fixture, AWS inventory update did not produce any events"
         '''
         Check for correctness, events should only be created after the job is created.
@@ -1136,6 +1136,15 @@ print(json.dumps({
         Note: This isn't gauranteed, but we are pretty sure we can find at least 1 event.
         '''
         assert any(parse(event.created) < parse(inv_update.finished) for event in events)
+
+        '''
+        Check that the events are actually streamed
+        Require that span over which events are created is at least 50% of the
+        time it took to run the update
+        '''
+        min_create = min(parse(event.created) for event in events)
+        max_create = max(parse(event.created) for event in events)
+        assert (max_create - min_create).total_seconds() > inv_update.elapsed * 0.5
 
     def test_inventory_events_are_searchable(self, factories):
         aws_cred = factories.v2_credential(kind='aws')
