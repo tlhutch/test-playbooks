@@ -6,7 +6,6 @@ A new endpoint will be added to Tower for monitoring by Prometheus or similar ti
 
 Additionally, RHEL-based Tower installations will be able to upload metrics to Red Hat Insights.
 
-
 * Metrics:
   * Job runs
     * Successful
@@ -41,9 +40,9 @@ Additionally, RHEL-based Tower installations will be able to upload metrics to R
 
 * [ ] API
   * [ ] Red Hat Insights
-    * [ ] The tarball produced is valid and the data is valid JSON
+    * [*] The tarball produced is valid and the data is valid JSON
     * [ ] Data can be consumed by insights
-    * [ ] Change to system state is reflected in data
+    * [*] Change to system state is reflected in data
     * [ ] Management task triggers as intended (manual observation)
     * [ ] Failure to push tarball is recoverable
     * [ ] Feature is not enabled on non-rhel platforms

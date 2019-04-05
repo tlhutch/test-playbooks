@@ -1,9 +1,34 @@
 import os
+import base64
+import json
+import re
+import boto3
+import csv
 
+from towerkit import config
 import towerkit.exceptions as exc
 import pytest
 
 from tests.api import APITest
+
+
+@pytest.fixture(scope="function")
+def register_rhn_and_insights(ansible_runner):
+    rhn_username = config.credentials.insights.username
+    rhn_password = config.credentials.insights.password
+    ansible_runner.redhat_subscription(state='present',
+                                             username=rhn_username,
+                                             password=rhn_password,
+                                             auto_attach=True)
+
+    ansible_runner.yum(state='installed', name='insights-client')
+    ansible_runner.shell('insights-client --register')
+    yield
+    ansible_runner.shell('insights-client --unregister')
+    ansible_runner.redhat_subscription(state='absent',
+                                             username=rhn_username,
+                                             password=rhn_password)
+    ansible_runner.yum(state='absent', name='insights-client')
 
 
 @pytest.mark.api
@@ -182,3 +207,208 @@ class TestInsights(APITest):
         version_path = os.path.join(v2.config.get().project_base_dir, project.local_path, ".version")
         contacted = ansible_runner.shell('cat {0}'.format(version_path))
         assert list(contacted.values())[0]['stdout'] == project.scm_revision
+
+
+@pytest.mark.mp_group('Insights', 'serial')
+@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+class TestInsightsAnalytics(APITest):
+
+    def toggle_analytics(self, update_setting_pg, v2, state=False):
+        system_settings = v2.settings.get().get_endpoint('system')
+        payload = {'INSIGHTS_DATA_ENABLED': state}
+        update_setting_pg(system_settings, payload)
+
+    @pytest.fixture
+    def analytics_enabled(self, update_setting_pg, v2, request):
+        self.toggle_analytics(update_setting_pg, v2, state=True)
+        request.addfinalizer(lambda: self.toggle_analytics(update_setting_pg, v2, state=False))
+
+    def gather_analytics(self, ansible_runner):
+        result = ansible_runner.shell('awx-manage gather_analytics').values()[0]
+        analytics_payload = [l for l in result['stderr_lines'] if "tar.gz" in l][0]
+        tempdir = ansible_runner.tempfile(state='directory', suffix='insights_test').values()[0]['path']
+        ansible_runner.unarchive(src=analytics_payload, dest=tempdir, remote_src=True).values()[0]
+        files = [f['path'] for f in ansible_runner.find(paths=tempdir).values()[0]['files']]
+        return tempdir, files
+
+    def read_json_file(self, file, ansible_runner):
+        content = ansible_runner.slurp(path=file).values()[0]['content']
+        return json.loads(base64.b64decode(content))
+
+    def read_csv(self, ansible_runner, tempdir, filename):
+        csv_file = ansible_runner.fetch(src=filename, dest='/tmp/fetched').values()[0]['dest']
+        rows = []
+        for row in csv.reader(open(csv_file, 'r'), delimiter='\t'):
+            rows.append(row)
+        return rows
+
+    def collect_stats(self, keys, ansible_runner):
+        tempdir, files = self.gather_analytics(ansible_runner)
+        stats = {}
+        for k in keys:
+            filename_split = k.split('.')
+            if filename_split[1] == 'json':
+                stats[filename_split[0]] = self.read_json_file('{}/{}'.format(tempdir, k), ansible_runner)
+            elif filename_split[1] == 'csv':
+                stats[filename_split[0]] = self.read_csv(ansible_runner, tempdir, '{}/{}'.format(tempdir, k))
+        return stats
+
+    @pytest.mark.ansible(host_pattern='tower[0]')
+    def test_awxmanage_gather_analytics_generates_valid_tar(self, ansible_runner, skip_if_not_rhel, analytics_enabled):
+        tempdir, files = self.gather_analytics(ansible_runner)
+        expected_files = ['config.json', 'counts.json', 'projects_by_scm_type.json']
+        for f in expected_files:
+            filepath = '{}/{}'.format(tempdir, f)
+            assert filepath in files
+            content = self.read_json_file(filepath, ansible_runner)
+            assert type(content) == dict
+
+    @pytest.mark.ansible(host_pattern='tower[0]')
+    def test_awxmanage_gather_analytics_project_count_incremented(self, ansible_runner, factories, skip_if_not_rhel, analytics_enabled):
+        counts = self.collect_stats(['counts.json'], ansible_runner)
+        projects_before = counts['counts']['project']
+        factories.v2_project()
+        counts = self.collect_stats(['counts.json'], ansible_runner)
+        projects_after = counts['counts']['project']
+
+        assert projects_after == projects_before + 1
+
+    @pytest.mark.ansible(host_pattern='tower[0]')
+    def test_awxmanage_gather_analytics_job_status_manual_launch_count_incremented(self, ansible_runner, factories, skip_if_not_rhel, analytics_enabled):
+        jt = factories.v2_job_template()
+        counts = self.collect_stats(['job_counts.json'], ansible_runner)
+        manual_launch_before = counts['job_counts']['launch_type']['manual']
+
+        jt.launch()
+        counts = self.collect_stats(['job_counts.json'], ansible_runner)
+        manual_launch_after = counts['job_counts']['launch_type']['manual']
+
+        assert manual_launch_after == manual_launch_before + 1
+
+    @pytest.mark.ansible(host_pattern='tower[0]')
+    def test_awxmanage_gather_analytics_inventory_counts_incremented(self, ansible_runner, factories, skip_if_not_rhel, analytics_enabled):
+        counts = self.collect_stats(['counts.json'], ansible_runner)
+        inventory_types_before = counts['counts']['inventories']
+        [factories.v2_inventory() for _ in range(2)]
+        factories.v2_inventory(kind='smart', host_filter='search=foo')
+        counts = self.collect_stats(['counts.json'], ansible_runner)
+        inventory_types_after = counts['counts']['inventories']
+
+        assert inventory_types_after['normal'] == inventory_types_before['normal'] + 2
+        assert inventory_types_after['smart'] == inventory_types_before['smart'] + 1
+
+    @pytest.mark.ansible(host_pattern='tower[0]')
+    def test_awxmanage_gather_analytics_inventory_host_counts_incremented(self, ansible_runner, factories, skip_if_not_rhel, analytics_enabled):
+        org = factories.v2_organization()
+        empty_inventory = factories.v2_inventory(organization=org)
+        two_host_inventory = factories.v2_inventory(organization=org)
+        smart_inventory = factories.v2_inventory(kind='smart', host_filter='search=smart-test', organization=org)
+        inventory_counts_before = self.collect_stats(['inventory_counts.json'], ansible_runner)
+        [factories.v2_host(name="smart-test_{0}".format(i), inventory=two_host_inventory) for i in range(2)]
+        factories.v2_host(organization=org)
+
+        inventory_counts_after = self.collect_stats(['inventory_counts.json'], ansible_runner)
+
+        assert inventory_counts_after['inventory_counts'][str(empty_inventory.id)]['hosts'] == inventory_counts_before['inventory_counts'][str(empty_inventory.id)]['hosts'] == 0
+        assert inventory_counts_after['inventory_counts'][str(two_host_inventory.id)]['hosts'] == inventory_counts_before['inventory_counts'][str(two_host_inventory.id)]['hosts'] + 2 == 2
+        assert inventory_counts_after['inventory_counts'][str(smart_inventory.id)]['num_hosts'] == inventory_counts_before['inventory_counts'][str(smart_inventory.id)]['num_hosts'] + 2 == 2
+
+    @pytest.mark.ansible(host_pattern='tower[0]')
+    def test_awxmanage_gather_analytics_job_status_counts_incremented(self, ansible_runner, factories, skip_if_not_rhel, analytics_enabled):
+        jt = factories.v2_job_template()
+        jt.ds.project.patch(scm_update_on_launch=False)
+        jt.ds.project.update().wait_until_completed()
+        counts = self.collect_stats(['job_instance_counts.json'], ansible_runner)
+        sync_before = 0
+        success_before = 0
+        for h in counts['job_instance_counts'].keys():
+            sync_before += counts['job_instance_counts'][h]['status'].get('sync', 0)
+            success_before += counts['job_instance_counts'][h]['launch_type'].get('successful', 0)
+        jt.launch().wait_until_completed()
+        counts = self.collect_stats(['job_instance_counts.json'], ansible_runner)
+        sync_after = 0
+        success_after = 0
+        for h in counts['job_instance_counts'].keys():
+            sync_after += counts['job_instance_counts'][h]['status'].get('sync', 0)
+            success_after += counts['job_instance_counts'][h]['launch_type'].get('successful', 0)
+        assert success_after == success_before + 1
+        assert sync_after == sync_before
+
+    @pytest.mark.ansible(host_pattern='tower[0]')
+    def test_awxmanage_gather_analytics_events_table_accurate(self, ansible_runner, factories, skip_if_not_rhel, analytics_enabled):
+        # Gather analytics to set last_run
+        self.gather_analytics(ansible_runner)
+        jt = factories.v2_job_template()
+        job = jt.launch().wait_until_completed()
+
+        events = []
+        job_events = job.related.job_events.get()
+        while True:
+            events.extend(job_events.results)
+            if not job_events.next:
+                break
+            job_events = job_events.next.get()
+
+        stats = self.collect_stats(['events_table.csv'], ansible_runner)
+        csv_uuids = set()
+        event_uuids = set()
+        for row in stats['events_table']:
+            csv_uuids.add(row[2])
+        for e in events:
+            event_uuids.add(e['uuid'])
+        assert csv_uuids == event_uuids
+
+    @pytest.mark.ansible(host_pattern='tower[0]')
+    def test_awxmanage_gather_analytics_unicode(self, ansible_runner, factories, skip_if_not_rhel, analytics_enabled):
+        project = factories.v2_project(name='🖖')
+        project.update().wait_until_completed()
+        inventory = factories.v2_inventory(name='🤔')
+        org = factories.v2_organization(name='🤬🥔')
+        jt = factories.v2_job_template(playbook='utf-8-䉪ቒ칸ⱷꯔ噂폄蔆㪗輥.yml')
+        jt.launch().wait_until_completed()
+        counts = self.collect_stats(['inventory_counts.json',
+                                     'org_counts.json',
+                                     'events_table.csv',
+                                     'unified_jobs_table.csv'], ansible_runner)
+
+        assert counts['inventory_counts'][str(inventory.id)]['name'] == '🤔'
+        assert counts['org_counts'][str(org.id)]['name'] == '🤬🥔'
+        assert len([x for x in counts['events_table'] if x[8] == 'utf-8-䉪ቒ칸ⱷꯔ噂폄蔆㪗輥.yml']) > 0
+        assert len([x for x in counts['unified_jobs_table'] if x[4] == '🖖']) > 0
+
+    # Commented out due to logistical concerns with contacting insights dev API from AWS
+    # def test_ship_insights_succeeds(self, ansible_runner, skip_if_not_rhel, register_rhn_and_insights):
+    #     logfile = '/var/log/insights-client/insights-client.log'
+    #     ansible_runner.file(path=logfile, state='absent')
+    #     result = ansible_runner.shell('awx-manage gather_analytics --ship').values()[0]['stderr_lines']
+    #     assert [l for l in result if "Successfully uploaded report" in l]
+    #     log_content = base64.b64decode(ansible_runner.slurp(path=logfile).values()[0]['content']).splitlines()
+    #     assert [l for l in log_content if "insights.client.connection Upload status: 202 Accepted" in l]
+
+    # This "test" is temporary, it is being used by @bender to generate data for a summit demo
+    # Please contact @bender if you want to remove it
+    @pytest.mark.ansible(host_pattern='tower[0]')
+    def test_awxmanage_gather_analytics_ship_insights_tar_to_s3(self, ansible_runner, skip_if_not_rhel, analytics_enabled):
+        s3_bucket_name = 'tower-analytics-data'
+        s3 = boto3.client('s3',
+                          aws_access_key_id=config.credentials.cloud.aws.username,
+                          aws_secret_access_key=config.credentials.cloud.aws.password,
+                          region_name='us-east-1')
+        gather_result = ansible_runner.shell('awx-manage gather_analytics').values()[0]
+        analytics_file = [l for l in gather_result['stderr_lines'] if "tar.gz" in l][0]
+        local_file = ansible_runner.fetch(src=analytics_file, dest='/tmp/', flat=True).values()[0]['dest']
+        s3_path = 'integration_data/{}'.format(local_file.split('/')[-1])
+        s3.upload_file(local_file, s3_bucket_name, s3_path)
+
+        assert s3.get_object(Bucket=s3_bucket_name, Key=s3_path)['ResponseMetadata']['HTTPStatusCode'] == 200
+
+    def test_awxmanage_gather_analytics_system_uuid_same_across_cluster(self, ansible_runner, skip_if_not_cluster, skip_if_not_rhel, analytics_enabled):
+        uuid_regex = re.compile('[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}', re.I)
+        ha_config = '/etc/tower/conf.d/ha.py'
+        ha_content = ansible_runner.slurp(path=ha_config).values()
+        node_system_uuids = set()
+        for n in ha_content:
+            decoded = base64.b64decode(n['content']).decode('utf-8')
+            uuid = uuid_regex.search(decoded)
+            node_system_uuids.add(uuid.group(0))
+        assert len(node_system_uuids) == 1
