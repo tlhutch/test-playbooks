@@ -85,6 +85,19 @@ class TestJobTemplateSlicing(APITest):
         job.assert_successful()
 
     @pytest.mark.mp_group('JobTemplateSlicing', 'isolated_serial')
+    def test_job_template_many_slices_with_one_host_does_not_run_as_workflow(self, factories, v2):
+        """Tests that a slice value of "2" does not create a workflow job when 1 host present
+        """
+        jt = factories.v2_job_template(job_slice_count=2)
+        inventory = jt.ds.inventory
+        inventory.related.hosts.post(payload=dict(name='foo',variables='ansible_connection: local'))
+
+        job = jt.launch()
+        assert job.type != 'workflow_job'
+        job.wait_until_completed()
+        job.assert_successful()
+
+    @pytest.mark.mp_group('JobTemplateSlicing', 'isolated_serial')
     @pytest.mark.parametrize('allow_sim', (True, False))
     def test_job_template_slice_allow_simultaneous(self, factories, v2, do_all_jobs_overlap,
                                                    sliced_jt_factory, allow_sim):
