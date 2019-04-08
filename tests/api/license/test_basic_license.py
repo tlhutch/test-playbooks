@@ -54,7 +54,7 @@ class TestBasicLicense(LicenseTest):
 
     def test_job_launch(self, job_template):
         """Verify that job templates can be launched."""
-        job_template.launch_job().wait_until_completed()
+        job_template.launch().wait_until_completed()
 
     def test_unable_to_create_multiple_organizations(self, factories, api_organizations_pg):
         """Verify that attempting to create a second organization with a basic license raises a 402."""

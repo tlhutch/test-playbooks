@@ -400,7 +400,7 @@ class Test_Autospawned_Jobs(APITest):
             "Not expecting our inventory source to have been updated - %s." % inv_src_pg
 
         # launch job_template and assert successful
-        job_pg = cloud_inventory_job_template.launch_job().wait_until_completed(timeout=600)
+        job_pg = cloud_inventory_job_template.launch().wait_until_completed(timeout=600)
         job_pg.assert_successful()
 
         # check that inventory update triggered
@@ -468,7 +468,7 @@ class Test_Autospawned_Jobs(APITest):
         job_template.patch(inventory=aws_inventory_source.inventory, playbook='debug.yml')
 
         # launch job_template and assert successful
-        job_pg = job_template.launch_job().wait_until_completed(timeout=600)
+        job_pg = job_template.launch().wait_until_completed(timeout=600)
         job_pg.assert_successful()
 
         # check that inventory updates were triggered
@@ -504,7 +504,7 @@ class Test_Autospawned_Jobs(APITest):
             "Not expecting inventory source to have been updated - %s." % custom_inventory_source
 
         # launch inventory update and wait for completion
-        inv_update_pg = custom_inventory_job_template.launch_job().wait_until_completed(timeout=600)
+        inv_update_pg = custom_inventory_job_template.launch().wait_until_completed(timeout=600)
 
         # check that inventory source reports our inventory update
         custom_inventory_source.get()
@@ -513,7 +513,7 @@ class Test_Autospawned_Jobs(APITest):
         last_updated, last_job_run = custom_inventory_source.last_updated, custom_inventory_source.last_job_run
 
         # launch job_template and assert successful
-        job_pg = custom_inventory_job_template.launch_job().wait_until_completed(timeout=600)
+        job_pg = custom_inventory_job_template.launch().wait_until_completed(timeout=600)
         job_pg.assert_successful()
 
         # check that inventory update not triggered
@@ -551,7 +551,7 @@ class Test_Autospawned_Jobs(APITest):
             "Unexpected job_type for our initial project update: {0}.".format(initial_project_update.job_type)
 
         # launch job_template and assert successful
-        job_pg = job_template.launch_job().wait_until_completed(timeout=600)
+        job_pg = job_template.launch().wait_until_completed(timeout=600)
         job_pg.assert_successful()
 
         # check that our new project updates are successful
@@ -595,7 +595,7 @@ class Test_Autospawned_Jobs(APITest):
             "Unexpected job_type for our initial project update: {0}.".format(initial_project_update.job_type)
 
         # launch job_template and assert successful
-        job_pg = job_template_ansible_playbooks_git.launch_job().wait_until_completed(timeout=600)
+        job_pg = job_template_ansible_playbooks_git.launch().wait_until_completed(timeout=600)
         job_pg.assert_successful()
 
         # check that our new project update completes successfully and is of the right type
@@ -636,7 +636,7 @@ class Test_Autospawned_Jobs(APITest):
             "Unexpected job_type for our initial project update: {0}.".format(initial_project_update.job_type)
 
         # launch job_template and assert successful
-        job_pg = custom_inventory_job_template.launch_job().wait_until_completed(timeout=600)
+        job_pg = custom_inventory_job_template.launch().wait_until_completed(timeout=600)
         job_pg.assert_successful()
 
         # check our new project updates are successful

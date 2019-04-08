@@ -55,7 +55,7 @@ class TestEnterpriseLicense(LicenseTest):
 
     def test_job_launch(self, job_template):
         """Verify that job templates can be launched."""
-        job_template.launch_job().wait_until_completed()
+        job_template.launch().wait_until_completed()
 
     def test_post_multiple_organizations(self, api_organizations_pg):
         """Verify that multiple organizations may exist with an enterprise license."""

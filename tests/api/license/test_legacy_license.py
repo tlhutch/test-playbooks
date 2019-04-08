@@ -59,7 +59,7 @@ class TestLegacyLicense(LicenseTest):
 
     def test_job_launch(self, job_template):
         """Verify that job templates can be launched."""
-        job_template.launch_job().wait_until_completed()
+        job_template.launch().wait_until_completed()
 
     def test_post_multiple_organizations(self, factories):
         """Verify that multiple organizations may exist with a legacy license."""
@@ -262,7 +262,7 @@ class TestLegacyLicenseGracePeriod(LicenseTest):
         if conf.license_info.free_instances < 0:
             pytest.skip("Unable to test because there are no free_instances remaining")
         else:
-            job_template.launch_job().wait_until_completed()
+            job_template.launch().wait_until_completed()
 
     def test_instance_counts(self, request, api_config_pg, api_hosts_pg, inventory, group):
         self.assert_instance_counts(request, api_config_pg, api_hosts_pg, group)
@@ -328,7 +328,7 @@ class TestLegacyLicenseExpiredSerial(LicenseTest):
             job_template = factories.v2_job_template()
 
         with pytest.raises(exc.LicenseExceeded):
-            job_template.launch_job()
+            job_template.launch()
 
     def test_unable_to_launch_ad_hoc_command(self, request, apply_generated_license, api_ad_hoc_commands_pg,
                                              ssh_credential, legacy_license_json):
