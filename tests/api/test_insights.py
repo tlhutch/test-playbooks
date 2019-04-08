@@ -405,6 +405,6 @@ class TestInsightsAnalytics(APITest):
         uuid_result = ansible_runner.shell('echo "from django.conf import settings; print(settings.INSTALL_UUID)" | awx-manage shell')
         node_uuids = set()
         for u in uuid_result.values():
-            node_uuids.add(u)
+            node_uuids.add(u['stdout'])
         assert len(node_uuids) == 1
         assert "00000000-0000-0000-0000-000000000000" not in node_uuids
