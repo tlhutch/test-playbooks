@@ -13,6 +13,9 @@ This will gather resource usage information from playbook runs and store it in T
 
 ## Acceptance criteria
 
+* [ ] Ansible
+    * [x] Patch merged to allow configuration of stats collection https://github.com/ansible/ansible/pull/54936/files
+
 * [ ] Runner
   * [ ] Performance stats plugin can be whitelisted
        * [ ] Integration test for confirming performance stats show up in events
