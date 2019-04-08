@@ -238,7 +238,7 @@ class TestInsightsAnalytics(APITest):
     def read_csv(self, ansible_runner, tempdir, filename):
         csv_file = ansible_runner.fetch(src=filename, dest='/tmp/fetched').values()[0]['dest']
         rows = []
-        for row in csv.reader(open(csv_file, 'r'), delimiter='\t'):
+        for row in csv.reader(open(csv_file, 'r', encoding='utf8'), delimiter='\t'):
             rows.append(row)
         return rows
 
