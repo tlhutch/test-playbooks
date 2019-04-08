@@ -1,7 +1,6 @@
 import os
 import base64
 import json
-import re
 import boto3
 import csv
 
@@ -403,12 +402,9 @@ class TestInsightsAnalytics(APITest):
         assert s3.get_object(Bucket=s3_bucket_name, Key=s3_path)['ResponseMetadata']['HTTPStatusCode'] == 200
 
     def test_awxmanage_gather_analytics_system_uuid_same_across_cluster(self, ansible_runner, skip_if_not_cluster, skip_if_not_rhel, analytics_enabled):
-        uuid_regex = re.compile('[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}', re.I)
-        ha_config = '/etc/tower/conf.d/ha.py'
-        ha_content = ansible_runner.slurp(path=ha_config).values()
-        node_system_uuids = set()
-        for n in ha_content:
-            decoded = base64.b64decode(n['content']).decode('utf-8')
-            uuid = uuid_regex.search(decoded)
-            node_system_uuids.add(uuid.group(0))
-        assert len(node_system_uuids) == 1
+        uuid_result = ansible_runner.shell('echo "from django.conf import settings; print(settings.INSTALL_UUID)" | awx-manage shell')
+        node_uuids = set()
+        for u in uuid_result.values():
+            node_uuids.add(u['stdout'])
+        assert len(node_uuids) == 1
+        assert "00000000-0000-0000-0000-000000000000" not in node_uuids
