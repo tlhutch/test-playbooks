@@ -97,7 +97,12 @@ class TestCombinedWorkflowFeatures(APITest):
             for assertion in additional_assertions:
                 assertion(sjt_job_vars)
 
-    def test_set_stats_propagate_correctly_through_workflow(self, factories):
+    def test_set_stats_propagate_correctly_through_workflow(self, instance_group, factories):
+        """Assert that artifacts from set_stats playbooks are passed from node to node.
+
+        This test is parametrized to have job templates run on both regular instances and isolated instances
+        (when in a cluster, other wise the isolated case skips).
+        """
         wfjt = factories.workflow_job_template(
             extra_vars={'outer_var': 'outer_var'},
             inventory=self.outer_inventory
@@ -112,6 +117,7 @@ class TestCombinedWorkflowFeatures(APITest):
                     }
             }
         set_stats_jt = factories.job_template(playbook='test_set_stats.yml', extra_vars=set_stats_vars)
+        set_stats_jt.add_instance_group(instance_group)
         tartarabuelo = factories.workflow_job_template_node(
             workflow_job_template=wfjt,
             unified_job_template=set_stats_jt

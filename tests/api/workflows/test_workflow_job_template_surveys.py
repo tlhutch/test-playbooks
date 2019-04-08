@@ -22,11 +22,17 @@ class TestWorkflowJobTemplateSurveys(APITest):
                    type='text',
                    default='var2_default')]
 
-    @pytest.mark.parametrize('template', ['wfjt', 'jt'])
-    def test_single_template_survey_password_defaults_passed_to_jobs(self, factories, template):
+    @pytest.fixture
+    def debug_extra_vars_job_template(self, instance_group, factories):
         host = factories.v2_host()
-        wfjt = factories.v2_workflow_job_template()
         jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='debug_extra_vars.yml')
+        jt.add_instance_group(instance_group)
+        return jt
+
+    @pytest.mark.parametrize('template', ['wfjt', 'jt'])
+    def test_single_template_survey_password_defaults_passed_to_jobs(self, debug_extra_vars_job_template, factories, template):
+        wfjt = factories.v2_workflow_job_template()
+        jt = debug_extra_vars_job_template
         factories.v2_workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt)
 
         if template == 'wfjt':
@@ -41,10 +47,9 @@ class TestWorkflowJobTemplateSurveys(APITest):
         assert '"var1": "var1_default"' in job.result_stdout
         assert '"var2": "var2_default"' in job.result_stdout
 
-    def test_wfjt_and_wfjn_jt_survey_password_defaults_passed_to_jobs(self, factories):
-        host = factories.v2_host()
+    def test_wfjt_and_wfjn_jt_survey_password_defaults_passed_to_jobs(self, debug_extra_vars_job_template, factories):
         wfjt = factories.v2_workflow_job_template()
-        jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='debug_extra_vars.yml')
+        jt = debug_extra_vars_job_template
         factories.v2_workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt)
 
         wfjt.add_survey(spec=self.survey)
@@ -68,10 +73,9 @@ class TestWorkflowJobTemplateSurveys(APITest):
         assert '"var1": "var1_default"' in job2.result_stdout
         assert '"var2": "var2_default"' in job2.result_stdout
 
-    def test_wfjt_survey_with_required_and_optional_fields(self, factories):
-        host = factories.v2_host()
+    def test_wfjt_survey_with_required_and_optional_fields(self, debug_extra_vars_job_template, factories):
         wfjt = factories.v2_workflow_job_template()
-        jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='debug_extra_vars.yml')
+        jt = debug_extra_vars_job_template
         factories.v2_workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt)
 
         survey = [dict(required=True,
@@ -96,10 +100,9 @@ class TestWorkflowJobTemplateSurveys(APITest):
         assert json.loads(wfj.extra_vars) == dict(var1='$encrypted$', var2='$encrypted$')
         assert json.loads(job.extra_vars) == dict(var1='$encrypted$', var2='$encrypted$')
 
-    def test_null_wfjt_survey_defaults_passed_to_jobs(self, factories):
-        host = factories.v2_host()
-        jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='debug_extra_vars.yml')
+    def test_null_wfjt_survey_defaults_passed_to_jobs(self, debug_extra_vars_job_template, factories):
         wfjt = factories.v2_workflow_job_template()
+        jt = debug_extra_vars_job_template
         factories = factories.v2_workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt)
 
         survey = [dict(required=False,
@@ -125,10 +128,9 @@ class TestWorkflowJobTemplateSurveys(APITest):
         assert '"var1": ""' in job.result_stdout
         assert '"var2": ""' in job.result_stdout
 
-    def test_survey_variables_overriden_when_supplied_at_launch(self, factories):
-        host = factories.v2_host()
+    def test_survey_variables_overriden_when_supplied_at_launch(self, debug_extra_vars_job_template, factories):
         wfjt = factories.v2_workflow_job_template()
-        jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='debug_extra_vars.yml')
+        jt = debug_extra_vars_job_template
         factories.v2_workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt)
 
         survey = [dict(required=True,
@@ -151,10 +153,9 @@ class TestWorkflowJobTemplateSurveys(APITest):
         assert '"var1": "var1_launch"' in job.result_stdout
         assert '"var2": "var2_launch"' in job.result_stdout
 
-    def test_only_select_wfjt_survey_fields_editable(self, factories):
-        host = factories.v2_host()
-        jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='debug_extra_vars.yml')
+    def test_only_select_wfjt_survey_fields_editable(self, debug_extra_vars_job_template, factories):
         wfjt = factories.v2_workflow_job_template()
+        jt = debug_extra_vars_job_template
         factories.v2_workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt)
 
         survey = [dict(required=True,

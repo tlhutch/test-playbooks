@@ -135,21 +135,25 @@ def job_template_with_extra_vars(request):
 
 
 @pytest.fixture(scope="function")
-def job_template_with_json_vars(factories, organization, project, ssh_credential, host_local):
+def job_template_with_json_vars(factories, instance_group, organization, project, ssh_credential, host_local):
     """job_template with a set of JSON extra_vars"""
-    return factories.v2_job_template(description="job_template with extra_vars - %s" % fauxfactory.gen_utf8(),
+    jt = factories.v2_job_template(description="job_template with extra_vars - %s" % fauxfactory.gen_utf8(),
                                   organization=organization, project=project, credential=ssh_credential,
                                   inventory=host_local.ds.inventory, playbook='debug.yml',
                                   extra_vars='{"jt_var": true, "intersection": "jt"}')
+    jt.add_instance_group(instance_group)
+    return jt
 
 
 @pytest.fixture(scope="function")
-def job_template_with_yaml_vars(factories, organization, project, ssh_credential, host_local):
+def job_template_with_yaml_vars(factories, instance_group, organization, project, ssh_credential, host_local):
     """job_template with a set of YAML extra_vars"""
-    return factories.v2_job_template(description="job_template with extra_vars - %s" % fauxfactory.gen_utf8(),
+    jt = factories.v2_job_template(description="job_template with extra_vars - %s" % fauxfactory.gen_utf8(),
                                   organization=organization, project=project, credential=ssh_credential,
                                   inventory=host_local.ds.inventory, playbook='debug.yml',
                                   extra_vars="---\njt_var: true\nintersection: jt")
+    jt.add_instance_group(instance_group)
+    return jt
 
 
 @pytest.fixture(scope="function")
@@ -161,7 +165,12 @@ def check_job_template(job_template):
 
 @pytest.fixture(scope="function")
 def check_job_template_plain(job_template_plain):
-    """basic check job_template_plain"""
+    """basic check job_template_plain, not parameterized to run on isoated.
+
+    Tests that are parameterized on fixtures cannot use fixtures that are themselves parametrized.
+
+    That was motivation behind creating this 'plain' version.
+    """
     return job_template_plain.patch(job_type="check")
 
 

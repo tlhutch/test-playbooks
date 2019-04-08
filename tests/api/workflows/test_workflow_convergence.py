@@ -560,7 +560,7 @@ class Test_Workflow_Convergence(APITest):
             assert convergence_vars[key] == expected_convergence_job_vars[
                 key], 'Correct key was inherited by convergence job but found unexpected value'
 
-    def test_convergence_nodes_merge_set_stats_variables(self, factories):  # noqa C901
+    def test_convergence_nodes_merge_set_stats_variables(self, instance_group, factories):  # noqa C901
         """Confirm that set stats are merged correctly.
 
         Correct merging is defined as:
@@ -600,6 +600,7 @@ class Test_Workflow_Convergence(APITest):
             jt = factories.v2_job_template(
                 playbook='test_set_stats.yml',
                 extra_vars=yaml.dump(extra_vars_as_python))
+            jt.add_instance_group(instance_group)
             set_stat_jts.append(jt)
 
         convergence_jt = factories.v2_job_template(playbook='ping.yml')
@@ -628,6 +629,7 @@ class Test_Workflow_Convergence(APITest):
         convergence_node = parent_nodes[0].add_always_node(
             unified_job_template=convergence_jt)
         last_jt = factories.v2_job_template(playbook='ping.yml')
+        last_jt.add_instance_group(instance_group)
         convergence_node.add_always_node(unified_job_template=last_jt)
         for node in parent_nodes[1:]:
             with pytest.raises(NoContent):
