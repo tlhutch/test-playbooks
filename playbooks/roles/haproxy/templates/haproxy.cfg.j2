@@ -13,19 +13,21 @@ defaults
     timeout connect 5000
     timeout client  50000
     timeout server  50000
+    mode http
+    
+frontend http-in
+   bind *:80
+   redirect scheme https code 301    
 
 frontend tower_cluster
-    bind *:80
-    bind *:443
-    mode tcp
+    bind 0.0.0.0:443 ssl crt /etc/awx.pem
+    reqadd X-Forwarded-Proto:\ https
     default_backend tower_cluster
 
 backend tower_cluster
-    mode tcp
     balance roundrobin
-    option ssl-hello-chk
 {% for host in groups['tower'] %}
-    server tower_{{ loop.index }} {{ host }}:443 check
+    server tower_{{ loop.index }} {{ host }}:80 check
 {% endfor %}
 
 listen stats
