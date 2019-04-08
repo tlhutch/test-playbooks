@@ -73,6 +73,24 @@ class TestSCMInventorySource(APITest):
 
     complex_var = [{"dir": "/opt/gwaf/logs", "sourcetype": "gwaf", "something_else": [1, 2, 3]}]
 
+    @pytest.mark.parametrize('kind, plugin_file', [
+        ('azure_rm', 'inventories/azure_rm.yml'),
+        ('aws', 'inventories/aws_ec2.yml'),
+        # ('openstack_v3', 'inventories/openstack.yml'), # blocked by https://github.com/ansible/awx/issues/3547
+        # ('gce', 'inventories/gcp_compute.yml') # blocked by https://github.com/ansible/ansible/issues/54406
+        # what the minimum gcp_compute.yml is may still be up for debate, may need to update it.
+        # For example, you must specify project in config file as well as on cred because that is what you always have to do
+        # e.g. double specification is required and while not ideal, it is a seperate problem.
+    ])
+    def test_plugin_configs_as_scm_inventory_sources(self, factories, kind, plugin_file):
+        cred = factories.v2_credential(kind=kind)
+        project = factories.v2_project()
+        inv_src = factories.v2_inventory_source(source='scm', source_path=plugin_file, credential=cred, project=project)
+        inv_src.update().wait_until_completed().assert_successful()
+        inv = inv_src.related.inventory.get()
+        assert len(inv.related.hosts.get().results) > 0
+        # TODO: Come up with minimum hostvars and groups we want to see from these plugins
+
     @pytest.mark.ansible_integration
     def test_scm_inventory_hosts_and_host_vars(self, scm_inv_source_with_group_and_host_var_dirs):
         inv_source = scm_inv_source_with_group_and_host_var_dirs
