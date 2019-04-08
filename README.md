@@ -45,24 +45,36 @@ cp awx/settings/local_settings.py.docker_compose awx/settings/local_settings.py 
 ### Set up Tower-License module
 
 ```
-# Inside the dev container:
+# First create a superuser by running the following command
+docker exec -it tools_awx_1 bash -c "awx-manage createsuperuser --noinput --username admin --email admin@example.com; awx-manage update_password --username admin --password XXXX; awx-manage create_preload_data"
+
+# Or access the dev container
 docker exec -it tools_awx_1 bash
+
+# And run these commands
 awx-manage createsuperuser --noinput --username admin --email admin@example.com
 awx-manage update_password --username admin --password XXXX
 awx-manage create_preload_data
-
-# in a new terminal window, clone license repo (need local ssh keys)
 exit
+
+# Back to your machine terminal, clone license repo (need local ssh keys)
 cd tower                      # or 'awx' -- the root directory of your cloned repo
 git clone git@github.com:ansible/tower-license.git
 
-# exec back into the container to install tower-license module in the awx venv
+# Then install the tower-license module in the awx venv
 # It is necessary to provide the user id so you will have permission to write
 # to /venv/awx
+docker exec --user=0 -it tools_awx_1 bash -c "source /venv/awx/bin/activate; pip install awx_devel/tower-license/"
+
+# Or access the dev container by providing the user id
 docker exec --user=0 -it tools_awx_1 bash
+
+# And run below commands
 source /venv/awx/bin/activate
 pip install awx_devel/tower-license/
+exit
 ```
+
 > Note: when cloning the tower-license repo, you can do so in the container, but will need to use a
 [GitHub OAuth key](https://help.github.com/articles/creating-a-personal-access-token-for-the-command-line/)
 because your local ssh credentials will not be accessible from inside the container.
