@@ -32,7 +32,7 @@ def another_ssh_credential(admin_user, factories):
 @pytest.fixture(scope="function")
 def ssh_credential_ask(admin_user, factories):
     """Create ssh credential with 'ASK' password"""
-    cred = factories.credential(description="machine credential with ASK password - %s" % fauxfactory.gen_utf8(),
+    cred = factories.v2_credential(description="machine credential with ASK password - %s" % fauxfactory.gen_utf8(),
                                 kind='ssh', user=admin_user, password='ASK', become_password=None,
                                 ssh_key_data=None)
     return cred
