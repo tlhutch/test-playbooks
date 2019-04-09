@@ -11,9 +11,9 @@ def update_setting_pg_class(request):
         :param payload: a payload used for patching our setting page.
 
         Examples:
-        (Pdb) update_setting_pg(api_settings_ui_pg, {'PENDO_TRACKING_STATE': 'detailed'})
+        (Pdb) update_setting_pg_class(api_settings_ui_pg, {'PENDO_TRACKING_STATE': 'detailed'})
         {"PENDO_TRACKING_STATE": "detailed"}
-        (Pdb) update_setting_pg(api_settings_ui_pg, {'PENDO_TRACKING_STATE': 'off'})
+        (Pdb) update_setting_pg_class(api_settings_ui_pg, {'PENDO_TRACKING_STATE': 'off'})
         {"PENDO_TRACKING_STATE": "off"}
         """
         def teardown_settings():
@@ -26,8 +26,25 @@ def update_setting_pg_class(request):
 
 
 @pytest.fixture
-def update_setting_pg(update_setting_pg_class):
-    return update_setting_pg_class
+def update_setting_pg(request):
+    """Helper fixture used in testing Tower settings."""
+    def func(setting_pg, payload):
+        """:param setting_pg: a settings page model.
+        :param payload: a payload used for patching our setting page.
+
+        Examples:
+        (Pdb) update_setting_pg(api_settings_ui_pg, {'PENDO_TRACKING_STATE': 'detailed'})
+        {"PENDO_TRACKING_STATE": "detailed"}
+        (Pdb) update_setting_pg(api_settings_ui_pg, {'PENDO_TRACKING_STATE': 'off'})
+        {"PENDO_TRACKING_STATE": "off"}
+        """
+        def teardown_settings():
+            setting_pg.silent_delete()
+            logged_sleep(1)  # Tower cache updates are a source of flakiness during settings tests.
+
+        request.addfinalizer(teardown_settings)
+        return setting_pg.patch(**payload)
+    return func
 
 
 @pytest.fixture(scope="function", params=["all", "auth", "azuread", "changed", "github_org", "github_team", "google", "jobs",
