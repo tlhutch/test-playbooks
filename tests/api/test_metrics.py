@@ -3,6 +3,8 @@ import pytest
 from towerkit.utils import logged_sleep
 from towerkit.config import config
 from urllib.parse import urlparse
+import requests
+import towerkit.exceptions as exc
 import jinja2
 
 
@@ -58,5 +60,54 @@ def k8s_prometheus(gke_client_cscope, request, class_factories):
 @pytest.mark.destructive
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestMetrics(APITest):
-    def test_placeholder():
-        pass
+
+    def query_prometheus(self, prometheus_url, metric):
+        query_endpoint = '{}/api/v1/query'.format(prometheus_url)
+        params = {'query': metric}
+        return int(requests.get(query_endpoint, params=params).json()['data']['result'][0]['value'][1])
+
+    def test_metrics_unreadable_by_unprivileged_user(self, v2, unprivileged_user, user_password):
+        with self.current_user(unprivileged_user.username, user_password):
+            with pytest.raises(exc.Forbidden):
+                v2.metrics.get()
+
+    def test_metrics_counts_incremented_accurately(self, factories, v2, create_venv):
+        prometheus_data_before = v2.metrics.get()
+        org = factories.organization()
+        factories.user(organization=org)
+        factories.team(organization=org)
+        inventory = factories.inventory(organization=org)
+        project = factories.project(organization=org)
+        factories.job_template(inventory=inventory, project=project)
+        factories.v2_workflow_job_template(organization=org, inventory=inventory, project=project)
+        factories.host(inventory=inventory)
+        logged_sleep(5)
+        prometheus_data_after = v2.metrics.get()
+        assert prometheus_data_after['awx_organizations_total']['value'] == prometheus_data_before['awx_organizations_total']['value'] + 1
+        assert prometheus_data_after['awx_inventories_total']['value'] == prometheus_data_before['awx_inventories_total']['value'] + 1
+        assert prometheus_data_after['awx_users_total']['value'] == prometheus_data_before['awx_users_total']['value'] + 1
+        assert prometheus_data_after['awx_teams_total']['value'] == prometheus_data_before['awx_teams_total']['value'] + 1
+        assert prometheus_data_after['awx_projects_total']['value'] == prometheus_data_before['awx_projects_total']['value'] + 1
+        assert prometheus_data_after['awx_job_templates_total']['value'] == prometheus_data_before['awx_job_templates_total']['value'] + 1
+        assert prometheus_data_after['awx_workflow_job_templates_total']['value'] == prometheus_data_before['awx_workflow_job_templates_total']['value'] + 1
+        assert prometheus_data_after['awx_hosts_total']['value'] == prometheus_data_before['awx_hosts_total']['value'] + 1
+
+    def test_metrics_are_readable_by_prometheus(self, factories, v2, k8s_prometheus):
+        prometheus_data_before = v2.metrics.get()
+        org = factories.organization()
+        factories.user(organization=org)
+        factories.team(organization=org)
+        inventory = factories.inventory(organization=org)
+        project = factories.project(organization=org)
+        factories.job_template(inventory=inventory, project=project)
+        factories.v2_workflow_job_template(organization=org, inventory=inventory, project=project)
+        factories.host(inventory=inventory)
+        logged_sleep(10)
+        assert self.query_prometheus(k8s_prometheus, 'awx_organizations_total') == int(prometheus_data_before['awx_organizations_total']['value'] + 1)
+        assert self.query_prometheus(k8s_prometheus, 'awx_inventories_total') == int(prometheus_data_before['awx_inventories_total']['value'] + 1)
+        assert self.query_prometheus(k8s_prometheus, 'awx_users_total') == int(prometheus_data_before['awx_users_total']['value'] + 1)
+        assert self.query_prometheus(k8s_prometheus, 'awx_teams_total') == int(prometheus_data_before['awx_teams_total']['value'] + 1)
+        assert self.query_prometheus(k8s_prometheus, 'awx_projects_total') == int(prometheus_data_before['awx_projects_total']['value'] + 1)
+        assert self.query_prometheus(k8s_prometheus, 'awx_job_templates_total') == int(prometheus_data_before['awx_job_templates_total']['value'] + 1)
+        assert self.query_prometheus(k8s_prometheus, 'awx_workflow_job_templates_total') == int(prometheus_data_before['awx_workflow_job_templates_total']['value'] + 1)
+        assert self.query_prometheus(k8s_prometheus, 'awx_hosts_total') == int(prometheus_data_before['awx_hosts_total']['value'] + 1)
