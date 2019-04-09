@@ -89,13 +89,13 @@ def project_with_scm_update_on_launch(request, project_ansible_playbooks_git):
 
 @pytest.fixture(scope="function")
 def job_template_with_cloud_credential(request, job_template, cloud_credential):
-    job_template.patch(cloud_credential=cloud_credential.id)
+    job_template.add_credential(cloud_credential)
     return job_template
 
 
 @pytest.fixture(scope="function")
 def job_template_with_network_credential(request, job_template, network_credential):
-    job_template.patch(network_credential=network_credential.id)
+    job_template.add_credential(network_credential)
     return job_template
 
 
@@ -104,17 +104,17 @@ def expected_net_env_vars():
     """Returns a list of our expected network job env variables."""
     def func(network_credential):
         expected_env_vars = dict()
-        if getattr(network_credential, "username", None):
+        if getattr(network_credential.inputs, "username", None):
             expected_env_vars["ANSIBLE_NET_USERNAME"] = config.credentials['network']['username']
-        if getattr(network_credential, "password", None):
+        if getattr(network_credential.inputs, "password", None):
             expected_env_vars["ANSIBLE_NET_PASSWORD"] = "**********"
-        if getattr(network_credential, "ssh_key_data", None):
+        if getattr(network_credential.inputs, "ssh_key_data", None):
             expected_env_vars["ANSIBLE_NET_SSH_KEYFILE"] = "**********"
-        if getattr(network_credential, "authorize", None):
+        if getattr(network_credential.inputs, "authorize", None):
             expected_env_vars["ANSIBLE_NET_AUTHORIZE"] = "1"
         else:
             expected_env_vars["ANSIBLE_NET_AUTHORIZE"] = "0"
-        if getattr(network_credential, "authorize_password", None):
+        if getattr(network_credential.inputs, "authorize_password", None):
             expected_env_vars["ANSIBLE_NET_AUTH_PASS"] = "**********"
         return expected_env_vars
     return func
@@ -791,27 +791,28 @@ class Test_Job_Env(APITest):
         Note: Tower doesn't set environmental variables for CloudForms and Satellite6.
         """
         # get cloud_credential
-        cloud_credential = job_template_with_cloud_credential.get_related('cloud_credential')
+        cloud_credential = [cred for cred in job_template_with_cloud_credential.get_related('credentials').results if cred.get_related('credential_type').kind == 'cloud'][0]
+        cloud_credential_namespace = cloud_credential.get_related('credential_type').namespace
 
         # launch job and assert successful
         job_pg = job_template_with_cloud_credential.launch().wait_until_completed()
         job_pg.assert_successful()
 
         # assert expected environment variables and their values
-        if cloud_credential.kind == 'aws':
-            self.has_credentials('cloud', cloud_credential.kind, ['username'])
+        if cloud_credential_namespace == 'aws':
+            self.has_credentials('cloud', cloud_credential_namespace, ['username'])
             expected_env_vars = dict(
-                AWS_ACCESS_KEY_ID=self.credentials['cloud'][cloud_credential.kind]['username'],
+                AWS_ACCESS_KEY_ID=self.credentials['cloud'][cloud_credential_namespace]['username'],
                 AWS_SECRET_ACCESS_KEY='**********'
             )
-        elif cloud_credential.kind == 'gce':
-            self.has_credentials('cloud', cloud_credential.kind, ['username', 'project'])
+        elif cloud_credential_namespace == 'gce':
+            self.has_credentials('cloud', cloud_credential_namespace, ['username', 'project'])
             expected_env_vars = dict(
-                GCE_EMAIL=self.credentials['cloud'][cloud_credential.kind]['username'],
-                GCE_PROJECT=self.credentials['cloud'][cloud_credential.kind]['project'],
+                GCE_EMAIL=self.credentials['cloud'][cloud_credential_namespace]['username'],
+                GCE_PROJECT=self.credentials['cloud'][cloud_credential_namespace]['project'],
                 GCE_CREDENTIALS_FILE_PATH=lambda x: re.match(r'^/tmp/awx_\w+/tmp\w+', x)
             )
-        elif cloud_credential.kind == 'azure_rm' and azure_type(cloud_credential) == 'azure':
+        elif cloud_credential_namespace == 'azure_rm':
             self.has_credentials('cloud', 'azure', ['subscription_id', 'client_id', 'secret', 'tenant'])
             expected_env_vars = dict(
                 AZURE_CLIENT_ID=self.credentials['cloud']['azure']['client_id'],
@@ -819,21 +820,14 @@ class Test_Job_Env(APITest):
                 AZURE_SUBSCRIPTION_ID=self.credentials['cloud']['azure']['subscription_id'],
                 AZURE_SECRET='**********',
             )
-        elif cloud_credential.kind == 'azure_rm' and azure_type(cloud_credential) == 'azure_ad':
-            self.has_credentials('cloud', 'azure_ad', ['subscription_id', 'ad_user', 'password'])
+        elif cloud_credential_namespace == 'vmware':
+            self.has_credentials('cloud', cloud_credential_namespace, ['username', 'host'])
             expected_env_vars = dict(
-                AZURE_SUBSCRIPTION_ID=self.credentials['cloud']['azure']['subscription_id'],
-                AZURE_AD_USER=self.credentials['cloud']['azure_ad']['ad_user'],
-                AZURE_PASSWORD='**********',
-            )
-        elif cloud_credential.kind == 'vmware':
-            self.has_credentials('cloud', cloud_credential.kind, ['username', 'host'])
-            expected_env_vars = dict(
-                VMWARE_USER=self.credentials['cloud'][cloud_credential.kind]['username'],
+                VMWARE_USER=self.credentials['cloud'][cloud_credential_namespace]['username'],
                 VMWARE_PASSWORD='**********',
-                VMWARE_HOST=self.credentials['cloud'][cloud_credential.kind]['host']
+                VMWARE_HOST=self.credentials['cloud'][cloud_credential_namespace]['host']
             )
-        elif cloud_credential.kind == 'openstack':
+        elif cloud_credential_namespace == 'openstack':
             if "openstack-v2" in cloud_credential.name:
                 self.has_credentials('cloud', 'openstack_v2', ['username', 'host', 'project'])
             elif "openstack-v3" in cloud_credential.name:
@@ -843,11 +837,11 @@ class Test_Job_Env(APITest):
             expected_env_vars = dict(
                 OS_CLIENT_CONFIG_FILE=lambda x: re.match(r'^/tmp/awx_\w+/tmp\w+', x)
             )
-        elif cloud_credential.kind in ('cloudforms', 'satellite6'):
-            self.has_credentials('cloud', cloud_credential.kind, ['host', 'username', 'password'])
+        elif cloud_credential_namespace in ('cloudforms', 'satellite6'):
+            self.has_credentials('cloud', cloud_credential_namespace, ['host', 'username', 'password'])
             expected_env_vars = dict()
         else:
-            raise ValueError("Unhandled cloud type: %s" % cloud_credential.kind)
+            raise ValueError("Unhandled cloud type: %s" % cloud_credential_namespace)
 
         # assert the expected job_env variables are present
         confirm_job_env(job_pg, expected_env_vars)
@@ -855,7 +849,7 @@ class Test_Job_Env(APITest):
     def test_job_env_with_network_credential(self, job_template_with_network_credential, expected_net_env_vars):
         """Verify that job_env has the expected network_credential variables."""
         # get cloud_credential
-        network_credential = job_template_with_network_credential.get_related('network_credential')
+        network_credential = [cred for cred in job_template_with_network_credential.get_related('credentials').results if cred.get_related('credential_type').kind == 'net'][0]
 
         # launch job and assert successful
         job_pg = job_template_with_network_credential.launch().wait_until_completed()

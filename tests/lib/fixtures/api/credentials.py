@@ -335,14 +335,6 @@ def azure_credential(admin_user, factories):
 
 
 @pytest.fixture(scope="function")
-def azure_ad_credential(admin_user, factories):
-    cred = factories.credential(name="azure-ad-credential-%s" % fauxfactory.gen_utf8(),
-                                description="Microsoft Azure credential %s" % fauxfactory.gen_utf8(),
-                                kind='azure_ad', user=admin_user)
-    return cred
-
-
-@pytest.fixture(scope="function")
 def gce_credential(admin_user, factories):
     cred = factories.credential(name="gce-credential-%s" % fauxfactory.gen_utf8(),
                                 description="Google Compute Engine credential %s" % fauxfactory.gen_utf8(),
@@ -397,7 +389,7 @@ def satellite6_credential(admin_user, factories):
 
 
 # Convenience fixture that iterates through supported cloud_credential types
-@pytest.fixture(scope="function", params=['aws', 'azure', 'azure_ad', 'gce', 'vmware', 'openstack_v2', 'openstack_v3',
+@pytest.fixture(scope="function", params=['aws', 'azure', 'gce', 'vmware', 'openstack_v2', 'openstack_v3',
                                           'cloudforms', 'satellite6'])
 def cloud_credential(request):
     return request.getfixturevalue(request.param + '_credential')
