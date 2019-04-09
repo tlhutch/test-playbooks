@@ -1,17 +1,15 @@
-import json
+import os
 
-from towerkit.config import config
-from dateutil.parser import parse
-from towerkit.utils import load_json_or_yaml, poll_until
-from towerkit import exceptions as exc
 import pytest
 
 from tests.api import APITest
 
+
 @pytest.mark.api
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestInventoryUpdateOverlappingSources(APITest):
-    
+
+    @pytest.mark.yolo
     def test_update_with_overwrite_attempt_deadlock(self, v2, factories):
         """Update an inventory with multiple sources that update same groups and hosts.'
 
@@ -52,7 +50,12 @@ print(json.dumps({
 'child_group2': {'hosts': ['{}'.format(host_1), 'all_have2']},
 'parent_group': {'hosts': ['{}'.format(host_2), 'all_have3'], 'children': ['child_group', 'child_group2']}
 }))"""
-        NUM_INV_SOURCES = 21
+        NUM_INV_SOURCES = int(
+            os.environ.get(
+                'TOWERQA_NUM_INVENTORY_SOURCES_OVERWRITE_DEADLOCK', 3))
+        if not NUM_INV_SOURCES:
+            pytest.skip(
+                'Set TOWERQA_NUM_IVENTORY_SOURCES_OVERWRITE_DEADLOCK to a positive integer to run test')
         for i in range(NUM_INV_SOURCES):
             inv_script = factories.v2_inventory_script(
                 script=custom_script,
@@ -80,7 +83,7 @@ print(json.dumps({
         shared_parent_inv = shared_parent_inv.get()
         # Each has 2 unique hosts
         # Then the three invs all share 4 other hosts, all_have, all_have2, all_have3, and groupless
-        EXPECTED_TOTAL_HOSTS = (NUM_INV_SOURCES*2) + 4
+        EXPECTED_TOTAL_HOSTS = (NUM_INV_SOURCES * 2) + 4
         EXPECTED_GROUP_HOSTS = NUM_INV_SOURCES + 1
         assert shared_parent_inv.total_hosts == EXPECTED_TOTAL_HOSTS, 'Each source has a unique host and there are 4 shared hosts'
         assert shared_parent_inv.total_groups == 3, 'Should have had parent group, child_group, and child_group2'
@@ -172,7 +175,7 @@ print(json.dumps({
                     organization=shared_org,
                     )
                 source.source_script = inv_script.id
-        
+
         updates = shared_parent_inv.related.update_inventory_sources.post()
         for update in updates:
             update_page = v2.inventory_updates.get(id=update['id']).results.pop()
