@@ -604,7 +604,7 @@ class TestGeneralSettings(APITest):
 
     def test_changed_settings(self, modify_settings, api_settings_changed_pg):
         """Verifies that changed entries show under /api/v1/settings/changed/.
-        Note: "TOWER_URL_BASE" and "LICENSE" always show here regardless of
+        Note: "TOWER_URL_BASE", "LICENSE" and "INSTALL_UUID" always show here regardless of
         the changes that we make.
         """
         payload = modify_settings()
@@ -616,7 +616,7 @@ class TestGeneralSettings(APITest):
             "Not all changed entries listed under /api/v1/settings/changed/."
         # check for two additional entries under /api/v1/settings/changed/
         assert set(settings_changed.json.keys()) - set(payload.keys()) - set(optional_read_only_fields) == \
-            set(['TOWER_URL_BASE', 'LICENSE']), "Unexpected additional items listed under /api/v1/settings/changed/."
+            set(['TOWER_URL_BASE', 'INSTALL_UUID', 'LICENSE']), "Unexpected additional items listed under /api/v1/settings/changed/."
 
     def test_setting_obfuscation(self, api_settings_pg, modify_obfuscated_settings):
         """Verifies that sensitive setting values get obfuscated."""
