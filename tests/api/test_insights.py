@@ -6,6 +6,7 @@ import csv
 
 from towerkit import config
 import towerkit.exceptions as exc
+from towerkit.utils import logged_sleep
 import pytest
 
 from tests.api import APITest
@@ -324,6 +325,7 @@ class TestInsightsAnalytics(APITest):
             sync_before += counts['job_instance_counts'][h]['status'].get('sync', 0)
             success_before += counts['job_instance_counts'][h]['launch_type'].get('successful', 0)
         jt.launch().wait_until_completed()
+        logged_sleep(5)
         counts = self.collect_stats(['job_instance_counts.json'], ansible_runner)
         sync_after = 0
         success_after = 0
