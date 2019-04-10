@@ -1,6 +1,6 @@
 from tests.api import APITest
 import pytest
-from towerkit.utils import logged_sleep
+from towerkit import utils
 from towerkit.config import config
 from urllib.parse import urlparse
 import requests
@@ -52,7 +52,7 @@ def k8s_prometheus(gke_client_cscope, request, class_factories):
     request.addfinalizer(lambda: K8sClient.destroy(deployment_name))
     request.addfinalizer(lambda: K8sClient.core.delete_namespaced_config_map(deployment_name, 'default', body=K8sClient.K8sClient.V1DeleteOptions()))
     prometheus_url = "https://http-{}-port-9090.{}".format(deployment_name, cluster_domain)
-    logged_sleep(5)
+    utils.poll_until(lambda: requests.get(prometheus_url).status_code == 200)
     return prometheus_url
 
 
@@ -91,7 +91,6 @@ class TestMetrics(APITest):
         factories.job_template(inventory=inventory, project=project)
         factories.v2_workflow_job_template(organization=org, inventory=inventory, project=project)
         factories.host(inventory=inventory)
-        logged_sleep(5)
         prometheus_data_after = v2.metrics.get()
         assert prometheus_data_after['awx_organizations_total']['value'] == prometheus_data_before['awx_organizations_total']['value'] + 1
         assert prometheus_data_after['awx_inventories_total']['value'] == prometheus_data_before['awx_inventories_total']['value'] + 1
@@ -112,7 +111,7 @@ class TestMetrics(APITest):
         factories.job_template(inventory=inventory, project=project)
         factories.v2_workflow_job_template(organization=org, inventory=inventory, project=project)
         factories.host(inventory=inventory)
-        logged_sleep(10)
+        utils.poll_until(lambda: self.query_prometheus(k8s_prometheus, 'awx_hosts_total') > int(prometheus_data_before['awx_hosts_total']['value']))
         assert self.query_prometheus(k8s_prometheus, 'awx_organizations_total') == int(prometheus_data_before['awx_organizations_total']['value'] + 1)
         assert self.query_prometheus(k8s_prometheus, 'awx_inventories_total') == int(prometheus_data_before['awx_inventories_total']['value'] + 1)
         assert self.query_prometheus(k8s_prometheus, 'awx_users_total') == int(prometheus_data_before['awx_users_total']['value'] + 1)
