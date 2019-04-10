@@ -71,6 +71,11 @@ class TestMetrics(APITest):
             with pytest.raises(exc.Forbidden):
                 v2.metrics.get()
 
+    def test_metrics_readable_by_system_user(self, v2, system_user, user_password):
+        with self.current_user(system_user.username, user_password):
+            response = v2.metrics.get()
+        assert 'awx_system_info' in response
+
     def test_metrics_counts_incremented_accurately(self, factories, v2, create_venv):
         prometheus_data_before = v2.metrics.get()
         org = factories.organization()
