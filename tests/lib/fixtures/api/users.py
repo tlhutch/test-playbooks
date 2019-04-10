@@ -119,6 +119,11 @@ def org_users(org_admin, org_user):
     return (org_admin, org_user)
 
 
+@pytest.fixture(scope="function", params=('org_admin', 'org_user'))
+def organization_user(request):
+    return request.getfixturevalue(request.param)
+
+
 @pytest.fixture(scope="function")
 def non_org_users(anonymous_user, another_org_admin, another_org_user):
     """Return a list of organization users outside of 'Default' organization."""

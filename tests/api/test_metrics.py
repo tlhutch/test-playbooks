@@ -71,6 +71,11 @@ class TestMetrics(APITest):
             with pytest.raises(exc.Forbidden):
                 v2.metrics.get()
 
+    def test_metrics_unreadable_by_org_users(self, v2, organization_user, user_password):
+        with self.current_user(organization_user.username, user_password):
+            with pytest.raises(exc.Forbidden):
+                v2.metrics.get()
+
     def test_metrics_readable_by_system_user(self, v2, system_user, user_password):
         with self.current_user(system_user.username, user_password):
             response = v2.metrics.get()
