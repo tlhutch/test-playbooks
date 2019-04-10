@@ -6,6 +6,7 @@ import csv
 
 from towerkit import config
 import towerkit.exceptions as exc
+from towerkit.utils import logged_sleep
 import pytest
 
 from tests.api import APITest
@@ -253,7 +254,7 @@ class TestInsightsAnalytics(APITest):
         return stats
 
     @pytest.mark.ansible(host_pattern='tower[0]')
-    def test_awxmanage_gather_analytics_generates_valid_tar(self, ansible_runner, skip_if_not_rhel, analytics_enabled):
+    def test_awxmanage_gather_analytics_generates_valid_tar(self, ansible_runner, skip_if_not_rhel, skip_if_openshift, analytics_enabled):
         tempdir, files = self.gather_analytics(ansible_runner)
         expected_files = ['config.json', 'counts.json', 'projects_by_scm_type.json']
         for f in expected_files:
@@ -263,7 +264,7 @@ class TestInsightsAnalytics(APITest):
             assert type(content) == dict
 
     @pytest.mark.ansible(host_pattern='tower[0]')
-    def test_awxmanage_gather_analytics_project_count_incremented(self, ansible_runner, factories, skip_if_not_rhel, analytics_enabled):
+    def test_awxmanage_gather_analytics_project_count_incremented(self, ansible_runner, factories, skip_if_not_rhel, skip_if_openshift, analytics_enabled):
         counts = self.collect_stats(['counts.json'], ansible_runner)
         projects_before = counts['counts']['project']
         factories.v2_project()
@@ -273,7 +274,7 @@ class TestInsightsAnalytics(APITest):
         assert projects_after == projects_before + 1
 
     @pytest.mark.ansible(host_pattern='tower[0]')
-    def test_awxmanage_gather_analytics_job_status_manual_launch_count_incremented(self, ansible_runner, factories, skip_if_not_rhel, analytics_enabled):
+    def test_awxmanage_gather_analytics_job_status_manual_launch_count_incremented(self, ansible_runner, factories, skip_if_openshift, skip_if_not_rhel, analytics_enabled):
         jt = factories.v2_job_template()
         counts = self.collect_stats(['job_counts.json'], ansible_runner)
         manual_launch_before = counts['job_counts']['launch_type']['manual']
@@ -285,7 +286,7 @@ class TestInsightsAnalytics(APITest):
         assert manual_launch_after == manual_launch_before + 1
 
     @pytest.mark.ansible(host_pattern='tower[0]')
-    def test_awxmanage_gather_analytics_inventory_counts_incremented(self, ansible_runner, factories, skip_if_not_rhel, analytics_enabled):
+    def test_awxmanage_gather_analytics_inventory_counts_incremented(self, ansible_runner, factories, skip_if_not_rhel, skip_if_openshift, analytics_enabled):
         counts = self.collect_stats(['counts.json'], ansible_runner)
         inventory_types_before = counts['counts']['inventories']
         [factories.v2_inventory() for _ in range(2)]
@@ -297,7 +298,7 @@ class TestInsightsAnalytics(APITest):
         assert inventory_types_after['smart'] == inventory_types_before['smart'] + 1
 
     @pytest.mark.ansible(host_pattern='tower[0]')
-    def test_awxmanage_gather_analytics_inventory_host_counts_incremented(self, ansible_runner, factories, skip_if_not_rhel, analytics_enabled):
+    def test_awxmanage_gather_analytics_inventory_host_counts_incremented(self, ansible_runner, factories, skip_if_not_rhel, skip_if_openshift, analytics_enabled):
         org = factories.v2_organization()
         empty_inventory = factories.v2_inventory(organization=org)
         two_host_inventory = factories.v2_inventory(organization=org)
@@ -313,7 +314,7 @@ class TestInsightsAnalytics(APITest):
         assert inventory_counts_after['inventory_counts'][str(smart_inventory.id)]['num_hosts'] == inventory_counts_before['inventory_counts'][str(smart_inventory.id)]['num_hosts'] + 2 == 2
 
     @pytest.mark.ansible(host_pattern='tower[0]')
-    def test_awxmanage_gather_analytics_job_status_counts_incremented(self, ansible_runner, factories, skip_if_not_rhel, analytics_enabled):
+    def test_awxmanage_gather_analytics_job_status_counts_incremented(self, ansible_runner, factories, skip_if_not_rhel, skip_if_openshift, analytics_enabled):
         jt = factories.v2_job_template()
         jt.ds.project.patch(scm_update_on_launch=False)
         jt.ds.project.update().wait_until_completed()
@@ -324,6 +325,7 @@ class TestInsightsAnalytics(APITest):
             sync_before += counts['job_instance_counts'][h]['status'].get('sync', 0)
             success_before += counts['job_instance_counts'][h]['launch_type'].get('successful', 0)
         jt.launch().wait_until_completed()
+        logged_sleep(5)
         counts = self.collect_stats(['job_instance_counts.json'], ansible_runner)
         sync_after = 0
         success_after = 0
@@ -334,7 +336,7 @@ class TestInsightsAnalytics(APITest):
         assert sync_after == sync_before
 
     @pytest.mark.ansible(host_pattern='tower[0]')
-    def test_awxmanage_gather_analytics_events_table_accurate(self, ansible_runner, factories, skip_if_not_rhel, analytics_enabled):
+    def test_awxmanage_gather_analytics_events_table_accurate(self, ansible_runner, factories, skip_if_not_rhel, skip_if_openshift, analytics_enabled):
         # Gather analytics to set last_run
         self.gather_analytics(ansible_runner)
         jt = factories.v2_job_template()
@@ -358,7 +360,7 @@ class TestInsightsAnalytics(APITest):
         assert csv_uuids == event_uuids
 
     @pytest.mark.ansible(host_pattern='tower[0]')
-    def test_awxmanage_gather_analytics_unicode(self, ansible_runner, factories, skip_if_not_rhel, analytics_enabled):
+    def test_awxmanage_gather_analytics_unicode(self, ansible_runner, factories, skip_if_not_rhel, skip_if_openshift, analytics_enabled):
         project = factories.v2_project(name='🖖')
         project.update().wait_until_completed()
         inventory = factories.v2_inventory(name='🤔')
@@ -387,7 +389,7 @@ class TestInsightsAnalytics(APITest):
     # This "test" is temporary, it is being used by @bender to generate data for a summit demo
     # Please contact @bender if you want to remove it
     @pytest.mark.ansible(host_pattern='tower[0]')
-    def test_awxmanage_gather_analytics_ship_insights_tar_to_s3(self, ansible_runner, skip_if_not_rhel, analytics_enabled):
+    def test_awxmanage_gather_analytics_ship_insights_tar_to_s3(self, ansible_runner, skip_if_not_rhel, skip_if_openshift, analytics_enabled):
         s3_bucket_name = 'tower-analytics-data'
         s3 = boto3.client('s3',
                           aws_access_key_id=config.credentials.cloud.aws.username,
@@ -401,7 +403,7 @@ class TestInsightsAnalytics(APITest):
 
         assert s3.get_object(Bucket=s3_bucket_name, Key=s3_path)['ResponseMetadata']['HTTPStatusCode'] == 200
 
-    def test_awxmanage_gather_analytics_system_uuid_same_across_cluster(self, ansible_runner, skip_if_not_cluster, skip_if_not_rhel, analytics_enabled):
+    def test_awxmanage_gather_analytics_system_uuid_same_across_cluster(self, ansible_runner, skip_if_not_cluster, skip_if_not_rhel, skip_if_openshift, analytics_enabled):
         uuid_result = ansible_runner.shell('echo "from django.conf import settings; print(settings.INSTALL_UUID)" | awx-manage shell')
         node_uuids = set()
         for u in uuid_result.values():
