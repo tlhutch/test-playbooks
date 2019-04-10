@@ -1,9 +1,4 @@
 ---
-- name: 'Collect tower artifacts'
-  hosts: tower
-  roles:
-    - role: collect_tower_artifacts
-
 - name: 'Terminate ec2 instance'
   hosts: local
   roles:
