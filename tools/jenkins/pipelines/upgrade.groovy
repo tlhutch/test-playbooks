@@ -198,7 +198,7 @@ Bundle?: ${params.BUNDLE}"""
                         sshagent(credentials : ['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
                             sh 'ansible-playbook -v -i playbooks/inventory.test_runner playbooks/test_runner/run_clean_cache.yml'
                             sh './tools/jenkins/scripts/generate_vars.sh'
-                            sh "ansible test-runner -i playbooks/inventory.test_runner -m copy -a 'src=playbooks/vars.yml dest=/home/centos/tower-qa/playbooks/vars.yml'"
+                            sh "ansible test-runner -i playbooks/inventory.test_runner -m copy -a 'src=playbooks/vars.yml dest=/home/ec2-user/tower-qa/playbooks/vars.yml'"
                             sh "ansible test-runner -i playbooks/inventory.test_runner -m git -a 'repo=git@github.com:ansible/tower-qa version=${branch_name} dest=tower-qa ssh_opts=\"-o StrictHostKeyChecking=no\" force=yes'"
                         }
                     }
@@ -212,7 +212,7 @@ Bundle?: ${params.BUNDLE}"""
                    sh 'ansible-playbook -v -i playbooks/inventory.test_runner playbooks/test_runner/run_install.yml'
 
                    // NOTE(spredzy): To change cleanly
-                   sh "ansible test-runner -i playbooks/inventory.test_runner -a 'sed -i \"s/delete_on_start: .*/delete_on_start: true/g\" /home/centos/tower-qa/playbooks/vars.yml'"
+                   sh "ansible test-runner -i playbooks/inventory.test_runner -a 'sed -i \"s/delete_on_start: .*/delete_on_start: true/g\" /home/ec2-user/tower-qa/playbooks/vars.yml'"
                 }
             }
         }
