@@ -1115,10 +1115,20 @@ print(json.dumps({
         assert 'SyntaxError' not in inv_update.result_stdout
 
     # Skip for Openshift because of Github Issue: https://github.com/ansible/tower-qa/issues/2591
-    def test_inventory_events_are_inserted_in_the_background(self, factories):
-        aws_cred = factories.v2_credential(kind='aws')
-        ec2_source = factories.v2_inventory_source(source='ec2', credential=aws_cred)
-        inv_update = ec2_source.update().wait_until_completed()
+    def test_inventory_events_are_inserted_in_the_background(self, factories, inventory_script_code_with_sleep):
+        sleep_time = 20  # similar to AWS inventory plugin performance
+        inventory = factories.v2_inventory()
+        inv_source = factories.v2_inventory_source(
+            inventory_script=factories.v2_inventory_script(
+                script=inventory_script_code_with_sleep(sleep_time),
+                organization=inventory.ds.organization
+            ),
+            inventory=inventory
+        )
+        # sanity assertion
+        assert inv_source.get_related('source_script').script == inventory_script_code_with_sleep(sleep_time)
+
+        inv_update = inv_source.update().wait_until_completed()
 
         # the first few events should be created/inserted *after* the job
         # created date and _before_ the job's finished date; this means that
@@ -1139,12 +1149,12 @@ print(json.dumps({
 
         '''
         Check that the events are actually streamed
-        Require that span over which events are created is at least 50% of the
-        time it took to run the update
+        Require that span over which events are created is at least 95% of the
+        time it spent sleeping (not 100% to avoid unintended system performance flake)
         '''
         min_create = min(parse(event.created) for event in events)
         max_create = max(parse(event.created) for event in events)
-        assert (max_create - min_create).total_seconds() > inv_update.elapsed * 0.5
+        assert (max_create - min_create).total_seconds() > sleep_time * 0.95
 
     def test_inventory_events_are_searchable(self, factories):
         aws_cred = factories.v2_credential(kind='aws')
