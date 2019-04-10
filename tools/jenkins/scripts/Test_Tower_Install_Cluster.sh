@@ -13,6 +13,7 @@ pip install -Ur scripts/requirements.install
 export ANSIBLE_TIMEOUT=30
 export ANSIBLE_RETRY_FILES_ENABLED=False
 export CLUSTER_SETUP=True
+export AWX_ANSIBLE_RUNNER_URL=${AWX_ANSIBLE_RUNNER_URL:-https://github.com/ansible/ansible-runner.git@master}
 
 staging_repo_regex=".*releases-master.ansible.com.*"
 release_branch_regex=".*release_([0-9]\.[0-9]\.[1-9])"
@@ -51,7 +52,7 @@ ansible-playbook \
 -e ansible_install_method=${ANSIBLE_INSTALL_METHOD} \
 -e admin_password=${AWX_ADMIN_PASSWORD} \
 -e pg_password=${AWX_ADMIN_PASSWORD} \
--e awx_ansible_runner_url=https://github.com/ansible/ansible-runner.git@master \
+-e awx_ansible_runner_url=${AWX_ANSIBLE_RUNNER_URL} \
 ${TOWER_INSTALL_PLAYBOOK}
 
 # Ansible was moved from EPEL to RHEL Extras (and to releases.ansible.com) - need to update OOB install steps

@@ -12,6 +12,7 @@ pip install -Ur scripts/requirements.install
 
 # Increase ssh timeout
 export ANSIBLE_TIMEOUT=30
+export AWX_ANSIBLE_RUNNER_URL=${AWX_ANSIBLE_RUNNER_URL:-https://github.com/ansible/ansible-runner.git@master}
 
 staging_repo_regex=".*releases-master.ansible.com.*"
 release_branch_regex=".*release_([0-9]\.[0-9]\.[0-9])"
@@ -31,7 +32,6 @@ if [[ "${PLATFORM}" == "rhel-8.0-x86_64"  ]]; then
     export ANSIBLE_INSTALL_METHOD=pip
 fi
 
-AWX_ANSIBLE_RUNNER_URL=https://github.com/ansible/ansible-runner.git@master \
 MINIMUM_VAR_SPACE=0 \
 ANSIBLE_NIGHTLY_REPO="${ANSIBLE_NIGHTLY_REPO}/${ANSIBLE_NIGHTLY_BRANCH}" \
 python scripts/cloud_vars_from_env.py --cloud-provider ${CLOUD_PROVIDER} --platform ${PLATFORM} > playbooks/vars.yml
