@@ -9,13 +9,15 @@ import fauxfactory
 class K8sClient(object):
     def __init__(self, client):
         self.client = client
+        self.K8sClient = kubernetes.client
         self.apps = kubernetes.client.AppsV1Api(self.client)
         self.core = kubernetes.client.CoreV1Api(self.client)
         self.storage = kubernetes.client.StorageV1Api(self.client)
         self.deploymentobject = kubernetes.client.V1Deployment()
         self.serviceobject = kubernetes.client.V1Service()
         self.secretobject = kubernetes.client.V1Secret()
-        self.configmapobject = kubernetes.client.V1ConfigMap()
+        self.configmapobject = kubernetes.client.V1ConfigMap
+        self.objectmeta = kubernetes.client.V1ObjectMeta
 
     def generate_deployment(self, deploymentname, containerspec):
         deployment = self.deploymentobject

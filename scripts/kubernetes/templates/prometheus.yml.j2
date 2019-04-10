@@ -1,0 +1,17 @@
+# Prometheus Config File Template
+# Configures Prometheus to collect metrics from Tower.
+global:
+  scrape_interval:     15s
+  evaluation_interval: 30s
+  # scrape_timeout is set to the global default (10s).
+
+scrape_configs:
+  - job_name: 'tower'
+    scrape_interval: 5s
+    scheme: https
+    tls_config:
+      insecure_skip_verify : true
+    metrics_path: '/api/v2/metrics'
+    bearer_token: '{{ bearer_token }}'
+    static_configs:
+      - targets: ['{{ tower_hostname }}:443']
