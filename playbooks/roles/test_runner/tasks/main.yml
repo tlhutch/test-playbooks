@@ -9,7 +9,6 @@
   package:
     name:
       - https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
-      - https://centos7.iuscommunity.org/ius-release.rpm
 
 - name: Install required packages
   become: true
@@ -19,10 +18,10 @@
       - gcc
       - python-devel
       - python-pip
-      - python36u
-      - python36u-libs
-      - python36u-devel
-      - python36u-pip
+      - python36
+      - python36-libs
+      - python36-devel
+      - python36-pip
       - ansible
       # TODO(spredzy): Look how to install it on RHEL7.6
       # - docker
