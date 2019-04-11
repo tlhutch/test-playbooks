@@ -30,7 +30,16 @@ use_v2 = 'v2' in root.available_versions
 
 if use_v2:
     from towerkit.api.pages.credentials import credential_type_name_to_config_kind_map
-    ctypes = v.credential_types.get(managed_by_tower=True, page_size=200).results
+    _ctypes = v.credential_types.get(managed_by_tower=True, page_size=200).results
+
+    # NOTE(spredzy): Fix properly in 3.5.1. 'external' plugins are new in 3.5.0
+    # so they haven't been loaded in pre 3.5.0 (e.g 3.4.3, 3.4.2, ....)
+    # so they should not be part of what we check. But we will have to check it
+    # for 3.5.0 to 3.5.1, but not for 3.4.3 to 3.5.1
+    if v.ping.get().version == '3.5.0':
+        ctypes = [ctype for ctype in _ctypes if ctype['kind'] != 'external']
+    else:
+        ctypes = _ctypes
 
     ctid_to_name = {ct.id: ct.name.lower() for ct in ctypes}
     name_to_kind = {ct.name.lower(): credential_type_name_to_config_kind_map[ct.name.lower()] for ct in ctypes}
