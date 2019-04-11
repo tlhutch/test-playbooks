@@ -61,7 +61,7 @@
 
 * Test Plan
 
-- [ ] Testing complete
+- [x] Testing complete
 
 ### Move Tower to ansible-runner for task execution (Yanis/Danny)
 
@@ -91,13 +91,13 @@
 
 * Test Plan
 
-- [ ] Testing complete
+- [x] Testing complete
 
 ### Credential Plugins (Mat/John)
 
 * Test Plan
 
-- [ ] Testing complete
+- [x] Testing complete
 
 ### Collect Ansible perf stats (Mat)
 
@@ -109,7 +109,7 @@
 
 * Test Plan
 
-- [ ] Testing complete
+- [x] Testing complete
 
 ### Remove /api/v1 (Elyezer/Elijah)
 
@@ -127,7 +127,7 @@
 
 * Test Plan
 
-- [ ] Testing complete
+- [x] Testing complete
 
 ## Verifications steps
 
