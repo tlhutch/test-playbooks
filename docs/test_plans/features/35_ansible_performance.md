@@ -43,10 +43,6 @@ PRs:
     * [ ] TBD: `playbook_on_stats` --> This might include summary data
 					Original test plan said "final job event will have summary information
 					showing max cpu, max memory, etc."
-		* _NOTE_ because data is only collected every so often (at writing
-			every 0.25 seconds), sometimes no data will be collected. Instead of an
-			empty dictionary, though, we should see a dictionary with the data keys
-			but with empty lists of measurements such as: `{"cpu": [], "memory": [], "pids": []} `
   * [ ] Profiling data is shown in top-level `profiling_data` field of _detailed_ job event view for qualifying events.
   * [ ] Profiling data is NOT shown in list view of job events because of performance concerns of displaying in list view.
   * [ ] profiling_data field does not appear in job events for:
@@ -82,7 +78,7 @@ Note: Feature not currently supported on OpenShift or Ubuntu
 
 ## Additional Info
 
-### Permanantly enable setting for YOLO/SLOWYO runs
+### How to enable setting for entire duration of a YOLO/SLOWYO run
 Some settings tests revert settings to defaults, so it is important to make sure the performance data collection is actually enabled when running whole test suite.
 Executing the following commands on a tower host will enable resource profiling (and override any changes to settings via the REST API):
 
@@ -101,3 +97,10 @@ To select job events associated with a job you can do something like this on a t
 ```
  SELECT event, LEFT(profiling_data, <char length of profile data to allow>) FROM main_jobevent WHERE job_id=<job id of interest> AND profiling_data != '{}';
 ```
+
+### Data is not allways collected
+
+_NOTE_ because data is only collected every so often (at writing every
+0.25 seconds), sometimes no data will be collected. Instead of an empty
+dictionary, though, we should see a dictionary with the data keys but
+with empty lists of measurements such as: `{"cpu": [], "memory": [], "pids": []} `
