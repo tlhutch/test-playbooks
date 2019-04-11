@@ -102,7 +102,7 @@ class TestMetrics(APITest):
         assert prometheus_data_after['awx_workflow_job_templates_total']['value'] == prometheus_data_before['awx_workflow_job_templates_total']['value'] + 1
         assert prometheus_data_after['awx_hosts_total']['value'] == prometheus_data_before['awx_hosts_total']['value'] + 1
 
-    def test_metrics_are_readable_by_prometheus(self, factories, v2, k8s_prometheus):
+    def test_metrics_are_readable_by_prometheus(self, factories, v2, k8s_prometheus, skip_if_openshift):
         prometheus_data_before = v2.metrics.get()
         org = factories.organization()
         factories.user(organization=org)
@@ -112,7 +112,7 @@ class TestMetrics(APITest):
         factories.job_template(inventory=inventory, project=project)
         factories.v2_workflow_job_template(organization=org, inventory=inventory, project=project)
         factories.host(inventory=inventory)
-        utils.poll_until(lambda: self.query_prometheus(k8s_prometheus, 'awx_hosts_total') > int(prometheus_data_before['awx_hosts_total']['value']))
+        utils.poll_until(lambda: self.query_prometheus(k8s_prometheus, 'awx_hosts_total') > int(prometheus_data_before['awx_hosts_total']['value']), timeout=30)
         assert self.query_prometheus(k8s_prometheus, 'awx_organizations_total') == int(prometheus_data_before['awx_organizations_total']['value'] + 1)
         assert self.query_prometheus(k8s_prometheus, 'awx_inventories_total') == int(prometheus_data_before['awx_inventories_total']['value'] + 1)
         assert self.query_prometheus(k8s_prometheus, 'awx_users_total') == int(prometheus_data_before['awx_users_total']['value'] + 1)
