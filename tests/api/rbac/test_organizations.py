@@ -160,7 +160,7 @@ class Test_Organizations(APITest):
             jt.launch()
         assert e.value.msg['detail'] == 'You have already reached the maximum number of 1 hosts allowed for your organization. Contact your System Administrator for assistance.'
 
-    def test_organization_host_limits_apply_to_awxmanage_imports(self, ansible_runner, factories):
+    def test_organization_host_limits_apply_to_awxmanage_imports(self, skip_if_openshift, ansible_runner, factories):
         inventory_content = """
         hostA
         hostB
