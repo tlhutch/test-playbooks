@@ -4,6 +4,7 @@ set -euxo pipefail
 
 TESTEXPR=${TESTEXPR:-''}
 SCENARIO=${SCENARIO:-'standalone'}
+AW_REPO_URL=${AW_REPO_URL:-http://nightlies.testing.ansible.com/ansible-tower_nightlies_m8u16fz56qr6q7/devel}
 
 # shellcheck source=lib/common
 source "$(dirname "${0}")"/lib/common
@@ -28,9 +29,9 @@ export OS_IDENTITY_API_VERSION=3
 AWX_IPV6_DEPLOYMENT=no AWS_ACCESS_KEY=dummy AWS_SECRET_KEY=dummy ./tools/jenkins/scripts/generate_vars.sh
 
 if [[ "${SCENARIO}" == "standalone" ]]; then
-    ansible-playbook -v -i playbooks/inventory -e @playbooks/vars.yml playbooks/deploy-tower-rhel8.yml
+    ansible-playbook -v -i playbooks/inventory -e @playbooks/vars.yml -e aw_repo_url="${AW_REPO_URL}" playbooks/deploy-tower-rhel8.yml
 else
-    ansible-playbook -v -i playbooks/inventory -e @playbooks/vars.yml playbooks/deploy-tower-rhel8-cluster.yml
+    ansible-playbook -v -i playbooks/inventory -e @playbooks/vars.yml -e aw_repo_url="${AW_REPO_URL}" playbooks/deploy-tower-rhel8-cluster.yml
 fi
 
 if [[ "${RUN_TESTS}" == "true" ]]; then

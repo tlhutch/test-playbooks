@@ -263,6 +263,10 @@ pipeline {
                                 string(
                                     name: 'INSTANCE_NAME_PREFIX',
                                     value: "yolo-build-${env.BUILD_ID}"
+                                ),
+                                string(
+                                    name: 'AW_REPO_URL',
+                                    value: "${AWX_NIGHTLY_REPO_URL}/${NIGHTLY_REPO_DIR}"
                                 )
                             ]
                         )
