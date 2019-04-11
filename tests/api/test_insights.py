@@ -6,7 +6,6 @@ import csv
 
 from towerkit import config
 import towerkit.exceptions as exc
-from towerkit.utils import logged_sleep
 import pytest
 
 from tests.api import APITest
@@ -209,7 +208,7 @@ class TestInsights(APITest):
         assert list(contacted.values())[0]['stdout'] == project.scm_revision
 
 
-@pytest.mark.mp_group('Insights', 'serial')
+@pytest.mark.mp_group(group="Insights", strategy="isolated_serial")
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestInsightsAnalytics(APITest):
 
@@ -306,7 +305,6 @@ class TestInsightsAnalytics(APITest):
         inventory_counts_before = self.collect_stats(['inventory_counts.json'], ansible_runner)
         [factories.v2_host(name="smart-test_{0}".format(i), inventory=two_host_inventory) for i in range(2)]
         factories.v2_host(organization=org)
-
         inventory_counts_after = self.collect_stats(['inventory_counts.json'], ansible_runner)
 
         assert inventory_counts_after['inventory_counts'][str(empty_inventory.id)]['hosts'] == inventory_counts_before['inventory_counts'][str(empty_inventory.id)]['hosts'] == 0
@@ -323,15 +321,14 @@ class TestInsightsAnalytics(APITest):
         success_before = 0
         for h in counts['job_instance_counts'].keys():
             sync_before += counts['job_instance_counts'][h]['status'].get('sync', 0)
-            success_before += counts['job_instance_counts'][h]['launch_type'].get('successful', 0)
+            success_before += counts['job_instance_counts'][h]['status'].get('successful', 0)
         jt.launch().wait_until_completed()
-        logged_sleep(5)
         counts = self.collect_stats(['job_instance_counts.json'], ansible_runner)
         sync_after = 0
         success_after = 0
         for h in counts['job_instance_counts'].keys():
             sync_after += counts['job_instance_counts'][h]['status'].get('sync', 0)
-            success_after += counts['job_instance_counts'][h]['launch_type'].get('successful', 0)
+            success_after += counts['job_instance_counts'][h]['status'].get('successful', 0)
         assert success_after == success_before + 1
         assert sync_after == sync_before
 
