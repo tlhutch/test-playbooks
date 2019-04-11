@@ -159,6 +159,7 @@ def assert_expected_hostnames(inv_source, cloud_hostvars_that_create_host_names)
 @pytest.mark.usefixtures(
     'authtoken',
     'install_enterprise_license_unlimited',
+    'skip_if_openshift',
     'shared_custom_venvs'
 )
 @pytest.mark.mp_group('CustomVirtualenv', 'isolated_serial')
