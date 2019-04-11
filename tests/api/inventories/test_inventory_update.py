@@ -762,6 +762,30 @@ print(json.dumps({
             for line in stdout_lines:
                 assert line in inv_update.result_stdout
 
+    @pytest.mark.parametrize('verbosity', [0, 1])
+    def test_inventory_plugin_traceback_surfaced(self, factories, verbosity, ansible_version_cmp):
+        if ansible_version_cmp('2.8.0') < 0:
+            pytest.skip('linode inventory plugin was not introduced until Ansible 2.8')
+        inv_src = factories.v2_inventory_source(
+            source='scm',
+            source_path='inventories/linode.yml',
+            verbosity=verbosity
+        )
+        iu = inv_src.update().wait_until_completed()
+        output = iu.result_stdout
+        assert 'the Linode dynamic inventory plugin requires linode_api4' in output, output
+        verbose_messages = [
+            '/ansible/plugins/inventory/linode.py"',
+            "raise AnsibleError('the Linode dynamic inventory plugin requires linode_api4.')"
+        ]
+        # TODO: make test more robust so it does not rely on the
+        # internal implementation of the linode plugin
+        for msg in verbose_messages:
+            if verbosity == 0:
+                assert msg not in output
+            else:
+                assert msg in output
+
     def test_update_with_source_region(self, region_choices, cloud_group_supporting_source_regions):
         """Assess inventory imports with all possible choices for source_regions.
 
