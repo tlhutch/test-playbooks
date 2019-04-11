@@ -39,7 +39,6 @@ PRs:
     * [ ] `runner_item_on_ok`
     * [ ] `runner_on_failed`
     * [ ] `runner_item_on_failed`
-    * [ ] `runner_item_on_ok`
     * [ ] TBD: `playbook_on_stats` --> This might include summary data
 					Original test plan said "final job event will have summary information
 					showing max cpu, max memory, etc."
