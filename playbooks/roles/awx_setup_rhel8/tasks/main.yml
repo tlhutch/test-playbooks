@@ -55,7 +55,7 @@
 - command: /usr/libexec/platform-python -m pip install git+https://github.com/ansible/ansible.git@devel
 
 - name: setup.sh
-  command: ./setup.sh -e @vars.yml -e @vars-static.yml -e gpgcheck=0 -e aw_repo_url=http://nightlies.testing.ansible.com/ansible-tower_nightlies_m8u16fz56qr6q7/devel
+  command: ./setup.sh -e @vars.yml -e @vars-static.yml
   args:
       chdir: /tmp/setup
       # creates: /etc/tower/awx.cert
