@@ -1,3 +1,4 @@
+# This manifest builds the nginx-app-proxy deployment, configmap, and service.
 apiVersion: v1
 kind: ConfigMap
 metadata:
