@@ -56,7 +56,7 @@ class K8sClient(object):
 def create_gke_client():
     def create_client(credentials):
         sa_creds = service_account.Credentials.from_service_account_info(credentials['cloud']['gke']['serviceaccount']['key'])
-        gke = googleapiclient.discovery.build('container', 'v1', credentials=sa_creds)
+        gke = googleapiclient.discovery.build('container', 'v1', credentials=sa_creds, cache_discovery=False)
         name = credentials['cloud']['gke']['cluster']
         gke_clusters = gke.projects().locations().clusters()
         gke_cluster = gke_clusters.get(name=name).execute()

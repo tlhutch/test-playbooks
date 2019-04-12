@@ -10,7 +10,7 @@ google-api-python-client
 junit-xml
 junit2html
 junitparser
-kubernetes
+kubernetes>=8.0.0,<9.0.0
 openshift
 pip
 pycodestyle
