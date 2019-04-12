@@ -1,7 +1,5 @@
 import json
 
-from towerkit.api.resources import resources
-import towerkit.exceptions as exc
 import pytest
 
 from tests.api.license import LicenseTest
