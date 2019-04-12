@@ -208,7 +208,7 @@ class TestInsights(APITest):
         assert list(contacted.values())[0]['stdout'] == project.scm_revision
 
 
-@pytest.mark.mp_group(group="Insights", strategy="isolated_serial")
+@pytest.mark.mp_group(group="Insights", strategy="serial")
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestInsightsAnalytics(APITest):
 
