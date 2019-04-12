@@ -26,6 +26,7 @@ frontend tower_cluster
 
 backend tower_cluster
     balance roundrobin
+    http-request set-header X-Forwarded-Port %[dst_port]
 {% for host in groups['tower'] %}
     server tower_{{ loop.index }} {{ host }}:80 check
 {% endfor %}
