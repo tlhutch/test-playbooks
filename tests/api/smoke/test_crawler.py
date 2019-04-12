@@ -58,7 +58,6 @@ def assert_response(connection, resource, method, response_code=http.client.OK, 
 bad_request = (http.client.BAD_REQUEST, 'bad_request')
 forbidden = (http.client.FORBIDDEN, 'forbidden')
 method_not_allowed = (http.client.METHOD_NOT_ALLOWED, 'method_not_allowed')
-payment_required = (http.client.PAYMENT_REQUIRED, 'payment_required')
 unauthorized = (http.client.UNAUTHORIZED, 'unauthorized')
 
 
@@ -111,12 +110,7 @@ def test_authenticated(connection, authtoken, no_license, resource, method):
                 'PATCH': method_not_allowed,
                 'OPTIONS': (http.client.OK, 'options')}
 
-    exceptions = {'activity_stream/': {'HEAD': (http.client.PAYMENT_REQUIRED, 'head'),
-                                       'GET': payment_required,
-                                       'OPTIONS': payment_required,
-                                       'PATCH': payment_required,
-                                       'POST': payment_required,
-                                       'PUT': payment_required},
+    exceptions = {'activity_stream/': {'POST': method_not_allowed},
                   'authtoken/': {'HEAD': (http.client.METHOD_NOT_ALLOWED, 'head'),
                                  'GET': method_not_allowed},
                   'config/': {'POST': (http.client.BAD_REQUEST, 'license_invalid')},
@@ -130,7 +124,6 @@ def test_authenticated(connection, authtoken, no_license, resource, method):
                   'me/': {'POST': method_not_allowed},
                   'metrics/': {'POST': method_not_allowed},
                   'notifications/': {'POST': method_not_allowed},
-                  'organizations/': {'POST': payment_required},
                   'ping/': {'POST': method_not_allowed},
                   'project_updates/': {'POST': method_not_allowed},
                   'roles/': {'POST': method_not_allowed},
@@ -138,22 +131,10 @@ def test_authenticated(connection, authtoken, no_license, resource, method):
                   'system_job_templates/': {'POST': method_not_allowed},
                   'unified_jobs/': {'POST': method_not_allowed},
                   'unified_job_templates/': {'POST': method_not_allowed},
-                  'workflow_job_nodes/': {'HEAD': (http.client.PAYMENT_REQUIRED, 'head'),
-                                          'PATCH': payment_required,
-                                          'POST': payment_required,
-                                          'PUT': payment_required},
-                  'workflow_job_template_nodes/': {'HEAD': (http.client.PAYMENT_REQUIRED, 'head'),
-                                                   'PATCH': payment_required,
-                                                   'POST': payment_required,
-                                                   'PUT': payment_required},
-                  'workflow_job_templates/': {'HEAD': payment_required,
-                                              'PATCH': method_not_allowed,
-                                              'POST': payment_required,
+                  'workflow_job_nodes/': {'POST': method_not_allowed},
+                  'workflow_job_templates/': {'PATCH': method_not_allowed,
                                               'PUT': method_not_allowed},
-                  'workflow_jobs/': {'HEAD': (http.client.PAYMENT_REQUIRED, 'head'),
-                                     'PATCH': payment_required,
-                                     'POST': payment_required,
-                                     'PUT': payment_required}}
+    }
 
     # Generic response
     (expected_response_code, expected_response_schema) = expected[method]
