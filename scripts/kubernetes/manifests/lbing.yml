@@ -1,0 +1,16 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: nginx-app-proxy
+spec:
+  tls:
+    - hosts:
+      - 'services.k8s.tower-qe.testing.ansible.com'
+      secretName: tower-qe-tls
+  rules:
+  - http:
+      paths:
+        - path: /*
+          backend:
+            serviceName: nginx-app-proxy
+            servicePort: 80
