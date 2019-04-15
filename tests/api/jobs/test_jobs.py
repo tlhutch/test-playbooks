@@ -785,6 +785,21 @@ class Test_Job_Env(APITest):
 
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 
+    def test_job_env_variables_contains_utf8(self, request, job_template, api_settings_pg, factories):
+        job_settings = api_settings_pg.get_endpoint('jobs')
+
+        original_task_env = job_settings.AWX_TASK_ENV
+        request.addfinalizer(lambda: job_settings.patch(AWX_TASK_ENV=original_task_env))
+
+        updated_task_env = original_task_env.copy()
+        desired_val = fauxfactory.gen_utf8()
+        updated_task_env[desired_val] = desired_val
+        job_settings.AWX_TASK_ENV = updated_task_env
+
+        job_template.playbook = 'ansible_env.yml'
+        job = job_template.launch().wait_until_completed()
+        job.assert_successful()
+
     def test_job_env_with_cloud_credential(self, job_template_with_cloud_credential):
         """Verify that job_env has the expected cloud_credential variables.
 
