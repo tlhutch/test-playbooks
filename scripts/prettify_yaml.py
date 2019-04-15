@@ -18,7 +18,7 @@ if __name__ == '__main__':
 
         # open for read
         stream = file(filename, 'r')
-        data = yaml.load(stream)
+        data = yaml.safe_load(stream)
         stream.close()
 
         print(yaml.dump(data))

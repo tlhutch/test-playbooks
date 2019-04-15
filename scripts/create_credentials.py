@@ -60,7 +60,7 @@ if __name__ == '__main__':
         os.environ["AZURE_CLASSIC_KEY_DATA"] = os.path.expandvars("$HOME/.ssh/id_rsa.azure_classic.pem")
 
     # Import credentials.template
-    cfg = yaml.load(open(credentials_template, mode='r', encoding='utf-8'))
+    cfg = yaml.safe_load(open(credentials_template, mode='r', encoding='utf-8'))
 
     # Set default admin password
     cfg['default']['password'] = os.environ.get("AWX_ADMIN_PASSWORD", "")

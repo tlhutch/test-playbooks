@@ -13,7 +13,7 @@ parser.add_argument('--ansible_version', dest='ansible_version', default=None, h
 parser.add_argument('--groups', dest='desired_groups', default=None, help='Inventory groups for image matches (overrides images-cloud_provider var)')
 args = parser.parse_args()
 
-data = yaml.load(open('playbooks/images-{0.cloud_provider}.yml'.format(args), 'r'))
+data = yaml.safe_load(open('playbooks/images-{0.cloud_provider}.yml'.format(args), 'r'))
 output = []
 for item in data['{0.cloud_provider}_images'.format(args)]:
     if args.platform in item['name']:
