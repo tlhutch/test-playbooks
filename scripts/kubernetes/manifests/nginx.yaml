@@ -1,0 +1,114 @@
+# This manifest builds the nginx-app-proxy deployment, configmap, and service.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-conf
+data:
+  nginx.conf: |
+    user nginx;
+    worker_processes  3;
+    error_log  /dev/stdout info;
+    events {
+      worker_connections  10240;
+    }
+    http {
+      log_format  main
+              'remote_addr:$remote_addr\t'
+              'time_local:$time_local\t'
+              'method:$request_method\t'
+              'uri:$request_uri\t'
+              'host:$host\t'
+              'status:$status\t'
+              'bytes_sent:$body_bytes_sent\t'
+              'referer:$http_referer\t'
+              'useragent:$http_user_agent\t'
+              'forwardedfor:$http_x_forwarded_for\t'
+              'request_time:$request_time';
+
+      access_log	/dev/stdout;
+
+      server {
+          listen       80;
+          server_name  _;
+          location /k8s-status {
+            access_log off;
+            return 200;
+          }
+          location / {
+            set $protocol "";
+            set $subdomain "";
+            set $port "";
+
+            if ($host ~* "(http|https)-(.+)-port-(\d+)\.services.k8s.tower-qe.testing.ansible.com$") {
+              set $protocol $1;
+              set $subdomain $2;
+              set $port $3;
+          }
+              resolver kube-dns.kube-system.svc.cluster.local;
+              proxy_pass "$protocol://$subdomain.default.svc.cluster.local:$port";
+              proxy_set_header Host $host;
+        }
+
+      }
+    }
+
+
+
+---
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: nginx-app-proxy
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: nginx-app-proxy
+    spec:
+      containers:
+      - name: nginx-app-proxy
+        image: nginx
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - mountPath: /etc/nginx # mount nginx-conf volumn to /etc/nginx
+          readOnly: true
+          name: nginx-conf
+        - mountPath: /var/log/nginx
+          name: log
+        livenessProbe:
+          httpGet:
+            path: /k8s-status
+            port: 80
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        readinessProbe:
+          httpGet:
+            path: /k8s-status
+            port: 80
+          initialDelaySeconds: 5
+          periodSeconds: 5
+      volumes:
+      - name: nginx-conf
+        configMap:
+          name: nginx-conf # place ConfigMap `nginx-conf` on /etc/nginx
+          items:
+            - key: nginx.conf
+              path: nginx.conf
+      - name: log
+        emptyDir: {}
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-app-proxy
+spec:
+  type: NodePort
+  ports:
+  - port: 80
+    targetPort: 80
+  selector:
+    app: nginx-app-proxy
+
