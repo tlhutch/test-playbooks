@@ -1,4 +1,4 @@
-ansible
+ansible==2.8.0b1
 apache-libcloud
 appdirs # https://github.com/ActiveState/appdirs/issues/89
 argparse
