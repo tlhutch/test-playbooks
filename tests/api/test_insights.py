@@ -36,13 +36,14 @@ def register_rhn_and_insights(ansible_runner):
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestInsights(APITest):
 
-    registered_machine_id = "84baf1a3-eee5-4f92-b5ee-42609e89a2cd"
-    unregistered_machine_id = "aaaabbbb-cccc-dddd-eeee-ffffgggghhhh"
+    registered_machine_id = '654918b5-269d-4097-993e-dc384d831db8'
+    unregistered_machine_id = 'aaaabbbb-cccc-dddd-eeee-ffffaaaabbbb'
 
     @pytest.fixture(scope="class")
     def insights_inventory(self, request, class_factories, modified_ansible_adhoc, is_docker):
         inventory = class_factories.v2_inventory()
-        for name in ('registered_host', 'unregistered_host'):
+        for name in (
+                'registered_host', 'unregistered_host', 'no_system_id_host'):
             class_factories.v2_host(name=name, inventory=inventory)
 
         modified_ansible_adhoc().tower.file(path='/etc/redhat-access-insights', state="directory")
@@ -53,12 +54,16 @@ class TestInsights(APITest):
                                              use_fact_cache=True, limit="registered_host")
 
         # update registered host with registered machine ID
-        modified_ansible_adhoc().tower.shell('echo -n {0} > /etc/redhat-access-insights/machine-id'.format(self.registered_machine_id))
+        result = modified_ansible_adhoc().tower.shell('echo -n {0} > /etc/redhat-access-insights/machine-id'.format(self.registered_machine_id))
+        result = result.values()[0]
+        assert result['rc'] == 0, result['stderr']
         jt.launch().wait_until_completed().assert_successful()
 
         # update unregistered host with unregistered machine ID
         jt.limit = "unregistered_host"
-        modified_ansible_adhoc().tower.shell('echo -n {0} > /etc/redhat-access-insights/machine-id'.format(self.unregistered_machine_id))
+        result = modified_ansible_adhoc().tower.shell('echo -n {0} > /etc/redhat-access-insights/machine-id'.format(self.unregistered_machine_id))
+        result = result.values()[0]
+        assert result['rc'] == 0, result['stderr']
         jt.launch().wait_until_completed().assert_successful()
 
         return inventory
@@ -80,6 +85,11 @@ class TestInsights(APITest):
         unregistered_host = insights_inventory.related.hosts.get(name='unregistered_host').results.pop()
         unregistered_host.insights_system_id = "zzzzyyyy-xxxx-wwww-vvvv-uuuuttttssss"
         assert unregistered_host.get().insights_system_id == self.unregistered_machine_id
+
+    def test_insights_no_system_id(self, skip_if_cluster, insights_inventory):
+        """insights_system_id should be None if the host does not have it."""
+        no_system_id_host = insights_inventory.related.hosts.get(name='no_system_id_host').results.pop()
+        assert no_system_id_host.get().insights_system_id is None
 
     def test_inventory_with_insights_credential(self, skip_if_cluster, factories, insights_inventory):
         """Verify that various inventory fields update for our Insights credential."""
@@ -108,19 +118,44 @@ class TestInsights(APITest):
         insights_inventory.insights_credential = credential.id
         host = insights_inventory.related.hosts.get(name="registered_host").results.pop()
 
-        assert host.related.insights.get().insights_content == {'last_check_in': '2017-07-20T12:47:59.000Z', 'reports': []}
+        insights_content = host.related.insights.get().insights_content
+        assert 'last_check_in' in insights_content
+        assert 'platform_id' in insights_content
+        assert insights_content['platform_id'] == '4182feb1-3711-473b-8d53-e5387d0d20d4'
+        assert 'reports' in insights_content
+        for report in insights_content['reports']:
+            assert 'maintenance_actions' in report
+            assert 'rule' in report
+            assert set(report['rule'].keys()) == {
+                'category',
+                'description',
+                'severity',
+                'summary',
+            }
 
     def test_access_insights_with_valid_credential_and_unregistered_host(self, skip_if_cluster, factories, insights_inventory):
         """Verify that attempts to access Insights from an unregistered host with a valid Insights credential
-        raises a 502.
+        raises a 404.
         """
         credential = factories.v2_credential(kind='insights')
         insights_inventory.insights_credential = credential.id
         host = insights_inventory.related.hosts.get(name="unregistered_host").results.pop()
 
-        with pytest.raises(exc.BadGateway) as e:
+        with pytest.raises(exc.NotFound) as e:
             host.related.insights.get()
-        assert "Failed to gather reports and maintenance plans from Insights API" in e.value[1]['error']
+        assert e.value[1]['error'] == f'Could not translate Insights system ID {self.unregistered_machine_id} into an Insights platform ID.'
+
+    def test_access_insights_with_valid_credential_and_no_system_id_host(self, skip_if_cluster, factories, insights_inventory):
+        """Verify that attempts to access Insights from a host with no system
+        id with a valid Insights credential raises a 502.
+        """
+        credential = factories.v2_credential(kind='insights')
+        insights_inventory.insights_credential = credential.id
+        host = insights_inventory.related.hosts.get(name="no_system_id_host").results.pop()
+
+        with pytest.raises(exc.NotFound) as e:
+            host.related.insights.get()
+        assert e.value[1]['error'] == 'This host is not recognized as an Insights host.'
 
     def test_access_insights_with_invalid_credential(self, skip_if_cluster, factories, insights_inventory):
         """Verify that attempts to access Insights with a bad Insights credential raise a 502."""
@@ -129,9 +164,20 @@ class TestInsights(APITest):
         hosts = insights_inventory.related.hosts.get().results
 
         for host in hosts:
-            with pytest.raises(exc.BadGateway) as e:
-                host.related.insights.get()
-            assert e.value[1]['error'] == 'Unauthorized access. Please check your Insights Credential username and password.'
+            if host.insights_system_id is None:
+                # If the insights_system_id fact is not present, then the host
+                # is not an Insights hosts and therefore the /insights URL will
+                # state that with a 404 response.
+                with pytest.raises(exc.NotFound) as e:
+                    host.related.insights.get()
+                assert e.value[1]['error'] == 'This host is not recognized as an Insights host.'
+            else:
+                # If the insights_system_id fact is present, then Tower will
+                # try to make a request to Insights and since the credentials
+                # are invalid it will fail with a proper error message.
+                with pytest.raises(exc.BadGateway) as e:
+                    host.related.insights.get()
+                assert e.value[1]['error'] == 'Unauthorized access. Please check your Insights Credential username and password.'
 
     def test_insights_project_no_credential(self, factories):
         """Verify that attempts to create an Insights project without an Insights credential raise a 400."""
@@ -151,7 +197,7 @@ class TestInsights(APITest):
         assert project.credential == insights_cred.id
         assert not project.scm_branch
         assert project.scm_type == 'insights'
-        assert project.scm_url == 'https://access.redhat.com'
+        assert project.scm_url == 'https://cloud.redhat.com'
         assert project.scm_revision
 
         update.assert_successful()
@@ -161,7 +207,7 @@ class TestInsights(APITest):
         assert update.job_type == 'check'
         assert update.launch_type == 'manual'
         assert update.scm_type == 'insights'
-        assert update.scm_url == 'https://access.redhat.com'
+        assert update.scm_url == 'https://cloud.redhat.com'
         assert not update.scm_branch
 
     def test_insights_project_with_invalid_credential(self, factories):
@@ -186,8 +232,12 @@ class TestInsights(APITest):
 
         # assert project directory created
         contacted = ansible_runner.stat(path=directory_path)
-        for result in contacted.values():
-            assert result['stat']['exists'], "Directory not found under {0}.".format(directory_path)
+        stat = [
+            result['stat'] for result in contacted.values()
+            if 'stat' in result
+        ]
+        assert len(stat) == 1, contacted.values()
+        assert stat[0]['exists'], f'Directory not found under {directory_path}.'
 
     def test_matching_insights_revision(self, skip_if_cluster, factories, v2, ansible_runner):
         """Verify that our revision tag matches between the following:
@@ -199,13 +249,22 @@ class TestInsights(APITest):
         project = factories.v2_project(scm_type='insights', credential=insights_cred, wait=True)
         update = project.related.last_update.get()
 
-        scm_revision = project.scm_revision
+        # Ansible stdout output will escape some characters on the revision and
+        # therefore we should do the same in order to assert with the stdout.
+        scm_revision = project.scm_revision.translate(str.maketrans({
+            '"': '\\\\"',
+        }))
         assert scm_revision in update.result_stdout
 
         # verify contents of .version file
         version_path = os.path.join(v2.config.get().project_base_dir, project.local_path, ".version")
         contacted = ansible_runner.shell('cat {0}'.format(version_path))
-        assert list(contacted.values())[0]['stdout'] == project.scm_revision
+        result = [
+            value for value in contacted.values()
+            if 'stdout' in value
+        ]
+        assert len(result) == 1, contacted.values()
+        assert result[0]['stdout'] == project.scm_revision
 
 
 @pytest.mark.mp_group(group="Insights", strategy="serial")
