@@ -198,31 +198,6 @@ class TestTraditionalCluster(APITest):
             ig_hostnames = [i.hostname for i in ig.related.instances.get().results]
             assert set(ig_hostnames).isdisjoint(set(isolated_instance_hostnames))
 
-    def test_isolated_instance_heartbeat_after_setting_iso_verbosity(self, request, v2, api_settings_all_pg):
-        original_setting = api_settings_all_pg.get().AWX_ISOLATED_VERBOSITY
-        api_settings_all_pg.AWX_ISOLATED_VERBOSITY = 5
-
-        def reset_setting():
-            api_settings_all_pg.AWX_ISOLATED_VERBOSITY = original_setting
-        request.addfinalizer(reset_setting)
-
-        isolated_instance_hostnames = [i.hostname for i in
-                                       v2.instances.get(rampart_groups__controller__isnull=False).results]
-        initial_heartbeats = {i.node: i.heartbeat for i in
-                              v2.ping.get().instances if i.node in isolated_instance_hostnames}
-
-        def isolated_heartbeats_advanced():
-            heartbeats = {i.node: i.heartbeat for i in
-                          v2.ping.get().instances if i.node in isolated_instance_hostnames}
-            for i in isolated_instance_hostnames:
-                if i not in heartbeats:
-                    return False
-                if heartbeats[i] == initial_heartbeats[i]:
-                    return False
-            return True
-        # iso. heartbeats advance about every ten minutes
-        utils.poll_until(isolated_heartbeats_advanced, interval=30, timeout=650)
-
     @pytest.mark.mp_group(group="check_instance_stats_during_quiet_period", strategy="isolated_serial")
     @pytest.mark.github('https://github.com/ansible/tower/issues/2310', skip=True)
     def test_default_instance_attributes(self, v2):
@@ -860,3 +835,69 @@ class TestTraditionalCluster(APITest):
             job = jt.launch().wait_until_completed()
             job.assert_successful()
             assert job.job_env['VIRTUAL_ENV'] == venv_path(folder_name)
+
+    @pytest.mark.run(order=1)
+    @pytest.mark.mp_group('DisabledIsolatedNode', 'isolated_free')
+    def test_disabled_isolated_nodes_remain_disabled_after_heartbeat(self, v2, factories):
+        # Disable all iso nodes in iso IG
+        ig_protected = v2.instance_groups.get(name='protected').results.pop()
+        instances = ig_protected.related.instances.get().results
+        for instance in instances:
+            instance.enabled = False
+        for instance in instances:
+            assert instance.get().capacity == 0
+
+        # Ensure that job assigned to IG remains in pending state
+        jt = factories.v2_job_template()
+        jt.ds.inventory.add_host()
+        jt.add_instance_group(ig_protected)
+        job = jt.launch()
+
+        time.sleep(70)
+        for instance in instances:
+            assert instance.get().capacity == 0
+            assert instance.enabled == False
+        assert job.get().status == 'pending'
+
+        # Re-enable iso nodes, ensure capacity is restored and job completes successfully
+        for instance in instances:
+            instance.enabled = True
+        for instance in instances:
+            assert instance.get().capacity > 0
+        job.wait_until_completed(since_job_created=False)
+        job.assert_successful()
+
+    @pytest.mark.run(order=2)
+    def test_isolated_instance_heartbeat_after_setting_iso_verbosity(self, request, v2, api_settings_all_pg):
+        """
+        This test and the previous one are ordered (see `run` markers) so that we can confirm that isolated
+        node heartbeats continue to function after isolated nodes are disabled. Opted to do this (instead of
+        creating a third test focused on this specifically), since these tests already consume a fair
+        amount of time waiting for the next heartbeat to occur.
+
+        The default heartbeat interval for isolated nodes is 10 minutes (see `AWX_ISOLATED_PERIODIC_CHECK`).
+        The deploy-tower-cluster.yml playbook sets this to 1 minute at the end of the tower installation,
+        though. This allows this pair of tests to poll for a much shorter period of time.
+        """
+        original_setting = api_settings_all_pg.get().AWX_ISOLATED_VERBOSITY
+        api_settings_all_pg.AWX_ISOLATED_VERBOSITY = 5
+
+        def reset_setting():
+            api_settings_all_pg.AWX_ISOLATED_VERBOSITY = original_setting
+        request.addfinalizer(reset_setting)
+
+        isolated_instance_hostnames = [i.hostname for i in
+                                       v2.instances.get(rampart_groups__controller__isnull=False).results]
+        initial_heartbeats = {i.node: i.heartbeat for i in
+                              v2.ping.get().instances if i.node in isolated_instance_hostnames}
+
+        def isolated_heartbeats_advanced():
+            heartbeats = {i.node: i.heartbeat for i in
+                          v2.ping.get().instances if i.node in isolated_instance_hostnames}
+            for i in isolated_instance_hostnames:
+                if i not in heartbeats:
+                    return False
+                if heartbeats[i] == initial_heartbeats[i]:
+                    return False
+            return True
+        utils.poll_until(isolated_heartbeats_advanced, interval=10, timeout=100)

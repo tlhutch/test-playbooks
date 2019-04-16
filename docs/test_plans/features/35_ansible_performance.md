@@ -87,6 +87,7 @@ AWX_PERF_STATS_ENABLED = True
 EOF
 chown root:awx /etc/tower/conf.d/perf_stats.py
 chmod 640 /etc/tower/conf.d/perf_stats.py
+supervisorctl restart tower-processes:awx-dispatcher
 ```
 
 ### Inspecting events in database
@@ -97,7 +98,7 @@ To select job events associated with a job you can do something like this on a t
  SELECT event, LEFT(profiling_data, <char length of profile data to allow>) FROM main_jobevent WHERE job_id=<job id of interest> AND profiling_data != '{}';
 ```
 
-### Data is not allways collected
+### Data is not always collected
 
 _NOTE_ because data is only collected every so often (at writing every
 0.25 seconds), sometimes no data will be collected. Instead of an empty

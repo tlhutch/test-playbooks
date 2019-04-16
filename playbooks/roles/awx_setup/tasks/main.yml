@@ -76,4 +76,3 @@
   until: result['status']|default(0) == 200
   retries: 6
   delay: 10
-
