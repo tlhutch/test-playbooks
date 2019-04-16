@@ -87,7 +87,7 @@ class TestCustomVirtualenv(APITest):
                 for path in valid_venvs:
                     resource.custom_virtualenv = path
 
-    @pytest.mark.parametrize('python_interpreter', [None, 'python3'])
+    @pytest.mark.parametrize('python_interpreter', [None, 'python2', 'python3'])
     def test_run_job_using_venv_with_required_packages(self, v2, factories, create_venv,
                                                        venv_path, python_interpreter, ansible_adhoc):
         folder_name = random_title(non_ascii=False)
@@ -101,8 +101,10 @@ class TestCustomVirtualenv(APITest):
                     pytest.skip('python3 is not installed on host.')
         with create_venv(folder_name, packages='psutil ansible', use_python=python_interpreter):
             poll_until(lambda: venv_path(folder_name) in v2.config.get().custom_virtualenvs, interval=1, timeout=15)
-            jt = factories.v2_job_template()
-            jt.ds.inventory.add_host()
+            host = factories.v2_host(
+                variables=dict(ansible_host='127.0.0.1', ansible_connection='local', ansible_python_interpreter='%s/bin/python' % venv_path(folder_name))
+            )
+            jt = factories.v2_job_template(inventory=host.ds.inventory)
             assert jt.custom_virtualenv is None
             jt.custom_virtualenv = venv_path(folder_name)
             job = jt.launch().wait_until_completed()
