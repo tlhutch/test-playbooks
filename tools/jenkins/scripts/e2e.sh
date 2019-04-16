@@ -26,12 +26,16 @@ else
     CONTAINER_IMAGE_NAME=awx_e2e
 fi
 
+curl -o tower/nightwatchxsl.xsl https://gist.githubusercontent.com/unlikelyzero/164f03df3bf4ee2b01ee8c263979051b/raw/8b3356e2a1e059bef6ec64ac7e9a16566f5f550e/nightwatchxsl.xsl
+mkdir -p tower/awx/ui/test/e2e/screenshots
 
 docker login -u _json_key -p "$(cat "${JSON_KEY_FILE_PATH}")" https://gcr.io
 docker pull gcr.io/ansible-tower-engineering/"${CONTAINER_IMAGE_NAME}":latest
-docker tag gcr.io/ansible-tower-engineering/"${CONTAINER_IMAGE_NAME}":latest  awx_e2e:latest
+docker tag gcr.io/ansible-tower-engineering/"${CONTAINER_IMAGE_NAME}":latest ${CONTAINER_IMAGE_NAME}:latest
 docker-compose -f tower/awx/ui/test/e2e/cluster/docker-compose.yml run \
     -e AWX_E2E_URL="${TOWER_URL}" \
     -e AWX_E2E_USERNAME=admin \
     -e AWX_E2E_PASSWORD="${AWX_ADMIN_PASSWORD}" \
+    -e AWX_E2E_SCREENSHOTS_ENABLED=true \
+    -e AWX_E2E_SCREENSHOTS_PATH=tower/awx/awx/ui/test/e2e/screenshots \
     e2e --filter="${TEST_SELECTION}"
