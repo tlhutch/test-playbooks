@@ -75,6 +75,16 @@
   become: true
   become_method: sudo
 
+# Only do this if/when haproxy host exists in the inventory
+- name: 'Make Tower instances aware of upstream proxy'
+  hosts: tower
+  tasks:
+    - name: "Tell tower to honor upstream forwarded for port and host headers"
+      template:
+        src: "templates/load_balancer.py.j2"
+        dest: "/etc/tower/conf.d/load_balancer.py"
+      when: "'haproxy' in hostvars.keys()"
+
 - name: 'Configure firewall rules for isolated groups'
   hosts: 'isolated_group_protected:managed_hosts'
   become: true
