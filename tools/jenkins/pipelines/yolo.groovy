@@ -110,6 +110,11 @@ pipeline {
             description: 'The Ansible version to install the Tower instance with',
             choices: ['devel', 'stable-2.8', 'stable-2.7', 'stable-2.6', 'stable-2.5', 'stable-2.4', 'stable-2.3']
         )
+        string(
+            name: 'SLACK_USERNAME',
+            description: 'Send yourself a slack message when done. Use @slackaccount name (not your slack username)',
+            defaultValue: '#jenkins'
+        )
     }
 
     options {
@@ -424,5 +429,9 @@ pipeline {
             }
         }
     }
-
+    post {
+        always {
+            slackSend( botUser: false, channel: "${SLACK_USERNAME}", color: 'good', message: 'yolo', teamDomain: 'ansible')
+        }
+    }
 }
