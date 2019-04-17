@@ -20,7 +20,7 @@
 {% if 'database' in groups %}
 [database]
 {% for host in groups['database'] %}
-{% if awx_ipv6_deployment | default(false) %}
+{% if awx_ipv6_deployment | default(false) | bool %}
 {{ hostvars[host].ansible_default_ipv6.address }} ansible_python_interpreter="{{ hostvars['localhost']['remote_ansible_python_interpreter'] }}" ansible_user={{ hostvars[host]['ansible_user'] }} ansible_ssh_private_key_file=~/.ssh/cluster_key
 {% else %}
 {{ hostvars[host].ansible_default_ipv4.address }} ansible_python_interpreter="{{ hostvars['localhost']['remote_ansible_python_interpreter'] }}" ansible_user={{ hostvars[host]['ansible_user'] }} ansible_ssh_private_key_file=~/.ssh/cluster_key
@@ -43,7 +43,7 @@ pg_username="{{ hostvars['localhost']['tower_db']['pg_username'] }}"
 pg_password="{{ hostvars['localhost']['tower_db']['pg_password'] }}"
 pg_hashed_password="md5{{ (hostvars['localhost']['tower_db']['pg_password'] + "awx")|hash("md5")  }}"
 {% else %}
-{% if awx_ipv6_deployment | default(false) %}
+{% if awx_ipv6_deployment | default(false) | bool %}
 pg_host="{{ hostvars[groups['database'][0]].ansible_default_ipv6.address }}"
 {% else %}
 pg_host="{{ hostvars[groups['database'][0]].ansible_default_ipv4.address }}"
