@@ -38,7 +38,7 @@
   template:
     src: inventory_cluster.j2
     dest: /tmp/setup/inventory
-  when: (not is_awx_installed.stat.exists or not awx_upgrade) and cluster_install
+  when: cluster_install and not is_awx_installed.stat.exists and not awx_upgrade
 
 - name: create vars.yml file
   template:
