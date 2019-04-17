@@ -34,19 +34,9 @@ pipeline {
             defaultValue: 'devel'
         )
         string(
-            name: 'TOWER_QA_FORK',
-            description: 'Fork of tower-qa to deploy',
-            defaultValue: 'ansible'
-        )
-        string(
             name: 'TOWER_QA_BRANCH',
             description: 'Branch to use for tower-qa',
             defaultValue: 'devel'
-        )
-        string(
-            name: 'TOWERKIT_FORK',
-            description: 'Fork of towerkit to deploy',
-            defaultValue: 'ansible'
         )
         string(
             name: 'TOWERKIT_BRANCH',
