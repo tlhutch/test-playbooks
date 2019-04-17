@@ -420,8 +420,23 @@ pipeline {
         }
     }
     post {
-        always {
-            slackSend( botUser: false, channel: "${SLACK_USERNAME}", color: 'good', message: 'yolo', teamDomain: 'ansible')
+        success {
+            slackSend(
+                botUser: false,
+                color: "good",
+                teamDomain: "ansible",
+                channel: "${SLACK_USERNAME}",
+                message: "<${env.RUN_DISPLAY_URL}|yolo> is :party_parrot:"
+            )
+        }
+        unsuccessful {
+            slackSend(
+                botUser: false,
+                color: "bad",
+                teamDomain: "ansible",
+                channel: "${SLACK_USERNAME}",
+                message: "<${env.RUN_DISPLAY_URL}|yolo> is :sad_parrot:"
+            )
         }
     }
 }
