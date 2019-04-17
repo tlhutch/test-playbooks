@@ -52,7 +52,7 @@ def k8s_prometheus(gke_client_cscope, request, class_factories):
     request.addfinalizer(lambda: K8sClient.destroy(deployment_name))
     request.addfinalizer(lambda: K8sClient.core.delete_namespaced_config_map(deployment_name, 'default', body=K8sClient.K8sClient.V1DeleteOptions()))
     prometheus_url = "https://http-{}-port-9090.{}".format(deployment_name, cluster_domain)
-    utils.poll_until(lambda: requests.get(prometheus_url).status_code == 200)
+    utils.poll_until(lambda: requests.get(prometheus_url).status_code == 200, timeout=120)
     return prometheus_url
 
 

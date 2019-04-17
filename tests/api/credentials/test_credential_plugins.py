@@ -51,6 +51,7 @@ def k8s_conjur(gke_client_cscope, request):
     utils.logged_sleep(60) # Sleeping for conjur to initialize the database. This will happen only once for the class.
     api_key = None
     conjur_url = "https://http-{}-port-80.{}".format(deployment_name, cluster_domain)
+    utils.poll_until(lambda: requests.get(conjur_url).status_code == 200, timeout=120)
     try:
         deploy_info = stream(K8sClient.core.connect_get_namespaced_pod_exec,
                              pod_name,
@@ -404,6 +405,7 @@ def k8s_vault(gke_client_cscope, request):
     K8sClient.core.create_namespaced_service(body=vault_service, namespace='default')
     vault_url = "https://http-{}-port-1234.{}".format(deployment_name, cluster_domain)
     request.addfinalizer(lambda: K8sClient.destroy(deployment_name))
+    utils.poll_until(lambda: requests.get(vault_url).status_code == 200, timeout=120)
 
     sess = requests.Session()
     sess.headers['Authorization'] = 'Bearer {}'.format(config.credentials.hashivault.token)
