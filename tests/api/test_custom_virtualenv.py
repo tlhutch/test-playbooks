@@ -193,6 +193,32 @@ class TestCustomVirtualenv(APITest):
             job.assert_successful()
             assert job.job_env['VIRTUAL_ENV'].rstrip('/') == job.custom_virtualenv.rstrip('/') == custom_venv_path.rstrip('/')
 
+    @pytest.mark.mp_group('CustomVenvPathSetting', 'isolated_free')
+    def test_custom_venv_path_setting_remove_cant_launch(self, v2, factories, create_venv, venv_path, update_setting_pg):
+        folder_name = random_title(non_ascii=False)
+        custom_venv_base = '/tmp'
+        custom_venv_path = venv_path(folder_name, custom_venv_base)
+
+        with create_venv(folder_name, 'psutil ansible', custom_venv_base=custom_venv_base):
+            update_setting_pg(
+                v2.settings.get().get_endpoint('system'),
+                dict(CUSTOM_VENV_PATHS=[custom_venv_base])
+            )
+
+            poll_until(lambda: custom_venv_path in v2.config.get().custom_virtualenvs, interval=1, timeout=15)
+            jt = factories.v2_job_template(playbook='run_command.yml', extra_vars='{"command": "ansible --version"}')
+            jt.ds.inventory.add_host()
+            assert jt.custom_virtualenv is None
+            jt.custom_virtualenv = custom_venv_path
+            job = jt.launch().wait_until_completed()
+            job.assert_successful()
+
+            v2.settings.get().get_endpoint('system').delete()
+            job = jt.launch().wait_until_completed()
+            assert job.status == 'error'
+            assert 'Invalid virtual environment selected' in job.job_explanation
+
+
     def test_venv_with_missing_requirements(self, v2, factories, create_venv, ansible_version, venv_path, venv_root):
         folder_name = random_title(non_ascii=False)
         with create_venv(folder_name, ''):
@@ -245,9 +271,7 @@ class TestCustomVirtualenv(APITest):
         assert jt.get().custom_virtualenv.rstrip('/') == venv_path(folder_name).rstrip('/')
         job = jt.launch().wait_until_completed()
         assert job.status == 'error'
-        assert 'RuntimeError: a valid Python virtualenv does not exist at {}'\
-               .format(venv_path(folder_name)) in job.result_traceback
-        assert job.job_explanation == ''
+        assert 'Invalid virtual environment selected: {}'.format(venv_path(folder_name)) in job.job_explanation
 
     def test_workflow_job_node_sources_venv(self, v2, factories, create_venv, venv_path):
         folder_name = random_title(non_ascii=False)
