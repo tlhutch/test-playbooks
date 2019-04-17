@@ -214,7 +214,7 @@ class TestInsightsAnalytics(APITest):
 
     def toggle_analytics(self, update_setting_pg, v2, state=False):
         system_settings = v2.settings.get().get_endpoint('system')
-        payload = {'INSIGHTS_DATA_ENABLED': state}
+        payload = {'INSIGHTS_TRACKING_STATE': state}
         update_setting_pg(system_settings, payload)
 
     @pytest.fixture
