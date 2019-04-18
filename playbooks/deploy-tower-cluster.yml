@@ -54,7 +54,7 @@
   tasks:
     - include_role:
         name: ansible_runner
-      when: awx_ansible_runner_url is defined and awx_ansible_runner_url != ''
+      when: awx_ansible_runner_url is defined and awx_ansible_runner_url != '' and ansible_distribution != 'OracleLinux'
 
 - name: Install specific version of ansible-runner (if applies)
   hosts: isolated_group*
@@ -65,7 +65,7 @@
         name: ansible_runner
       vars:
         isolated: true
-      when: awx_ansible_runner_url is defined and awx_ansible_runner_url != ''
+      when: awx_ansible_runner_url is defined and awx_ansible_runner_url != '' and ansible_distribution != 'OracleLinux'
 
 - name: 'install and configure haproxy'
   hosts: 'haproxy'
