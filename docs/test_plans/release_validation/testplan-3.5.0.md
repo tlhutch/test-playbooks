@@ -22,7 +22,6 @@
 
 ### Ansible Versions
 
-  * stable-2.5
   * stable.2.6
   * stable-2.7
 
@@ -35,21 +34,15 @@
 
 ### Support RHEL 8, including Python 3 (Yanis/Elijah)
 
-* Test Plan
-
-- [ ] Testing complete
+- [x] Testing complete
 
 ### Packaging for EL7/EL8 with Py3 (Yanis/Elijah)
 
-* Test Plan
-
-- [ ] Testing complete
+- [x] Testing complete
 
 ### Replace supervisor (Elyezer/Mat)
 
-* [Test Plan](https://github.com/ansible/tower-qa/blob/devel/docs/test_plans/features/35_replace_supervisor.md)
-
-- [ ] Testing complete
+- Not needed anymore. Supervisor 4 supports python3
 
 ### Use Brew Signed Packages (Yanis/Elyezer)
 
@@ -59,73 +52,65 @@
 
 ### Update social-auth dependencies for Google+ EOL (Mat/Elyezer)
 
-* Test Plan
-
 - [x] Testing complete
 
 ### Move Tower to ansible-runner for task execution (Yanis/Danny)
 
 * [Test Plan](https://github.com/ansible/tower-qa/blob/devel/docs/test_plans/features/35_runner_integration.md)
 
-- [ ] Testing complete
+- [x] Testing complete
 
 ### Using ansible-runner on isolated nodes (Yanis/Danny)
 
 * [Test Plan](https://github.com/ansible/tower-qa/blob/devel/docs/test_plans/features/35_runner_integration.md)
 
-- [ ] Testing complete
+- [x] Testing complete
 
 ### Support become plugins (Elyezer/John)
 
-* Test Plan
+* [Test Plan](https://github.com/ansible/tower-qa/blob/devel/docs/test_plans/features/35_become_plugins.md)
 
-- [ ] Testing complete
+- [x] Testing complete
 
 ### Replace inventory scripts with 2.6+ plugins (Elijah/Mat/Danny)
 
 * [Test Plan](https://github.com/ansible/tower-qa/blob/devel/docs/test_plans/features/35_inventory_plugins.md)
 
-- [ ] Testing complete
+- [x] Testing complete
 
 ### Metrics! (Mat/Danny)
 
-* Test Plan
+* [Test Plan](https://github.com/ansible/tower-qa/blob/devel/docs/test_plans/features/35_metrics_and_analytics.md)
 
 - [x] Testing complete
 
 ### Credential Plugins (Mat/John)
 
-* Test Plan
+* [Test Plan](https://github.com/ansible/tower-qa/blob/devel/docs/test_plans/features/35_credential_plugins.md)
 
 - [x] Testing complete
 
 ### Collect Ansible perf stats (Mat)
 
-* Test Plan
-
-- [ ] Testing complete
+- Punted to 3.6 release
 
 ### License limits by org (Mat)
 
-* Test Plan
+* [Test Plan](https://github.com/ansible/tower-qa/blob/devel/docs/test_plans/features/35_org_host_limits.md)
 
 - [x] Testing complete
 
 ### Remove /api/v1 (Elyezer/Elijah)
 
-* Test Plan
-
-- [ ] Testing complete
+- Punted to 3.6 release
 
 ### FIPS II: Cryptographic Boogaloo - use system crypto packages (Yanis)
 
-* [Test Plan](https://github.com/ansible/tower-qa/blob/devel/docs/test_plans/features/35_fips_II.md)
-
-- [ ] Testing complete
+- No change finally needed. Ansible does not ship paramiko anymore. Customer wanting is need to BYO paramiko - documentation has been updated to state that would not be FIPS compliant.
 
 ### Handle new Ansible playbook stats (Mat)
 
-* Test Plan
+* [Test Plan](https://github.com/ansible/tower-qa/blob/devel/docs/test_plans/features/35_new_ansible_stats.md)
 
 - [x] Testing complete
 
@@ -143,16 +128,14 @@
 ### Upgrade
 
   * [ ] Check ansible version check that is [hardcoded in tower-packaging](https://github.com/ansible/tower-packaging/blob/f8d3d4cd6d1cf35cad6e09de88068440d667ff42/setup/roles/preflight/defaults/main.yml#L6)
-  * [ ] Bundle from 3.1.x -> 3.5.0
-  * [ ] Bundle from 3.2.x -> 3.5.0
-  * [ ] Bundle from 3.3.x -> 3.5.0
-  * [ ] Bundle from 3.4.x -> 3.5.0
-  * [ ] Standalone from latest minor
-  * [ ] Standalone from latest major
-  * [ ] Traditional Cluster with isolated nodes from latest minor
-  * [ ] Traditional Cluster with isolated nodes from latest major
-  * [ ] OpenShift Cluster from latest minor
-  * [ ] OpenShift Cluster from latest major
+  * [ ] 3.2.8 to 3.5.0
+    * [ ] Bundle/Plain - Standalone/Cluster
+  * [ ] 3.3.{0-5} -> 3.5.0
+    * [ ] Bundle/Plain - Standalone/Cluster
+    * [ ] OpenShift
+  * [ ] 3.4.{0-3} -> 3.5.0
+    * [ ] Bundle/Plain - Standalone/Cluster
+    * [ ] OpenShift
 
 
 ### Regression
