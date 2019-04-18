@@ -3,7 +3,7 @@ pipeline {
         label 'jenkins-jnlp-agent'
     }
     environment {
-        TOWER_BRANCH = 'release_3.4.3'
+        TOWER_BRANCH = 'devel'
     }
     triggers {
         cron('H */4 * * *')
@@ -26,7 +26,7 @@ pipeline {
                     userRemoteConfigs: [
                         [
                             credentialsId: 'd2d4d16b-dc9a-461b-bceb-601f9515c98a',
-                            url: 'git@github.com:ansible/tower.git'
+                            url: 'git@github.com:ansible/awx.git'
                         ]
                     ]
                 ])
@@ -51,7 +51,7 @@ pipeline {
                 color: "good",
                 teamDomain: "ansible",
                 channel: "#cici",
-                message: "${TOWER_BRANCH} is <${env.RUN_DISPLAY_URL}|Job Dun>"
+                message: "CIC ${TOWER_BRANCH} is <${env.RUN_DISPLAY_URL}|Job Dun>"
             )
         }
     }
