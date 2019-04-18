@@ -103,6 +103,7 @@ class TestSplunkLogging(APITest):
     '''
     Create 2 events in splunk; then find those 2 created events.
     '''
+    @pytest.mark.github('https://github.com/ansible/tower-qa/issues/3242')
     def test_splunk_log(self, factories, v2, splunk_logger_url, splunk_api_url, splunk_logger_session, splunk_api_session):
         _api = splunk_api_session
         _log = splunk_logger_session
@@ -115,13 +116,10 @@ class TestSplunkLogging(APITest):
         assert 200 == _log.post('{}/services/collector'.format(splunk_logger_url),
                                 json={'event': "my uuid is {}".format(str(my_uuid2))}).status_code
 
-        res = _api.post('{}/services/search/jobs'.format(splunk_api_url), data={'search': 'search *'})
-        search_id = ET.fromstring(res.content).findall("sid")[0].text
-
         results = []
 
         def get_log_results():
-            res = _api.get('{}/services/search/jobs/{}/results'.format(splunk_api_url, search_id))
+            res = _api.post('{}/services/search/jobs/export'.format(splunk_api_url), data={'search': 'search *'})
             try:
                 found = list(ET.fromstring(res.content).findall('.//*v'))
             except xml.etree.ElementTree.ParseError:
@@ -130,8 +128,11 @@ class TestSplunkLogging(APITest):
             if not found:
                 return False
 
-            found = [f.text for f in found]
-            results.extend(found)
+            results.extend([f.text for f in found])
+
+            if len(results) == 0:
+                return False
+
             return True
 
         # It can take time for the event to be processed and end up in the search results
