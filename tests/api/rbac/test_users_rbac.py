@@ -40,7 +40,7 @@ class Test_User_RBAC(APITest):
 
         This could lead to issue where admin of org a could gain access to org b.
 
-        Only users that allready have admin privileges over an org admin can add them to a new org.
+        Only users that already have admin privileges over an org admin can add them to a new org.
 
         https://github.com/ansible/tower/issues/3480
         """
@@ -63,14 +63,14 @@ class Test_User_RBAC(APITest):
             with pytest.raises(exc.Forbidden):
                 org_a.related.users.post(dict(id=admin_b.id))
 
-        with self.current_user(admin_of_both.username, admin_of_both.password):
+        with self.current_user(admin_of_both):
             active_user = v2.me.get().results.pop()
             assert active_user.username == admin_of_both.username, "Should be making v2 requests as admin_of_both!"
             with pytest.raises(exc.NoContent):
                 org_a.related.users.post(dict(id=admin_b.id))
 
         new_pass = utils.random_title()
-        with self.current_user(admin_a.username, admin_a.password):
+        with self.current_user(admin_a):
             active_user = v2.me.get().results.pop()
             assert active_user.username == admin_a.username, "Should be making v2 requests as admin_a!"
             # Assert now that admin_b was correctly added by admin_of_both to org_a, admin_a has not
@@ -78,9 +78,9 @@ class Test_User_RBAC(APITest):
             with pytest.raises(exc.Forbidden):
                 admin_b.patch(password=new_pass, password_confirm=new_pass)
 
-        with self.current_user(admin_b.username, admin_b.password):
+        with self.current_user(admin_b):
             active_user = v2.me.get().results.pop()
-            assert active_user.username == admin_b.username, "Should be making v2 requests as admin_a!"
+            assert active_user.username == admin_b.username, "Should be making v2 requests as admin_b!"
             # Assert now that admin_b was correctly added by admin_of_both to org_a, admin_b still has admin over themselves
             admin_b.patch(password=new_pass, password_confirm=new_pass)
 

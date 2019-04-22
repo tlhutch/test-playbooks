@@ -856,7 +856,7 @@ class TestTraditionalCluster(APITest):
         time.sleep(70)
         for instance in instances:
             assert instance.get().capacity == 0
-            assert instance.enabled is False
+            assert instance.enabled == False # noqa
         assert job.get().status == 'pending'
 
         # Re-enable iso nodes, ensure capacity is restored and job completes successfully
