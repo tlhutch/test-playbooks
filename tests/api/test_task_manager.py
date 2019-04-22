@@ -441,8 +441,9 @@ class Test_Autospawned_Jobs(APITest):
         sorted_unified_jobs = [inv_update, job]
         confirm_unified_jobs(sorted_unified_jobs)
 
+    # Skip for Openshift because of Github Issue: https://github.com/ansible/tower-qa/issues/2591
     @pytest.mark.yolo
-    def test_inventory_multiple(self, job_template, aws_inventory_source, gce_inventory_source):
+    def test_inventory_multiple(self, skip_if_openshift, job_template, aws_inventory_source, gce_inventory_source):
         """Verify that multiple inventory updates are triggered by job launch. Job ordering
         should be as follows:
         * AWS and GCE inventory updates should run simultaneously.

@@ -247,7 +247,9 @@ class TestExecutionNodeAssignment(APITest):
         inv_update.wait_until_completed().assert_successful()
         assert inv_update.execution_node == instance.hostname
 
+    # Skip for Openshift because of Github Issue: https://github.com/ansible/tower-qa/issues/2591
     def test_inventory_updates_should_distribute_among_new_instance_group_members(self, factories,
+                                                                                  skip_if_openshift,
                                                                                   tower_ig_instances,
                                                                                   wait_for_jobs,
                                                                                   do_all_jobs_overlap,
