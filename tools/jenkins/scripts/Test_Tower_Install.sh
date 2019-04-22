@@ -12,7 +12,11 @@ pip install -Ur scripts/requirements.install
 
 # Increase ssh timeout
 export ANSIBLE_TIMEOUT=30
-export AWX_ANSIBLE_RUNNER_URL=${AWX_ANSIBLE_RUNNER_URL:-https://github.com/ansible/ansible-runner.git@master}
+# If we want to run off of development ansible-runner, we can pip install
+# by providing the AWX_ANSIBLE_RUNNER_URL
+#export #AWX_ANSIBLE_RUNNER_URL=${AWX_ANSIBLE_RUNNER_URL:-https://github.com/ansible/ansible-runner.git@master}
+# But right now we want to default to released ansible-runner
+export AWX_ANSIBLE_RUNNER_URL=${AWX_ANSIBLE_RUNNER_URL:-''}
 
 staging_repo_regex=".*releases-master.ansible.com.*"
 release_branch_regex=".*release_([0-9]\.[0-9]\.[0-9])"
