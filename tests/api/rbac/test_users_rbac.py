@@ -35,6 +35,55 @@ class Test_User_RBAC(APITest):
             check_user_capabilities(org_user.get(), "org_admin")
             check_user_capabilities(api_users_pg.get(id=org_user.id).results.pop(), "org_admin")
 
+    def test_org_admin_cannot_admin_other_org_admin(self, v2, factories):
+        """In the past there was a bug where an admin of one org could add admin of other org to their org.
+
+        This could lead to issue where admin of org a could gain access to org b.
+
+        Only users that allready have admin privileges over an org admin can add them to a new org.
+
+        https://github.com/ansible/tower/issues/3480
+        """
+        org_a, org_b, = [factories.organization() for _ in range(2)]
+        admin_a = factories.user(organization=org_a)
+        admin_b = factories.user(organization=org_b)
+        admin_of_both = factories.user(organization=org_a)
+        org_a.add_user(admin_of_both)
+        org_a.set_object_roles(admin_a, 'admin')
+        org_b.set_object_roles(admin_b, 'admin')
+        org_a.set_object_roles(admin_of_both, 'admin')
+        org_b.set_object_roles(admin_of_both, 'admin')
+        with self.current_user(admin_a):
+            active_user = v2.me.get().results.pop()
+            assert active_user.username == admin_a.username, "Should be making v2 requests as admin_a!"
+            # admin_a should not be allowed to add admin_b to org_a
+            # Only a user that already had admin privledges orver admin_b should be allowed to do that
+            with pytest.raises(exc.Forbidden):
+                org_a.add_user(admin_b)
+            with pytest.raises(exc.Forbidden):
+                org_a.related.users.post(dict(id=admin_b.id))
+
+        with self.current_user(admin_of_both.username, admin_of_both.password):
+            active_user = v2.me.get().results.pop()
+            assert active_user.username == admin_of_both.username, "Should be making v2 requests as admin_of_both!"
+            with pytest.raises(exc.NoContent):
+                org_a.related.users.post(dict(id=admin_b.id))
+
+        new_pass = utils.random_title()
+        with self.current_user(admin_a.username, admin_a.password):
+            active_user = v2.me.get().results.pop()
+            assert active_user.username == admin_a.username, "Should be making v2 requests as admin_a!"
+            # Assert now that admin_b was correctly added by admin_of_both to org_a, admin_a has not
+            # gained admin access over user admin_b
+            with pytest.raises(exc.Forbidden):
+                admin_b.patch(password=new_pass, password_confirm=new_pass)
+
+        with self.current_user(admin_b.username, admin_b.password):
+            active_user = v2.me.get().results.pop()
+            assert active_user.username == admin_b.username, "Should be making v2 requests as admin_a!"
+            # Assert now that admin_b was correctly added by admin_of_both to org_a, admin_b still has admin over themselves
+            admin_b.patch(password=new_pass, password_confirm=new_pass)
+
     def test_cross_org_admin_self_rename(self, factories):
         """Confirms that a user who is a member of one org and an admin of another can change their own name"""
         org_a, org_b, = [factories.organization() for _ in range(2)]
