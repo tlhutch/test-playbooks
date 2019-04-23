@@ -79,11 +79,11 @@ errors = list()
 # assert that only one awx_\d*_\w* tempfile is visible
 # name of dir is defined at https://github.com/ansible/awx/blob/f22fd58392eaaf3eeac9c2ee383d276bfecb5af9/awx/main/tasks.py#L701
 for tmpdir in ('/tmp', '/var/tmp'):
-    for files in os.listdir(tmpdir):
-        matches = [f for f in files if re.search(r'^awx_\d*_\w*', f)]
+    for file in os.listdir(tmpdir):
+        matches = re.search(r'awx_\d*_\w*', file)
         if matches:
-            files = [os.path.join(tmpdir, f) for f in files]
-            errors.append(("Tower temporary files", files))
+            full_path = os.path.join(tmpdir, file)
+            errors.append(("Tower temporary files", full_path))
 
 # assert that no project directories are visible
 for tower_projects_dir in ('/var/lib/awx/projects', '/var/lib/tower/projects'):
