@@ -218,7 +218,6 @@ class TestCustomVirtualenv(APITest):
             assert job.status == 'error'
             assert 'Invalid virtual environment selected' in job.job_explanation
 
-
     def test_venv_with_missing_requirements(self, v2, factories, create_venv, ansible_version, venv_path, venv_root):
         folder_name = random_title(non_ascii=False)
         with create_venv(folder_name, ''):
