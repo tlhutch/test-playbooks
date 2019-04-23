@@ -5,6 +5,88 @@ import pytest
 from tests.api import APITest
 
 
+CUSTOM_SCRIPT = """#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+import json
+import uuid
+unique_name = str(uuid.uuid4())
+host_1 = 'host_{}'.format(unique_name)
+host_2 = 'host_2_{}'.format(unique_name)
+print(json.dumps({
+'_meta': {'hostvars': {
+    '{}'.format(host_1): {'name':'{}'.format(host_1)},
+    '{}'.format(host_2): {'name':'{}'.format(host_2)},
+    'all_have': {'name':'all_have'},
+    'all_have2': {'name':'all_have2'},
+    'all_have3': {'name':'all_have3'},
+    }},
+'ungrouped': {'hosts': ['groupless']},
+'child_group': {'hosts': ['{}'.format(host_1), 'all_have']},
+'child_group2': {'hosts': ['{}'.format(host_1), 'all_have2']},
+'parent_group': {'hosts': ['{}'.format(host_2), 'all_have3'], 'children': ['child_group', 'child_group2']}
+}))"""
+
+
+DELETE_GROUP_1_CUSTOM_SCRIPT = """#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+import json
+import uuid
+unique_name = str(uuid.uuid4())
+host_1 = 'host_{}'.format(unique_name)
+host_2 = 'host_2_{}'.format(unique_name)
+print(json.dumps({
+'_meta': {'hostvars': {
+    '{}'.format(host_1): {'name':'{}'.format(host_1)},
+    '{}'.format(host_2): {'name':'{}'.format(host_2)},
+    'all_have': {'name':'all_have'},
+    'all_have2': {'name':'all_have2'},
+    'all_have3': {'name':'all_have3'},
+    }},
+'child_group2': {'hosts': ['{}'.format(host_1), 'all_have2']},
+'parent_group': {'hosts': ['{}'.format(host_2), 'all_have3'], 'children': ['child_group2']}
+}))"""
+
+
+DELETE_GROUP_2_CUSTOM_SCRIPT = """#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+import json
+import uuid
+unique_name = str(uuid.uuid4())
+host_1 = 'host_{}'.format(unique_name)
+host_2 = 'host_2_{}'.format(unique_name)
+print(json.dumps({
+'_meta': {'hostvars': {
+    '{}'.format(host_1): {'name':'{}'.format(host_1)},
+    '{}'.format(host_2): {'name':'{}'.format(host_2)},
+    'all_have': {'name':'all_have'},
+    'all_have2': {'name':'all_have2'},
+    'all_have3': {'name':'all_have3'},
+    }},
+'child_group': {'hosts': ['{}'.format(host_1), 'all_have']},
+'parent_group': {'hosts': ['{}'.format(host_2), 'all_have3'], 'children': ['child_group']}
+}))"""
+
+
+DELETE_GROUP_3_CUSTOM_SCRIPT = """#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+import json
+import uuid
+unique_name = str(uuid.uuid4())
+host_1 = 'host_{}'.format(unique_name)
+host_2 = 'host_2_{}'.format(unique_name)
+print(json.dumps({
+'_meta': {'hostvars': {
+    '{}'.format(host_1): {'name':'{}'.format(host_1)},
+    '{}'.format(host_2): {'name':'{}'.format(host_2)},
+    'all_have': {'name':'all_have'},
+    'all_have2': {'name':'all_have2'},
+    'all_have3': {'name':'all_have3'},
+    }},
+'child_group': {'hosts': ['{}'.format(host_1), 'all_have']},
+'child_group2': {'hosts': ['{}'.format(host_1), 'all_have2']},
+}))"""
+
+
 @pytest.mark.api
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestInventoryUpdateOverlappingSources(APITest):
@@ -30,26 +112,6 @@ class TestInventoryUpdateOverlappingSources(APITest):
         inv_sources = []
         shared_org = factories.organization()
         shared_parent_inv = factories.inventory(organization=shared_org)
-        custom_script = """#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-import json
-import uuid
-unique_name = str(uuid.uuid4())
-host_1 = 'host_{}'.format(unique_name)
-host_2 = 'host_2_{}'.format(unique_name)
-print(json.dumps({
-'_meta': {'hostvars': {
-    '{}'.format(host_1): {'name':'{}'.format(host_1)},
-    '{}'.format(host_2): {'name':'{}'.format(host_2)},
-    'all_have': {'name':'all_have'},
-    'all_have2': {'name':'all_have2'},
-    'all_have3': {'name':'all_have3'},
-    }},
-'ungrouped': {'hosts': ['groupless']},
-'child_group': {'hosts': ['{}'.format(host_1), 'all_have']},
-'child_group2': {'hosts': ['{}'.format(host_1), 'all_have2']},
-'parent_group': {'hosts': ['{}'.format(host_2), 'all_have3'], 'children': ['child_group', 'child_group2']}
-}))"""
         NUM_INV_SOURCES = int(
             os.environ.get(
                 'TOWERQA_NUM_INVENTORY_SOURCES_OVERWRITE_DEADLOCK', 3))
@@ -58,7 +120,7 @@ print(json.dumps({
                 'Set TOWERQA_NUM_IVENTORY_SOURCES_OVERWRITE_DEADLOCK to a positive integer to run test')
         for i in range(NUM_INV_SOURCES):
             inv_script = factories.v2_inventory_script(
-                script=custom_script,
+                script=CUSTOM_SCRIPT,
                 organization=shared_org,
             )
             inv_source = factories.v2_inventory_source(
@@ -102,76 +164,22 @@ print(json.dumps({
                 assert 'all_have3' in host_names
             for host in hosts:
                 assert host.name == host.related.variable_data.get()['name']
-        delete_group_1_custom_script = """#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-import json
-import uuid
-unique_name = str(uuid.uuid4())
-host_1 = 'host_{}'.format(unique_name)
-host_2 = 'host_2_{}'.format(unique_name)
-print(json.dumps({
-'_meta': {'hostvars': {
-    '{}'.format(host_1): {'name':'{}'.format(host_1)},
-    '{}'.format(host_2): {'name':'{}'.format(host_2)},
-    'all_have': {'name':'all_have'},
-    'all_have2': {'name':'all_have2'},
-    'all_have3': {'name':'all_have3'},
-    }},
-'child_group2': {'hosts': ['{}'.format(host_1), 'all_have2']},
-'parent_group': {'hosts': ['{}'.format(host_2), 'all_have3'], 'children': ['child_group2']}
-}))"""
-        delete_group_2_custom_script = """#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-import json
-import uuid
-unique_name = str(uuid.uuid4())
-host_1 = 'host_{}'.format(unique_name)
-host_2 = 'host_2_{}'.format(unique_name)
-print(json.dumps({
-'_meta': {'hostvars': {
-    '{}'.format(host_1): {'name':'{}'.format(host_1)},
-    '{}'.format(host_2): {'name':'{}'.format(host_2)},
-    'all_have': {'name':'all_have'},
-    'all_have2': {'name':'all_have2'},
-    'all_have3': {'name':'all_have3'},
-    }},
-'child_group': {'hosts': ['{}'.format(host_1), 'all_have']},
-'parent_group': {'hosts': ['{}'.format(host_2), 'all_have3'], 'children': ['child_group']}
-}))"""
-        delete_group_3_custom_script = """#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-import json
-import uuid
-unique_name = str(uuid.uuid4())
-host_1 = 'host_{}'.format(unique_name)
-host_2 = 'host_2_{}'.format(unique_name)
-print(json.dumps({
-'_meta': {'hostvars': {
-    '{}'.format(host_1): {'name':'{}'.format(host_1)},
-    '{}'.format(host_2): {'name':'{}'.format(host_2)},
-    'all_have': {'name':'all_have'},
-    'all_have2': {'name':'all_have2'},
-    'all_have3': {'name':'all_have3'},
-    }},
-'child_group': {'hosts': ['{}'.format(host_1), 'all_have']},
-'child_group2': {'hosts': ['{}'.format(host_1), 'all_have2']},
-}))"""
         for i, source in enumerate(inv_sources):
             if i % 3 == 0:
                 inv_script = factories.v2_inventory_script(
-                    script=delete_group_1_custom_script,
+                    script=DELETE_GROUP_1_CUSTOM_SCRIPT,
                     organization=shared_org,
                     )
                 source.source_script = inv_script.id
             if i % 3 == 1:
                 inv_script = factories.v2_inventory_script(
-                    script=delete_group_2_custom_script,
+                    script=DELETE_GROUP_2_CUSTOM_SCRIPT,
                     organization=shared_org,
                     )
                 source.source_script = inv_script.id
             if i % 3 == 2:
                 inv_script = factories.v2_inventory_script(
-                    script=delete_group_3_custom_script,
+                    script=DELETE_GROUP_3_CUSTOM_SCRIPT,
                     organization=shared_org,
                     )
                 source.source_script = inv_script.id
