@@ -579,3 +579,40 @@ class Test_Organization_RBAC(APITest):
         with self.current_user(resource_admin):
             with pytest.raises(towerkit.exceptions.Forbidden):
                 resource.set_object_roles(user, 'admin')
+
+
+@pytest.mark.api
+@pytest.mark.destructive
+@pytest.mark.mp_group('manage_org_auth', 'isolated_serial')
+@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+class TestManageOrgAuthFalse(APITest):
+
+    @pytest.mark.parametrize('endpoint', ['related_users', 'related_roles'])
+    def test_org_admins_can_add_resource_admins(self, v2, factories, update_setting_pg, endpoint):
+        """Test that users can still be admins of resources when MANAGE_ORGANIZATION_AUTH is set to false.
+
+        Regression test for https://github.com/ansible/tower/issues/3394
+        """
+        auth_settings = v2.settings.get().get_endpoint('authentication')
+        update_setting_pg(auth_settings, dict(MANAGE_ORGANIZATION_AUTH=False))
+        org = factories.v2_organization()
+        team = factories.v2_team(organization=org)
+        proj = factories.v2_project(organization=org)
+        jt = factories.v2_job_template(project=proj)
+        org_user = factories.user()
+        org_user2 = factories.user()
+        org_admin = factories.user()
+
+        org.set_object_roles(org_user, "member")
+        org.set_object_roles(org_user2, "member")
+        team.set_object_roles(org_user, "member")
+        org.set_object_roles(org_admin, "admin")
+
+        with self.current_user(org_admin):
+            jt.set_object_roles(team, "admin", endpoint=endpoint)
+
+        with self.current_user(org_user):
+            jt.set_object_roles(org_user2, "execute", endpoint='related_roles')
+
+        with self.current_user(org_user2):
+            jt.launch().wait_until_completed().assert_successful()
