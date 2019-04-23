@@ -631,7 +631,7 @@ class TestSCMInventorySource(APITest):
 
         project.wait_until_completed().assert_successful()
 
-    @pytest.mark.github('https://github.com/ansible/awx/issues/171', ids=['OpenStack auth issue'], skip=True)
+    # Previously effected by https://github.com/ansible/awx/issues/171' for the 'OpenStack auth issue' permutation
     @pytest.mark.parametrize('scm_url, branch, source_path, expected_error',
                              [('https://github.com/ansible/test-playbooks.git', '', 'inventories/invalid_inventory.ini',
                                "Invalid section entry: '[syntax ?? error]'"),

@@ -229,7 +229,7 @@ class TestJobChannels(ChannelsTest, APITest):
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestWorkflowChannels(ChannelsTest, APITest):
 
-    @pytest.mark.github('https://github.com/ansible/tower-qa/issues/2487', skip=True)
+    # Previously effected by https://github.com/ansible/tower-qa/issues/2487
     @pytest.mark.ansible_integration
     def test_workflow_events(self, factories, ws_client, v2):
         ws = ws_client.connect()
