@@ -76,3 +76,92 @@ class Test_Teams(APITest):
         team.get_related("organization").delete()
         with pytest.raises(exc.NotFound):
             team.get()
+
+    def test_org_user_can_see_all_teams_in_org(self, v2, factories, org_user):
+        org = org_user.related.organizations.get().results.pop()
+
+        teams_inside_org = []
+        for _ in range(3):
+            teams_inside_org.append(factories.team(organization=org))
+
+        teams_outside_org = []
+        for _ in range(3):
+            teams_outside_org.append(factories.team())
+
+        with self.current_user(org_user):
+            visible_teams = v2.teams.get().results
+            assert set([t.id for t in visible_teams]) == set([t.id for t in teams_inside_org])
+
+    @pytest.mark.parametrize('org_admins_can_see_all_users', [True, False],
+                             ids=['ORG_ADMINS_CAN_SEE_ALL_USERS_is_true', 'ORG_ADMINS_CAN_SEE_ALL_USERS_is_false'])
+    @pytest.mark.mp_group('OrgAdminCanSeeAllUsers', 'isolated_serial')
+    def test_org_admin_can_see_all_teams_in_org(self, request, v2, factories, org_admin, update_setting_pg,
+                                                api_settings_system_pg, org_admins_can_see_all_users):
+        update_setting_pg(api_settings_system_pg, dict(ORG_ADMINS_CAN_SEE_ALL_USERS=org_admins_can_see_all_users))
+
+        org = org_admin.related.organizations.get().results.pop()
+        teams_inside_org = []
+        for _ in range(3):
+            teams_inside_org.append(factories.team(organization=org))
+        teams_outside_org = []
+        for _ in range(3):
+            teams_outside_org.append(factories.team())
+
+        with self.current_user(org_admin):
+            visible_teams = v2.teams.get().results
+            if org_admins_can_see_all_users:
+                assert set([t.id for t in visible_teams]) >= set([t.id for t in teams_inside_org])
+            else:
+                assert set([t.id for t in visible_teams]) == set([t.id for t in teams_inside_org])
+
+    @pytest.mark.parametrize('user', ['anonymous_user', 'another_org_user'])
+    def test_non_org_users_cannot_see_team_in_org(self, request, v2, factories, user):
+        non_organization_user = request.getfixturevalue(user)
+        factories.team()
+        with self.current_user(non_organization_user):
+            assert v2.teams.get().count == 0
+
+    def test_org_user_can_assign_permissions_to_team(self, factories, org_user):
+        org = org_user.related.organizations.get().results.pop()
+        team_inside_org = factories.team(organization=org)
+        team_outside_org = factories.team()
+
+        jt = factories.job_template()
+        jt.set_object_roles(org_user, 'admin')
+        with self.current_user(org_user):
+            jt.set_object_roles(team_inside_org, 'read')
+
+            with pytest.raises(exc.Forbidden):
+                jt.set_object_roles(team_outside_org, 'read')
+
+    @pytest.mark.parametrize('org_admins_can_see_all_users', [True, False],
+                             ids=['ORG_ADMINS_CAN_SEE_ALL_USERS_is_true', 'ORG_ADMINS_CAN_SEE_ALL_USERS_is_false'])
+    @pytest.mark.mp_group('OrgAdminCanSeeAllUsers', 'isolated_serial')
+    def test_org_admin_can_assign_permissions_to_team(self, request, v2, factories, org_admin, update_setting_pg,
+                                                      api_settings_system_pg, org_admins_can_see_all_users):
+        update_setting_pg(api_settings_system_pg, dict(ORG_ADMINS_CAN_SEE_ALL_USERS=org_admins_can_see_all_users))
+
+        org = org_admin.related.organizations.get().results.pop()
+        team_inside_org = factories.team(organization=org)
+        team_outside_org = factories.team()
+
+        jt = factories.job_template()
+        jt.set_object_roles(org_admin, 'admin')
+        with self.current_user(org_admin):
+            jt.set_object_roles(team_inside_org, 'read')
+
+            if org_admins_can_see_all_users:
+                jt.set_object_roles(team_outside_org, 'read')
+            else:
+                with pytest.raises(exc.Forbidden):
+                    jt.set_object_roles(team_outside_org, 'read')
+
+    @pytest.mark.parametrize('user', ['anonymous_user', 'another_org_user'])
+    def test_non_org_users_cannot_assign_permissions_to_team(self, request, factories, user):
+        non_organization_user = request.getfixturevalue(user)
+        team = factories.team()
+        jt = factories.job_template()
+        jt.set_object_roles(non_organization_user, 'admin')
+        with self.current_user(non_organization_user):
+            with pytest.raises(exc.Forbidden):
+                jt.set_object_roles(team, 'read')
