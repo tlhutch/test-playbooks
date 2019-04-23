@@ -26,11 +26,24 @@ fi
 
 set +e
 
-pytest --mp --np 4 -c config/api.cfg \
+pytest -c config/api.cfg \
     --ansible-host-pattern="${TOWER_HOST}" \
     --ansible-inventory="${INVENTORY}" \
     --api-credentials="${CREDS}" \
     --github-cfg="${CREDS}" \
     -k "${TESTEXPR}" --base-url="https://${TOWER_HOST}"
+
+sleep 360
+
+pytest -c config/api.cfg \
+    --last-failed --last-failed-no-failures none \
+    --junit-xml=reports/junit/results-rerun.xml \
+    --ansible-host-pattern="${TOWER_HOST}" \
+    --ansible-inventory="${INVENTORY}" \
+    --api-credentials="${CREDS}" \
+    --github-cfg="${CREDS}" \
+    -k "${TESTEXPR}" --base-url="https://${TOWER_HOST}"
+
+python scripts/override_junit.py reports/junit/results.xml reports/junit/results-rerun.xml reports/junit/results-final.xml
 
 set -e

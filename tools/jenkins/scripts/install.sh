@@ -10,7 +10,7 @@ VARS_FILE=${VARS_FILE:-playbooks/vars.yml}
 source "$(dirname "${0}")"/lib/common
 
 setup_python3_env
-pip install -U boto boto3 botocore ansible pip
+pip install -U boto boto3 botocore pip ansible==2.8.0b1
 
 PLAYBOOK=$(retrieve_value_from_vars_file "${VARS_FILE}" awx_playbook)
 VERBOSITY=$(retrieve_value_from_vars_file "${VARS_FILE}" awx_verbosity)
