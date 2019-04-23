@@ -45,7 +45,7 @@ class Test_Proot(APITest):
         AWX_PROOT_ENABLED=True.  For example, it verifies:
          - /var/lib/awx/projects/ - only a single directory exists for the current job
          - /var/lib/awx/job_status/ - no files are present (job status isn't created until after a job completes)
-         - /tmp/ansible_tower_* - only a single matching directory exists
+         - /tmp/awx_\d*_\w* - only a single matching directory exists (name of dir defined at https://github.com/ansible/awx/blob/f22fd58392eaaf3eeac9c2ee383d276bfecb5af9/awx/main/tasks.py#L701)
          - /etc/awx/settings.py - No such file or directory
          - /var/log/supervisor/* - Permission Denied
         """
@@ -76,10 +76,11 @@ import re
 
 errors = list()
 
-# assert that only one ansible_tower_XXXXX tempfile is visible
+# assert that only one awx_\d*_\w* tempfile is visible
+# name of dir is defined at https://github.com/ansible/awx/blob/f22fd58392eaaf3eeac9c2ee383d276bfecb5af9/awx/main/tasks.py#L701
 for tmpdir in ('/tmp', '/var/tmp'):
     for files in os.listdir(tmpdir):
-        matches = [f for f in files if re.search(r'^awx_proot_', f)]
+        matches = [f for f in files if re.search(r'^awx_\d*_\w*', f)]
         if matches:
             files = [os.path.join(tmpdir, f) for f in files]
             errors.append(("Tower temporary files", files))
@@ -140,7 +141,7 @@ print(json.dumps({}))
         AWX_PROOT_ENABLED=True.  For example, it verifies:
          - /var/lib/awx/projects/ - only a single directory exists for the current job
          - /var/lib/awx/job_status/ - no files are present (job status isn't created until after a job completes)
-         - /tmp/ansible_tower_* - only a single matching directory exists
+         - /tmp/awx_\d*_\w* - only a single matching directory exists (name of dir defined at https://github.com/ansible/awx/blob/f22fd58392eaaf3eeac9c2ee383d276bfecb5af9/awx/main/tasks.py#L701)
          - /etc/awx/settings.py - No such file or directory
          - /var/log/supervisor/* - Permission Denied
         """
