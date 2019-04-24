@@ -296,7 +296,7 @@ class TestInsightsAnalytics(APITest):
     def read_csv(self, ansible_runner, tempdir, filename):
         csv_file = ansible_runner.fetch(src=filename, dest='/tmp/fetched').values()[0]['dest']
         rows = []
-        for row in csv.reader(open(csv_file, 'r', encoding='utf8'), delimiter='\t'):
+        for row in csv.reader(open(csv_file, 'r', encoding='utf8'), delimiter=','):
             rows.append(row)
         return rows
 
@@ -411,6 +411,8 @@ class TestInsightsAnalytics(APITest):
         event_uuids = set()
         for row in stats['events_table']:
             csv_uuids.add(row[2])
+        if 'uuid' in csv_uuids:
+            csv_uuids.remove('uuid')
         for e in events:
             event_uuids.add(e['uuid'])
         assert csv_uuids == event_uuids
