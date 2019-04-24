@@ -135,7 +135,7 @@ objects:
                 - mountPath: /prometheus
                   name: prometheus-data
             - args:
-                - '--storage.tsdb.retention=6h'
+                - '--storage.tsdb.retention=6w'
                 - '--storage.tsdb.min-block-duration=2m'
                 - '--config.file=/etc/prometheus/prometheus.yml'
                 - '--web.enable-lifecycle'
