@@ -67,16 +67,37 @@ Platform under test: ${params.PLATFORM}"""
                         script {
                             if (params.TOWER_VERSION != 'devel' && !(params.TOWER_VERSION ==~ /[0-9]*.[0-9]*.0/) ) {
                                 stage('Plain-Standalone Minor Upgrade') {
+                                    retry(2) {
+                                        build(
+                                            job: 'upgrade-pipeline',
+                                            parameters: [
+                                                string(name: 'TOWER_VERSION_TO_UPGRADE_FROM', value: prev_min_version),
+                                                string(name: 'TOWER_VERSION_TO_UPGRADE_TO', value: params.TOWER_VERSION),
+                                                string(name: 'ANSIBLE_VERSION', value: params.ANSIBLE_VERSION),
+                                                string(name: 'SCENARIO', value: 'standalone'),
+                                                string(name: 'PLATFORM', value: params.PLATFORM),
+                                                string(name: 'BUNDLE', value: 'no'),
+                                                string(name: 'DEPLOYMENT_NAME', value: 'evergreen-jenkins-tower-plain-standalone-minor-upgrade')
+                                            ]
+                                        )
+                                    }
+                                }
+                            }
+                        }
+
+                        script {
+                            stage('Plain-Standalone Major Upgrade') {
+                                retry(2) {
                                     build(
                                         job: 'upgrade-pipeline',
                                         parameters: [
-                                            string(name: 'TOWER_VERSION_TO_UPGRADE_FROM', value: prev_min_version),
+                                            string(name: 'TOWER_VERSION_TO_UPGRADE_FROM', value: prev_maj_version),
                                             string(name: 'TOWER_VERSION_TO_UPGRADE_TO', value: params.TOWER_VERSION),
                                             string(name: 'ANSIBLE_VERSION', value: params.ANSIBLE_VERSION),
                                             string(name: 'SCENARIO', value: 'standalone'),
                                             string(name: 'PLATFORM', value: params.PLATFORM),
                                             string(name: 'BUNDLE', value: 'no'),
-                                            string(name: 'DEPLOYMENT_NAME', value: 'evergreen-jenkins-tower-plain-standalone-minor-upgrade')
+                                            string(name: 'DEPLOYMENT_NAME', value: 'evergreen-jenkins-tower-plain-standalone-major-upgrade')
                                         ]
                                     )
                                 }
@@ -84,51 +105,38 @@ Platform under test: ${params.PLATFORM}"""
                         }
 
                         script {
-                            stage('Plain-Standalone Major Upgrade') {
-                                build(
-                                    job: 'upgrade-pipeline',
-                                    parameters: [
-                                        string(name: 'TOWER_VERSION_TO_UPGRADE_FROM', value: prev_maj_version),
-                                        string(name: 'TOWER_VERSION_TO_UPGRADE_TO', value: params.TOWER_VERSION),
-                                        string(name: 'ANSIBLE_VERSION', value: params.ANSIBLE_VERSION),
-                                        string(name: 'SCENARIO', value: 'standalone'),
-                                        string(name: 'PLATFORM', value: params.PLATFORM),
-                                        string(name: 'BUNDLE', value: 'no'),
-                                        string(name: 'DEPLOYMENT_NAME', value: 'evergreen-jenkins-tower-plain-standalone-major-upgrade')
-                                    ]
-                                )
-                            }
-                        }
-
-                        script {
                             stage('Plain-Standalone Backup And Restore') {
-                                build(
-                                    job: 'backup-and-restore-pipeline',
-                                    parameters: [
-                                        string(name: 'TOWER_VERSION', value: params.TOWER_VERSION),
-                                        string(name: 'ANSIBLE_VERSION', value: params.ANSIBLE_VERSION),
-                                        string(name: 'SCENARIO', value: 'standalone'),
-                                        string(name: 'PLATFORM', value: params.PLATFORM),
-                                        string(name: 'BUNDLE', value: 'no'),
-                                        string(name: 'DEPLOYMENT_NAME', value: 'evergreen-jenkins-tower-plain-standalone-backup-and-restore')
-                                    ]
-                                )
+                                retry(2) {
+                                    build(
+                                        job: 'backup-and-restore-pipeline',
+                                        parameters: [
+                                            string(name: 'TOWER_VERSION', value: params.TOWER_VERSION),
+                                            string(name: 'ANSIBLE_VERSION', value: params.ANSIBLE_VERSION),
+                                            string(name: 'SCENARIO', value: 'standalone'),
+                                            string(name: 'PLATFORM', value: params.PLATFORM),
+                                            string(name: 'BUNDLE', value: 'no'),
+                                            string(name: 'DEPLOYMENT_NAME', value: 'evergreen-jenkins-tower-plain-standalone-backup-and-restore')
+                                        ]
+                                    )
+                                }
                             }
                         }
 
                         script {
                             stage('Plain-Standalone Integration') {
-                                build(
-                                    job: 'integration-pipeline',
-                                    parameters: [
-                                        string(name: 'TOWER_VERSION', value: params.TOWER_VERSION),
-                                        string(name: 'ANSIBLE_VERSION', value: params.ANSIBLE_VERSION),
-                                        string(name: 'SCENARIO', value: 'standalone'),
-                                        string(name: 'PLATFORM', value: params.PLATFORM),
-                                        string(name: 'BUNDLE', value: 'no'),
-                                        string(name: 'DEPLOYMENT_NAME', value: 'evergreen-jenkins-tower-plain-standalone-integration')
-                                    ]
-                                )
+                                retry(2) {
+                                    build(
+                                        job: 'integration-pipeline',
+                                        parameters: [
+                                            string(name: 'TOWER_VERSION', value: params.TOWER_VERSION),
+                                            string(name: 'ANSIBLE_VERSION', value: params.ANSIBLE_VERSION),
+                                            string(name: 'SCENARIO', value: 'standalone'),
+                                            string(name: 'PLATFORM', value: params.PLATFORM),
+                                            string(name: 'BUNDLE', value: 'no'),
+                                            string(name: 'DEPLOYMENT_NAME', value: 'evergreen-jenkins-tower-plain-standalone-integration')
+                                        ]
+                                    )
+                                }
                             }
                         }
                     }
@@ -139,16 +147,37 @@ Platform under test: ${params.PLATFORM}"""
                         script {
                             if (params.TOWER_VERSION != 'devel' && !(params.TOWER_VERSION ==~ /[0-9]*.[0-9]*.0/) ) {
                                 stage('Plain-Cluster Minor Upgrade') {
+                                    retry(2) {
+                                        build(
+                                            job: 'upgrade-pipeline',
+                                            parameters: [
+                                                string(name: 'TOWER_VERSION_TO_UPGRADE_FROM', value: prev_min_version),
+                                                string(name: 'TOWER_VERSION_TO_UPGRADE_TO', value: params.TOWER_VERSION),
+                                                string(name: 'ANSIBLE_VERSION', value: params.ANSIBLE_VERSION),
+                                                string(name: 'SCENARIO', value: 'cluster'),
+                                                string(name: 'PLATFORM', value: params.PLATFORM),
+                                                string(name: 'BUNDLE', value: 'no'),
+                                                string(name: 'DEPLOYMENT_NAME', value: 'evergreen-jenkins-tower-plain-cluster-minor-upgrade')
+                                            ]
+                                        )
+                                    }
+                                }
+                            }
+                        }
+
+                        script {
+                            stage('Plain-Cluster Major Upgrade') {
+                                retry(2) {
                                     build(
                                         job: 'upgrade-pipeline',
                                         parameters: [
-                                            string(name: 'TOWER_VERSION_TO_UPGRADE_FROM', value: prev_min_version),
+                                            string(name: 'TOWER_VERSION_TO_UPGRADE_FROM', value: prev_maj_version),
                                             string(name: 'TOWER_VERSION_TO_UPGRADE_TO', value: params.TOWER_VERSION),
                                             string(name: 'ANSIBLE_VERSION', value: params.ANSIBLE_VERSION),
                                             string(name: 'SCENARIO', value: 'cluster'),
                                             string(name: 'PLATFORM', value: params.PLATFORM),
                                             string(name: 'BUNDLE', value: 'no'),
-                                            string(name: 'DEPLOYMENT_NAME', value: 'evergreen-jenkins-tower-plain-cluster-minor-upgrade')
+                                            string(name: 'DEPLOYMENT_NAME', value: 'evergreen-jenkins-tower-plain-cluster-major-upgrade')
                                         ]
                                     )
                                 }
@@ -156,51 +185,38 @@ Platform under test: ${params.PLATFORM}"""
                         }
 
                         script {
-                            stage('Plain-Cluster Major Upgrade') {
-                                build(
-                                    job: 'upgrade-pipeline',
-                                    parameters: [
-                                        string(name: 'TOWER_VERSION_TO_UPGRADE_FROM', value: prev_maj_version),
-                                        string(name: 'TOWER_VERSION_TO_UPGRADE_TO', value: params.TOWER_VERSION),
-                                        string(name: 'ANSIBLE_VERSION', value: params.ANSIBLE_VERSION),
-                                        string(name: 'SCENARIO', value: 'cluster'),
-                                        string(name: 'PLATFORM', value: params.PLATFORM),
-                                        string(name: 'BUNDLE', value: 'no'),
-                                        string(name: 'DEPLOYMENT_NAME', value: 'evergreen-jenkins-tower-plain-cluster-major-upgrade')
-                                    ]
-                                )
-                            }
-                        }
-
-                        script {
                             stage('Plain-cluster Backup And Restore') {
-                                build(
-                                    job: 'backup-and-restore-pipeline',
-                                    parameters: [
-                                        string(name: 'TOWER_VERSION', value: params.TOWER_VERSION),
-                                        string(name: 'ANSIBLE_VERSION', value: params.ANSIBLE_VERSION),
-                                        string(name: 'SCENARIO', value: 'cluster'),
-                                        string(name: 'PLATFORM', value: params.PLATFORM),
-                                        string(name: 'BUNDLE', value: 'no'),
-                                        string(name: 'DEPLOYMENT_NAME', value: 'evergreen-jenkins-tower-plain-cluster-backup-and-restore')
-                                    ]
-                                )
+                                retry(2) {
+                                    build(
+                                        job: 'backup-and-restore-pipeline',
+                                        parameters: [
+                                            string(name: 'TOWER_VERSION', value: params.TOWER_VERSION),
+                                            string(name: 'ANSIBLE_VERSION', value: params.ANSIBLE_VERSION),
+                                            string(name: 'SCENARIO', value: 'cluster'),
+                                            string(name: 'PLATFORM', value: params.PLATFORM),
+                                            string(name: 'BUNDLE', value: 'no'),
+                                            string(name: 'DEPLOYMENT_NAME', value: 'evergreen-jenkins-tower-plain-cluster-backup-and-restore')
+                                        ]
+                                    )
+                                }
                             }
                         }
 
                         script {
                             stage('Plain-Cluster Integration') {
-                                build(
-                                    job: 'integration-pipeline',
-                                    parameters: [
-                                        string(name: 'TOWER_VERSION', value: params.TOWER_VERSION),
-                                        string(name: 'ANSIBLE_VERSION', value: params.ANSIBLE_VERSION),
-                                        string(name: 'SCENARIO', value: 'cluster'),
-                                        string(name: 'PLATFORM', value: params.PLATFORM),
-                                        string(name: 'BUNDLE', value: 'no'),
-                                        string(name: 'DEPLOYMENT_NAME', value: 'evergreen-jenkins-tower-plain-cluster-integration')
-                                    ]
-                                )
+                                retry(2) {
+                                    build(
+                                        job: 'integration-pipeline',
+                                        parameters: [
+                                            string(name: 'TOWER_VERSION', value: params.TOWER_VERSION),
+                                            string(name: 'ANSIBLE_VERSION', value: params.ANSIBLE_VERSION),
+                                            string(name: 'SCENARIO', value: 'cluster'),
+                                            string(name: 'PLATFORM', value: params.PLATFORM),
+                                            string(name: 'BUNDLE', value: 'no'),
+                                            string(name: 'DEPLOYMENT_NAME', value: 'evergreen-jenkins-tower-plain-cluster-integration')
+                                        ]
+                                    )
+                                }
                             }
                         }
                     }
@@ -216,16 +232,37 @@ Platform under test: ${params.PLATFORM}"""
                         script {
                             if (params.TOWER_VERSION != 'devel' && !(params.TOWER_VERSION ==~ /[0-9]*.[0-9]*.0/) ) {
                                 stage('Bundle-Standalone Minor Upgrade') {
+                                    retry(2) {
+                                        build(
+                                            job: 'upgrade-pipeline',
+                                            parameters: [
+                                                string(name: 'TOWER_VERSION_TO_UPGRADE_FROM', value: prev_min_version),
+                                                string(name: 'TOWER_VERSION_TO_UPGRADE_TO', value: params.TOWER_VERSION),
+                                                string(name: 'ANSIBLE_VERSION', value: params.ANSIBLE_VERSION),
+                                                string(name: 'SCENARIO', value: 'standalone'),
+                                                string(name: 'PLATFORM', value: params.PLATFORM),
+                                                string(name: 'BUNDLE', value: 'yes'),
+                                                string(name: 'DEPLOYMENT_NAME', value: 'evergreen-jenkins-tower-bundle-standalone-minor-upgrade')
+                                            ]
+                                        )
+                                    }
+                                }
+                            }
+                        }
+
+                        script {
+                            stage('Bundle-Standalone Major Upgrade') {
+                                retry(2) {
                                     build(
                                         job: 'upgrade-pipeline',
                                         parameters: [
-                                            string(name: 'TOWER_VERSION_TO_UPGRADE_FROM', value: prev_min_version),
+                                            string(name: 'TOWER_VERSION_TO_UPGRADE_FROM', value: prev_maj_version),
                                             string(name: 'TOWER_VERSION_TO_UPGRADE_TO', value: params.TOWER_VERSION),
                                             string(name: 'ANSIBLE_VERSION', value: params.ANSIBLE_VERSION),
                                             string(name: 'SCENARIO', value: 'standalone'),
                                             string(name: 'PLATFORM', value: params.PLATFORM),
                                             string(name: 'BUNDLE', value: 'yes'),
-                                            string(name: 'DEPLOYMENT_NAME', value: 'evergreen-jenkins-tower-bundle-standalone-minor-upgrade')
+                                            string(name: 'DEPLOYMENT_NAME', value: 'evergreen-jenkins-tower-bundle-standalone-major-upgrade')
                                         ]
                                     )
                                 }
@@ -233,51 +270,38 @@ Platform under test: ${params.PLATFORM}"""
                         }
 
                         script {
-                            stage('Bundle-Standalone Major Upgrade') {
-                                build(
-                                    job: 'upgrade-pipeline',
-                                    parameters: [
-                                        string(name: 'TOWER_VERSION_TO_UPGRADE_FROM', value: prev_maj_version),
-                                        string(name: 'TOWER_VERSION_TO_UPGRADE_TO', value: params.TOWER_VERSION),
-                                        string(name: 'ANSIBLE_VERSION', value: params.ANSIBLE_VERSION),
-                                        string(name: 'SCENARIO', value: 'standalone'),
-                                        string(name: 'PLATFORM', value: params.PLATFORM),
-                                        string(name: 'BUNDLE', value: 'yes'),
-                                        string(name: 'DEPLOYMENT_NAME', value: 'evergreen-jenkins-tower-bundle-standalone-major-upgrade')
-                                    ]
-                                )
-                            }
-                        }
-
-                        script {
                             stage('Bundle-Standalone Backup And Restore') {
-                                build(
-                                    job: 'backup-and-restore-pipeline',
-                                    parameters: [
-                                        string(name: 'TOWER_VERSION', value: params.TOWER_VERSION),
-                                        string(name: 'ANSIBLE_VERSION', value: params.ANSIBLE_VERSION),
-                                        string(name: 'SCENARIO', value: 'standalone'),
-                                        string(name: 'PLATFORM', value: params.PLATFORM),
-                                        string(name: 'BUNDLE', value: 'yes'),
-                                        string(name: 'DEPLOYMENT_NAME', value: 'evergreen-jenkins-tower-bundle-standalone-backup-and-restore')
-                                    ]
-                                )
+                                retry(2) {
+                                    build(
+                                        job: 'backup-and-restore-pipeline',
+                                        parameters: [
+                                            string(name: 'TOWER_VERSION', value: params.TOWER_VERSION),
+                                            string(name: 'ANSIBLE_VERSION', value: params.ANSIBLE_VERSION),
+                                            string(name: 'SCENARIO', value: 'standalone'),
+                                            string(name: 'PLATFORM', value: params.PLATFORM),
+                                            string(name: 'BUNDLE', value: 'yes'),
+                                            string(name: 'DEPLOYMENT_NAME', value: 'evergreen-jenkins-tower-bundle-standalone-backup-and-restore')
+                                        ]
+                                    )
+                                }
                             }
                         }
 
                         script {
                             stage('Bundle-Standalone Integration') {
-                                build(
-                                    job: 'integration-pipeline',
-                                    parameters: [
-                                        string(name: 'TOWER_VERSION', value: params.TOWER_VERSION),
-                                        string(name: 'ANSIBLE_VERSION', value: params.ANSIBLE_VERSION),
-                                        string(name: 'SCENARIO', value: 'standalone'),
-                                        string(name: 'PLATFORM', value: params.PLATFORM),
-                                        string(name: 'BUNDLE', value: 'yes'),
-                                        string(name: 'DEPLOYMENT_NAME', value: 'evergreen-jenkins-tower-bundle-standalone-integration')
-                                    ]
-                                )
+                                retry(2) {
+                                    build(
+                                        job: 'integration-pipeline',
+                                        parameters: [
+                                            string(name: 'TOWER_VERSION', value: params.TOWER_VERSION),
+                                            string(name: 'ANSIBLE_VERSION', value: params.ANSIBLE_VERSION),
+                                            string(name: 'SCENARIO', value: 'standalone'),
+                                            string(name: 'PLATFORM', value: params.PLATFORM),
+                                            string(name: 'BUNDLE', value: 'yes'),
+                                            string(name: 'DEPLOYMENT_NAME', value: 'evergreen-jenkins-tower-bundle-standalone-integration')
+                                        ]
+                                    )
+                                }
                             }
                         }
                     }
@@ -293,16 +317,37 @@ Platform under test: ${params.PLATFORM}"""
                         script {
                             if (params.TOWER_VERSION != 'devel' && !(params.TOWER_VERSION ==~ /[0-9]*.[0-9]*.0/) ) {
                                 stage('Bundle-Cluster Minor Upgrade') {
+                                    retry(2) {
+                                        build(
+                                            job: 'upgrade-pipeline',
+                                            parameters: [
+                                                string(name: 'TOWER_VERSION_TO_UPGRADE_FROM', value: prev_min_version),
+                                                string(name: 'TOWER_VERSION_TO_UPGRADE_TO', value: params.TOWER_VERSION),
+                                                string(name: 'ANSIBLE_VERSION', value: params.ANSIBLE_VERSION),
+                                                string(name: 'SCENARIO', value: 'cluster'),
+                                                string(name: 'PLATFORM', value: params.PLATFORM),
+                                                string(name: 'BUNDLE', value: 'yes'),
+                                                string(name: 'DEPLOYMENT_NAME', value: 'evergreen-jenkins-tower-bundle-cluster-minor-upgrade')
+                                            ]
+                                        )
+                                    }
+                                }
+                            }
+                        }
+
+                        script {
+                            stage('Bundle-Cluster MajorUpgrade') {
+                                retry(2) {
                                     build(
                                         job: 'upgrade-pipeline',
                                         parameters: [
-                                            string(name: 'TOWER_VERSION_TO_UPGRADE_FROM', value: prev_min_version),
+                                            string(name: 'TOWER_VERSION_TO_UPGRADE_FROM', value: prev_maj_version),
                                             string(name: 'TOWER_VERSION_TO_UPGRADE_TO', value: params.TOWER_VERSION),
                                             string(name: 'ANSIBLE_VERSION', value: params.ANSIBLE_VERSION),
                                             string(name: 'SCENARIO', value: 'cluster'),
                                             string(name: 'PLATFORM', value: params.PLATFORM),
                                             string(name: 'BUNDLE', value: 'yes'),
-                                            string(name: 'DEPLOYMENT_NAME', value: 'evergreen-jenkins-tower-bundle-cluster-minor-upgrade')
+                                            string(name: 'DEPLOYMENT_NAME', value: 'evergreen-jenkins-tower-bundle-cluster-major-upgrade')
                                         ]
                                     )
                                 }
@@ -310,51 +355,38 @@ Platform under test: ${params.PLATFORM}"""
                         }
 
                         script {
-                            stage('Bundle-Cluster MajorUpgrade') {
-                                build(
-                                    job: 'upgrade-pipeline',
-                                    parameters: [
-                                        string(name: 'TOWER_VERSION_TO_UPGRADE_FROM', value: prev_maj_version),
-                                        string(name: 'TOWER_VERSION_TO_UPGRADE_TO', value: params.TOWER_VERSION),
-                                        string(name: 'ANSIBLE_VERSION', value: params.ANSIBLE_VERSION),
-                                        string(name: 'SCENARIO', value: 'cluster'),
-                                        string(name: 'PLATFORM', value: params.PLATFORM),
-                                        string(name: 'BUNDLE', value: 'yes'),
-                                        string(name: 'DEPLOYMENT_NAME', value: 'evergreen-jenkins-tower-bundle-cluster-major-upgrade')
-                                    ]
-                                )
-                            }
-                        }
-
-                        script {
                             stage('Bundle-Cluster Backup And Restore') {
-                                build(
-                                    job: 'backup-and-restore-pipeline',
-                                    parameters: [
-                                        string(name: 'TOWER_VERSION', value: params.TOWER_VERSION),
-                                        string(name: 'ANSIBLE_VERSION', value: params.ANSIBLE_VERSION),
-                                        string(name: 'SCENARIO', value: 'cluster'),
-                                        string(name: 'PLATFORM', value: params.PLATFORM),
-                                        string(name: 'BUNDLE', value: 'yes'),
-                                        string(name: 'DEPLOYMENT_NAME', value: 'evergreen-jenkins-tower-bundle-cluster-backup-and-restore')
-                                    ]
-                                )
+                                retry(2) {
+                                    build(
+                                        job: 'backup-and-restore-pipeline',
+                                        parameters: [
+                                            string(name: 'TOWER_VERSION', value: params.TOWER_VERSION),
+                                            string(name: 'ANSIBLE_VERSION', value: params.ANSIBLE_VERSION),
+                                            string(name: 'SCENARIO', value: 'cluster'),
+                                            string(name: 'PLATFORM', value: params.PLATFORM),
+                                            string(name: 'BUNDLE', value: 'yes'),
+                                            string(name: 'DEPLOYMENT_NAME', value: 'evergreen-jenkins-tower-bundle-cluster-backup-and-restore')
+                                        ]
+                                    )
+                                }
                             }
                         }
 
                         script {
                             stage('Bundle-Cluster Integration') {
-                                build(
-                                    job: 'integration-pipeline',
-                                    parameters: [
-                                        string(name: 'TOWER_VERSION', value: params.TOWER_VERSION),
-                                        string(name: 'ANSIBLE_VERSION', value: params.ANSIBLE_VERSION),
-                                        string(name: 'SCENARIO', value: 'cluster'),
-                                        string(name: 'PLATFORM', value: params.PLATFORM),
-                                        string(name: 'BUNDLE', value: 'yes'),
-                                        string(name: 'DEPLOYMENT_NAME', value: 'evergreen-jenkins-tower-bundle-cluster-integration')
-                                    ]
-                                )
+                                retry(2) {
+                                    build(
+                                        job: 'integration-pipeline',
+                                        parameters: [
+                                            string(name: 'TOWER_VERSION', value: params.TOWER_VERSION),
+                                            string(name: 'ANSIBLE_VERSION', value: params.ANSIBLE_VERSION),
+                                            string(name: 'SCENARIO', value: 'cluster'),
+                                            string(name: 'PLATFORM', value: params.PLATFORM),
+                                            string(name: 'BUNDLE', value: 'yes'),
+                                            string(name: 'DEPLOYMENT_NAME', value: 'evergreen-jenkins-tower-bundle-cluster-integration')
+                                        ]
+                                    )
+                                }
                             }
                         }
                     }
@@ -368,7 +400,7 @@ Platform under test: ${params.PLATFORM}"""
                 script {
                     json = "{\"os\":\"${params.PLATFORM}\", \"ansible\":\"${params.ANSIBLE_VERSION}\", \"tower\": \"${params.TOWER_VERSION}\", \"status\": \"${currentBuild.currentResult}\", \"url\": \"${env.RUN_DISPLAY_URL}\"}"
                 }
-                sh "curl -X POST 'http://tower-qe-dashboard.ansible.eng.rdu2.redhat.com/jenkins/results' -H 'Content-type: application/json' -d '${json}'"
+                sh "curl -v -X POST 'http://tower-qe-dashboard.ansible.eng.rdu2.redhat.com/jenkins/results' -H 'Content-type: application/json' -d '${json}'"
             }
         }
     }
