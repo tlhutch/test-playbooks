@@ -140,8 +140,9 @@ class TestTowerServices(APITest):
         new_job.assert_successful(msg='Job launched from newly created JT after rabbitmq restart failed!')
 
     def test_database_unavailable(self, install_enterprise_license_unlimited,
-                                  factories, v2, ansible_adhoc, ansible_os_family):
-        if ansible_os_family == 'Debian':
+                                  factories, v2, ansible_adhoc, ansible_os_family,
+                                  ansible_distribution_major_version):
+        if ansible_os_family == 'Debian' or ansible_distribution_major_version == '8':
             pg_service = 'postgresql'
         else:
             pg_service = 'postgresql-9.6'
