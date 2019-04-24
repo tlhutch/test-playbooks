@@ -140,9 +140,6 @@ Bundle?: ${params.BUNDLE}"""
                             // Generate variable file for tower deployment
                             sh './tools/jenkins/scripts/generate_vars.sh'
 
-                            // TODO(spredzy): To remove when 2.8 is out
-                            sh 'pip install -IU ansible==2.8.0b1'
-
                             sh 'ansible-playbook -v -i playbooks/inventory -e @playbooks/test_runner_vars.yml playbooks/deploy-test-runner.yml'
                             sh "ansible test-runner -i playbooks/inventory.test_runner -m git -a 'repo=git@github.com:ansible/tower-qa version=${branch_name} dest=tower-qa ssh_opts=\"-o StrictHostKeyChecking=no\" force=yes'"
                         }
