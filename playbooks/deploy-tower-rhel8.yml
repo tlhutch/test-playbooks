@@ -21,12 +21,6 @@
         src: redhat.repo
         dest: /etc/yum.repos.d/redhat.repo
 
-    - command: dnf -y update
-    - command: dnf -y module install python36
-    - command: dnf -y install git
-    - command: dnf -y install http://download.eng.bos.redhat.com/brewroot/vol/rhel-8/packages/python-paramiko/2.4.2/1.module+el8+2824+e1854afe/noarch/python3-paramiko-2.4.2-1.module+el8+2824+e1854afe.noarch.rpm http://download.eng.bos.redhat.com/brewroot/vol/rhel-8/packages/python-bcrypt/3.1.4/4.module+el8+2824+e1854afe/x86_64/python3-bcrypt-3.1.4-4.module+el8+2824+e1854afe.x86_64.rpm http://download.eng.bos.redhat.com/brewroot/vol/rhel-8/packages/python-pynacl/1.2.1/3.module+el8+2824+e1854afe/x86_64/python3-pynacl-1.2.1-3.module+el8+2824+e1854afe.x86_64.rpm http://download.eng.bos.redhat.com/brewroot/vol/rhel-8/packages/libsodium/1.0.16/4.module+el8+2824+e1854afe/x86_64/libsodium-1.0.16-4.module+el8+2824+e1854afe.x86_64.rpm http://download.eng.bos.redhat.com/brewroot/vol/rhel-8/packages/libsodium/1.0.16/4.module+el8+2824+e1854afe/x86_64/libsodium-devel-1.0.16-4.module+el8+2824+e1854afe.x86_64.rpm
-
-
 - name: 'Add authorized keys on database'
   hosts: 'database'
   roles:
@@ -66,12 +60,3 @@
     - include_role:
         name: ansible_runner
       when: awx_ansible_runner_url is defined and awx_ansible_runner_url != ''
-
-- name: Setup before proceeding
-  hosts: tower
-  become: yes
-  environment:
-    PATH: "/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin"
-  tasks:
-    - command: /var/lib/awx/venv/awx/bin/pip install git+https://github.com/ansible/ansible.git@devel
-    - command: /var/lib/awx/venv/ansible/bin/pip install git+https://github.com/ansible/ansible.git@devel

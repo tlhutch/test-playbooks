@@ -52,10 +52,8 @@
     dest: /tmp/setup/vars-static.yml
   when: not is_awx_installed.stat.exists or awx_upgrade
 
-- command: /usr/libexec/platform-python -m pip install git+https://github.com/ansible/ansible.git@devel
-
 - name: setup.sh
-  command: ./setup.sh -e @vars.yml -e @vars-static.yml
+  command: ./setup.sh -e @vars.yml -e @vars-static.yml -e gpgcheck=0 -a http://nightlies.testing.ansible.com/ansible-tower_nightlies_m8u16fz56qr6q7/devel
   args:
       chdir: /tmp/setup
       # creates: /etc/tower/awx.cert
@@ -67,7 +65,6 @@
     ANSIBLE_HOST_KEY_CHECKING: 'False'
   when: not is_awx_installed.stat.exists or awx_upgrade
 
-- command: /var/lib/awx/venv/ansible/bin/pip3 install git+https://github.com/ansible/ansible.git@devel
 - command: ln -s /usr/libexec/platform-python /usr/bin/python
 
 - name: verify Tower API is accepting connections
