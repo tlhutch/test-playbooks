@@ -769,11 +769,11 @@ class TestDjangoOAuthToolkitTokenManagement(TestTokenAuthenticationBase):
     """
 
     @pytest.mark.parametrize('scope', ['read', 'write'])
-    @pytest.mark.parametrize('password, expected_status', [
-        (qe_config.credentials.users.admin.password, 200),
-        (str(uuid4()), 401)
+    @pytest.mark.parametrize('password_is_correct, expected_status', [
+        (True, 200),
+        (False, 400)  # used to be 401 https://github.com/oauthlib/oauthlib/issues/264
     ])
-    def test_token_creation(self, factories, scope, password, expected_status):
+    def test_token_creation(self, factories, scope, password_is_correct, expected_status):
         app = factories.application(organization=factories.v2_organization(),
                                     client_type='confidential',
                                     authorization_grant_type='password',
@@ -781,6 +781,10 @@ class TestDjangoOAuthToolkitTokenManagement(TestTokenAuthenticationBase):
         conn = Connection(qe_config.base_url)
         conn.session.auth = (app.client_id, app.client_secret)
         username = qe_config.credentials.users.admin.username
+        if password_is_correct:
+            password = qe_config.credentials.users.admin.password
+        else:
+            password = str(uuid4())
         resp = conn.post(
             '/api/o/token/',
             headers={'Content-Type': 'application/x-www-form-urlencoded'},
