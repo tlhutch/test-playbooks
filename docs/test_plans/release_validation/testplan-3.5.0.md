@@ -160,11 +160,12 @@
     * [ ] Azure OAuth
     * [ ] Radius
   * [ ] Tower SAML integration regression completed (OpenShift)
-  * [ ] Logging regression completed - standalone
-  * [ ] Logging regression completed - cluster
+  * [x] Logging regression completed - cluster
   * [ ] Backup/restore successful - standalone
   * [ ] Backup/restore successful - traditional cluster
   * [ ] Backup/restore successful - OpenShift
+  * [ ] Deploy tower with HTTPS+Load Balancer+Let's Encrypt + run tests against instance
+  * [ ] Deploy tower in OpenShift with an external DB + run tests against instance
 
 
 ### Artifacts
