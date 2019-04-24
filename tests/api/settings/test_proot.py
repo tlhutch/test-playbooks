@@ -89,6 +89,7 @@ for tmpdir in ('/tmp', '/var/tmp'):
             awx_tmp_files.append(full_path)
 
 if len(awx_tmp_files) > 1:
+    # we would see one file -- the job directory created for this job
     errors.append(("Tower temporary files", awx_tmp_files))
 
 # assert that no project directories are visible
