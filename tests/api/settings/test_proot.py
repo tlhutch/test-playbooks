@@ -45,7 +45,7 @@ class Test_Proot(APITest):
         AWX_PROOT_ENABLED=True.  For example, it verifies:
          - /var/lib/awx/projects/ - only a single directory exists for the current job
          - /var/lib/awx/job_status/ - no files are present (job status isn't created until after a job completes)
-         - /tmp/awx_\d*_\w* - only a single matching directory exists (name of dir defined at https://github.com/ansible/awx/blob/f22fd58392eaaf3eeac9c2ee383d276bfecb5af9/awx/main/tasks.py#L701)
+         - /tmp/awx_\w*_\w* - only a single matching directory exists (name of dir defined at https://github.com/ansible/awx/blob/f22fd58392eaaf3eeac9c2ee383d276bfecb5af9/awx/main/tasks.py#L701)
          - /etc/awx/settings.py - No such file or directory
          - /var/log/supervisor/* - Permission Denied
         """
@@ -76,13 +76,15 @@ import re
 
 errors = list()
 
-# assert that only one awx_\d*_\w* tempfile is visible
+# assert that only one awx_\w*_\w* tempfile is visible
 # name of dir is defined at https://github.com/ansible/awx/blob/f22fd58392eaaf3eeac9c2ee383d276bfecb5af9/awx/main/tasks.py#L701
 awx_tmp_files = []
 for tmpdir in ('/tmp', '/var/tmp'):
     for file in os.listdir(tmpdir):
-        matches = re.search(r'awx_\d*_\w*', file)
-        if matches:
+        awx_matches = re.search(r'awx_\w*_\w*', file)
+        di_matches = re.search(r'runner_di_\w*', file)
+        pi_matches = re.search(r'ansible_runner_pi_\w*', file)
+        if awx_matches or di_matches or pi_matches:
             full_path = os.path.join(tmpdir, file)
             awx_tmp_files.append(full_path)
 
@@ -145,7 +147,7 @@ print(json.dumps({}))
         AWX_PROOT_ENABLED=True.  For example, it verifies:
          - /var/lib/awx/projects/ - only a single directory exists for the current job
          - /var/lib/awx/job_status/ - no files are present (job status isn't created until after a job completes)
-         - /tmp/awx_\d*_\w* - only a single matching directory exists (name of dir defined at https://github.com/ansible/awx/blob/f22fd58392eaaf3eeac9c2ee383d276bfecb5af9/awx/main/tasks.py#L701)
+         - /tmp/awx_\w*_\w* - only a single matching directory exists (name of dir defined at https://github.com/ansible/awx/blob/f22fd58392eaaf3eeac9c2ee383d276bfecb5af9/awx/main/tasks.py#L701)
          - /etc/awx/settings.py - No such file or directory
          - /var/log/supervisor/* - Permission Denied
         """
