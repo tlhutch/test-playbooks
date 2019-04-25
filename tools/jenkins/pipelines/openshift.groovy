@@ -11,7 +11,7 @@ pipeline {
         choice(
             name: 'TRIGGER_BREW_PIPELINE',
             description: 'Should the brew pipeline be run as part of this pipeline ?',
-            choices: ['yes', 'no']
+            choices: ['no', 'yes']
         )
     }
 
@@ -36,6 +36,8 @@ pipeline {
                     install_registry_namespace = upgrade_registry_namespace
 
                     if (params.TOWER_VERSION == 'devel') {
+                        prev_maj_version = '3.4.3'
+                    } else if (params.TOWER_VERSION ==~ /3.5.[0-9]*/) {
                         prev_maj_version = '3.4.3'
                     } else if (params.TOWER_VERSION ==~ /3.4.[0-9]*/) {
                         prev_maj_version = '3.3.5'
@@ -114,6 +116,20 @@ pipeline {
                         }
                     }
                 }
+            }
+        }
+
+        stage('OpenShift Backup and Restore') {
+            steps {
+                build(
+                    job: 'Test_Tower_OpenShift_Backup_And_Restore',
+                    parameters: [
+                        string(name: 'GIT_BRANCH', value: "origin/${branch_name}"),
+                        string(name: 'RABBITMQ_CONTAINER_IMAGE', value: "registry.access.redhat.com/${upgrade_registry_namespace}/ansible-tower-messaging"),
+                        string(name: 'MEMCACHED_CONTAINER_IMAGE', value: "registry.access.redhat.com/${upgrade_registry_namespace}/ansible-tower-memcached"),
+                        booleanParam(name: 'TRIGGER', value: false)
+                    ]
+                )
             }
         }
 
