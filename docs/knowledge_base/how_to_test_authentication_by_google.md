@@ -40,7 +40,9 @@ Local docker:
 Openshift:
   * TBD: Probably need to edit secrets or deployment config. Where ever settings are normally found.
 
-After providing correct values, restart the tower/awx services either by `ansible-tower-service restart` or some other means.
+Alternatively, you can do this through the web UI under Settings -> Authentication as outlined in the [product docs](https://docs.ansible.com/ansible-tower/latest/html/administration/social_auth.html#google-oauth2-settings).
+
+If you set the settings manually in a settings file, it may be necessary to restart the tower services to pick up change. Once set manually in settings file, it is not editable from web UI.
 
 * You are now ready to authenticate via Google. You may need to force-refresh your browser several times to get the Google icon to appear in the login modal.
 
