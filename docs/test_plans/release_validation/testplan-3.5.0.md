@@ -24,10 +24,12 @@
 
   * stable.2.6
   * stable-2.7
+  * stable-2.8
 
 ### Operating Systems Versions
 
   * RHEL Derivatives 7.4+
+  * RHEL Derivatives 8
   * Ubuntu 16.04
 
 ## Features Tested
@@ -127,6 +129,13 @@
 
 ### Upgrade
 
+To test upgrades, use the following pipelines:
+
+  * OpenShift 3.3.x to Release: [Release 33 to devel - OpenShift - Release Verification](http://jenkins.ansible.eng.rdu2.redhat.com/blue/organizations/jenkins/Pipelines%2Fupgrade-release33-openshift-release-verification/)
+  * OpenShift 3.4.x to Release: [Release 34 to devel - OpenShift - Release Verification](http://jenkins.ansible.eng.rdu2.redhat.com/blue/organizations/jenkins/Pipelines%2FRelease%2034%20to%20devel%20-%20OpenShift%20-%20Release%20Verification/)
+  * Non-OpenShift 3.3.x to Release: [Release 33 to devel - Release Verification](http://jenkins.ansible.eng.rdu2.redhat.com/blue/organizations/jenkins/Pipelines%2Fupgrade-release33-release-verification/)
+  * Non-OpenShift 3.4.x to Release: [Release 34 to devel - Release Verification](http://jenkins.ansible.eng.rdu2.redhat.com/blue/organizations/jenkins/Pipelines%2Fupgrade-release34-release-verification/)
+
   * [ ] Check ansible version check that is [hardcoded in tower-packaging](https://github.com/ansible/tower-packaging/blob/f8d3d4cd6d1cf35cad6e09de88068440d667ff42/setup/roles/preflight/defaults/main.yml#L6)
   * [ ] 3.2.8 to 3.5.0
     * [ ] Bundle/Plain - Standalone/Cluster
@@ -135,7 +144,7 @@
     * [ ] OpenShift
   * [ ] 3.4.{0-3} -> 3.5.0
     * [ ] Bundle/Plain - Standalone/Cluster
-    * [ ] OpenShift
+    * [x] [OpenShift](http://jenkins.ansible.eng.rdu2.redhat.com/blue/organizations/jenkins/Pipelines%2FRelease%2034%20to%20devel%20-%20OpenShift%20-%20Release%20Verification/detail/Release%2034%20to%20devel%20-%20OpenShift%20-%20Release%20Verification/2/pipeline)
 
 
 ### Regression
@@ -170,6 +179,8 @@
 
 ### Artifacts
 
-  * [ ] AMI
-  * [ ] Vagrant image
-  * [ ] Documentation
+Use this pipeline to verify: http://jenkins.ansible.eng.rdu2.redhat.com/blue/organizations/jenkins/Pipelines%2Fbuild-artifacts-pipeline
+
+  * [x] [AMI](http://jenkins.ansible.eng.rdu2.redhat.com/blue/organizations/jenkins/Build_Tower_Image/detail/Build_Tower_Image/109/pipeline/)
+  * [x] [Vagrant image](http://jenkins.ansible.eng.rdu2.redhat.com/blue/organizations/jenkins/Build_Tower_Vagrant_Box/detail/Build_Tower_Vagrant_Box/65/pipeline/)
+  * [x] [Documentation](http://jenkins.ansible.eng.rdu2.redhat.com/blue/organizations/jenkins/Build_Tower_Docs/detail/Build_Tower_Docs/3290/pipeline/)
