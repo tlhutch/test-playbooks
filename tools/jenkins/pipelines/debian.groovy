@@ -30,7 +30,7 @@ pipeline {
                     job: 'Build_Tower_DEB',
                     parameters: [
                        string(name: 'TOWER_PACKAGING_BRANCH', value: "origin/${branch_name}"),
-                       string(name: 'DEB_DIST', value: 'xenial'),
+                       string(name: 'DEB_DIST', value: '"xenial"'),
                        booleanParam(name: 'TRIGGER', value: false)
                     ]
                 )
@@ -40,7 +40,7 @@ pipeline {
                             job: 'Build_Tower_DEB',
                             parameters: [
                                 string(name: 'TOWER_PACKAGING_BRANCH', value: "origin/${branch_name}"),
-                                string(name: 'DEB_DIST', value: 'trusty'),
+                                string(name: 'DEB_DIST', value: '"trusty"'),
                                 booleanParam(name: 'TRIGGER', value: false)
                             ]
                         )
