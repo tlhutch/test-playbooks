@@ -21,21 +21,6 @@ pipeline {
                       'rhel-8.0-x86_64', 'ol-7.6-x86_64', 'centos-7.latest-x86_64',
                       'ubuntu-16.04-x86_64', 'ubuntu-14.04-x86_64']
         )
-        choice(
-            name: 'RUN_UPGRADE',
-            description: 'Should the upgrade jobs be run ?',
-            choices: ['yes', 'no']
-        )
-        choice(
-            name: 'RUN_BACKUP_AND_RESTORE',
-            description: 'Should the backup and restore jobs be run ?',
-            choices: ['yes', 'no']
-        )
-        choice(
-            name: 'RUN_INTEGRATION',
-            description: 'Should the integration jobs be run ?',
-            choices: ['yes', 'no']
-        )
     }
 
     options {
@@ -82,12 +67,6 @@ Platform under test: ${params.PLATFORM}"""
                         script {
                             if (params.TOWER_VERSION != 'devel' && !(params.TOWER_VERSION ==~ /[0-9]*.[0-9]*.0/) ) {
                                 stage('Plain-Standalone Minor Upgrade') {
-                                    when {
-                                        expression {
-                                            return params.RUN_UPGRADE
-                                        }
-                                    }
-
                                     retry(2) {
                                         build(
                                             job: 'upgrade-pipeline',
@@ -108,12 +87,6 @@ Platform under test: ${params.PLATFORM}"""
 
                         script {
                             stage('Plain-Standalone Major Upgrade') {
-                                when {
-                                    expression {
-                                        return params.RUN_UPGRADE
-                                    }
-                                }
-
                                 retry(2) {
                                     build(
                                         job: 'upgrade-pipeline',
@@ -133,12 +106,6 @@ Platform under test: ${params.PLATFORM}"""
 
                         script {
                             stage('Plain-Standalone Backup And Restore') {
-                                when {
-                                    expression {
-                                        return params.RUN_BACKUP_AND_RESTORE
-                                    }
-                                }
-
                                 retry(2) {
                                     build(
                                         job: 'backup-and-restore-pipeline',
@@ -157,12 +124,6 @@ Platform under test: ${params.PLATFORM}"""
 
                         script {
                             stage('Plain-Standalone Integration') {
-                                when {
-                                    expression {
-                                        return params.RUN_INTEGRATION
-                                    }
-                                }
-
                                 build(
                                     job: 'integration-pipeline',
                                     parameters: [
@@ -184,12 +145,6 @@ Platform under test: ${params.PLATFORM}"""
                         script {
                             if (params.TOWER_VERSION != 'devel' && !(params.TOWER_VERSION ==~ /[0-9]*.[0-9]*.0/) ) {
                                 stage('Plain-Cluster Minor Upgrade') {
-                                    when {
-                                        expression {
-                                            return params.RUN_UPGRADE
-                                        }
-                                    }
-
                                     retry(2) {
                                         build(
                                             job: 'upgrade-pipeline',
@@ -210,12 +165,6 @@ Platform under test: ${params.PLATFORM}"""
 
                         script {
                             stage('Plain-Cluster Major Upgrade') {
-                                when {
-                                    expression {
-                                        return params.RUN_UPGRADE
-                                    }
-                                }
-
                                 retry(2) {
                                     build(
                                         job: 'upgrade-pipeline',
@@ -235,12 +184,6 @@ Platform under test: ${params.PLATFORM}"""
 
                         script {
                             stage('Plain-cluster Backup And Restore') {
-                                when {
-                                    expression {
-                                        return params.RUN_BACKUP_AND_RESTORE
-                                    }
-                                }
-
                                 retry(2) {
                                     build(
                                         job: 'backup-and-restore-pipeline',
@@ -259,12 +202,6 @@ Platform under test: ${params.PLATFORM}"""
 
                         script {
                             stage('Plain-Cluster Integration') {
-                                when {
-                                    expression {
-                                        return params.RUN_INTEGRATION
-                                    }
-                                }
-
                                 build(
                                     job: 'integration-pipeline',
                                     parameters: [
@@ -291,12 +228,6 @@ Platform under test: ${params.PLATFORM}"""
                         script {
                             if (params.TOWER_VERSION != 'devel' && !(params.TOWER_VERSION ==~ /[0-9]*.[0-9]*.0/) ) {
                                 stage('Bundle-Standalone Minor Upgrade') {
-                                    when {
-                                        expression {
-                                            return params.RUN_UPGRADE
-                                        }
-                                    }
-
                                     retry(2) {
                                         build(
                                             job: 'upgrade-pipeline',
@@ -317,12 +248,6 @@ Platform under test: ${params.PLATFORM}"""
 
                         script {
                             stage('Bundle-Standalone Major Upgrade') {
-                                when {
-                                    expression {
-                                        return params.RUN_UPGRADE
-                                    }
-                                }
-
                                 retry(2) {
                                     build(
                                         job: 'upgrade-pipeline',
@@ -342,12 +267,6 @@ Platform under test: ${params.PLATFORM}"""
 
                         script {
                             stage('Bundle-Standalone Backup And Restore') {
-                                when {
-                                    expression {
-                                        return params.RUN_BACKUP_AND_RESTORE
-                                    }
-                                }
-
                                 retry(2) {
                                     build(
                                         job: 'backup-and-restore-pipeline',
@@ -366,12 +285,6 @@ Platform under test: ${params.PLATFORM}"""
 
                         script {
                             stage('Bundle-Standalone Integration') {
-                                when {
-                                    expression {
-                                        return params.RUN_INTEGRATION
-                                    }
-                                }
-
                                 build(
                                     job: 'integration-pipeline',
                                     parameters: [
@@ -398,12 +311,6 @@ Platform under test: ${params.PLATFORM}"""
                         script {
                             if (params.TOWER_VERSION != 'devel' && !(params.TOWER_VERSION ==~ /[0-9]*.[0-9]*.0/) ) {
                                 stage('Bundle-Cluster Minor Upgrade') {
-                                    when {
-                                        expression {
-                                            return params.RUN_UPGRADE
-                                        }
-                                    }
-
                                     retry(2) {
                                         build(
                                             job: 'upgrade-pipeline',
@@ -424,12 +331,6 @@ Platform under test: ${params.PLATFORM}"""
 
                         script {
                             stage('Bundle-Cluster MajorUpgrade') {
-                                when {
-                                    expression {
-                                        return params.RUN_UPGRADE
-                                    }
-                                }
-
                                 retry(2) {
                                     build(
                                         job: 'upgrade-pipeline',
@@ -449,12 +350,6 @@ Platform under test: ${params.PLATFORM}"""
 
                         script {
                             stage('Bundle-Cluster Backup And Restore') {
-                                when {
-                                    expression {
-                                        return params.RUN_BACKUP_AND_RESTORE
-                                    }
-                                }
-
                                 retry(2) {
                                     build(
                                         job: 'backup-and-restore-pipeline',
@@ -473,12 +368,6 @@ Platform under test: ${params.PLATFORM}"""
 
                         script {
                             stage('Bundle-Cluster Integration') {
-                                when {
-                                    expression {
-                                        return params.RUN_INTEGRATION
-                                    }
-                                }
-
                                 build(
                                     job: 'integration-pipeline',
                                     parameters: [
