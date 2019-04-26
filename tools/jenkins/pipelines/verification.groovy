@@ -70,6 +70,7 @@ Platform under test: ${params.PLATFORM}"""
                                     retry(2) {
                                         build(
                                             job: 'upgrade-pipeline',
+                                            propagate: false,
                                             parameters: [
                                                 string(name: 'TOWER_VERSION_TO_UPGRADE_FROM', value: prev_min_version),
                                                 string(name: 'TOWER_VERSION_TO_UPGRADE_TO', value: params.TOWER_VERSION),
@@ -90,6 +91,7 @@ Platform under test: ${params.PLATFORM}"""
                                 retry(2) {
                                     build(
                                         job: 'upgrade-pipeline',
+                                        propagate: false,
                                         parameters: [
                                             string(name: 'TOWER_VERSION_TO_UPGRADE_FROM', value: prev_maj_version),
                                             string(name: 'TOWER_VERSION_TO_UPGRADE_TO', value: params.TOWER_VERSION),
@@ -148,6 +150,7 @@ Platform under test: ${params.PLATFORM}"""
                                     retry(2) {
                                         build(
                                             job: 'upgrade-pipeline',
+                                            propagate: false,
                                             parameters: [
                                                 string(name: 'TOWER_VERSION_TO_UPGRADE_FROM', value: prev_min_version),
                                                 string(name: 'TOWER_VERSION_TO_UPGRADE_TO', value: params.TOWER_VERSION),
@@ -168,6 +171,7 @@ Platform under test: ${params.PLATFORM}"""
                                 retry(2) {
                                     build(
                                         job: 'upgrade-pipeline',
+                                        propagate: false,
                                         parameters: [
                                             string(name: 'TOWER_VERSION_TO_UPGRADE_FROM', value: prev_maj_version),
                                             string(name: 'TOWER_VERSION_TO_UPGRADE_TO', value: params.TOWER_VERSION),
@@ -231,6 +235,7 @@ Platform under test: ${params.PLATFORM}"""
                                     retry(2) {
                                         build(
                                             job: 'upgrade-pipeline',
+                                            propagate: false,
                                             parameters: [
                                                 string(name: 'TOWER_VERSION_TO_UPGRADE_FROM', value: prev_min_version),
                                                 string(name: 'TOWER_VERSION_TO_UPGRADE_TO', value: params.TOWER_VERSION),
@@ -251,6 +256,7 @@ Platform under test: ${params.PLATFORM}"""
                                 retry(2) {
                                     build(
                                         job: 'upgrade-pipeline',
+                                        propagate: false,
                                         parameters: [
                                             string(name: 'TOWER_VERSION_TO_UPGRADE_FROM', value: prev_maj_version),
                                             string(name: 'TOWER_VERSION_TO_UPGRADE_TO', value: params.TOWER_VERSION),
@@ -314,6 +320,7 @@ Platform under test: ${params.PLATFORM}"""
                                     retry(2) {
                                         build(
                                             job: 'upgrade-pipeline',
+                                            propagate: false,
                                             parameters: [
                                                 string(name: 'TOWER_VERSION_TO_UPGRADE_FROM', value: prev_min_version),
                                                 string(name: 'TOWER_VERSION_TO_UPGRADE_TO', value: params.TOWER_VERSION),
@@ -334,6 +341,7 @@ Platform under test: ${params.PLATFORM}"""
                                 retry(2) {
                                     build(
                                         job: 'upgrade-pipeline',
+                                        propagate: false,
                                         parameters: [
                                             string(name: 'TOWER_VERSION_TO_UPGRADE_FROM', value: prev_maj_version),
                                             string(name: 'TOWER_VERSION_TO_UPGRADE_TO', value: params.TOWER_VERSION),
