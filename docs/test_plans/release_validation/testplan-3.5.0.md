@@ -168,6 +168,24 @@ To test upgrades, use the following pipelines:
   * [ ] Deploy tower with HTTPS+Load Balancer+Let's Encrypt + run tests against instance
   * [ ] Deploy tower in OpenShift with an external DB + run tests against instance
 
+### RHEL8
+
+For this release RHEL8 is a special candidate as it is not GA yet and hence we have a set of different jobs to test it.
+Other action (namely Backup And Restore) are manual - since the AMI is not available - and in order to no waste time writing
+a script that will be throw away.
+
+**Note**: This is used for QE Sign-Off. Those jobs should be run with traditionnal tower-qa scripts when RHEL8 AMI is GA and
+before we cut the actual release for sanity checking
+
+  * [x] [RHEL8 - Standalone - Plain Install](http://jenkins.ansible.eng.rdu2.redhat.com/job/rhel8/job/Install%20And%20Integration%20RHEL8/125/)
+  * [x] [RHEL8 - Standalone - Bundle Install](http://jenkins.ansible.eng.rdu2.redhat.com/view/Tower/job/rhel8/job/Install%20And%20Integration%20RHEL8/128/)
+  * [x] [RHEL8 - Cluster - Plain Install](http://jenkins.ansible.eng.rdu2.redhat.com/job/rhel8/job/Install%20And%20Integration%20RHEL8/126/)
+  * [x] [RHEL8 - Cluster - Bundle Install](http://jenkins.ansible.eng.rdu2.redhat.com/job/rhel8/job/Install%20And%20Integration%20RHEL8/129/)
+  * [x] RHEL8 - Backup And Restore - Standalone/PlainInstall (Manual)
+  * [ ] RHEL8 - Standalone - API Regression
+  * [ ] RHEL8 - Cluster - API Regression
+  * [ ] RHEL8 - UI Regression
+
 
 ### Artifacts
 
