@@ -15,6 +15,21 @@ pipeline {
                       'rhel-8.0-x86_64', 'ol-7.6-x86_64', 'centos-7.latest-x86_64',
                       'ubuntu-16.04-x86_64', 'ubuntu-14.04-x86_64']
         )
+        choice(
+            name: 'RUN_UPGRADE',
+            description: 'Should the upgrade jobs be run ?',
+            choices: ['yes', 'no']
+        )
+        choice(
+            name: 'RUN_BACKUP_AND_RESTORE',
+            description: 'Should the backup and restore jobs be run ?',
+            choices: ['yes', 'no']
+        )
+        choice(
+            name: 'RUN_INTEGRATION',
+            description: 'Should the integration jobs be run ?',
+            choices: ['yes', 'no']
+        )
     }
 
     options {
@@ -43,7 +58,11 @@ pipeline {
                                 parameters: [
                                     string(name: 'TOWER_VERSION', value: params.TOWER_VERSION),
                                     string(name: 'ANSIBLE_VERSION', value: ansible_version),
-                                    string(name: 'PLATFORM', value: params.PLATFORM)
+                                    string(name: 'PLATFORM', value: params.PLATFORM),
+
+                                    string(name: 'RUN_UPGRADE', value: params.RUN_UPGRADE),
+                                    string(name: 'RUN_BACKUP_AND_RESTORE', value: params.RUN_BACKUP_AND_RESTORE),
+                                    string(name: 'RUN_INTEGRATION', value: params.RUN_INTEGRATION),
                                 ]
                             )
                         }

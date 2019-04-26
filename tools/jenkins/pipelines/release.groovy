@@ -13,6 +13,21 @@ pipeline {
             description: 'What is the scope of the verification? (Full will run all supported permutation, latest only on latest OSes)',
             choices: ['latest', 'full']
         )
+        choice(
+            name: 'RUN_UPGRADE',
+            description: 'Should the upgrade jobs be run ?',
+            choices: ['yes', 'no']
+        )
+        choice(
+            name: 'RUN_BACKUP_AND_RESTORE',
+            description: 'Should the backup and restore jobs be run ?',
+            choices: ['yes', 'no']
+        )
+        choice(
+            name: 'RUN_INTEGRATION',
+            description: 'Should the integration jobs be run ?',
+            choices: ['yes', 'no']
+        )
     }
 
     stages {
@@ -51,6 +66,9 @@ Scope selected: ${params.SCOPE}"""
                             parameters: [
                                 string(name: 'TOWER_VERSION', value: params.TOWER_VERSION),
                                 string(name: 'SCOPE', value: params.SCOPE),
+                                string(name: 'RUN_UPGRADE', value: params.RUN_UPGRADE),
+                                string(name: 'RUN_BACKUP_AND_RESTORE', value: params.RUN_BACKUP_AND_RESTORE),
+                                string(name: 'RUN_INTEGRATION', value: params.RUN_INTEGRATION),
                             ]
                         )
                     }
@@ -62,6 +80,9 @@ Scope selected: ${params.SCOPE}"""
                             parameters: [
                                 string(name: 'TOWER_VERSION', value: params.TOWER_VERSION),
                                 string(name: 'SCOPE', value: params.SCOPE),
+                                string(name: 'RUN_UPGRADE', value: params.RUN_UPGRADE),
+                                string(name: 'RUN_BACKUP_AND_RESTORE', value: params.RUN_BACKUP_AND_RESTORE),
+                                string(name: 'RUN_INTEGRATION', value: params.RUN_INTEGRATION),
                             ]
                         )
                     }
