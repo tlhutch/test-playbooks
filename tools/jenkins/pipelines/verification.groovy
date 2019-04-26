@@ -163,19 +163,17 @@ Platform under test: ${params.PLATFORM}"""
                                     }
                                 }
 
-                                retry(2) {
-                                    build(
-                                        job: 'integration-pipeline',
-                                        parameters: [
-                                            string(name: 'TOWER_VERSION', value: params.TOWER_VERSION),
-                                            string(name: 'ANSIBLE_VERSION', value: params.ANSIBLE_VERSION),
-                                            string(name: 'SCENARIO', value: 'standalone'),
-                                            string(name: 'PLATFORM', value: params.PLATFORM),
-                                            string(name: 'BUNDLE', value: 'no'),
-                                            string(name: 'DEPLOYMENT_NAME', value: 'evergreen-jenkins-tower-plain-standalone-integration')
-                                        ]
-                                    )
-                                }
+                                build(
+                                    job: 'integration-pipeline',
+                                    parameters: [
+                                        string(name: 'TOWER_VERSION', value: params.TOWER_VERSION),
+                                        string(name: 'ANSIBLE_VERSION', value: params.ANSIBLE_VERSION),
+                                        string(name: 'SCENARIO', value: 'standalone'),
+                                        string(name: 'PLATFORM', value: params.PLATFORM),
+                                        string(name: 'BUNDLE', value: 'no'),
+                                        string(name: 'DEPLOYMENT_NAME', value: 'evergreen-jenkins-tower-plain-standalone-integration')
+                                    ]
+                                )
                             }
                         }
                     }
@@ -267,19 +265,17 @@ Platform under test: ${params.PLATFORM}"""
                                     }
                                 }
 
-                                retry(2) {
-                                    build(
-                                        job: 'integration-pipeline',
-                                        parameters: [
-                                            string(name: 'TOWER_VERSION', value: params.TOWER_VERSION),
-                                            string(name: 'ANSIBLE_VERSION', value: params.ANSIBLE_VERSION),
-                                            string(name: 'SCENARIO', value: 'cluster'),
-                                            string(name: 'PLATFORM', value: params.PLATFORM),
-                                            string(name: 'BUNDLE', value: 'no'),
-                                            string(name: 'DEPLOYMENT_NAME', value: 'evergreen-jenkins-tower-plain-cluster-integration')
-                                        ]
-                                    )
-                                }
+                                build(
+                                    job: 'integration-pipeline',
+                                    parameters: [
+                                        string(name: 'TOWER_VERSION', value: params.TOWER_VERSION),
+                                        string(name: 'ANSIBLE_VERSION', value: params.ANSIBLE_VERSION),
+                                        string(name: 'SCENARIO', value: 'cluster'),
+                                        string(name: 'PLATFORM', value: params.PLATFORM),
+                                        string(name: 'BUNDLE', value: 'no'),
+                                        string(name: 'DEPLOYMENT_NAME', value: 'evergreen-jenkins-tower-plain-cluster-integration')
+                                    ]
+                                )
                             }
                         }
                     }
@@ -376,19 +372,17 @@ Platform under test: ${params.PLATFORM}"""
                                     }
                                 }
 
-                                retry(2) {
-                                    build(
-                                        job: 'integration-pipeline',
-                                        parameters: [
-                                            string(name: 'TOWER_VERSION', value: params.TOWER_VERSION),
-                                            string(name: 'ANSIBLE_VERSION', value: params.ANSIBLE_VERSION),
-                                            string(name: 'SCENARIO', value: 'standalone'),
-                                            string(name: 'PLATFORM', value: params.PLATFORM),
-                                            string(name: 'BUNDLE', value: 'yes'),
-                                            string(name: 'DEPLOYMENT_NAME', value: 'evergreen-jenkins-tower-bundle-standalone-integration')
-                                        ]
-                                    )
-                                }
+                                build(
+                                    job: 'integration-pipeline',
+                                    parameters: [
+                                        string(name: 'TOWER_VERSION', value: params.TOWER_VERSION),
+                                        string(name: 'ANSIBLE_VERSION', value: params.ANSIBLE_VERSION),
+                                        string(name: 'SCENARIO', value: 'standalone'),
+                                        string(name: 'PLATFORM', value: params.PLATFORM),
+                                        string(name: 'BUNDLE', value: 'yes'),
+                                        string(name: 'DEPLOYMENT_NAME', value: 'evergreen-jenkins-tower-bundle-standalone-integration')
+                                    ]
+                                )
                             }
                         }
                     }
@@ -485,19 +479,17 @@ Platform under test: ${params.PLATFORM}"""
                                     }
                                 }
 
-                                retry(2) {
-                                    build(
-                                        job: 'integration-pipeline',
-                                        parameters: [
-                                            string(name: 'TOWER_VERSION', value: params.TOWER_VERSION),
-                                            string(name: 'ANSIBLE_VERSION', value: params.ANSIBLE_VERSION),
-                                            string(name: 'SCENARIO', value: 'cluster'),
-                                            string(name: 'PLATFORM', value: params.PLATFORM),
-                                            string(name: 'BUNDLE', value: 'yes'),
-                                            string(name: 'DEPLOYMENT_NAME', value: 'evergreen-jenkins-tower-bundle-cluster-integration')
-                                        ]
-                                    )
-                                }
+                                build(
+                                    job: 'integration-pipeline',
+                                    parameters: [
+                                        string(name: 'TOWER_VERSION', value: params.TOWER_VERSION),
+                                        string(name: 'ANSIBLE_VERSION', value: params.ANSIBLE_VERSION),
+                                        string(name: 'SCENARIO', value: 'cluster'),
+                                        string(name: 'PLATFORM', value: params.PLATFORM),
+                                        string(name: 'BUNDLE', value: 'yes'),
+                                        string(name: 'DEPLOYMENT_NAME', value: 'evergreen-jenkins-tower-bundle-cluster-integration')
+                                    ]
+                                )
                             }
                         }
                     }
