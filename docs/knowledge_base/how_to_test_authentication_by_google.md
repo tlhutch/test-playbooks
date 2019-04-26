@@ -35,7 +35,7 @@ Trad cluster:
   * Open `/etc/tower/conf.d/social_auth.py` and supply values.
 
 Local docker:
-  * Edit `awx/settings/default.py` and edit settings with correct values.
+  * Edit `awx/settings/default.py` or better yet `awx/settings/local_settings.py` and edit settings with correct values.
 
 Openshift:
   * TBD: Probably need to edit secrets or deployment config. Where ever settings are normally found.
