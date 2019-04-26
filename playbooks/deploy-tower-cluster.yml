@@ -39,6 +39,13 @@
   roles:
     - { role: cluster_key_config, install_group: cluster_installer }
 
+- name: Install proper ansible version on all nodes
+  hosts: all:!localhost
+  gather_facts: no
+  become: true
+  roles:
+    - packages
+
 - name: 'Install cluster tower on installer instance'
   hosts: 'cluster_installer'
   gather_facts: no
