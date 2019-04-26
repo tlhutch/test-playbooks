@@ -250,6 +250,23 @@ class TestApiPerformance(APITest):
         benchmark(self.launch_and_wait, jt)
 
     @pytest.mark.mp_group('Benchmarking', 'isolated_serial')
+    def test_workflow_multiple_project_use(self, factories, benchmark):
+        wfjt = factories.workflow_job_template()
+        project = factories.project()
+        for i in range(20):
+            factories.workflow_job_template_node(
+                workflow_job_template=wfjt,
+                unified_job_template=factories.job_template(
+                    allow_simultaneous=True,
+                    project=project,
+                    # need different inventory for each JT
+                    # avoids task manager blocking inventory lock
+                    inventory=factories.inventory()
+                )
+            )
+        benchmark(self.launch_and_wait, wfjt)
+
+    @pytest.mark.mp_group('Benchmarking', 'isolated_serial')
     def test_benchmark_workflow_in_workflow(self, factories, benchmark):
         wfjt_outer = factories.workflow_job_template()
         wfjt_inner = factories.workflow_job_template()
