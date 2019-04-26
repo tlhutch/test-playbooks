@@ -118,16 +118,23 @@ function retrieve_awx_setup_path_based_on_version_and_scenario {
     scenario=$2
     aw_repo_url=$3
     bundle=$4
+    platform=$5
+
+    if [[ "${platform}" == "rhel-8.0-x86_64" ]]; then
+        _platform='el8'
+    else
+        _platform='el7'
+    fi
 
     if [[ "${aw_repo_url}" =~ .*"nightlies.testing.ansible.com".* ]]; then
         if [[ "${bundle}" == "yes" ]]; then
-            echo "/setup-bundle/ansible-tower-setup-bundle-latest.el7.tar.gz"
+            echo "/setup-bundle/ansible-tower-setup-bundle-latest.${_platform}.tar.gz"
         else
             echo "/setup/ansible-tower-setup-latest.tar.gz"
         fi
     else
         if [[ "${bundle}" == "yes" ]]; then
-            echo "/setup-bundle/ansible-tower-setup-bundle-${version}-1.el7.tar.gz"
+            echo "/setup-bundle/ansible-tower-setup-bundle-${version}-1.${_platform}.tar.gz"
         else
             _vers=$(echo -e "${version}\n3.3.0" | sort -V | head -n 1)
             if [[ "${version}" == "${_vers}" ]]; then

@@ -50,7 +50,7 @@ AWX_IPV6_DEPLOYMENT=$(retrieve_boolean_value "${AWX_IPV6_DEPLOYMENT}")
 DELETE_ON_START=$(retrieve_boolean_value "${DELETE_ON_START}")
 REAP_INSTANCES=$(retrieve_boolean_value "${REAP_INSTANCES}")
 AW_REPO_URL=$(retrieve_aw_repo_url_based_on_version "${TOWER_VERSION}")
-AWX_SETUP_PATH=$(retrieve_awx_setup_path_based_on_version_and_scenario "${TOWER_VERSION}" "${SCENARIO}" "${AW_REPO_URL}" "${BUNDLE}")
+AWX_SETUP_PATH=$(retrieve_awx_setup_path_based_on_version_and_scenario "${TOWER_VERSION}" "${SCENARIO}" "${AW_REPO_URL}" "${BUNDLE}" "${PLATFORM}")
 INSTANCE_NAME_PREFIX=$(generate_instance_name_prefix "${INSTANCE_NAME_PREFIX}" "${PLATFORM}" "${ANSIBLE_VERSION}" "${TOWER_VERSION}")
 
 
