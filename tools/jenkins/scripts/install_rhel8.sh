@@ -3,7 +3,7 @@
 set -euxo pipefail
 
 TESTEXPR=${TESTEXPR:-''}
-TOWER_VERSION=${TOWER_VERSION:-'devel'}
+export TOWER_VERSION=${TOWER_VERSION:-'devel'}
 SCENARIO=${SCENARIO:-'standalone'}
 BUNDLE=${BUNDLE:-no}
 AW_REPO_URL=${AW_REPO_URL:-http://nightlies.testing.ansible.com/ansible-tower_nightlies_m8u16fz56qr6q7/devel}
