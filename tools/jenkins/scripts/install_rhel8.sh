@@ -3,6 +3,7 @@
 set -euxo pipefail
 
 TESTEXPR=${TESTEXPR:-''}
+TOWER_VERSION=${TOWER_VERSION:-'devel'}
 SCENARIO=${SCENARIO:-'standalone'}
 BUNDLE=${BUNDLE:-no}
 AW_REPO_URL=${AW_REPO_URL:-http://nightlies.testing.ansible.com/ansible-tower_nightlies_m8u16fz56qr6q7/devel}
@@ -27,13 +28,6 @@ export OS_USERNAME="yguenane"
 export OS_REGION_NAME="regionOne"
 export OS_ENDPOINT_TYPE=publicURL
 export OS_IDENTITY_API_VERSION=3
-
-branch=${AW_REPO_URL##*/}
-if [[ "${branch}" == "devel" ]]; then
-    export TOWER_VERSION="devel"
-else
-    export TOWER_VERSION=${branch//release_/}
-fi
 
 AWX_SETUP_PATH=$(retrieve_awx_setup_path_based_on_version_and_scenario "${TOWER_VERSION}" "${SCENARIO}" "${AW_REPO_URL}" "${BUNDLE}" "${PLATFORM}") \
 AWX_IPV6_DEPLOYMENT=no AWS_ACCESS_KEY=dummy AWS_SECRET_KEY=dummy ./tools/jenkins/scripts/generate_vars.sh
