@@ -1,8 +1,6 @@
 # Testing External Logging
-This feature has yet to have automated testing added.
-Historically, it has been sanity tested with one logging service.
-
-Loggly is very simple to set up and provides a free trial so it is a good candidate.
+Many different external logging aggregators can be used in Tower, see the [product docs](https://docs.ansible.com/ansible-tower/latest/html/administration/logging.html)
+We have automated testing with Splunk, so this does not need to be manually tested for every release because historically, it was only sanity tested with one logging service.
 
 Bugs related to external logging have been encountered. Here are some examples of past bugs:
 https://github.com/ansible/tower/issues/3423
@@ -44,6 +42,9 @@ You should see an event like this show up:
 Reference docs: https://docs.ansible.com/ansible-tower/latest/html/administration/logging.html#splunk
 
 This seems to be a popular choice among customers, seem to get more bugs related to Splunk.
+
+Automated testing:
+https://github.com/ansible/tower-qa/blob/devel/tests/api/external_logging/test_external_logging.py
 
 ## Logstash
 Reference docs: https://docs.ansible.com/ansible-tower/latest/html/administration/logging.html#elastic-stack-formerly-elk-stack
