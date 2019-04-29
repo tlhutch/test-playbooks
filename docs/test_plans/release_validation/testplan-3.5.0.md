@@ -154,21 +154,13 @@ To test upgrades, use the following pipelines:
   * [ ] API regression - Traditional Cluster
   * [ ] API regression - OpenShift Cluster
   * [ ] Tower social authentication regression completed (vm)
-    * [ ] Google OAuth
+    * [x] Google OAuth
     * [ ] GitHub
     * [ ] GitHub Org
     * [ ] GitHub Team
     * [ ] Azure OAuth
     * [ ] Radius
   * [ ] Tower SAML integration regression completed (vm)
-  * [ ] Tower social authentication regression completed (OpenShift)
-    * [ ] Google OAuth
-    * [ ] GitHub
-    * [ ] GitHub Org
-    * [ ] GitHub Team
-    * [ ] Azure OAuth
-    * [ ] Radius
-  * [ ] Tower SAML integration regression completed (OpenShift)
   * [x] Logging regression completed - cluster
   * [ ] Backup/restore successful - standalone
   * [ ] Backup/restore successful - traditional cluster
