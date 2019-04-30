@@ -2,6 +2,8 @@ import logging
 import re
 import time
 
+from pprint import pformat
+
 import pytest
 from towerkit import utils
 
@@ -57,6 +59,25 @@ class TestTowerServices(APITest):
             assert ("Active: active (running)" in result['stdout']) is active, \
                 "Unexpected process status for process {0} after executing ansible-tower-service {1}\n\nstdout:\n{2}"\
                 .format(process, command, result['stdout'])
+
+    @pytest.mark.parametrize('plugin', ['rabbitmq', 'tower'])
+    @pytest.mark.ansible(host_pattern='tower[0]')  # target 1 normal instance
+    def test_sos_plugin_present(self, ansible_runner, plugin):
+        """Regression test to make sure tower sos plugin is getting properly installed.
+
+        Related bug: https://github.com/ansible/tower/issues/3509
+        """
+        contacted = ansible_runner.command('sosreport --list-plugins')
+        result = list(contacted.values())[0]
+        stdout = result['stdout']
+        stderr = result['stderr']
+        plugin_present = re.search(f"{plugin}.*", stdout)
+        plugin_off = re.search(f"{plugin}.*off", stdout)
+        plugin_inactive = re.search(f"{plugin}.*inactive", stdout)
+        assert result['rc'] == 0, f"sosreport --list-plugins failed. \n stdout: {pformat(stdout)}\n stderr: {pformat(stderr)}"
+        assert plugin_present, f"sosreport --list-plugins did not show {plugin} plugin but instead {pformat(stdout)}.\n stderr was: {pformat(stderr)}"
+        assert not plugin_inactive, f"sosreport --list-plugins showed that {plugin} plugin was installed but inactive.\n stdout: {pformat(stdout)}\n stderr: {pformat(stderr)}"
+        assert not plugin_off, f"sosreport --list-plugins showed that {plugin} plugin was installed but not enabled (off). \n stdout: {pformat(stdout)}\n stderr: {pformat(stderr)}"
 
     def test_tower_restart(self, install_enterprise_license_unlimited, factories, v2, ansible_runner):
         jt = factories.v2_job_template(playbook='sleep.yml',
