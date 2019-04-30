@@ -14,18 +14,25 @@ class TestRelaunchAskRBAC(APITest):
     def give_user_relaunch_access(self, user, job):
         jt = job.related.job_template.get()
         jt.set_object_roles(user, 'execute')
-        for dep in ['credential', 'project', 'inventory']:
-            if hasattr(jt.ds, dep):
+        for dep in ['project', 'inventory']:
+            if getattr(job, dep) != getattr(jt, dep):
                 if dep == 'project':
                     jt.ds[dep].organization.set_object_roles(user, 'member')
-                jt.ds[dep].set_object_roles(user, 'use')
+                job.get_related(dep).set_object_roles(user, 'use')
+        jt_creds = jt.get_related('credentials').results
+        jt_cred_ids = [cred['id'] for cred in jt_creds]
+        job_creds = job.get_related('credentials').results
+        for cred in job_creds:
+            if cred['id'] not in jt_cred_ids:
+                cred.get_related('organization').set_object_roles(user, 'member')
+                cred.set_object_roles(user, 'use')
 
     @pytest.fixture
     def relaunch_user(self, factories):
         return factories.v2_user()
 
     @pytest.fixture
-    def relaunch_job_as_diff_user_forbidden(self, factories, relaunch_user):
+    def relaunch_job_as_diff_user_forbidden(self, relaunch_user):
         def fn(job):
             '''
             Give user JT execute permission so that user doesn't get denied for
@@ -40,7 +47,7 @@ class TestRelaunchAskRBAC(APITest):
         return fn
 
     @pytest.fixture
-    def relaunch_job_as_diff_user_allowed(self, factories, v2, relaunch_user):
+    def relaunch_job_as_diff_user_allowed(self, relaunch_user):
         def fn(job):
             self.give_user_relaunch_access(relaunch_user, job)
             with self.current_user(relaunch_user):
@@ -82,7 +89,7 @@ class TestRelaunchAskRBAC(APITest):
         (dict(ask_inventory_on_launch=True), 'inventory'),
         (dict(ask_credential_on_launch=True), 'credential'),
     ])
-    @pytest.mark.parametrize("deny", ["True", "False"])
+    @pytest.mark.parametrize("deny", [True, False])
     def test_relaunch_with_inventory_forbidden(self, factories, job_template, relaunch_job_as_diff_user_forbidden, relaunch_job_as_diff_user_allowed, patch_payload, resource, deny):
         job_template.patch(**patch_payload)
         payload = dict()
