@@ -120,11 +120,11 @@
 
 ### Install
 
-  * [ ] Standalone
-  * [ ] Standalone Bundle
-  * [ ] Traditional Cluster with isolated nodes
-  * [ ] Traditional Cluster Bundle with isolated nodes
-  * [ ] OpenShift Cluster
+  * [x] Standalone
+  * [x] Standalone Bundle
+  * [x] Traditional Cluster with isolated nodes
+  * [x] Traditional Cluster Bundle with isolated nodes
+  * [x] [OpenShift Cluster](http://jenkins.ansible.eng.rdu2.redhat.com/blue/organizations/jenkins/Test_Tower_OpenShift_Deploy/detail/Test_Tower_OpenShift_Deploy/616/pipeline)
 
 
 ### Upgrade
@@ -139,11 +139,11 @@ To test upgrades, use the following pipelines:
   * [ ] Check ansible version check that is [hardcoded in tower-packaging](https://github.com/ansible/tower-packaging/blob/f8d3d4cd6d1cf35cad6e09de88068440d667ff42/setup/roles/preflight/defaults/main.yml#L6)
   * [ ] 3.2.8 to 3.5.0
     * [ ] Bundle/Plain - Standalone/Cluster
-  * [ ] 3.3.{0-5} -> 3.5.0
-    * [ ] Bundle/Plain - Standalone/Cluster
-    * [ ] OpenShift
-  * [ ] 3.4.{0-3} -> 3.5.0
-    * [ ] Bundle/Plain - Standalone/Cluster
+  * [x] 3.3.{0-5} -> 3.5.0
+    * [x] [Bundle/Plain - Standalone/Cluster](http://jenkins.ansible.eng.rdu2.redhat.com/blue/organizations/jenkins/Pipelines%2Fupgrade-release33-release-verification/detail/upgrade-release33-release-verification/19/pipeline)
+    * [x] [OpenShift](http://jenkins.ansible.eng.rdu2.redhat.com/blue/organizations/jenkins/Pipelines%2Fupgrade-release33-openshift-release-verification/detail/upgrade-release33-openshift-release-verification/6/pipeline)
+  * [x] 3.4.{0-3} -> 3.5.0
+    * [x] [Bundle/Plain - Standalone/Cluster](http://jenkins.ansible.eng.rdu2.redhat.com/blue/organizations/jenkins/Pipelines%2Fupgrade-release34-release-verification/detail/upgrade-release34-release-verification/9/pipeline)
     * [x] [OpenShift](http://jenkins.ansible.eng.rdu2.redhat.com/blue/organizations/jenkins/Pipelines%2FRelease%2034%20to%20devel%20-%20OpenShift%20-%20Release%20Verification/detail/Release%2034%20to%20devel%20-%20OpenShift%20-%20Release%20Verification/2/pipeline)
 
 
@@ -162,9 +162,9 @@ To test upgrades, use the following pipelines:
     * [x] Radius
   * [x] Tower SAML integration regression completed (vm)
   * [x] Logging regression completed - cluster
-  * [ ] Backup/restore successful - standalone
-  * [ ] Backup/restore successful - traditional cluster
-  * [ ] Backup/restore successful - OpenShift
+  * [x] Backup/restore successful - standalone
+  * [x] Backup/restore successful - traditional cluster
+  * [x] [Backup/restore successful - OpenShift](http://jenkins.ansible.eng.rdu2.redhat.com/blue/organizations/jenkins/Test_Tower_OpenShift_Backup_And_Restore/detail/Test_Tower_OpenShift_Backup_And_Restore/19/)
   * [ ] Deploy tower with HTTPS+Load Balancer+Let's Encrypt + run tests against instance
   * [ ] Deploy tower in OpenShift with an external DB + run tests against instance
 
