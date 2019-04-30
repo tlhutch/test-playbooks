@@ -11,3 +11,14 @@
   sudo: yes
   roles:
     - { role: awx_setup }
+
+# Attempt to catch problems caused by reboots such as https://github.com/ansible/tower/issues/3521
+- name: Reboot systems to ensure tower works after reboot
+  # Not all issues may be caught by ansible-tower-service status but at least we know the server "should" be up by then
+  become: yes
+  hosts: 'tower'
+  tasks:
+    - name: Reboot tower
+      reboot:
+        test_command: 'ansible-tower-service status'
+        msg: 'Reboot initiated by run of tower-qa/playbooks/install-tower.yml'
