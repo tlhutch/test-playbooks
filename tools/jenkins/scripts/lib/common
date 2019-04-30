@@ -68,7 +68,6 @@ function setup_env_based_on_deployment_scenario {
            IMAGE_VARS=playbooks/images-isolated-groups.yml
            VARS_FILE=playbooks/vars.yml
            export CLUSTER_SETUP=true
-           export AWX_APPLY_ISOLATED_GROUPS_FW_RULES=false
            ;;
        test_runner)
            PLAYBOOK=playbooks/deploy-tower-cluster.yml
