@@ -77,7 +77,7 @@ class TestRelaunchAskRBAC(APITest):
             '4-connection debug verbosity', '5-winrm debug verbosity', 'job type run',
             'job type check', 'extra vars', 'noop']
     )
-    def test_relaunch_with_payload(self, job_template, relaunch_job_as_diff_user_allowed, patch_payload, launch_payload):
+    def test_relaunch_with_payload_allowed(self, job_template, relaunch_job_as_diff_user_allowed, patch_payload, launch_payload):
         job_template.patch(**patch_payload)
         job = job_template.launch(launch_payload).wait_until_completed()
         relaunch_job_as_diff_user_allowed(job)
@@ -93,7 +93,7 @@ class TestRelaunchAskRBAC(APITest):
         job = job_template.launch(payload).wait_until_completed()
         relaunch_job_as_diff_user_allowed(job)
 
-    def test_relaunch_with_credentials_forbidden(self, v2, factories, job_template, relaunch_user, relaunch_job_as_diff_user_allowed):
+    def test_relaunch_with_credentials_allowed(self, v2, factories, job_template, relaunch_user, relaunch_job_as_diff_user_allowed):
         job_template.patch(ask_credential_on_launch=True)
         cloud_credentials = [factories.v2_credential(credential_type=factories.credential_type(),
                                                      user=relaunch_user,
