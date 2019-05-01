@@ -480,3 +480,34 @@ class Test_Job_Events(APITest):
         event_data = self.get_job_events_by_event_type(job, 'playbook_on_stats')[0]['event_data']
         status_data = {k: event_data[k] for k in event_data if k in job_statuses}
         assert status_data == desired_status_data
+
+    def test_event_parent_references(self, factories, skip_if_pre_ansible28):
+        jt = factories.job_template()
+        # Make host so that tasks will actually run
+        factories.host(inventory=jt.ds.inventory)
+        job = jt.launch().wait_until_completed()
+        job_events = job.get_related('job_events').results
+        expected_structure = (
+            ('playbook_on_start', ('playbook_on_play_start', 'playbook_on_stats')),
+            ('playbook_on_play_start', ('playbook_on_task_start',)),
+            ('playbook_on_task_start', ('runner_on_start', 'runner_on_ok'))
+        )
+
+        def get_event(event_name):
+            for event in job_events:
+                if event.event == event_name:
+                    return event
+            else:
+                raise Exception('Job did not have expected event {}'.format(event_name))
+
+        for parent, children in expected_structure:
+            parent_event = get_event(parent)
+            # requires https://github.com/ansible/awx/issues/3798
+            # assert parent_event.get_related('children').count
+            for child in children:
+                child_event = get_event(child)
+                # parent link regressed, still not fixed
+                # assert child_event.get_related('parent') == parent_event.url
+                assert child_event.parent_uuid == parent_event.uuid, (
+                    'The event {} is not listed as a child of {}'.format(child, parent)
+                )
