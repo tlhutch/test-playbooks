@@ -38,6 +38,12 @@
                   - python2-devel
                   - gcc
 
+            - name: Ensure /usr/bin/python link is maintained
+              file:
+                src: /usr/bin/python3
+                dest: /usr/bin/python
+                state: link
+
             - set_fact:
                _remote_python: python3
               when: remote_python == 'python36'
