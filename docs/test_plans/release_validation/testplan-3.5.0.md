@@ -50,7 +50,7 @@
 
 * [Test Plan](https://github.com/ansible/tower-qa/blob/devel/docs/test_plans/features/35_brew_signed_packages.md)
 
-- [ ] Testing complete
+- [x] Testing complete
 
 ### Update social-auth dependencies for Google+ EOL (Mat/Elyezer)
 
@@ -136,9 +136,9 @@ To test upgrades, use the following pipelines:
   * Non-OpenShift 3.3.x to Release: [Release 33 to devel - Release Verification](http://jenkins.ansible.eng.rdu2.redhat.com/blue/organizations/jenkins/Pipelines%2Fupgrade-release33-release-verification/)
   * Non-OpenShift 3.4.x to Release: [Release 34 to devel - Release Verification](http://jenkins.ansible.eng.rdu2.redhat.com/blue/organizations/jenkins/Pipelines%2Fupgrade-release34-release-verification/)
 
-  * [ ] Check ansible version check that is [hardcoded in tower-packaging](https://github.com/ansible/tower-packaging/blob/f8d3d4cd6d1cf35cad6e09de88068440d667ff42/setup/roles/preflight/defaults/main.yml#L6)
-  * [ ] 3.2.8 to 3.5.0
-    * [ ] Bundle/Plain - Standalone/Cluster
+  * [x] Check ansible version check that is [hardcoded in tower-packaging](https://github.com/ansible/tower-packaging/blob/f8d3d4cd6d1cf35cad6e09de88068440d667ff42/setup/roles/preflight/defaults/main.yml#L6)
+  * [x] 3.2.8 to 3.5.0
+    * [x] Bundle/Plain - Standalone
   * [x] 3.3.{0-5} -> 3.5.0
     * [x] [Bundle/Plain - Standalone/Cluster](http://jenkins.ansible.eng.rdu2.redhat.com/blue/organizations/jenkins/Pipelines%2Fupgrade-release33-release-verification/detail/upgrade-release33-release-verification/19/pipeline)
     * [x] [OpenShift](http://jenkins.ansible.eng.rdu2.redhat.com/blue/organizations/jenkins/Pipelines%2Fupgrade-release33-openshift-release-verification/detail/upgrade-release33-openshift-release-verification/6/pipeline)
