@@ -38,6 +38,12 @@ pipeline {
         stage('From 3.4.0') {
             parallel {
                 stage('Bundle-Standalone') {
+                    when {
+                        expression {
+                            return ! params.PLATFORM.contains('ubuntu');
+                        }
+                    }
+
                     steps {
                         retry(2) {
                             build(
@@ -57,6 +63,12 @@ pipeline {
                 }
 
                 stage('Bundle-Cluster') {
+                    when {
+                        expression {
+                            return ! params.PLATFORM.contains('ubuntu');
+                        }
+                    }
+
                     steps {
                         retry(2) {
                             build(
@@ -118,6 +130,12 @@ pipeline {
         stage('From 3.4.1') {
             parallel {
                 stage('Bundle-Standalone') {
+                    when {
+                        expression {
+                            return ! params.PLATFORM.contains('ubuntu');
+                        }
+                    }
+
                     steps {
                         retry(2) {
                             build(
@@ -137,6 +155,12 @@ pipeline {
                 }
 
                 stage('Bundle-Cluster') {
+                    when {
+                        expression {
+                            return ! params.PLATFORM.contains('ubuntu');
+                        }
+                    }
+
                     steps {
                         retry(2) {
                             build(
@@ -198,6 +222,12 @@ pipeline {
         stage('From 3.4.2') {
             parallel {
                 stage('Bundle-Standalone') {
+                    when {
+                        expression {
+                            return ! params.PLATFORM.contains('ubuntu');
+                        }
+                    }
+
                     steps {
                         retry(2) {
                         build(
@@ -217,6 +247,12 @@ pipeline {
                 }
 
                 stage('Bundle-Cluster') {
+                    when {
+                        expression {
+                            return ! params.PLATFORM.contains('ubuntu');
+                        }
+                    }
+
                     steps {
                         retry(2) {
                             build(
@@ -278,6 +314,12 @@ pipeline {
         stage('From 3.4.3') {
             parallel {
                 stage('Bundle-Standalone') {
+                    when {
+                        expression {
+                            return ! params.PLATFORM.contains('ubuntu');
+                        }
+                    }
+
                     steps {
                         retry(2) {
                             build(
@@ -297,6 +339,12 @@ pipeline {
                 }
 
                 stage('Bundle-Cluster') {
+                    when {
+                        expression {
+                            return ! params.PLATFORM.contains('ubuntu');
+                        }
+                    }
+
                     steps {
                         retry(2) {
                             build(
