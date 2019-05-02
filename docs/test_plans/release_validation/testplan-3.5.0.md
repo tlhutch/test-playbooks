@@ -150,9 +150,9 @@ To test upgrades, use the following pipelines:
 ### Regression
 
   * [ ] UI regression
-  * [ ] API regression - Standalone
-  * [ ] API regression - Traditional Cluster
-  * [ ] API regression - OpenShift Cluster
+  * [x] [API regression - Standalone](http://jenkins.ansible.eng.rdu2.redhat.com/job/Pipelines/job/integration-pipeline/549/testReport/)
+  * [x] [API regression - Traditional Cluster](http://jenkins.ansible.eng.rdu2.redhat.com/job/Pipelines/job/integration-pipeline/550/testReport/)
+  * [x] [API regression - OpenShift Cluster](http://jenkins.ansible.eng.rdu2.redhat.com/job/Test_Tower_OpenShift_Integration/476/testReport/)
   * [x] Tower social authentication regression completed (vm)
     * [x] Google OAuth
     * [x] GitHub
@@ -182,7 +182,7 @@ before we cut the actual release for sanity checking
   * [x] [RHEL8 - Cluster - Plain Install](http://jenkins.ansible.eng.rdu2.redhat.com/job/rhel8/job/Install%20And%20Integration%20RHEL8/126/)
   * [x] [RHEL8 - Cluster - Bundle Install](http://jenkins.ansible.eng.rdu2.redhat.com/job/rhel8/job/Install%20And%20Integration%20RHEL8/129/)
   * [x] RHEL8 - Backup And Restore - Standalone/PlainInstall (Manual)
-  * [ ] RHEL8 - Standalone - API Regression
+  * [x] [RHEL8 - Standalone - API Regression](http://jenkins.ansible.eng.rdu2.redhat.com/job/Test_Tower_Integration_Plain/747/testReport/)
   * [ ] RHEL8 - Cluster - API Regression
   * [ ] RHEL8 - UI Regression
 
