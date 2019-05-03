@@ -76,7 +76,6 @@ class TestJobTemplates(APITest):
         job_pg.assert_successful()
 
         # assess job results for limit
-        assert job_pg.ask_limit_on_launch
         assert job_pg.limit == "local", "Unexpected value for job_pg.limit. Expected 'local', got %s." % job_pg.limit
         limit_index = job_pg.job_args.index('-l') + 1
         assert job_pg.job_args[limit_index] == "local", "Limit value not passed to job_args."
@@ -115,15 +114,11 @@ class TestJobTemplates(APITest):
             assert job_pg.status == 'failed', "Job unexpectedly did not fail - %s." % job_pg
 
         # check job_pg job_tags
-        assert job_pg.ask_tags_on_launch == job_template.ask_tags_on_launch, \
-            "Job and JT have different value for `ask_tags_on_launch'."
         assert job_pg.job_tags == launch_payload["job_tags"], ("Unexpected value for job_pg.job_tags. Expected"
                                                                " '%s', got '%s'." % (launch_payload["job_tags"],
                                                                                      job_pg.job_tags))
 
         # check job_pg skip_tags
-        assert job_pg.ask_skip_tags_on_launch == job_template.ask_skip_tags_on_launch, \
-            "Job and JT have different value for 'ask_skip_tags_on_launch'."
         assert job_pg.skip_tags == launch_payload["skip_tags"], (
             "Unexpected value for job_pg.skip_tags. Expected '%s', got '%s'." % (launch_payload["skip_tags"], job_pg.skip_tags))
 
@@ -169,7 +164,7 @@ class TestJobTemplates(APITest):
         job.assert_successful()
 
         assert jt.verbosity == 0
-        assert job.ask_verbosity_on_launch
+        assert jt.ask_verbosity_on_launch
         assert job.verbosity == verbosity
         for line in stdout_lines:
             if isinstance(line, re._pattern_type):
@@ -240,7 +235,7 @@ class TestJobTemplates(APITest):
         job = jt.launch(dict(job_type=job_type)).wait_until_completed()
         job.assert_successful()
 
-        assert job.ask_job_type_on_launch
+        assert jt.ask_job_type_on_launch
         assert job.job_type == job_type
 
     @pytest.mark.ansible_integration
@@ -264,7 +259,7 @@ class TestJobTemplates(APITest):
         job_pg.assert_successful()
 
         # assess job results for inventory
-        assert job_pg.ask_inventory_on_launch
+        assert job_template.ask_inventory_on_launch
         assert job_pg.inventory == another_inventory.id, \
             "Job ran with incorrect inventory. Expected %s but got %s." % (another_inventory.id, job_template.inventory)
 
