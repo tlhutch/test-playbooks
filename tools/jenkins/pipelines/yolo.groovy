@@ -34,6 +34,11 @@ pipeline {
             defaultValue: 'devel'
         )
         string(
+            name: 'TOWER_QA_FORK',
+            description: 'Fork of tower-qa. Useful for testing changes to this pipeline.',
+            defaultValue: 'ansible'
+        )
+        string(
             name: 'TOWER_QA_BRANCH',
             description: 'Branch to use for tower-qa',
             defaultValue: 'devel'
