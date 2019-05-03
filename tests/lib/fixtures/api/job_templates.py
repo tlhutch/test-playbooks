@@ -50,15 +50,22 @@ def job_template_with_random_limit(job_template):
 
 
 @pytest.fixture(scope="function")
-def job_template_with_random_tag(factories, organization, project_ansible_git, ssh_credential, host_local):
+def job_template_with_random_tag(factories, project_ansible_git):
     """job template with a tag parameter that matches nothing"""
     job_tag = fauxfactory.gen_utf8()
 
-    return factories.v2_job_template(description="job_template with tag - %s" % fauxfactory.gen_utf8(),
-                                  organization=organization, project=project_ansible_git, credential=ssh_credential,
-                                  inventory=host_local.ds.inventory,
-                                  playbook='test/integration/targets/tags/test_tags.yml',
-                                  job_tags=job_tag)
+    testhost = factories.host(name="testhost", description="host used by Ansible test_tags.yml")
+    inventory = testhost.ds.inventory
+    factories.host(name="local", description="this used to be used by Ansible test_tags.yml",
+                   inventory=inventory)
+
+    return factories.v2_job_template(
+        description="job_template with tag - %s" % fauxfactory.gen_utf8(),
+        project=project_ansible_git,
+        credential=None,
+        inventory=inventory,
+        playbook='test/integration/targets/tags/test_tags.yml',
+        job_tags=job_tag)
 
 
 @pytest.fixture(scope="function")
