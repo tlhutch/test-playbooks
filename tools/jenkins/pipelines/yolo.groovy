@@ -58,11 +58,6 @@ pipeline {
             description: 'Should the installer and the packages be built as part of this pipeline ?',
             defaultValue: true
         )
-        choice(
-            name: 'PACKAGE_TYPE',
-            description: 'Which package type would you like to build ?',
-            choices: ['rpm', 'deb']
-        )
         booleanParam(
             name: 'RUN_INSTALLER',
             description: 'Should the installer be run as part of this pipeline ?',
@@ -177,10 +172,10 @@ pipeline {
 
             steps {
                 script {
-                    if (params.PACKAGE_TYPE == 'rpm') {
-                        PACKAGE_JOB_NAME = 'Build_Tower_RPM'
-                    } else {
+                    if ( params.PLATFORM.contains('ubuntu') ) {
                         PACKAGE_JOB_NAME = 'Build_Tower_DEB'
+                    } else {
+                        PACKAGE_JOB_NAME = 'Build_Tower_RPM'
                     }
 
                     build(
