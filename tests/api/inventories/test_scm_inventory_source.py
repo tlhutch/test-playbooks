@@ -673,6 +673,18 @@ class TestSCMInventorySource(APITest):
                 forbidden()
             assert e.value.msg == {'detail': ['Cannot set {} if not SCM type.'.format(field)]}
 
+    def test_use_of_SCM_inventory_plugin(self, factories, ansible_version_cmp):
+        if ansible_version_cmp('2.9.0') < 0:
+            pytest.skip('Custom user plugins were not fixed until Ansible 2.9')
+        inv_src = factories.v2_inventory_source(
+            source='scm',
+            source_path='inventories/user_plugins/cow.yaml'
+        )
+        inv_src.update().wait_until_completed()
+        imported_hosts = inv_src.ds.inventory.get_related('hosts')
+        assert imported_hosts.count == 1
+        assert imported_hosts.results[0].name == 'moooooo'
+
     def test_scm_inv_parent_sym_links(self, factories):
         """This test asserts that symlinks inside of a project source tree will
         be accessible for the ansible-inventory command in the inventory update.
