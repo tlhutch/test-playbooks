@@ -76,7 +76,7 @@ class TestSCMInventorySource(APITest):
     @pytest.mark.parametrize('kind, plugin_file, introduced_in', [
         ('azure_rm', 'inventories/azure_rm.yml', '2.7'),
         ('aws', 'inventories/aws_ec2.yml', '2.5'),
-        # ('openstack_v3', 'inventories/openstack.yml'), # blocked by https://github.com/ansible/awx/issues/3547
+        ('openstack_v3', 'inventories/openstack.yml', '2.7'), # https://github.com/ansible/awx/issues/3547
         # ('gce', 'inventories/gcp_compute.yml') # blocked by https://github.com/ansible/ansible/issues/54406
         # what the minimum gcp_compute.yml is may still be up for debate, may need to update it.
         # For example, you must specify project in config file as well as on cred because that is what you always have to do
