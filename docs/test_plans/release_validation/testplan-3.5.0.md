@@ -183,8 +183,8 @@ before we cut the actual release for sanity checking
   * [x] [RHEL8 - Cluster - Bundle Install](http://jenkins.ansible.eng.rdu2.redhat.com/job/rhel8/job/Install%20And%20Integration%20RHEL8/129/)
   * [x] RHEL8 - Backup And Restore - Standalone/PlainInstall (Manual)
   * [x] [RHEL8 - Standalone - API Regression](http://jenkins.ansible.eng.rdu2.redhat.com/job/Test_Tower_Integration_Plain/747/testReport/)
-  * [ ] RHEL8 - Cluster - API Regression
-  * [ ] RHEL8 - UI Regression
+  * [x] [RHEL8 - Cluster - API Regression](http://jenkins.ansible.eng.rdu2.redhat.com/blue/organizations/jenkins/Test_Tower_Integration_Cluster_Plain/detail/Test_Tower_Integration_Cluster_Plain/118/tests)
+  * [x] [RHEL8 - UI Regression](http://jenkins.ansible.eng.rdu2.redhat.com/job/Test_Tower_E2E/2494/testReport/)
 
 
 ### Artifacts
