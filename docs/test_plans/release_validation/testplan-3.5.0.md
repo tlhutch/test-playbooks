@@ -149,7 +149,7 @@ To test upgrades, use the following pipelines:
 
 ### Regression
 
-  * [ ] UI regression
+  * [x] [UI regression](https://docs.google.com/document/d/1c31ZRvjyOyqBkrQukC7ucR2-sXwjncfHVfr6DDKqfa4/edit#)
   * [x] [API regression - Standalone](http://jenkins.ansible.eng.rdu2.redhat.com/job/Pipelines/job/integration-pipeline/549/testReport/)
   * [x] [API regression - Traditional Cluster](http://jenkins.ansible.eng.rdu2.redhat.com/job/Pipelines/job/integration-pipeline/550/testReport/)
   * [x] [API regression - OpenShift Cluster](http://jenkins.ansible.eng.rdu2.redhat.com/job/Test_Tower_OpenShift_Integration/476/testReport/)
