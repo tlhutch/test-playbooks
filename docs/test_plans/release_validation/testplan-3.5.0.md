@@ -165,7 +165,7 @@ To test upgrades, use the following pipelines:
   * [x] Backup/restore successful - standalone
   * [x] Backup/restore successful - traditional cluster
   * [x] [Backup/restore successful - OpenShift](http://jenkins.ansible.eng.rdu2.redhat.com/blue/organizations/jenkins/Test_Tower_OpenShift_Backup_And_Restore/detail/Test_Tower_OpenShift_Backup_And_Restore/19/)
-  * [ ] Deploy tower with HTTPS+Load Balancer+Let's Encrypt + run tests against instance
+  * [x] [Deploy tower with HTTPS+Load Balancer+Let's Encrypt + run tests against instance](http://jenkins.ansible.eng.rdu2.redhat.com/job/Test_Tower_Install_Cluster_HAProxy_SSL/) and [tests pass](http://jenkins.ansible.eng.rdu2.redhat.com/job/Test_Tower_UI_E2E_Pipeline/7/console)
   * [x] Deploy tower in OpenShift with an external DB + run tests against instance
 
 ### RHEL8
