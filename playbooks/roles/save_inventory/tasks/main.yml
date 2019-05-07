@@ -1,6 +1,5 @@
 ---
 # Tasks to save in-memory host inventory
-
 - name: generate static inventory file
   template:
     src: 'inventory.j2'

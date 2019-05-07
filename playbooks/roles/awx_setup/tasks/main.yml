@@ -53,6 +53,7 @@
   when: not is_awx_installed.stat.exists or awx_upgrade
 
 - name: setup.sh
+  # Also set AW_REPO_URL so during bootstrap phase we use correct dependencies repo
   command: ./setup.sh -e @vars.yml -e @vars-static.yml
   args:
       chdir: /tmp/setup
@@ -61,6 +62,7 @@
     # To install with ansible < 1.9, sudo support is accessible by way of the following variable
     # ANSIBLE_SUDO: 'True'
     ANSIBLE_BECOME: 'True'
+    AW_REPO_URL: '{{ aw_repo_url }}'
     ANSIBLE_BECOME_METHOD: 'sudo'
     ANSIBLE_HOST_KEY_CHECKING: 'False'
   when: not is_awx_installed.stat.exists or awx_upgrade

@@ -33,13 +33,16 @@ else
 fi
 
 if [[ "${PLATFORM}" == "rhel-8.0-x86_64"  ]]; then
-    export ANSIBLE_INSTALL_METHOD=pip
+		# FIXME figure out how to install ansible devel on rhel8
+    # only specific version of ansible works with tower on rhel8 so we need to just let it pull it in
+    # from the dependency repo
+    export ANSIBLE_INSTALL_METHOD='none'
 fi
 
 MINIMUM_VAR_SPACE=0 \
 ANSIBLE_NIGHTLY_REPO="${ANSIBLE_NIGHTLY_REPO}/${ANSIBLE_NIGHTLY_BRANCH}" \
 python scripts/cloud_vars_from_env.py --cloud-provider ${CLOUD_PROVIDER} --platform ${PLATFORM} > playbooks/vars.yml
-ansible-playbook -i playbooks/inventory -e @playbooks/vars.yml playbooks/deploy-tower.yml
+ansible-playbook -i playbooks/inventory -e @playbooks/vars.yml -e aw_repo_url=${AW_REPO_URL} playbooks/deploy-tower.yml
 
 TOWER_URL=`ansible -i playbooks/inventory.log --list-hosts tower | grep -v -m 1 hosts | xargs`
 TOWER_VERSION=`curl -ks https://${TOWER_URL}/api/v1/ping/ | jq -r .version | cut -d . -f 1-3`

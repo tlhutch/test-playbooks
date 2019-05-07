@@ -18,16 +18,6 @@
       - python-crypto
   when: ansible_distribution == 'OracleLinux'
 
-
-# FIXME(spredzy): Remove me once the RHEL8 ec2 image is updated
-# and proper rh-amazon-rhui-client-beta > 3.0.12 is installed
-- name: update rh-amazon-rhui-client-beta
-  package:
-    name: rh-amazon-rhui-client-beta
-    state: latest
-  when: ansible_distribution == 'RedHat' and ansible_distribution_major_version == '8'
-
-
 - name: update yum
   yum:
     name: yum

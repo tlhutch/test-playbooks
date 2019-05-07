@@ -34,7 +34,10 @@ INSTANCE_NAME_PREFIX="${INSTANCE_NAME_PREFIX}-ansible-${ANSIBLE_NIGHTLY_BRANCH}"
 fi
 
 if [[ "${PLATFORM}" == "rhel-8.0-x86_64"  ]]; then
-    export ANSIBLE_INSTALL_METHOD=pip
+		# FIXME figure out how to install ansible devel on rhel8
+    # only specific version of ansible works with tower on rhel8 so we need to just let it pull it in
+    # from the dependency repo
+    export ANSIBLE_INSTALL_METHOD='none'
 fi
 
 python scripts/cloud_vars_from_env.py --cloud-provider ec2 --image-vars ${IMAGES_FILE_PATH} --platform ${PLATFORM} > cloud_vars.yml

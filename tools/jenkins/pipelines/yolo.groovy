@@ -239,73 +239,45 @@ pipeline {
                         AWX_ANSIBLE_RUNNER_URL = ''
                     }
 
-                    if (params.PLATFORM == 'rhel-8.0-x86_64') {
-                        install_build = build(
-                            job: 'rhel8/Install And Integration RHEL8',
-                            parameters: [
-                                string(
-                                    name: 'SCENARIO',
-                                    value: params.SCENARIO
-                                ),
-                                string(
-                                    name: 'TOWERQA_BRANCH',
-                                    value: "origin/${params.TOWER_QA_BRANCH}"
-                                ),
-                                string(
-                                    name: 'AWX_ANSIBLE_RUNNER_URL',
-                                    value: AWX_ANSIBLE_RUNNER_URL
-                                ),
-                                string(
-                                    name: 'INSTANCE_NAME_PREFIX',
-                                    value: "yolo-build-${env.BUILD_ID}"
-                                ),
-                                string(
-                                    name: 'AW_REPO_URL',
-                                    value: "${AWX_NIGHTLY_REPO_URL}/${NIGHTLY_REPO_DIR}"
-                                )
-                            ]
-                        )
+                    if (params.SCENARIO == 'standalone') {
+                        INSTALL_JOB_NAME='Test_Tower_Install_Plain'
                     } else {
-                        if (params.SCENARIO == 'standalone') {
-                            INSTALL_JOB_NAME='Test_Tower_Install_Plain'
-                        } else {
-                            INSTALL_JOB_NAME='Test_Tower_Install_Cluster_Plain'
-                        }
-
-                        install_build = build(
-                            job: INSTALL_JOB_NAME,
-                            parameters: [
-                                string(
-                                    name: 'INSTANCE_NAME_PREFIX',
-                                    value: "yolo-build-${env.BUILD_ID}"
-                                ),
-                                string(
-                                    name: 'AW_REPO_URL',
-                                    value: "${AWX_NIGHTLY_REPO_URL}/${NIGHTLY_REPO_DIR}"
-                                ),
-                                string(
-                                    name: 'TOWERQA_GIT_BRANCH',
-                                    value: "origin/${params.TOWER_QA_BRANCH}"
-                                ),
-                                string(
-                                    name: 'PLATFORM',
-                                    value: "${params.PLATFORM}"
-                                ),
-                                string(
-                                    name: 'AWX_ANSIBLE_RUNNER_URL',
-                                    value: AWX_ANSIBLE_RUNNER_URL
-                                ),
-                                string(
-                                    name: 'ANSIBLE_NIGHTLY_BRANCH',
-                                    value: "${params.ANSIBLE_NIGHTLY_BRANCH}"
-                                ),
-                                booleanParam(
-                                    name: 'TRIGGER',
-                                    value: false
-                                )
-                            ]
-                        )
+                        INSTALL_JOB_NAME='Test_Tower_Install_Cluster_Plain'
                     }
+
+                    install_build = build(
+                        job: INSTALL_JOB_NAME,
+                        parameters: [
+                            string(
+                                name: 'INSTANCE_NAME_PREFIX',
+                                value: "yolo-build-${env.BUILD_ID}"
+                            ),
+                            string(
+                                name: 'AW_REPO_URL',
+                                value: "${AWX_NIGHTLY_REPO_URL}/${NIGHTLY_REPO_DIR}"
+                            ),
+                            string(
+                                name: 'TOWERQA_GIT_BRANCH',
+                                value: "origin/${params.TOWER_QA_BRANCH}"
+                            ),
+                            string(
+                                name: 'PLATFORM',
+                                value: "${params.PLATFORM}"
+                            ),
+                            string(
+                                name: 'AWX_ANSIBLE_RUNNER_URL',
+                                value: AWX_ANSIBLE_RUNNER_URL
+                            ),
+                            string(
+                                name: 'ANSIBLE_NIGHTLY_BRANCH',
+                                value: "${params.ANSIBLE_NIGHTLY_BRANCH}"
+                            ),
+                            booleanParam(
+                                name: 'TRIGGER',
+                                value: false
+                            )
+                        ]
+                    )
                     TOWER_INSTALL_BUILD_ID = install_build.getId()
                 }
             }
