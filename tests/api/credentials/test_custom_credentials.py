@@ -216,7 +216,7 @@ class TestCustomCredentials(APITest):
         'INVENTORY_ID', 'INVENTORY_SOURCE_ID', 'INVENTORY_UPDATE_ID',
         'AD_HOC_COMMAND_ID', 'REST_API_URL', 'REST_API_TOKEN', 'MAX_EVENT_RES',
         'CALLBACK_QUEUE', 'CALLBACK_CONNECTION', 'CACHE',
-        'JOB_CALLBACK_DEBUG', 'INVENTORY_HOSTVARS', 'FACT_QUEUE',
+        'JOB_CALLBACK_DEBUG', 'INVENTORY_HOSTVARS',
         'AWX_HOST', 'PROJECT_REVISION'])
     def test_credential_blacklisted_env_injector(self, factories, blacklisted_key):
         inputs = dict(fields=[dict(id='field_one', label='FieldOne', secret=False)])
