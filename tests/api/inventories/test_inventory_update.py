@@ -322,8 +322,11 @@ class TestInventoryUpdate(APITest):
         the same custom script."""
         inv_source1 = factories.v2_inventory_source()
         inventory = inv_source1.ds.inventory
+        inv_script = inv_source1.ds.inventory_script
         inv_source2 = factories.v2_inventory_source(inventory=inventory,
-                                                    inventory_script=inv_source1.ds.inventory_script)
+                                                    source_script=inv_script)
+        assert inv_source1.source_script == inv_script.id
+        assert inv_source2.source_script == inv_source1.source_script
 
         inv_updates = inventory.update_inventory_sources(wait=True)
 
@@ -390,10 +393,11 @@ print(json.dumps({
             organization=shared_org,
         )
         inv_source = factories.v2_inventory_source(
-            inventory_script=inv_script,
+            source_script=inv_script,
             organization=shared_org,
             inventory=parent_inv
         )
+        assert inv_source.source_script == inv_script.id
         inv_source.update().wait_until_completed().assert_successful()
         groups = parent_inv.related.groups.get().results
         assert len(groups) == 3
@@ -423,8 +427,9 @@ print(json.dumps({
 }))""")
         inv_source = factories.v2_inventory_source(
             overwrite=True,
-            inventory_script=inv_script
+            source_script=inv_script
         )
+        assert inv_source.source_script == inv_script.id
 
         # update and load objects into in-memory dictionaries
         inv_source.update().wait_until_completed().assert_successful()
@@ -606,7 +611,8 @@ print(json.dumps({
         inv_script = factories.v2_inventory_script(script=("#!/usr/bin/env python\n"
                                                            "from __future__ import print_function\nimport sys\n"
                                                            "print('TEST', file=sys.stderr)\nprint('{}')"))
-        inv_source = factories.v2_inventory_source(inventory_script=inv_script)
+        inv_source = factories.v2_inventory_source(source_script=inv_script)
+        assert inv_source.source_script == inv_script.id
 
         inv_update = inv_source.update().wait_until_completed()
         inv_update.assert_successful()
@@ -640,13 +646,14 @@ print(json.dumps({
         )
         inv_source = factories.v2_inventory_source(
             inventory=inv,
-            inventory_script=inv_script,
+            source_script=inv_script,
             credential=factories.v2_credential(
                 credential_type=credential_type,
                 inputs={'password': 'SECRET123'}
             ),
             verbosity=2
         )
+        assert inv_source.source_script == inv_script.id
         inv_update = inv_source.update().wait_until_completed()
         assert 'password=SECRET123' in inv_update.result_stdout
 
@@ -1061,7 +1068,7 @@ print(json.dumps({
         sleep_time = 20  # similar to AWS inventory plugin performance
         inventory = factories.v2_inventory()
         inv_source = factories.v2_inventory_source(
-            inventory_script=factories.v2_inventory_script(
+            source_script=factories.v2_inventory_script(
                 script=inventory_script_code_with_sleep(sleep_time),
                 organization=inventory.ds.organization
             ),

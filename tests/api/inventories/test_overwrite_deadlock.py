@@ -126,10 +126,11 @@ class TestInventoryUpdateOverlappingSources(APITest):
             inv_source = factories.v2_inventory_source(
                 overwrite=True,
                 overwrite_vars=True,
-                inventory_script=inv_script,
+                source_script=inv_script,
                 organization=shared_org,
                 inventory=shared_parent_inv
             )
+            assert inv_source.source_script == inv_script.id
             source_scripts.append(inv_script)
             inv_sources.append(inv_source)
             inv_source.update().wait_until_completed().assert_successful()

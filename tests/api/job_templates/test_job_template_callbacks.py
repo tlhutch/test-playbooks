@@ -494,13 +494,14 @@ class TestJobTemplateCallbacks(APITest):
         ]).format(ansible_host)
 
         inv_script = factories.v2_inventory_script(script=script)
-        custom_source = factories.v2_inventory_source(inventory_script=inv_script)
-        custom_source.update_on_launch = True
+        inv_source = factories.v2_inventory_source(source_script=inv_script)
+        assert inv_source.source_script == inv_script.id
+        inv_source.update_on_launch = True
 
-        job_template = factories.v2_job_template(inventory=custom_source.ds.inventory)
+        job_template = factories.v2_job_template(inventory=inv_source.ds.inventory)
         job_template.host_config_key = host_config_key
 
-        assert custom_source.last_updated is None
+        assert inv_source.last_updated is None
 
         contacted = ansible_runner.uri(method="POST",
                                        status_code=http.client.CREATED,
@@ -517,8 +518,8 @@ class TestJobTemplateCallbacks(APITest):
         job = job_template.related.jobs.get(id=job_id).results.pop().wait_until_completed()
         job.assert_successful()
 
-        custom_source.get().assert_successful()
-        custom_source.related.last_update.get().assert_successful()
+        inv_source.get().assert_successful()
+        inv_source.related.last_update.get().assert_successful()
 
         host_summaries = job.related.job_host_summaries.get().results
         assert len(host_summaries) == 1
@@ -540,17 +541,18 @@ class TestJobTemplateCallbacks(APITest):
         ])
 
         inv_script = factories.v2_inventory_script(script=script)
-        custom_source = factories.v2_inventory_source(inventory_script=inv_script)
-        custom_source.update_on_launch = True
+        inv_source = factories.v2_inventory_source(source_script=inv_script)
+        assert inv_source.source_script == inv_script.id
+        inv_source.update_on_launch = True
 
         ansible_host = '127.0.0.1' if 'localhost' in callback_host else ansible_default_ipv4
-        factories.v2_host(name=ansible_host, inventory=custom_source.ds.inventory,
+        factories.v2_host(name=ansible_host, inventory=inv_source.ds.inventory,
                           variables=dict(ansible_host=ansible_host, ansible_connection='local'))
 
-        job_template = factories.v2_job_template(inventory=custom_source.ds.inventory)
+        job_template = factories.v2_job_template(inventory=inv_source.ds.inventory)
         job_template.host_config_key = host_config_key
 
-        assert custom_source.last_updated is None
+        assert inv_source.last_updated is None
 
         contacted = ansible_runner.uri(method="POST",
                                        status_code=http.client.CREATED,
@@ -567,8 +569,8 @@ class TestJobTemplateCallbacks(APITest):
         job = job_template.related.jobs.get(id=job_id).results.pop().wait_until_completed()
         job.assert_successful()
 
-        custom_source.get().assert_successful()
-        custom_source.related.last_update.get().assert_successful()
+        inv_source.get().assert_successful()
+        inv_source.related.last_update.get().assert_successful()
 
         host_summaries = job.related.job_host_summaries.get().results
         assert len(host_summaries) == 1

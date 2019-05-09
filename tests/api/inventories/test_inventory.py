@@ -213,7 +213,8 @@ class TestInventory(APITest):
         total = 5000
         jt = factories.v2_job_template()
         inv_script = factories.v2_inventory_script(script=host_script(total))
-        inv_source = factories.v2_inventory_source(inventory_script=inv_script)
+        inv_source = factories.v2_inventory_source(source_script=inv_script)
+        assert inv_source.source_script == inv_script.id
         inv = inv_source.ds.inventory
         inv.update_inventory_sources(wait=True)
 
@@ -225,7 +226,8 @@ class TestInventory(APITest):
     def test_large_import_activity_stream(self, v2, factories, host_script):
         total = 25
         inv_script = factories.v2_inventory_script(script=host_script(hosts=total, groups=total))
-        inv_source = factories.v2_inventory_source(inventory_script=inv_script)
+        inv_source = factories.v2_inventory_source(source_script=inv_script)
+        assert inv_source.source_script == inv_script.id
         inv = inv_source.ds.inventory
         search_kernel = inv.name[:-3]  # work around https://github.com/ansible/awx/issues/2570
         start = time.time()

@@ -140,13 +140,14 @@ class Test_Organizations(APITest):
 
     def test_organization_host_limits_dynamic_inventory(self, factories, host_script):
         org = factories.v2_organization()
-        inv_script = factories.v2_inventory_script(script=host_script(5))
-        inv_source = factories.v2_inventory_source(inventory_script=inv_script)
-        inv = inv_source.ds.inventory
-        inv.organization = org.id
         org.max_hosts = 4
-        job = inv.update_inventory_sources(wait=True)
-        assert job.pop().org_host_limit_error is True
+        inv = factories.v2_inventory(organization=org)
+        inv_script = factories.v2_inventory_script(organization=org, script=host_script(5))
+        inv_source = factories.v2_inventory_source(inventory=inv, source_script=inv_script)
+        assert inv_source.source_script == inv_script.id
+        assert inv.organization == org.id
+        job = inv.update_inventory_sources(wait=True).pop()
+        assert job.org_host_limit_error is True, job
 
     def test_organization_host_limits_cannot_launch_jt_if_limit_exceeded(self, factories):
         org = factories.v2_organization()

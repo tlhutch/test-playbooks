@@ -19,12 +19,6 @@ print(json.dumps(inventory))
 
 
 @pytest.fixture(scope="function")
-def another_custom_group(factories):
-    return factories.group(inventory_script=True,
-                           variables=json.dumps(dict(my_group_variable=True)))
-
-
-@pytest.fixture(scope="function")
 def cloud_inventory_job_template(job_template, cloud_group):
     # Substitute in no-op playbook that does not attempt to connect to host
     job_template.patch(playbook='debug.yml', inventory=cloud_group.inventory)
@@ -361,20 +355,21 @@ class Test_Sequential_Jobs(APITest):
         # confirm unified jobs ran as expected
         confirm_unified_jobs(sorted_unified_jobs)
 
-    def test_related_inventory_update_with_command(self, request, v1):
+    def test_related_inventory_update_with_command(self, request, factories, ad_hoc_command):
         """If an inventory is used in a command and has a group that allows for updates, then spawned
         commands and updates must run sequentially. Check that:
         * Spawned unified jobs run sequentially.
         * Unified jobs run in the order launched.
         """
-        inventory_script = v1.inventory_scripts.create()
-        request.addfinalizer(inventory_script.teardown)
-        custom_group = v1.groups.create(inventory_script=inventory_script)
-        request.addfinalizer(custom_group.teardown)
+        org = factories.v2_organization()
+        inventory_script = factories.v2_inventory_script(organization=org)
+        inventory = factories.v2_inventory(organization=org)
+        inv_source = factories.v2_inventory_source(inventory=inventory, source_script=inventory_script)
+        assert inv_source.source_script == inventory_script.id
 
         # launch unified jobs
-        update = custom_group.related.inventory_source.get().update()
-        command = v1.ad_hoc_commands.create(module_name='shell', module_args='true', inventory=custom_group.ds.inventory)
+        update = inv_source.update()
+        command = factories.ad_hoc_command(module_name='shell', module_args='true', inventory=inventory)
         sorted_unified_jobs = [update, command]
 
         # confirm unified jobs ran as expected
@@ -672,7 +667,8 @@ class Test_Autospawned_Jobs(APITest):
 class Test_Cascade_Fail_Dependent_Jobs(APITest):
 
     def test_canceling_inventory_update_should_cascade_cancel_dependent_job(self, factories, sleeping_inventory_script):
-        inv_source = factories.v2_inventory_source(inventory_script=sleeping_inventory_script, update_on_launch=True)
+        inv_source = factories.v2_inventory_source(source_script=sleeping_inventory_script, update_on_launch=True)
+        assert inv_source.source_script == sleeping_inventory_script.id
         jt = factories.v2_job_template(inventory=inv_source.ds.inventory)
 
         job = jt.launch()
@@ -696,10 +692,11 @@ class Test_Cascade_Fail_Dependent_Jobs(APITest):
         its dependent jobs fail.
         """
         inventory = factories.v2_inventory(organization=sleeping_inventory_script.ds.organization)
-        sources = [factories.v2_inventory_source(inventory=inventory, inventory_script=sleeping_inventory_script,
+        sources = [factories.v2_inventory_source(inventory=inventory, source_script=sleeping_inventory_script,
                                                  update_on_launch=True) for _ in range(2)]
         for source in sources:
             assert not source.get().last_updated
+            assert source.source_script == sleeping_inventory_script.id
 
         job_template = factories.v2_job_template(inventory=inventory)
         job_pg = job_template.launch()
@@ -763,7 +760,8 @@ class Test_Cascade_Fail_Dependent_Jobs(APITest):
     def test_canceling_project_update_should_cascade_cancel_inventory_update_and_dependent_job(self, factories, sleeping_inventory_script):
         project = factories.v2_project(scm_type='git', scm_url='https://github.com/ansible/ansible.git',
                                        scm_delete_on_update=True, scm_update_on_launch=True)
-        inv_source = factories.v2_inventory_source(inventory_script=sleeping_inventory_script, update_on_launch=True)
+        inv_source = factories.v2_inventory_source(source_script=sleeping_inventory_script, update_on_launch=True)
+        assert inv_source.source_script == sleeping_inventory_script.id
         jt = factories.v2_job_template(project=project, inventory=inv_source.ds.inventory,
                                        playbook='test/integration/targets/unicode/unicode.yml')
 
@@ -797,7 +795,8 @@ class Test_Cascade_Fail_Dependent_Jobs(APITest):
             sleeping_inventory_script):
         project = factories.v2_project(scm_type='git', scm_url='https://github.com/ansible/ansible.git',
                                        scm_delete_on_update=True, scm_update_on_launch=True)
-        inv_source = factories.v2_inventory_source(inventory_script=sleeping_inventory_script, update_on_launch=True)
+        inv_source = factories.v2_inventory_source(source_script=sleeping_inventory_script, update_on_launch=True)
+        assert inv_source.source_script == sleeping_inventory_script.id
         jt = factories.v2_job_template(project=project, inventory=inv_source.ds.inventory,
                                        playbook='test/integration/targets/unicode/unicode.yml')
 
