@@ -267,10 +267,12 @@ class TestUnifiedJobImpact(APITest):
         inst_hostname = ig_with_single_instance.policy_instance_list[0]
         instance = v2.instances.get(hostname=inst_hostname).results.pop()
 
+        script_text = inventory_script_code_with_sleep(20)
         slow_inventory_source = factories.v2_inventory_source(
-            source_script=factories.v2_inventory_script(script=inventory_script_code_with_sleep(20))
+            inventory_script=factories.v2_inventory_script(script=script_text)
         )
-        slow_inventory_source.ds.inventory.add_instance_group(ig_with_single_instance)
+        assert slow_inventory_source.get_related('source_script').script == script_text
+        slow_inventory_source.ds.inventory.add_instance_group(ig_with_single_instance)  # sanity
 
         inv_update = slow_inventory_source.update()
 
