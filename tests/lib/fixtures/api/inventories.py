@@ -511,7 +511,7 @@ def openstack_group(request):
 def custom_group(factories, inventory, inventory_script):
     group = factories.group(name="custom-group-%s" % fauxfactory.gen_alphanumeric(),
                             description="Custom Group %s" % fauxfactory.gen_utf8(),
-                            inventory=inventory, inventory_script=inventory_script,
+                            inventory=inventory, source_script=inventory_script,
                             variables=json.dumps(dict(my_group_variable=True)))
     return group
 

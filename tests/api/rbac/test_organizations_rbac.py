@@ -261,11 +261,11 @@ class Test_Organization_RBAC(APITest):
         # create custom groups
         inv_script1 = factories.v2_inventory_script(organization=org1)
         inv_script2 = factories.v2_inventory_script(organization=org2)
-        group1 = factories.group(inventory=inv1, inventory_script=inv_script1)
-        group2 = factories.group(inventory=inv2, inventory_script=inv_script2)
+        inv_source1 = factories.v2_inventory_source(inventory=inv1, source_script=inv_script1)
+        inv_source2 = factories.v2_inventory_source(inventory=inv2, source_script=inv_script2)
 
-        inv_update1 = group1.related.inventory_source.get().update().wait_until_completed()
-        inv_update2 = group2.related.inventory_source.get().update().wait_until_completed()
+        inv_update1 = inv_source1.update().wait_until_completed()
+        inv_update2 = inv_source2.update().wait_until_completed()
 
         with self.current_user(username=org_admin.username, password=org_admin.password):
             inv_update1.delete()

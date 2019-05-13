@@ -298,13 +298,15 @@ inv = dict(somegroup{0}=dict(hosts=['somehost{0}'],
                                        cruft='x' * 1024 ** 2)))
 
 print(json.dumps(inv))""".format(random_title(non_ascii=False))
-        inv_src = factories.v2_inventory_source(inventory_script=(True, dict(script=script)))
-        inv_src.update().wait_until_completed().assert_successful()
-        jt = factories.v2_job_template(inventory=inv_src.ds.inventory,
+        inv_script = factories.v2_inventory_script(script=script)
+        inv_source = factories.v2_inventory_source(source_script=inv_script)
+        assert inv_source.source_script == inv_script.id
+        inv_source.update().wait_until_completed().assert_successful()
+        jt = factories.v2_job_template(inventory=inv_source.ds.inventory,
                                        use_fact_cache=True,
                                        playbook='scan_custom.yml')
         jt.launch().wait_until_completed().assert_successful()
-        host = inv_src.ds.inventory.related.hosts.get().results.pop()
+        host = inv_source.ds.inventory.related.hosts.get().results.pop()
         facts = host.related.ansible_facts.get()
         assert facts.string == "abc"
 

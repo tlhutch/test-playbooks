@@ -52,7 +52,6 @@ class TestChannelsRBAC(APITest):
             if msg != denied_error:
                 assert msg['group_name'] == 'jobs'
 
-    @pytest.mark.github('https://github.com/ansible/tower-qa/issues/2303')
     @pytest.mark.parametrize('role', ['ad hoc', 'admin', 'read', 'update', 'use'])
     def test_ad_hoc_command_events_with_allowed_role(self, factories, user_ws_client, role):
         """Confirm that a user is only alerted of ad hoc events when provided an allowed role"""
@@ -92,34 +91,6 @@ class TestChannelsRBAC(APITest):
                                for event in filtered_ahc_events]
         for expected in expected_ahc_events:
             assert expected in filtered_received
-
-    @pytest.mark.github('https://github.com/ansible/tower/issues/669', skip=True)
-    @pytest.mark.parametrize('role', ['admin', 'update', 'use', 'read'])
-    def test_inventory_update_status_changes_with_allowed_role(self, factories, user_ws_client, role):
-        """Confirm that a user is only alerted of inventory source updates statuses when provided an allowed role"""
-        user = factories.v2_user()
-        ws = user_ws_client(user).connect()
-        ws.status_changes()
-        self.sleep_and_clear_messages(ws)
-
-        group = factories.v2_group(source='custom', inventory_script=True)
-        group.related.inventory_source.get().update().wait_until_completed()
-        assert not [m for m in ws]  # no messages should be broadcasted to client
-
-        assert group.ds.inventory.set_object_roles(user, role)
-
-        update_id = group.related.inventory_source.get().update().wait_until_completed().id
-        base_status_change = dict(group_name='jobs', group_id=group.id, unified_job_id=update_id)
-        expected_status_changes = []
-        for status in ('waiting', 'running', 'successful'):
-            expected_msg = dict(status=status, **base_status_change)
-            if status == 'waiting':
-                expected_msg['instance_group_name'] = 'tower'
-            expected_status_changes.append(expected_msg)
-
-        received = [m for m in ws]
-        for message in expected_status_changes:
-            assert message in received
 
     def test_job_events_unauthorized_subscription(self, factories, user_ws_client):
         user = factories.v2_user()

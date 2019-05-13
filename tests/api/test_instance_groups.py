@@ -149,10 +149,11 @@ class TestInstanceGroups(APITest):
         ig.add_instance(instance)
 
         inv_script = factories.v2_inventory_script(script=inventory_script_code_with_sleep(20))
-        inventory_source = factories.v2_inventory_source(inventory_script=inv_script)
-        inventory_source.ds.inventory.add_instance_group(ig)
+        inv_source = factories.v2_inventory_source(source_script=inv_script)
+        assert inv_source.source_script == inv_script.id
+        inv_source.ds.inventory.add_instance_group(ig)
 
-        iu = inventory_source.update()
+        iu = inv_source.update()
 
         utils.poll_until(lambda: iu.get().status == 'running', interval=5, timeout=60)
 

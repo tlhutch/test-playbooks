@@ -289,6 +289,7 @@ class Test_Inventory_Scripts(APITest):
         """Verify an inventory_update fails when using various bad inventory_scripts"""
         # PATCH inventory_source
         custom_inventory_source.patch(source_script=bad_inventory_script.id)
+        assert custom_inventory_source.source_script == bad_inventory_script.id
 
         # Update inventory_source and wait for completion
         update_pg = custom_inventory_source.update().wait_until_completed()

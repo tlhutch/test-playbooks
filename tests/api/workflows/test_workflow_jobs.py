@@ -93,11 +93,11 @@ class Test_Workflow_Jobs(APITest):
         """Confirms that inventory sources are treated as unified job templates in addition to confirming
         related workflow job nodes of inventory update types have correct url
         """
-        group = factories.group()
         inv_script = factories.v2_inventory_script()
-        inv_source = group.related.inventory_source.patch(source_script=inv_script.id)
-        wfjt = factories.workflow_job_template()
-        factories.workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=inv_source)
+        inv_source = factories.v2_inventory_source(source_script=inv_script)
+        assert inv_source.source_script == inv_script.id
+        wfjt = factories.v2_workflow_job_template()
+        factories.v2_workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=inv_source)
         wfj = wfjt.launch().wait_until_completed()
         wfjn = wfj.related.workflow_nodes.get().results.pop()
         assert('inventory_updates' in wfjn.related.job)  # confirm that it's not linked as a job

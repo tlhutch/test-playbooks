@@ -33,10 +33,11 @@ class TestInventorySource(APITest):
 
             error = {'credential': ['Credentials of type machine, source control, insights and vault are disallowed for custom inventory sources.']}
             with pytest.raises(exc.BadRequest) as e:
-                factories.v2_inventory_source(inventory=inventory, inventory_script=inv_script, credential=cred)
+                factories.v2_inventory_source(inventory=inventory, source_script=inv_script, credential=cred)
             assert e.value[1] == error
 
-            inv_source = factories.v2_inventory_source(inventory=inventory, inventory_script=inv_script)
+            inv_source = factories.v2_inventory_source(inventory=inventory, source_script=inv_script)
+            assert inv_source.source_script == inv_script.id
             with pytest.raises(exc.BadRequest) as e:
                 inv_source.credential = cred.id
             assert e.value[1] == error
@@ -66,10 +67,11 @@ class TestInventorySource(APITest):
                 '}))'
             ]))
         )
-        inv_src = factories.v2_inventory_source(inventory=inventory, inventory_script=inv_script)
+        inv_source = factories.v2_inventory_source(inventory=inventory, source_script=inv_script)
+        assert inv_source.source_script == inv_script.id
 
         # Run the inventory update
-        inv_update = inv_src.update().wait_until_completed()
+        inv_update = inv_source.update().wait_until_completed()
         inv_update.assert_successful()
         inv_hosts = inventory.related.hosts.get()
         assert inv_hosts.count == 3
@@ -125,10 +127,11 @@ class TestInventorySource(APITest):
                 '}))'
             ]))
         )
-        inv_src = factories.v2_inventory_source(inventory=inventory, inventory_script=inv_script)
+        inv_source = factories.v2_inventory_source(inventory=inventory, source_script=inv_script)
+        assert inv_source.source_script == inv_script.id
 
         # Run the inventory update
-        inv_update = inv_src.update().wait_until_completed()
+        inv_update = inv_source.update().wait_until_completed()
         inv_update.assert_successful()
         inv_hosts = inventory.related.hosts.get()
         assert inv_hosts.count == 1
@@ -197,7 +200,7 @@ class TestInventorySource(APITest):
         # In this inventory, all hosts are members of all groups,
         # so that makes it more challenging to avoid conflicts while deleting both
         inv_source = factories.v2_inventory_source(
-            inventory_script=factories.v2_inventory_script(
+            source_script=factories.v2_inventory_script(
                 script='\n'.join([
                     "#!/usr/bin/env python",
                     "import json",

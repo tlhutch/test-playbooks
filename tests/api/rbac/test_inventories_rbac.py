@@ -79,7 +79,8 @@ class TestInventoryRBAC(APITest):
             # check ability to create group and host
             group = factories.v2_group(inventory=inventory)
             host = factories.v2_host(inventory=inventory)
-            inv_source = factories.v2_inventory_source(inventory=inventory, inventory_script=inv_script)
+            inv_source = factories.v2_inventory_source(inventory=inventory, source_script=inv_script)
+            assert inv_source.source_script == inv_script.id
 
             # check put/patch/delete on inventory and inventory resources
             for resource in [host, group, inv_source, inventory]:
@@ -114,7 +115,7 @@ class TestInventoryRBAC(APITest):
             with pytest.raises(towerkit.exceptions.Forbidden):
                 factories.v2_host(inventory=inventory)
             with pytest.raises(towerkit.exceptions.Forbidden):
-                factories.v2_inventory_source(inventory=inventory, inventory_script=inv_script)
+                factories.v2_inventory_source(inventory=inventory, source_script=inv_script)
 
             # check put/patch/delete on inventory and inventory resoures
             for resource in [host, group, inv_source, inventory]:
@@ -149,7 +150,7 @@ class TestInventoryRBAC(APITest):
             with pytest.raises(towerkit.exceptions.Forbidden):
                 factories.v2_host(inventory=inventory)
             with pytest.raises(towerkit.exceptions.Forbidden):
-                factories.v2_inventory_source(inventory=inventory, inventory_script=inv_script)
+                factories.v2_inventory_source(inventory=inventory, source_script=inv_script)
 
             # check put/patch/delete on inventory and inventory resources
             for resource in [host, group, inv_source, inventory]:
@@ -184,7 +185,7 @@ class TestInventoryRBAC(APITest):
             with pytest.raises(towerkit.exceptions.Forbidden):
                 factories.v2_host(inventory=inventory)
             with pytest.raises(towerkit.exceptions.Forbidden):
-                factories.v2_inventory_source(inventory=inventory, inventory_script=inv_script)
+                factories.v2_inventory_source(inventory=inventory, source_script=inv_script)
 
             # check put/patch/delete on inventory, group, and host
             for resource in [host, group, inv_source, inventory]:
@@ -219,7 +220,7 @@ class TestInventoryRBAC(APITest):
             with pytest.raises(towerkit.exceptions.Forbidden):
                 factories.v2_host(inventory=inventory)
             with pytest.raises(towerkit.exceptions.Forbidden):
-                factories.v2_inventory_source(inventory=inventory, inventory_script=inv_script)
+                factories.v2_inventory_source(inventory=inventory, source_script=inv_script)
 
             # check put/patch/delete on inventory, group, and host
             for resource in [host, group, inv_source, inventory]:
