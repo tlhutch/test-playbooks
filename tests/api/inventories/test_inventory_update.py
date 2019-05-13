@@ -704,11 +704,12 @@ print(json.dumps({
         )
         iu = inv_src.update().wait_until_completed()
         output = iu.result_stdout
-        assert 'Gering-ding-ding-ding-dingeringeding' in output, output
+        reduced_output = output.replace('\n', '').replace(' ', '')
+        assert 'Gering-ding-ding-ding-dingeringeding' in reduced_output, output
         if verbosity == 0:
-            assert 'ancient_mystery' not in output
+            assert 'ancient_mystery' not in reduced_output, output
         else:
-            assert 'ancient_mystery' in output
+            assert 'ancient_mystery' in reduced_output, output
 
     def test_update_with_source_region(self, region_choices, cloud_group_supporting_source_regions):
         """Assess inventory imports with all possible choices for source_regions.
