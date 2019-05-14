@@ -322,6 +322,9 @@ class Test_Organization_RBAC(APITest):
 
     @staticmethod
     def create_resource(factories, res_type, org, **kwargs):
+        if res_type == 'inventory_source':
+            kwargs['source_script'] = factories.v2_inventory_script(organization=org)
+            kwargs['inventory'] = factories.v2_inventory(organization=org)
         if res_type == 'job_template':
             # Would like to specify kwargs like 'project': (Project, {Organization: org})
             # but something about the towerkit dependency store does not work for that
@@ -331,8 +334,7 @@ class Test_Organization_RBAC(APITest):
                 kwargs['inventory'] = factories.v2_inventory(organization=org)
             if not kwargs.get('credential'):
                 kwargs['credential'] = factories.v2_credential(organization=org)
-        else:
-            kwargs['organization'] = org
+        kwargs['organization'] = org
         return getattr(factories, 'v2_{}'.format(res_type))(**kwargs)
 
     @pytest.mark.parametrize('resource_type', [item.resource_type for item in org_resource_admin_mappings])

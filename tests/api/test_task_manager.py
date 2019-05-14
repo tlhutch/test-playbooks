@@ -25,12 +25,6 @@ def cloud_inventory_job_template(job_template, cloud_group):
     return job_template
 
 
-@pytest.fixture(scope="function")
-def custom_inventory_job_template(job_template, custom_group):
-    job_template.patch(inventory=custom_group.inventory)
-    return job_template
-
-
 def wait_for_jobs_to_finish(jobs):
     """Helper function that waits for all jobs to finish.
 
@@ -486,13 +480,14 @@ class Test_Autospawned_Jobs(APITest):
         sorted_unified_jobs = [[aws_update, gce_update], job_pg]
         confirm_unified_jobs(sorted_unified_jobs)
 
-    def test_inventory_cache_timeout(self, custom_inventory_job_template, custom_inventory_source):
+    def test_inventory_cache_timeout(self, factories, custom_inventory_source):
         """Verify that an inventory update is not triggered by the job launch if the
         cache is still valid. Job ordering should be as follows:
         * Manually launched inventory update.
         * Job upon completion of inventory update.
         """
         # set update_on_launch and a five minute update_cache_timeout
+        custom_inventory_job_template = factories.v2_job_template(inventory=custom_inventory_source.related.inventory.get())
         cache_timeout = 60 * 5
         custom_inventory_source.patch(update_on_launch=True, update_cache_timeout=cache_timeout)
         assert custom_inventory_source.update_cache_timeout == cache_timeout
@@ -606,7 +601,7 @@ class Test_Autospawned_Jobs(APITest):
         confirm_unified_jobs(sorted_unified_jobs)
 
     # Skip for openshift because of Github Issue: https://github.com/ansible/tower-qa/issues/2591
-    def test_inventory_and_project(self, skip_if_openshift, custom_inventory_job_template, custom_inventory_source):
+    def test_inventory_and_project(self, skip_if_openshift, factories, custom_inventory_source):
         """Verify that two project updates and an inventory update get triggered
         by a job launch when we enable update_on_launch for both our project and
         custom group. Job ordering should be as follows:
@@ -616,6 +611,7 @@ class Test_Autospawned_Jobs(APITest):
         * Our job should run simultaneously with our 'run' project update.
         """
         # set scm_update_on_launch for the project
+        custom_inventory_job_template = factories.v2_job_template(inventory=custom_inventory_source.related.inventory.get())
         project = custom_inventory_job_template.related.project.get()
         project.patch(scm_update_on_launch=True)
         assert project.scm_update_on_launch
