@@ -283,8 +283,8 @@ class TestJobTemplates(APITest):
 
     @pytest.mark.ansible_integration
     @pytest.mark.parametrize("limit_value, expected_count", [
-        ("", 12),
-        ("all", 12),
+        ("", 11),
+        ("all", 11),
         ("host-6", 1),
         ("group-1", 4),
         ("group*:&group-1:!duplicate_host", 3),  # All groups intersect with "group-1" and not "duplicate_host"
@@ -331,6 +331,7 @@ print(json.dumps(inv, indent=2))
     ):
         """Verifies that job_template launches with different values for limit behave as expected."""
         # patch job_template
+        job_template.inventory = custom_inventory_source.inventory
         job_template.patch(limit=limit_value)
         assert job_template.limit == limit_value, "Unexpected job_template limit with job template - %s." % job_template
 

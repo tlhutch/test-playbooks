@@ -78,10 +78,9 @@ def custom_inventory_update_with_status_completed(custom_inventory_source):
 @pytest.fixture(scope="function")
 def host_with_default_ipv4_in_variables(factories, inventory, ansible_default_ipv4):
     """Create a random inventory host where ansible_host == ansible_default_ipv4."""
-    host = factories.host(inventory=group.ds.inventory,
+    host = factories.host(inventory=inventory,
                           variables=json.dumps(dict(ansible_host=ansible_default_ipv4,
                                                     ansible_connection="local")))
-    group.add_host(host)
     return host
 
 
@@ -91,8 +90,10 @@ def group(factories, inventory):
 
 
 @pytest.fixture(scope="function")
-def inventory_source(factories):
-    return factories.v2_inventory_source()
+def inventory_source(factories, inventory_script):
+    organization = inventory_script.related.organization.get()
+    inventory = factories.v2_inventory(organization=organization)
+    return factories.v2_inventory_source(inventory=inventory, source_script=inventory_script)
 
 
 @pytest.fixture(scope="function")
