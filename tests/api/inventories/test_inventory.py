@@ -121,16 +121,6 @@ class TestInventory(APITest):
         assert inv.inventory_sources_with_failures == 1
         assert inv.has_active_failures
 
-    def test_v1_update_cascade_delete(self, custom_inventory_source):
-        """Verify that v1 inventory updates get cascade deleted with their custom group."""
-        inv_update1, inv_update2 = [custom_inventory_source.update().wait_until_completed() for _ in range(2)]
-
-        custom_inventory_source.get_related('group').delete()
-        with pytest.raises(exc.NotFound):
-            inv_update1.get()
-        with pytest.raises(exc.NotFound):
-            inv_update2.get()
-
     def test_v2_update_cascade_delete(self, factories):
         """Verify that v2 inventory updates get cascade deleted with their inventory source."""
         inv_source = factories.v2_inventory_source()
