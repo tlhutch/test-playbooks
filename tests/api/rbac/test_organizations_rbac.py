@@ -51,8 +51,6 @@ class Test_Organization_RBAC(APITest):
                            sub_resource=('credential', dict(kind='insights'))),
         SubResourceMapping(resource_type='inventory_source', field='credential',
                            sub_resource=('credential', dict(kind='aws'))),
-        SubResourceMapping(resource_type='inventory_source', field='inventory',
-                           sub_resource=('inventory', {})),
         SubResourceMapping(resource_type='inventory_source', field='project',
                            sub_resource=('project', {})),
         SubResourceMapping(resource_type='job_template', field='credential',
@@ -322,6 +320,8 @@ class Test_Organization_RBAC(APITest):
 
     @staticmethod
     def create_resource(factories, res_type, org, **kwargs):
+        if res_type == 'inventory_source':
+            kwargs['source_script'] = factories.v2_inventory_script(organization=org)
         if res_type == 'job_template':
             # Would like to specify kwargs like 'project': (Project, {Organization: org})
             # but something about the towerkit dependency store does not work for that
@@ -377,7 +377,7 @@ class Test_Organization_RBAC(APITest):
             if sub_resource_mapping.field == 'project':
                 creation_kwargs['source'] = 'scm'
             if sub_resource_mapping.field == 'credential':
-                creation_kwargs['inventory_script'] = factories.v2_inventory_script(organization=orgB)
+                creation_kwargs['source_script'] = factories.v2_inventory_script(organization=orgB)
         with self.current_user(user):
             with pytest.raises(towerkit.exceptions.Forbidden):
                 self.create_resource(factories, sub_resource_mapping.resource_type, orgB, **creation_kwargs)

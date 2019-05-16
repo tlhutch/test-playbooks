@@ -285,10 +285,12 @@ class Test_Inventory_Scripts(APITest):
             assert e.value.msg == {'source_vars': ['`{}` is a prohibited environment variable'.format(forbidden)]}
 
     @pytest.mark.ansible_integration
-    def test_import_script_failure(self, custom_inventory_source, api_unified_jobs_pg, bad_inventory_script):
+    def test_import_script_failure(self, factories, api_unified_jobs_pg, bad_inventory_script):
         """Verify an inventory_update fails when using various bad inventory_scripts"""
         # PATCH inventory_source
-        custom_inventory_source.patch(source_script=bad_inventory_script.id)
+        org = bad_inventory_script.related.organization.get()
+        inventory = factories.v2_inventory(organization=org)
+        custom_inventory_source = factories.v2_inventory_source(source_script=bad_inventory_script, inventory=inventory)
         assert custom_inventory_source.source_script == bad_inventory_script.id
 
         # Update inventory_source and wait for completion
