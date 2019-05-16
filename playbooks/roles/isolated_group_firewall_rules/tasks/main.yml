@@ -12,17 +12,12 @@
     name: "{{ ansible_user }}"
     password: "{{ admin_password|password_hash('sha512') }}"
 
-- name: Restart sshd
-  service:
-    name: sshd
-    state: restarted
-
 - name: install firewalld (yum)
   yum:
     name: firewalld
     state: latest
     update_cache: yes
-  when: ansible_pkg_mgr == 'yum'
+  when: ansible_pkg_mgr in ['yum', 'dnf']
 
 - name: install firewalld (apt)
   apt:
@@ -30,6 +25,12 @@
     state: latest
     update_cache: yes
   when: ansible_pkg_mgr == 'apt'
+
+- name: Restart sshd
+  service:
+    name: sshd
+    enabled: yes
+    state: restarted
 
 - name: enable firewalld
   service:
