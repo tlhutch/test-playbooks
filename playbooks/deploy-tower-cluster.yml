@@ -14,6 +14,10 @@
   hosts: all
   tasks:
     - ipify_facts:
+      retries: 2 # allow retries due to previously observed flakiness of ipify_facts module reaching out to external service
+      delay: 3
+      register: result
+      until: result is success
 
 - name: Enable FIPS for isolated nodes
   hosts: 'tower:isolated_group*:instance_group*'
@@ -135,3 +139,7 @@
   tasks:
     - command: supervisorctl restart tower-processes:awx-dispatcher
       become: true
+      retries: 2 # Allow retries due to observed flakiness of restarting dispatcher
+      delay: 3
+      register: result
+      until: result is success
