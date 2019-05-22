@@ -113,4 +113,7 @@
   - name: Remove general access to ssh from public zone
     shell: echo 'firewall-cmd --zone=public --remove-service=ssh --permanent && firewall-cmd --reload' | at now + 1 minute
 
-  when: ansible_os_family == 'RedHat'
+  #FIXME: Not working on RHEL8 right now. Removing ssh from public zone shuts down all access, so rich rules are not working
+  # this is implicit testing that in no other way work is delegated to isolated nodes, but there is no application need for
+  # "isolated" nodes to be literally unavailable over the network from other sources than controllers
+  when: ansible_os_family == 'RedHat' and ansible_distribution_major_version < '8'
