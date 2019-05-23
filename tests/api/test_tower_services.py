@@ -30,17 +30,8 @@ class TestTowerServices(APITest):
     def test_tower_status_on_el7(self, ansible_runner, ansible_os_family, restart_tower_on_teardown, command, active):
         """Executes ansible-tower-service commands and checks process statuses.
         Note: we check process output with systemctl on EL7 systems and with
-        service on EL6 systems. Did not implement with Ubuntu because of the
-        following:
-        * On Ubuntu systems, ansible-tower-service status sometimes incorrectly
-        reports the status of redis-server.
-        * On Ubuntu systems, rapidly restarting supervisor can leave your system
-        in an indeterminate state.
+        service on EL6 systems.
         """
-        # check that Tower is running on an EL system
-        if not (ansible_os_family == 'RedHat'):
-            pytest.skip("Only supported on EL distributions")
-
         # issue ansible-tower-service command
         contacted = ansible_runner.command('ansible-tower-service ' + command)
         result = list(contacted.values())[0]

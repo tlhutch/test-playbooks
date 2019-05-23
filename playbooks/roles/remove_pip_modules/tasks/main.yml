@@ -8,13 +8,6 @@
   register: is_pyyaml_pkg_installed
   when: ansible_distribution in ['RedHat', 'CentOS']
 
-- name: detect if PyYAML deb is installed
-  command: dpkg -l python-yaml
-  changed_when: false
-  ignore_errors: true
-  register: is_pyyaml_pkg_installed
-  when: ansible_distribution in ['Ubuntu',]
-
 - name: detect pip installed packages
   shell: pip list | awk '{print $1}'
   changed_when: false

@@ -57,11 +57,8 @@ class TestFactCache(APITest):
 
         if is_docker:
             assert ansible_facts.services['network']
-        elif ansible_os_family == 'RedHat':
-            assert ansible_facts.services['sshd.service']
-        # for ubuntu systems
         else:
-            assert ansible_facts.services['ssh']
+            assert ansible_facts.services['sshd.service']
 
         assert ansible_facts.packages['which'] if is_docker else ansible_facts.packages['ansible-tower']
         assert ansible_facts.insights['system_id'] == machine_id
