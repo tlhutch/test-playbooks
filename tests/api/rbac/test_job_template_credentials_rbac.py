@@ -9,11 +9,9 @@ from tests.api import APITest
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestJobTemplateCredentialsRBAC(APITest):
 
-    @pytest.mark.parametrize('version', ('v1', 'v2'))
-    def test_job_template_creation_request_without_credential_access_forbidden(self, request, factories, version):
-        v = request.getfixturevalue(version)
-        jt_factory = factories.job_template if version == 'v1' else factories.v2_job_template
-        user_factory = factories.user if version == 'v1' else factories.v2_user
+    def test_job_template_creation_request_without_credential_access_forbidden(self, request, factories, v2):
+        jt_factory = factories.v2_job_template
+        user_factory = factories.v2_user
 
         jt_payload = jt_factory.payload()
         organization = jt_payload.ds.inventory.ds.organization
@@ -28,7 +26,7 @@ class TestJobTemplateCredentialsRBAC(APITest):
         credential.set_object_roles(user, 'read')
         with self.current_user(user):
             with pytest.raises(exc.Forbidden):
-                v.job_templates.post(jt_payload)
+                v2.job_templates.post(jt_payload)
 
         for role in ('use', 'admin'):
             credential.set_object_roles(user, role)
@@ -63,14 +61,12 @@ class TestJobTemplateCredentialsRBAC(APITest):
                 jt = v1.job_templates.post(jt_payload)
                 jt.delete()
 
-    @pytest.mark.parametrize('version', ('v1', 'v2'))
-    def test_job_template_creation_request_without_vault_credential_access_forbidden(self, request, factories, version):
+    def test_job_template_creation_request_without_vault_credential_access_forbidden(self, request, factories, v2):
         """Verify that a job_template with network credential creation request
         is only permitted if the user making the request has usage permission for the network credential.
         """
-        v = request.getfixturevalue(version)
-        jt_factory = factories.job_template if version == 'v1' else factories.v2_job_template
-        user_factory = factories.user if version == 'v1' else factories.v2_user
+        jt_factory = factories.v2_job_template
+        user_factory =  factories.v2_user
 
         jt_payload = jt_factory.payload()
         organization = jt_payload.ds.inventory.ds.organization
@@ -80,23 +76,19 @@ class TestJobTemplateCredentialsRBAC(APITest):
         for resource in ('credential', 'project', 'inventory'):
             jt_payload.ds[resource].set_object_roles(user, 'use')
 
-        if version == 'v1':
-            vault_credential = factories.credential(kind='ssh', vault_password='tower', username='', password='',
-                                                    ssh_key_data='', become_password='', organization=organization)
-        else:
-            vault_credential = factories.v2_credential(kind='vault', vault_password='tower', organization=organization)
+        vault_credential = factories.v2_credential(kind='vault', vault_password='tower', organization=organization)
 
         jt_payload.vault_credential = vault_credential.id
 
         vault_credential.set_object_roles(user, 'read')
         with self.current_user(user):
             with pytest.raises(exc.Forbidden):
-                v.job_templates.post(jt_payload)
+                v2.job_templates.post(jt_payload)
 
         for role in ('use', 'admin'):
             vault_credential.set_object_roles(user, role)
             with self.current_user(user):
-                jt = v.job_templates.post(jt_payload)
+                jt = v2.job_templates.post(jt_payload)
                 jt.delete()
 
     @pytest.mark.parametrize('cred_kind', ('net', 'aws', 'custom'))
@@ -130,10 +122,9 @@ class TestJobTemplateCredentialsRBAC(APITest):
                 jt.remove_extra_credential(extra_credential)
                 assert not jt.related.extra_credentials.get(name=extra_credential.name).count
 
-    @pytest.mark.parametrize('version', ('v1', 'v2'))
-    def test_launch_with_ask_credential_and_no_credential_access_forbidden(self, factories, version):
-        jt_factory = factories.job_template if version == 'v1' else factories.v2_job_template
-        user_factory = factories.user if version == 'v1' else factories.v2_user
+    def test_launch_with_ask_credential_and_no_credential_access_forbidden(self, factories):
+        jt_factory = factories.v2_job_template
+        user_factory = factories.v2_user
 
         jt = jt_factory(ask_credential_on_launch=True)
         credential = jt.ds.credential
@@ -148,10 +139,9 @@ class TestJobTemplateCredentialsRBAC(APITest):
                     jt.launch(dict(credential=credential.id))
             jt.set_object_roles(user, role, disassociate=True)
 
-    @pytest.mark.parametrize('version', ('v1', 'v2'))
-    def test_launch_with_ask_credential_and_no_vault_credential_access_is_forbidden(self, factories, version):
-        jt_factory = factories.job_template if version == 'v1' else factories.v2_job_template
-        user_factory = factories.user if version == 'v1' else factories.v2_user
+    def test_launch_with_ask_credential_and_no_vault_credential_access_is_forbidden(self, factories):
+        jt_factory = factories.v2_job_template
+        user_factory = factories.v2_user
 
         jt = jt_factory(ask_credential_on_launch=True)
         credential = jt.ds.credential
@@ -161,11 +151,7 @@ class TestJobTemplateCredentialsRBAC(APITest):
         user = user_factory(organization=organization)
         credential.set_object_roles(user, 'use')
 
-        if version == 'v1':
-            vault_credential = factories.credential(kind='ssh', vault_password='tower', username='', password='',
-                                                    ssh_key_data='', become_password='', organization=organization)
-        else:
-            vault_credential = factories.v2_credential(kind='vault', vault_password='tower', organization=organization)
+        vault_credential = factories.v2_credential(kind='vault', vault_password='tower', organization=organization)
 
         for role in ('execute', 'admin'):
             jt.set_object_roles(user, role)
@@ -212,10 +198,9 @@ class TestJobTemplateCredentialsRBAC(APITest):
                     jt.launch(dict(credential=credential.id, extra_credentials=[c.id for c in cloud_credentials]))
             jt.set_object_roles(user, role, disassociate=True)
 
-    @pytest.mark.parametrize('version', ('v1', 'v2'))
-    def test_relaunch_with_ask_credential_and_no_credential_access_forbidden(self, factories, version):
-        jt_factory = factories.job_template if version == 'v1' else factories.v2_job_template
-        user_factory = factories.user if version == 'v1' else factories.v2_user
+    def test_relaunch_with_ask_credential_and_no_credential_access_forbidden(self, factories):
+        jt_factory = factories.v2_job_template
+        user_factory = factories.v2_user
 
         jt = jt_factory(ask_credential_on_launch=True)
         credential = jt.ds.credential
