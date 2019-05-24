@@ -28,7 +28,9 @@ pipeline {
                     def tasks = [:]
                     def ansible_versions = [:]
 
-                    if (params.TOWER_VERSION == 'devel' || params.TOWER_VERSION !=~ /3\.[4-9]*\.[0-9]*/) {
+                    if (params.PLATFORM.contains('rhel-8')) {
+                        ansible_versions = ['devel', 'stable-2.8']
+                    } else if (params.TOWER_VERSION == 'devel' || params.TOWER_VERSION !=~ /3\.[4-9]*\.[0-9]*/) {
                         ansible_versions = ['devel', 'stable-2.8', 'stable-2.7', 'stable-2.6']
                     } else {
                         ansible_versions = ['devel', 'stable-2.8', 'stable-2.7', 'stable-2.6', 'stable-2.5', 'stable-2.4', 'stable-2.3']

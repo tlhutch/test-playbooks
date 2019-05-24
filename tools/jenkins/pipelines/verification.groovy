@@ -87,21 +87,23 @@ Platform under test: ${params.PLATFORM}"""
                         }
 
                         script {
-                            stage('Plain-Standalone Major Upgrade') {
-                                retry(2) {
-                                    build(
-                                        job: 'upgrade-pipeline',
-                                        propagate: false,
-                                        parameters: [
-                                            string(name: 'TOWER_VERSION_TO_UPGRADE_FROM', value: prev_maj_version),
-                                            string(name: 'TOWER_VERSION_TO_UPGRADE_TO', value: params.TOWER_VERSION),
-                                            string(name: 'ANSIBLE_VERSION', value: params.ANSIBLE_VERSION),
-                                            string(name: 'SCENARIO', value: 'standalone'),
-                                            string(name: 'PLATFORM', value: params.PLATFORM),
-                                            string(name: 'BUNDLE', value: 'no'),
-                                            string(name: 'DEPLOYMENT_NAME', value: 'evergreen-jenkins-tower-plain-standalone-major-upgrade')
-                                        ]
-                                    )
+                            if (!(params.PLATFORM.contains('rhel-8') && params.TOWER_VERSION ==~ /3.5.[0-9]*/)) {
+                                stage('Plain-Standalone Major Upgrade') {
+                                    retry(2) {
+                                        build(
+                                            job: 'upgrade-pipeline',
+                                            propagate: false,
+                                            parameters: [
+                                                string(name: 'TOWER_VERSION_TO_UPGRADE_FROM', value: prev_maj_version),
+                                                string(name: 'TOWER_VERSION_TO_UPGRADE_TO', value: params.TOWER_VERSION),
+                                                string(name: 'ANSIBLE_VERSION', value: params.ANSIBLE_VERSION),
+                                                string(name: 'SCENARIO', value: 'standalone'),
+                                                string(name: 'PLATFORM', value: params.PLATFORM),
+                                                string(name: 'BUNDLE', value: 'no'),
+                                                string(name: 'DEPLOYMENT_NAME', value: 'evergreen-jenkins-tower-plain-standalone-major-upgrade')
+                                            ]
+                                        )
+                                    }
                                 }
                             }
                         }
@@ -167,21 +169,23 @@ Platform under test: ${params.PLATFORM}"""
                         }
 
                         script {
-                            stage('Plain-Cluster Major Upgrade') {
-                                retry(2) {
-                                    build(
-                                        job: 'upgrade-pipeline',
-                                        propagate: false,
-                                        parameters: [
-                                            string(name: 'TOWER_VERSION_TO_UPGRADE_FROM', value: prev_maj_version),
-                                            string(name: 'TOWER_VERSION_TO_UPGRADE_TO', value: params.TOWER_VERSION),
-                                            string(name: 'ANSIBLE_VERSION', value: params.ANSIBLE_VERSION),
-                                            string(name: 'SCENARIO', value: 'cluster'),
-                                            string(name: 'PLATFORM', value: params.PLATFORM),
-                                            string(name: 'BUNDLE', value: 'no'),
-                                            string(name: 'DEPLOYMENT_NAME', value: 'evergreen-jenkins-tower-plain-cluster-major-upgrade')
-                                        ]
-                                    )
+                            if (!(params.PLATFORM.contains('rhel-8') && params.TOWER_VERSION ==~ /3.5.[0-9]*/)) {
+                                stage('Plain-Cluster Major Upgrade') {
+                                    retry(2) {
+                                        build(
+                                            job: 'upgrade-pipeline',
+                                            propagate: false,
+                                            parameters: [
+                                                string(name: 'TOWER_VERSION_TO_UPGRADE_FROM', value: prev_maj_version),
+                                                string(name: 'TOWER_VERSION_TO_UPGRADE_TO', value: params.TOWER_VERSION),
+                                                string(name: 'ANSIBLE_VERSION', value: params.ANSIBLE_VERSION),
+                                                string(name: 'SCENARIO', value: 'cluster'),
+                                                string(name: 'PLATFORM', value: params.PLATFORM),
+                                                string(name: 'BUNDLE', value: 'no'),
+                                                string(name: 'DEPLOYMENT_NAME', value: 'evergreen-jenkins-tower-plain-cluster-major-upgrade')
+                                            ]
+                                        )
+                                    }
                                 }
                             }
                         }
@@ -252,21 +256,23 @@ Platform under test: ${params.PLATFORM}"""
                         }
 
                         script {
-                            stage('Bundle-Standalone Major Upgrade') {
-                                retry(2) {
-                                    build(
-                                        job: 'upgrade-pipeline',
-                                        propagate: false,
-                                        parameters: [
-                                            string(name: 'TOWER_VERSION_TO_UPGRADE_FROM', value: prev_maj_version),
-                                            string(name: 'TOWER_VERSION_TO_UPGRADE_TO', value: params.TOWER_VERSION),
-                                            string(name: 'ANSIBLE_VERSION', value: params.ANSIBLE_VERSION),
-                                            string(name: 'SCENARIO', value: 'standalone'),
-                                            string(name: 'PLATFORM', value: params.PLATFORM),
-                                            string(name: 'BUNDLE', value: 'yes'),
-                                            string(name: 'DEPLOYMENT_NAME', value: 'evergreen-jenkins-tower-bundle-standalone-major-upgrade')
-                                        ]
-                                    )
+                            if (!(params.PLATFORM.contains('rhel-8') && params.TOWER_VERSION ==~ /3.5.[0-9]*/)) {
+                                stage('Bundle-Standalone Major Upgrade') {
+                                    retry(2) {
+                                        build(
+                                            job: 'upgrade-pipeline',
+                                            propagate: false,
+                                            parameters: [
+                                                string(name: 'TOWER_VERSION_TO_UPGRADE_FROM', value: prev_maj_version),
+                                                string(name: 'TOWER_VERSION_TO_UPGRADE_TO', value: params.TOWER_VERSION),
+                                                string(name: 'ANSIBLE_VERSION', value: params.ANSIBLE_VERSION),
+                                                string(name: 'SCENARIO', value: 'standalone'),
+                                                string(name: 'PLATFORM', value: params.PLATFORM),
+                                                string(name: 'BUNDLE', value: 'yes'),
+                                                string(name: 'DEPLOYMENT_NAME', value: 'evergreen-jenkins-tower-bundle-standalone-major-upgrade')
+                                            ]
+                                        )
+                                    }
                                 }
                             }
                         }
@@ -337,21 +343,23 @@ Platform under test: ${params.PLATFORM}"""
                         }
 
                         script {
-                            stage('Bundle-Cluster MajorUpgrade') {
-                                retry(2) {
-                                    build(
-                                        job: 'upgrade-pipeline',
-                                        propagate: false,
-                                        parameters: [
-                                            string(name: 'TOWER_VERSION_TO_UPGRADE_FROM', value: prev_maj_version),
-                                            string(name: 'TOWER_VERSION_TO_UPGRADE_TO', value: params.TOWER_VERSION),
-                                            string(name: 'ANSIBLE_VERSION', value: params.ANSIBLE_VERSION),
-                                            string(name: 'SCENARIO', value: 'cluster'),
-                                            string(name: 'PLATFORM', value: params.PLATFORM),
-                                            string(name: 'BUNDLE', value: 'yes'),
-                                            string(name: 'DEPLOYMENT_NAME', value: 'evergreen-jenkins-tower-bundle-cluster-major-upgrade')
-                                        ]
-                                    )
+                            if (!(params.PLATFORM.contains('rhel-8') && params.TOWER_VERSION ==~ /3.5.[0-9]*/)) {
+                                stage('Bundle-Cluster Major Upgrade') {
+                                    retry(2) {
+                                        build(
+                                            job: 'upgrade-pipeline',
+                                            propagate: false,
+                                            parameters: [
+                                                string(name: 'TOWER_VERSION_TO_UPGRADE_FROM', value: prev_maj_version),
+                                                string(name: 'TOWER_VERSION_TO_UPGRADE_TO', value: params.TOWER_VERSION),
+                                                string(name: 'ANSIBLE_VERSION', value: params.ANSIBLE_VERSION),
+                                                string(name: 'SCENARIO', value: 'cluster'),
+                                                string(name: 'PLATFORM', value: params.PLATFORM),
+                                                string(name: 'BUNDLE', value: 'yes'),
+                                                string(name: 'DEPLOYMENT_NAME', value: 'evergreen-jenkins-tower-bundle-cluster-major-upgrade')
+                                            ]
+                                        )
+                                    }
                                 }
                             }
                         }
