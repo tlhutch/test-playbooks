@@ -71,7 +71,7 @@ class HasCreateFactory(object):
 
 
 class OrganizationFactory(HasCreateFactory):
-    model = pages.Organization
+    model = pages.V2Organization
 
 
 class V2OrganizationFactory(HasCreateFactory):
@@ -79,11 +79,11 @@ class V2OrganizationFactory(HasCreateFactory):
 
 
 class InstanceGroupFactory(HasCreateFactory):
-    model = pages.InstanceGroup
+    model = pages.V2InstanceGroup
 
 
 class UserFactory(HasCreateFactory):
-    model = pages.User
+    model = pages.V2User
 
 
 class V2UserFactory(HasCreateFactory):
@@ -91,7 +91,7 @@ class V2UserFactory(HasCreateFactory):
 
 
 class WorkflowJobTemplateFactory(HasCreateFactory):
-    model = pages.WorkflowJobTemplate
+    model = pages.V2WorkflowJobTemplate
 
 
 class V2WorkflowJobTemplateFactory(HasCreateFactory):
@@ -99,7 +99,7 @@ class V2WorkflowJobTemplateFactory(HasCreateFactory):
 
 
 class CredentialFactory(HasCreateFactory):
-    model = pages.Credential
+    model = pages.V2Credential
 
 
 class V2CredentialFactory(HasCreateFactory):
@@ -107,11 +107,11 @@ class V2CredentialFactory(HasCreateFactory):
 
 
 class CredentialTypeFactory(HasCreateFactory):
-    model = pages.CredentialType
+    model = pages.V2CredentialType
 
 
 class InventoryFactory(HasCreateFactory):
-    model = pages.Inventory
+    model = pages.V2Inventory
 
 
 class V2InventoryFactory(HasCreateFactory):
@@ -119,7 +119,7 @@ class V2InventoryFactory(HasCreateFactory):
 
 
 class InventoryScriptFactory(HasCreateFactory):
-    model = pages.InventoryScript
+    model = pages.V2InventoryScript
 
 
 class V2InventoryScriptFactory(HasCreateFactory):
@@ -131,7 +131,7 @@ class V2InventorySourceFactory(HasCreateFactory):
 
 
 class LabelFactory(HasCreateFactory):
-    model = pages.Label
+    model = pages.V2Label
 
 
 class V2LabelFactory(HasCreateFactory):
@@ -139,7 +139,7 @@ class V2LabelFactory(HasCreateFactory):
 
 
 class NotificationTemplateFactory(HasCreateFactory):
-    model = pages.NotificationTemplate
+    model = pages.V2NotificationTemplate
 
 
 class V2NotificationTemplateFactory(HasCreateFactory):
@@ -147,7 +147,7 @@ class V2NotificationTemplateFactory(HasCreateFactory):
 
 
 class ProjectFactory(HasCreateFactory):
-    model = pages.Project
+    model = pages.V2Project
 
 
 class V2ProjectFactory(HasCreateFactory):
@@ -155,7 +155,7 @@ class V2ProjectFactory(HasCreateFactory):
 
 
 class TeamFactory(HasCreateFactory):
-    model = pages.Team
+    model = pages.V2Team
 
 
 class V2TeamFactory(HasCreateFactory):
@@ -163,7 +163,7 @@ class V2TeamFactory(HasCreateFactory):
 
 
 class AdHocCommandFactory(HasCreateFactory):
-    model = pages.AdHocCommand
+    model = pages.V2AdHocCommand
 
 
 class V2AdHocCommandFactory(HasCreateFactory):
@@ -171,7 +171,7 @@ class V2AdHocCommandFactory(HasCreateFactory):
 
 
 class GroupFactory(HasCreateFactory):
-    model = pages.Group
+    model = pages.V2Group
 
 
 class V2GroupFactory(HasCreateFactory):
@@ -179,7 +179,7 @@ class V2GroupFactory(HasCreateFactory):
 
 
 class HostFactory(HasCreateFactory):
-    model = pages.Host
+    model = pages.V2Host
 
 
 class V2HostFactory(HasCreateFactory):
@@ -187,7 +187,7 @@ class V2HostFactory(HasCreateFactory):
 
 
 class JobTemplateFactory(HasCreateFactory):
-    model = pages.JobTemplate
+    model = pages.V2JobTemplate
 
 
 class V2JobTemplateFactory(HasCreateFactory):
@@ -195,7 +195,7 @@ class V2JobTemplateFactory(HasCreateFactory):
 
 
 class WorkflowJobTemplateNodeFactory(HasCreateFactory):
-    model = pages.WorkflowJobTemplateNode
+    model = pages.V2WorkflowJobTemplateNode
 
 
 class V2WorkflowJobTemplateNodeFactory(HasCreateFactory):
@@ -203,11 +203,11 @@ class V2WorkflowJobTemplateNodeFactory(HasCreateFactory):
 
 
 class ApplicationFactory(HasCreateFactory):
-    model = pages.OAuth2Application
+    model = pages.V2OAuth2Application
 
 
 class AccessTokenFactory(HasCreateFactory):
-    model = pages.OAuth2AccessToken
+    model = pages.V2OAuth2AccessToken
 
 
 class FactoryFixture(object):
