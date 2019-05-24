@@ -36,7 +36,7 @@ class Test_Organizations(APITest):
 
         # assert the organization was deleted
         matches = api_organizations_pg.get(id=organization.id)
-        assert matches.count == 0, "An organization was deleted, but is still visible from the /api/v1/organizations/ endpoint"
+        assert matches.count == 0, "An organization was deleted, but is still visible from the /api/v2/organizations/ endpoint"
 
     @pytest.mark.yolo
     def test_organization_related_counts(self, organization, related_organization_object, api_job_templates_pg):
