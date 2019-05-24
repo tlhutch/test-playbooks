@@ -34,32 +34,6 @@ class TestJobTemplateCredentialsRBAC(APITest):
                 jt = v.job_templates.post(jt_payload)
                 jt.delete()
 
-    def test_job_template_creation_request_without_network_credential_access_forbidden(self, request, factories, v1):
-        """Verify that a job_template with network credential creation request
-        is only permitted if the user making the request has usage permission for the network credential.
-        """
-        jt_payload = factories.job_template.payload()
-        organization = jt_payload.ds.inventory.ds.organization
-
-        user = factories.user(organization=organization)
-
-        for resource in ('credential', 'project', 'inventory'):
-            jt_payload.ds[resource].set_object_roles(user, 'use')
-
-        network_credential = factories.credential(kind='net', organization=organization)
-
-        jt_payload.network_credential = network_credential.id
-
-        network_credential.set_object_roles(user, 'read')
-        with self.current_user(user):
-            with pytest.raises(exc.Forbidden):
-                v1.job_templates.post(jt_payload)
-
-        for role in ('use', 'admin'):
-            network_credential.set_object_roles(user, role)
-            with self.current_user(user):
-                jt = v1.job_templates.post(jt_payload)
-                jt.delete()
 
     def test_job_template_creation_request_without_vault_credential_access_forbidden(self, request, factories, v2):
         """Verify that a job_template with network credential creation request
