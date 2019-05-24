@@ -403,5 +403,23 @@ Platform under test: ${params.PLATFORM}"""
                 sh "curl -v -X POST 'http://tower-qe-dashboard.ansible.eng.rdu2.redhat.com/jenkins/results' -H 'Content-type: application/json' -d '${json}'"
             }
         }
+        success {
+            slackSend(
+                botUser: false,
+                color: "good",
+                teamDomain: "ansible",
+                channel: "#ship_it",
+                message: "*Tower version: ${params.TOWER_VERSION}* Platform: ${params.PLATFORM} - Ansible: ${params.ANSIBLE_VERSION} <${env.RUN_DISPLAY_URL}|Link>"
+            )
+        }
+        unsuccessful {
+            slackSend(
+                botUser: false,
+                color: "#FF9FA1",
+                teamDomain: "ansible",
+                channel: "#ship_it",
+                message: "*Tower version: ${params.TOWER_VERSION}* Platform: ${params.PLATFORM} - Ansible: ${params.ANSIBLE_VERSION} <${env.RUN_DISPLAY_URL}|Link>"
+            )
+        }
     }
 }
