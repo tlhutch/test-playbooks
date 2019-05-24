@@ -2,7 +2,7 @@
 
 set -euxo pipefail
 
-TESTEXPR=${TESTEXPR:-'test_crawler or ansible_integration'}
+TESTEXPR=${TESTEXPR:-'yolo or ansible_integration'}
 VARS_FILE=${VARS_FILE:-playbooks/vars.yml}
 
 # -- Start
