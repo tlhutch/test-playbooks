@@ -53,6 +53,10 @@ AW_REPO_URL=$(retrieve_aw_repo_url_based_on_version "${TOWER_VERSION}")
 AWX_SETUP_PATH=$(retrieve_awx_setup_path_based_on_version_and_scenario "${TOWER_VERSION}" "${SCENARIO}" "${AW_REPO_URL}" "${BUNDLE}" "${PLATFORM}")
 INSTANCE_NAME_PREFIX=$(generate_instance_name_prefix "${INSTANCE_NAME_PREFIX}" "${PLATFORM}" "${ANSIBLE_VERSION}" "${TOWER_VERSION}")
 
+# FIXME(spredzy): Remove the below code when stable-2.8 is in epel 8
+if [[ "${PLATFORM}" == "rhel-8.0-x86_64" ]]; then
+    ANSIBLE_INSTALL_METHOD='pip'
+fi
 
 export AWX_VERBOSITY=$(retrieve_verbosity_string)
 export AWX_PLAYBOOK="${PLAYBOOK}"
