@@ -38,11 +38,14 @@ pipeline {
             defaultValue: true
         )
     }
+
     options {
         timeout(time: 2, unit: 'HOURS')
         timestamps()
         ansiColor('xterm')
+        buildDiscarder(logRotator(daysToKeepStr: '30'))
     }
+
     stages {
         stage ('Clone Git repo') {
             steps {

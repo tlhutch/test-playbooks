@@ -15,6 +15,11 @@ pipeline {
         )
     }
 
+    options {
+        timestamps()
+        buildDiscarder(logRotator(daysToKeepStr: '30'))
+    }
+
     stages {
 
         stage ('Build Information') {

@@ -11,6 +11,7 @@ pipeline {
     options {
         disableConcurrentBuilds()
         timestamps()
+        buildDiscarder(logRotator(daysToKeepStr: '30'))
     }
     stages {
         stage('Checkout tower branch') {
