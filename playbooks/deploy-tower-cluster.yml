@@ -96,15 +96,6 @@
         dest: "/etc/tower/conf.d/load_balancer.py"
       when: "'haproxy' in hostvars.keys()"
 
-- name: 'Configure firewall rules for isolated groups'
-  hosts: 'isolated_group_protected:managed_hosts'
-  become: true
-  become_method: sudo
-  tasks:
-    - include_role:
-        name: isolated_group_firewall_rules
-      when: awx_apply_isolated_groups_fw_rules | default(true) | bool
-
 - name: Remove IPV4
   hosts: tower
   tasks:
