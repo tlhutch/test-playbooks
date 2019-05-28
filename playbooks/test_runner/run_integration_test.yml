@@ -5,6 +5,8 @@
       command: ./tools/jenkins/scripts/test.sh
       args:
         chdir: ~/tower-qa
+      environment:
+        TESTEXPR: '{{ lookup("env", "TESTEXPR") }}'
 
     - name: Ensure the artifacts directory exist
       file:
