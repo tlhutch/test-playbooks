@@ -48,7 +48,7 @@
   gather_facts: no
   become: true
   roles:
-    - packages
+    - { role: packages, when: not out_of_box_os }
 
 - name: 'Install cluster tower on installer instance'
   hosts: 'cluster_installer'
