@@ -18,7 +18,6 @@ pip install -Ur requirements.txt
 INVENTORY=$(retrieve_inventory_file)
 TOWER_HOST=$(retrieve_tower_server_from_inventory "${INVENTORY}")
 CREDS=$(retrieve_credential_file "${INVENTORY}")
-ANSIBLE_VERSION=$(retrieve_value_from_vars_file "${VARS_FILE}" ansible_nightly_branch)
 
 set +e
 
