@@ -51,7 +51,6 @@ ansible-playbook \
 -e awx_upgrade=false \
 -e minimum_var_space=0 \
 -e instance_name_prefix=${INSTANCE_NAME_PREFIX} \
--e gpgcheck=0 \
 -e pendo_state=off \
 -e ansible_nightly_repo=${ANSIBLE_NIGHTLY_REPO}/${ANSIBLE_NIGHTLY_BRANCH} \
 -e aw_repo_url=${AW_REPO_URL} \
