@@ -17,7 +17,7 @@ export AWS_ACCESS_KEY=${AWS_ACCESS_KEY:-''}
 export AWS_SECRET_KEY=${AWS_SECRET_KEY:-''}
 export CLOUD_PROVIDER=${CLOUD_PROVIDER:-ec2}
 export ANSIBLE_INSTALL_METHOD=${ANSIBLE_INSTALL_METHOD:-nightly}
-export ANSIBLE_NIGHTLY_REPO=${ANSIBLE_NIGHTLY_REPO:-"http://nightlies.testing.ansible.com/ansible_nightlies_QcGXFZKv5VfQHi/"}
+export ANSIBLE_NIGHTLY_REPO=${ANSIBLE_NIGHTLY_REPO:-'http://nightlies.testing.ansible.com/ansible_nightlies_QcGXFZKv5VfQHi/'}
 export ANSIBLE_TIMEOUT=${ANSIBLE_TIMEOUT:-30}
 export DELETE_ON_START=${CLEAN_DEPLOYMENT_BEFORE_JOB_RUN:-yes}
 export REAP_INSTANCES=${CLEAN_DEPLOYMENT_AFTER_JOB_RUN:-no}
@@ -26,8 +26,8 @@ export MINIMUM_VAR_SPACE=${MINIMUM_VAR_SPACE:-0}
 export INSTANCE_NAME_PREFIX=${DEPLOYMENT_NAME:-'deployment-name'}
 export VERBOSE=${VERBOSE:-no}
 export ANSIBLE_NIGHTLY_BRANCH=${ANSIBLE_VERSION}
-export AW_REPO_URL=${AW_REPO_URL:-"http://nightlies.testing.ansible.com/ansible-tower_nightlies_m8u16fz56qr6q7/devel"}
-export AWX_SETUP_PATH=${AWX_SETUP_PATH:-"/setup/ansible-tower-setup-latest.tar.gz"}
+export AW_REPO_URL=${AW_REPO_URL:-''}
+export AWX_SETUP_PATH=${AWX_SETUP_PATH:-'/setup/ansible-tower-setup-latest.tar.gz'}
 export AWX_IPV6_DEPLOYMENT=${AWX_IPV6_DEPLOYMENT:-no}
 export ANSIBLE_FORCE_COLOR=${ANSIBLE_FORCE_COLOR:-True}
 
@@ -46,10 +46,12 @@ fi
 setup_python3_env
 pip install PyYAML argparse
 setup_env_based_on_deployment_scenario "${SCENARIO}"
+if [[ -z "${AW_REPO_URL}" ]]; then
+    AW_REPO_URL=$(retrieve_aw_repo_url_based_on_version "${TOWER_VERSION}")
+fi
 AWX_IPV6_DEPLOYMENT=$(retrieve_boolean_value "${AWX_IPV6_DEPLOYMENT}")
 DELETE_ON_START=$(retrieve_boolean_value "${DELETE_ON_START}")
 REAP_INSTANCES=$(retrieve_boolean_value "${REAP_INSTANCES}")
-AW_REPO_URL=$(retrieve_aw_repo_url_based_on_version "${TOWER_VERSION}")
 AWX_SETUP_PATH=$(retrieve_awx_setup_path_based_on_version_and_scenario "${TOWER_VERSION}" "${SCENARIO}" "${AW_REPO_URL}" "${BUNDLE}" "${PLATFORM}")
 INSTANCE_NAME_PREFIX=$(generate_instance_name_prefix "${INSTANCE_NAME_PREFIX}" "${PLATFORM}" "${ANSIBLE_VERSION}" "${TOWER_VERSION}")
 
