@@ -176,7 +176,7 @@ Bundle?: ${params.BUNDLE}"""
         stage ('Integration Tests') {
             steps {
                 script {
-                    if (params.ANSIBLE_VERSION != 'stable-2.8' and params.ANSIBLE_VERSION != 'stable2.7' and params.TESTEXPR == '') {
+                    if (params.ANSIBLE_VERSION != 'stable-2.8' && params.ANSIBLE_VERSION != 'stable2.7' && params.TESTEXPR == '') {
                         _TESTEXPR = 'yolo or ansible_integration'
                     } else {
                         _TESTEXPR = params.TESTEXPR
