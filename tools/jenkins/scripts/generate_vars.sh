@@ -57,7 +57,7 @@ INSTANCE_NAME_PREFIX=$(generate_instance_name_prefix "${INSTANCE_NAME_PREFIX}" "
 
 # FIXME(spredzy): Remove the below code when stable-2.8 is in epel 8
 if [[ "${PLATFORM}" == "rhel-8.0-x86_64" ]]; then
-    ANSIBLE_INSTALL_METHOD='pip'
+    ANSIBLE_INSTALL_METHOD='none'
 fi
 
 export AWX_VERBOSITY=$(retrieve_verbosity_string)
