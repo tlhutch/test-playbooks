@@ -57,6 +57,12 @@ Platform under test: ${params.PLATFORM}"""
                         prev_maj_version = '3.1.8'
                         prev_min_version = '3.2.7'
                     }
+
+                    if (params.ANSIBLE_VERSION != 'stable-2.8' && params.ANSIBLE_VERSION != 'stable2.7') {
+                        testexpr = 'yolo or ansible_integration'
+                    } else {
+                        testexpr = ''
+                    }
                 }
             }
         }
@@ -137,6 +143,7 @@ Platform under test: ${params.PLATFORM}"""
                                         string(name: 'SCENARIO', value: 'standalone'),
                                         string(name: 'PLATFORM', value: params.PLATFORM),
                                         string(name: 'BUNDLE', value: 'no'),
+                                        string(name: 'TESTEXPR', value: testexpr),
                                         string(name: 'DEPLOYMENT_NAME', value: 'evergreen-jenkins-tower-plain-standalone-integration')
                                     ]
                                 )
@@ -219,6 +226,7 @@ Platform under test: ${params.PLATFORM}"""
                                         string(name: 'SCENARIO', value: 'cluster'),
                                         string(name: 'PLATFORM', value: params.PLATFORM),
                                         string(name: 'BUNDLE', value: 'no'),
+                                        string(name: 'TESTEXPR', value: testexpr),
                                         string(name: 'DEPLOYMENT_NAME', value: 'evergreen-jenkins-tower-plain-cluster-integration')
                                     ]
                                 )
@@ -306,6 +314,7 @@ Platform under test: ${params.PLATFORM}"""
                                         string(name: 'SCENARIO', value: 'standalone'),
                                         string(name: 'PLATFORM', value: params.PLATFORM),
                                         string(name: 'BUNDLE', value: 'yes'),
+                                        string(name: 'TESTEXPR', value: testexpr),
                                         string(name: 'DEPLOYMENT_NAME', value: 'evergreen-jenkins-tower-bundle-standalone-integration')
                                     ]
                                 )
@@ -393,6 +402,7 @@ Platform under test: ${params.PLATFORM}"""
                                         string(name: 'SCENARIO', value: 'cluster'),
                                         string(name: 'PLATFORM', value: params.PLATFORM),
                                         string(name: 'BUNDLE', value: 'yes'),
+                                        string(name: 'TESTEXPR', value: testexpr),
                                         string(name: 'DEPLOYMENT_NAME', value: 'evergreen-jenkins-tower-bundle-cluster-integration')
                                     ]
                                 )
