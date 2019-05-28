@@ -175,14 +175,7 @@ Bundle?: ${params.BUNDLE}"""
 
         stage ('Integration Tests') {
             steps {
-                script {
-                    if (params.ANSIBLE_VERSION != 'stable-2.8' && params.ANSIBLE_VERSION != 'stable2.7' && params.TESTEXPR == '') {
-                        _TESTEXPR = 'yolo or ansible_integration'
-                    } else {
-                        _TESTEXPR = params.TESTEXPR
-                    }
-                }
-                withEnv(["TESTEXPR=${_TESTEXPR}"]) {
+                withEnv(["TESTEXPR=${TESTEXPR}"]) {
                     sshagent(credentials : ['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
                         sh 'ansible-playbook -v -i playbooks/inventory.test_runner playbooks/test_runner/run_integration_test.yml'
                         junit 'artifacts/results.xml'
