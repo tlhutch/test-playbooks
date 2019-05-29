@@ -10,15 +10,6 @@ from tests.api import APITest
 @ pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestInventorySource(APITest):
 
-    def test_v1_post_disallowed(self, api_inventory_sources_pg):
-        with pytest.raises(exc.MethodNotAllowed):
-            api_inventory_sources_pg.post()
-
-    def test_disallowed_manual_source(self, factories):
-        with pytest.raises(exc.BadRequest) as e:
-            factories.v2_inventory_source(source="")
-        assert e.value[1] == {'source': ['Manual inventory sources are created automatically when a group is created in the v1 API.']}
-
     def test_reject_invalid_credential_types_with_custom_source(self, factories):
         inventory = factories.v2_inventory()
         org = inventory.ds.organization

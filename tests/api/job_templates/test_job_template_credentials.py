@@ -527,7 +527,7 @@ class TestJobTemplateExtraCredentials(APITest):
                               ('gce', 'Google Compute Engine'),
                               ('azure_rm', 'Microsoft Azure Resource Manager'),
                               ('net', 'Network'),
-                              ('openstack_v3', 'OpenStack'),
+                              ('openstack', 'OpenStack'),
                               ('cloudforms', 'Red Hat CloudForms'),
                               ('satellite6', 'Red Hat Satellite 6'),
                               ('vmware', 'VMware vCenter')])

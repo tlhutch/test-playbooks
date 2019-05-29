@@ -532,7 +532,7 @@ class TestInventoryRBAC(APITest):
             check_user_capabilities(ahc.get(), role)
             check_user_capabilities(v2.ad_hoc_commands.get(id=ahc.id).results.pop(), role)
 
-    def test_cloud_source_credential_reassignment(self, factories, openstack_v2_credential):
+    def test_cloud_source_credential_reassignment(self, factories, openstack_credential):
         """Test that a user with inventory-admin may not patch an inventory source with another user's
         personal user credential.
         """
@@ -545,7 +545,7 @@ class TestInventoryRBAC(APITest):
             os_cred = factories.credential(kind='openstack',
                                            user=user,
                                            organization=None,
-                                           password=self.credentials['cloud']['openstack_v2']['password'])
+                                           password=self.credentials['cloud']['openstack']['password'])
             os_group = factories.group(inventory=inventory, credential=os_cred)
             with pytest.raises(towerkit.exceptions.Forbidden):
-                os_group.related.inventory_source.patch(credential=openstack_v2_credential.id)
+                os_group.related.inventory_source.patch(credential=openstack_credential.id)

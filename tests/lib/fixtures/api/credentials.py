@@ -351,25 +351,13 @@ def vmware_credential(admin_user, factories):
 
 
 @pytest.fixture(scope="function")
-def openstack_v2_credential(admin_user, factories):
-    cred = factories.credential(name="openstack-v2-credential-%s" % fauxfactory.gen_utf8(),
-                                description="OpenStack credential %s" % fauxfactory.gen_utf8(),
-                                kind='openstack_v2', user=admin_user)
-    return cred
-
-
-@pytest.fixture(scope="function")
-def openstack_v3_credential(admin_user, factories):
-    cred = factories.credential(name="openstack-v3-credential-%s" % fauxfactory.gen_utf8(),
+# FIXME: It appears there is only one version of openstack credential on Tower
+# Maybe we should file bug to get the api side nameing simplified to just "openstack" instead of "openstack_v3"
+def openstack_credential(admin_user, factories):
+    cred = factories.credential(name="openstack-credential-%s" % fauxfactory.gen_utf8(),
                                 description="OpenStack credential %s" % fauxfactory.gen_utf8(),
                                 kind='openstack_v3', user=admin_user)
     return cred
-
-
-# Convenience fixture that iterates through OpenStack credentials
-@pytest.fixture(scope="function", params=['openstack_v2', 'openstack_v3'])
-def openstack_credential(request):
-    return request.getfixturevalue(request.param + '_credential')
 
 
 @pytest.fixture(scope="function")
@@ -389,8 +377,7 @@ def satellite6_credential(admin_user, factories):
 
 
 # Convenience fixture that iterates through supported cloud_credential types
-@pytest.fixture(scope="function", params=['aws', 'azure', 'gce', 'vmware', 'openstack_v2', 'openstack_v3',
-                                          'cloudforms', 'satellite6'])
+@pytest.fixture(scope="function", params=['aws', 'azure', 'gce', 'vmware', 'openstack', 'cloudforms', 'satellite6'])
 def cloud_credential(request):
     return request.getfixturevalue(request.param + '_credential')
 

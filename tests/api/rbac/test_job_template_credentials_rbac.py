@@ -31,16 +31,15 @@ class TestJobTemplateCredentialsRBAC(APITest):
         for role in ('use', 'admin'):
             credential.set_object_roles(user, role)
             with self.current_user(user):
-                jt = v.job_templates.post(jt_payload)
+                jt = v2.job_templates.post(jt_payload)
                 jt.delete()
-
 
     def test_job_template_creation_request_without_vault_credential_access_forbidden(self, request, factories, v2):
         """Verify that a job_template with network credential creation request
         is only permitted if the user making the request has usage permission for the network credential.
         """
         jt_factory = factories.v2_job_template
-        user_factory =  factories.v2_user
+        user_factory = factories.v2_user
 
         jt_payload = jt_factory.payload()
         organization = jt_payload.ds.inventory.ds.organization

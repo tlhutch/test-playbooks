@@ -843,12 +843,7 @@ class Test_Job_Env(APITest):
                 VMWARE_HOST=self.credentials['cloud'][cloud_credential_namespace]['host']
             )
         elif cloud_credential_namespace == 'openstack':
-            if "openstack-v2" in cloud_credential.name:
-                self.has_credentials('cloud', 'openstack_v2', ['username', 'host', 'project'])
-            elif "openstack-v3" in cloud_credential.name:
-                self.has_credentials('cloud', 'openstack_v3', ['username', 'host', 'project', 'domain'])
-            else:
-                raise ValueError("Unhandled OpenStack credential: %s" % cloud_credential.name)
+            self.has_credentials('cloud', 'openstack', ['username', 'host', 'project', 'domain'])
             expected_env_vars = dict(
                 OS_CLIENT_CONFIG_FILE=lambda x: re.match(r'^/tmp/awx_\w+/tmp\w+', x)
             )

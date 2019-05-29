@@ -44,26 +44,6 @@ def v2(v2_class):
     return v2_class
 
 
-@pytest.fixture(scope="class")
-def api_v2_url(get_api_version):
-    return get_api_version('v2')
-
-
-@pytest.fixture(scope="class")
-def api_v2_pg(connection, api_v2_url):
-    return get_registered_page(api_v2_url)(connection, endpoint=api_v2_url).get()
-
-
-@pytest.fixture(scope='class')
-def v2_class(api_v2_pg):
-    return api_v2_pg
-
-
-@pytest.fixture
-def v2(v2_class):
-    return v2_class
-
-
 # /api/v2/authtoken
 @pytest.fixture(scope="class")
 def api_authtoken_url(v2_class):

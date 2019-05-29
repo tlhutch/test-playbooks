@@ -19,9 +19,9 @@ print(json.dumps(inventory))
 
 
 @pytest.fixture(scope="function")
-def cloud_inventory_job_template(job_template, cloud_group):
+def cloud_inventory_job_template(job_template, cloud_inventory_source):
     # Substitute in no-op playbook that does not attempt to connect to host
-    job_template.patch(playbook='debug.yml', inventory=cloud_group.inventory)
+    job_template.patch(playbook='debug.yml', inventory=cloud_inventory_source.related.inventory.get())
     return job_template
 
 
@@ -375,14 +375,14 @@ class Test_Sequential_Jobs(APITest):
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class Test_Autospawned_Jobs(APITest):
 
-    def test_v1_inventory(self, cloud_inventory_job_template, cloud_group):
+    def test_v1_inventory(self, cloud_inventory_job_template, cloud_inventory_source):
         """Verify that an inventory update is triggered by our job launch. Job ordering
         should be as follows:
         * Inventory update should run first.
         * Job should run after the completion of our inventory update.
         """
         # set update_on_launch
-        inv_src_pg = cloud_group.get_related('inventory_source')
+        inv_src_pg = cloud_inventory_source
         inv_src_pg.patch(update_on_launch=True)
         assert inv_src_pg.update_cache_timeout == 0
         assert inv_src_pg.last_updated is None, \
