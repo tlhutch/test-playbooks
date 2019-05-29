@@ -351,13 +351,22 @@ def vmware_credential(admin_user, factories):
 
 
 @pytest.fixture(scope="function")
-# FIXME: It appears there is only one version of openstack credential on Tower
-# Maybe we should file bug to get the api side nameing simplified to just "openstack" instead of "openstack_v3"
-def openstack_credential(admin_user, factories):
-    cred = factories.credential(name="openstack-credential-%s" % fauxfactory.gen_utf8(),
+def openstack_v2_credential(admin_user, factories):
+    cred = factories.credential(name="openstack-v2-credential-%s" % fauxfactory.gen_utf8(),
+                                description="OpenStack credential %s" % fauxfactory.gen_utf8(),
+                                kind='openstack_v2', user=admin_user)
+    return cred
+
+def openstack_v3_credential(admin_user, factories):
+    cred = factories.credential(name="openstack-v2-credential-%s" % fauxfactory.gen_utf8(),
                                 description="OpenStack credential %s" % fauxfactory.gen_utf8(),
                                 kind='openstack_v3', user=admin_user)
     return cred
+
+
+@pytest.fixture(scope="function", params=['openstack_v2_credential', 'openstack_v3_credential'])
+def openstack_credential(request):
+    return request.getfixturevalue(request.param)
 
 
 @pytest.fixture(scope="function")
