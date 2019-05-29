@@ -273,36 +273,36 @@ class Test_Sequential_Jobs(APITest):
         assert ordered_node_jobs[0].get().status == 'running'
         assert ordered_node_jobs[1].get().status == 'running'
 
-    def test_sequential_ad_hoc_commands(self, request, v1):
+    def test_sequential_ad_hoc_commands(self, request, v2):
         """Launch three ad hoc commands on the same inventory. Check that:
         * No commands ran simultaneously.
         * Commands ran in the order spawned.
         """
-        host = v1.hosts.create()
+        host = v2.hosts.create()
         request.addfinalizer(host.teardown)
 
         # lauch three commands
-        ahc1 = v1.ad_hoc_commands.create(module_name='shell', module_args='true', inventory=host.ds.inventory)
-        ahc2 = v1.ad_hoc_commands.create(module_name='shell', module_args='true', inventory=host.ds.inventory)
-        ahc3 = v1.ad_hoc_commands.create(module_name='shell', module_args='true', inventory=host.ds.inventory)
+        ahc1 = v2.ad_hoc_commands.create(module_name='shell', module_args='true', inventory=host.ds.inventory)
+        ahc2 = v2.ad_hoc_commands.create(module_name='shell', module_args='true', inventory=host.ds.inventory)
+        ahc3 = v2.ad_hoc_commands.create(module_name='shell', module_args='true', inventory=host.ds.inventory)
         ordered_commands = [ahc1, ahc2, ahc3]
 
         # confirm unified jobs ran as expected
         confirm_unified_jobs(ordered_commands)
 
     # Skip for openshift because of Github Issue: https://github.com/ansible/tower-qa/issues/2591
-    def test_simultaneous_ad_hoc_commands(self, skip_if_openshift, request, v1):
+    def test_simultaneous_ad_hoc_commands(self, skip_if_openshift, request, v2):
         """Launch two ad hoc commands on different inventories. Check that
         our commands run simultaneously.
         """
-        host1 = v1.hosts.create()
+        host1 = v2.hosts.create()
         request.addfinalizer(host1.teardown)
-        host2 = v1.hosts.create()
+        host2 = v2.hosts.create()
         request.addfinalizer(host2.teardown)
 
         # launch two commands
-        ahc1 = v1.ad_hoc_commands.create(module_name='shell', module_args='sleep 5s', inventory=host1.ds.inventory)
-        ahc2 = v1.ad_hoc_commands.create(module_name='shell', module_args='sleep 5s', inventory=host2.ds.inventory)
+        ahc1 = v2.ad_hoc_commands.create(module_name='shell', module_args='sleep 5s', inventory=host1.ds.inventory)
+        ahc2 = v2.ad_hoc_commands.create(module_name='shell', module_args='sleep 5s', inventory=host2.ds.inventory)
         ordered_commands = [ahc1, ahc2]
         wait_for_jobs_to_finish(ordered_commands)
 
@@ -374,37 +374,6 @@ class Test_Sequential_Jobs(APITest):
 @pytest.mark.destructive
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class Test_Autospawned_Jobs(APITest):
-
-    def test_v1_inventory(self, cloud_inventory_job_template, cloud_inventory_source):
-        """Verify that an inventory update is triggered by our job launch. Job ordering
-        should be as follows:
-        * Inventory update should run first.
-        * Job should run after the completion of our inventory update.
-        """
-        # set update_on_launch
-        inv_src_pg = cloud_inventory_source
-        inv_src_pg.patch(update_on_launch=True)
-        assert inv_src_pg.update_cache_timeout == 0
-        assert inv_src_pg.last_updated is None, \
-            "Not expecting our inventory source to have been updated - %s." % inv_src_pg
-
-        # launch job_template and assert successful
-        job_pg = cloud_inventory_job_template.launch().wait_until_completed(timeout=600)
-        job_pg.assert_successful()
-
-        # check that inventory update triggered
-        inv_src_pg.get()
-        assert inv_src_pg.last_updated is not None, "Expecting value for last_updated - %s." % inv_src_pg
-        assert inv_src_pg.last_job_run is not None, "Expecting value for last_job_run - %s." % inv_src_pg
-
-        # check that inventory update and source are successful
-        inv_update = inv_src_pg.get_related('last_update')
-        inv_update.assert_successful()
-        inv_src_pg.assert_successful()
-
-        # check that jobs ran sequentially and in the right order
-        sorted_unified_jobs = [inv_update, job_pg]
-        confirm_unified_jobs(sorted_unified_jobs)
 
     def test_v2_inventory(self, factories):
         """Verify that an inventory update is triggered by our job launch. Job ordering
