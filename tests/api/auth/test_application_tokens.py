@@ -172,7 +172,7 @@ class TestApplications(APITest):
             entry = activity_stream.results.pop()
             assert entry.operation == 'create'
             assert entry.object1 == 'o_auth2_application'
-            assert entry.related.actor == privileged_user.endpoint.replace('v1', 'v2')
+            assert entry.related.actor == privileged_user.endpoint
             assert entry.changes.id == app.id
 
         with self.current_user(privileged_user):
@@ -188,7 +188,7 @@ class TestApplications(APITest):
             entry = activity_stream.results.pop()
             assert entry.operation == 'update'
             assert entry.object1 == 'o_auth2_application'
-            assert entry.related.actor == privileged_user.endpoint.replace('v1', 'v2')
+            assert entry.related.actor == privileged_user.endpoint
             assert entry.changes.name == [body['name'] for body in (orig_body, app_body)]
             assert entry.changes.description == [body['description'] for body in (orig_body, app_body)]
             assert entry.changes.redirect_uris == [body['redirect_uris'] for body in (orig_body, app_body)]
@@ -390,7 +390,7 @@ class TestApplicationTokens(APITest):
             entry = activity_stream.results.pop()
             assert entry.operation == 'create'
             assert entry.object1 == 'o_auth2_access_token'
-            assert entry.related.actor == privileged_user.endpoint.replace('v1', 'v2')
+            assert entry.related.actor == privileged_user.endpoint
             assert entry.changes.id == token.id
 
         with self.current_user(privileged_user):
@@ -413,7 +413,7 @@ class TestApplicationTokens(APITest):
             entry = activity_stream.results.pop()
             assert entry.operation == 'update'
             assert entry.object1 == 'o_auth2_access_token'
-            assert entry.related.actor == privileged_user.endpoint.replace('v1', 'v2')
+            assert entry.related.actor == privileged_user.endpoint
             assert entry.changes.description == [body['description'] for body in (orig_body, app_body)]
             assert entry.changes.scope == [body['scope'] for body in (orig_body, app_body)]
 
