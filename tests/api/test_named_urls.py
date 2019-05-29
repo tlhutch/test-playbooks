@@ -192,14 +192,6 @@ class TestNamedURLs(APITest):
         team_url = make_api_url('teams', '{1}++{2}', team.name, org.name)
         self.assert_resource_available_by_name(team, team_url)
 
-    def test_named_urls_v2_api_only(self, factories):
-        host = factories.host()
-        inventory = host.ds.inventory
-        organization = inventory.ds.organization
-        named_url = '{0.v1_inventories}{1}++{2}/'.format(resources, escape_pluses(inventory.name), escape_pluses(organization.name))
-        with pytest.raises(towerkit.exceptions.NotFound):
-            inventory.walk(named_url)
-
     def test_named_url_related_resource(self, factories):
         # related resources should be accessible via the named url
         host = factories.v2_host()

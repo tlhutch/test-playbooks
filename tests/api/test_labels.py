@@ -163,7 +163,7 @@ class Test_Labels(APITest):
         second_job_pg = job_template_with_label.launch().wait_until_completed()
         second_job_pg.assert_successful()
 
-        # find our label in api/v1/labels
+        # find our label in api/v2/labels
         label_id = job_template_with_label.get_related('labels').results[0].id
         labels_pg = api_labels_pg.get(id=label_id)
         assert labels_pg.count == 1, "No label with id %s found." % label_id
