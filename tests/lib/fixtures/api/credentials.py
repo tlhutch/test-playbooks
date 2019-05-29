@@ -349,14 +349,6 @@ def vmware_credential(admin_user, factories):
                                 kind='vmware', user=admin_user)
     return cred
 
-
-@pytest.fixture(scope="function")
-def openstack_v2_credential(admin_user, factories):
-    cred = factories.credential(name="openstack-v2-credential-%s" % fauxfactory.gen_utf8(),
-                                description="OpenStack credential %s" % fauxfactory.gen_utf8(),
-                                kind='openstack_v2', user=admin_user)
-    return cred
-
 def openstack_v3_credential(admin_user, factories):
     cred = factories.credential(name="openstack-v2-credential-%s" % fauxfactory.gen_utf8(),
                                 description="OpenStack credential %s" % fauxfactory.gen_utf8(),
@@ -364,7 +356,7 @@ def openstack_v3_credential(admin_user, factories):
     return cred
 
 
-@pytest.fixture(scope="function", params=['openstack_v2_credential', 'openstack_v3_credential'])
+@pytest.fixture(scope="function", params=['openstack_v3_credential'])
 def openstack_credential(request):
     return request.getfixturevalue(request.param)
 
