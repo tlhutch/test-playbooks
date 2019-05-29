@@ -99,10 +99,10 @@ class Test_System_Jobs(APITest):
         system_job_pg = cleanup_jobs_template.launch(payload).wait_until_completed()
         system_job_pg.assert_successful()
 
-        # assert no jobs under /api/v1/jobs/
+        # assert no jobs under /api/v2/jobs/
         assert api_jobs_pg.get().count == 0, "Jobs remain after cleanup_job run (received %s jobs)." % api_jobs_pg.get().count
 
-        # assert that our cleanup_jobs job is the only job remaining under /api/v1/system_jobs/
+        # assert that our cleanup_jobs job is the only job remaining under /api/v2/system_jobs/
         system_jobs_pg = api_system_jobs_pg.get()
         assert system_jobs_pg.get().count == 1, \
             "An unexpected number of system_jobs were found after running cleanup_jobs (%s != 1)." % system_jobs_pg.count
@@ -110,7 +110,7 @@ class Test_System_Jobs(APITest):
             "Unidentified system_job remaining after running cleanup_jobs. Expected one with ID %s but received %s." % \
             (system_job_pg.id, system_jobs_pg.results[0])
 
-        # assert that our cleanup_job and inventory/project updates remain under /api/v1/unified_jobs/
+        # assert that our cleanup_job and inventory/project updates remain under /api/v2/unified_jobs/
         unified_jobs_pg = api_unified_jobs_pg.get()
         update_job_ids = [job_pg.id for job_pg in unified_jobs_pg.results if job_pg.type in ['inventory_update', 'project_update']]
         unified_job_ids = [job_pg.id for job_pg in unified_jobs_pg.results]
@@ -133,9 +133,9 @@ class Test_System_Jobs(APITest):
 
     @pytest.mark.parametrize('job_type, extra_vars', [('cleanup_jobs', '{"days":"1000"}'),
                                                       ('cleanup_activitystream', '{"days":"1000"}')])
-    def test_cancel_system_job(self, v1, job_type, extra_vars):
+    def test_cancel_system_job(self, v2, job_type, extra_vars):
         """Test that pending system_jobs may be canceled."""
-        system_job_template = v1.system_job_templates.get(job_type=job_type).results.pop()
+        system_job_template = v2.system_job_templates.get(job_type=job_type).results.pop()
 
         # create a queue of jobs to ensure tested job is pending
         loaded_jobs = [system_job_template.launch(payload=dict(extra_vars=extra_vars)) for _ in range(5)]

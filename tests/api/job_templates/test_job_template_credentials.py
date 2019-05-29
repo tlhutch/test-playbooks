@@ -343,13 +343,11 @@ class TestJobTemplateVaultCredentials(APITest):
         assert not jt.credential
         assert jt.vault_credential == vault_credential.id
 
-    @pytest.mark.parametrize('v, cred_args', [['v1', dict(vault_password='tower', username='', password='',
-                                                          ssh_key_data='', become_password='')],
-                                              ['v2', dict(kind='vault', vault_password='tower')]])
+    @pytest.mark.parametrize('v, cred_args', [['v2', dict(kind='vault', vault_password='tower')]])
     def test_decrypt_vaulted_playbook_with_vault_credential(self, factories, v, cred_args):
-        host_factory = getattr(factories, 'host' if v == 'v1' else 'v2_host')
-        cred_factory = getattr(factories, 'credential' if v == 'v1' else 'v2_credential')
-        jt_factory = getattr(factories, 'job_template' if v == 'v1' else 'v2_job_template')
+        host_factory = factories.v2_host
+        cred_factory = factories.v2_credential
+        jt_factory = factories.v2_job_template
 
         host = host_factory()
         jt = jt_factory(inventory=host.ds.inventory, playbook='vaulted_debug_hostvars.yml')
@@ -364,13 +362,11 @@ class TestJobTemplateVaultCredentials(APITest):
         assert len(debug_tasks) == 1
         assert list(debug_tasks[0].event_data.res.hostvars.keys()) == [host.name]
 
-    @pytest.mark.parametrize('v, cred_args', [['v1', dict(vault_password='ASK', username='', password='',
-                                                          ssh_key_data='', become_password='')],
-                                              ['v2', dict(kind='vault', vault_password='ASK')]])
+    @pytest.mark.parametrize('v, cred_args', [['v2', dict(kind='vault', vault_password='ASK')]])
     def test_decrypt_vaulted_playbook_with_lone_ask_on_launch_vault_credential(self, factories, v, cred_args):
-        host_factory = getattr(factories, 'host' if v == 'v1' else 'v2_host')
-        cred_factory = getattr(factories, 'credential' if v == 'v1' else 'v2_credential')
-        jt_factory = getattr(factories, 'job_template' if v == 'v1' else 'v2_job_template')
+        host_factory = factories.v2_host
+        cred_factory = factories.v2_credential
+        jt_factory = factories.v2_job_template
 
         host = host_factory()
         vault_cred = cred_factory(**cred_args)
@@ -633,150 +629,6 @@ class TestJobTemplateExtraCredentials(APITest):
 
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestJobTemplateRelatedCredentials(APITest):
-
-    def test_add_machine_creds_check_backwards_compatibility(self, factories, v1, job_template_no_credential):
-        jt = job_template_no_credential
-        v1_jt_view = v1.job_templates.get(id=job_template_no_credential.id).results[0].get()
-        cred = factories.credential()
-
-        jt.add_credential(cred)
-        jt.get()
-        v1_jt_view.get()
-        assert v1_jt_view.credential == cred.id
-        assert v1_jt_view.vault_credential is None
-        assert v1_jt_view.cloud_credential is None
-        assert v1_jt_view.network_credential is None
-
-        assert jt.credential == cred.id
-        assert jt.vault_credential is None
-        assert jt.related.extra_credentials.get().count == 0
-        assert jt.related.credentials.get().results.pop().id == cred.id
-
-        jt.remove_credential(cred)
-        jt.get()
-        v1_jt_view.get()
-        assert v1_jt_view.credential is None
-        assert v1_jt_view.vault_credential is None
-        assert v1_jt_view.cloud_credential is None
-        assert v1_jt_view.network_credential is None
-
-        assert jt.credential is None
-        assert jt.vault_credential is None
-        assert jt.related.extra_credentials.get().count == 0
-        assert jt.related.credentials.get().count == 0
-
-    def test_add_vault_creds_check_backwards_compatibility(self, factories, v1, job_template_no_credential):
-        jt = job_template_no_credential
-        v1_jt_view = v1.job_templates.get(id=job_template_no_credential.id).results[0].get()
-        cred = factories.v2_credential(kind='vault', vault_password='tower')
-
-        jt.add_credential(cred)
-        jt.get()
-        v1_jt_view.get()
-        assert v1_jt_view.credential is None
-        assert v1_jt_view.vault_credential == cred.id
-        assert v1_jt_view.cloud_credential is None
-        assert v1_jt_view.network_credential is None
-
-        assert jt.credential is None
-        assert jt.vault_credential == cred.id
-        assert jt.related.extra_credentials.get().count == 0
-        assert jt.related.credentials.get().results.pop().id == cred.id
-
-        jt.remove_credential(cred)
-        jt.get()
-        v1_jt_view.get()
-        assert v1_jt_view.credential is None
-        assert v1_jt_view.vault_credential is None
-        assert v1_jt_view.cloud_credential is None
-        assert v1_jt_view.network_credential is None
-
-        assert jt.credential is None
-        assert jt.vault_credential is None
-        assert jt.related.extra_credentials.get().count == 0
-        assert jt.related.credentials.get().count == 0
-
-    def test_add_cloud_creds_check_backwards_compatibility(self, factories, v1, job_template_no_credential):
-        jt = job_template_no_credential
-        v1_jt_view = v1.job_templates.get(id=job_template_no_credential.id).results[0].get()
-        creds = []
-        for i in range(3):
-            cred_type = factories.credential_type(kind='cloud')
-            creds.append(factories.v2_credential(credential_type=cred_type))
-
-        # remove after https://github.com/ansible/ansible-tower/issues/7935 is resolved
-        creds = sorted(creds, key=lambda cred: cred.name, reverse=True)
-
-        for cred in creds:
-            jt.add_credential(cred)
-        jt.get()
-        v1_jt_view.get()
-        assert v1_jt_view.credential is None
-        assert v1_jt_view.vault_credential is None
-        assert v1_jt_view.cloud_credential == creds[0].id
-        assert v1_jt_view.network_credential is None
-
-        assert jt.credential is None
-        assert jt.vault_credential is None
-        extra_creds = jt.related.extra_credentials.get().results
-        assert set([cred.id for cred in extra_creds]) == set([cred.id for cred in creds])
-        related_creds = jt.related.credentials.get().results
-        assert set([cred.id for cred in related_creds]) == set([cred.id for cred in creds])
-
-        for cred in creds:
-            jt.remove_credential(cred)
-        jt.get()
-        v1_jt_view.get()
-        assert v1_jt_view.credential is None
-        assert v1_jt_view.vault_credential is None
-        assert v1_jt_view.cloud_credential is None
-        assert v1_jt_view.network_credential is None
-
-        assert jt.credential is None
-        assert jt.vault_credential is None
-        assert jt.related.extra_credentials.get().count == 0
-        assert jt.related.credentials.get().count == 0
-
-    def test_add_network_creds_check_backwards_compatibility(self, factories, v1, job_template_no_credential):
-        jt = job_template_no_credential
-        v1_jt_view = v1.job_templates.get(id=job_template_no_credential.id).results[0].get()
-        creds = []
-        for i in range(3):
-            cred_type = factories.credential_type(kind='net')
-            creds.append(factories.v2_credential(credential_type=cred_type))
-
-        # remove after https://github.com/ansible/ansible-tower/issues/7935 is resolved
-        creds = sorted(creds, key=lambda cred: cred.name, reverse=True)
-
-        for cred in creds:
-            jt.add_credential(cred)
-        jt.get()
-        v1_jt_view.get()
-        assert v1_jt_view.credential is None
-        assert v1_jt_view.vault_credential is None
-        assert v1_jt_view.cloud_credential is None
-        assert v1_jt_view.network_credential == creds[0].id
-
-        assert jt.credential is None
-        assert jt.vault_credential is None
-        extra_creds = jt.related.extra_credentials.get().results
-        assert set([cred.id for cred in extra_creds]) == set([cred.id for cred in creds])
-        related_creds = jt.related.credentials.get().results
-        assert set([cred.id for cred in related_creds]) == set([cred.id for cred in creds])
-
-        for cred in creds:
-            jt.remove_credential(cred)
-        jt.get()
-        v1_jt_view.get()
-        assert v1_jt_view.credential is None
-        assert v1_jt_view.vault_credential is None
-        assert v1_jt_view.cloud_credential is None
-        assert v1_jt_view.network_credential is None
-
-        assert jt.credential is None
-        assert jt.vault_credential is None
-        assert jt.related.extra_credentials.get().count == 0
-        assert jt.related.credentials.get().count == 0
 
     def test_patch_machine_credential_check_related_credentials(self, factories):
         cred = factories.credential()
