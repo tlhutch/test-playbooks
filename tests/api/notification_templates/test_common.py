@@ -5,26 +5,88 @@ import awxkit.exceptions
 
 from tests.api import APITest
 from tests.api.test_notifications import associate_notification_template
+from tests.lib.notification_services import confirm_notification, can_confirm_notification
 
 
 @pytest.mark.usefixtures('authtoken')
 class Test_Common_NotificationTemplate(APITest):
 
-    def test_notification_template_contains_all_events_default_message(self, notification_template):
-        assert 'messages' in notification_template
+    def build_messages(self, content):
+        return dict(
+            started=dict(message=content, body=content),
+            success=dict(message=content, body=content),
+            error=dict(message=content, body=content)
+        )
 
-        messages = notification_template['messages']
-        assert sorted(['started', 'success', 'error']) == sorted(list(messages.keys()))
+    def build_errors(self, error):
+        errors = []
+        NUM_MSGS_IN_NOTIFICATION_TEMPLATE = 6
+        for i in range(NUM_MSGS_IN_NOTIFICATION_TEMPLATE):
+            errors.append(error)
+        return {'messages': errors}
 
-        default_message = {
-            'message': "{{ job_friendly_name }} #{{ job.id }} '{{ job.name }}' {{ job.status }}: {{ url }}",
-            'body': "",
-        }
+    @pytest.mark.parametrize('valid_message',
+        [
+            'Message without templating',
+            'Message with top-level field: {{ job.job_explanation }}',
+            'Message with nested field: {{ job.summary_fields.inventory.total_hosts }}'
+        ], ids=(
+            'message without templating',
+            'message with top-level field',
+            'message with nested field',
+        )
+    )
+    def test_valid_notification_messages(self, factories,
+                                         slack_notification_template, valid_message):
+        messages = self.build_messages(valid_message)
+        nt = factories.notification_template(messages=messages)
+        assert nt.messages == messages
 
-        for event in ['started', 'success', 'error']:
-            assert messages[event] == default_message
+    @pytest.mark.parametrize('invalid_message, error_msg',
+        [
+            ('{{ unclosed_tag', "Unable to render message '{{ unclosed_tag': unexpected end of template, expected 'end of print statement'."),
+            ('{{ abc.abc }}', "Field 'abc' unavailable"),
+            ('{{ job.title | fake_filter }}', "Unable to render message '{{ job.title | fake_filter }}': no filter named 'fake_filter'"),
+            ('{{ job.job_env }} is not white-listed', "Field 'job_env' unavailable"),
+            ('{{ job.job_args }} is not white-listed, either', "Field 'job_args' unavailable")
+        ], ids=(
+            'unclosed tag',
+            'unavailable field',
+            'fake filter',
+            'sensitive field (job_env)',
+            'sensitive field (job_args)'
+        )
+    )
+    def test_invalid_notification_messages(self, factories,
+                                           slack_notification_template, invalid_message,
+                                           error_msg):
+        messages = self.build_messages(invalid_message)
+        with pytest.raises(awxkit.exceptions.BadRequest) as e:
+            factories.notification_template(messages=messages)
+        assert e.value.msg == self.build_errors(error_msg)
 
-    def test_notification_template_contains_update_default_messages(self, notification_template):
+    @pytest.mark.parametrize('message, expected_msg',
+        [
+            ('Starting {{ job.name }}', 'Starting {job.name}'),
+            ('䉪ቒ칸ⱷꯔ噂폄蔆㪗輥', '䉪ቒ칸ⱷꯔ噂폄蔆㪗輥'),
+            ('{{ "䉪䉪ቒ칸ⱷꯔ噂폄蔆㪗輥" }}', '䉪䉪ቒ칸ⱷꯔ噂폄蔆㪗輥')
+        ], ids=(
+            'template with job field',
+            'unicode',
+            'unicode inside template'
+        )
+    )
+    def test_rendered_message(self, factories, message, expected_msg):
+        nt = factories.notification_template(messages={'started': {'message': message}})
+        jt = factories.job_template()
+        jt.add_notification_template(nt, endpoint='notification_templates_started')
+        job = jt.launch()
+        assert confirm_notification(nt, expected_msg.format(job=job))
+
+    def test_notification_template_default_contains_no_message(self, notification_template):
+        assert 'messages' in notification_template and not notification_template['messages']
+
+    def test_notification_template_contains_update_all_default_messages(self, notification_template):
 
         notification_configuration_event = {
             'started': {
@@ -46,8 +108,8 @@ class Test_Common_NotificationTemplate(APITest):
                 {'message': 'message_%s' % event, 'body': 'body_%s' % event}
         assert sorted(['started', 'success', 'error']) == sorted(list(notification_template['messages'].keys()))
 
+    def test_notification_template_contains_update_some_default_messages(self, notification_template):
         for event in ['started', 'success', 'error']:
-
             notification_configuration_event = {
                 event: {
                     'message': 'message_%s' % event,
@@ -102,70 +164,52 @@ class Test_Common_NotificationTemplate(APITest):
         job = jt.launch().wait_until_completed()
         job.assert_successful()
         notifications = job.get_related('notifications').wait_until_count(1)
-        assert "Job #%s '%s'" % (job.id, job.get_related('job_template').name) in notifications.results.pop()['subject']
 
-    def test_job_template_launch_with_custom_notification_on_start_and_on_success(self, notification_template, factories):
-
-        notification_configuration_event = {
-            'started': {
-                'message': 'message_started',
-                'body': 'body_started'
-            },
-            'error': {
-                'message': 'message_error',
-                'body': 'body_error'
-            },
-            'success': {
-                'message': 'message_success',
-                'body': 'body_success'
-            }
-        }
-        notification_template.patch(messages=notification_configuration_event)
-
-        jt = factories.job_template()
-        associate_notification_template(notification_template, jt, 'started')
-        associate_notification_template(notification_template, jt, 'success')
-        job = jt.launch().wait_until_completed()
-        job.assert_successful()
-        notifications = job.get_related('notifications').wait_until_count(2)
-        assert 'message_started' in [notification['subject'] for notification in notifications.results]
-        assert 'message_success' in [notification['subject'] for notification in notifications.results]
-
-    def test_job_template_launch_with_custom_notification_on_start_and_on_error(self, notification_template, factories):
-
-        notification_configuration_event = {
-            'started': {
-                'message': 'message_started',
-                'body': 'body_started'
-            },
-            'error': {
-                'message': 'message_error',
-                'body': 'body_error'
-            },
-            'success': {
-                'message': 'message_success',
-                'body': 'body_success'
-            }
-        }
-        notification_template.patch(messages=notification_configuration_event)
-
-        jt = factories.job_template(playbook='fail.yml')
-        associate_notification_template(notification_template, jt, 'started')
-        associate_notification_template(notification_template, jt, 'error')
-        job = jt.launch().wait_until_completed()
-        notifications = job.get_related('notifications').wait_until_count(2)
-        assert 'message_started' in [notification['subject'] for notification in notifications.results]
-        assert 'message_error' in [notification['subject'] for notification in notifications.results]
+        if notification_template.notification_type == 'webhook':
+            assert str(job.id) in str(notifications.results.pop()['body'])
+        else:
+            assert "Job #%s '%s'" % (job.id, job.get_related('job_template').name) in notifications.results.pop()['subject']
 
     @pytest.mark.parametrize('event', ['started', 'success', 'error'])
-    def test_job_template_launch_with_notification_on_event(self, notification_template, factories, event):
+    def test_job_template_launch_with_custom_notification_on_event(self, notification_template, factories, event):
 
-        playbook = 'ping.yml'
-        if event == 'error':
-            playbook = 'fail.yml'
+        notification_configuration_event = {
+            event: {
+                'message': 'message_%s' % event,
+                'body': 'body_%s' % event
+            }
+        }
+        notification_template.patch(messages=notification_configuration_event)
 
+        playbook = 'fail.yml' if event == 'error' else 'ping.yml'
         jt = factories.job_template(playbook=playbook)
         associate_notification_template(notification_template, jt, event)
         job = jt.launch().wait_until_completed()
         notifications = job.get_related('notifications').wait_until_count(1)
-        assert "Job #%s '%s'" % (job.id, job.get_related('job_template').name) in notifications.results.pop()['subject']
+
+        if notification_template.notification_type == 'webhook':
+            key = 'body'
+            headers = notification_template.notification_configuration['headers']
+            body = {"body": notification_configuration_event[event]['body']}
+            message = (headers, body)
+        else:
+            key = 'subject'
+            message = notification_configuration_event[event]['message']
+
+        assert event in notifications.results.pop()[key]
+        if can_confirm_notification(notification_template):
+            assert confirm_notification(notification_template, message)
+
+    @pytest.mark.parametrize('event', ['started', 'success', 'error'])
+    def test_job_template_launch_with_default_notification_on_event(self, notification_template, factories, event):
+
+        playbook = 'fail.yml' if event == 'error' else 'ping.yml'
+        jt = factories.job_template(playbook=playbook)
+        associate_notification_template(notification_template, jt, event)
+        job = jt.launch().wait_until_completed()
+        notifications = job.get_related('notifications').wait_until_count(1)
+
+        if notification_template.notification_type == 'webhook':
+            assert str(job.id) in str(notifications.results.pop()['body'])
+        else:
+            assert "Job #%s '%s'" % (job.id, job.get_related('job_template').name) in notifications.results.pop()['subject']

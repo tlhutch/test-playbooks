@@ -1,5 +1,5 @@
-
 import logging
+from urllib.parse import urlparse
 
 from tests.lib.notification_services import (confirm_notification, can_confirm_notification)
 from awxkit.config import config
@@ -67,12 +67,12 @@ def expected_job_notification(tower_url, notification_template_pg, job_pg, job_r
     nt_type = notification_template_pg.notification_type
     job_description = ("System " if job_pg.type == 'system_job' else "") + "Job"
     if tower_message:
-        msg = (job_description + " #%s '%s' succeeded: %s/#/jobs/" +
+        msg = (job_description + " #%s '%s' successful: %s/#/jobs/" +
                ("system" if job_pg.type == "system_job" else "playbook") + "/%s") % \
               (job_pg.id, job_pg.name, tower_url, job_pg.id)
 
     elif nt_type == "slack":
-        msg = (job_description + " #%s '%s' succeeded: <%s/#/jobs/" +
+        msg = (job_description + " #%s '%s' successful: <%s/#/jobs/" +
                ("system" if job_pg.type == "system_job" else "playbook") + "/%s>") % \
               (job_pg.id, job_pg.name, tower_url, job_pg.id)
     elif nt_type == "webhook":
@@ -153,7 +153,14 @@ class Test_Notification_Templates(APITest):
 class Test_Notifications(APITest):
     """Notification tests"""
 
-    def test_test_notification(self, request, notification_template):
+    @pytest.fixture(scope='class')
+    def tower_baseurl(self, is_docker):
+        base_url = urlparse(config.base_url)
+        scheme = 'http' if base_url.scheme is None else base_url.scheme
+        host = 'towerhost' if is_docker else base_url.hostname
+        return '{0}://{1}'.format(scheme, host)
+
+    def test_test_notification(self, request, notification_template, tower_baseurl):
         """Generate test notifications for each notification type"""
         # Trigger test notification
         notification_pg = notification_template.test().wait_until_completed(timeout=30)
@@ -161,7 +168,7 @@ class Test_Notifications(APITest):
 
         # Confirm test notification delivered
         if can_confirm_notification(notification_template):
-            msg = expected_test_notification(config.base_url, notification_template)
+            msg = expected_test_notification(tower_baseurl, notification_template)
             notification_type = notification_template.notification_type
             assert confirm_notification(notification_template, msg), \
                 "Failed to find %s test notification (%s)" %\
@@ -172,7 +179,7 @@ class Test_Notifications(APITest):
         [(True, 'success'), (True, 'error'), (False, 'success'), (False, 'error')]
     )
     def test_system_job_notifications(self, system_job_template, slack_notification_template,
-                                      notify_on_start, job_result):
+                                      notify_on_start, job_result, tower_baseurl):
         """Test notification templates attached to system job templates"""
 
         notification_template = slack_notification_template
@@ -204,7 +211,7 @@ class Test_Notifications(APITest):
             assert notification_pg is not None, \
                 "Expected notification to be associated with notification template %s" % notification_template.id
             notification_pg.wait_until_completed()
-            tower_msg = expected_job_notification(config.base_url, notification_template, job, job_result, tower_message=True)
+            tower_msg = expected_job_notification(tower_baseurl, notification_template, job, job_result, tower_message=True)
             assert notification_pg.subject == tower_msg, \
                 "Expected most recent notification to be (%s), found (%s)" % (tower_msg, notification_pg.subject)
             notification_pg.assert_successful()
@@ -216,7 +223,7 @@ class Test_Notifications(APITest):
         # Check notification in notification service
         if can_confirm_notification(notification_template):
             notification_expected = (True if job_result == 'success' else False)
-            msg = expected_job_notification(config.base_url, notification_template, job, job_result)
+            msg = expected_job_notification(tower_baseurl, notification_template, job, job_result)
             assert confirm_notification(notification_template, msg, is_present=notification_expected), \
                 notification_template.notification_type + " notification " + \
                 ("not " if notification_expected else "") + "present (%s)" % msg
@@ -226,7 +233,7 @@ class Test_Notifications(APITest):
         [(True, 'success'), (True, 'error'), (False, 'success'), (False, 'error')]
     )
     @pytest.mark.parametrize("resource", ['organization', 'project', 'job_template'])
-    def test_notification_inheritance(self, request, resource, job_template, slack_notification_template, notify_on_start, job_result):
+    def test_notification_inheritance(self, request, resource, job_template, slack_notification_template, notify_on_start, job_result, tower_baseurl):
         """Test inheritance of notifications when notification template attached to various tower resources"""
         # Get reference to resource
         notification_template = slack_notification_template
@@ -258,7 +265,7 @@ class Test_Notifications(APITest):
             "Expected job to have %s notifications, found %s" % (notifications_expected, notifications_pg.count)
         if job_result == 'success':
             notification_pg = notifications_pg.results[-1] if len(notifications_pg.results) else None
-            tower_msg = expected_job_notification(config.base_url, notification_template, job, job_result, tower_message=True)
+            tower_msg = expected_job_notification(tower_baseurl, notification_template, job, job_result, tower_message=True)
             assert notification_pg.notification_template == notification_template.id, \
                 "Expected notification to be associated with notification template %s, found %s" % \
                 (notification_template.id, notification_pg.notification_template)
@@ -273,7 +280,7 @@ class Test_Notifications(APITest):
         # Check notification in notification service
         if can_confirm_notification(notification_template):
             notification_expected = (True if job_result == 'success' else False)
-            msg = expected_job_notification(config.base_url, notification_template, job, job_result)
+            msg = expected_job_notification(tower_baseurl, notification_template, job, job_result)
             assert confirm_notification(notification_template, msg) == notification_expected, \
                 notification_template.notification_type + " notification " + \
                 ("not " if notification_expected else "") + "present (%s)" % msg
