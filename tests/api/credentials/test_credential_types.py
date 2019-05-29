@@ -39,11 +39,6 @@ class TestCredentialTypes(APITest):
         for undesired_type in ('insights', 'ssh', 'scm', 'vault'):
             assert undesired_type not in creating_help_text
 
-    def test_v1_credential_options_dont_contain_credential_type(self, v1):
-        options = str(v1.credentials.options()).lower()
-        assert "credential type" not in options
-        assert "credential_type" not in options
-
     def test_confirm_empty_defaults_for_credential_type(self, factories):
         for kind in credential_type_kinds:
             cred_type = factories.credential_type(kind=kind)

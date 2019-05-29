@@ -488,7 +488,7 @@ def k8s_vault(gke_client_cscope, request):
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestHashiCorpVaultCredentials(APITest):
 
-    def create_hashicorp_vault_credential(self, factories, v2, url, token, api_version):
+    def create_hashicorp_vault_credential(self, factories, v2, url, token, hashicorp_api_version):
         cred_type = v2.credential_types.get(
             managed_by_tower=True,
             name='HashiCorp Vault Secret Lookup'
@@ -496,7 +496,7 @@ class TestHashiCorpVaultCredentials(APITest):
         inputs = {
             'url': url,
             'token': token,
-            'api_version': api_version
+            'api_version': hashicorp_api_version
         }
         payload = factories.v2_credential.payload(
             name=fauxfactory.gen_utf8(),
@@ -506,7 +506,7 @@ class TestHashiCorpVaultCredentials(APITest):
         )
         return v2.credentials.post(payload)
 
-    def launch_job(self, factories, v2, api_version, secret_version, path, url=None,
+    def launch_job(self, factories, v2, hashicorp_api_version, secret_version, path, url=None,
                     token=config.credentials.hashivault.token, secret_key='username'):
 
         # create a credential w/ a hashicorp token
@@ -517,7 +517,7 @@ class TestHashiCorpVaultCredentials(APITest):
         inputs = {
             'url': url,
             'token': token,
-            'api_version': api_version
+            'api_version': hashicorp_api_version
         }
         payload = factories.v2_credential.payload(
             name=fauxfactory.gen_utf8(),
@@ -525,7 +525,7 @@ class TestHashiCorpVaultCredentials(APITest):
             credential_type=cred_type,
             inputs=inputs
         )
-        hashi_credential = self.create_hashicorp_vault_credential(factories, v2, url, token, api_version)
+        hashi_credential = self.create_hashicorp_vault_credential(factories, v2, url, token, hashicorp_api_version)
 
         # create an SSH credential
         cred_type = v2.credential_types.get(managed_by_tower=True, kind='ssh').results.pop()
@@ -555,12 +555,12 @@ class TestHashiCorpVaultCredentials(APITest):
                                        credential=credential)
         return jt.launch().wait_until_completed()
 
-    @pytest.mark.parametrize('api_version, secret_version, path, expected', [
+    @pytest.mark.parametrize('hashicorp_api_version, secret_version, path, expected', [
         ['v1', None, '/kv/example-user/', 'unversioned-username'],
         ['v2', None, '/versioned/example-user', 'latest-username'],
         ['v2', '1', '/versioned/example-user', 'old-username'],
     ])
-    def test_hashicorp_vault_kv_lookup(self, factories, v2, api_version,
+    def test_hashicorp_vault_kv_lookup(self, factories, v2, hashicorp_api_version,
                                        secret_version, path, expected, k8s_vault):
         """
         Verify that a v1 KV secret can be pulled from a Hashicorp Vault API
@@ -575,29 +575,29 @@ class TestHashiCorpVaultCredentials(APITest):
         provides a versioned value for the "username" key lookup (with at least
         two versions)
         """
-        job = self.launch_job(factories, v2, api_version, secret_version, path, url=k8s_vault)
+        job = self.launch_job(factories, v2, hashicorp_api_version, secret_version, path, url=k8s_vault)
         job.assert_successful()
         assert '-u {}'.format(expected) in ' '.join(job.job_args)
 
-    @pytest.mark.parametrize('api_version', ['v1', 'v2'])
+    @pytest.mark.parametrize('hashicorp_api_version', ['v1', 'v2'])
     @pytest.mark.parametrize('path', [
         '/missing/path',
         '/missing/',
         'a',
     ])
-    def test_hashicorp_vault_kv_bad_path(self, factories, v2, api_version, path, k8s_vault):
-        job = self.launch_job(factories, v2, api_version, None, path, url=k8s_vault)
+    def test_hashicorp_vault_kv_bad_path(self, factories, v2, hashicorp_api_version, path, k8s_vault):
+        job = self.launch_job(factories, v2, hashicorp_api_version, None, path, url=k8s_vault)
         assert not job.is_successful
         assert 'requests.exceptions.HTTPError: 404 Client Error' in job.result_traceback
 
-    @pytest.mark.parametrize('api_version, secret_version, path', [
+    @pytest.mark.parametrize('hashicorp_api_version, secret_version, path', [
         ['v1', None, '/kv/example-user/'],
         ['v2', None, '/versioned/example-user'],
         ['v2', '1', '/versioned/example-user'],
     ])
-    def test_hashicorp_vault_kv_bad_key(self, factories, v2, api_version,
+    def test_hashicorp_vault_kv_bad_key(self, factories, v2, hashicorp_api_version,
                                         secret_version, path, k8s_vault):
-        job = self.launch_job(factories, v2, api_version, secret_version, path, url=k8s_vault,
+        job = self.launch_job(factories, v2, hashicorp_api_version, secret_version, path, url=k8s_vault,
                           secret_key='key-does-not-exist')
         assert not job.is_successful
         assert '{} is not present at {}'.format(
@@ -605,15 +605,15 @@ class TestHashiCorpVaultCredentials(APITest):
             path
         ) in job.result_traceback
 
-    @pytest.mark.parametrize('api_version', ['v1', 'v2'])
-    def test_hashicorp_vault_kv_bad_url(self, factories, v2, api_version):
-        job = self.launch_job(factories, v2, api_version, None, '/any/path', url='http://missing.local:8200')
+    @pytest.mark.parametrize('hashicorp_api_version', ['v1', 'v2'])
+    def test_hashicorp_vault_kv_bad_url(self, factories, v2, hashicorp_api_version):
+        job = self.launch_job(factories, v2, hashicorp_api_version, None, '/any/path', url='http://missing.local:8200')
         assert not job.is_successful
         assert 'Failed to establish a new connection: [Errno -2] Name or service not known' in job.result_traceback
 
-    @pytest.mark.parametrize('api_version', ['v1', 'v2'])
-    def test_hashicorp_vault_kv_bad_token(self, factories, v2, api_version, k8s_vault):
-        job = self.launch_job(factories, v2, api_version, None, '/any/path', url=k8s_vault,
+    @pytest.mark.parametrize('hashicorp_api_version', ['v1', 'v2'])
+    def test_hashicorp_vault_kv_bad_token(self, factories, v2, hashicorp_api_version, k8s_vault):
+        job = self.launch_job(factories, v2, hashicorp_api_version, None, '/any/path', url=k8s_vault,
                           token='totally-incorrect-token')
         assert not job.is_successful
         assert '403 Client Error: Forbidden' in job.result_traceback
