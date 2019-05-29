@@ -50,6 +50,12 @@ Scope selected: ${params.SCOPE}"""
         stage('OS Variant') {
             parallel {
                 stage('Debian') {
+                    when {
+                        expression {
+                            return params.TOWER_VERSION ==~ /3.[3-5].[0-9]*/
+                        }
+                    }
+
                     steps {
                         build(
                             job: 'debian-pipeline',
