@@ -77,7 +77,6 @@ Platform under test: ${params.PLATFORM}"""
                                     retry(2) {
                                         build(
                                             job: 'upgrade-pipeline',
-                                            propagate: false,
                                             parameters: [
                                                 string(name: 'TOWER_VERSION_TO_UPGRADE_FROM', value: prev_min_version),
                                                 string(name: 'TOWER_VERSION_TO_UPGRADE_TO', value: params.TOWER_VERSION),
@@ -99,7 +98,6 @@ Platform under test: ${params.PLATFORM}"""
                                     retry(2) {
                                         build(
                                             job: 'upgrade-pipeline',
-                                            propagate: false,
                                             parameters: [
                                                 string(name: 'TOWER_VERSION_TO_UPGRADE_FROM', value: prev_maj_version),
                                                 string(name: 'TOWER_VERSION_TO_UPGRADE_TO', value: params.TOWER_VERSION),
@@ -135,8 +133,9 @@ Platform under test: ${params.PLATFORM}"""
 
                         script {
                             stage('Plain-Standalone Integration') {
-                                build(
+                                ps_integration = build(
                                     job: 'integration-pipeline',
+                                    propagate: false,
                                     parameters: [
                                         string(name: 'TOWER_VERSION', value: params.TOWER_VERSION),
                                         string(name: 'ANSIBLE_VERSION', value: params.ANSIBLE_VERSION),
@@ -146,7 +145,11 @@ Platform under test: ${params.PLATFORM}"""
                                         string(name: 'TESTEXPR', value: testexpr),
                                         string(name: 'DEPLOYMENT_NAME', value: 'evergreen-jenkins-tower-plain-standalone-integration')
                                     ]
-                                )
+                                ).result
+
+                                if (currentBuild.currentResult != 'FAILURE' && ps_integration != 'SUCCESS') {
+                                    currentBuild.result = ps_integration
+                                }
                             }
                         }
                     }
@@ -160,7 +163,6 @@ Platform under test: ${params.PLATFORM}"""
                                     retry(2) {
                                         build(
                                             job: 'upgrade-pipeline',
-                                            propagate: false,
                                             parameters: [
                                                 string(name: 'TOWER_VERSION_TO_UPGRADE_FROM', value: prev_min_version),
                                                 string(name: 'TOWER_VERSION_TO_UPGRADE_TO', value: params.TOWER_VERSION),
@@ -182,7 +184,6 @@ Platform under test: ${params.PLATFORM}"""
                                     retry(2) {
                                         build(
                                             job: 'upgrade-pipeline',
-                                            propagate: false,
                                             parameters: [
                                                 string(name: 'TOWER_VERSION_TO_UPGRADE_FROM', value: prev_maj_version),
                                                 string(name: 'TOWER_VERSION_TO_UPGRADE_TO', value: params.TOWER_VERSION),
@@ -218,8 +219,9 @@ Platform under test: ${params.PLATFORM}"""
 
                         script {
                             stage('Plain-Cluster Integration') {
-                                build(
+                                pc_integration = build(
                                     job: 'integration-pipeline',
+                                    propagate: false,
                                     parameters: [
                                         string(name: 'TOWER_VERSION', value: params.TOWER_VERSION),
                                         string(name: 'ANSIBLE_VERSION', value: params.ANSIBLE_VERSION),
@@ -229,7 +231,11 @@ Platform under test: ${params.PLATFORM}"""
                                         string(name: 'TESTEXPR', value: testexpr),
                                         string(name: 'DEPLOYMENT_NAME', value: 'evergreen-jenkins-tower-plain-cluster-integration')
                                     ]
-                                )
+                                ).result
+
+                                if (currentBuild.currentResult != 'FAILURE' && pc_integration != 'SUCCESS') {
+                                    currentBuild.result = pc_integration
+                                }
                             }
                         }
                     }
@@ -248,7 +254,6 @@ Platform under test: ${params.PLATFORM}"""
                                     retry(2) {
                                         build(
                                             job: 'upgrade-pipeline',
-                                            propagate: false,
                                             parameters: [
                                                 string(name: 'TOWER_VERSION_TO_UPGRADE_FROM', value: prev_min_version),
                                                 string(name: 'TOWER_VERSION_TO_UPGRADE_TO', value: params.TOWER_VERSION),
@@ -270,7 +275,6 @@ Platform under test: ${params.PLATFORM}"""
                                     retry(2) {
                                         build(
                                             job: 'upgrade-pipeline',
-                                            propagate: false,
                                             parameters: [
                                                 string(name: 'TOWER_VERSION_TO_UPGRADE_FROM', value: prev_maj_version),
                                                 string(name: 'TOWER_VERSION_TO_UPGRADE_TO', value: params.TOWER_VERSION),
@@ -306,8 +310,9 @@ Platform under test: ${params.PLATFORM}"""
 
                         script {
                             stage('Bundle-Standalone Integration') {
-                                build(
+                                bs_integration = build(
                                     job: 'integration-pipeline',
+                                    propagate: false,
                                     parameters: [
                                         string(name: 'TOWER_VERSION', value: params.TOWER_VERSION),
                                         string(name: 'ANSIBLE_VERSION', value: params.ANSIBLE_VERSION),
@@ -317,7 +322,11 @@ Platform under test: ${params.PLATFORM}"""
                                         string(name: 'TESTEXPR', value: testexpr),
                                         string(name: 'DEPLOYMENT_NAME', value: 'evergreen-jenkins-tower-bundle-standalone-integration')
                                     ]
-                                )
+                                ).result
+
+                                if (currentBuild.currentResult != 'FAILURE' && bs_integration != 'SUCCESS') {
+                                    currentBuild.result = bs_integration
+                                }
                             }
                         }
                     }
@@ -336,7 +345,6 @@ Platform under test: ${params.PLATFORM}"""
                                     retry(2) {
                                         build(
                                             job: 'upgrade-pipeline',
-                                            propagate: false,
                                             parameters: [
                                                 string(name: 'TOWER_VERSION_TO_UPGRADE_FROM', value: prev_min_version),
                                                 string(name: 'TOWER_VERSION_TO_UPGRADE_TO', value: params.TOWER_VERSION),
@@ -358,7 +366,6 @@ Platform under test: ${params.PLATFORM}"""
                                     retry(2) {
                                         build(
                                             job: 'upgrade-pipeline',
-                                            propagate: false,
                                             parameters: [
                                                 string(name: 'TOWER_VERSION_TO_UPGRADE_FROM', value: prev_maj_version),
                                                 string(name: 'TOWER_VERSION_TO_UPGRADE_TO', value: params.TOWER_VERSION),
@@ -394,8 +401,9 @@ Platform under test: ${params.PLATFORM}"""
 
                         script {
                             stage('Bundle-Cluster Integration') {
-                                build(
+                                bc_integration = build(
                                     job: 'integration-pipeline',
+                                    propagate: false,
                                     parameters: [
                                         string(name: 'TOWER_VERSION', value: params.TOWER_VERSION),
                                         string(name: 'ANSIBLE_VERSION', value: params.ANSIBLE_VERSION),
@@ -405,7 +413,11 @@ Platform under test: ${params.PLATFORM}"""
                                         string(name: 'TESTEXPR', value: testexpr),
                                         string(name: 'DEPLOYMENT_NAME', value: 'evergreen-jenkins-tower-bundle-cluster-integration')
                                     ]
-                                )
+                                ).result
+
+                                if (currentBuild.currentResult != 'FAILURE' && bc_integration != 'SUCCESS') {
+                                    currentBuild.result = bc_integration
+                                }
                             }
                         }
                     }
@@ -417,7 +429,7 @@ Platform under test: ${params.PLATFORM}"""
         always {
             node('jenkins-jnlp-agent') {
                 script {
-                    json = "{\"os\":\"${params.PLATFORM}\", \"ansible\":\"${params.ANSIBLE_VERSION}\", \"tower\": \"${params.TOWER_VERSION}\", \"status\": \"${currentBuild.currentResult}\", \"url\": \"${env.RUN_DISPLAY_URL}\"}"
+                    json = "{\"os\":\"${params.PLATFORM}\", \"ansible\":\"${params.ANSIBLE_VERSION}\", \"tower\": \"${params.TOWER_VERSION}\", \"status\": \"${currentBuild.result}\", \"url\": \"${env.RUN_DISPLAY_URL}\"}"
                 }
                 sh "curl -v -X POST 'http://tower-qe-dashboard.ansible.eng.rdu2.redhat.com/jenkins/results' -H 'Content-type: application/json' -d '${json}'"
             }
