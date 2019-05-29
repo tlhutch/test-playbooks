@@ -834,13 +834,14 @@ print(json.dumps({
 
     @pytest.mark.parametrize("instance_filter", ["tag-key=UNMATCHED", "key-name=UNMATCHED", "tag:Name=UNMATCHED"])
     @pytest.mark.ansible_integration
-    def test_update_with_unmatched_aws_instance_filter(self, aws_group, instance_filter):
+    def test_update_with_unmatched_aws_instance_filter(self, aws_inventory_source, instance_filter):
         """Tests inventory imports with unmatched AWS instance filters
 
         NOTE: test may fail if someone spins up an unexpected instance.
         """
         # patch the inv_source_pg and launch the update
-        inv_source_pg = aws_group.get_related('inventory_source')
+        inv_source_pg = aws_inventory_source
+        inventory = aws_inventory_source.related.inventory.get()
         inv_source_pg.patch(instance_filters=instance_filter)
         update_pg = inv_source_pg.update().wait_until_completed()
 
@@ -849,7 +850,8 @@ print(json.dumps({
         inv_source_pg.get().assert_successful()
 
         # assert whether hosts were imported
-        assert aws_group.get().total_hosts == 0, "Unexpected number of hosts returned (%s != 0)." % aws_group.total_hosts
+        hosts_imported = inventory.get().total_hosts
+        assert hosts_imported == 0, f"Unexpected number of hosts returned ({hosts_imported} != 0)."
 
     @pytest.mark.ansible_integration
     @pytest.mark.parametrize("only_group_by, expected_group_names",
@@ -866,9 +868,10 @@ print(json.dumps({
                               ("platform", ["ec2", "platforms"],)],
                              ids=['""', "availability_zone", "ami_id", "instance_id", "instance_type", "key_pair",
                                   "region", "security_group", "availability_zone,ami_id", "platform"])
-    def test_aws_update_with_only_group_by(self, aws_group, only_group_by, expected_group_names):
+    def test_aws_update_with_only_group_by(self, aws_inventory_source, only_group_by, expected_group_names):
         """Tests that expected groups are created when supplying value for only_group_by."""
-        inv_source = aws_group.get_related('inventory_source')
+        inv_source = aws_inventory_source
+        inventory = aws_inventory_source.related.inventory.get()
         inv_source.compatibility_mode = True
         inv_source.group_by = only_group_by
 
@@ -876,8 +879,8 @@ print(json.dumps({
         update.assert_successful()
         inv_source.get().assert_successful()
 
-        groups = aws_group.ds.inventory.related.root_groups.get()
-        actual_group_names = set([group.name for group in groups.results if group.name != aws_group.name])
+        groups = inventory.related.root_groups.get()
+        actual_group_names = set([group.name for group in groups.results])
         # extra group name returned by the plugin
         if 'aws_ec2' in actual_group_names:
             actual_group_names.remove('aws_ec2')
@@ -1111,6 +1114,7 @@ print(json.dumps({
     def test_inventory_hosts_cannot_be_deleted_during_sync(self, factories):
         aws_cred = factories.v2_credential(kind='aws')
         aws_inventory_source = factories.v2_inventory_source(source='ec2', credential=aws_cred, verbosity=2)
+        aws_inventory = aws_inventory_source.related.inventory.get()
 
         inv_update = aws_inventory_source.update().wait_until_completed()
         inv_update.assert_successful()
@@ -1122,7 +1126,7 @@ print(json.dumps({
             timeout=15
         )
 
-        hosts = aws_inventory_source.ds.inventory.related.hosts.get()
+        hosts = aws_inventory.related.hosts.get()
         host = hosts.results.pop()
         with pytest.raises(exc.Conflict):
             host.delete()
