@@ -946,7 +946,7 @@ print(json.dumps({
         host_results = inv_source.get_related('hosts')
         assert host_results.count > 0  # this did an unfiltered import, so this should not fail
         for host in host_results.results:
-            if (ansible_version_cmp('2.8.0') < 1) and host.name == 'demo-dj':
+            if (ansible_version_cmp('2.8.0') < 0) and host.name == 'demo-dj':
                 # Fix for bug was merged into 2.8 https://github.com/ansible/ansible/pull/54099
                 # Bug in previous ansible versions caused host with same name as group to have hostvars stolen
                 continue
