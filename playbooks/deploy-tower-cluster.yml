@@ -47,8 +47,10 @@
   hosts: all:!localhost
   gather_facts: no
   become: true
-  roles:
-    - { role: packages, when: not out_of_box_os }
+  tasks:
+    - include_role:
+        name: packages
+      when: not out_of_box_os | default(false) | bool
 
 - name: 'Install cluster tower on installer instance'
   hosts: 'cluster_installer'
