@@ -13,14 +13,6 @@ from tests.api import APITest
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestCredentials(APITest):
 
-    def test_credential_creation_attempt_with_invalid_kind(self, v1, factories):
-        payload = factories.credential.payload()
-        payload['kind'] = 'invalid_kind'
-
-        with pytest.raises(exc.BadRequest) as e:
-            v1.credentials.post(payload)
-        assert e.value.msg == {'kind': ['"invalid_kind" is not a valid choice']}
-
     @pytest.mark.parametrize('fields', [dict(name=fauxfactory.gen_utf8(),
                                              description=fauxfactory.gen_utf8(),
                                              username=fauxfactory.gen_alphanumeric(),
@@ -57,16 +49,6 @@ class TestCredentials(APITest):
                                              become_method='',
                                              become_username='',
                                              become_password='')])
-    def test_v1_ssh_credential_valid_payload_field_integrity(self, factories, v1, fields):
-        credential = factories.credential(kind='ssh', **fields)
-
-        def validate_fields():
-            for field in ('name', 'description', 'username', 'become_method', 'become_username'):
-                assert credential[field] == fields[field]
-
-        validate_fields()
-        credential.put()
-        validate_fields()
 
     @pytest.mark.parametrize('input_fields', [dict(username=fauxfactory.gen_alphanumeric(),
                                                    password=fauxfactory.gen_utf8(),
@@ -104,11 +86,10 @@ class TestCredentials(APITest):
         credential.put()
         validate_fields()
 
-    @pytest.mark.parametrize('v', ('v1', 'v2'))
-    def test_team_credentials_are_organization_credentials(self, factories, v):
+    def test_team_credentials_are_organization_credentials(self, factories, v2):
         """confirm that a team credential's organization is sourced from the team"""
-        team_factory = getattr(factories, 'team' if v == 'v1' else 'v2_team')
-        cred_factory = getattr(factories, 'credential' if v == 'v1' else 'v2_credential')
+        team_factory = factories.v2_team
+        cred_factory = factories.v2_credential
 
         team = team_factory()
         credential = cred_factory(team=team, organization=None)
@@ -121,52 +102,31 @@ class TestCredentials(APITest):
 
         assert owner_organizations[0].get("id") == team.organization
 
-    @pytest.mark.parametrize('v', ('v1', 'v2'))
-    def test_duplicate_credential_creation(self, request, factories, v):
+    def test_duplicate_credential_creation(self, request, factories, v2):
         """Confirms that duplicate credentials are allowed when an organization isn't shared (user only)
         and disallowed when one is (including one sourced from a team)
         """
-        version = request.getfixturevalue(v)
-        user_factory = getattr(factories, 'user' if v == 'v1' else 'v2_user')
-        team_factory = getattr(factories, 'team' if v == 'v1' else 'v2_team')
-        cred_factory = getattr(factories, 'credential' if v == 'v1' else 'v2_credential')
+        user_factory = factories.v2_user
+        team_factory = factories.v2_team
+        cred_factory = factories.v2_credential
 
         # Successfully create duplicate user credentials without an organization
-        payload = cred_factory.payload(user=user_factory(), organization=None)
         for _ in range(2):
-            cred = version.credentials.post(payload)
-            request.addfinalizer(cred.silent_delete)
+            cred = v2.credentials(user=user_factory(), organization=None)
 
         # attempt to create duplicate organization credentials
         payload = cred_factory.payload()
-        cred = version.credentials.post(payload)
+        cred = v2.credentials.post(payload)
         request.addfinalizer(cred.silent_delete)
         with pytest.raises(exc.Duplicate):
-            version.credentials.post(payload)
+            v2.credentials.post(payload)
 
         # attempt to create duplicate team (thus organization) credentials
         payload = cred_factory.payload(team=team_factory(), organization=None)
-        cred = version.credentials.post(payload)
+        cred = v2.credentials.post(payload)
         request.addfinalizer(cred.silent_delete)
         with pytest.raises(exc.Duplicate):
-            version.credentials.post(payload)
-
-    def test_credential_v1_with_missing_required_field_fails_job_prestart_check(self, factories, v1):
-        """Confirms that a credential with a missing required field causes the
-        job prestart check to fail.
-        """
-        payload = factories.credential.payload(kind='openstack')
-        del payload['project'] # required for openstack
-        cred = v1.credentials.post(payload)
-
-        jt = factories.job_template()
-        jt.cloud_credential = cred.id
-        job = jt.launch().wait_until_completed()
-
-        assert job.status == 'failed'
-        assert 'Job cannot start' in job.job_explanation
-        assert 'does not provide one or more required fields (project)' in job.job_explanation
-        assert 'Task failed pre-start check' in job.job_explanation
+            v2.credentials.post(payload)
 
     @pytest.fixture(scope='class')
     def openstack_credential_type(self, v2_class):
@@ -189,14 +149,11 @@ class TestCredentials(APITest):
         assert 'does not provide one or more required fields (project)' in job.job_explanation
         assert 'Task failed pre-start check' in job.job_explanation
 
-    @pytest.mark.parametrize('version', ('v1', 'v2'))
-    def test_invalid_ssh_key_data_creation_attempt(self, request, factories, version):
-        v = request.getfixturevalue(version)
-        cred_factory = factories.credential if version == 'v1' else factories.v2_credential
-        payload = cred_factory.payload(kind='ssh', ssh_key_data='NotAnRSAKey')
+    def test_invalid_ssh_key_data_creation_attempt(self, request, factories):
 
         with pytest.raises(exc.BadRequest) as e:
-            v.credentials.post(payload)
+            factories.v2_credential(kind='ssh', ssh_key_data='NotAnRSAKey')
+
         error = e.value.msg.get('inputs', e.value.msg)
         assert error == {'ssh_key_data': ['Invalid certificate or key: NotAnRSAKey...']}
 
