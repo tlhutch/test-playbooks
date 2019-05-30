@@ -34,7 +34,7 @@ def assert_expected_hostvars(inv_source,
 
     Return set of expected groups to be constructed.
     """
-    kind = inv_source.summary_fields.credential.kind
+    kind = inv_source.source
     expected_hostvars = cloud_inventory_hostvars.get(kind, {})
     missing_hostvars = dict()
     hosts_missing_vars = dict()
@@ -99,7 +99,7 @@ def assert_expected_hostvars(inv_source,
 
 def assert_expected_hostgroups(inv_source, inv_update, cloud_inventory_hostgroups, constructed_groups):
     """For given inventory source and inventory update, assert expected groups were created."""
-    kind = inv_source.summary_fields.credential.kind
+    kind = inv_source.source
     inventory = inv_source.related.inventory.get()
     expected_hostgroups = cloud_inventory_hostgroups.get(kind, {})
     expected_hostgroups.update({k: '' for k in constructed_groups})
