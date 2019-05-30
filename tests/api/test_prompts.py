@@ -57,11 +57,9 @@ class TestPrompts(APITest):
         job.assert_successful()
 
         create_schedule = job.related.create_schedule.get()
-        expected = dict(diff_mode=True, extra_vars=dict(var1='launch'),
+        assert create_schedule.prompts == dict(diff_mode=True, extra_vars=dict(var1='launch'),
                                                limit='launch', job_tags='launch', skip_tags='launch',
                                                job_type='check', verbosity=5)
-        for k,v in expected.items():
-            assert create_schedule.prompts[k] == v
         assert create_schedule.can_schedule
 
         schedule = create_schedule.post()
@@ -78,7 +76,7 @@ class TestPrompts(APITest):
         assert schedule.job_type == 'check'
         assert schedule.verbosity == 5
         assert not schedule.inventory
-        assert schedule.related.credentials.get().count == 1
+        assert schedule.related.credentials.get().count == 0
 
         assert schedule.rrule == "DTSTART:{0} RRULE:FREQ=MONTHLY;INTERVAL=1".format(self.format_dtstart(schedule))
         assert not schedule.dtend
@@ -91,9 +89,7 @@ class TestPrompts(APITest):
         job.assert_successful()
 
         create_schedule = job.related.create_schedule.get()
-        found = create_schedule.prompts
-        found.pop('credentials', {})
-        assert found == {}
+        assert create_schedule.prompts == {}
         assert create_schedule.can_schedule
 
         schedule = create_schedule.post()
@@ -110,7 +106,7 @@ class TestPrompts(APITest):
         assert not schedule.job_type
         assert not schedule.verbosity
         assert not schedule.inventory
-        assert schedule.related.credentials.get().count == 1
+        assert schedule.related.credentials.get().count == 0
 
         assert schedule.rrule == "DTSTART:{0} RRULE:FREQ=MONTHLY;INTERVAL=1".format(self.format_dtstart(schedule))
         assert not schedule.dtend
@@ -176,9 +172,7 @@ class TestPrompts(APITest):
         job.assert_successful()
 
         create_schedule = job.related.create_schedule.get()
-        found = create_schedule.prompts
-        found.pop('credentials', {})
-        assert found == {}
+        assert create_schedule.prompts == {}
         assert not create_schedule.can_schedule
 
         with pytest.raises(exc.BadRequest) as e:
@@ -203,9 +197,7 @@ class TestPrompts(APITest):
         job.assert_successful()
 
         create_schedule = job.related.create_schedule.get()
-        found = create_schedule.prompts
-        found.pop('credentials', {})
-        assert found == {}
+        assert create_schedule.prompts == {}
         assert create_schedule.can_schedule
 
         schedule = create_schedule.post()
@@ -248,9 +240,7 @@ class TestPrompts(APITest):
         job.assert_successful()
 
         create_schedule = job.related.create_schedule.get()
-        found = create_schedule.prompts
-        found.pop('credentials', {})
-        assert found == {}
+        assert create_schedule.prompts == {}
         assert create_schedule.can_schedule
 
         schedule = create_schedule.post()
@@ -267,7 +257,7 @@ class TestPrompts(APITest):
         assert not schedule.job_type
         assert not schedule.verbosity
         assert not schedule.inventory
-        assert schedule.related.credentials.get().count == 1
+        assert schedule.related.credentials.get().count == 0
 
         assert schedule.rrule == "DTSTART:{0} RRULE:FREQ=MONTHLY;INTERVAL=1".format(self.format_dtstart(schedule))
         assert not schedule.dtend
@@ -338,9 +328,7 @@ class TestPrompts(APITest):
         job.assert_successful()
 
         create_schedule = job.related.create_schedule.get()
-        found = create_schedule.prompts
-        found.pop('credentials', {})
-        assert found == {}
+        assert create_schedule.prompts == {}
         assert create_schedule.can_schedule
 
         schedule = create_schedule.post()
@@ -357,7 +345,7 @@ class TestPrompts(APITest):
         assert not schedule.job_type
         assert not schedule.verbosity
         assert not schedule.inventory
-        assert schedule.related.credentials.get().count == 1
+        assert schedule.related.credentials.get().count == 0
 
         assert schedule.rrule == "DTSTART:{0} RRULE:FREQ=MONTHLY;INTERVAL=1".format(self.format_dtstart(schedule))
         assert not schedule.dtend

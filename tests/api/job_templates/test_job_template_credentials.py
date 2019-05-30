@@ -630,62 +630,6 @@ class TestJobTemplateExtraCredentials(APITest):
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestJobTemplateRelatedCredentials(APITest):
 
-    def test_patch_machine_credential_check_related_credentials(self, factories):
-        cred = factories.credential()
-        jt = factories.v2_job_template(credential=None)
-        jt.credential = cred.id
-
-        related_creds = jt.related.credentials.get()
-        assert related_creds.count == 1
-        assert related_creds.results.pop().id == cred.id
-
-        jt.credential = None
-        related_creds = jt.related.credentials.get()
-        assert jt.related.credentials.get().count == 0
-
-    def test_patch_vault_credential_check_related_credentials(self, factories):
-        cred = factories.v2_credential(kind='vault', vault_password='tower')
-        jt = factories.v2_job_template(credential=None)
-        jt.vault_credential = cred.id
-
-        related_creds = jt.related.credentials.get()
-        assert related_creds.count == 1
-        assert related_creds.results.pop().id == cred.id
-
-        jt.vault_credential = None
-        related_creds = jt.related.credentials.get()
-        assert jt.related.credentials.get().count == 0
-
-    def test_patch_cloud_credential_check_related_credentials(self, factories, v2):
-        cred_type = factories.credential_type(kind='cloud')
-        cred = factories.v2_credential(credential_type=cred_type)
-        jt = factories.job_template(credential=None)
-        jt.cloud_credential = cred.id
-
-        v2_jt_view = v2.job_templates.get(id=jt.id).results.pop()
-        related_creds = v2_jt_view.related.credentials.get()
-        assert related_creds.count == 1
-        assert related_creds.results.pop().id == cred.id
-
-        jt.cloud_credential = None
-        related_creds = v2_jt_view.related.credentials.get()
-        assert v2_jt_view.related.credentials.get().count == 0
-
-    def test_patch_net_credential_check_related_credentials(self, factories, v2):
-        cred_type = factories.credential_type(kind='net')
-        cred = factories.v2_credential(credential_type=cred_type)
-        jt = factories.job_template(credential=None)
-        jt.network_credential = cred.id
-
-        v2_jt_view = v2.job_templates.get(id=jt.id).results.pop()
-        related_creds = v2_jt_view.related.credentials.get()
-        assert related_creds.count == 1
-        assert related_creds.results.pop().id == cred.id
-
-        jt.network_credential = None
-        related_creds = v2_jt_view.related.credentials.get()
-        assert v2_jt_view.related.credentials.get().count == 0
-
     def test_add_extra_credentials_check_related_credentials(self, factories, custom_extra_credentials):
         jt = factories.v2_job_template(credential=None)
         for cred in custom_extra_credentials:
