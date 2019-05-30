@@ -38,30 +38,26 @@ class TestJobTemplateCredentialsRBAC(APITest):
         """Verify that a job_template with network credential creation request
         is only permitted if the user making the request has usage permission for the network credential.
         """
-        jt_factory = factories.v2_job_template
-        user_factory = factories.v2_user
+        organization = factories.v2_organization()
+        project = factories.v2_project()
+        inventory = factories.v2_inventory()
 
-        jt_payload = jt_factory.payload()
-        organization = jt_payload.ds.inventory.ds.organization
+        user = factories.v2_user(organization=organization)
 
-        user = user_factory(organization=organization)
-
-        for resource in ('credential', 'project', 'inventory'):
-            jt_payload.ds[resource].set_object_roles(user, 'use')
+        for resource in (credential, project, inventory):
+            resource.set_object_roles(user, 'use')
 
         vault_credential = factories.v2_credential(kind='vault', vault_password='tower', organization=organization)
-
-        jt_payload.vault_credential = vault_credential.id
-
         vault_credential.set_object_roles(user, 'read')
+
         with self.current_user(user):
             with pytest.raises(exc.Forbidden):
-                v2.job_templates.post(jt_payload)
+                factories.v2_job_template(organization=organization, project=project, credential=vault_credential, inventory=inventory)
 
         for role in ('use', 'admin'):
             vault_credential.set_object_roles(user, role)
             with self.current_user(user):
-                jt = v2.job_templates.post(jt_payload)
+                factories.v2_job_template(organization=organization, project=project, credential=vault_credential, inventory=inventory)
                 jt.delete()
 
     @pytest.mark.parametrize('cred_kind', ('net', 'aws', 'custom'))

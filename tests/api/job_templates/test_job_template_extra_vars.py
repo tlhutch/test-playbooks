@@ -375,7 +375,7 @@ class TestJobTemplateExtraVars(APITest):
     def test_included_extra_vars_with_vault_content(self, factories):
         cred = factories.v2_credential(kind='vault', vault_password='password')
         jt = factories.v2_job_template(playbook='custom_json.yml')
-        jt.vault_credential = cred.id
+        jt.add_credential(cred)
         job = jt.launch().wait_until_completed(interval=1, timeout=30)
         job.assert_successful()
 

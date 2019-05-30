@@ -261,7 +261,7 @@ class TestJobTemplateVaultCredentials(APITest):
         request.addfinalizer(jt.delete)
 
         assert not jt.credential
-        assert jt.vault_credential == vault_credential.id
+        assert jt.add_credential(vault_credential)
 
     @pytest.mark.parametrize('v, cred_args', [['v2', dict(kind='vault', vault_password='tower')]])
     def test_decrypt_vaulted_playbook_with_vault_credential(self, factories, v, cred_args):
@@ -273,7 +273,7 @@ class TestJobTemplateVaultCredentials(APITest):
         jt = jt_factory(inventory=host.ds.inventory, playbook='vaulted_debug_hostvars.yml')
 
         vault_cred = cred_factory(**cred_args)
-        jt.vault_credential = vault_cred.id
+        jt.add_credential(vault_cred)
 
         job = jt.launch().wait_until_completed()
         job.assert_successful()
@@ -291,7 +291,7 @@ class TestJobTemplateVaultCredentials(APITest):
         host = host_factory()
         vault_cred = cred_factory(**cred_args)
         jt = jt_factory(inventory=host.ds.inventory, playbook='vaulted_debug_hostvars.yml')
-        jt.vault_credential = vault_cred.id
+        jt.add_credential(vault_cred)
         jt.delete_all_credentials()
 
         with pytest.raises(exc.BadRequest) as e:
@@ -525,7 +525,7 @@ class TestJobTemplateExtraCredentials(APITest):
     def test_confirm_extra_credentials_injectors_are_sourced_with_vault_credentials(self, request, factories):
         host = factories.v2_host()
         jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='vaulted_ansible_env.yml')
-        jt.vault_credential = factories.v2_credential(kind='vault', vault_password='tower').id
+        jt.add_credential(factories.v2_credential(kind='vault', vault_password='tower'))
 
         cloud_credentials = [factories.v2_credential(kind=cred_type) for cred_type in ('aws', 'azure_rm', 'gce')]
         for cred in cloud_credentials:

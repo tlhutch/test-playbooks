@@ -149,12 +149,9 @@ class Test_Copy_RBAC(APITest):
         with self.current_user(user):
             assert jt.can_copy()
             new_jt = copy_with_teardown(jt)
-            new_cred_ids = [cred.id for cred in new_jt.related.credentials.get().results]
-            assert new_jt.vault_credential == jt.vault_credential
             new_jt_creds = [ c.id for c in new_jt.related.credentials.get().results ]
             jt_creds = [ c.id for c in jt.related.credentials.get().results ]
-            assert new_jt_creds == jt_creds
-            assert sorted(new_cred_ids) == sorted(cred_ids)
+            assert sorted(new_jt_creds) == sorted(jt_creds)
 
     def test_cannot_copy_jt_credentials_with_read_role(self, factories, copy_with_teardown):
         orgA, orgB = [factories.v2_organization() for _ in range(2)]
