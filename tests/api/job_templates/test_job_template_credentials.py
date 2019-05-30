@@ -80,75 +80,6 @@ class TestJobTemplateLaunchCredentials(APITest):
         job.assert_successful()
         assert job.credential == ssh_credential.id
 
-    def test_launch_with_payload_credential(self, job_template_prompt_for_credential, ssh_credential):
-        """Verify the job launch endpoint allows launching a job template when providing a credential."""
-        launch = job_template_prompt_for_credential.related.launch.get()
-
-        assert not launch.can_start_without_user_input
-        assert launch.ask_credential_on_launch
-        assert not launch.ask_variables_on_launch
-        assert not launch.passwords_needed_to_start
-        assert not launch.variables_needed_to_start
-        assert not launch.credential_needed_to_start
-
-        job = job_template_prompt_for_credential.launch(dict(credential=ssh_credential.id)).wait_until_completed()
-
-        job.assert_successful()
-        assert job.credential == ssh_credential.id
-
-    def test_launch_with_invalid_credential_in_payload(self, job_template_prompt_for_credential):
-        """Verify the job launch endpoint throws 400 error when launching with invalid credential id"""
-        invalid_and_error = [('one', "Incorrect type. Expected pk value, received str."),
-                             (0, 'Invalid pk "0" - object does not exist.'),
-                             (False, 'Invalid pk "False" - object does not exist.'),
-                             ({}, 'Incorrect type. Expected pk value, received OrderedDict.')]
-        for invalid, error in invalid_and_error:
-            with pytest.raises(exc.BadRequest) as e:
-                job_template_prompt_for_credential.launch(dict(credential=invalid))
-            assert e.value.msg['credentials'] == [error]
-
-    def test_launch_with_ask_credential_and_without_passwords_in_payload(self, job_template_prompt_for_credential,
-                                                                         ssh_credential_ask):
-        """Verify that attempts to launch a JT when providing an 'ASK' credential at launch time without
-        providing the required passwords raise 400 error.
-        """
-        launch = job_template_prompt_for_credential.related.launch.get()
-
-        # launch the JT providing the credential in the payload, but no passwords_needed_to_start
-        with pytest.raises(exc.BadRequest) as exc_info:
-            launch.post(dict(credential=ssh_credential_ask.id))
-        result = exc_info.value[1]
-
-        assert 'passwords_needed_to_start' in result
-        assert result['passwords_needed_to_start'] == ssh_credential_ask.expected_passwords_needed_to_start
-
-    def test_launch_with_ask_credential_and_passwords_in_payload(self, job_template_prompt_for_credential, ssh_credential_ask):
-        """Verify launching a JT when providing an 'ASK' credential at launch time with required passwords
-        is functional
-        """
-        job = job_template_prompt_for_credential.launch(dict(credential=ssh_credential_ask.id,
-                                                        ssh_password=config.credentials.ssh.password,
-                                                        ssh_key_unlock=config.credentials.ssh.encrypted.ssh_key_unlock,
-                                                        become_password=config.credentials.ssh.become_password))
-        job.wait_until_completed().assert_successful()
-        assert job.credential == ssh_credential_ask.id
-
-    def test_launch_split_JT_with_ask_credential_and_passwords_in_payload(self, job_template_prompt_for_credential,
-                                                                          factories, ssh_credential_ask):
-        """Verify functionality of providing credential & passwords with a split JT
-        """
-        factories.host(inventory=job_template_prompt_for_credential.ds.inventory)
-        assert job_template_prompt_for_credential.ds.inventory.get_related('hosts').count == 2
-        job_template_prompt_for_credential.job_slice_count = 2
-        wfj = job_template_prompt_for_credential.launch(dict(credential=ssh_credential_ask.id,
-                                                        ssh_password=config.credentials.ssh.password,
-                                                        ssh_key_unlock=config.credentials.ssh.encrypted.ssh_key_unlock,
-                                                        become_password=config.credentials.ssh.become_password))
-        wfj.wait_until_completed().assert_successful()
-        job = wfj.get_related('workflow_nodes').results.pop().get_related('job')
-        assert job.credential == ssh_credential_ask.id
-        job.assert_successful()
-
     @pytest.mark.ansible_integration
     def test_launch_with_unencrypted_ssh_credential(self, skip_if_openshift, ansible_runner, job_template,
                                                     unencrypted_ssh_credential_with_ssh_key_data):
@@ -242,17 +173,6 @@ class TestJobTemplateLaunchCredentials(APITest):
         jt = factories.v2_job_template(credential=cred, playbook='become.yml')
         job = jt.launch().wait_until_completed()
         job.assert_successful()
-
-    def test_launch_with_team_credential(self, factories, job_template_prompt_for_credential, team, team_ssh_credential):
-        """Verifies that a team user can use a team credential to launch a job template."""
-        team_user = factories.user()
-        team.add_user(team_user)
-        job_template_prompt_for_credential.set_object_roles(team_user, 'execute')
-
-        with self.current_user(team_user.username, team_user.password):
-            job = job_template_prompt_for_credential.launch(dict(credential=team_ssh_credential.id)).wait_until_completed()
-            job.assert_successful()
-            assert job.credential == team_ssh_credential.id
 
     @pytest.mark.yolo
     def test_launch_with_multiple_credentials(self, v2, factories, custom_cloud_credentials, custom_network_credentials):
