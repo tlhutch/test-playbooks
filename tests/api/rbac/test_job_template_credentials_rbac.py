@@ -126,8 +126,10 @@ class TestJobTemplateCredentialsRBAC(APITest):
         for i in range(4):
             cloud_credentials.append(factories.v2_credential(name='CloudCredential{}'.format(i),
                                                              credential_type=factories.credential_type(),
+                                                             organization=None, user=user_1))
 
         with self.current_user(user_1):
+            #FIXME: This works when you pass in credentials=[list of credentials] but gets Forbidden with extra_credentials
             job = jt.launch(dict(extra_credentials=[c.id for c in cloud_credentials[:2]])).wait_until_completed()
 
         with self.current_user(user_2):
