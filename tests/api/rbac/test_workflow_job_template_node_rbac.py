@@ -30,7 +30,7 @@ class TestWorkflowJobTemplateNodeRBAC(APITest):
         # unprivileged users cannot add credentials
         with self.current_user(user):
             with pytest.raises(exc.Forbidden):
-                wfjtn.credential = ssh_cred.id
+                wfjtn.add_credential(ssh_cred)
             for cred in (vault_cred, aws_cred, vmware_cred):
                 with pytest.raises(exc.Forbidden):
                     wfjtn.related.credentials.post(dict(id=cred.id))
@@ -40,12 +40,13 @@ class TestWorkflowJobTemplateNodeRBAC(APITest):
         jt.set_object_roles(user, 'execute')
 
         with self.current_user(user):
-            wfjtn.credential = ssh_cred.id
+            wfjtn.add_credential(ssh_cred)
             for cred in (vault_cred, aws_cred, vmware_cred):
                 with utils.suppress(exc.NoContent):
                     wfjtn.related.credentials.post(dict(id=cred.id))
 
-        assert wfjtn.credential == ssh_cred.id
+        wfjtn_creds = [ c.id for c in wfjtn.related.credentials.get().results ]
+        assert wfjtn_creds == [ssh_cred.id]
         wfjtn_creds = wfjtn.related.credentials.get()
         assert wfjtn_creds.count == 4
         for cred in wfjtn_creds.results:

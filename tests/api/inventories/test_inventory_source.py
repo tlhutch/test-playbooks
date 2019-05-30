@@ -30,7 +30,7 @@ class TestInventorySource(APITest):
             inv_source = factories.v2_inventory_source(inventory=inventory, source_script=inv_script)
             assert inv_source.source_script == inv_script.id
             with pytest.raises(exc.BadRequest) as e:
-                inv_source.credential = cred.id
+                inv_source.related.credentials.post(dict(id=cred.id))
             assert e.value[1] == error
 
     @pytest.mark.ansible_integration

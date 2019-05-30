@@ -194,7 +194,8 @@ class TestInsights(APITest):
         update = project.related.last_update.get()
 
         project.assert_successful()
-        assert project.credential == insights_cred.id
+        project_creds = [ c.id for c in update.related.credentials.get().results ]
+        assert project_creds == [insights_cred.id]
         assert not project.scm_branch
         assert project.scm_type == 'insights'
         assert project.scm_url == 'https://cloud.redhat.com'
@@ -203,7 +204,9 @@ class TestInsights(APITest):
         update.assert_successful()
         assert not update.job_explanation
         assert update.project == project.id
-        assert update.credential == insights_cred.id
+
+        update_creds = [ c.id for c in update.related.credentials.get().results ]
+        assert update_creds == [insights_cred.id]
         assert update.job_type == 'check'
         assert update.launch_type == 'manual'
         assert update.scm_type == 'insights'

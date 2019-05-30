@@ -66,7 +66,7 @@ class TestJobTemplateLaunchCredentials(APITest):
         """Verify the job template launch endpoint requires user input when using a linked credential and
         `ask_credential_on_launch`.
         """
-        job_template_prompt_for_credential.credential = ssh_credential.id
+        job_template_prompt_for_credential.add_credential(ssh_credential)
         launch = job_template_prompt_for_credential.related.launch.get()
 
         assert not launch.can_start_without_user_input
@@ -78,14 +78,14 @@ class TestJobTemplateLaunchCredentials(APITest):
         job = job_template_prompt_for_credential.launch().wait_until_completed()
 
         job.assert_successful()
-        assert job.credential == ssh_credential.id
+        assert job.add_credential(ssh_credential)
 
     @pytest.mark.ansible_integration
     def test_launch_with_unencrypted_ssh_credential(self, skip_if_openshift, ansible_runner, job_template,
                                                     unencrypted_ssh_credential_with_ssh_key_data):
         (credential_type, credential) = unencrypted_ssh_credential_with_ssh_key_data
 
-        job_template.credential = credential.id
+        job_template.add_credential(credential)
 
         launch = job_template.related.launch.get()
         assert not launch.passwords_needed_to_start
@@ -109,7 +109,7 @@ class TestJobTemplateLaunchCredentials(APITest):
                                                   encrypted_ssh_credential_with_ssh_key_data):
         (credential_type, credential) = encrypted_ssh_credential_with_ssh_key_data
 
-        job_template.credential = credential.id
+        job_template.add_credential(credential)
 
         launch = job_template.get_related('launch')
         assert launch.passwords_needed_to_start == ['ssh_key_unlock']
@@ -292,7 +292,7 @@ class TestJobTemplateVaultCredentials(APITest):
         vault_cred = cred_factory(**cred_args)
         jt = jt_factory(inventory=host.ds.inventory, playbook='vaulted_debug_hostvars.yml')
         jt.vault_credential = vault_cred.id
-        jt.credential = None
+        jt.delete_all_credentials()
 
         with pytest.raises(exc.BadRequest) as e:
             jt.launch().wait_until_completed()

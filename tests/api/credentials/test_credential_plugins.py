@@ -294,7 +294,8 @@ class TestConjurCredential(APITest):
             metadata=metadata,
         ))
 
-        job_template_prompt_for_credential.credential = credential.id
+        with pytest.raises(exceptions.NoContent):
+            job_template_prompt_for_credential.related.credentials.post(dict(id=credential.id))
         job = job_template_prompt_for_credential.launch().wait_until_completed()
         job.assert_successful()
 
@@ -690,7 +691,8 @@ class TestHashiCorpVaultCredentials(APITest):
             metadata=metadata,
         ))
 
-        job_template_prompt_for_credential.credential = credential.id
+        with pytest.raises(exceptions.NoContent):
+            job_template_prompt_for_credential.related.credentials.post(dict(id=credential.id))
         job = job_template_prompt_for_credential.launch().wait_until_completed()
         job.assert_successful()
 
@@ -1115,7 +1117,8 @@ class TestAzureKVCredentials(APITest):
             metadata=metadata,
         ))
 
-        job_template_prompt_for_credential.credential = credential.id
+        with pytest.raises(exceptions.NoContent):
+            job_template_prompt_for_credential.related.credentials.post(dict(id=credential.id))
 
         job = job_template_prompt_for_credential.launch().wait_until_completed()
 
@@ -1354,7 +1357,8 @@ class TestCyberArkAimCredentials(APITest):
             metadata=metadata,
         ))
 
-        job_template_prompt_for_credential.credential = credential.id
+        with pytest.raises(exceptions.NoContent):
+            job_template_prompt_for_credential.related.credentials.post(dict(id=credential.id))
         job = job_template_prompt_for_credential.launch().wait_until_completed()
         job.assert_successful()
 
