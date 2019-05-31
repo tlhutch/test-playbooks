@@ -114,11 +114,11 @@ class TestNamedURLs(APITest):
         self.assert_resource_available_by_name(cred, cred_url)
         self.assert_resource_available_by_name(user, user_url)
 
-    def test_credential_without_organization(self, factories):
-        cred = factories.v2_credential(user=True, organization=False)
-        cred_type = cred.ds.credential_type
-        cred_url = make_api_url('credentials', '{1}++{2}+{3}++', cred.name, cred_type.name, cred_type.kind)
-        self.assert_resource_available_by_name(cred, cred_url)
+    def test_credential_without_organization(self, factories, ssh_credential):
+        assert ssh_credential.organization is None
+        cred_type = ssh_credential.ds.credential_type
+        cred_url = make_api_url('credentials', '{1}++{2}+{3}++', ssh_credential.name, cred_type.name, cred_type.kind)
+        self.assert_resource_available_by_name(ssh_credential, cred_url)
 
     def test_groups_inventory_sources_inventory_scripts(self, factories):
         source = factories.v2_inventory_source()
