@@ -408,6 +408,7 @@ class Test_Autospawned_Jobs(APITest):
         # set update_on_launch
         aws_inventory_source.patch(update_on_launch=True)
         gce_inventory_source.patch(update_on_launch=True)
+        gce_inventory_source.inventory = aws_inventory_source.inventory
 
         # check inventory sources
         for inv_source in (aws_inventory_source, gce_inventory_source):
