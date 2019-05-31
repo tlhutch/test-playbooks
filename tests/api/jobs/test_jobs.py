@@ -166,7 +166,7 @@ class Test_Job(APITest):
     def test_utf8(self, utf8_template):
         """Verify that a playbook full of UTF-8 successfully works through Tower"""
         # launch job
-        job_pg = utf8_template.launch_job()
+        job_pg = utf8_template.launch()
 
         # wait for completion
         job_pg = job_pg.wait_until_completed(timeout=60 * 10)

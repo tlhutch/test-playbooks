@@ -108,4 +108,4 @@ class TestNoLicenseSerial(LicenseTest):
         api_config_pg.delete()
         poll_until(lambda: not v2.config.get().license_info, interval=1, timeout=15)
         with pytest.raises(exc.LicenseExceeded):
-            job_template.launch_job()
+            job_template.launch()
