@@ -11,8 +11,6 @@ from tests.api import APITest
 log = logging.getLogger(__name__)
 
 
-@pytest.mark.api
-@pytest.mark.destructive
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestInventory(APITest):
 

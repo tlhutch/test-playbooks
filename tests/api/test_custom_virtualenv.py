@@ -11,8 +11,6 @@ from tests.api import APITest
 from tests.lib.helpers.workflow_utils import (WorkflowTree, WorkflowTreeMapper)
 
 
-@pytest.mark.api
-@pytest.mark.destructive
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited', 'skip_if_cluster')
 class TestCustomVirtualenv(APITest):
 
@@ -22,7 +20,7 @@ class TestCustomVirtualenv(APITest):
             return '/venv'
         return '/var/lib/awx/venv'
 
-    @pytest.mark.mp_group('CustomVirtualenv', 'isolated_serial')
+    @pytest.mark.serial
     def test_default_venv(self, v2, venv_path, is_docker):
         expect = [venv_path()]
         if is_docker:
@@ -174,7 +172,7 @@ class TestCustomVirtualenv(APITest):
             job.assert_successful()
             assert job.job_env['VIRTUAL_ENV'].rstrip('/') == job.custom_virtualenv.rstrip('/') == venv_path(folder_name).rstrip('/')
 
-    @pytest.mark.mp_group('CustomVenvPathSetting', 'isolated_free')
+    @pytest.mark.serial
     def test_custom_venv_path_setting(self, v2, factories, create_venv, venv_path, update_setting_pg):
         folder_name = random_title(non_ascii=False)
         custom_venv_base = '/tmp'
@@ -193,7 +191,7 @@ class TestCustomVirtualenv(APITest):
             job.assert_successful()
             assert job.job_env['VIRTUAL_ENV'].rstrip('/') == job.custom_virtualenv.rstrip('/') == custom_venv_path.rstrip('/')
 
-    @pytest.mark.mp_group('CustomVenvPathSetting', 'isolated_free')
+    @pytest.mark.serial
     def test_custom_venv_path_setting_remove_cant_launch(self, v2, factories, create_venv, venv_path, update_setting_pg):
         folder_name = random_title(non_ascii=False)
         custom_venv_base = '/tmp'
@@ -387,8 +385,6 @@ CUSTOM_VENVS = [
                 ]
 
 
-@pytest.mark.api
-@pytest.mark.destructive
 @pytest.mark.fixture_args(venvs=CUSTOM_VENVS, cluster=True)
 @pytest.mark.usefixtures(
     'authtoken',
@@ -396,7 +392,7 @@ CUSTOM_VENVS = [
     'skip_if_not_traditional_cluster',
     'shared_custom_venvs'
     )
-@pytest.mark.mp_group('CustomVirtualenv', 'isolated_serial')
+@pytest.mark.serial
 class TestCustomVirtualenvTraditionalCluster(APITest):
 
     def test_custom_venvs_exist(self, v2, venv_path, is_docker):

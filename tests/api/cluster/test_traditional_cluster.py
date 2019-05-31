@@ -94,7 +94,6 @@ def instances_using_ipv4(v2):
     return False
 
 
-@pytest.mark.api
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited', 'skip_if_not_traditional_cluster')
 class TestTraditionalCluster(APITest):
 
@@ -198,7 +197,7 @@ class TestTraditionalCluster(APITest):
             ig_hostnames = [i.hostname for i in ig.related.instances.get().results]
             assert set(ig_hostnames).isdisjoint(set(isolated_instance_hostnames))
 
-    @pytest.mark.mp_group(group="check_instance_stats_during_quiet_period", strategy="isolated_serial")
+    @pytest.mark.serial
     def test_default_instance_attributes(self, v2):
         for instance in v2.instances.get().results:
             assert instance.enabled
@@ -342,7 +341,7 @@ class TestTraditionalCluster(APITest):
         job = jt.launch().wait_until_completed()
         assert job.status == 'successful'
 
-    @pytest.mark.mp_group(group="pytest_mark_requires_isolation", strategy="isolated_serial")
+    @pytest.mark.serial
     @pytest.mark.parametrize('base_resource, parent_resource', [
         ('job_template', 'inventory'),
         ('job_template', 'organization'),
@@ -378,7 +377,7 @@ class TestTraditionalCluster(APITest):
         assert parent_instance_group.get().consumed_capacity > \
             base_instance_group.capacity - base_instance_group.consumed_capacity
 
-    @pytest.mark.mp_group(group="pytest_mark_requires_isolation", strategy="isolated_serial")
+    @pytest.mark.serial
     def test_job_run_against_isolated_node_ensure_viewable_from_all_nodes(self, hosts_in_group, factories,
                                                                           admin_user, user_password, v2,
                                                                           hostvars_for_host):
@@ -419,7 +418,7 @@ class TestTraditionalCluster(APITest):
                 stdout = [line for line in job.get().result_stdout.splitlines() if line]
                 assert stdout == canonical_stdout
 
-    @pytest.mark.mp_group(group="pytest_mark_requires_isolation", strategy="isolated_serial")
+    @pytest.mark.serial
     @pytest.mark.parametrize('run_on_isolated_group', [True, False], ids=['isolated group', 'regular instance group'])
     def test_running_jobs_consume_capacity(self, factories, v2, run_on_isolated_group):
         ig_filter = dict(name='protected') if run_on_isolated_group else dict(not__name='protected')
@@ -445,7 +444,7 @@ class TestTraditionalCluster(APITest):
             assert instance.get().consumed_capacity > 0
             assert instance.percent_capacity_remaining == round(float(instance.capacity - instance.consumed_capacity) * 100 / instance.capacity, 2)
 
-    @pytest.mark.mp_group(group="pytest_mark_requires_isolation", strategy="isolated_serial")
+    @pytest.mark.serial
     def test_controller_removal(self, admin_user, hosts_in_group, hostvars_for_host, factories, user_password, v2):
         """
         Test that shutting down tower services on both controller nodes prevents us from launching
@@ -520,7 +519,7 @@ class TestTraditionalCluster(APITest):
             job = jt.launch().wait_until_completed()
             job.assert_successful()
 
-    @pytest.mark.mp_group(group="pytest_mark_requires_isolation", strategy="isolated_serial")  # noqa: C901
+    @pytest.mark.serial  # noqa: C901
     def test_instance_removal(self, connection, admin_user, user_password, inventory_hostname_map, ansible_adhoc,
                               hosts_in_group, hostvars_for_host, factories, v2):
         """
@@ -740,7 +739,7 @@ class TestTraditionalCluster(APITest):
         job = jt.launch().wait_until_completed()
         job.assert_successful()
 
-    @pytest.mark.mp_group(group="pytest_mark_requires_isolation", strategy="isolated_serial")
+    @pytest.mark.serial
     @pytest.mark.parametrize('run_on_isolated_group', [True, False], ids=['isolated group', 'regular instance group'])
     @pytest.mark.parametrize('scm_type', ['git', 'svn', 'hg'])
     def test_project_copied_to_separate_instance_on_job_run(self, v2, factories, run_on_isolated_group, scm_type):
@@ -836,7 +835,7 @@ class TestTraditionalCluster(APITest):
             assert job.job_env['VIRTUAL_ENV'] == venv_path(folder_name)
 
     @pytest.mark.run(order=1)
-    @pytest.mark.mp_group('DisabledIsolatedNode', 'isolated_free')
+    @pytest.mark.serial
     def test_disabled_isolated_nodes_remain_disabled_after_heartbeat(self, v2, factories):
         # Disable all iso nodes in iso IG
         ig_protected = v2.instance_groups.get(name='protected').results.pop()

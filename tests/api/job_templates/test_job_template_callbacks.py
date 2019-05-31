@@ -15,8 +15,6 @@ import pytest
 from tests.api import APITest
 
 
-@pytest.mark.api
-@pytest.mark.destructive
 @pytest.mark.ansible(host_pattern='tower[0]')  # do callbacks from node in cluster
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestJobTemplateCallbacks(APITest):

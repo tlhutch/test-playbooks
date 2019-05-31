@@ -51,7 +51,6 @@ def ws_client(request, v2, authtoken):
     return _ws_client(request, v2)
 
 
-@pytest.mark.api
 class TestWebSocketRequestForgery(ChannelsTest, APITest):
 
     def test_missing_csrf_cookie(self, class_ws_client):
@@ -84,7 +83,6 @@ class TestWebSocketRequestForgery(ChannelsTest, APITest):
         ws.unsubscribe()
 
 
-@pytest.mark.api
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestAdHocCommandChannels(ChannelsTest, APITest):
 
@@ -106,7 +104,6 @@ class TestAdHocCommandChannels(ChannelsTest, APITest):
         return ahc, messages
 
     @pytest.mark.ansible_integration
-    @pytest.mark.mp_group('TestAdHocCommandChannelsSerial', 'serial')
     @pytest.mark.parametrize('desired_status', ('pending', 'waiting', 'running', 'successful'))
     def test_ad_hoc_command_status_changes(self, ahc_and_ws_events, desired_status):
         ahc, events = ahc_and_ws_events
@@ -116,7 +113,6 @@ class TestAdHocCommandChannels(ChannelsTest, APITest):
         assert desired_msg in events
 
     @pytest.mark.ansible_integration
-    @pytest.mark.mp_group('TestAdHocCommandChannelsSerial', 'serial')
     def test_ad_hoc_command_events_subscribe(self, ahc_and_ws_events):
         ahc, ws_events = ahc_and_ws_events
 
@@ -155,7 +151,6 @@ class TestAdHocCommandChannels(ChannelsTest, APITest):
         assert not [m for m in ws]
 
 
-@pytest.mark.api
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestJobChannels(ChannelsTest, APITest):
 
@@ -177,7 +172,6 @@ class TestJobChannels(ChannelsTest, APITest):
         return job, messages
 
     @pytest.mark.ansible_integration
-    @pytest.mark.mp_group('TestJobChannelsSerial', 'serial')
     @pytest.mark.parametrize('desired_status', ('pending', 'waiting', 'running', 'successful'))
     def test_job_command_status_changes(self, job_and_ws_events, desired_status):
         job, events = job_and_ws_events
@@ -188,7 +182,6 @@ class TestJobChannels(ChannelsTest, APITest):
 
     @pytest.mark.yolo
     @pytest.mark.ansible_integration
-    @pytest.mark.mp_group('TestJobChannelsSerial', 'serial')
     def test_job_events_subscribe(self, job_and_ws_events):
         job, ws_events = job_and_ws_events
 
@@ -225,7 +218,6 @@ class TestJobChannels(ChannelsTest, APITest):
         assert not [m for m in ws]
 
 
-@pytest.mark.api
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestWorkflowChannels(ChannelsTest, APITest):
 
@@ -290,7 +282,6 @@ class TestWorkflowChannels(ChannelsTest, APITest):
         assert not [m for m in ws]
 
 
-@pytest.mark.api
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestInventoryChannels(ChannelsTest, APITest):
 
@@ -310,7 +301,6 @@ class TestInventoryChannels(ChannelsTest, APITest):
         return inv_update, messages
 
     @pytest.mark.ansible_integration
-    @pytest.mark.mp_group('TestInventoryChannelsSerial', 'serial')
     @pytest.mark.parametrize('desired_status', ('pending', 'waiting', 'running', 'successful'))
     def test_inventory_update_status_changes(self, inv_update_and_ws_events, desired_status):
         inv_update, events = inv_update_and_ws_events
@@ -325,7 +315,6 @@ class TestInventoryChannels(ChannelsTest, APITest):
 
     @pytest.mark.yolo
     @pytest.mark.ansible_integration
-    @pytest.mark.mp_group('TestInventoryChannelsSerial', 'serial')
     def test_inventory_update_events_subscribe(self, inv_update_and_ws_events):
         inv_update, ws_events = inv_update_and_ws_events
 
@@ -360,7 +349,6 @@ class TestInventoryChannels(ChannelsTest, APITest):
         assert not [m for m in ws]
 
 
-@pytest.mark.api
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestProjectUpdateChannels(ChannelsTest, APITest):
 
@@ -380,7 +368,6 @@ class TestProjectUpdateChannels(ChannelsTest, APITest):
         return project_update, messages
 
     @pytest.mark.ansible_integration
-    @pytest.mark.mp_group('TestProjectUpdateChannelsSerial', 'serial')
     @pytest.mark.parametrize('desired_status', ('pending', 'waiting', 'running', 'successful'))
     def test_project_update_status_changes(self, project_update_and_ws_events, desired_status):
         update, events = project_update_and_ws_events
@@ -392,7 +379,6 @@ class TestProjectUpdateChannels(ChannelsTest, APITest):
 
     @pytest.mark.github('https://github.com/ansible/tower-qa/issues/2212', skip=True)
     @pytest.mark.ansible_integration
-    @pytest.mark.mp_group('TestProjectUpdateChannelsSerial', 'serial')
     def test_project_update_events_subscribe(self, project_update_and_ws_events):
         project_update, ws_events = project_update_and_ws_events
 

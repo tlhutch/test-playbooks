@@ -5,9 +5,7 @@ import pytest
 from tests.api import APITest
 
 
-@pytest.mark.api
-@pytest.mark.destructive
-@pytest.mark.mp_group('RADIUS', 'isolated_serial')
+@pytest.mark.serial
 @pytest.mark.usefixtures('skip_docker', 'authtoken', 'install_enterprise_license_unlimited', 'skip_if_fips_enabled')
 class TestRADIUS(APITest):
 

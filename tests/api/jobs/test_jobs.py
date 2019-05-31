@@ -159,8 +159,6 @@ def azure_type(azure_credential):
         raise ValueError("Unhandled credential received - %s." % azure_credential)
 
 
-@pytest.mark.api
-@pytest.mark.destructive
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class Test_Job(APITest):
 
@@ -664,7 +662,7 @@ class Test_Job(APITest):
         assert e.value[1]['error'] == "$encrypted$ is a reserved keyword, may not be used for new default in position 0."
 
     @pytest.mark.ansible_integration
-    @pytest.mark.mp_group(group="job_with_status_pending", strategy="isolated_serial")
+    @pytest.mark.serial
     def test_cancel_pending_job(self, skip_if_cluster, job_with_status_pending):
         """Verify the job->cancel endpoint behaves as expected when canceling a
         pending/queued job
@@ -784,8 +782,6 @@ class Test_Job(APITest):
                 job.delete()
 
 
-@pytest.mark.api
-@pytest.mark.destructive
 class Test_Job_Env(APITest):
     """Verify that credentials are properly passed to playbooks as
     environment variables ('job_env').

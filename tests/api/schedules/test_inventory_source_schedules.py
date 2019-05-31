@@ -5,8 +5,6 @@ from towerkit.utils import poll_until
 from tests.api.schedules import SchedulesTest
 
 
-@pytest.mark.api
-@pytest.mark.destructive
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestInventorySourceSchedules(SchedulesTest):
 

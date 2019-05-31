@@ -161,8 +161,6 @@ def check_chain_canceled_job_explanation(canceled_job, chain_canceled_jobs):
         assert job_explanation['job_id'] == str(canceled_job.id)
 
 
-@pytest.mark.api
-@pytest.mark.destructive
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class Test_Sequential_Jobs(APITest):
 
@@ -369,8 +367,6 @@ class Test_Sequential_Jobs(APITest):
         confirm_unified_jobs(sorted_unified_jobs)
 
 
-@pytest.mark.api
-@pytest.mark.destructive
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class Test_Autospawned_Jobs(APITest):
 
@@ -626,8 +622,6 @@ class Test_Autospawned_Jobs(APITest):
         confirm_unified_jobs(sorted_unified_jobs)
 
 
-@pytest.mark.api
-@pytest.mark.destructive
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class Test_Cascade_Fail_Dependent_Jobs(APITest):
 

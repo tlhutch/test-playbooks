@@ -14,9 +14,7 @@ log = logging.getLogger(__name__)
 
 
 @pytest.mark.second
-@pytest.mark.api
-@pytest.mark.destructive
-@pytest.mark.mp_group('AnsibleTowerService', 'isolated_serial')
+@pytest.mark.serial
 @pytest.mark.usefixtures('authtoken', 'skip_if_openshift')
 class TestTowerServices(APITest):
 

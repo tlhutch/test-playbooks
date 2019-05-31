@@ -56,9 +56,7 @@ def k8s_prometheus(gke_client_cscope, request, class_factories):
     return prometheus_url
 
 
-@pytest.mark.mp_group(group="PrometheusMetrics", strategy="isolated_serial")
-@pytest.mark.api
-@pytest.mark.destructive
+@pytest.mark.serial
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestMetrics(APITest):
 

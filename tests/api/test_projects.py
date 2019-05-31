@@ -37,8 +37,6 @@ def project_with_galaxy_requirements(factories):
     )
 
 
-@pytest.mark.api
-@pytest.mark.destructive
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class Test_Projects(APITest):
 

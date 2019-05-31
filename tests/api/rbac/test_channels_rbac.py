@@ -24,8 +24,6 @@ def user_ws_client(request, v2):
     return _ws_client
 
 
-@pytest.mark.api
-@pytest.mark.rbac
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestChannelsRBAC(APITest):
 

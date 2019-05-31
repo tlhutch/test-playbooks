@@ -15,7 +15,6 @@ def hostnames_from_group_prefixes(prefixes, start=1, finish=5):
     return hostnames
 
 
-@pytest.mark.api
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestSCMInventorySource(APITest):
 
@@ -275,7 +274,6 @@ class TestSCMInventorySource(APITest):
         assert host.variables.test_env == 'TEST_ENV_1'
 
     @pytest.mark.github('https://github.com/ansible/tower-qa/issues/2296', skip=True)
-    @pytest.mark.mp_group('ProjectUpdateWithSCMChange', 'serial')
     @pytest.mark.parametrize('source_path', ['inventories/inventory.ini', 'inventories/dyn_inventory.py'])
     def test_project_launch_using_update_on_project_update_with_scm_change(self, skip_if_openshift, factories, v2,
                                                                            job_template_that_writes_to_source, source_path):
@@ -345,7 +343,6 @@ class TestSCMInventorySource(APITest):
         assert project.related.project_updates.get(launch_type='sync').count == 2
         assert inv_source.related.inventory_updates.get().count == 2
 
-    @pytest.mark.mp_group('ProjectUpdateWithSCMChange', 'serial')
     def test_cancel_shared_parent_project_update_after_source_change(self, factories, write_access_git_credential):
         project = factories.project(scm_url='https://github.com/rmfitzpatrick/ansible-playbooks.git',
                                        scm_branch='inventory_additions')
@@ -498,7 +495,6 @@ class TestSCMInventorySource(APITest):
         hostnames = set([summary.summary_fields.host.name for summary in job_host_summaries])
         assert hostnames == self.inventory_hostnames
 
-    @pytest.mark.mp_group('ProjectUpdateWithSCMChange', 'serial')
     def test_scm_inv_source_with_update_on_project_update_synced_within_parent_project_update(self, factories,
                                                                                               job_template_that_writes_to_source):
         job_template_that_writes_to_source.launch().wait_until_completed().assert_successful()
@@ -531,7 +527,6 @@ class TestSCMInventorySource(APITest):
         assert project.update().wait_until_completed().status == 'failed'
         assert inv_source.related.inventory_updates.get().count == 0
 
-    @pytest.mark.mp_group('ProjectUpdateWithSCMChange', 'serial')
     def test_project_update_for_scm_inv_source_with_running_update_on_project_update(self, factories,
                                                                                      job_template_that_writes_to_source):
         job_template_that_writes_to_source.launch().wait_until_completed().assert_successful()
@@ -607,7 +602,6 @@ class TestSCMInventorySource(APITest):
         hostnames = set([summary.summary_fields.host.name for summary in job_host_summaries])
         assert hostnames == self.inventory_hostnames
 
-    @pytest.mark.mp_group('ProjectUpdateWithSCMChange', 'serial')
     def test_canceled_inventory_update_during_project_update(self, factories, job_template_that_writes_to_source):
         job_template_that_writes_to_source.launch().wait_until_completed().assert_successful()
         project = job_template_that_writes_to_source.ds.project

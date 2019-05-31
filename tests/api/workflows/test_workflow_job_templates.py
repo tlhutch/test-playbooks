@@ -39,8 +39,6 @@ log = logging.getLogger(__name__)
 # [x] Deleting root node when depth > 1
 
 
-@pytest.mark.api
-@pytest.mark.destructive
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class Test_Workflow_Job_Templates(APITest):
 

@@ -26,8 +26,6 @@ log = logging.getLogger(__name__)
 # - access list
 # - user capability fields
 
-@pytest.mark.api
-@pytest.mark.rbac
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class Test_Workflow_Job_Template_RBAC(APITest):
 

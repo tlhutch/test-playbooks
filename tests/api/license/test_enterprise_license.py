@@ -8,8 +8,7 @@ import pytest
 from tests.api.license import LicenseTest
 
 
-@pytest.mark.api
-@pytest.mark.mp_group(group="EnterpriseLicense", strategy="isolated_free")
+@pytest.mark.serial
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license')
 class TestEnterpriseLicense(LicenseTest):
 
@@ -115,8 +114,7 @@ class TestEnterpriseLicense(LicenseTest):
             api_settings_pg.get_endpoint(service)
 
 
-@pytest.mark.api
-@pytest.mark.mp_group(group="EnterpriseLicenseSerial", strategy="isolated_serial")
+@pytest.mark.serial
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license')
 class TestEnterpriseLicenseSerial(LicenseTest):
 
@@ -160,8 +158,7 @@ class TestEnterpriseLicenseSerial(LicenseTest):
                                                                                                indent=2)
 
 
-@pytest.mark.api
-@pytest.mark.mp_group(group="EnterpriseLicenseExpired", strategy='isolated_free')
+@pytest.mark.serial
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_expired')
 class TestEnterpriseLicenseExpired(LicenseTest):
 

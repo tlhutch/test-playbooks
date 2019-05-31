@@ -4,7 +4,6 @@ botocore
 elasticsearch
 fauxfactory
 git+ssh://git@github.com/ansible/pytest-ansible.git
-git+ssh://git@github.com/ansible/pytest-mp.git
 git+ssh://git@github.com/jlaska/pytest-github.git
 google-api-python-client
 junit-xml

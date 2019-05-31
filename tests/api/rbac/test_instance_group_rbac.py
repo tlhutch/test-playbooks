@@ -9,8 +9,6 @@ from tests.lib.helpers.rbac_utils import assert_response_raised, check_read_acce
 from tests.api import APITest
 
 
-@pytest.mark.api
-@pytest.mark.rbac
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestInstanceGroupRBAC(APITest):
 
@@ -80,9 +78,7 @@ class TestInstanceGroupRBAC(APITest):
                 ig.remove_instance(instance)
 
 
-@pytest.mark.api
-@pytest.mark.rbac
-@pytest.mark.mp_group('InstanceGroupAssignmentRBAC', 'isolated_serial')
+@pytest.mark.serial
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestInstanceGroupAssignmentRBAC(APITest):
 

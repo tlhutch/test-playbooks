@@ -61,9 +61,7 @@ method_not_allowed = (http.client.METHOD_NOT_ALLOWED, 'method_not_allowed')
 unauthorized = (http.client.UNAUTHORIZED, 'unauthorized')
 
 
-@pytest.mark.api
-@pytest.mark.nondestructive
-@pytest.mark.mp_group('TestCrawler', 'isolated_free')
+@pytest.mark.serial
 def test_unauthenticated(authtoken, resource, method):
     expected = {'HEAD': (http.client.UNAUTHORIZED, 'head'),
                 'GET': unauthorized,
@@ -98,9 +96,7 @@ def test_unauthenticated(authtoken, resource, method):
                     expected_response_code, expected_response_schema)
 
 
-@pytest.mark.api
-@pytest.mark.nondestructive
-@pytest.mark.mp_group('TestCrawler')
+@pytest.mark.serial
 def test_authenticated(connection, authtoken, no_license, resource, method):
 
     expected = {'HEAD': (http.client.OK, 'head'),

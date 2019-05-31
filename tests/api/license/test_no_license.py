@@ -8,8 +8,7 @@ import pytest
 from tests.api.license import LicenseTest
 
 
-@pytest.mark.api
-@pytest.mark.mp_group(group="NoLicense", strategy="isolated_free")
+@pytest.mark.serial
 @pytest.mark.usefixtures('authtoken', 'no_license')
 class TestNoLicense(LicenseTest):
 
@@ -84,8 +83,7 @@ class TestNoLicense(LicenseTest):
         assert conf.license_info == {}, "No license was expected, found %s" % conf.license_info
 
 
-@pytest.mark.api
-@pytest.mark.mp_group(group="NoLicenseSerial", strategy="isolated_serial")
+@pytest.mark.serial
 @pytest.mark.usefixtures('authtoken', 'no_license')
 class TestNoLicenseSerial(LicenseTest):
 

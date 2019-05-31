@@ -12,9 +12,7 @@ def find_settings(setting_pg, substrings):
     return keys
 
 
-@pytest.mark.api
-@pytest.mark.destructive
-@pytest.mark.mp_group('TestAuth', 'isolated_serial')
+@pytest.mark.serial
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class Test_Auth(APITest):
 

@@ -44,8 +44,6 @@ def multiple_jobs_with_status_completed(cleanup_jobs_with_status_completed,
             ad_hoc_with_status_completed]
 
 
-@pytest.mark.api
-@pytest.mark.destructive
 @pytest.mark.first
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class Test_System_Jobs(APITest):
@@ -63,7 +61,7 @@ class Test_System_Jobs(APITest):
         with pytest.raises(towerkit.exceptions.MethodNotAllowed):
             system_job.patch()
 
-    @pytest.mark.mp_group('Cleanup', 'isolated_serial')
+    @pytest.mark.serial
     @pytest.mark.last
     def test_cleanup_jobs(self, cleanup_jobs_template, unified_job_with_status_completed, api_unified_jobs_pg):
         """Run jobs of different types sequentially and check that cleanup jobs deletes all of our jobs that are
@@ -86,7 +84,7 @@ class Test_System_Jobs(APITest):
         assert api_unified_jobs_pg.get(id=unified_job_with_status_completed.id).count == expected_count, \
             "An unexpected number of unified jobs were found (expected %s)." % expected_count
 
-    @pytest.mark.mp_group('Cleanup', 'isolated_serial')
+    @pytest.mark.serial
     @pytest.mark.last
     def test_cleanup_jobs_on_multiple_jobs(self, cleanup_jobs_template, multiple_jobs_with_status_completed, api_jobs_pg, api_system_jobs_pg,
                                            api_unified_jobs_pg):
@@ -117,7 +115,7 @@ class Test_System_Jobs(APITest):
         assert set(unified_job_ids) == set(update_job_ids) | set([system_job_pg.id]), \
             "Unexpected unified_jobs returned. Expected only project/inventory updates and our system job."
 
-    @pytest.mark.mp_group('Cleanup', 'isolated_serial')
+    @pytest.mark.serial
     @pytest.mark.last
     def test_cleanup_activitystream(self, cleanup_activitystream_template, multiple_jobs_with_status_completed, api_activity_stream_pg):
         """Launch jobs of different types, run cleanup_activitystreams, and verify that the activity_stream clears."""

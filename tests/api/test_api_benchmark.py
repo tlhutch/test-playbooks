@@ -4,6 +4,7 @@ from towerkit.config import config
 
 
 @pytest.mark.benchmark
+@pytest.mark.serial
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestApiPerformance(APITest):
 
@@ -79,29 +80,24 @@ class TestApiPerformance(APITest):
         job.wait_until_started(interval=0.25)
 
     @pytest.mark.parametrize('endpoint', endpoints)
-    @pytest.mark.mp_group('Benchmarking', 'isolated_serial')
     def test_benchmark_endpoint_response(self, v2, endpoint, benchmark):
         e = getattr(v2, endpoint)
         benchmark(self.get_endpoint, e)
 
-    @pytest.mark.mp_group('Benchmarking', 'isolated_serial')
     def test_benchmark_org_creation(self, v2, benchmark):
         f = self.resource_creation_function(v2, 'organizations')
         benchmark(f)
 
-    @pytest.mark.mp_group('Benchmarking', 'isolated_serial')
     def test_benchmark_user_creation(self, v2, factories, benchmark):
         f = self.resource_creation_function(v2, 'users')
         org = factories.organization()
         benchmark(f, organization=org)
 
-    @pytest.mark.mp_group('Benchmarking', 'isolated_serial')
     def test_benchmark_team_creation(self, v2, factories, benchmark):
         f = self.resource_creation_function(v2, 'teams')
         org = factories.organization()
         benchmark(f, organization=org)
 
-    @pytest.mark.mp_group('Benchmarking', 'isolated_serial')
     def test_benchmark_associate_user_with_org(self, factories, benchmark):
         # Need a setup function because we can't reuse the "user" value
         def setup():
@@ -113,7 +109,6 @@ class TestApiPerformance(APITest):
             org.related.users.post(user.payload())
         benchmark.pedantic(associate_user, setup=setup, rounds=15)
 
-    @pytest.mark.mp_group('Benchmarking', 'isolated_serial')
     def test_benchmark_associate_user_with_team(self, factories, benchmark):
         def setup():
             user = factories.user()
@@ -125,32 +120,27 @@ class TestApiPerformance(APITest):
             team.related.users.post(user.payload())
         benchmark.pedantic(associate_user, setup=setup, rounds=15)
 
-    @pytest.mark.mp_group('Benchmarking', 'isolated_serial')
     def test_benchmark_cloud_credential_creation(self, v2, factories, benchmark):
         f = self.resource_creation_function(v2, 'credentials')
         org = factories.organization()
         benchmark(f, organization=org, kind='aws', username='foo', password='bar')
 
-    @pytest.mark.mp_group('Benchmarking', 'isolated_serial')
     def test_benchmark_machine_credential_creation(self, v2, factories, benchmark):
         f = self.resource_creation_function(v2, 'credentials')
         org = factories.organization()
         benchmark(f, organization=org, kind='ssh',
                   username='foo', password='bar', ssh_key_data=config.credentials.ssh.ssh_key_data)
 
-    @pytest.mark.mp_group('Benchmarking', 'isolated_serial')
     def test_benchmark_project_creation(self, v2, factories, benchmark):
         f = self.resource_creation_function(v2, 'projects')
         org = factories.organization()
         benchmark(f, organization=org, wait=False)
 
-    @pytest.mark.mp_group('Benchmarking', 'isolated_serial')
     def test_benchmark_inventory_creation(self, v2, factories, benchmark):
         f = self.resource_creation_function(v2, 'inventory')
         org = factories.organization()
         benchmark(f, organization=org)
 
-    @pytest.mark.mp_group('Benchmarking', 'isolated_serial')
     def test_benchmark_inventory_group_creation(self, factories, benchmark):
         def create_group(inventory, org):
             factories.group(inventory=inventory, organization=org)
@@ -158,7 +148,6 @@ class TestApiPerformance(APITest):
         inventory = factories.inventory(organization=org)
         benchmark(create_group, inventory, org)
 
-    @pytest.mark.mp_group('Benchmarking', 'isolated_serial')
     def test_benchmark_inventory_source_update(self, factories, benchmark):
         def update_source(source):
             source.update().wait_until_completed(interval=0.25)
@@ -166,12 +155,10 @@ class TestApiPerformance(APITest):
         source = factories.inventory_source(source='ec2', credential=credential)
         benchmark(update_source, source)
 
-    @pytest.mark.mp_group('Benchmarking', 'isolated_serial')
     def test_benchmark_job_template_start_time(self, factories, benchmark):
         jt = factories.job_template(allow_simultaneous=True)
         benchmark(self.wait_for_job_start, jt)
 
-    @pytest.mark.mp_group('Benchmarking', 'isolated_serial')
     def test_benchmark_workflow_node_start_time(self, factories, benchmark):
         jt = factories.job_template(
             playbook='ping.yml', allow_simultaneous=True)
@@ -180,7 +167,6 @@ class TestApiPerformance(APITest):
             workflow_job_template=wfjt, unified_job_template=jt)
         benchmark(self.wait_for_workflow_node_start, wfjt)
 
-    @pytest.mark.mp_group('Benchmarking', 'isolated_serial')
     def test_benchmark_workflow_in_workflow_node_start_time(self, factories, benchmark):
         def wait_for_inner_workflow_node_start(wfjt):
             wfj = wfjt.launch()
@@ -204,7 +190,6 @@ class TestApiPerformance(APITest):
         node.unified_job_template = wfjt_inner.id
         benchmark(wait_for_inner_workflow_node_start, wfjt_outer)
 
-    @pytest.mark.mp_group('Benchmarking', 'isolated_serial')
     def test_benchmark_job_template_creation(self, v2, factories, benchmark):
         org = factories.organization()
         inventory = factories.inventory(organization=org)
@@ -212,7 +197,6 @@ class TestApiPerformance(APITest):
         f = self.resource_creation_function(v2, 'job_templates')
         benchmark(f, organization=org, inventory=inventory, project=project)
 
-    @pytest.mark.mp_group('Benchmarking', 'isolated_serial')
     def test_benchmark_job_template_slicing(self, v2, factories, benchmark):
         instances = v2.instances.get(
             rampart_groups__controller__isnull=True, page_size=200, capacity__gt=0).results
@@ -224,7 +208,6 @@ class TestApiPerformance(APITest):
             jt.ds.inventory.add_host()
         benchmark(self.launch_and_wait, jt)
 
-    @pytest.mark.mp_group('Benchmarking', 'isolated_serial')
     def test_benchmark_job_slicing_workaround(self, v2, factories, benchmark):
         instances = v2.instances.get(
             rampart_groups__controller__isnull=True, page_size=200, capacity__gt=0).results
@@ -236,7 +219,6 @@ class TestApiPerformance(APITest):
             inventory.add_host()
         benchmark(self.multi_launch_and_wait, jt, ct)
 
-    @pytest.mark.mp_group('Benchmarking', 'isolated_serial')
     def test_benchmark_single_job(self, v2, factories, benchmark):
         instances = v2.instances.get(
             rampart_groups__controller__isnull=True, page_size=200, capacity__gt=0).results
@@ -249,7 +231,6 @@ class TestApiPerformance(APITest):
             inventory.add_host()
         benchmark(self.launch_and_wait, jt)
 
-    @pytest.mark.mp_group('Benchmarking', 'isolated_serial')
     def test_workflow_multiple_project_use(self, factories, benchmark):
         wfjt = factories.workflow_job_template()
         project = factories.project()
@@ -266,7 +247,6 @@ class TestApiPerformance(APITest):
             )
         benchmark(self.launch_and_wait, wfjt)
 
-    @pytest.mark.mp_group('Benchmarking', 'isolated_serial')
     def test_benchmark_workflow_in_workflow(self, factories, benchmark):
         wfjt_outer = factories.workflow_job_template()
         wfjt_inner = factories.workflow_job_template()
@@ -280,7 +260,6 @@ class TestApiPerformance(APITest):
         node.unified_job_template = wfjt_inner.id
         benchmark(self.launch_and_wait, wfjt_outer)
 
-    @pytest.mark.mp_group('Benchmarking', 'isolated_serial')
     def test_benchmark_nested_empty_workflows_in_workflow(self, factories, benchmark):
         wfjts = []
         for i in range(10):

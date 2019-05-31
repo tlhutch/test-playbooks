@@ -87,7 +87,6 @@ print(json.dumps({
 }))"""
 
 
-@pytest.mark.api
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestInventoryUpdateOverlappingSources(APITest):
 

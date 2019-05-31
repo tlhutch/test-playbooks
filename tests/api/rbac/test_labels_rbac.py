@@ -4,8 +4,6 @@ import towerkit.exceptions
 from tests.api import APITest
 
 
-@pytest.mark.api
-@pytest.mark.rbac
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class Test_Label_RBAC(APITest):
 

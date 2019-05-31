@@ -4,8 +4,7 @@ import pytest
 from tests.api import APITest
 
 
-@pytest.mark.api
-@pytest.mark.mp_group('UnifiedJobImpact', 'isolated_serial')
+@pytest.mark.serial
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestUnifiedJobImpact(APITest):
 

@@ -12,8 +12,6 @@ from tests.api import APITest
 log = logging.getLogger(__name__)
 
 
-@pytest.mark.api
-@pytest.mark.destructive
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestJobTemplateSurveys(APITest):
 
@@ -295,7 +293,6 @@ class TestJobTemplateSurveys(APITest):
         job_activity_stream = job.related.activity_stream.get().results.pop()
         assert json.loads(job_activity_stream.changes.extra_vars)['secret'] == "$encrypted$"
 
-    @pytest.mark.mp_group(group="get_pg_dump", strategy="serial")
     @pytest.mark.parametrize('template', ['job', 'workflow_job'])
     def test_confirm_no_plaintext_survey_passwords_in_db(self, skip_if_cluster, v2, factories, get_pg_dump, template):
         resource = getattr(factories, template + '_template')()

@@ -21,8 +21,6 @@ def user_payload(**kwargs):
     return payload
 
 
-@pytest.mark.api
-@pytest.mark.destructive
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class Test_Users(APITest):
 

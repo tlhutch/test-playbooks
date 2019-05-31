@@ -46,8 +46,6 @@ def custom_inventory_source_with_vars(request, custom_inventory_source, custom_i
     return custom_inventory_source
 
 
-@pytest.mark.api
-@pytest.mark.destructive
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class Test_Inventory_Scripts(APITest):
     """Verifies basic CRUD operations against the /inventory_scripts endpoint"""

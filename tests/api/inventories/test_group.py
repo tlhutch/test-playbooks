@@ -198,8 +198,6 @@ def variation(request, authtoken, inventory, ansible_runner):
     return inventory
 
 
-@pytest.mark.api
-@pytest.mark.destructive
 @pytest.mark.ansible(host_pattern='tower[0]')  # target 1 normal instance
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestGroup(APITest):

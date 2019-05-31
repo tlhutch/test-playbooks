@@ -39,9 +39,6 @@ def run_wfj_and_assert_completed(
     return wfj
 
 
-@pytest.mark.api
-@pytest.mark.workflow_convergence
-@pytest.mark.destructive
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class Test_Workflow_Convergence(APITest):
     # Begin Convergence Node tests

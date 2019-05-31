@@ -154,15 +154,13 @@ def assert_expected_hostnames(inv_source, cloud_hostvars_that_create_host_names)
                 )
 
 
-@pytest.mark.api
-@pytest.mark.destructive
 @pytest.mark.usefixtures(
     'authtoken',
     'install_enterprise_license_unlimited',
     'skip_if_openshift',
     'shared_custom_venvs'
 )
-@pytest.mark.mp_group('CustomVirtualenv', 'isolated_serial')
+@pytest.mark.serial
 @pytest.mark.fixture_args(venvs=CUSTOM_VENVS)
 class TestInventoryUpdateWithVenvs(APITest):
     """Test inventory updates in the default as well as other venvs.
@@ -179,7 +177,6 @@ class TestInventoryUpdateWithVenvs(APITest):
         else:
             return None
 
-    @pytest.mark.custom_venvs
     @pytest.mark.ansible_integration
     def test_update_cloud_inventory_source(self,
             ansible_version_cmp,
@@ -220,7 +217,6 @@ class TestInventoryUpdateWithVenvs(APITest):
         assert_expected_hostnames(inv_source, cloud_hostvars_that_create_host_names)
 
 
-@pytest.mark.api
 @pytest.mark.usefixtures(
     'authtoken',
     'install_enterprise_license_unlimited',

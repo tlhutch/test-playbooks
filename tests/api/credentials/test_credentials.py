@@ -8,8 +8,6 @@ import pytest
 from tests.api import APITest
 
 
-@pytest.mark.api
-@pytest.mark.destructive
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestCredentials(APITest):
 
@@ -189,7 +187,6 @@ class TestCredentials(APITest):
         assert update.failed
         assert ('NoAuthHandlerFound' in update.result_stdout) or ('Insufficient boto credentials found' in update.result_stdout)
 
-    @pytest.mark.mp_group(group="get_pg_dump", strategy="serial")
     def test_confirm_no_plaintext_secrets_in_db(self, skip_if_cluster, v2, factories, get_pg_dump):
         cred_payloads = [factories.credential.payload(kind=k) for k in ('aws', 'azure_rm', 'gce', 'net', 'ssh')]
         secrets = set()
@@ -212,7 +209,6 @@ class TestCredentials(APITest):
             locations = '\n'.join(pg_dump[location - 200:location + 200] for location in undesired_locations)
             pytest.fail('Found plaintext secret in db: {}'.format(locations))
 
-    @pytest.mark.mp_group(group="get_pg_dump", strategy="serial")
     def test_confirm_desired_encryption_schemes_in_db(self, skip_if_cluster, v2, factories, get_pg_dump):
         for kind in ('aws', 'azure_rm', 'gce', 'net', 'ssh'):
             factories.credential(kind=kind)

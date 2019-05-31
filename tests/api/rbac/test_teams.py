@@ -38,8 +38,6 @@ def team_payload(**kwargs):
     return payload
 
 
-@pytest.mark.api
-@pytest.mark.destructive
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class Test_Teams(APITest):
 
@@ -94,7 +92,7 @@ class Test_Teams(APITest):
 
     @pytest.mark.parametrize('org_admins_can_see_all_users', [True, False],
                              ids=['ORG_ADMINS_CAN_SEE_ALL_USERS_is_true', 'ORG_ADMINS_CAN_SEE_ALL_USERS_is_false'])
-    @pytest.mark.mp_group('OrgAdminCanSeeAllUsers', 'isolated_serial')
+    @pytest.mark.serial
     def test_org_admin_can_see_all_teams_in_org(self, request, v2, factories, org_admin, update_setting_pg,
                                                 api_settings_system_pg, org_admins_can_see_all_users):
         update_setting_pg(api_settings_system_pg, dict(ORG_ADMINS_CAN_SEE_ALL_USERS=org_admins_can_see_all_users))
@@ -136,7 +134,7 @@ class Test_Teams(APITest):
 
     @pytest.mark.parametrize('org_admins_can_see_all_users', [True, False],
                              ids=['ORG_ADMINS_CAN_SEE_ALL_USERS_is_true', 'ORG_ADMINS_CAN_SEE_ALL_USERS_is_false'])
-    @pytest.mark.mp_group('OrgAdminCanSeeAllUsers', 'isolated_serial')
+    @pytest.mark.serial
     def test_org_admin_can_assign_permissions_to_team(self, request, v2, factories, org_admin, update_setting_pg,
                                                       api_settings_system_pg, org_admins_can_see_all_users):
         update_setting_pg(api_settings_system_pg, dict(ORG_ADMINS_CAN_SEE_ALL_USERS=org_admins_can_see_all_users))

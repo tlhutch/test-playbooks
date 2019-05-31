@@ -9,8 +9,7 @@ from tests.lib.helpers import openshift_utils
 from tests.api import APITest
 
 
-@pytest.mark.api
-@pytest.mark.mp_group('ExecutionNodeAssignment', 'isolated_serial')
+@pytest.mark.serial
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited', 'skip_if_not_cluster')
 class TestExecutionNodeAssignment(APITest):
 

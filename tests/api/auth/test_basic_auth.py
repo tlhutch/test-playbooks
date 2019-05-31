@@ -8,7 +8,7 @@ import time
 from tests.api import APITest
 
 
-@pytest.mark.mp_group('SESSIONS', 'isolated_serial')
+@pytest.mark.serial
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestBasicAuth(APITest):
 

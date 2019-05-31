@@ -5,7 +5,6 @@ import pytest
 from tests.api import APITest
 
 
-@pytest.mark.api
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited', 'skip_if_not_cluster')
 class TestClusterCommon(APITest):
 
@@ -52,7 +51,7 @@ class TestClusterCommon(APITest):
         assert use_facts_job.result_stdout.count(ansible_facts.ansible_system) == 1
 
     @pytest.mark.parametrize('isolated', [False, True])
-    @pytest.mark.mp_group('JobTemplateSlicing', 'isolated_serial')
+    @pytest.mark.serial
     def test_sliced_job_distributes_through_instance_group(self, v2, factories, isolated):
         if isolated:
             instances = v2.instances.get(rampart_groups__name='protected').results

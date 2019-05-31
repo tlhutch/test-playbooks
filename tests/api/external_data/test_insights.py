@@ -30,9 +30,6 @@ def register_rhn_and_insights(ansible_runner):
     ansible_runner.yum(state='absent', name='insights-client')
 
 
-@pytest.mark.api
-@pytest.mark.destructive
-@pytest.mark.mp_group('Insights', 'serial')
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestInsights(APITest):
 
@@ -268,7 +265,6 @@ class TestInsights(APITest):
         assert result[0]['stdout'] == project.scm_revision
 
 
-@pytest.mark.mp_group(group="Insights", strategy="serial")
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestInsightsAnalytics(APITest):
 

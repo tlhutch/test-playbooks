@@ -111,8 +111,6 @@ def k8s_conjur(gke_client_cscope, request):
     return conjur_info
 
 
-@pytest.mark.api
-@pytest.mark.destructive
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestConjurCredential(APITest):
 
@@ -484,8 +482,6 @@ def k8s_vault(gke_client_cscope, request):
     return vault_url
 
 
-@pytest.mark.api
-@pytest.mark.destructive
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestHashiCorpVaultCredentials(APITest):
 
@@ -799,8 +795,6 @@ class TestHashiCorpVaultCredentials(APITest):
             assert len(linkage) == 0
 
 
-@pytest.mark.api
-@pytest.mark.destructive
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestHashiCorpSSHEngine(APITest):
 
@@ -893,8 +887,6 @@ class TestHashiCorpSSHEngine(APITest):
         assert 'requests.exceptions.HTTPError: 400 Client Error' in job.result_traceback
 
 
-@pytest.mark.api
-@pytest.mark.destructive
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestAzureKVCredentials(APITest):
 
@@ -1151,48 +1143,42 @@ class TestAzureKVCredentials(APITest):
             assert len(linkage) == 0
 
 
-@pytest.fixture(autouse=True)
-def _require_cyberark_aim(request):
+@pytest.fixture
+def check_cyberark_aim(request):
     """
-    Apply a '@pytest.mark.require_cyberark_aim' marker to a test suite to
-    check for available cyberark aim credentials and that the server is
-    reachable from the system under test. Unless the credentials and server
-    are available, the suite is skipped.
+    Check if cyberark_aim credentials are available on the config and that the
+    server is reachable from the system under test. Unless the credentials and
+    server are available, the suite is skipped.
     """
-    if request.node.get_closest_marker('require_cyberark_aim'):
-        aim_config = getattr(config.credentials, 'cyberark_aim', None)
-        aim_url = getattr(aim_config, 'url', None)
+    aim_config = getattr(config.credentials, 'cyberark_aim', None)
+    aim_url = getattr(aim_config, 'url', None)
 
-        if not aim_url:
-            pytest.skip('no cyberark aim credentials configured')
+    if not aim_url:
+        pytest.skip('no cyberark aim credentials configured')
 
-        request.getfixturevalue('authtoken')
-        request.getfixturevalue('install_enterprise_license_unlimited')
-        factories = request.getfixturevalue('factories')
-        v2 = request.getfixturevalue('v2')
+    factories = request.getfixturevalue('factories')
+    v2 = request.getfixturevalue('v2')
 
-        host = factories.host()
-        cred = factories.credential()
-        job = v2.ad_hoc_commands.post({
-            'inventory': host.inventory,
-            'credential': cred.id,
-            'module_name': 'shell',
-            'module_args': 'curl -k -i -s {0}'.format(aim_url)
-        })
+    host = factories.v2_host()
+    cred = factories.v2_credential()
+    job = v2.ad_hoc_commands.post({
+        'inventory': host.inventory,
+        'credential': cred.id,
+        'module_name': 'shell',
+        'module_args': 'curl -k -i -s {0}'.format(aim_url)
+    })
 
-        job.wait_until_completed()
-        if job.status != 'successful':
-            pytest.skip('unable to check if cyberark aim server is available')
+    job.wait_until_completed()
+    if job.status != 'successful':
+        pytest.skip('unable to check if cyberark aim server is available')
 
-        job_events = job.related.events.get()
-        if '200 OK' not in ''.join([e.stdout for e in job_events.results]):
-            pytest.skip('cyberark aim server is unavailable')
+    job_events = job.related.events.get()
+    if '200 OK' not in ''.join([e.stdout for e in job_events.results]):
+        pytest.skip('cyberark aim server is unavailable')
 
 
-@pytest.mark.require_cyberark_aim
-@pytest.mark.api
-@pytest.mark.destructive
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+@pytest.mark.usefixtures(
+    'authtoken', 'install_enterprise_license_unlimited', 'check_cyberark_aim')
 class TestCyberArkAimCredentials(APITest):
 
     def create_aim_credential(self, factories, v2, url=None,

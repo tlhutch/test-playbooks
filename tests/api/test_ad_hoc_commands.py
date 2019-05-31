@@ -41,8 +41,6 @@ def ad_hoc_command_with_multi_ask_credential_and_password_in_payload(request, ho
     return command_pg
 
 
-@pytest.mark.api
-@pytest.mark.destructive
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class Test_Ad_Hoc_Commands_Inventory(APITest):
 
@@ -70,8 +68,6 @@ class Test_Ad_Hoc_Commands_Inventory(APITest):
         command_pg.assert_successful()
 
 
-@pytest.mark.api
-@pytest.mark.destructive
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class Test_Ad_Hoc_Commands_Group(APITest):
 
@@ -98,8 +94,6 @@ class Test_Ad_Hoc_Commands_Group(APITest):
         command_pg.assert_successful()
 
 
-@pytest.mark.api
-@pytest.mark.destructive
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class Test_Ad_Hoc_Commands_Host(APITest):
 
@@ -126,8 +120,6 @@ class Test_Ad_Hoc_Commands_Host(APITest):
         command_pg.assert_successful()
 
 
-@pytest.mark.api
-@pytest.mark.destructive
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class Test_Ad_Hoc_Commands_Main(APITest):
 
@@ -221,7 +213,7 @@ class Test_Ad_Hoc_Commands_Main(APITest):
             "Unexpected response upon launching ad hoc command 'command' without " \
             "specifying module_args. %s" % json.dumps(result)
 
-    @pytest.mark.mp_group('ad_hoc_with_status_pending', 'isolated_serial')
+    @pytest.mark.serial
     @pytest.mark.fixture_args(module_name='command', module_args='sleep 60s')
     def test_cancel_command(self, ad_hoc_with_status_pending):
         """Tests that posting to the cancel endpoint cancels a command."""
@@ -468,7 +460,7 @@ print(json.dumps(inv, indent=2))
         with pytest.raises(exc.BadRequest):
             relaunch_pg.post(payload)
 
-    @pytest.mark.mp_group('Jinja2', 'isolated_serial')
+    @pytest.mark.serial
     @pytest.mark.parametrize('extra_vars, exp_stdout', [("{'test': 'json'}", "json"), ("---\ntest: yaml", "yaml")])
     def test_launch_ahc_with_extra_vars(self, v2, factories, extra_vars, exp_stdout):
         # Need to set this so that templating is allowed
@@ -516,7 +508,7 @@ print(json.dumps(inv, indent=2))
         assert matching_job_events.count == 1, \
             "Unexpected number of matching job events (%s != 1)" % matching_job_events.count
 
-    @pytest.mark.mp_group('AHCFile', 'isolated_serial')
+    @pytest.mark.serial
     def test_launch_ahc_with_diff(self, factories, api_settings_jobs_pg, update_setting_pg):
         host = factories.host()
         payload = dict(AD_HOC_COMMANDS=['file'])
@@ -593,7 +585,6 @@ print(json.dumps(inv, indent=2))
         ['email', 'email'],
     ])
     @pytest.mark.parametrize('prefix', ['awx', 'tower'])
-    @pytest.mark.mp_group('UpdateJobsSetting', 'serial')
     def test_awx_metavars_for_adhoc_commands(self, v2, factories, host, update_setting_pg, extra_var, attr, prefix):
         admin_user = factories.user(first_name='Joe', last_name='Admin', is_superuser=True)
         value = str(getattr(admin_user, attr))

@@ -136,7 +136,6 @@ def _expected_webhook_job_notification(tower_url, notification_template_pg, job_
     return job_msg
 
 
-@pytest.mark.api
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class Test_Notification_Templates(APITest):
 
@@ -150,8 +149,6 @@ class Test_Notification_Templates(APITest):
         assert e.value.msg['__all__'] == ['Notification template with this Organization and Name already exists.']
 
 
-@pytest.mark.api
-@pytest.mark.destructive
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class Test_Notifications(APITest):
     """Notification tests"""
@@ -170,7 +167,6 @@ class Test_Notifications(APITest):
                 "Failed to find %s test notification (%s)" %\
                 (notification_type, msg)
 
-    @pytest.mark.mp_group('SystemJobNotifications', 'serial')
     @pytest.mark.parametrize("job_result", ['any', 'error', 'success'])
     def test_system_job_notifications(self, request, system_job_template, slack_notification_template, job_result):
         """Test notification templates attached to system job templates"""

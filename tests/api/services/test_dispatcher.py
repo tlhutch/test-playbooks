@@ -10,14 +10,12 @@ from tests.api import APITest
 log = logging.getLogger(__name__)
 
 
-@pytest.mark.api
-@pytest.mark.destructive
 @pytest.mark.usefixtures(
     'skip_if_openshift',
     'authtoken',
     'install_enterprise_license_unlimited',
 )
-@pytest.mark.mp_group('TestDispatcher', 'isolated_serial')
+@pytest.mark.serial
 class TestDispatcher(APITest):
 
     def runner_output(self, result):

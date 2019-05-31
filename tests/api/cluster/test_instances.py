@@ -6,8 +6,7 @@ from towerkit import exceptions as exc
 from tests.api import APITest
 
 
-@pytest.mark.api
-@pytest.mark.mp_group(group="TestInstances", strategy="isolated_serial")
+@pytest.mark.serial
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestInstances(APITest):
     def find_expected_capacity(self, instance):

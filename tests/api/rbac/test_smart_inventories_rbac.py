@@ -7,8 +7,6 @@ from tests.lib.helpers.rbac_utils import assert_response_raised, check_read_acce
 from tests.api import APITest
 
 
-@pytest.mark.api
-@pytest.mark.rbac
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestSmartInventoryRBAC(APITest):
 

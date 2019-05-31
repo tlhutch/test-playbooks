@@ -37,8 +37,6 @@ JOB_EVENT_TYPES = ['playbook_on_start',  # (once for each playbook file)
                    'playbook_on_stats']
 
 
-@pytest.mark.api
-@pytest.mark.destructive
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class Test_Job_Events(APITest):
 

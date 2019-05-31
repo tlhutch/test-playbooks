@@ -8,7 +8,6 @@ import pytest
 from tests.api import APITest
 
 
-@pytest.mark.api
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestFactCache(APITest):
 
@@ -38,7 +37,7 @@ class TestFactCache(APITest):
         return factories.job_template(description="3.2 scan_facts JT %s" % fauxfactory.gen_utf8(), project=project,
                                          inventory=host.ds.inventory, playbook='scan_facts.yml', use_fact_cache=True)
 
-    @pytest.mark.mp_group('AWX_PROOT_ENABLED', 'isolated_serial')
+    @pytest.mark.serial
     def test_ingest_facts_with_tower_scan_playbook(self, skip_if_cluster, request, factories, ansible_runner, ansible_os_family,
                                                    is_docker, scan_facts_job_template, v2, update_setting_pg):
         machine_id = "4da7d1f8-14f3-4cdc-acd5-a3465a41f25d"
@@ -239,7 +238,7 @@ class TestFactCache(APITest):
             assert any([file_path.startswith(path) for path in scan_file_paths])
 
     @pytest.mark.ansible_integration
-    @pytest.mark.mp_group(group="pytest_mark_requires_isolation", strategy="isolated_serial")
+    @pytest.mark.serial
     def test_scan_file_paths_are_traversed(self, skip_if_cluster, v2, request, ansible_runner, scan_facts_job_template):
         test_dir = '/tmp/test{}'.format(fauxfactory.gen_alphanumeric())
         request.addfinalizer(lambda: ansible_runner.file(path=test_dir, state='absent'))

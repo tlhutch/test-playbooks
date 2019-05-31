@@ -5,7 +5,6 @@ from towerkit.config import config
 from tests.api import APITest
 
 
-@pytest.mark.api
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestAnsibleTowerInventorySource(APITest):
 
@@ -56,7 +55,7 @@ class TestAnsibleTowerInventorySource(APITest):
         assert tower_host_vars == custom_host_vars
         assert tower_group_vars == custom_group_vars
 
-    @pytest.mark.mp_group('AnsibleTowerInventorySource', 'isolated_serial')
+    @pytest.mark.serial
     def test_tower_inv_src_update_doesnt_affect_instance_count(self, v2, factories, tower_cred):
         custom_inv_src = factories.inventory_source()
         custom_inv_src.update().wait_until_completed().assert_successful()
@@ -75,7 +74,6 @@ class TestAnsibleTowerInventorySource(APITest):
         assert updated_license_info.instance_count == instance_count
         assert updated_license_info.free_instances == free_instances
 
-    @pytest.mark.flaky(reruns=5, reruns_delay=1)
     def test_tower_inv_src_filter_by_inventory_name(self, factories, tower_cred):
         custom_inv_src = factories.inventory_source()
         custom_inv_src.update().wait_until_completed().assert_successful()
