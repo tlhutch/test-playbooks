@@ -15,6 +15,15 @@ from tests.api import APITest
 log = logging.getLogger(__name__)
 
 
+def _get_credential_by_kind(jt, kind):
+    matches = [
+        c for c in jt.get_related('credentials').results
+        if c.get_related('credential_type').kind == kind
+    ]
+    if matches:
+        return matches[0]
+
+
 @pytest.fixture(scope="function")
 def job_sleep(request, job_template_sleep):
     """Launch the job_template_sleep and return a job resource."""
@@ -39,7 +48,7 @@ def job_with_multi_ask_credential_and_password_in_payload(request, job_template_
     launch_pg = job_template_multi_ask.get_related("launch")
 
     # determine whether sudo or su was used
-    credential = job_template_multi_ask.get_related('credential')
+    credential = _get_credential_by_kind(job_template_multi_ask, 'ssh')
 
     # assert expected values in launch_pg.passwords_needed_to_start
     assert credential.expected_passwords_needed_to_start == launch_pg.passwords_needed_to_start
@@ -303,7 +312,7 @@ class Test_Job(APITest):
         relaunch_pg = job_with_multi_ask_credential_and_password_in_payload.get_related('relaunch')
 
         # determine expected passwords
-        credential = job_with_multi_ask_credential_and_password_in_payload.get_related('credential')
+        credential = _get_credential_by_kind(job_with_multi_ask_credential_and_password_in_payload, 'ssh')
 
         # assert expected values in relaunch_pg.passwords_needed_to_start
         assert credential.expected_passwords_needed_to_start == relaunch_pg.passwords_needed_to_start
@@ -323,7 +332,7 @@ class Test_Job(APITest):
         relaunch_pg = job_with_multi_ask_credential_and_password_in_payload.get_related('relaunch')
 
         # determine expected passwords
-        credential = job_with_multi_ask_credential_and_password_in_payload.get_related('credential')
+        credential = _get_credential_by_kind(job_with_multi_ask_credential_and_password_in_payload, 'ssh')
 
         # assert expected values in relaunch_pg.passwords_needed_to_start
         assert credential.expected_passwords_needed_to_start == relaunch_pg.passwords_needed_to_start
@@ -806,7 +815,7 @@ class Test_Job_Env(APITest):
         Note: Tower doesn't set environmental variables for CloudForms and Satellite6.
         """
         # get cloud_credential
-        cloud_credential = [cred for cred in job_template_with_cloud_credential.get_related('credentials').results if cred.get_related('credential_type').kind == 'cloud'][0]
+        cloud_credential = _get_credential_by_kind(job_template_with_cloud_credential, 'cloud')
         cloud_credential_namespace = cloud_credential.get_related('credential_type').namespace
 
         # launch job and assert successful
@@ -858,8 +867,8 @@ class Test_Job_Env(APITest):
 
     def test_job_env_with_network_credential(self, job_template_with_network_credential, expected_net_env_vars):
         """Verify that job_env has the expected network_credential variables."""
-        # get cloud_credential
-        network_credential = [cred for cred in job_template_with_network_credential.get_related('credentials').results if cred.get_related('credential_type').kind == 'net'][0]
+        # get network_credential
+        network_credential = _get_credential_by_kind(job_template_with_network_credential, 'network')
 
         # launch job and assert successful
         job_pg = job_template_with_network_credential.launch().wait_until_completed()
