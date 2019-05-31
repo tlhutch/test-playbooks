@@ -22,8 +22,11 @@ pipeline {
 
     stages {
 
-        stage('Build RPM') {
+        stage('Build Information') {
             steps {
+                echo """Tower version under test: ${params.TOWER_VERSION}
+Scope selected: ${params.SCOPE}"""
+
                 script {
                     if (params.TOWER_VERSION == 'devel') {
                         branch_name = 'devel'
@@ -31,25 +34,78 @@ pipeline {
                         branch_name = "release_${params.TOWER_VERSION}"
                     }
                 }
-                build(
-                    job: 'Build_Tower_RPM',
-                    parameters: [
-                       string(name: 'TOWER_PACKAGING_BRANCH', value: "origin/${branch_name}"),
-                       booleanParam(name: 'TRIGGER', value: false)
-                    ]
-                )
+            }
+        }
+
+        stage('Build RPM') {
+            parallel {
+                stage('epel-7-rpm') {
+                    steps {
+                        build(
+                            job: 'Build_Tower_RPM',
+                            parameters: [
+                               string(name: 'TOWER_PACKAGING_BRANCH', value: "origin/${branch_name}"),
+                               booleanParam(name: 'TRIGGER', value: false),
+                               string(name: 'TARGET_DIST', value: 'epel-7-x86_64'),
+                               string(name: 'MOCK_CFG', value: 'rhel-7-x86_64')
+                            ]
+                        )
+                    }
+                }
+                stage('epel-8-rpm') {
+                    when {
+                        expression {
+                            return ! params.TOWER_VERSION ==~ /3.[3-4].[0-9]*/
+                        }
+                    }
+
+                    steps {
+                        build(
+                            job: 'Build_Tower_RPM',
+                            parameters: [
+                               string(name: 'TOWER_PACKAGING_BRANCH', value: "origin/${branch_name}"),
+                               booleanParam(name: 'TRIGGER', value: false),
+                               string(name: 'TARGET_DIST', value: 'epel-8-x86_64'),
+                               string(name: 'MOCK_CFG', value: 'rhel-8-x86_64')
+                            ]
+                        )
+                    }
+                }
             }
         }
 
         stage('Build Bundle TAR') {
-            steps {
-                build(
-                    job: 'Build_Tower_Bundle_TAR',
-                    parameters: [
-                       string(name: 'TOWER_PACKAGING_BRANCH', value: "origin/${branch_name}"),
-                       booleanParam(name: 'TRIGGER', value: false)
-                    ]
-                )
+            parallel {
+                stage('epel-7-bundle') {
+                    steps {
+                        build(
+                            job: 'Build_Tower_Bundle_TAR',
+                            parameters: [
+                               string(name: 'TOWER_PACKAGING_BRANCH', value: "origin/${branch_name}"),
+                               string(name: 'TARGET_DIST', value: 'epel-7-x86_64'),
+                               booleanParam(name: 'TRIGGER', value: false)
+                            ]
+                        )
+                    }
+                }
+                stage('epel-8-bundle') {
+                    when {
+                        expression {
+                            return ! params.TOWER_VERSION ==~ /3.[3-4].[0-9]*/
+                        }
+                    }
+
+                    steps {
+                        build(
+                            job: 'Build_Tower_Bundle_TAR',
+                            parameters: [
+                               string(name: 'TOWER_PACKAGING_BRANCH', value: "origin/${branch_name}"),
+                               string(name: 'TARGET_DIST', value: 'epel-8-x86_64'),
+                               booleanParam(name: 'TRIGGER', value: false)
+                            ]
+                        )
+                    }
+                }
             }
         }
 
