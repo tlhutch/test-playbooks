@@ -55,12 +55,12 @@ class TestJobTemplateLaunchCredentials(APITest):
         # launch the job_template without providing a credential
         job = job_template_no_credential.launch().wait_until_completed()
         job.assert_successful()
-        assert job.credential is None
+        assert job.get_related('credentials').count == 0
 
         job_template_no_credential.ask_credential_on_launch = True
         job = job_template_no_credential.launch().wait_until_completed()
         job.assert_successful()
-        assert job.credential is None
+        assert job.get_related('credentials').count == 0
 
     def test_launch_with_linked_credential(self, job_template_prompt_for_credential, ssh_credential):
         """Verify the job template launch endpoint requires user input when using a linked credential and
@@ -78,13 +78,14 @@ class TestJobTemplateLaunchCredentials(APITest):
         job = job_template_prompt_for_credential.launch().wait_until_completed()
 
         job.assert_successful()
-        assert job.add_credential(ssh_credential)
+        assert [c.id for c in job.get_related('credentials').results] == [ssh_credential.id]
 
     @pytest.mark.ansible_integration
     def test_launch_with_unencrypted_ssh_credential(self, skip_if_openshift, ansible_runner, job_template,
                                                     unencrypted_ssh_credential_with_ssh_key_data):
         (credential_type, credential) = unencrypted_ssh_credential_with_ssh_key_data
 
+        job_template.remove_all_credentials()
         job_template.add_credential(credential)
 
         launch = job_template.related.launch.get()
@@ -109,6 +110,7 @@ class TestJobTemplateLaunchCredentials(APITest):
                                                   encrypted_ssh_credential_with_ssh_key_data):
         (credential_type, credential) = encrypted_ssh_credential_with_ssh_key_data
 
+        job_template.remove_all_credentials()
         job_template.add_credential(credential)
 
         launch = job_template.get_related('launch')
