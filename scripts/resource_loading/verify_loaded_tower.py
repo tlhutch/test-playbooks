@@ -5,6 +5,7 @@ import json
 import sys
 import re
 
+from distutils.version import LooseVersion
 from towerkit import api, config
 from towerkit.tower.utils import uses_sessions
 
@@ -36,7 +37,7 @@ if use_v2:
     # so they haven't been loaded in pre 3.5.0 (e.g 3.4.3, 3.4.2, ....)
     # so they should not be part of what we check. But we will have to check it
     # for 3.5.0 to 3.5.1, but not for 3.4.3 to 3.5.1
-    if v.ping.get().version == '3.5.0':
+    if LooseVersion(v.ping.get().version) >= LooseVersion('3.5.0'):
         ctypes = [ctype for ctype in _ctypes if ctype['kind'] != 'external']
     else:
         ctypes = _ctypes
