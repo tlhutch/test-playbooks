@@ -6,7 +6,7 @@ pipeline {
         choice(
             name: 'TOWER_VERSION',
             description: 'Tower version to deploy',
-            choices: ['devel', '3.5.1', '3.4.4', '3.3.6']
+            choices: ['devel', '3.5.x', '3.4.x', '3.3.x']
         )
         choice(
             name: 'SCOPE',
@@ -26,18 +26,29 @@ pipeline {
             steps {
                 echo """Tower version under test: ${params.TOWER_VERSION}
 Scope selected: ${params.SCOPE}"""
+
+                script {
+                    if (params.TOWER_VERSION == '3.5.x' ) {
+                        _TOWER_VERSION = '3.5.1'
+                    } else if (params.TOWER_VERSION == '3.4.x') {
+                        _TOWER_VERSION = '3.4.4'
+                    } else if (params.TOWER_VERSION == '3.3.x') {
+                        _TOWER_VERSION = '3.3.6'
+                    } else {
+                        _TOWER_VERSION = 'devel'
+                    }
+
+                    if (params.TOWER_VERSION == 'devel') {
+                        branch_name = 'devel'
+                    } else {
+                        branch_name = "release_${_TOWER_VERSION}"
+                    }
+                }
             }
         }
 
         stage('Build Tower TAR') {
             steps {
-                script {
-                    if (params.TOWER_VERSION == 'devel') {
-                        branch_name = 'devel'
-                    } else {
-                        branch_name = "release_${params.TOWER_VERSION}"
-                    }
-                }
                 build(
                     job: 'Build_Tower_TAR',
                     parameters: [
@@ -52,7 +63,7 @@ Scope selected: ${params.SCOPE}"""
                 stage('Debian') {
                     when {
                         expression {
-                            return params.TOWER_VERSION ==~ /3.[3-5].[0-9]*/
+                            return _TOWER_VERSION ==~ /3.[3-5].[0-9]*/
                         }
                     }
 
@@ -60,7 +71,7 @@ Scope selected: ${params.SCOPE}"""
                         build(
                             job: 'debian-pipeline',
                             parameters: [
-                                string(name: 'TOWER_VERSION', value: params.TOWER_VERSION),
+                                string(name: 'TOWER_VERSION', value: _TOWER_VERSION),
                                 string(name: 'SCOPE', value: params.SCOPE),
                             ]
                         )
@@ -71,7 +82,7 @@ Scope selected: ${params.SCOPE}"""
                         build(
                             job: 'redhat-pipeline',
                             parameters: [
-                                string(name: 'TOWER_VERSION', value: params.TOWER_VERSION),
+                                string(name: 'TOWER_VERSION', value: _TOWER_VERSION),
                                 string(name: 'SCOPE', value: params.SCOPE),
                             ]
                         )
