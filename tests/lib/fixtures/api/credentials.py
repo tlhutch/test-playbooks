@@ -17,8 +17,8 @@ def credential_kind_choices(authtoken, api_credentials_pg):
 # SSH machine credentials
 @pytest.fixture(scope="function")
 def ssh_credential(admin_user, factories):
-    cred = factories.credential(description="machine credential - %s" % fauxfactory.gen_utf8(),
-                                kind='ssh', user=admin_user, ssh_key_data=None, become_password=None)
+    cred = factories.credential(description="machine (ssh) credential - %s" % fauxfactory.gen_utf8(),
+                                kind='ssh', user=admin_user, ssh_key_data=None, become_password=None, organization=None)
     return cred
 
 
