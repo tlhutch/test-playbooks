@@ -449,8 +449,8 @@ def vmware_inventory_source(vmware_credential):
 
 
 @pytest.fixture(scope="function")
-def openstack_inventory_source(factories, openstack_credential):
-    return factories.v2_inventory_source(source='openstack', credential=openstack_credential)
+def openstack_inventory_source(factories, openstack_v3_credential):
+    return factories.v2_inventory_source(source='openstack', credential=openstack_v3_credential)
 
 
 @pytest.fixture(scope="function")
@@ -467,7 +467,7 @@ def cloud_inventory_source(request):
                                           ('azure_rm', 'azure_credential'),
                                           ('gce', 'gce_credential'),
                                           ('vmware', 'vmware_credential'),
-                                          ('openstack', 'openstack_credential')
+                                          ('openstack', 'openstack_v3_credential')
     ], ids=['aws', 'azure', 'gce', 'vmware', 'openstack'])
 def cloud_inventory(request, factories):
     inv_source, cred_fixture = request.param

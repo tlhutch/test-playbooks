@@ -544,8 +544,7 @@ class TestInventoryRBAC(APITest):
         with self.current_user(username=user.username, password=user.password):
             os_cred = factories.credential(kind='openstack',
                                            user=user,
-                                           organization=None,
-                                           password=self.credentials['cloud']['openstack']['password'])
-            os_group = factories.group(inventory=inventory, credential=os_cred)
+                                           organization=None)
+            os_inv_source = factories.v2_inventory_source(source='openstack', inventory=inventory, credential=os_cred)
             with pytest.raises(towerkit.exceptions.Forbidden):
-                os_group.related.inventory_source.patch(credential=openstack_credential.id)
+                os_inv_source.patch(credential=openstack_credential.id)

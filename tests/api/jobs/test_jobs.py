@@ -275,15 +275,12 @@ class Test_Job(APITest):
         assert JOB_ENV_SECRET_REPLACEMENT in job_env.get(URL_WITH_CREDS)
 
     def test_relaunch_with_vault_credential_only(self, request, factories, v2):
-        payload = factories.v2_job_template.payload()
-        del payload['credential']
-
         vault_credential = factories.v2_credential(kind='vault', vault_password='tower')
-        payload['vault_credential'] = vault_credential.id
-        payload['playbook'] = 'vaulted_debug_hostvars.yml'
-
-        jt = v2.job_templates.post(payload)
-        request.addfinalizer(jt.delete)
+        jt = factories.v2_job_template(playbook='vaulted_debug_hostvars.yml')
+        jt.remove_all_credentials()
+        jt.add_credential(vault_credential)
+        # sanity check we only have vault credential
+        assert jt.related.credentials.get().count == 1
         factories.v2_host(inventory=jt.ds.inventory)
 
         job = jt.launch().wait_until_completed()
@@ -852,7 +849,8 @@ class Test_Job_Env(APITest):
                 VMWARE_HOST=self.credentials['cloud'][cloud_credential_namespace]['host']
             )
         elif cloud_credential_namespace == 'openstack':
-            self.has_credentials('cloud', 'openstack', ['username', 'host', 'project', 'domain'])
+            self.has_credentials('cloud', 'openstack_v2', ['username', 'host', 'project'])
+            self.has_credentials('cloud', 'openstack_v3', ['username', 'host', 'project', 'domain'])
             expected_env_vars = dict(
                 OS_CLIENT_CONFIG_FILE=lambda x: re.match(r'^/tmp/awx_\w+/tmp\w+', x)
             )

@@ -343,10 +343,18 @@ def vmware_credential(admin_user, factories):
                                 kind='vmware', user=admin_user)
     return cred
 
+
+@pytest.fixture
 def openstack_v3_credential(admin_user, factories):
-    cred = factories.credential(name="openstack-v2-credential-%s" % fauxfactory.gen_utf8(),
+    cred = factories.credential(name="openstack-v3-credential-%s" % fauxfactory.gen_utf8(),
                                 description="OpenStack credential %s" % fauxfactory.gen_utf8(),
-                                kind='openstack_v3', user=admin_user)
+                                kind='openstack', user=admin_user,
+                                inputs=dict(host=config.credentials.cloud.openstack_v3.host,
+                                domain=config.credentials.cloud.openstack_v3.domain,
+                                password=config.credentials.cloud.openstack_v3.password,
+                                username=config.credentials.cloud.openstack_v3.username,
+                                project=config.credentials.cloud.openstack_v3.project,
+                                ))
     return cred
 
 
@@ -372,7 +380,7 @@ def satellite6_credential(admin_user, factories):
 
 
 # Convenience fixture that iterates through supported cloud_credential types
-@pytest.fixture(scope="function", params=['aws', 'azure', 'gce', 'vmware', 'openstack', 'cloudforms', 'satellite6'])
+@pytest.fixture(scope="function", params=['aws', 'azure', 'gce', 'vmware', 'openstack_v3', 'cloudforms', 'satellite6'])
 def cloud_credential(request):
     return request.getfixturevalue(request.param + '_credential')
 
