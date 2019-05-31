@@ -185,6 +185,7 @@ class TestApplications(APITest):
             assert_stream_validity(app)
 
         assert_stream_validity(app)
+
     def test_application_modification_in_activity_stream(self, v2, factories, privileged_user, organization):
         def assert_stream_validity(app, app_body, orig_body):
             activity_stream = app.related.activity_stream.get()

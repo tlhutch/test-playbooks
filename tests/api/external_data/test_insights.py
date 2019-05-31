@@ -194,7 +194,7 @@ class TestInsights(APITest):
         update = project.related.last_update.get()
 
         project.assert_successful()
-        project_creds = [ c.id for c in update.related.credentials.get().results ]
+        project_creds = [c.id for c in update.related.credentials.get().results]
         assert project_creds == [insights_cred.id]
         assert not project.scm_branch
         assert project.scm_type == 'insights'
@@ -205,7 +205,7 @@ class TestInsights(APITest):
         assert not update.job_explanation
         assert update.project == project.id
 
-        update_creds = [ c.id for c in update.related.credentials.get().results ]
+        update_creds = [c.id for c in update.related.credentials.get().results]
         assert update_creds == [insights_cred.id]
         assert update.job_type == 'check'
         assert update.launch_type == 'manual'
@@ -322,7 +322,7 @@ class TestInsightsAnalytics(APITest):
             filepath = '{}/{}'.format(tempdir, f)
             assert filepath in files
             content = self.read_json_file(filepath, ansible_runner)
-            assert type(content) == dict
+            assert isinstance(content, dict)
 
     @pytest.mark.ansible(host_pattern='tower[0]')
     def test_awxmanage_gather_analytics_project_count_incremented(self, ansible_runner, factories, skip_if_not_rhel, skip_if_openshift, analytics_enabled):

@@ -45,7 +45,7 @@ class TestWorkflowJobTemplateNodeRBAC(APITest):
                 with utils.suppress(exc.NoContent):
                     wfjtn.related.credentials.post(dict(id=cred.id))
 
-        wfjtn_creds = [ c.id for c in wfjtn.related.credentials.get().results ]
+        wfjtn_creds = [c.id for c in wfjtn.related.credentials.get().results]
         assert wfjtn_creds == [ssh_cred.id]
         wfjtn_creds = wfjtn.related.credentials.get()
         assert wfjtn_creds.count == 4

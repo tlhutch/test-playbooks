@@ -44,7 +44,7 @@ class TestJobTemplateCredentialsRBAC(APITest):
 
         user = factories.v2_user(organization=organization)
 
-        for resource in (credential, project, inventory):
+        for resource in (project, inventory):
             resource.set_object_roles(user, 'use')
 
         vault_credential = factories.v2_credential(kind='vault', vault_password='tower', organization=organization)
@@ -57,7 +57,7 @@ class TestJobTemplateCredentialsRBAC(APITest):
         for role in ('use', 'admin'):
             vault_credential.set_object_roles(user, role)
             with self.current_user(user):
-                factories.v2_job_template(organization=organization, project=project, credential=vault_credential, inventory=inventory)
+                jt = factories.v2_job_template(organization=organization, project=project, credential=vault_credential, inventory=inventory)
                 jt.delete()
 
     @pytest.mark.parametrize('cred_kind', ('net', 'aws', 'custom'))
@@ -125,7 +125,7 @@ class TestJobTemplateCredentialsRBAC(APITest):
                                                              organization=None, user=user_1))
 
         with self.current_user(user_1):
-            #FIXME: This works when you pass in credentials=[list of credentials] but gets Forbidden with extra_credentials
+            # FIXME: This works when you pass in credentials=[list of credentials] but gets Forbidden with extra_credentials
             job = jt.launch(dict(extra_credentials=[c.id for c in cloud_credentials[:2]])).wait_until_completed()
 
         with self.current_user(user_2):

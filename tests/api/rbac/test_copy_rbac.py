@@ -76,7 +76,7 @@ class Test_Copy_RBAC(APITest):
             assert v2_project.can_copy()
             new_project = copy_with_teardown(v2_project)
             assert new_project.related.current_update
-            new_project_creds = [ c.id for c in new_project.related.credentials.get().results ]
+            new_project_creds = [c.id for c in new_project.related.credentials.get().results]
             assert new_project_creds == [v2_project.credential]
 
     def test_cannot_copy_project_credential_with_read_role(self, factories, copy_with_teardown):
@@ -137,7 +137,7 @@ class Test_Copy_RBAC(APITest):
 
         cred_ids = [cred.id for cred in jt.related.credentials.get().results]
         assert jt.vault_credential == vault_cred.id
-        jt_creds = [ c.id for c in jt.related.credentials.get().results ]
+        jt_creds = [c.id for c in jt.related.credentials.get().results]
         assert jt_creds == [machine_cred.id]
         assert len(cred_ids) == 3
         assert vault_cred.id in cred_ids
@@ -149,8 +149,8 @@ class Test_Copy_RBAC(APITest):
         with self.current_user(user):
             assert jt.can_copy()
             new_jt = copy_with_teardown(jt)
-            new_jt_creds = [ c.id for c in new_jt.related.credentials.get().results ]
-            jt_creds = [ c.id for c in jt.related.credentials.get().results ]
+            new_jt_creds = [c.id for c in new_jt.related.credentials.get().results]
+            jt_creds = [c.id for c in jt.related.credentials.get().results]
             assert sorted(new_jt_creds) == sorted(jt_creds)
 
     def test_cannot_copy_jt_credentials_with_read_role(self, factories, copy_with_teardown):
@@ -184,7 +184,7 @@ class Test_Copy_RBAC(APITest):
                                                         credential=cred, inventory=inv)
         assert wfjtn.unified_job_template == jt.id
         assert wfjtn.inventory == inv.id
-        wfjtn_creds = [ c.id for c in wfjtn.related.credentials.get().results ]
+        wfjtn_creds = [c.id for c in wfjtn.related.credentials.get().results]
         assert wfjtn_creds == [cred.id]
         user = factories.user()
 
@@ -200,8 +200,8 @@ class Test_Copy_RBAC(APITest):
             new_wfjtn = new_wfjt.related.workflow_nodes.get().results[0]
             assert wfjtn.unified_job_template == new_wfjtn.unified_job_template
             assert wfjtn.inventory == new_wfjtn.inventory
-            wfjtn_creds = [ c.id for c in wfjtn.related.credentials.get().results ]
-            new_wfjtn_creds = [ c.id for c in new_wfjtn.related.credentials.get().results ]
+            wfjtn_creds = [c.id for c in wfjtn.related.credentials.get().results]
+            new_wfjtn_creds = [c.id for c in new_wfjtn.related.credentials.get().results]
             assert wfjtn_creds == new_wfjtn_creds
 
     def test_copy_wfjt_node_references_without_permission(self, factories, copy_with_teardown):
@@ -215,7 +215,7 @@ class Test_Copy_RBAC(APITest):
                                                         credential=cred, inventory=inv)
         assert wfjtn.unified_job_template == jt.id
         assert wfjtn.inventory == inv.id
-        wfjtn_creds = [ c.id for c in wfjtn.related.credentials.get().results ]
+        wfjtn_creds = [c.id for c in wfjtn.related.credentials.get().results]
         assert wfjtn_creds == [cred.id]
         user = factories.user()
 

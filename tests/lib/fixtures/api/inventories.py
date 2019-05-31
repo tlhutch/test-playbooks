@@ -1,7 +1,6 @@
 import logging
 import json
 import uuid
-import re
 
 from towerkit.utils import not_provided
 import fauxfactory

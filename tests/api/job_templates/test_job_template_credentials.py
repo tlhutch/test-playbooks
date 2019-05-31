@@ -2,7 +2,6 @@ from distutils.version import LooseVersion
 import logging
 import six
 
-from towerkit.config import config
 import towerkit.exceptions as exc
 import pytest
 

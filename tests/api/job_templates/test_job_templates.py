@@ -210,8 +210,8 @@ class TestJobTemplates(APITest):
             "JT job_type overridden. Expected %s, got %s." % (job_template.job_type, job.job_type)
         assert job.inventory == job_template.inventory, \
             "JT inventory overridden. Expected inventory %s, got %s." % (job_template.inventory, job.inventory)
-        job_credentials = [ c.id for c in job.related.credentials.get().results ]
-        jt_credentials = [ c.id for c in job_template.related.credentials.get().results ]
+        job_credentials = [c.id for c in job.related.credentials.get().results]
+        jt_credentials = [c.id for c in job_template.related.credentials.get().results]
         assert job_credentials == jt_credentials, "JT credential overridden. Expected credential {jt_credentials}, got {job_credentials}."
         assert job.diff_mode == job_template.diff_mode, \
             "JT diff_mode overridden. Expected %s, got %s." % (job_template.diff_mode, job.diff_mode)
