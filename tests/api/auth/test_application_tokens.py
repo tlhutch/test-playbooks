@@ -91,8 +91,9 @@ class TestApplications(APITest):
         assert list_item.client_id == client_id
 
     def test_application_organization_name_unique(self, v2, factories):
+        org = factories.v2_organization()
         app = factories.application(
-            organization=True,
+            organization=org,
             authorization_grant_type='password',
             client_type='public'
         )
@@ -107,7 +108,8 @@ class TestApplications(APITest):
         assert e.value.msg == {'__all__': ['Application with this Name and Organization already exists.']}
 
     def test_patch_modified_application_integrity(self, v2, factories):
-        app = factories.application(organization=True, authorization_grant_type='password',
+        org = factories.v2_organization()
+        app = factories.application(organization=org, authorization_grant_type='password',
                                     client_type='public')
         name = random_title(3)
         app.name = name
@@ -126,7 +128,8 @@ class TestApplications(APITest):
         assert app.get().redirect_uris == uris
 
     def test_put_modified_application_integrity(self, v2, factories):
-        app = factories.application(organization=True, authorization_grant_type='password',
+        org = factories.v2_organization()
+        app = factories.application(organization=org, authorization_grant_type='password',
                                     client_type='public')
         app_body = deepcopy(app.json)
         app_body['name'] = random_title(3)
@@ -146,7 +149,8 @@ class TestApplications(APITest):
         assert app.get().redirect_uris == app_body['redirect_uris']
 
     def test_delete_application(self, v2, factories):
-        app = factories.application(organization=True, authorization_grant_type='password',
+        org = factories.v2_organization()
+        app = factories.application(organization=org, authorization_grant_type='password',
                                     client_type='public')
         apps = v2.applications.get(id=app.id)
         assert apps.count == 1
@@ -157,7 +161,8 @@ class TestApplications(APITest):
 
     @pytest.mark.parametrize('field', ('client_id', 'client_secret', 'authorization_grant_type'))
     def test_read_only_application_fields_have_forbidden_writes(self, factories, field):
-        app = factories.application(organization=True, client_type='confidential')
+        org = factories.v2_organization()
+        app = factories.application(organization=org, client_type='confidential')
         app = app.get()
         expected = app[field]
         setattr(app, field, 'SHOULD_BE_FORBIDDEN')
@@ -180,7 +185,6 @@ class TestApplications(APITest):
             assert_stream_validity(app)
 
         assert_stream_validity(app)
-
     def test_application_modification_in_activity_stream(self, v2, factories, privileged_user, organization):
         def assert_stream_validity(app, app_body, orig_body):
             activity_stream = app.related.activity_stream.get()
