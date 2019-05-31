@@ -16,11 +16,9 @@ log = logging.getLogger(__name__)
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestJobTemplateCredentials(APITest):
 
-    def test_job_template_creation_without_credential(self, request, v2, factories):
-        payload = factories.v2_job_template.payload()
-        del payload['credential']
-        jt = v2.job_templates.post(payload)
-        request.addfinalizer(jt.silent_delete)
+    def test_job_template_creation_without_credential(self, factories):
+        jt = factories.v2_job_template()
+        jt.remove_all_credentials()
 
     def test_job_template_cannot_have_multiple_same_type(self, factories):
         ct = factories.credential_type()
