@@ -134,16 +134,18 @@ def script_source(request):
     if fixture_args and 'source_script' in fixture_args.kwargs:
         return fixture_args.kwargs['source_script']
 
-    group_name = re.sub(r"[\']", "", "group_%s" % fauxfactory.gen_utf8())
+    group_name = f'group_{fauxfactory.gen_utf8()}'
     script = """#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import json
 inventory = dict()
-inventory['{0}'] = list()
+inventory['{0}'] = dict()
+inventory['{0}']['hosts'] = list()
 """.format(group_name)
     for i in range(5):
-        host_name = re.sub(r"[\':]", "", "host_%s" % fauxfactory.gen_utf8())
-        script += "inventory['{0}'].append('{1}')\n".format(group_name, host_name)
+        host_name = f"host_{fauxfactory.gen_utf8()}"
+        script += f"inventory['{group_name}']['hosts'].append('{host_name}')\n"
+    script += f"inventory['{group_name}']['vars'] = dict(ansible_host='127.0.0.1', ansible_connection='local')\n"
     script += "print(json.dumps(inventory))\n"
     log.debug(script)
     return script
