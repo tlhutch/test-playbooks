@@ -55,7 +55,7 @@ Scope selected: ${params.SCOPE}"""
                 stage('epel-8-rpm') {
                     when {
                         expression {
-                            return ! params.TOWER_VERSION ==~ /3.[3-4].[0-9]*/
+                            return !(params.TOWER_VERSION ==~ /3.[3-4].[0-9]*/)
                         }
                     }
 
@@ -91,7 +91,7 @@ Scope selected: ${params.SCOPE}"""
                 stage('epel-8-bundle') {
                     when {
                         expression {
-                            return ! params.TOWER_VERSION ==~ /3.[3-4].[0-9]*/
+                            return !(params.TOWER_VERSION ==~ /3.[3-4].[0-9]*/)
                         }
                     }
 
