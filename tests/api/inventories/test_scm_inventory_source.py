@@ -345,7 +345,6 @@ class TestSCMInventorySource(APITest):
         assert project.related.project_updates.get(launch_type='sync').count == 2
         assert inv_source.related.inventory_updates.get().count == 2
 
-    @pytest.mark.github('https://github.com/ansible/tower-qa/issues/2326', skip=True)
     @pytest.mark.mp_group('ProjectUpdateWithSCMChange', 'serial')
     def test_cancel_shared_parent_project_update_after_source_change(self, factories, write_access_git_credential):
         project = factories.v2_project(scm_url='https://github.com/rmfitzpatrick/ansible-playbooks.git',
@@ -366,22 +365,15 @@ class TestSCMInventorySource(APITest):
 
         update = project.update().wait_until_status('running')
 
-        cont = True
-        while cont:
-            for inv_source in inv_sources:
-                if inv_source.related.inventory_updates.get().count or update.get().is_completed:
-                    cont = False
-                    break
-
-        while not update.get().is_completed:
-            update.related.cancel.post()
+        assert update.related.cancel.get()['can_cancel']
+        update.related.cancel.post()
 
         for inv_source in inv_sources:
             updates = inv_source.related.inventory_updates.get().results
             if updates:
                 assert updates[0].status == 'canceled'
 
-        assert project.get().status == 'canceled'
+        utils.poll_until(lambda: project.get().status == 'canceled', interval=.5, timeout=30)
 
     @pytest.mark.github('https://github.com/ansible/tower-qa/issues/2432', skip=True)
     @pytest.mark.ansible_integration
@@ -399,7 +391,7 @@ class TestSCMInventorySource(APITest):
 
         jt = factories.v2_job_template(inventory=inventory, project=inv_source.ds.project, limit=host.name,
                                        playbook='ansible_env.yml')
-        jt.add_extra_credential(cred)
+        jt.add_credential(cred)
         job = jt.launch().wait_until_completed()
         job.assert_successful()
 
