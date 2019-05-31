@@ -333,16 +333,14 @@ class Test_Sequential_Jobs(APITest):
         # confirm unified jobs ran as expected
         confirm_unified_jobs(sorted_unified_jobs)
 
-    def test_related_inventory_update_with_job(self, job_template, custom_group):
+    def test_related_inventory_update_with_job(self, job_template, custom_inventory_source):
         """If an inventory is used in a JT and has a group that allows for updates, then spawned
         jobs and updates must run sequentially. Check that:
         * Spawned unified jobs run sequentially.
         * Unified jobs run in the order launched.
         """
-        inv_source = custom_group.related.inventory_source.get()
-
         # launch jobs
-        update = inv_source.update()
+        update = custom_inventory_source.update()
         job = job_template.launch()
         sorted_unified_jobs = [update, job]
 
