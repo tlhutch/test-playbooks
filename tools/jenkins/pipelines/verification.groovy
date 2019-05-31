@@ -47,6 +47,7 @@ Platform under test: ${params.PLATFORM}"""
                         prev_maj_version = '3.5.0'
                     } else if (params.TOWER_VERSION ==~ /3.5.[0-9]*/) {
                         prev_maj_version = '3.4.3'
+                        prev_min_version = '3.5.0'
                     } else if (params.TOWER_VERSION ==~ /3.4.[0-9]*/) {
                         prev_maj_version = '3.3.5'
                         prev_min_version = '3.4.3'

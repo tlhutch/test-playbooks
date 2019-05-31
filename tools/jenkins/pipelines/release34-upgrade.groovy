@@ -12,7 +12,7 @@ pipeline {
         choice(
             name: 'UPGRADE_TO',
             description: 'Tower version to upgrade to',
-            choices: ['devel', '3.5.0']
+            choices: ['devel', '3.5.1']
         )
         choice(
             name: 'PLATFORM',
