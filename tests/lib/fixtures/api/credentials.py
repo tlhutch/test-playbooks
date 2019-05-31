@@ -8,12 +8,6 @@ import pytest
 fixtures_dir = os.path.dirname(__file__)
 
 
-@pytest.fixture(scope="function")
-def credential_kind_choices(authtoken, api_credentials_pg):
-    """Return supported credential kinds"""
-    return dict(api_credentials_pg.options().actions.POST.kind.choices)
-
-
 # SSH machine credentials
 @pytest.fixture(scope="function")
 def ssh_credential(admin_user, factories):

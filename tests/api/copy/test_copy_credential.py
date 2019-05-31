@@ -6,7 +6,7 @@ from tests.lib.helpers.copy_utils import check_fields
 
 
 @pytest.mark.api
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited', 'credential_kind_choices')
+@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class Test_Copy_Credential(APITest):
 
     identical_fields = ['type', 'description', 'organization', 'credential_type', 'inputs']
