@@ -47,7 +47,7 @@ function generate_instance_name_prefix {
     ansible_version=$3
     tower_version=$4
 
-    echo "${instance_name_prefix}-ansible-${ansible_version}-${platform}"
+    echo "${instance_name_prefix}-tower-${tower_version}-ansible-${ansible_version}-${platform}"
 }
 
 # shellcheck disable=2034
