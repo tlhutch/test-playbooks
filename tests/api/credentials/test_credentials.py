@@ -91,17 +91,15 @@ class TestCredentials(APITest):
         with pytest.raises(exc.Duplicate):
             factories.credential(name=name, team=team)
 
-    @pytest.fixture(scope='class')
-    def openstack_credential_type(self, v2_class):
-        return v2_class.credential_types.get(name__icontains='openstack', managed_by_tower=True).results.pop()
-
-    def test_credential_v2_with_missing_required_field_fails_job_prestart_check(self, factories, v2, openstack_credential_type):
+    def test_credential_v2_with_missing_required_field_fails_job_prestart_check(self, request, factories, v2):
         """Confirms that a credential with a missing required field causes the
         job prestart check to fail.
         """
-        payload = factories.v2_credential.payload(credential_type=openstack_credential_type)
+        payload = factories.v2_credential.payload(kind='openstack_v3')
         del payload.inputs['project'] # required for openstack
         cred = v2.credentials.post(payload)
+        request.addfinalizer(cred.silent_delete)
+
 
         jt = factories.v2_job_template()
         jt.add_credential(cred)
