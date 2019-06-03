@@ -76,8 +76,7 @@ class Test_Copy_RBAC(APITest):
             assert v2_project.can_copy()
             new_project = copy_with_teardown(v2_project)
             assert new_project.related.current_update
-            new_project_creds = [c.id for c in new_project.related.credentials.get().results]
-            assert new_project_creds == [v2_project.credential]
+            assert new_project.credential == v2_project.credential
 
     def test_cannot_copy_project_credential_with_read_role(self, factories, copy_with_teardown):
         orgA, orgB = [factories.v2_organization() for _ in range(2)]
