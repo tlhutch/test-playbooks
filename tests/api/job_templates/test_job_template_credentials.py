@@ -232,19 +232,6 @@ class TestJobTemplateLaunchCredentials(APITest):
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestJobTemplateVaultCredentials(APITest):
 
-    def test_job_template_creation_with_lone_vault_credential(self, request, v2, factories):
-        payload = factories.v2_job_template.payload()
-        del payload['credential']
-
-        vault_credential = factories.v2_credential(kind='vault', vault_password='tower')
-        payload['vault_credential'] = vault_credential.id
-
-        jt = v2.job_templates.post(payload)
-        request.addfinalizer(jt.delete)
-
-        assert not jt.credential
-        assert jt.add_credential(vault_credential)
-
     @pytest.mark.parametrize('v, cred_args', [['v2', dict(kind='vault', vault_password='tower')]])
     def test_decrypt_vaulted_playbook_with_vault_credential(self, factories, v, cred_args):
         host_factory = factories.v2_host
