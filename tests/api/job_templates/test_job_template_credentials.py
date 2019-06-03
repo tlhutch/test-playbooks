@@ -229,23 +229,6 @@ class TestJobTemplateLaunchCredentials(APITest):
         assert set(c.id for c in job_creds) == set([vault_cred1.id, vault_cred2.id])
         assert job.related.credentials.get().count == 2
 
-    def test_cannot_mix_old_and_new_launch_params_for_credentials(self, v2, factories, custom_cloud_credentials, custom_network_credentials):
-        jt = factories.v2_job_template(credential=None, ask_credential_on_launch=True)
-        jt.ds.inventory.add_host()
-
-        machine_cred = factories.v2_credential()
-        vault_cred1 = factories.v2_credential(kind='vault', vault_password='secret1', vault_id='vault1')
-        vault_cred2 = factories.v2_credential(kind='vault', vault_password='secret2', vault_id='vault2')
-        bad_payloads = [dict(credential=machine_cred.id, credentials=[vault_cred1.id]),
-                        dict(vault_credential=vault_cred1.id, credentials=[vault_cred2.id]),
-                        dict(extra_credentials=[c.id for c in custom_cloud_credentials], credentials=[machine_cred.id]),
-                        dict(extra_credentials=[c.id for c in custom_network_credentials], credentials=[machine_cred.id])]
-        for payload in bad_payloads:
-            with pytest.raises(exc.BadRequest) as e:
-                jt.launch(payload)
-            assert e.value.msg == {'error': "'credentials' cannot be used in combination with 'credential', 'vault_credential', or 'extra_credentials'."}
-
-
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestJobTemplateVaultCredentials(APITest):
 
@@ -281,8 +264,8 @@ class TestJobTemplateVaultCredentials(APITest):
         assert len(debug_tasks) == 1
         assert list(debug_tasks[0].event_data.res.hostvars.keys()) == [host.name]
 
-    @pytest.mark.parametrize('v, cred_args', [['v2', dict(kind='vault', vault_password='ASK')]])
-    def test_decrypt_vaulted_playbook_with_lone_ask_on_launch_vault_credential(self, factories, v, cred_args):
+    def test_decrypt_vaulted_playbook_with_lone_ask_on_launch_vault_credential(self, factories):
+        cred_args = dict(kind='vault', vault_password='ASK')
         host_factory = factories.v2_host
         cred_factory = factories.v2_credential
         jt_factory = factories.v2_job_template
@@ -290,8 +273,8 @@ class TestJobTemplateVaultCredentials(APITest):
         host = host_factory()
         vault_cred = cred_factory(**cred_args)
         jt = jt_factory(inventory=host.ds.inventory, playbook='vaulted_debug_hostvars.yml')
+        jt.remove_all_credentials()
         jt.add_credential(vault_cred)
-        jt.delete_all_credentials()
 
         with pytest.raises(exc.BadRequest) as e:
             jt.launch().wait_until_completed()
@@ -430,7 +413,11 @@ class TestJobTemplateExtraCredentials(APITest):
         for cred in (scm_cred, ssh_cred, vault_cred):
             with pytest.raises(exc.BadRequest) as e:
                 jt.add_extra_credential(cred)
-            assert e.value.msg == {'error': 'Extra credentials must be network or cloud.'}
+            if cred == scm_cred:
+                assert e.value.msg == {'error': 'Cannot assign a Credential of kind `scm`.'}
+            elif cred == ssh_cred:
+                assert e.value.msg == {'error': 'Cannot assign multiple Machine credentials.'}
+                import pdb; pdb.set_trace()
             assert not jt.related.extra_credentials.get().results
 
     @pytest.fixture(scope='class')
