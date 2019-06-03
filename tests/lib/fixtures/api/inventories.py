@@ -92,7 +92,10 @@ def group(factories, inventory):
 @pytest.fixture(scope="function")
 def inventory_source(factories, inventory_script):
     organization = inventory_script.related.organization.get()
-    inventory = factories.v2_inventory(organization=organization)
+    inventory = factories.v2_inventory(
+        organization=organization,
+        variables=json.dumps(dict(ansible_connection="local"))
+    )
     return factories.v2_inventory_source(inventory=inventory, source_script=inventory_script)
 
 
@@ -131,7 +134,7 @@ def script_source(request):
     if fixture_args and 'source_script' in fixture_args.kwargs:
         return fixture_args.kwargs['source_script']
 
-    group_name = re.sub(r"[\']", "", "group-%s" % fauxfactory.gen_utf8())
+    group_name = re.sub(r"[\']", "", "group_%s" % fauxfactory.gen_utf8())
     script = """#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import json
@@ -139,7 +142,7 @@ inventory = dict()
 inventory['{0}'] = list()
 """.format(group_name)
     for i in range(5):
-        host_name = re.sub(r"[\':]", "", "host-%s" % fauxfactory.gen_utf8())
+        host_name = re.sub(r"[\':]", "", "host_%s" % fauxfactory.gen_utf8())
         script += "inventory['{0}'].append('{1}')\n".format(group_name, host_name)
     script += "print(json.dumps(inventory))\n"
     log.debug(script)
