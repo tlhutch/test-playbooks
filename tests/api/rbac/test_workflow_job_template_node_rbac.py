@@ -14,6 +14,7 @@ class TestWorkflowJobTemplateNodeRBAC(APITest):
         wfjt = factories.v2_workflow_job_template()
         jt = factories.v2_job_template(ask_credential_on_launch=True)
         wfjtn = factories.v2_workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt)
+        wfjtn.remove_all_credentials()
 
         org = jt.ds.inventory.ds.organization
         ssh_cred = factories.v2_credential(organization=org)
@@ -46,7 +47,7 @@ class TestWorkflowJobTemplateNodeRBAC(APITest):
                     wfjtn.related.credentials.post(dict(id=cred.id))
 
         wfjtn_creds = [c.id for c in wfjtn.related.credentials.get().results]
-        assert wfjtn_creds == [ssh_cred.id]
+        assert sorted(wfjtn_creds) == sorted(cred_ids)
         wfjtn_creds = wfjtn.related.credentials.get()
         assert wfjtn_creds.count == 4
         for cred in wfjtn_creds.results:
