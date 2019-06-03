@@ -239,6 +239,7 @@ def factory_namespace(request):
         instance_group=FactoryFixture(request, InstanceGroupFactory),
         inventory=FactoryFixture(request, InventoryFactory),
         inventory_script=FactoryFixture(request, InventoryScriptFactory),
+        inventory_source=FactoryFixture(request, V2InventorySourceFactory),
         job_template=FactoryFixture(request, JobTemplateFactory),
         label=FactoryFixture(request, LabelFactory),
         notification_template=FactoryFixture(request, NotificationTemplateFactory),

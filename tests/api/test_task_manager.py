@@ -333,7 +333,7 @@ class Test_Sequential_Jobs(APITest):
         # confirm unified jobs ran as expected
         confirm_unified_jobs(sorted_unified_jobs)
 
-    def test_related_inventory_update_with_job(self, job_template, custom_inventory_source):
+    def test_related_inventory_update_with_job(self, custom_inventory_source, factories):
         """If an inventory is used in a JT and has a group that allows for updates, then spawned
         jobs and updates must run sequentially. Check that:
         * Spawned unified jobs run sequentially.
@@ -341,6 +341,7 @@ class Test_Sequential_Jobs(APITest):
         """
         # launch jobs
         update = custom_inventory_source.update()
+        job_template = factories.job_template(inventory=custom_inventory_source.related.inventory.get())
         job = job_template.launch()
         sorted_unified_jobs = [update, job]
 
@@ -399,16 +400,20 @@ class Test_Autospawned_Jobs(APITest):
 
     # Skip for Openshift because of Github Issue: https://github.com/ansible/tower-qa/issues/2591
     @pytest.mark.yolo
-    def test_inventory_multiple(self, skip_if_openshift, job_template, aws_inventory_source, gce_inventory_source):
+    def test_inventory_multiple(self, skip_if_openshift, job_template, aws_credential, gce_credential, factories):
         """Verify that multiple inventory updates are triggered by job launch. Job ordering
         should be as follows:
         * AWS and GCE inventory updates should run simultaneously.
         * Upon completion of both inventory imports, job should run.
         """
         # set update_on_launch
+        aws_inventory_source = factories.inventory_source(credential=aws_credential, source='ec2')
+        inventory = aws_inventory_source.related.inventory.get()
+        gce_inventory_source = factories.inventory_source(credential=gce_credential, source='gce', inventory=inventory)
         aws_inventory_source.patch(update_on_launch=True)
         gce_inventory_source.patch(update_on_launch=True)
-        gce_inventory_source.inventory = aws_inventory_source.inventory
+        # Sanity check
+        assert gce_inventory_source.inventory == aws_inventory_source.inventory
 
         # check inventory sources
         for inv_source in (aws_inventory_source, gce_inventory_source):
@@ -416,10 +421,6 @@ class Test_Autospawned_Jobs(APITest):
             assert inv_source.update_cache_timeout == 0
             assert inv_source.last_updated is None, \
                 "Not expecting inventory source to have been updated - %s." % inv_source
-
-        # sanity check: cloud groups should be in the same inventory
-        assert gce_inventory_source.inventory == aws_inventory_source.inventory, \
-            "The inventory differs between the two inventory sources."
 
         # update job_template to cloud inventory
         # substitute in no-op playbook that does not attempt to connect to host
