@@ -135,12 +135,10 @@ class Test_Copy_RBAC(APITest):
         user = factories.user()
 
         cred_ids = [cred.id for cred in jt.related.credentials.get().results]
-        assert jt.vault_credential == vault_cred.id
-        jt_creds = [c.id for c in jt.related.credentials.get().results]
-        assert jt_creds == [machine_cred.id]
-        assert len(cred_ids) == 3
         assert vault_cred.id in cred_ids
-        assert machine_cred.id in cred_ids
+        assert  machine_cred.id in cred_ids
+        assert aws_cred.id in cred_ids
+        assert len(cred_ids) == 3
 
         orgA.add_user(user)
         orgB.add_admin(user)
@@ -149,8 +147,7 @@ class Test_Copy_RBAC(APITest):
             assert jt.can_copy()
             new_jt = copy_with_teardown(jt)
             new_jt_creds = [c.id for c in new_jt.related.credentials.get().results]
-            jt_creds = [c.id for c in jt.related.credentials.get().results]
-            assert sorted(new_jt_creds) == sorted(jt_creds)
+            assert sorted(new_jt_creds) == sorted(cred_ids)
 
     def test_cannot_copy_jt_credentials_with_read_role(self, factories, copy_with_teardown):
         orgA, orgB = [factories.v2_organization() for _ in range(2)]
