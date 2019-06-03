@@ -24,7 +24,6 @@ class TestApplications(APITest):
         assert agt.label == 'Authorization Grant Type'
         assert agt.type == 'choice'
         expected_choices = {'authorization-code': 'Authorization code',
-                            'implicit': 'Implicit',
                             'password': 'Resource owner password-based'}
         assert {c[0]: c[1] for c in agt.choices} == expected_choices
         assert agt.required is True
@@ -62,7 +61,7 @@ class TestApplications(APITest):
         assert e.value.msg in ({missing: ['This field is required.']}, {missing: ['This field cannot be blank.']})
 
     @pytest.mark.parametrize('client_type', ('confidential', 'public'))
-    @pytest.mark.parametrize('agt', ('authorization-code', 'implicit', 'password'))
+    @pytest.mark.parametrize('agt', ('authorization-code', 'password'))
     def test_created_application_item_and_list_integrity(self, v2, factories, client_type, agt):
         redirect_uris = 'https://example.com'
         payload = factories.application.payload(authorization_grant_type=agt, client_type=client_type,
@@ -450,7 +449,7 @@ class TestApplicationTokens(APITest):
             assert me.username == user.username
 
     @pytest.mark.parametrize('ct', ('confidential', 'public'))
-    @pytest.mark.parametrize('agt', ('authorization-code', 'implicit', 'password'))
+    @pytest.mark.parametrize('agt', ('authorization-code', 'password'))
     def test_user_application_token_login_reflects_user(self, v2, factories, ct, agt):
         org = factories.v2_organization()
         user = factories.v2_user(organization=org)
@@ -459,19 +458,14 @@ class TestApplicationTokens(APITest):
         with self.current_user(user):
             token = factories.access_token(oauth_2_application=app)
 
-        # implicit apps don't give you a refresh token
-        if agt == 'implicit':
-            assert token.refresh_token is None
-        else:
-            assert token.refresh_token is not None
-
+        assert token.refresh_token is not None
         assert v2.me.get().results[0].username != user.username
         with self.current_user(token):
             me = v2.me.get().results[0]
             assert me.username == user.username
 
     @pytest.mark.parametrize('ct', ('confidential', 'public'))
-    @pytest.mark.parametrize('agt', ('authorization-code', 'implicit', 'password'))
+    @pytest.mark.parametrize('agt', ('authorization-code', 'password'))
     def test_users_cannot_read_other_user_tokens(self, v2, factories, ct, agt):
         org = factories.v2_organization()
         user1, user2 = [factories.v2_user(organization=org) for _ in range(2)]
@@ -488,7 +482,7 @@ class TestApplicationTokens(APITest):
         assert user1_token.count == 0
 
     @pytest.mark.parametrize('ct', ('confidential', 'public'))
-    @pytest.mark.parametrize('agt', ('authorization-code', 'implicit', 'password'))
+    @pytest.mark.parametrize('agt', ('authorization-code', 'password'))
     def test_users_cannot_modify_other_user_tokens(self, v2, factories, ct, agt):
         org = factories.v2_organization()
         user1, user2 = [factories.v2_user(organization=org) for _ in range(2)]
@@ -743,7 +737,7 @@ class TestTokenUsage(TestTokenAuthenticationBase):
     Used to test Tower operations while using token auth
     """
     @pytest.mark.parametrize('ct', ('confidential', 'public'))
-    @pytest.mark.parametrize('agt', ('authorization-code', 'implicit', 'password'))
+    @pytest.mark.parametrize('agt', ('authorization-code', 'password'))
     def test_password_can_be_changed_while_using_authtoken(self, factories, v2, agt, ct):
         org = factories.v2_organization()
         user = factories.v2_user(organization=org)
