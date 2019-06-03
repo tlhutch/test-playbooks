@@ -10,29 +10,25 @@ from tests.api import APITest
 class TestJobTemplateCredentialsRBAC(APITest):
 
     def test_job_template_creation_request_without_credential_access_forbidden(self, request, factories, v2):
-        jt_factory = factories.v2_job_template
-        user_factory = factories.v2_user
+        org = factories.organization()
+        inv = factories.inventory(organization=org)
+        proj = factories.project(organization=org)
+        cred = factories.credential(organization=org)
+        user = factories.user(organization=org)
 
-        jt_payload = jt_factory.payload()
-        organization = jt_payload.ds.inventory.ds.organization
+        for resource in (proj, inv):
+            resource.set_object_roles(user, 'use')
 
-        user = user_factory(organization=organization)
+        cred.set_object_roles(user, 'read')
 
-        for resource in ('project', 'inventory'):
-            jt_payload.ds[resource].set_object_roles(user, 'use')
-
-        credential = jt_payload.ds.credential
-
-        credential.set_object_roles(user, 'read')
         with self.current_user(user):
             with pytest.raises(exc.Forbidden):
-                v2.job_templates.post(jt_payload)
+                factories.job_template(project=proj, credential=cred, inventory=inv)
 
         for role in ('use', 'admin'):
-            credential.set_object_roles(user, role)
+            cred.set_object_roles(user, role)
             with self.current_user(user):
-                jt = v2.job_templates.post(jt_payload)
-                jt.delete()
+                factories.job_template(project=proj, credential=cred, inventory=inv)
 
     def test_job_template_creation_request_without_vault_credential_access_forbidden(self, request, factories, v2):
         """Verify that a job_template with network credential creation request
@@ -57,8 +53,7 @@ class TestJobTemplateCredentialsRBAC(APITest):
         for role in ('use', 'admin'):
             vault_credential.set_object_roles(user, role)
             with self.current_user(user):
-                jt = factories.v2_job_template(organization=organization, project=project, credential=vault_credential, inventory=inventory)
-                jt.delete()
+                factories.v2_job_template(organization=organization, project=project, credential=vault_credential, inventory=inventory)
 
     @pytest.mark.parametrize('cred_kind', ('net', 'aws', 'custom'))
     def test_v2_job_template_extra_credential_association_without_credential_access_forbidden(self, request, factories,

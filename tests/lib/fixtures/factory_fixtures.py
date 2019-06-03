@@ -54,6 +54,8 @@ class HasCreateFactory(object):
         payload = cls.model(connection).create_payload(**kwargs)
 
         resources = []
+        if isinstance(payload, tuple):
+            payload = payload[0]
         for resource_type in payload.ds:
             try:
                 resource = payload.ds[resource_type]

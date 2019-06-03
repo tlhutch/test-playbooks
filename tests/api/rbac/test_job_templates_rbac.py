@@ -122,25 +122,30 @@ class Test_Job_Template_RBAC(APITest):
         created job template.
         """
         # make test user
-        user = factories.user()
-        # generate job template test payload
-        jt_payload = factories.job_template.payload()
+        org = factories.organization()
+        project = factories.project(organization=org)
+        inv = factories.project(organization=org)
+        cred = factories.credential(organization=org)
+        user = factories.user(organization=org)
         # set user resource role associations
-        jt_payload.ds.inventory.ds.organization.set_object_roles(user, 'admin')
-        for name in ('credential', 'project', 'inventory'):
-            jt_payload.ds[name].set_object_roles(user, 'use')
+        org.set_object_roles(user, 'admin')
+        #for resource in (cred, project, inv):
+        #    resource.set_object_roles(user, 'use')
         # create a job template as the test user
-        with self.current_user(username=user.username, password=user.password):
-            job_template = api_job_templates_pg.post(jt_payload)
-            request.addfinalizer(job_template.silent_cleanup)
+        with self.current_user(user):
+            job_template = factories.job_template(project=project, inventory=inv, credential=cred)
         # verify succesful job_template admin role association
         check_role_association(user, job_template, 'admin')
 
     @pytest.mark.parametrize('payload_resource_roles, response_codes', [
         (
-            # After multi-credential refactor, related credential use role not needed for no-op
+            # Previously this was allowed as it is a "no-op"
+            # But this situation would only arise if someone else added the credential to the JT
+            # When we try and save and only have read on the credential, we should be notified
+            # that we don't have permission to the credential.
+            # FIXME: Not sure about this analysis
             {'credential': ['read'], 'inventory': ['use'], 'project': ['use']},
-            {'PATCH': http.client.OK, 'PUT': http.client.OK}
+            {'PATCH': http.client.FORBIDDEN, 'PUT': http.client.FORBIDDEN}
         ),
         (
             {'credential': ['use'], 'inventory': ['read'], 'project': ['use']},
@@ -154,7 +159,7 @@ class Test_Job_Template_RBAC(APITest):
             {'credential': ['use'], 'inventory': ['use'], 'project': ['use']},
             {'PATCH': http.client.OK, 'PUT': http.client.OK}
         ),
-    ])
+    ], ids=['only_read_on_credential', 'only_read_on_inventory', 'only_read_on_project', 'use_access_for_all'])
     def test_job_template_change_request_without_usage_role_returns_code_403(self,
             factories, payload_resource_roles, response_codes):
         """Verify that a user cannot change the related project, inventory, or
@@ -163,17 +168,28 @@ class Test_Job_Template_RBAC(APITest):
         """
         user = factories.user()
         organization = factories.organization()
-        job_template = factories.job_template(credential=(True, dict(organization=organization)),
-                                              inventory=(True, dict(organization=organization)))
+        cred = factories.credential(organization=organization)
+        inv = factories.inventory(organization=organization)
+        project = factories.project(organization=organization)
+        job_template = factories.job_template(credential=cred, inventory=inv)
         organization.set_object_roles(user, 'member')
         job_template.set_object_roles(user, 'admin')
         # generate test request payload
 
-        jt_payload = factories.job_template.payload(inventory=job_template.ds.inventory,
-                                                    credential=job_template.ds.credential)
+        jt_payload = factories.job_template.payload(inventory=inv,
+                                                    credential=cred)
+        jt_payload['name'] = job_template.name
+        jt_payload['description'] = job_template.description
+
         # assign test permissions
         for name, roles in payload_resource_roles.items():
-            jt_payload.ds[name].set_object_roles(user, *roles)
+            if name == 'credential':
+                cred.set_object_roles(user, *roles)
+            elif name == 'inventory':
+                inv.set_object_roles(user, *roles)
+            elif name == 'project':
+                project.set_object_roles(user, *roles)
+
         # check access
         with self.current_user(username=user.username, password=user.password):
             for method, code in response_codes.items():
