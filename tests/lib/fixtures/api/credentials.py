@@ -261,27 +261,32 @@ def encrypted_ssh_credential_with_ssh_key_data(request, is_fips_enabled):
 
 
 # Network credentials
+@pytest.fixture
+def network_credential_type(v2):
+    return v2.credential_types.get(name__icontains='network', managed_by_tower=True).results.pop()
+
+
 @pytest.fixture(scope="function")
-def network_credential_with_basic_auth(admin_user, factories):
+def network_credential_with_basic_auth(admin_user, factories, network_credential_type):
     cred = factories.credential(name="network credentials-%s" % fauxfactory.gen_utf8(),
                                 description="network credential - %s" % fauxfactory.gen_utf8(),
-                                kind='net', user=admin_user, ssh_key_data=None, authorize_password=None)
+                                credential_type=network_credential_type, user=admin_user, ssh_key_data=None, authorize_password=None)
     return cred
 
 
 @pytest.fixture(scope="function")
-def network_credential_with_authorize(admin_user, factories):
+def network_credential_with_authorize(admin_user, factories, network_credential_type):
     cred = factories.credential(name="network credentials-%s" % fauxfactory.gen_utf8(),
                                 description="network credential - %s" % fauxfactory.gen_utf8(),
-                                kind='net', user=admin_user, ssh_key_data=None)
+                                credential_type=network_credential_type, user=admin_user, ssh_key_data=None)
     return cred
 
 
 @pytest.fixture(scope="function")
-def network_credential_with_ssh_key_data(admin_user, factories):
+def network_credential_with_ssh_key_data(admin_user, factories, network_credential_type):
     cred = factories.credential(name="network credentials-%s" % fauxfactory.gen_utf8(),
                                 description="network credential - %s" % fauxfactory.gen_utf8(),
-                                kind='net', user=admin_user, password=None, authorize_password=None)
+                                credential_type=network_credential_type, user=admin_user, password=None, authorize_password=None)
     return cred
 
 

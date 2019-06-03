@@ -98,12 +98,14 @@ def project_with_scm_update_on_launch(request, project_ansible_playbooks_git):
 
 @pytest.fixture(scope="function")
 def job_template_with_cloud_credential(request, job_template, cloud_credential):
+    job_template.remove_all_credentials()
     job_template.add_credential(cloud_credential)
     return job_template
 
 
 @pytest.fixture(scope="function")
 def job_template_with_network_credential(request, job_template, network_credential):
+    job_template.remove_all_credentials()
     job_template.add_credential(network_credential)
     return job_template
 
@@ -124,7 +126,7 @@ def expected_net_env_vars():
         else:
             expected_env_vars["ANSIBLE_NET_AUTHORIZE"] = "0"
         if getattr(network_credential.inputs, "authorize_password", None):
-            expected_env_vars["ANSIBLE_NET_AUTH_PASS"] = "**********"
+            expected_env_vars["ANSIBLE_NET_PASSWORD"] = "**********"
         return expected_env_vars
     return func
 
@@ -866,7 +868,7 @@ class Test_Job_Env(APITest):
     def test_job_env_with_network_credential(self, job_template_with_network_credential, expected_net_env_vars):
         """Verify that job_env has the expected network_credential variables."""
         # get network_credential
-        network_credential = _get_credential_by_kind(job_template_with_network_credential, 'network')
+        network_credential = _get_credential_by_kind(job_template_with_network_credential, 'net')
 
         # launch job and assert successful
         job_pg = job_template_with_network_credential.launch().wait_until_completed()
