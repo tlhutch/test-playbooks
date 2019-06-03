@@ -69,27 +69,27 @@ class TestCredentials(APITest):
         """Confirms that duplicate credentials are allowed when an organization isn't shared (user only)
         and disallowed when one is (including one sourced from a team)
         """
-        user_factory = factories.v2_user
-        team_factory = factories.v2_team
-        cred_factory = factories.v2_credential
-
-        # Successfully create duplicate user credentials without an organization
-        for _ in range(2):
-            cred = v2.credentials(user=user_factory(), organization=None)
+        org1 = factories.organization()
+        org2 = factories.organization()
+        team = factories.team(organization=org1)
+        user1 = factories.user(organization=org1)
+        user2 = factories.user(organization=org2)
+        # Successfully create two credentials with same name but different user and without an organization
+        name = 'duplicate_user_cred_{}'.format(fauxfactory.gen_utf8())
+        for user in [user1, user2]:
+            cred = factories.credential(user=user, name=name)
 
         # attempt to create duplicate organization credentials
-        payload = cred_factory.payload()
-        cred = v2.credentials.post(payload)
-        request.addfinalizer(cred.silent_delete)
+        name = 'duplicate_org_cred_{}'.format(fauxfactory.gen_utf8())
+        factories.credential(name=name, organization=org2)
         with pytest.raises(exc.Duplicate):
-            v2.credentials.post(payload)
+            factories.credential(name=name, organization=org2)
 
         # attempt to create duplicate team (thus organization) credentials
-        payload = cred_factory.payload(team=team_factory(), organization=None)
-        cred = v2.credentials.post(payload)
-        request.addfinalizer(cred.silent_delete)
+        name = 'duplicate_team_cred_{}'.format(fauxfactory.gen_utf8())
+        factories.credential(name=name, team=team)
         with pytest.raises(exc.Duplicate):
-            v2.credentials.post(payload)
+            factories.credential(name=name, team=team)
 
     @pytest.fixture(scope='class')
     def openstack_credential_type(self, v2_class):
