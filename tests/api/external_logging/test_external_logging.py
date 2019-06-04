@@ -103,7 +103,6 @@ class TestSplunkLogging(APITest):
     '''
     Create 2 events in splunk; then find those 2 created events.
     '''
-    @pytest.mark.github('https://github.com/ansible/tower-qa/issues/3242')
     def test_splunk_log(self, factories, v2, splunk_logger_url, splunk_api_url, splunk_logger_session, splunk_api_session):
         _api = splunk_api_session
         _log = splunk_logger_session
