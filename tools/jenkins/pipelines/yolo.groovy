@@ -258,12 +258,16 @@ pipeline {
                                 value: "${AWX_NIGHTLY_REPO_URL}/${NIGHTLY_REPO_DIR}"
                             ),
                             string(
+                                name: 'TOWER_QA_FORK',
+                                value: params.TOWER_QA_FORK
+                            ),
+                            string(
                                 name: 'TOWERQA_GIT_BRANCH',
                                 value: "origin/${params.TOWER_QA_BRANCH}"
                             ),
                             string(
                                 name: 'PLATFORM',
-                                value: "${params.PLATFORM}"
+                                value: params.PLATFORM
                             ),
                             string(
                                 name: 'AWX_ANSIBLE_RUNNER_URL',
@@ -271,7 +275,7 @@ pipeline {
                             ),
                             string(
                                 name: 'ANSIBLE_NIGHTLY_BRANCH',
-                                value: "${params.ANSIBLE_NIGHTLY_BRANCH}"
+                                value: params.ANSIBLE_NIGHTLY_BRANCH
                             ),
                             booleanParam(
                                 name: 'TRIGGER',
