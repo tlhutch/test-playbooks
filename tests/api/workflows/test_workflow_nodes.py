@@ -29,8 +29,8 @@ log = logging.getLogger(__name__)
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class Test_Workflow_Nodes(APITest):
 
-    select_jt_fields = ('inventory', 'project', 'credential', 'playbook', 'job_type')
-    promptable_fields = ('inventory', 'credential', 'job_type', 'job_tags', 'skip_tags', 'verbosity', 'diff_mode', 'limit')
+    select_jt_fields = ('inventory', 'project', 'playbook', 'job_type')
+    promptable_fields = ('inventory', 'job_type', 'job_tags', 'skip_tags', 'verbosity', 'diff_mode', 'limit')
 
     def test_workflow_node_jobs_should_source_from_underlying_template(self, factories):
         host = factories.v2_host()
@@ -63,6 +63,11 @@ class Test_Workflow_Nodes(APITest):
         for field in self.promptable_fields:
             assert getattr(jt, field) == getattr(job, field)
             assert getattr(wf_node, field) != getattr(job, field)
+        job_creds = [cred.id for cred in job.related.credentials.get().results]
+        wf_creds = [cred.id for cred in wf_node.related.credentials.get().results]
+        jt_creds = [cred.id for cred in jt.related.credentials.get().results]
+        assert sorted(job_creds) != sorted(wf_creds)
+        assert sorted(job_creds) == sorted(jt_creds)
 
     def test_workflow_node_values_take_precedence_over_template_values(self, factories, ask_everything_jt):
         host, credential = factories.v2_host(), factories.v2_credential()
@@ -98,6 +103,9 @@ class Test_Workflow_Nodes(APITest):
         for field in self.promptable_fields:
             assert getattr(ask_everything_jt, field) != getattr(job, field)
             assert getattr(wf_node, field) == getattr(job, field)
+        job_creds = [cred.id for cred in job.related.credentials.get().results]
+        jt_creds = [cred.id for cred in ask_everything_jt.related.credentials.get().results]
+        assert sorted(job_creds) != sorted(jt_creds)
 
     def test_workflow_node_values_take_precedence_over_wfjt_values(self, factories):
         inner_wfjt = factories.workflow_job_template(

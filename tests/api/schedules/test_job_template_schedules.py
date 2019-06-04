@@ -11,8 +11,8 @@ from tests.api.schedules import SchedulesTest
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestJobTemplateSchedules(SchedulesTest):
 
-    select_jt_fields = ('inventory', 'project', 'credential', 'playbook', 'job_type')
-    promptable_fields = ('inventory', 'credential', 'job_type', 'job_tags', 'skip_tags', 'verbosity',
+    select_jt_fields = ('inventory', 'project', 'playbook', 'job_type')
+    promptable_fields = ('inventory', 'job_type', 'job_tags', 'skip_tags', 'verbosity',
                          'diff_mode', 'limit')
 
     def ask_everything(self, setup=False, inventory=None, config=False):
@@ -108,6 +108,9 @@ class TestJobTemplateSchedules(SchedulesTest):
             assert getattr(jt, field) == getattr(job, field)
         for field in self.promptable_fields:
             assert getattr(jt, field) == getattr(job, field)
+        job_creds = [cred.id for cred in job.related.credentials.get().results]
+        jt_creds = [cred.id for cred in jt.related.credentials.get().results]
+        assert sorted(job_creds) == sorted(jt_creds)
 
     def test_schedule_values_take_precedence_over_jt_values(self, factories, ask_everything_jt):
         host = factories.v2_host()
