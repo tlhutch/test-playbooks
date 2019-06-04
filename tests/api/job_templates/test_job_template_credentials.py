@@ -400,10 +400,7 @@ class TestJobTemplateExtraCredentials(APITest):
         for cred in (scm_cred, ssh_cred, vault_cred):
             with pytest.raises(exc.BadRequest) as e:
                 jt.add_extra_credential(cred)
-            if cred == scm_cred:
-                assert e.value.msg == {'error': 'Cannot assign a Credential of kind `scm`.'}
-            elif cred == ssh_cred:
-                assert e.value.msg == {'error': 'Cannot assign multiple Machine credentials.'}
+                assert e.value.msg == {'error': 'Extra credentials must be network or cloud.'}
             assert not jt.related.extra_credentials.get().results
 
     @pytest.fixture(scope='class')
