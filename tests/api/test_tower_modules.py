@@ -11,6 +11,12 @@ from tests.api import APITest
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class Test_Ansible_Tower_Modules(APITest):
 
+    """
+    Ansible modules that interact with Tower live in an Ansible Collection.
+    Along side those modules live playbooks that test the modules in the
+    collection.
+    This test invokes those test that live along side the collection.
+    """
     def test_all_tower_modules(self, v2, factories, admin_user):
         proj = v2.projects.create(scm_type='git',
                                   scm_url='http://github.com/chrismeyersfsu/tower_modules',
