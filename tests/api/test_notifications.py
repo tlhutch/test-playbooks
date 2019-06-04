@@ -141,12 +141,12 @@ def _expected_webhook_job_notification(tower_url, notification_template_pg, job_
 class Test_Notification_Templates(APITest):
 
     def test_duplicate_notification_templates_disallowed_by_organization(self, factories):
-        nt_a = factories.v2_notification_template(name='SharedName')
-        factories.v2_notification_template(name='SharedName')
+        nt_a = factories.notification_template(name='SharedName')
+        factories.notification_template(name='SharedName')
 
         shared_org = nt_a.ds.organization
         with pytest.raises(exc.Duplicate) as e:
-            factories.v2_notification_template(name='SharedName', organization=shared_org)
+            factories.notification_template(name='SharedName', organization=shared_org)
         assert e.value.msg['__all__'] == ['Notification template with this Organization and Name already exists.']
 
 

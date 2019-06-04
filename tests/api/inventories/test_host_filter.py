@@ -43,7 +43,7 @@ class TestHostFilter(APITest):
 
     @pytest.fixture(scope="class")
     def loaded_inventory(self, class_factories, inventory_item_names):
-        inventory = class_factories.v2_inventory()
+        inventory = class_factories.inventory()
 
         groupA = class_factories.group(inventory=inventory, name=inventory_item_names.group_a_name)
         groupAA = class_factories.group(inventory=inventory, name=inventory_item_names.group_aa_name)
@@ -300,7 +300,7 @@ class TestHostFilter(APITest):
     def test_smart_inventory(self, factories, v2, loaded_inventory, inventory_item_names, find_hosts,
                              items_from_item_list, host_filter):
         """host_filter should determine a smart inventory's hosts."""
-        inventory = factories.v2_inventory(organization=loaded_inventory.ds.organization, kind='smart',
+        inventory = factories.inventory(organization=loaded_inventory.ds.organization, kind='smart',
                                            host_filter=host_filter.format(**inventory_item_names))
         hosts = inventory.related.hosts.get()
 

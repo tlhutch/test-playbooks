@@ -26,9 +26,9 @@ class TestCombinedWorkflowFeatures(APITest):
     @pytest.fixture(autouse=True)
     def setup_common_resources(self, class_factories):
         factories = class_factories
-        self.host = factories.v2_host()
-        self.outer_inventory = factories.v2_inventory()
-        self.inner_inventory = factories.v2_inventory()
+        self.host = factories.host()
+        self.outer_inventory = factories.inventory()
+        self.inner_inventory = factories.inventory()
         self.OUTER_HOSTS = 3
         self.INNER_HOSTS = 2
         # This is intentionally larger than both OUTER_HOSTS and INNER_HOSTS
@@ -124,11 +124,11 @@ class TestCombinedWorkflowFeatures(APITest):
         )
         # Make sure set stats flow through project update
         abuelo = tartarabuelo.add_success_node(
-            unified_job_template=factories.v2_inventory_source()
+            unified_job_template=factories.inventory_source()
         )
         # Make sure set stats flow through project update.
         parent = abuelo.add_success_node(
-            unified_job_template=factories.v2_project()
+            unified_job_template=factories.project()
         )
         run_and_succeed = parent.add_always_node(unified_job_template=self.jt_regular)
         run_and_fail = run_and_succeed.add_success_node(unified_job_template=self.jt_failure)

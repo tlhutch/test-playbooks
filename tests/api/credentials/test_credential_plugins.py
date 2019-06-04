@@ -128,7 +128,7 @@ class TestConjurCredential(APITest):
             'account': account,
             'username': username,
         }
-        payload = factories.v2_credential.payload(
+        payload = factories.credential.payload(
             name=fauxfactory.gen_utf8(),
             description=fauxfactory.gen_utf8(),
             credential_type=cred_type,
@@ -138,7 +138,7 @@ class TestConjurCredential(APITest):
 
     def create_conjur_machine_credential(self, factories, v2, conjur_credential):
         cred_type = v2.credential_types.get(managed_by_tower=True, kind='ssh').results.pop()
-        payload = factories.v2_credential.payload(
+        payload = factories.credential.payload(
             name=fauxfactory.gen_utf8(),
             description=fauxfactory.gen_utf8(),
             credential_type=cred_type
@@ -163,7 +163,7 @@ class TestConjurCredential(APITest):
 
         # create an SSH credential
         cred_type = v2.credential_types.get(managed_by_tower=True, kind='ssh').results.pop()
-        payload = factories.v2_credential.payload(
+        payload = factories.credential.payload(
             name=fauxfactory.gen_utf8(),
             description=fauxfactory.gen_utf8(),
             credential_type=cred_type
@@ -183,8 +183,8 @@ class TestConjurCredential(APITest):
         ))
 
         # assign the SSH credential to a JT and run it
-        host = factories.v2_host()
-        jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='ping.yml',
+        host = factories.host()
+        jt = factories.job_template(inventory=host.ds.inventory, playbook='ping.yml',
                                        credential=credential)
         return jt.launch().wait_until_completed()
 
@@ -228,10 +228,10 @@ class TestConjurCredential(APITest):
     def test_conjur_secret_can_decrypt_ansible_vault(self, factories, v2, k8s_conjur):
         secrets = [('first', 'super/vault_1'), ('second', 'super/vault_2')]
         conjur_credential = self.create_conjur_credential(factories, v2, url=k8s_conjur['url'], api_key=k8s_conjur['api_key'], account='test', username='admin')
-        jt = factories.v2_job_template(playbook='multivault.yml')
+        jt = factories.job_template(playbook='multivault.yml')
         for s in secrets:
             cred_type = v2.credential_types.get(managed_by_tower=True, kind='vault').results.pop()
-            payload = factories.v2_credential.payload(
+            payload = factories.credential.payload(
                 name=fauxfactory.gen_utf8(),
                 description=fauxfactory.gen_utf8(),
                 credential_type=cred_type,
@@ -256,7 +256,7 @@ class TestConjurCredential(APITest):
         injectors = dict(extra_vars=dict(extra_var_from_field_one='{{ field_one }}'))
         credential_type = factories.credential_type(inputs=inputs, injectors=injectors)
 
-        credential = factories.v2_credential(credential_type=credential_type)
+        credential = factories.credential(credential_type=credential_type)
         metadata = {
             'secret_path': 'super/secret',
         }
@@ -265,8 +265,8 @@ class TestConjurCredential(APITest):
             source_credential=conjur_credential.id,
             metadata=metadata
             ))
-        host = factories.v2_host()
-        jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='debug_hostvars.yml')
+        host = factories.host()
+        jt = factories.job_template(inventory=host.ds.inventory, playbook='debug_hostvars.yml')
         jt.add_extra_credential(credential)
         job = jt.launch().wait_until_completed()
         job.assert_successful()
@@ -278,7 +278,7 @@ class TestConjurCredential(APITest):
         conjur_credential = self.create_conjur_credential(factories, v2, url=k8s_conjur['url'], api_key=k8s_conjur['api_key'], account='test', username='admin')
 
         cred_type = v2.credential_types.get(managed_by_tower=True, kind='ssh').results.pop()
-        payload = factories.v2_credential.payload(
+        payload = factories.credential.payload(
             name=fauxfactory.gen_utf8(),
             description=fauxfactory.gen_utf8(),
             credential_type=cred_type
@@ -301,14 +301,14 @@ class TestConjurCredential(APITest):
 
     def test_conjur_RBAC_users_can_be_assigned_use_on_credentials(self, factories, v2, k8s_conjur):
         conjur_credential = self.create_conjur_credential(factories, v2, url=k8s_conjur['url'], api_key=k8s_conjur['api_key'], account='test', username='admin')
-        org = factories.v2_organization()
+        org = factories.organization()
         user = factories.user(organization=org)
 
         credential = self.create_conjur_machine_credential(factories, v2, conjur_credential)
         credential.patch(organization=org.id)
         credential.set_object_roles(user, 'use')
 
-        jt = factories.v2_job_template()
+        jt = factories.job_template()
         resources = ['inventory', 'credential', 'project']
         for r in resources:
             jt.ds[r].patch(organization=org.id)
@@ -323,11 +323,11 @@ class TestConjurCredential(APITest):
 
     def test_conjur_RBAC_users_cannot_change_linkage_without_lookup_cred_use(self, factories, v2, k8s_conjur):
         conjur_credential = self.create_conjur_credential(factories, v2, url=k8s_conjur['url'], api_key=k8s_conjur['api_key'], account='test', username='admin')
-        org = factories.v2_organization()
+        org = factories.organization()
         user = factories.user(organization=org)
 
         cred_type = v2.credential_types.get(managed_by_tower=True, kind='ssh').results.pop()
-        payload = factories.v2_credential.payload(
+        payload = factories.credential.payload(
             name=fauxfactory.gen_utf8(),
             description=fauxfactory.gen_utf8(),
             credential_type=cred_type
@@ -360,7 +360,7 @@ class TestConjurCredential(APITest):
         dependent_creds = []
         for _ in range(5):
             cred_type = v2.credential_types.get(managed_by_tower=True, kind='ssh').results.pop()
-            payload = factories.v2_credential.payload(
+            payload = factories.credential.payload(
                 name=fauxfactory.gen_utf8(),
                 description=fauxfactory.gen_utf8(),
                 credential_type=cred_type
@@ -499,7 +499,7 @@ class TestHashiCorpVaultCredentials(APITest):
             'token': token,
             'api_version': hashicorp_api_version
         }
-        payload = factories.v2_credential.payload(
+        payload = factories.credential.payload(
             name=fauxfactory.gen_utf8(),
             description=fauxfactory.gen_utf8(),
             credential_type=cred_type,
@@ -520,7 +520,7 @@ class TestHashiCorpVaultCredentials(APITest):
             'token': token,
             'api_version': hashicorp_api_version
         }
-        payload = factories.v2_credential.payload(
+        payload = factories.credential.payload(
             name=fauxfactory.gen_utf8(),
             description=fauxfactory.gen_utf8(),
             credential_type=cred_type,
@@ -530,7 +530,7 @@ class TestHashiCorpVaultCredentials(APITest):
 
         # create an SSH credential
         cred_type = v2.credential_types.get(managed_by_tower=True, kind='ssh').results.pop()
-        payload = factories.v2_credential.payload(
+        payload = factories.credential.payload(
             name=fauxfactory.gen_utf8(),
             description=fauxfactory.gen_utf8(),
             credential_type=cred_type
@@ -551,8 +551,8 @@ class TestHashiCorpVaultCredentials(APITest):
         ))
 
         # assign the SSH credential to a JT and run it
-        host = factories.v2_host()
-        jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='ping.yml',
+        host = factories.host()
+        jt = factories.job_template(inventory=host.ds.inventory, playbook='ping.yml',
                                        credential=credential)
         return jt.launch().wait_until_completed()
 
@@ -622,10 +622,10 @@ class TestHashiCorpVaultCredentials(APITest):
     def test_hashicorp_vault_secret_can_decrypt_ansible_vault(self, factories, v2, k8s_vault):
         secrets = [('first', '/kv/vault_1'), ('second', '/kv/vault_2')]
         vault_credential = self.create_hashicorp_vault_credential(factories, v2, k8s_vault, config.credentials.hashivault.token, 'v1')
-        jt = factories.v2_job_template(playbook='multivault.yml')
+        jt = factories.job_template(playbook='multivault.yml')
         for s in secrets:
             cred_type = v2.credential_types.get(managed_by_tower=True, kind='vault').results.pop()
-            payload = factories.v2_credential.payload(
+            payload = factories.credential.payload(
                 name=fauxfactory.gen_utf8(),
                 description=fauxfactory.gen_utf8(),
                 credential_type=cred_type,
@@ -651,7 +651,7 @@ class TestHashiCorpVaultCredentials(APITest):
         injectors = dict(extra_vars=dict(extra_var_from_field_one='{{ field_one }}'))
         credential_type = factories.credential_type(inputs=inputs, injectors=injectors)
 
-        credential = factories.v2_credential(credential_type=credential_type)
+        credential = factories.credential(credential_type=credential_type)
         metadata = {
             'secret_path': '/kv/example-user/',
             'secret_key': 'username'
@@ -661,8 +661,8 @@ class TestHashiCorpVaultCredentials(APITest):
             source_credential=vault_credential.id,
             metadata=metadata
             ))
-        host = factories.v2_host()
-        jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='debug_hostvars.yml')
+        host = factories.host()
+        jt = factories.job_template(inventory=host.ds.inventory, playbook='debug_hostvars.yml')
         jt.add_extra_credential(credential)
         job = jt.launch().wait_until_completed()
         job.assert_successful()
@@ -674,7 +674,7 @@ class TestHashiCorpVaultCredentials(APITest):
         vault_credential = self.create_hashicorp_vault_credential(factories, v2, k8s_vault, config.credentials.hashivault.token, 'v1')
 
         cred_type = v2.credential_types.get(managed_by_tower=True, kind='ssh').results.pop()
-        payload = factories.v2_credential.payload(
+        payload = factories.credential.payload(
             name=fauxfactory.gen_utf8(),
             description=fauxfactory.gen_utf8(),
             credential_type=cred_type
@@ -698,11 +698,11 @@ class TestHashiCorpVaultCredentials(APITest):
 
     def test_hashicorp_vault_RBAC_users_can_be_assigned_use_on_credentials(self, factories, v2, k8s_vault):
         hashi_credential = self.create_hashicorp_vault_credential(factories, v2, k8s_vault, config.credentials.hashivault.token, 'v1')
-        org = factories.v2_organization()
+        org = factories.organization()
         user = factories.user(organization=org)
 
         cred_type = v2.credential_types.get(managed_by_tower=True, kind='ssh').results.pop()
-        payload = factories.v2_credential.payload(
+        payload = factories.credential.payload(
             name=fauxfactory.gen_utf8(),
             description=fauxfactory.gen_utf8(),
             credential_type=cred_type
@@ -722,7 +722,7 @@ class TestHashiCorpVaultCredentials(APITest):
         credential.patch(organization=org.id)
         credential.set_object_roles(user, 'use')
 
-        jt = factories.v2_job_template()
+        jt = factories.job_template()
         resources = ['inventory', 'credential', 'project']
         for r in resources:
             jt.ds[r].patch(organization=org.id)
@@ -737,11 +737,11 @@ class TestHashiCorpVaultCredentials(APITest):
 
     def test_hashicorp_vault_RBAC_users_cannot_change_linkage_without_lookup_cred_use(self, factories, v2, k8s_vault):
         hashi_credential = self.create_hashicorp_vault_credential(factories, v2, k8s_vault, config.credentials.hashivault.token, 'v1')
-        org = factories.v2_organization()
+        org = factories.organization()
         user = factories.user(organization=org)
 
         cred_type = v2.credential_types.get(managed_by_tower=True, kind='ssh').results.pop()
-        payload = factories.v2_credential.payload(
+        payload = factories.credential.payload(
             name=fauxfactory.gen_utf8(),
             description=fauxfactory.gen_utf8(),
             credential_type=cred_type
@@ -776,7 +776,7 @@ class TestHashiCorpVaultCredentials(APITest):
         dependent_creds = []
         for _ in range(5):
             cred_type = v2.credential_types.get(managed_by_tower=True, kind='ssh').results.pop()
-            payload = factories.v2_credential.payload(
+            payload = factories.credential.payload(
                 name=fauxfactory.gen_utf8(),
                 description=fauxfactory.gen_utf8(),
                 credential_type=cred_type
@@ -817,7 +817,7 @@ class TestHashiCorpSSHEngine(APITest):
             'url': url,
             'token': token,
         }
-        payload = factories.v2_credential.payload(
+        payload = factories.credential.payload(
             name=fauxfactory.gen_utf8(),
             description=fauxfactory.gen_utf8(),
             credential_type=cred_type,
@@ -834,7 +834,7 @@ class TestHashiCorpSSHEngine(APITest):
             encryption = serialization.NoEncryption()
         else:
             encryption = serialization.BestAvailableEncryption(passphrase.encode('utf-8'))
-        payload = factories.v2_credential.payload(
+        payload = factories.credential.payload(
             name=fauxfactory.gen_utf8(),
             description=fauxfactory.gen_utf8(),
             credential_type=cred_type,
@@ -867,8 +867,8 @@ class TestHashiCorpSSHEngine(APITest):
         ))
 
         # assign the SSH credential to a JT and run it
-        host = factories.v2_host()
-        jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='ping.yml',
+        host = factories.host()
+        jt = factories.job_template(inventory=host.ds.inventory, playbook='ping.yml',
                                        credential=credential)
         return jt.launch().wait_until_completed()
 
@@ -909,7 +909,7 @@ class TestAzureKVCredentials(APITest):
             'secret': config.credentials.cloud.azure.secret,
             'tenant': config.credentials.cloud.azure.tenant,
         }
-        payload = factories.v2_credential.payload(
+        payload = factories.credential.payload(
             name=fauxfactory.gen_utf8(),
             description=fauxfactory.gen_utf8(),
             credential_type=cred_type,
@@ -922,7 +922,7 @@ class TestAzureKVCredentials(APITest):
 
         # create an SSH credential
         cred_type = v2.credential_types.get(managed_by_tower=True, kind='ssh').results.pop()
-        payload = factories.v2_credential.payload(
+        payload = factories.credential.payload(
             name=fauxfactory.gen_utf8(),
             description=fauxfactory.gen_utf8(),
             credential_type=cred_type
@@ -942,8 +942,8 @@ class TestAzureKVCredentials(APITest):
         ))
 
         # assign the SSH credential to a JT and run it
-        host = factories.v2_host()
-        jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='ping.yml',
+        host = factories.host()
+        jt = factories.job_template(inventory=host.ds.inventory, playbook='ping.yml',
                                        credential=credential)
         return jt.launch().wait_until_completed()
 
@@ -976,11 +976,11 @@ class TestAzureKVCredentials(APITest):
         assert 'KeyVaultErrorException' in job.result_traceback
 
     def test_azure_key_vault_cred_can_decrypt_ansible_vault(self, factories, v2):
-        jt = factories.v2_job_template(playbook='multivault.yml')
+        jt = factories.job_template(playbook='multivault.yml')
         azure_credential = self.create_azurekv_credential(factories, v2, 'https://qecredplugin.vault.azure.net/')
         for s in [('first', 'vault1'), ('second', 'vault2')]:
             cred_type = v2.credential_types.get(managed_by_tower=True, kind='vault').results.pop()
-            payload = factories.v2_credential.payload(
+            payload = factories.credential.payload(
                 name=fauxfactory.gen_utf8(),
                 description=fauxfactory.gen_utf8(),
                 credential_type=cred_type,
@@ -1007,7 +1007,7 @@ class TestAzureKVCredentials(APITest):
         injectors = dict(extra_vars=dict(extra_var_from_field_one='{{ field_one }}'))
         credential_type = factories.credential_type(inputs=inputs, injectors=injectors)
 
-        credential = factories.v2_credential(credential_type=credential_type)
+        credential = factories.credential(credential_type=credential_type)
         metadata = {
             'secret_field': 'example-user'
         }
@@ -1016,8 +1016,8 @@ class TestAzureKVCredentials(APITest):
             source_credential=azure_credential.id,
             metadata=metadata
             ))
-        host = factories.v2_host()
-        jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='debug_hostvars.yml')
+        host = factories.host()
+        jt = factories.job_template(inventory=host.ds.inventory, playbook='debug_hostvars.yml')
         jt.add_extra_credential(credential)
         job = jt.launch().wait_until_completed()
         job.assert_successful()
@@ -1027,11 +1027,11 @@ class TestAzureKVCredentials(APITest):
 
     def test_azure_key_vault_RBAC_users_can_be_assigned_use_on_credentials(self, factories, v2):
         azure_credential = self.create_azurekv_credential(factories, v2, 'https://qecredplugin.vault.azure.net/')
-        org = factories.v2_organization()
+        org = factories.organization()
         user = factories.user(organization=org)
 
         cred_type = v2.credential_types.get(managed_by_tower=True, kind='ssh').results.pop()
-        payload = factories.v2_credential.payload(
+        payload = factories.credential.payload(
             name=fauxfactory.gen_utf8(),
             description=fauxfactory.gen_utf8(),
             credential_type=cred_type
@@ -1050,7 +1050,7 @@ class TestAzureKVCredentials(APITest):
         credential.patch(organization=org.id)
         credential.set_object_roles(user, 'use')
 
-        jt = factories.v2_job_template()
+        jt = factories.job_template()
         resources = ['inventory', 'credential', 'project']
         for r in resources:
             jt.ds[r].patch(organization=org.id)
@@ -1065,11 +1065,11 @@ class TestAzureKVCredentials(APITest):
 
     def test_azure_key_vault_RBAC_users_cannot_change_linkage_without_lookup_cred_use(self, factories, v2):
         azure_credential = self.create_azurekv_credential(factories, v2, 'https://qecredplugin.vault.azure.net/')
-        org = factories.v2_organization()
+        org = factories.organization()
         user = factories.user(organization=org)
 
         cred_type = v2.credential_types.get(managed_by_tower=True, kind='ssh').results.pop()
-        payload = factories.v2_credential.payload(
+        payload = factories.credential.payload(
             name=fauxfactory.gen_utf8(),
             description=fauxfactory.gen_utf8(),
             credential_type=cred_type
@@ -1101,7 +1101,7 @@ class TestAzureKVCredentials(APITest):
         azure_credential = self.create_azurekv_credential(factories, v2, 'https://qecredplugin.vault.azure.net/')
 
         cred_type = v2.credential_types.get(managed_by_tower=True, kind='ssh').results.pop()
-        payload = factories.v2_credential.payload(
+        payload = factories.credential.payload(
             name=fauxfactory.gen_utf8(),
             description=fauxfactory.gen_utf8(),
             credential_type=cred_type
@@ -1129,7 +1129,7 @@ class TestAzureKVCredentials(APITest):
         dependent_creds = []
         for _ in range(5):
             cred_type = v2.credential_types.get(managed_by_tower=True, kind='ssh').results.pop()
-            payload = factories.v2_credential.payload(
+            payload = factories.credential.payload(
                 name=fauxfactory.gen_utf8(),
                 description=fauxfactory.gen_utf8(),
                 credential_type=cred_type
@@ -1171,8 +1171,8 @@ def _require_cyberark_aim(request):
         factories = request.getfixturevalue('factories')
         v2 = request.getfixturevalue('v2')
 
-        host = factories.v2_host()
-        cred = factories.v2_credential()
+        host = factories.host()
+        cred = factories.credential()
         job = v2.ad_hoc_commands.post({
             'inventory': host.inventory,
             'credential': cred.id,
@@ -1215,7 +1215,7 @@ class TestCyberArkAimCredentials(APITest):
             'client_cert': client_cert,
             'verify': verify
         }
-        payload = factories.v2_credential.payload(
+        payload = factories.credential.payload(
             name=fauxfactory.gen_utf8(),
             description=fauxfactory.gen_utf8(),
             credential_type=cred_type,
@@ -1237,7 +1237,7 @@ class TestCyberArkAimCredentials(APITest):
                                                     client_key=client_key, verify=False)
         # create an SSH credential
         cred_type = v2.credential_types.get(managed_by_tower=True, kind='ssh').results.pop()
-        payload = factories.v2_credential.payload(
+        payload = factories.credential.payload(
             name=fauxfactory.gen_utf8(),
             description=fauxfactory.gen_utf8(),
             credential_type=cred_type
@@ -1258,8 +1258,8 @@ class TestCyberArkAimCredentials(APITest):
         ))
 
         # assign the SSH credential to a JT and run it
-        host = factories.v2_host()
-        jt = factories.v2_job_template(
+        host = factories.host()
+        jt = factories.job_template(
             inventory=host.ds.inventory,
             playbook='ping.yml',
             credential=credential
@@ -1307,14 +1307,14 @@ class TestCyberArkAimCredentials(APITest):
         assert 'OpenSSL.SSL.Error' in job.result_traceback
 
     def test_cyberark_aim_secret_can_decrypt_ansible_vault(self, factories, v2):
-        jt = factories.v2_job_template(playbook='multivault.yml')
+        jt = factories.job_template(playbook='multivault.yml')
         aim_creds = config.credentials.cyberark_aim
         aim_credential = self.create_aim_credential(factories, v2, url=aim_creds.url,
                                                     app_id=aim_creds.app_id, client_cert=aim_creds.client_cert,
                                                     client_key=aim_creds.client_key, verify=False)
         for s in [('first', 'vault_1'), ('second', 'vault_2')]:
             cred_type = v2.credential_types.get(managed_by_tower=True, kind='vault').results.pop()
-            payload = factories.v2_credential.payload(
+            payload = factories.credential.payload(
                 name=fauxfactory.gen_utf8(),
                 description=fauxfactory.gen_utf8(),
                 credential_type=cred_type,
@@ -1340,7 +1340,7 @@ class TestCyberArkAimCredentials(APITest):
         aim_credential = self.create_aim_credential(factories, v2, verify=False)
 
         cred_type = v2.credential_types.get(managed_by_tower=True, kind='ssh').results.pop()
-        payload = factories.v2_credential.payload(
+        payload = factories.credential.payload(
             name=fauxfactory.gen_utf8(),
             description=fauxfactory.gen_utf8(),
             credential_type=cred_type
@@ -1367,11 +1367,11 @@ class TestCyberArkAimCredentials(APITest):
         aim_credential = self.create_aim_credential(factories, v2, url=aim_creds.url,
                                                     app_id=aim_creds.app_id, client_cert=aim_creds.client_cert,
                                                     client_key=aim_creds.client_key, verify=False)
-        org = factories.v2_organization()
+        org = factories.organization()
         user = factories.user(organization=org)
 
         cred_type = v2.credential_types.get(managed_by_tower=True, kind='ssh').results.pop()
-        payload = factories.v2_credential.payload(
+        payload = factories.credential.payload(
             name=fauxfactory.gen_utf8(),
             description=fauxfactory.gen_utf8(),
             credential_type=cred_type
@@ -1390,7 +1390,7 @@ class TestCyberArkAimCredentials(APITest):
         credential.patch(organization=org.id)
         credential.set_object_roles(user, 'use')
 
-        jt = factories.v2_job_template()
+        jt = factories.job_template()
         resources = ['inventory', 'credential', 'project']
         for r in resources:
             jt.ds[r].patch(organization=org.id)
@@ -1406,11 +1406,11 @@ class TestCyberArkAimCredentials(APITest):
     def test_cyberark_aim_RBAC_users_cannot_change_linkage_without_lookup_cred_use(self, factories, v2):
         aim_creds = config.credentials.cyberark_aim
         aim_credential = self.create_aim_credential(factories, v2)
-        org = factories.v2_organization()
+        org = factories.organization()
         user = factories.user(organization=org)
 
         cred_type = v2.credential_types.get(managed_by_tower=True, kind='ssh').results.pop()
-        payload = factories.v2_credential.payload(
+        payload = factories.credential.payload(
             name=fauxfactory.gen_utf8(),
             description=fauxfactory.gen_utf8(),
             credential_type=cred_type
@@ -1446,7 +1446,7 @@ class TestCyberArkAimCredentials(APITest):
         dependent_creds = []
         for _ in range(5):
             cred_type = v2.credential_types.get(managed_by_tower=True, kind='ssh').results.pop()
-            payload = factories.v2_credential.payload(
+            payload = factories.credential.payload(
                 name=fauxfactory.gen_utf8(),
                 description=fauxfactory.gen_utf8(),
                 credential_type=cred_type

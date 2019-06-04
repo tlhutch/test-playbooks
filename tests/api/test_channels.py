@@ -90,13 +90,13 @@ class TestAdHocCommandChannels(ChannelsTest, APITest):
 
     @pytest.fixture(scope='class')
     def ahc_and_ws_events(self, class_factories, class_ws_client):
-        host = class_factories.v2_host()
+        host = class_factories.host()
 
         ws = class_ws_client.connect()
         ws.status_changes()
         self.sleep_and_clear_messages(ws)
 
-        ahc = class_factories.v2_ad_hoc_command(module_name='shell', module_args='true',
+        ahc = class_factories.ad_hoc_command(module_name='shell', module_args='true',
                                                 inventory=host.ds.inventory)
         ws.ad_hoc_stdout(ahc.id)
         ahc.wait_until_completed().assert_successful()
@@ -136,13 +136,13 @@ class TestAdHocCommandChannels(ChannelsTest, APITest):
 
     @pytest.mark.github('https://github.com/ansible/tower-qa/issues/2299', skip=True)
     def test_ad_hoc_command_events_unsubscribe(self, factories, ws_client):
-        host = factories.v2_host()
+        host = factories.host()
 
         ws = ws_client.connect()
         ws.status_changes()
         self.sleep_and_clear_messages(ws)
 
-        ahc = factories.v2_ad_hoc_command(module_name='shell', module_args='true',
+        ahc = factories.ad_hoc_command(module_name='shell', module_args='true',
                                           inventory=host.ds.inventory).wait_until_completed()
         ws.ad_hoc_stdout(ahc.id)
         ahc.wait_until_completed().assert_successful()
@@ -161,13 +161,13 @@ class TestJobChannels(ChannelsTest, APITest):
 
     @pytest.fixture(scope='class')
     def job_and_ws_events(self, class_factories, class_ws_client):
-        host = class_factories.v2_host()
+        host = class_factories.host()
 
         ws = class_ws_client.connect()
         ws.status_changes()
         self.sleep_and_clear_messages(ws)
 
-        job = class_factories.v2_job_template(playbook='debug.yml',
+        job = class_factories.job_template(playbook='debug.yml',
                                               inventory=host.ds.inventory).launch()
         ws.job_stdout(job.id)
         job.wait_until_completed().assert_successful()
@@ -206,13 +206,13 @@ class TestJobChannels(ChannelsTest, APITest):
             assert expected in filtered_ws_events
 
     def test_job_events_unsubscribe(self, factories, ws_client):
-        host = factories.v2_host()
+        host = factories.host()
 
         ws = ws_client.connect()
         ws.status_changes()
         self.sleep_and_clear_messages(ws)
 
-        job = factories.v2_job_template(playbook='debug.yml',
+        job = factories.job_template(playbook='debug.yml',
                                         inventory=host.ds.inventory).launch()
         ws.job_stdout(job.id)
         job.wait_until_completed().assert_successful()
@@ -233,11 +233,11 @@ class TestWorkflowChannels(ChannelsTest, APITest):
     @pytest.mark.ansible_integration
     def test_workflow_events(self, factories, ws_client, v2):
         ws = ws_client.connect()
-        inventory = factories.v2_host().ds.inventory
-        success_jt = factories.v2_job_template(inventory=inventory, playbook='debug.yml')
-        fail_jt = factories.v2_job_template(inventory=inventory, playbook='fail_unless.yml')
-        wfjt = factories.v2_workflow_job_template()
-        root = factories.v2_workflow_job_template_node(workflow_job_template=wfjt,
+        inventory = factories.host().ds.inventory
+        success_jt = factories.job_template(inventory=inventory, playbook='debug.yml')
+        fail_jt = factories.job_template(inventory=inventory, playbook='fail_unless.yml')
+        wfjt = factories.workflow_job_template()
+        root = factories.workflow_job_template_node(workflow_job_template=wfjt,
                                                        unified_job_template=success_jt)
         failure = root.related.success_nodes.post(dict(unified_job_template=fail_jt.id))
         success = failure.related.failure_nodes.post(dict(unified_job_template=success_jt.id))
@@ -300,7 +300,7 @@ class TestInventoryChannels(ChannelsTest, APITest):
         ws.status_changes()
         self.sleep_and_clear_messages(ws)
 
-        inv_update = class_factories.v2_inventory_source(source='custom').update()
+        inv_update = class_factories.inventory_source(source='custom').update()
         ws.inventory_update_stdout(inv_update.id)
         inv_update.wait_until_completed().assert_successful()
         messages = [m for m in ws]
@@ -347,7 +347,7 @@ class TestInventoryChannels(ChannelsTest, APITest):
         ws.status_changes()
         self.sleep_and_clear_messages(ws)
 
-        inv_source = factories.v2_inventory_source(source='custom')
+        inv_source = factories.inventory_source(source='custom')
         inv_update = inv_source.update()
         ws.inventory_update_stdout(inv_update.id)
         inv_update.wait_until_completed().assert_successful()
@@ -370,7 +370,7 @@ class TestProjectUpdateChannels(ChannelsTest, APITest):
         ws.status_changes()
         self.sleep_and_clear_messages(ws)
 
-        project_update = class_factories.v2_project().update()
+        project_update = class_factories.project().update()
         ws.project_update_stdout(project_update.id)
         project_update.wait_until_completed().assert_successful()
         messages = [m for m in ws]
@@ -415,7 +415,7 @@ class TestProjectUpdateChannels(ChannelsTest, APITest):
         ws.status_changes()
         self.sleep_and_clear_messages(ws)
 
-        project = factories.v2_project()
+        project = factories.project()
         project_update = project.update()
         ws.project_update_stdout(project_update.id)
         project_update.wait_until_completed().assert_successful()

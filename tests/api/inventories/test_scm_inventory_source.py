@@ -46,7 +46,7 @@ class TestSCMInventorySource(APITest):
 
     @pytest.mark.ansible_integration
     def test_project_lists_desired_inventory_files(self, factories):
-        project = factories.v2_project()
+        project = factories.project()
         inventory_files = project.related.inventory_files.get()
 
         for desired_file in ('inventories/inventory.ini', 'inventories/more_inventories/inventory.ini',
@@ -60,7 +60,7 @@ class TestSCMInventorySource(APITest):
     @pytest.fixture(scope='class', params=['inventories/inventory.ini', 'inventories/dyn_inventory.py',
                                            'inventories/metaless_dyn_inventory.py'])
     def scm_inv_source_with_group_and_host_var_dirs(self, request, class_factories):
-        inv_source = class_factories.v2_inventory_source(source='scm', source_path=request.param)
+        inv_source = class_factories.inventory_source(source='scm', source_path=request.param)
         inv_source.update().wait_until_completed().assert_successful()
         scm_inv_sources = inv_source.ds.project.related.scm_inventory_sources.get().results
         assert len(scm_inv_sources) == 1
@@ -85,9 +85,9 @@ class TestSCMInventorySource(APITest):
     def test_plugin_configs_as_scm_inventory_sources(self, factories, kind, plugin_file, introduced_in, ansible_version_cmp):
         if ansible_version_cmp(introduced_in) < 0:
             pytest.skip("Inventory plugin was not yet introduced in version of Ansible being ran.")
-        cred = factories.v2_credential(kind=kind)
-        project = factories.v2_project()
-        inv_src = factories.v2_inventory_source(source='scm', source_path=plugin_file, credential=cred, project=project)
+        cred = factories.credential(kind=kind)
+        project = factories.project()
+        inv_src = factories.inventory_source(source='scm', source_path=plugin_file, credential=cred, project=project)
         inv_src.update().wait_until_completed().assert_successful()
         inv = inv_src.related.inventory.get()
         assert len(inv.related.hosts.get().results) > 0
@@ -182,7 +182,7 @@ class TestSCMInventorySource(APITest):
                 assert host.related.variable_data.get().inventories_var
 
     def test_scm_inv_source_with_overwrite(self, factories):
-        inv_source = factories.v2_inventory_source(source='scm', source_path='inventories/inventory.ini',
+        inv_source = factories.inventory_source(source='scm', source_path='inventories/inventory.ini',
                                                    overwrite=True)
         inv_source.update().wait_until_completed().assert_successful()
 
@@ -204,9 +204,9 @@ class TestSCMInventorySource(APITest):
                                'inventories/more_inventories/even_more_inventories/dyn_inventory.py')],
                              ids=('static', 'dynamic'))
     def test_scm_inv_sources_with_shared_project(self, factories, source_paths, uses_group_vars):
-        project = factories.v2_project()
-        inventory = factories.v2_inventory(organization=project.ds.organization)
-        inv_sources = [factories.v2_inventory_source(source='scm', inventory=inventory, project=project,
+        project = factories.project()
+        inventory = factories.inventory(organization=project.ds.organization)
+        inv_sources = [factories.inventory_source(source='scm', inventory=inventory, project=project,
                                                      source_path=source_path) for source_path in source_paths]
         for inv_source in inv_sources:
             inv_source.update()
@@ -255,7 +255,7 @@ class TestSCMInventorySource(APITest):
             assert set([g.name for g in groups]) == desired_groups
 
     def test_scm_inv_source_multiple_updates_without_update_on_project_update(self, factories):
-        scm_inv_source = factories.v2_inventory_source(source='scm')
+        scm_inv_source = factories.inventory_source(source='scm')
         for source_path in ('inventories/inventory.ini', 'inventories/dyn_inventory.py'):
             scm_inv_source.source_path = source_path
             for _ in range(2):
@@ -266,9 +266,9 @@ class TestSCMInventorySource(APITest):
     def test_scm_inv_source_update_sources_custom_credential(self, factories):
         credential_type = factories.credential_type(inputs=dict(fields=[dict(id='test_env', label='TEST_ENV')]),
                                                     injectors=dict(env=dict(TEST_ENV='{{ test_env }}')))
-        credential = factories.v2_credential(credential_type=credential_type,
+        credential = factories.credential(credential_type=credential_type,
                                              inputs=dict(test_env='TEST_ENV_1'))
-        inv_source = factories.v2_inventory_source(source='scm', source_path='inventories/dyn_inventory_test_env.py',
+        inv_source = factories.inventory_source(source='scm', source_path='inventories/dyn_inventory_test_env.py',
                                                    credential=credential)
         inv_source.update().wait_until_completed().assert_successful()
         host = inv_source.ds.inventory.related.hosts.get(name='localhost').results.pop()
@@ -284,7 +284,7 @@ class TestSCMInventorySource(APITest):
         assert project.related.project_updates.get(launch_type='manual').count == 1
         assert project.related.project_updates.get(launch_type='sync').count == 0
 
-        inv_source = factories.v2_inventory_source(source='scm', project=project,
+        inv_source = factories.inventory_source(source='scm', project=project,
                                                    source_path=source_path,
                                                    update_on_project_update=True)
         inv_source.wait_until_completed()
@@ -307,11 +307,11 @@ class TestSCMInventorySource(APITest):
 
     @pytest.mark.parametrize('source_path', ['inventories/inventory.ini', 'inventories/dyn_inventory.py'])
     def test_project_launch_using_update_on_project_update_without_scm_change(self, factories, source_path):
-        project = factories.v2_project()
+        project = factories.project()
         assert project.related.project_updates.get(launch_type='manual').count == 1
         assert project.related.project_updates.get(launch_type='sync').count == 0
 
-        inv_source = factories.v2_inventory_source(source='scm', project=project,
+        inv_source = factories.inventory_source(source='scm', project=project,
                                                    source_path=source_path,
                                                    update_on_project_update=True)
         inv_source.wait_until_completed().assert_successful()
@@ -330,7 +330,7 @@ class TestSCMInventorySource(APITest):
     def test_inventory_update_using_update_on_project_update_without_scm_change(self, factories, v2,
                                                                                 write_access_git_credential):
         """Verifies that an scm inventory sync runs even without changes to scm"""
-        inv_source = factories.v2_inventory_source(source='scm', source_path='inventories/inventory.ini',
+        inv_source = factories.inventory_source(source='scm', source_path='inventories/inventory.ini',
                                                    update_on_project_update=True)
         inv_source.wait_until_completed()
         project = inv_source.ds.project
@@ -347,9 +347,9 @@ class TestSCMInventorySource(APITest):
 
     @pytest.mark.mp_group('ProjectUpdateWithSCMChange', 'serial')
     def test_cancel_shared_parent_project_update_after_source_change(self, factories, write_access_git_credential):
-        project = factories.v2_project(scm_url='https://github.com/rmfitzpatrick/ansible-playbooks.git',
+        project = factories.project(scm_url='https://github.com/rmfitzpatrick/ansible-playbooks.git',
                                        scm_branch='inventory_additions')
-        inv_sources = [factories.v2_inventory_source(source='scm', project=project,
+        inv_sources = [factories.inventory_source(source='scm', project=project,
                                                      source_path='inventories/inventory.ini') for _ in range(3)]
         inv_source_ids = set([source.id for source in inv_sources])
         project_inv_source_ids = set([source.id for source in project.related.scm_inventory_sources.get().results])
@@ -358,7 +358,7 @@ class TestSCMInventorySource(APITest):
         for inv_source in inv_sources:
             inv_source.update_on_project_update = True
 
-        jt = factories.v2_job_template(inventory=inv_sources[0].ds.inventory, project=project,
+        jt = factories.job_template(inventory=inv_sources[0].ds.inventory, project=project,
                                        playbook='utils/trigger_update.yml', limit='ungrouped_host_01')
         jt.add_extra_credential(write_access_git_credential)
         jt.launch().wait_until_completed().assert_successful()
@@ -387,9 +387,9 @@ class TestSCMInventorySource(APITest):
         injectors = dict(env=dict(ENV_VAR='{{ env_var }}'))
         cred_type = factories.credential_type(kind='cloud', inputs=inputs, injectors=injectors)
         env_var = 'THIS_IS_A_TEST_ENV_VAR'
-        cred = factories.v2_credential(credential_type=cred_type, inputs=dict(env_var=env_var))
+        cred = factories.credential(credential_type=cred_type, inputs=dict(env_var=env_var))
 
-        jt = factories.v2_job_template(inventory=inventory, project=inv_source.ds.project, limit=host.name,
+        jt = factories.job_template(inventory=inventory, project=inv_source.ds.project, limit=host.name,
                                        playbook='ansible_env.yml')
         jt.add_credential(cred)
         job = jt.launch().wait_until_completed()
@@ -402,28 +402,28 @@ class TestSCMInventorySource(APITest):
     def test_scm_inventory_disallows_manual_project(self, skip_if_openshift, factories, project_ansible_playbooks_manual):
         desired_error = {'source_project': ['Cannot use manual project for SCM-based inventory.']}
         with pytest.raises(exc.BadRequest) as e:
-            factories.v2_inventory_source(source='scm', project=project_ansible_playbooks_manual)
+            factories.inventory_source(source='scm', project=project_ansible_playbooks_manual)
         assert e.value.msg == desired_error
 
-        inv_source = factories.v2_inventory_source(source='scm')
+        inv_source = factories.inventory_source(source='scm')
         with pytest.raises(exc.BadRequest) as e:
             inv_source.source_project = project_ansible_playbooks_manual.id
         assert e.value.msg == desired_error
 
     def test_scm_inventory_disallows_vault_credentials(self, factories):
-        project = factories.v2_project(scm_type='git')
-        vault_credential = factories.v2_credential(kind='vault', vault_password='abc123')
+        project = factories.project(scm_type='git')
+        vault_credential = factories.credential(kind='vault', vault_password='abc123')
         desired_error = 'Credentials of type insights and vault are disallowed for scm inventory sources.'
 
         with pytest.raises(exc.BadRequest) as e:
-            factories.v2_inventory_source(
+            factories.inventory_source(
                 source='scm', source_path='inventories/inventory.ini',
                 project=project, credential=vault_credential
             )
         assert e.value.msg == {'credential': [desired_error]}
 
         with pytest.raises(exc.BadRequest) as e:
-            iu = factories.v2_inventory_source(
+            iu = factories.inventory_source(
                 source='scm', source_path='inventories/inventory.ini',
                 project=project
             )
@@ -433,7 +433,7 @@ class TestSCMInventorySource(APITest):
         assert e.value.msg == {'msg': desired_error}
 
     def test_scm_inv_source_is_schedulable_without_update_on_project_update(self, factories):
-        scm_inv_source = factories.v2_inventory_source(source='scm', source_path='inventories/inventory.ini')
+        scm_inv_source = factories.inventory_source(source='scm', source_path='inventories/inventory.ini')
         scm_inv_source.add_schedule()
 
         with pytest.raises(exc.BadRequest) as e:
@@ -442,7 +442,7 @@ class TestSCMInventorySource(APITest):
         assert not scm_inv_source.update_on_project_update
 
     def test_scm_inv_source_isnt_schedulable_with_update_on_project_update(self, factories):
-        scm_inv_source = factories.v2_inventory_source(source='scm', source_path='inventories/inventory.ini',
+        scm_inv_source = factories.inventory_source(source='scm', source_path='inventories/inventory.ini',
                                                        update_on_project_update=True)
         with pytest.raises(exc.BadRequest) as e:
             scm_inv_source.add_schedule()
@@ -451,9 +451,9 @@ class TestSCMInventorySource(APITest):
                                                             'instead.'.format(scm_inv_source.ds.project)]}
 
     def test_scm_inv_source_with_update_on_launch_cannot_update_on_project_update(self, v2, factories):
-        inventory = factories.v2_inventory()
-        project = factories.v2_project(organization=inventory.ds.organization)
-        bad_payload = factories.v2_inventory_source.payload(source='scm', source_path='inventories/inventory.ini',
+        inventory = factories.inventory()
+        project = factories.project(organization=inventory.ds.organization)
+        bad_payload = factories.inventory_source.payload(source='scm', source_path='inventories/inventory.ini',
                                                             update_on_launch=True, update_on_project_update=True,
                                                             inventory=inventory, project=project)
         desired_error = {'update_on_launch': ['Cannot update SCM-based inventory source on launch if set to update '
@@ -463,7 +463,7 @@ class TestSCMInventorySource(APITest):
             v2.inventory_sources.post(bad_payload)
         assert e.value.msg == desired_error
 
-        inv_source = factories.v2_inventory_source(source='scm', source_path='inventories/inventory.ini',
+        inv_source = factories.inventory_source(source='scm', source_path='inventories/inventory.ini',
                                                    update_on_launch=True, inventory=inventory, project=project)
         with pytest.raises(exc.BadRequest) as e:
             inv_source.update_on_project_update = True
@@ -478,9 +478,9 @@ class TestSCMInventorySource(APITest):
 
     @pytest.mark.yolo
     def test_scm_inv_source_with_update_on_launch_is_synced_on_job_launch(self, factories):
-        inv_source = factories.v2_inventory_source(source='scm', source_path='inventories/inventory.ini',
+        inv_source = factories.inventory_source(source='scm', source_path='inventories/inventory.ini',
                                                    update_on_launch=True)
-        jt = factories.v2_job_template(inventory=inv_source.ds.inventory)
+        jt = factories.job_template(inventory=inv_source.ds.inventory)
 
         assert not inv_source.related.inventory_updates.get().results
         job = jt.launch().wait_until_completed()
@@ -504,7 +504,7 @@ class TestSCMInventorySource(APITest):
         job_template_that_writes_to_source.launch().wait_until_completed().assert_successful()
 
         project = job_template_that_writes_to_source.ds.project
-        scm_inv_source = factories.v2_inventory_source(source='scm', source_path='inventories/inventory.ini',
+        scm_inv_source = factories.inventory_source(source='scm', source_path='inventories/inventory.ini',
                                                        project=project)
         scm_inv_source.update_on_project_update = True
 
@@ -523,8 +523,8 @@ class TestSCMInventorySource(APITest):
         assert parent_update.finished > inv_update.finished
 
     def test_scm_inv_source_with_update_on_project_update_sync_doesnt_occur_on_project_update_error(self, factories):
-        project = factories.v2_project()
-        inv_source = factories.v2_inventory_source(source='scm', project=project,
+        project = factories.project()
+        inv_source = factories.inventory_source(source='scm', project=project,
                                                    source_path='inventories/inventory.ini')
         inv_source.update_on_project_update = True
         project.scm_url = 'notadomain.fail'
@@ -536,7 +536,7 @@ class TestSCMInventorySource(APITest):
                                                                                      job_template_that_writes_to_source):
         job_template_that_writes_to_source.launch().wait_until_completed().assert_successful()
         project = job_template_that_writes_to_source.ds.project
-        scm_inv_source = factories.v2_inventory_source(source='scm', source_path='inventories/inventory.ini',
+        scm_inv_source = factories.inventory_source(source='scm', source_path='inventories/inventory.ini',
                                                        project=project)
         scm_inv_source.update_on_project_update = True
 
@@ -560,13 +560,13 @@ class TestSCMInventorySource(APITest):
         assert parent_update.finished < subsequent_update.started
 
     def test_scm_inv_source_and_project_with_update_on_launch(self, factories):
-        project = factories.v2_project(scm_type='git', scm_delete_on_update=True, scm_update_on_launch=True)
-        inv_source = factories.v2_inventory_source(
+        project = factories.project(scm_type='git', scm_delete_on_update=True, scm_update_on_launch=True)
+        inv_source = factories.inventory_source(
             source='scm', source_path='inventories/inventory.ini',
             update_on_launch=True, overwrite=True,
             project=project
         )
-        jt = factories.v2_job_template(inventory=inv_source.ds.inventory, project=project)
+        jt = factories.job_template(inventory=inv_source.ds.inventory, project=project)
         # Job launch triggers update of project-inv-src and project itself
         job = jt.launch().wait_until_completed()
         inv_source.related.inventory_updates.get().results[0].assert_successful()
@@ -576,9 +576,9 @@ class TestSCMInventorySource(APITest):
         job.assert_successful()
 
     def test_scm_inv_source_update_on_project_update_with_project_update_on_launch(self, factories):
-        scm_inv_source = factories.v2_inventory_source(source='scm', source_path='inventories/inventory.ini')
+        scm_inv_source = factories.inventory_source(source='scm', source_path='inventories/inventory.ini')
         project = scm_inv_source.ds.project
-        jt = factories.v2_job_template(inventory=scm_inv_source.ds.inventory, project=project)
+        jt = factories.job_template(inventory=scm_inv_source.ds.inventory, project=project)
 
         scm_inv_source.update_on_project_update = True
         project.scm_update_on_launch = True
@@ -611,7 +611,7 @@ class TestSCMInventorySource(APITest):
     def test_canceled_inventory_update_during_project_update(self, factories, job_template_that_writes_to_source):
         job_template_that_writes_to_source.launch().wait_until_completed().assert_successful()
         project = job_template_that_writes_to_source.ds.project
-        inv_source = factories.v2_inventory_source(source='scm', source_path='inventories/inventory.ini',
+        inv_source = factories.inventory_source(source='scm', source_path='inventories/inventory.ini',
                                                    project=project)
         inv_source.update_on_project_update = True
 
@@ -640,8 +640,8 @@ class TestSCMInventorySource(APITest):
                                   'ec2 auth issue', 'OpenStack auth issue'])
     def test_failing_scm_inv_source_update_error_reporting(self, request, factories, scm_url, branch, source_path,
                                                            expected_error):
-        project = factories.v2_project(scm_url=scm_url, scm_branch=branch)
-        scm_inv_source = factories.v2_inventory_source(source='scm', project=project,
+        project = factories.project(scm_url=scm_url, scm_branch=branch)
+        scm_inv_source = factories.inventory_source(source='scm', project=project,
                                                        source_path=source_path, update_on_project_update=True)
         scm_inv_source.wait_until_completed()
         scm_inv_source.assert_status('failed')
@@ -655,8 +655,8 @@ class TestSCMInventorySource(APITest):
 
     @pytest.mark.parametrize('source', ('custom', 'ec2'))
     def test_confirm_non_scm_inventory_source_disallows_scm_fields(self, factories, source):
-        inv_src = factories.v2_inventory_source(source=source)
-        project = factories.v2_project()
+        inv_src = factories.inventory_source(source=source)
+        project = factories.project()
 
         for field, forbidden in [('source_project', lambda: inv_src.patch(source_project=project.id)),
                                  ('source_path', lambda: inv_src.patch(source_path='No!')),
@@ -668,7 +668,7 @@ class TestSCMInventorySource(APITest):
     def test_use_of_SCM_inventory_plugin(self, factories, ansible_version_cmp):
         if ansible_version_cmp('2.9.0') < 0:
             pytest.skip('Custom user plugins were not fixed until Ansible 2.9')
-        inv_src = factories.v2_inventory_source(
+        inv_src = factories.inventory_source(
             source='scm',
             source_path='inventories/user_plugins/cow.yaml'
         )
@@ -684,9 +684,9 @@ class TestSCMInventorySource(APITest):
         a symlink to a directory one higher than the directory that the
         inventory file is in.
         """
-        project = factories.v2_project(scm_url='https://github.com/AlanCoding/Ansible-inventory-file-examples.git')
-        inventory = factories.v2_inventory(organization=project.ds.organization)
-        inv_src = factories.v2_inventory_source(
+        project = factories.project(scm_url='https://github.com/AlanCoding/Ansible-inventory-file-examples.git')
+        inventory = factories.inventory(organization=project.ds.organization)
+        inv_src = factories.inventory_source(
             source='scm', inventory=inventory, project=project,
             source_path='scripts/symlinks/parent/foogroup.py'
         )

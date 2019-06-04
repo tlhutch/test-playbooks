@@ -13,7 +13,7 @@ class Test_Copy_Credential(APITest):
     unequal_fields = ['id', 'created', 'modified']
 
     def test_copy_normal(self, factories, copy_with_teardown):
-        v2_credential = factories.v2_credential()
+        v2_credential = factories.credential()
         new_credential = copy_with_teardown(v2_credential)
         check_fields(v2_credential, new_credential, self.identical_fields, self.unequal_fields)
 
@@ -26,13 +26,13 @@ class Test_Copy_Credential(APITest):
 
         # Create and copy a credential with injectors
         ct_with_extra_vars = factories.credential_type(kind='net', inputs=ct_inputs, injectors=ct_injectors)
-        cred_with_extra_vars = factories.v2_credential(credential_type=ct_with_extra_vars, inputs=cred_input)
+        cred_with_extra_vars = factories.credential(credential_type=ct_with_extra_vars, inputs=cred_input)
         copied_cred = copy_with_teardown(cred_with_extra_vars)
         check_fields(cred_with_extra_vars, copied_cred, self.identical_fields, self.unequal_fields)
 
         # Create a job template using the copied credential
-        host = factories.v2_host()
-        job_template = factories.v2_job_template(inventory=host.ds.inventory, playbook="debug_extra_vars.yml")
+        host = factories.host()
+        job_template = factories.job_template(inventory=host.ds.inventory, playbook="debug_extra_vars.yml")
         job_template.add_credential(copied_cred)
 
         # Launch the job

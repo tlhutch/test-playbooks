@@ -11,23 +11,23 @@ from tests.api import APITest
 class TestInventorySource(APITest):
 
     def test_reject_invalid_credential_types_with_custom_source(self, factories):
-        inventory = factories.v2_inventory()
+        inventory = factories.inventory()
         org = inventory.ds.organization
-        inv_script = factories.v2_inventory_script(organization=org)
+        inv_script = factories.inventory_script(organization=org)
 
         kinds = ['vault', 'ssh', 'scm', 'insights']
         for kind in kinds:
             if kind == 'vault':
-                cred = factories.v2_credential(organization=org, kind=kind, inputs=dict(vault_password='fake'))
+                cred = factories.credential(organization=org, kind=kind, inputs=dict(vault_password='fake'))
             else:
-                cred = factories.v2_credential(organization=org, kind=kind)
+                cred = factories.credential(organization=org, kind=kind)
 
             error = 'Credentials of type machine, source control, insights and vault are disallowed for custom inventory sources.'
             with pytest.raises(exc.BadRequest) as e:
-                factories.v2_inventory_source(inventory=inventory, source_script=inv_script, credential=cred)
+                factories.inventory_source(inventory=inventory, source_script=inv_script, credential=cred)
             assert error in str(e.value[1])
 
-            inv_source = factories.v2_inventory_source(inventory=inventory, source_script=inv_script)
+            inv_source = factories.inventory_source(inventory=inventory, source_script=inv_script)
             assert inv_source.source_script == inv_script.id
             with pytest.raises(exc.BadRequest) as e:
                 inv_source.related.credentials.post(dict(id=cred.id))
@@ -36,9 +36,9 @@ class TestInventorySource(APITest):
     @pytest.mark.ansible_integration
     @pytest.mark.github('https://github.com/ansible/awx/issues/2240', skip=True)
     def test_imported_host_ordering(self, factories):
-        inventory = factories.v2_inventory()
+        inventory = factories.inventory()
         org = inventory.ds.organization
-        inv_script = factories.v2_inventory_script(
+        inv_script = factories.inventory_script(
             organization=org,
             script=('\n'.join([
                 '#!/usr/bin/env python',
@@ -58,7 +58,7 @@ class TestInventorySource(APITest):
                 '}))'
             ]))
         )
-        inv_source = factories.v2_inventory_source(inventory=inventory, source_script=inv_script)
+        inv_source = factories.inventory_source(inventory=inventory, source_script=inv_script)
         assert inv_source.source_script == inv_script.id
 
         # Run the inventory update
@@ -92,9 +92,9 @@ class TestInventorySource(APITest):
         )
 
         # Create inventory source that puts the encrypted content in hostvars
-        inventory = factories.v2_inventory()
+        inventory = factories.inventory()
         org = inventory.ds.organization
-        inv_script = factories.v2_inventory_script(
+        inv_script = factories.inventory_script(
             organization=org,
             script=('\n'.join([
                 '#!/usr/bin/env python',
@@ -118,7 +118,7 @@ class TestInventorySource(APITest):
                 '}))'
             ]))
         )
-        inv_source = factories.v2_inventory_source(inventory=inventory, source_script=inv_script)
+        inv_source = factories.inventory_source(inventory=inventory, source_script=inv_script)
         assert inv_source.source_script == inv_script.id
 
         # Run the inventory update
@@ -131,21 +131,21 @@ class TestInventorySource(APITest):
         assert host.variables.encrypted_var['__ansible_vault'] == encrypted_content
 
         # Decrypt vault secret by running a playbook
-        vault_cred = factories.v2_credential(
+        vault_cred = factories.credential(
             kind='vault', organization=org,
             inputs=dict(
                 vault_password='password',
                 vault_id='alan'
             )
         )
-        jt = factories.v2_job_template(playbook='debug_hostvars.yml', inventory=inventory)
+        jt = factories.job_template(playbook='debug_hostvars.yml', inventory=inventory)
         jt.add_credential(vault_cred)
         job = jt.launch().wait_until_completed()
         job.assert_successful()
         assert '"encrypted_var": "artemis"' in job.result_stdout
 
     def test_conflict_exception_with_running_inventory_update(self, factories):
-        inv_source = factories.v2_inventory_source()
+        inv_source = factories.inventory_source()
         inv_update = inv_source.update()
 
         with pytest.raises(exc.Conflict) as e:
@@ -182,7 +182,7 @@ class TestInventorySource(APITest):
         assert hosts.get().count == 0
 
     def test_delete_sublist_resources(self, factories):
-        inv_source = factories.v2_inventory_source()
+        inv_source = factories.inventory_source()
         self.update_and_delete_resources(inv_source)
 
     def test_simultaneous_delete_sublist_resources_generic_large_inventory(self, factories):
@@ -190,8 +190,8 @@ class TestInventorySource(APITest):
         Nh = 189
         # In this inventory, all hosts are members of all groups,
         # so that makes it more challenging to avoid conflicts while deleting both
-        inv_source = factories.v2_inventory_source(
-            source_script=factories.v2_inventory_script(
+        inv_source = factories.inventory_source(
+            source_script=factories.inventory_script(
                 script='\n'.join([
                     "#!/usr/bin/env python",
                     "import json",
@@ -207,8 +207,8 @@ class TestInventorySource(APITest):
 
     def test_simultaneous_delete_sublist_resources_ec2(self, factories):
         # Reported custom issue where server error, deadlocks, occured
-        inv_source = factories.v2_inventory_source(
+        inv_source = factories.inventory_source(
             source='ec2',
-            credential=factories.v2_credential(kind='aws')
+            credential=factories.credential(kind='aws')
         )
         self.update_and_delete_resources(inv_source)

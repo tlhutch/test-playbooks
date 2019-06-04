@@ -33,10 +33,10 @@ class Test_Workflow_Nodes(APITest):
     promptable_fields = ('inventory', 'job_type', 'job_tags', 'skip_tags', 'verbosity', 'diff_mode', 'limit')
 
     def test_workflow_node_jobs_should_source_from_underlying_template(self, factories):
-        host = factories.v2_host()
-        wfjt = factories.v2_workflow_job_template()
-        jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='debug_extra_vars.yml')
-        wf_node = factories.v2_workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt)
+        host = factories.host()
+        wfjt = factories.workflow_job_template()
+        jt = factories.job_template(inventory=host.ds.inventory, playbook='debug_extra_vars.yml')
+        wf_node = factories.workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt)
 
         survey = [dict(required=True,
                        question_name='Q1',
@@ -70,9 +70,9 @@ class Test_Workflow_Nodes(APITest):
         assert sorted(job_creds) == sorted(jt_creds)
 
     def test_workflow_node_values_take_precedence_over_template_values(self, factories, ask_everything_jt):
-        host, credential = factories.v2_host(), factories.v2_credential()
-        wfjt = factories.v2_workflow_job_template()
-        wf_node = factories.v2_workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=ask_everything_jt,
+        host, credential = factories.host(), factories.credential()
+        wfjt = factories.workflow_job_template()
+        wf_node = factories.workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=ask_everything_jt,
                                                           inventory=host.ds.inventory, credential=credential, job_type='check',
                                                           job_tags='always', skip_tags='wf_skip_tag', verbosity=5,
                                                           diff_mode=True, limit=host.name,
@@ -112,11 +112,11 @@ class Test_Workflow_Nodes(APITest):
             ask_variables_on_launch=True,
             ask_inventory_on_launch=True
         )
-        wfjt = factories.v2_workflow_job_template()
+        wfjt = factories.workflow_job_template()
         # HACK: unified_job_template does not work with the dependency store
         wfjt_node = wfjt.get_related('workflow_nodes').post(dict(
             extra_data={'var1': 'wfjtn'},
-            inventory=factories.v2_inventory().id,
+            inventory=factories.inventory().id,
             unified_job_template=inner_wfjt.id,
         ))
         # sanity assertions
@@ -132,13 +132,13 @@ class Test_Workflow_Nodes(APITest):
         assert json.loads(job.extra_vars) == wfjt_node.extra_data
 
     def test_workflow_prompted_inventory_value_takes_precedence_over_wfjt_value(self, factories):
-        inventory = factories.v2_inventory()
-        jt = factories.v2_job_template(ask_inventory_on_launch=True)
+        inventory = factories.inventory()
+        jt = factories.job_template(ask_inventory_on_launch=True)
         inner_wfjt = factories.workflow_job_template(
             ask_inventory_on_launch=True
         )
         factories.workflow_job_template_node(workflow_job_template=inner_wfjt, unified_job_template=jt)
-        wfjt = factories.v2_workflow_job_template(
+        wfjt = factories.workflow_job_template(
             ask_inventory_on_launch=True
         )
         wfjt.get_related('workflow_nodes').post(dict(
@@ -160,9 +160,9 @@ class Test_Workflow_Nodes(APITest):
                              )
     def test_workflow_job_nodes_can_have_always_nodes_with_other_nodes(self, factories, add_methods):
         """Assert that a workflow job template node can have an always node mixed with other children nodes."""
-        jt = factories.v2_job_template()
-        wfjt = factories.v2_workflow_job_template()
-        parent_node = factories.v2_workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt)
+        jt = factories.job_template()
+        wfjt = factories.workflow_job_template()
+        parent_node = factories.workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt)
         parent_node.add_always_node(unified_job_template=jt)
         # add additional child nodes with a variety of conditions
         for add_method in add_methods.split(' '):
@@ -195,14 +195,14 @@ class Test_Workflow_Nodes(APITest):
         assert 'This field cannot be blank.' in str(exception.value)
 
     def test_workflow_node_creation_rejected_when_source_jt_has_ask_disabled(self, factories):
-        inventory = factories.v2_inventory()
-        credential = factories.v2_credential()
+        inventory = factories.inventory()
+        credential = factories.credential()
 
-        wfjt = factories.v2_workflow_job_template()
-        jt = factories.v2_job_template()
+        wfjt = factories.workflow_job_template()
+        jt = factories.job_template()
 
         with pytest.raises(BadRequest) as e:
-            factories.v2_workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt,
+            factories.workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt,
                                                     extra_data=dict(var1='wfjtn'), job_type='check', job_tags='wfjtn',
                                                     skip_tags='wfjtn', limit='wfjtn', diff_mode=True, verbosity=2,
                                                     inventory=inventory, credential=credential)
@@ -217,10 +217,10 @@ class Test_Workflow_Nodes(APITest):
                                              'Check the Prompt on Launch setting on the Job Template to include Extra Variables.']}
 
     def test_workflow_node_creation_rejected_when_source_wfjt_has_ask_disabled(self, factories):
-        inventory = factories.v2_inventory()
+        inventory = factories.inventory()
 
-        wfjt = factories.v2_workflow_job_template()
-        inner_wfjt = factories.v2_workflow_job_template()
+        wfjt = factories.workflow_job_template()
+        inner_wfjt = factories.workflow_job_template()
 
         with pytest.raises(BadRequest) as e:
             # HACK: unified_job_template does not work with the dependency store
@@ -236,32 +236,32 @@ class Test_Workflow_Nodes(APITest):
         }
 
     def test_workflow_node_creation_rejected_when_source_jt_has_ask_credential_disabled(self, factories):
-        credential = factories.v2_credential()
+        credential = factories.credential()
 
-        wfjt = factories.v2_workflow_job_template()
-        jt = factories.v2_job_template()
+        wfjt = factories.workflow_job_template()
+        jt = factories.job_template()
 
         with pytest.raises(BadRequest) as e:
-            factories.v2_workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt,
+            factories.workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt,
                                                     credential=credential)
         assert e.value[1] == {'credential': ['Related template is not configured to accept credentials on launch.']}
 
     def test_workflow_node_creation_rejected_when_jt_has_ask_credential(self, factories):
-        wfjt = factories.v2_workflow_job_template()
-        cred = factories.v2_credential(ssh_key_data=self.credentials.ssh.encrypted.ssh_key_data, password='ASK',
+        wfjt = factories.workflow_job_template()
+        cred = factories.credential(ssh_key_data=self.credentials.ssh.encrypted.ssh_key_data, password='ASK',
                                        become_password='ASK', ssh_key_unlock='ASK')
-        jt = factories.v2_job_template(credential=cred)
+        jt = factories.job_template(credential=cred)
         with pytest.raises(BadRequest) as e:
-            factories.v2_workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt)
+            factories.workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt)
         assert e.value[1] == {'passwords_needed_to_start':
                               ['Saved launch configurations cannot provide passwords needed to start.']}
 
     def test_workflow_node_creation_rejected_when_jt_has_missing_dependencies(self, factories):
-        jt = factories.v2_job_template(inventory=None, ask_inventory_on_launch=True)
-        wfjt = factories.v2_workflow_job_template()
+        jt = factories.job_template(inventory=None, ask_inventory_on_launch=True)
+        wfjt = factories.workflow_job_template()
 
         with pytest.raises(BadRequest) as e:
-            factories.v2_workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt)
+            factories.workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt)
         assert e.value[1]['resources_needed_to_start'] == ['Job Template inventory is missing or undefined.']
 
     def spec_example(self):
@@ -291,12 +291,12 @@ class Test_Workflow_Nodes(APITest):
                      variable='test_var_twelve', type='password', min=4, max=4, default='asdfasdf')]
 
     def test_workflow_nodes_must_abide_to_jt_survey_requirements(self, factories):
-        wfjt = factories.v2_workflow_job_template()
-        jt = factories.v2_job_template()
+        wfjt = factories.workflow_job_template()
+        jt = factories.job_template()
         jt.add_survey(spec=self.spec_example())
 
         with pytest.raises(BadRequest) as e:
-            factories.v2_workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt,
+            factories.workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt,
                 extra_data=dict(test_var_one='', test_var_two='four', test_var_three='abc',
                                 test_var_four='1', test_var_five='four', test_var_six='asdfasdf',
                                 test_var_seven='$encrypted$', test_var_eight='$encrypted$',
@@ -308,10 +308,10 @@ class Test_Workflow_Nodes(APITest):
             "'test_var_six' value asdfasdf is too large (must be no more than 4)."])
 
     def test_node_encrypted_extra_data(self, factories):
-        wfjt = factories.v2_workflow_job_template()
-        jt = factories.v2_job_template()
+        wfjt = factories.workflow_job_template()
+        jt = factories.job_template()
         jt.add_survey(spec=self.spec_example())
-        factories.v2_workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt,
+        factories.workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt,
             extra_data=dict(
                 test_var_seven='$encrypted$', test_var_eight='f',
                 test_var_nine='foo', test_var_ten='zar',

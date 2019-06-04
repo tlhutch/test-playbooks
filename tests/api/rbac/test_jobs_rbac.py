@@ -17,7 +17,7 @@ class TestJobsRBAC(APITest):
                     v2.jobs.post()
 
     def test_relaunch_job_as_superuser(self, factories):
-        jt = factories.v2_job_template()
+        jt = factories.job_template()
         job = jt.launch().wait_until_completed()
         job.assert_successful()
 
@@ -25,8 +25,8 @@ class TestJobsRBAC(APITest):
         relaunched_job.assert_successful()
 
     def test_relaunch_job_as_organization_admin(self, factories):
-        jt1, jt2 = [factories.v2_job_template() for _ in range(2)]
-        user = factories.v2_user()
+        jt1, jt2 = [factories.job_template() for _ in range(2)]
+        user = factories.user()
         jt1.ds.inventory.ds.organization.set_object_roles(user, 'admin')
 
         job1 = jt1.launch().wait_until_completed()
@@ -42,8 +42,8 @@ class TestJobsRBAC(APITest):
                 job2.relaunch()
 
     def test_relaunch_as_organization_user(self, factories):
-        jt = factories.v2_job_template()
-        user = factories.v2_user()
+        jt = factories.job_template()
+        user = factories.user()
         jt.ds.inventory.ds.organization.set_object_roles(user, 'member')
 
         job = jt.launch().wait_until_completed()

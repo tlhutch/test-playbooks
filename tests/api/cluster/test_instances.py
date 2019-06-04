@@ -20,8 +20,8 @@ class TestInstances(APITest):
         ig.add_instance(instance)
         utils.poll_until(lambda: ig.get().instances == 1, interval=5, timeout=30)
 
-        jt = factories.v2_job_template()
-        factories.v2_host(inventory=jt.ds.inventory)
+        jt = factories.job_template()
+        factories.host(inventory=jt.ds.inventory)
         jt.add_instance_group(ig)
 
         request.addfinalizer(lambda: instance.patch(enabled=True))
@@ -36,7 +36,7 @@ class TestInstances(APITest):
         instance = v2.instances.get(rampart_groups__controller__isnull=True).results.pop()
         ig.add_instance(instance)
 
-        jt = factories.v2_job_template()
+        jt = factories.job_template()
         jt.add_instance_group(ig)
 
         request.addfinalizer(lambda: instance.patch(enabled=True))
@@ -52,7 +52,7 @@ class TestInstances(APITest):
     def test_jobs_should_resume_on_newly_associated_instances(self, request, v2, factories):
         ig = factories.instance_group()  # remains empty until later in test after launch
 
-        jt = factories.v2_job_template()
+        jt = factories.job_template()
         jt.add_instance_group(ig)
 
         job = jt.launch()
@@ -73,8 +73,8 @@ class TestInstances(APITest):
         ig.add_instance(instance)
         utils.poll_until(lambda: ig.related.instances.get(version=tower_version).count == 1, timeout=30)
 
-        jt = factories.v2_job_template(playbook='sleep.yml', extra_vars='{"sleep_interval": 30}')
-        factories.v2_host(inventory=jt.ds.inventory)
+        jt = factories.job_template(playbook='sleep.yml', extra_vars='{"sleep_interval": 30}')
+        factories.host(inventory=jt.ds.inventory)
         jt.add_instance_group(ig)
 
         job = jt.launch()

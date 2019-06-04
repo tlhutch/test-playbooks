@@ -11,19 +11,19 @@ from tests.api import APITest
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestWorkflowJobTemplateNodeRBAC(APITest):
     def test_credential_association_requires_wfjt_admin_and_jt_execute(self, factories):
-        wfjt = factories.v2_workflow_job_template()
-        jt = factories.v2_job_template(ask_credential_on_launch=True)
-        wfjtn = factories.v2_workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt)
+        wfjt = factories.workflow_job_template()
+        jt = factories.job_template(ask_credential_on_launch=True)
+        wfjtn = factories.workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt)
         wfjtn.remove_all_credentials()
 
         org = jt.ds.inventory.ds.organization
-        ssh_cred = factories.v2_credential(organization=org)
-        vault_cred = factories.v2_credential(kind='vault', organization=org, inputs=dict(vault_password='fake'))
-        aws_cred, vmware_cred = [factories.v2_credential(kind=kind, organization=org) for kind in ('aws', 'vmware')]
+        ssh_cred = factories.credential(organization=org)
+        vault_cred = factories.credential(kind='vault', organization=org, inputs=dict(vault_password='fake'))
+        aws_cred, vmware_cred = [factories.credential(kind=kind, organization=org) for kind in ('aws', 'vmware')]
         creds = (ssh_cred, vault_cred, aws_cred, vmware_cred)
         cred_ids = [cred.id for cred in creds]
 
-        user = factories.v2_user()
+        user = factories.user()
         org.set_object_roles(user, 'member')
         for cred in creds:
             cred.set_object_roles(user, 'admin')

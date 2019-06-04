@@ -81,7 +81,7 @@ class TestEnterpriseLicense(LicenseTest):
         v2.activity_stream.get()
 
     def test_able_to_create_workflow_job_template(self, factories):
-        factories.v2_workflow_job_template()
+        factories.workflow_job_template()
 
     def test_activity_stream_settings(self, api_settings_system_pg):
         """Verify that activity stream flags are visible with an enterprise license."""

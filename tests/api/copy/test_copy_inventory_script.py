@@ -12,6 +12,6 @@ class Test_Copy_Inventory_Script(APITest):
     unequal_fields = ['id', 'created', 'modified']
 
     def test_copy_normal(self, copy_with_teardown, factories):
-        v2_inventory_script = factories.v2_inventory_script()
+        v2_inventory_script = factories.inventory_script()
         new_inventory_script = copy_with_teardown(v2_inventory_script)
         check_fields(v2_inventory_script, new_inventory_script, self.identical_fields, self.unequal_fields)

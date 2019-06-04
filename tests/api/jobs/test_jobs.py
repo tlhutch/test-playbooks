@@ -192,10 +192,10 @@ class Test_Job(APITest):
     def test_relaunch_with_different_custom_credential(self, request, v2, factories):
         """Verify relaunching a job when a custom credential associated with the template
         has been changed to another of the same type"""
-        jt = factories.v2_job_template()
+        jt = factories.job_template()
         custom_cred_type = factories.credential_type()
 
-        custom_cred1, custom_cred2 = [factories.v2_credential(credential_type=custom_cred_type) for _ in range(2)]
+        custom_cred1, custom_cred2 = [factories.credential(credential_type=custom_cred_type) for _ in range(2)]
         jt.add_extra_credential(custom_cred1)
 
         job = jt.launch().wait_until_completed()
@@ -255,7 +255,7 @@ class Test_Job(APITest):
         secret = fauxfactory.gen_utf8()
         user = fauxfactory.gen_utf8()
         base_url = 'example.com'
-        cred = factories.v2_credential(credential_type=cred_type, inputs={
+        cred = factories.credential(credential_type=cred_type, inputs={
                             "url_with_creds": f"https://{user}:{secret}@{base_url}",
                             "base_url": base_url,
                             "password": secret,
@@ -277,13 +277,13 @@ class Test_Job(APITest):
         assert JOB_ENV_SECRET_REPLACEMENT in job_env.get(URL_WITH_CREDS)
 
     def test_relaunch_with_vault_credential_only(self, request, factories, v2):
-        vault_credential = factories.v2_credential(kind='vault', vault_password='tower')
-        jt = factories.v2_job_template(playbook='vaulted_debug_hostvars.yml')
+        vault_credential = factories.credential(kind='vault', vault_password='tower')
+        jt = factories.job_template(playbook='vaulted_debug_hostvars.yml')
         jt.remove_all_credentials()
         jt.add_credential(vault_credential)
         # sanity check we only have vault credential
         assert jt.related.credentials.get().count == 1
-        factories.v2_host(inventory=jt.ds.inventory)
+        factories.host(inventory=jt.ds.inventory)
 
         job = jt.launch().wait_until_completed()
         job.assert_successful()
@@ -386,9 +386,9 @@ class Test_Job(APITest):
             (relaunch_extra_vars, job_extra_vars)
 
     def test_cannot_relaunch_with_inventory_with_pending_deletion(self, factories):
-        jt = factories.v2_job_template()
+        jt = factories.job_template()
         inv = jt.ds.inventory
-        factories.v2_host(inventory=inv)
+        factories.host(inventory=inv)
 
         job = jt.launch().wait_until_completed()
         job.assert_successful()
@@ -399,7 +399,7 @@ class Test_Job(APITest):
         assert e.value[1]['errors'] == ['Job Template Inventory is missing or undefined.']
 
     def test_relaunched_jobs_are_based_on_source_template_with_prompts(self, factories):
-        jt = factories.v2_job_template(ask_limit_on_launch=True)
+        jt = factories.job_template(ask_limit_on_launch=True)
         job = jt.launch(payload=dict(limit='foobar')).wait_until_completed()
         job.assert_successful()
         assert json.loads(job.extra_vars) == {}
@@ -411,7 +411,7 @@ class Test_Job(APITest):
         assert relaunched_job.limit == "foobar"
 
     def test_superuser_can_relaunch_orphan_jobs(self, factories):
-        jt = factories.v2_job_template(
+        jt = factories.job_template(
             limit='foobar',
             job_tags='bar,foo'
         )
@@ -426,7 +426,7 @@ class Test_Job(APITest):
         assert relaunched_job.job_tags == 'bar,foo'
 
     def test_other_users_cannot_relaunch_orphan_jobs(self, factories, non_superuser):
-        jt = factories.v2_job_template()
+        jt = factories.job_template()
         jt.set_object_roles(non_superuser, 'admin')
 
         with self.current_user(non_superuser):
@@ -446,8 +446,8 @@ class Test_Job(APITest):
         else:
             num_failed_hosts = 2
 
-        jt = factories.v2_job_template(playbook='gen_host_status.yml')
-        hosts = [factories.v2_host(name=name, inventory=jt.ds.inventory, variables={}) for name in
+        jt = factories.job_template(playbook='gen_host_status.yml')
+        hosts = [factories.host(name=name, inventory=jt.ds.inventory, variables={}) for name in
                  ('1_ok', '2_skipped', '3_changed', '4_failed', '5_ignored', '6_rescued', '7_unreachable')]
 
         job = jt.launch().wait_until_completed()
@@ -542,8 +542,8 @@ class Test_Job(APITest):
                                            'failures': 0,
                                            'rescued': 1}
                                            }
-        jt = factories.v2_job_template(playbook='gen_host_status.yml')
-        [factories.v2_host(name=name, inventory=jt.ds.inventory, variables={}) for name in
+        jt = factories.job_template(playbook='gen_host_status.yml')
+        [factories.host(name=name, inventory=jt.ds.inventory, variables={}) for name in
                  ('1_ok', '2_skipped', '3_changed', '4_failed', '5_ignored', '6_rescued')]
         job = jt.launch().wait_until_completed()
         assert not job.is_successful
@@ -579,8 +579,8 @@ class Test_Job(APITest):
                "Undesired values for extra_vars detected: {0}".format(extra_vars))
 
     def test_survey_defaults_must_meet_length_requirements(self, factories):
-        host = factories.v2_host()
-        jt = factories.v2_job_template(inventory=host.ds.inventory)
+        host = factories.host()
+        jt = factories.job_template(inventory=host.ds.inventory)
         spec = [dict(required=False, question_name="Text-default too short.",
                      variable='test_var_one', type='text', min=7, default=''),
                 dict(required=False, question_name="Text-default too long.",
@@ -614,8 +614,8 @@ class Test_Job(APITest):
                                                   test_var_eleven='$encrypted$')
 
     def test_passed_survey_defaults_must_meet_length_requirements(self, factories):
-        host = factories.v2_host()
-        jt = factories.v2_job_template(inventory=host.ds.inventory)
+        host = factories.host()
+        jt = factories.job_template(inventory=host.ds.inventory)
         spec = [dict(required=False, question_name="Text-default too short.",
                      variable='test_var_one', type='text', min=7, default=''),
                 dict(required=False, question_name="Text-default too long.",
@@ -655,7 +655,7 @@ class Test_Job(APITest):
              "'test_var_six' value asdfasdf is too large (must be no more than 4)."]
 
     def test_encrypted_disallowed_as_survey_default_answer(self, factories):
-        jt = factories.v2_job_template()
+        jt = factories.job_template()
         spec = [dict(required=True, question_name="With $encrypted$ as default.",
                      variable='test', type='password', default='$encrypted$')]
 
@@ -772,7 +772,7 @@ class Test_Job(APITest):
         org.add_admin(operator)
 
         orphaned_project = factories.project(organization=None)
-        cross_inventory = factories.v2_inventory(organization=factories.organization())
+        cross_inventory = factories.inventory(organization=factories.organization())
         job_template = factories.job_template(organization=org,
                                               project=orphaned_project,
                                               inventory=cross_inventory)

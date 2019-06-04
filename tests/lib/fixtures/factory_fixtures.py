@@ -190,23 +190,7 @@ def factory_namespace(request):
         team=FactoryFixture(request, TeamFactory),
         user=FactoryFixture(request, UserFactory),
         workflow_job_template=FactoryFixture(request, WorkflowJobTemplateFactory),
-        workflow_job_template_node=FactoryFixture(request, WorkflowJobTemplateNodeFactory),
-        v2_ad_hoc_command=FactoryFixture(request, AdHocCommandFactory),
-        v2_credential=FactoryFixture(request, CredentialFactory),
-        v2_group=FactoryFixture(request, GroupFactory),
-        v2_host=FactoryFixture(request, HostFactory),
-        v2_inventory=FactoryFixture(request, InventoryFactory),
-        v2_inventory_script=FactoryFixture(request, InventoryScriptFactory),
-        v2_inventory_source=FactoryFixture(request, InventorySourceFactory),
-        v2_job_template=FactoryFixture(request, JobTemplateFactory),
-        v2_label=FactoryFixture(request, LabelFactory),
-        v2_notification_template=FactoryFixture(request, NotificationTemplateFactory),
-        v2_organization=FactoryFixture(request, OrganizationFactory),
-        v2_project=FactoryFixture(request, ProjectFactory),
-        v2_team=FactoryFixture(request, TeamFactory),
-        v2_user=FactoryFixture(request, UserFactory),
-        v2_workflow_job_template=FactoryFixture(request, WorkflowJobTemplateFactory),
-        v2_workflow_job_template_node=FactoryFixture(request, WorkflowJobTemplateNodeFactory)
+        workflow_job_template_node=FactoryFixture(request, WorkflowJobTemplateNodeFactory)
     )
 
 

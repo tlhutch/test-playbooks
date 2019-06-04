@@ -37,7 +37,7 @@ class TestCredentials(APITest):
     def test_v2_ssh_credential_valid_payload_field_integrity(self, factories, v2, input_fields):
         cred_type = v2.credential_types.get(managed_by_tower=True, kind='ssh').results.pop()
         kwargs = {'name': fauxfactory.gen_utf8(), 'description': fauxfactory.gen_utf8()}
-        credential = factories.v2_credential(credential_type=cred_type, inputs=input_fields, **kwargs)
+        credential = factories.credential(credential_type=cred_type, inputs=input_fields, **kwargs)
 
         def validate_fields():
             for field in ('name', 'description'):
@@ -51,8 +51,8 @@ class TestCredentials(APITest):
 
     def test_team_credentials_are_organization_credentials(self, factories, v2):
         """confirm that a team credential's organization is sourced from the team"""
-        team_factory = factories.v2_team
-        cred_factory = factories.v2_credential
+        team_factory = factories.team
+        cred_factory = factories.credential
 
         team = team_factory()
         credential = cred_factory(team=team, organization=None)
@@ -95,12 +95,12 @@ class TestCredentials(APITest):
         """Confirms that a credential with a missing required field causes the
         job prestart check to fail.
         """
-        payload = factories.v2_credential.payload(kind='openstack_v3')
+        payload = factories.credential.payload(kind='openstack_v3')
         del payload.inputs['project'] # required for openstack
         cred = v2.credentials.post(payload)
         request.addfinalizer(cred.silent_delete)
 
-        jt = factories.v2_job_template()
+        jt = factories.job_template()
         jt.add_credential(cred)
         job = jt.launch().wait_until_completed()
 
@@ -112,7 +112,7 @@ class TestCredentials(APITest):
     def test_invalid_ssh_key_data_creation_attempt(self, request, factories):
 
         with pytest.raises(exc.BadRequest) as e:
-            factories.v2_credential(kind='ssh', ssh_key_data='NotAnRSAKey')
+            factories.credential(kind='ssh', ssh_key_data='NotAnRSAKey')
 
         error = e.value.msg.get('inputs', e.value.msg)
         assert error == {'ssh_key_data': ['Invalid certificate or key: NotAnRSAKey...']}
@@ -125,8 +125,8 @@ class TestCredentials(APITest):
     ], ids=["ssh-passphrase", "ssh-ASK", "net-passphrase", "net-ASK"])
     def test_ssh_key_unlock_with_unencrypted_key_data(self, v2, factories, kind, ssh_key_unlock):
         """Credentials with unencrypted key data should reject both passphrases and passphrase-ASK."""
-        user = factories.v2_user()
-        payload = factories.v2_credential.payload(kind=kind, user=user, ssh_key_unlock=ssh_key_unlock)
+        user = factories.user()
+        payload = factories.credential.payload(kind=kind, user=user, ssh_key_unlock=ssh_key_unlock)
 
         with pytest.raises(exc.BadRequest) as e:
             v2.credentials.post(payload)
@@ -139,14 +139,14 @@ class TestCredentials(APITest):
                               'git@github.com:/ansible/tower-qa.git']],
                              ids=['by unencrypted key', 'by encrypted key'])
     def test_scm_credential_with_private_github_repo(self, factories, cred_args, scm_url):
-        scm_cred = factories.v2_credential(kind='scm', **cred_args)
-        project = factories.v2_project(scm_url=scm_url, credential=scm_cred)
+        scm_cred = factories.credential(kind='scm', **cred_args)
+        project = factories.project(scm_url=scm_url, credential=scm_cred)
         project.assert_successful()
         assert len(project.related.playbooks.get().json)
 
     @pytest.mark.parametrize('cred_type', ['Machine', 'Vault'])
     def test_changing_credential_types_only_allowed_for_unused_credentials(self, factories, v2, cred_type):
-        cred = factories.v2_credential(kind='insights')
+        cred = factories.credential(kind='insights')
         insights_type_id = cred.credential_type
 
         cred_type_id = v2.credential_types.get(name=cred_type).results.pop().id
@@ -157,11 +157,11 @@ class TestCredentials(APITest):
         cred.patch(**payload)
         assert cred.credential_type == cred_type_id
 
-        project = factories.v2_project()
+        project = factories.project()
         if cred_type == 'Machine':
-            factories.v2_job_template(project=project, credential=cred)
+            factories.job_template(project=project, credential=cred)
         else:
-            factories.v2_job_template(project=project, vault_credential=cred.id)
+            factories.job_template(project=project, vault_credential=cred.id)
 
         with pytest.raises(exc.BadRequest) as e:
             cred.credential_type = insights_type_id
@@ -169,10 +169,10 @@ class TestCredentials(APITest):
         assert cred.credential_type == cred_type_id
 
     def test_changing_extra_credential_types_only_allowed_for_unused_credentials(self, factories, v2):
-        cred = factories.v2_credential(kind='aws')
+        cred = factories.credential(kind='aws')
         aws_type_id = cred.credential_type
 
-        jt = factories.v2_job_template()
+        jt = factories.job_template()
         jt.add_extra_credential(cred)
 
         machine_type_id = v2.credential_types.get(name='Machine').results.pop().id
@@ -183,7 +183,7 @@ class TestCredentials(APITest):
         assert cred.credential_type == aws_type_id
 
     def test_confirm_boto_exception_in_ec2_inv_sync_without_credential(self, factories):
-        inv_source = factories.v2_inventory_source(source='ec2')
+        inv_source = factories.inventory_source(source='ec2')
         assert not inv_source.credential
         update = inv_source.update().wait_until_completed()
         assert update.failed
@@ -191,7 +191,7 @@ class TestCredentials(APITest):
 
     @pytest.mark.mp_group(group="get_pg_dump", strategy="serial")
     def test_confirm_no_plaintext_secrets_in_db(self, skip_if_cluster, v2, factories, get_pg_dump):
-        cred_payloads = [factories.v2_credential.payload(kind=k) for k in ('aws', 'azure_rm', 'gce', 'net', 'ssh')]
+        cred_payloads = [factories.credential.payload(kind=k) for k in ('aws', 'azure_rm', 'gce', 'net', 'ssh')]
         secrets = set()
         for payload in cred_payloads:
             for field in ('password', 'ssh_key_data', 'authorize_password', 'become_password', 'secret'):
@@ -215,7 +215,7 @@ class TestCredentials(APITest):
     @pytest.mark.mp_group(group="get_pg_dump", strategy="serial")
     def test_confirm_desired_encryption_schemes_in_db(self, skip_if_cluster, v2, factories, get_pg_dump):
         for kind in ('aws', 'azure_rm', 'gce', 'net', 'ssh'):
-            factories.v2_credential(kind=kind)
+            factories.credential(kind=kind)
 
         encrypted_content_pat = re.compile(r'\$encrypted\$[a-zA-Z0-9$]*=*')
         encrypted_content = encrypted_content_pat.findall(get_pg_dump())

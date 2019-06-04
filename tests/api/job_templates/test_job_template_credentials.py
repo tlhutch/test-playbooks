@@ -16,16 +16,16 @@ log = logging.getLogger(__name__)
 class TestJobTemplateCredentials(APITest):
 
     def test_job_template_creation_without_credential(self, factories):
-        jt = factories.v2_job_template()
+        jt = factories.job_template()
         jt.remove_all_credentials()
 
     def test_job_template_cannot_have_multiple_same_type(self, factories):
         ct = factories.credential_type()
-        cred1 = factories.v2_credential(credential_type=ct)
-        cred2 = factories.v2_credential(credential_type=ct)
+        cred1 = factories.credential(credential_type=ct)
+        cred2 = factories.credential(credential_type=ct)
         assert cred1.credential_type == cred2.credential_type
 
-        jt = factories.v2_job_template(credential=None)
+        jt = factories.job_template(credential=None)
         jt.add_credential(cred1)
         with pytest.raises(exc.BadRequest) as e:
             jt.add_credential(cred2)
@@ -131,7 +131,7 @@ class TestJobTemplateLaunchCredentials(APITest):
     @pytest.mark.ansible_integration
     def test_launch_with_bad_become_plugin(self, factories, ansible_version_cmp):
         cred = factories.credential(kind='ssh', become_method='foobar')
-        jt = factories.v2_job_template(credential=cred, playbook='become.yml')
+        jt = factories.job_template(credential=cred, playbook='become.yml')
 
         job = jt.launch().wait_until_completed()
 
@@ -147,7 +147,7 @@ class TestJobTemplateLaunchCredentials(APITest):
         """Ensure sudo is used when no become plugin is specified."""
 
         cred = factories.credential(kind='ssh')
-        jt = factories.v2_job_template(credential=cred, playbook='become.yml')
+        jt = factories.job_template(credential=cred, playbook='become.yml')
         job = jt.launch().wait_until_completed()
         assert ' --become ' not in job.job_args[0]
         assert 'sudo' in job.result_stdout
@@ -158,7 +158,7 @@ class TestJobTemplateLaunchCredentials(APITest):
         """Ensure ansible built-in become plugins can be used."""
 
         cred = factories.credential(kind='ssh', become_method=become_plugin)
-        jt = factories.v2_job_template(credential=cred, playbook='become.yml')
+        jt = factories.job_template(credential=cred, playbook='become.yml')
         job = jt.launch().wait_until_completed()
         playbook_error = "Invalid become method specified, could not find matching plugin: '%s'" % become_plugin
 
@@ -169,20 +169,20 @@ class TestJobTemplateLaunchCredentials(APITest):
         """Ensure custom become plugins can be used."""
 
         cred = factories.credential(kind='ssh', become_method='custom_plugin', become_username='awx')
-        jt = factories.v2_job_template(credential=cred, playbook='become.yml')
+        jt = factories.job_template(credential=cred, playbook='become.yml')
         job = jt.launch().wait_until_completed()
         job.assert_successful()
 
     @pytest.mark.yolo
     def test_launch_with_multiple_credentials(self, v2, factories, custom_cloud_credentials, custom_network_credentials):
-        machine_cred = factories.v2_credential()
-        vault_cred1 = factories.v2_credential(kind='vault', vault_password='tower', vault_id='vault1')
-        vault_cred2 = factories.v2_credential(kind='vault', vault_password='tower', vault_id='vault2')
+        machine_cred = factories.credential()
+        vault_cred1 = factories.credential(kind='vault', vault_password='tower', vault_id='vault1')
+        vault_cred2 = factories.credential(kind='vault', vault_password='tower', vault_id='vault2')
 
         creds = [machine_cred, vault_cred1, vault_cred2]
         creds.extend([c for c in custom_cloud_credentials])
         creds.extend([c for c in custom_network_credentials])
-        jt = factories.v2_job_template(credential=None, ask_credential_on_launch=True)
+        jt = factories.job_template(credential=None, ask_credential_on_launch=True)
         jt.ds.inventory.add_host()
         job = jt.launch(dict(credentials=[c.id for c in creds]))
         job.wait_until_completed().assert_successful()
@@ -194,14 +194,14 @@ class TestJobTemplateLaunchCredentials(APITest):
     def test_launch_with_multiple_credentials_but_ask_credential_on_launch_false(self, v2, factories,
                                                                                  custom_cloud_credentials,
                                                                                  custom_network_credentials):
-        machine_cred = factories.v2_credential()
-        vault_cred1 = factories.v2_credential(kind='vault', vault_password='tower', vault_id='vault1')
-        vault_cred2 = factories.v2_credential(kind='vault', vault_password='tower', vault_id='vault2')
+        machine_cred = factories.credential()
+        vault_cred1 = factories.credential(kind='vault', vault_password='tower', vault_id='vault1')
+        vault_cred2 = factories.credential(kind='vault', vault_password='tower', vault_id='vault2')
 
         creds = [machine_cred, vault_cred1, vault_cred2]
         creds.extend([c for c in custom_cloud_credentials])
         creds.extend([c for c in custom_network_credentials])
-        jt = factories.v2_job_template(credential=None)
+        jt = factories.job_template(credential=None)
         jt.ds.inventory.add_host()
         job = jt.launch(dict(credentials=[c.id for c in creds]))
         job.wait_until_completed().assert_successful()
@@ -209,11 +209,11 @@ class TestJobTemplateLaunchCredentials(APITest):
 
     @pytest.mark.yolo
     def test_provide_additional_vault_credential_on_launch(self, v2, factories):
-        jt = factories.v2_job_template(credential=None, ask_credential_on_launch=True)
+        jt = factories.job_template(credential=None, ask_credential_on_launch=True)
         jt.ds.inventory.add_host()
 
-        vault_cred1 = factories.v2_credential(kind='vault', vault_password='tower', vault_id='vault1')
-        vault_cred2 = factories.v2_credential(kind='vault', vault_password='tower', vault_id='vault2')
+        vault_cred1 = factories.credential(kind='vault', vault_password='tower', vault_id='vault1')
+        vault_cred2 = factories.credential(kind='vault', vault_password='tower', vault_id='vault2')
         jt.add_credential(vault_cred1)
 
         with pytest.raises(exc.BadRequest) as e:
@@ -235,9 +235,9 @@ class TestJobTemplateVaultCredentials(APITest):
 
     @pytest.mark.parametrize('v, cred_args', [['v2', dict(kind='vault', vault_password='tower')]])
     def test_decrypt_vaulted_playbook_with_vault_credential(self, factories, v, cred_args):
-        host_factory = factories.v2_host
-        cred_factory = factories.v2_credential
-        jt_factory = factories.v2_job_template
+        host_factory = factories.host
+        cred_factory = factories.credential
+        jt_factory = factories.job_template
 
         host = host_factory()
         jt = jt_factory(inventory=host.ds.inventory, playbook='vaulted_debug_hostvars.yml')
@@ -254,9 +254,9 @@ class TestJobTemplateVaultCredentials(APITest):
 
     def test_decrypt_vaulted_playbook_with_lone_ask_on_launch_vault_credential(self, factories):
         cred_args = dict(kind='vault', vault_password='ASK')
-        host_factory = factories.v2_host
-        cred_factory = factories.v2_credential
-        jt_factory = factories.v2_job_template
+        host_factory = factories.host
+        cred_factory = factories.credential
+        jt_factory = factories.job_template
 
         host = host_factory()
         vault_cred = cred_factory(**cred_args)
@@ -276,16 +276,16 @@ class TestJobTemplateVaultCredentials(APITest):
         assert list(debug_tasks[0].event_data.res.hostvars.keys()) == [host.name]
 
     def test_decrypt_vaulted_playbook_with_multiple_vault_credentials(self, factories):
-        host = factories.v2_host()
-        jt = factories.v2_job_template(
+        host = factories.host()
+        jt = factories.job_template(
             inventory=host.ds.inventory,
             playbook='multivault.yml',
             extra_vars='{"with_dotted": 1}'
         )
 
-        vault_cred1 = factories.v2_credential(kind='vault', vault_password='secret1', vault_id='first')
-        vault_cred2 = factories.v2_credential(kind='vault', vault_password='secret2', vault_id='second')
-        vault_cred3 = factories.v2_credential(kind='vault', vault_password='secret3', vault_id='dotted.id')
+        vault_cred1 = factories.credential(kind='vault', vault_password='secret1', vault_id='first')
+        vault_cred2 = factories.credential(kind='vault', vault_password='secret2', vault_id='second')
+        vault_cred3 = factories.credential(kind='vault', vault_password='secret3', vault_id='dotted.id')
         jt.add_credential(vault_cred1)
         jt.add_credential(vault_cred2)
         jt.add_credential(vault_cred3)
@@ -301,16 +301,16 @@ class TestJobTemplateVaultCredentials(APITest):
 
     @pytest.mark.yolo
     def test_decrypt_vaulted_playbook_with_multiple_ask_on_launch_vault_credentials(self, factories):
-        host = factories.v2_host()
-        jt = factories.v2_job_template(
+        host = factories.host()
+        jt = factories.job_template(
             inventory=host.ds.inventory,
             playbook='multivault.yml',
             extra_vars='{"with_dotted": 1}'
         )
 
-        vault_cred1 = factories.v2_credential(kind='vault', vault_password='ASK', vault_id='first')
-        vault_cred2 = factories.v2_credential(kind='vault', vault_password='ASK', vault_id='second')
-        vault_cred3 = factories.v2_credential(kind='vault', vault_password='ASK', vault_id='dotted.id')
+        vault_cred1 = factories.credential(kind='vault', vault_password='ASK', vault_id='first')
+        vault_cred2 = factories.credential(kind='vault', vault_password='ASK', vault_id='second')
+        vault_cred3 = factories.credential(kind='vault', vault_password='ASK', vault_id='dotted.id')
         jt.add_credential(vault_cred1)
         jt.add_credential(vault_cred2)
         jt.add_credential(vault_cred3)
@@ -338,9 +338,9 @@ class TestJobTemplateVaultCredentials(APITest):
         assert any('Dotted!' in task.stdout for task in debug_tasks)
 
     def test_cannot_assign_multiple_vault_credentials_with_same_vault_id(self, factories):
-        jt = factories.v2_job_template()
-        vault_cred1 = factories.v2_credential(kind='vault', vault_password='secret1', vault_id='foo')
-        vault_cred2 = factories.v2_credential(kind='vault', vault_password='secret2', vault_id='foo')
+        jt = factories.job_template()
+        vault_cred1 = factories.credential(kind='vault', vault_password='secret1', vault_id='foo')
+        vault_cred2 = factories.credential(kind='vault', vault_password='secret2', vault_id='foo')
         jt.add_credential(vault_cred1)
         with pytest.raises(exc.BadRequest) as e:
             jt.add_credential(vault_cred2)
@@ -350,13 +350,13 @@ class TestJobTemplateVaultCredentials(APITest):
 @pytest.fixture(scope='class')
 def custom_cloud_credentials(class_factories):
     cred_types = [class_factories.credential_type(kind='cloud') for _ in range(3)]
-    return [class_factories.v2_credential(credential_type=cred_type) for cred_type in cred_types]
+    return [class_factories.credential(credential_type=cred_type) for cred_type in cred_types]
 
 
 @pytest.fixture(scope='class')
 def custom_network_credentials(class_factories):
     cred_types = [class_factories.credential_type(kind='net') for _ in range(3)]
-    return [class_factories.v2_credential(credential_type=cred_type) for cred_type in cred_types]
+    return [class_factories.credential(credential_type=cred_type) for cred_type in cred_types]
 
 
 @pytest.fixture(scope='class', params=('custom_cloud_credentials', 'custom_network_credentials'))
@@ -368,8 +368,8 @@ def custom_extra_credentials(request):
 class TestJobTemplateExtraCredentials(APITest):
 
     def test_job_template_with_added_and_removed_custom_extra_credentials(self, factories, custom_extra_credentials):
-        ssh_cred = factories.v2_credential()
-        jt = factories.v2_job_template(credential=ssh_cred)
+        ssh_cred = factories.credential()
+        jt = factories.job_template(credential=ssh_cred)
 
         assert jt.related.extra_credentials.get().count == 0
 
@@ -393,10 +393,10 @@ class TestJobTemplateExtraCredentials(APITest):
         assert not jt_extra_credentials
 
     def test_confirm_scm_ssh_and_vault_credentials_disallowed(self, factories):
-        jt = factories.v2_job_template()
-        scm_cred = factories.v2_credential(kind='scm')
-        ssh_cred = factories.v2_credential()
-        vault_cred = factories.v2_credential(kind='vault', inputs=dict(vault_password='fake'))
+        jt = factories.job_template()
+        scm_cred = factories.credential(kind='scm')
+        ssh_cred = factories.credential()
+        vault_cred = factories.credential(kind='vault', inputs=dict(vault_password='fake'))
 
         for cred in (scm_cred, ssh_cred, vault_cred):
             with pytest.raises(exc.BadRequest) as e:
@@ -406,7 +406,7 @@ class TestJobTemplateExtraCredentials(APITest):
 
     @pytest.fixture(scope='class')
     def v2_job_template(self, class_factories):
-        return class_factories.v2_job_template()
+        return class_factories.job_template()
 
     @pytest.mark.parametrize('credential_kind, kind_name',
                              [('aws', 'Amazon Web Services'),
@@ -419,7 +419,7 @@ class TestJobTemplateExtraCredentials(APITest):
                               ('vmware', 'VMware vCenter')])
     def test_confirm_only_single_managed_by_tower_extra_credential_allowed(self, factories, v2_job_template,
                                                                            credential_kind, kind_name):
-        cred_one, cred_two = [factories.v2_credential(kind=credential_kind) for _ in range(2)]
+        cred_one, cred_two = [factories.credential(kind=credential_kind) for _ in range(2)]
 
         v2_job_template.add_extra_credential(cred_one)
 
@@ -436,11 +436,11 @@ class TestJobTemplateExtraCredentials(APITest):
         assert cred_two.id in [c.id for c in v2_job_template.related.extra_credentials.get().results]
 
     def test_confirm_extra_credentials_injectors_are_sourced(self, request, factories):
-        host = factories.v2_host()
-        jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='ansible_env.yml')
+        host = factories.host()
+        jt = factories.job_template(inventory=host.ds.inventory, playbook='ansible_env.yml')
 
-        cloud_credentials = [factories.v2_credential(kind=cred_type) for cred_type in ('aws', 'gce')]
-        cloud_credentials.append(factories.v2_credential(kind='azure_rm', cloud_environment='SomeEnvironment'))
+        cloud_credentials = [factories.credential(kind=cred_type) for cred_type in ('aws', 'gce')]
+        cloud_credentials.append(factories.credential(kind='azure_rm', cloud_environment='SomeEnvironment'))
         for cred in cloud_credentials:
             jt.add_extra_credential(cred)
 
@@ -477,11 +477,11 @@ class TestJobTemplateExtraCredentials(APITest):
         for inp, inj in zip([input_one, input_two, input_three, input_four],
                             [injector_one, injector_two, injector_three, injector_four]):
             ct = factories.credential_type(inputs=inp, injectors=inj)
-            credentials.append(factories.v2_credential(credential_type=ct,
+            credentials.append(factories.credential(credential_type=ct,
                                                        inputs={inp['fields'][0]['id']: desired_value}))
 
-        host = factories.v2_host()
-        jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='ansible_env.yml',
+        host = factories.host()
+        jt = factories.job_template(inventory=host.ds.inventory, playbook='ansible_env.yml',
                                        ask_credential_on_launch=True)
 
         job = jt.launch(dict(extra_credentials=[cred.id for cred in credentials])).wait_until_completed()
@@ -493,11 +493,11 @@ class TestJobTemplateExtraCredentials(APITest):
             assert getattr(ansible_env, var) == desired_value
 
     def test_confirm_extra_credentials_injectors_are_sourced_with_vault_credentials(self, request, factories):
-        host = factories.v2_host()
-        jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='vaulted_ansible_env.yml')
-        jt.add_credential(factories.v2_credential(kind='vault', vault_password='tower'))
+        host = factories.host()
+        jt = factories.job_template(inventory=host.ds.inventory, playbook='vaulted_ansible_env.yml')
+        jt.add_credential(factories.credential(kind='vault', vault_password='tower'))
 
-        cloud_credentials = [factories.v2_credential(kind=cred_type) for cred_type in ('aws', 'azure_rm', 'gce')]
+        cloud_credentials = [factories.credential(kind=cred_type) for cred_type in ('aws', 'azure_rm', 'gce')]
         for cred in cloud_credentials:
             jt.add_extra_credential(cred)
 
@@ -521,7 +521,7 @@ class TestJobTemplateExtraCredentials(APITest):
 class TestJobTemplateRelatedCredentials(APITest):
 
     def test_add_extra_credentials_check_related_credentials(self, factories, custom_extra_credentials):
-        jt = factories.v2_job_template(credential=None)
+        jt = factories.job_template(credential=None)
         for cred in custom_extra_credentials:
             jt.add_extra_credential(cred)
 

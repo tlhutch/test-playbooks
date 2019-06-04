@@ -87,7 +87,7 @@ class TestNamedURLs(APITest):
         assert settings['NAMED_URL_FORMATS'] == expected
 
     def test_organization_host_inventory(self, factories):
-        host = factories.v2_host()
+        host = factories.host()
         inventory = host.ds.inventory
         organization = inventory.ds.organization
 
@@ -99,7 +99,7 @@ class TestNamedURLs(APITest):
         self.assert_resource_available_by_name(inventory, inventory_url)
 
     def test_credential_types_credentials_user(self, admin_user, factories):
-        cred = factories.v2_credential(name="network credentials-named-urls-test",
+        cred = factories.credential(name="network credentials-named-urls-test",
                                        description="network credential - named urls test",
                                        kind='net', user=admin_user, ssh_key_data=None, authorize_password=None)
         cred_type = cred.ds.credential_type
@@ -121,11 +121,11 @@ class TestNamedURLs(APITest):
         self.assert_resource_available_by_name(ssh_credential, cred_url)
 
     def test_groups_inventory_sources_inventory_scripts(self, factories):
-        source = factories.v2_inventory_source()
+        source = factories.inventory_source()
         inv_script = source.ds.inventory_script
         org = inv_script.ds.organization
         inventory = source.ds.inventory
-        group = factories.v2_group(inventory=inventory)
+        group = factories.group(inventory=inventory)
         # manually update the inventory as we have changed it by creating the group
         inventory.get()
 
@@ -153,8 +153,8 @@ class TestNamedURLs(APITest):
         self.assert_resource_available_by_name(instance_group, instance_group_url)
 
     def test_templates(self, factories):
-        template = factories.v2_job_template()
-        workflow_template = factories.v2_workflow_job_template()
+        template = factories.job_template()
+        workflow_template = factories.workflow_job_template()
 
         template_url = make_api_url('job_templates', '{1}', template.name)
         # Note that this workflow_template has a null organization
@@ -163,38 +163,38 @@ class TestNamedURLs(APITest):
         self.assert_resource_available_by_name(workflow_template, workflow_template_url)
 
         # add an organization to the workflow template
-        org = factories.v2_organization()
+        org = factories.organization()
         workflow_template.organization = org.id
         workflow_template_url = make_api_url('workflow_job_templates', '{1}++{2}', workflow_template.name, org.name)
         self.assert_resource_available_by_name(workflow_template, workflow_template_url)
 
     def test_labels(self, factories):
-        label = factories.v2_label()
+        label = factories.label()
         org = label.ds.organization
         label_url = make_api_url('labels', '{1}++{2}', label.name, org.name)
         self.assert_resource_available_by_name(label, label_url)
 
     def test_notification_templates(self, factories):
-        template = factories.v2_notification_template(notification_type="email")
+        template = factories.notification_template(notification_type="email")
         org = template.ds.organization
         template_url = make_api_url('notification_templates', '{1}++{2}', template.name, org.name)
         self.assert_resource_available_by_name(template, template_url)
 
     def test_projects(self, factories):
-        project = factories.v2_project()
+        project = factories.project()
         org = project.ds.organization
         project_url = make_api_url('projects', '{1}++{2}', project.name, org.name)
         self.assert_resource_available_by_name(project, project_url)
 
     def test_teams(self, factories):
-        team = factories.v2_team()
+        team = factories.team()
         org = team.ds.organization
         team_url = make_api_url('teams', '{1}++{2}', team.name, org.name)
         self.assert_resource_available_by_name(team, team_url)
 
     def test_named_url_related_resource(self, factories):
         # related resources should be accessible via the named url
-        host = factories.v2_host()
+        host = factories.host()
         inventory = host.ds.inventory
         org = inventory.ds.organization
 
@@ -207,7 +207,7 @@ class TestNamedURLs(APITest):
     def test_integer_names(self, factories):
         # integer names should not be accessible by named url.
         username = "912345"
-        user = factories.v2_user(username=username)
+        user = factories.user(username=username)
         user_url = make_api_url('users', '{1}', username)
         with pytest.raises(towerkit.exceptions.NotFound):
             user.walk(user_url)

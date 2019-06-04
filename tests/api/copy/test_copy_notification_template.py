@@ -17,10 +17,10 @@ class Test_Copy_Notification_Template(APITest):
     def test_copy_normal(self, factories, copy_with_teardown, notification_type):
         if notification_type == 'webhook':
             headers = {gen_utf8(): gen_utf8(), gen_utf8(): gen_utf8()}
-            v2_notification_template = factories.v2_notification_template(notification_type=notification_type,
+            v2_notification_template = factories.notification_template(notification_type=notification_type,
                                                                           headers=headers)
         else:
-            v2_notification_template = factories.v2_notification_template(notification_type=notification_type)
+            v2_notification_template = factories.notification_template(notification_type=notification_type)
 
         new_notification_template = copy_with_teardown(v2_notification_template)
         check_fields(v2_notification_template, new_notification_template, self.identical_fields, self.unequal_fields)

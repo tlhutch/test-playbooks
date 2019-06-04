@@ -217,8 +217,8 @@ class Test_Organization_RBAC(APITest):
         org_admin = factories.user()
         org.add_admin(org_admin)
 
-        inv1 = factories.v2_inventory(organization=org)
-        inv2 = factories.v2_inventory()
+        inv1 = factories.inventory(organization=org)
+        inv2 = factories.inventory()
 
         # ahc organization is determined by its inventory
         ahc1, ahc2 = [factories.ad_hoc_command(module_name='shell', module_args='true', inventory=inv).wait_until_completed()
@@ -253,14 +253,14 @@ class Test_Organization_RBAC(APITest):
         org_admin = factories.user()
         org1.add_admin(org_admin)
 
-        inv1 = factories.v2_inventory(organization=org1)
-        inv2 = factories.v2_inventory(organization=org2)
+        inv1 = factories.inventory(organization=org1)
+        inv2 = factories.inventory(organization=org2)
 
         # create custom groups
-        inv_script1 = factories.v2_inventory_script(organization=org1)
-        inv_script2 = factories.v2_inventory_script(organization=org2)
-        inv_source1 = factories.v2_inventory_source(inventory=inv1, source_script=inv_script1)
-        inv_source2 = factories.v2_inventory_source(inventory=inv2, source_script=inv_script2)
+        inv_script1 = factories.inventory_script(organization=org1)
+        inv_script2 = factories.inventory_script(organization=org2)
+        inv_source1 = factories.inventory_source(inventory=inv1, source_script=inv_script1)
+        inv_source2 = factories.inventory_source(inventory=inv2, source_script=inv_script2)
 
         inv_update1 = inv_source1.update().wait_until_completed()
         inv_update2 = inv_source2.update().wait_until_completed()
@@ -321,16 +321,16 @@ class Test_Organization_RBAC(APITest):
     @staticmethod
     def create_resource(factories, res_type, org, **kwargs):
         if res_type == 'inventory_source':
-            kwargs['source_script'] = factories.v2_inventory_script(organization=org)
+            kwargs['source_script'] = factories.inventory_script(organization=org)
         if res_type == 'job_template':
             # Would like to specify kwargs like 'project': (Project, {Organization: org})
             # but something about the towerkit dependency store does not work for that
             if not kwargs.get('project'):
-                kwargs['project'] = factories.v2_project(organization=org)
+                kwargs['project'] = factories.project(organization=org)
             if not kwargs.get('inventory'):
-                kwargs['inventory'] = factories.v2_inventory(organization=org)
+                kwargs['inventory'] = factories.inventory(organization=org)
             if not kwargs.get('credential'):
-                kwargs['credential'] = factories.v2_credential(organization=org)
+                kwargs['credential'] = factories.credential(organization=org)
         else:
             kwargs['organization'] = org
         return getattr(factories, 'v2_{}'.format(res_type))(**kwargs)
@@ -364,7 +364,7 @@ class Test_Organization_RBAC(APITest):
             creation_kwargs = {sub_resource_mapping.field: sub_resource}
         if sub_resource_mapping.resource_type == 'workflow_job_template_node':
             if sub_resource_mapping.field != 'workflow_job_template':
-                creation_kwargs['workflow_job_template'] = factories.v2_workflow_job_template(organization=orgB)
+                creation_kwargs['workflow_job_template'] = factories.workflow_job_template(organization=orgB)
             if sub_resource_mapping.field == 'inventory':
                 creation_kwargs['unified_job_template'] = self.create_resource(factories, 'job_template', orgB,
                                                                                ask_inventory_on_launch=True)
@@ -373,11 +373,11 @@ class Test_Organization_RBAC(APITest):
                                                                                ask_credential_on_launch=True)
         if sub_resource_mapping.resource_type == 'inventory_source':
             if sub_resource_mapping.field != 'inventory':
-                creation_kwargs['inventory'] = factories.v2_inventory(organization=orgB)
+                creation_kwargs['inventory'] = factories.inventory(organization=orgB)
             if sub_resource_mapping.field == 'project':
                 creation_kwargs['source'] = 'scm'
             if sub_resource_mapping.field == 'credential':
-                creation_kwargs['source_script'] = factories.v2_inventory_script(organization=orgB)
+                creation_kwargs['source_script'] = factories.inventory_script(organization=orgB)
         with self.current_user(user):
             with pytest.raises(towerkit.exceptions.Forbidden):
                 self.create_resource(factories, sub_resource_mapping.resource_type, orgB, **creation_kwargs)
@@ -446,7 +446,7 @@ class Test_Organization_RBAC(APITest):
     @pytest.mark.parametrize('agent', ['user', 'team'])
     def test_organization_resource_admins_can_grant_permissions_to_internal_users(self, factories, resource_mapping, agent, set_test_roles):
         org = factories.organization()
-        resource_admin, user = [factories.v2_user(
+        resource_admin, user = [factories.user(
             organization=o) for o in (None, org)]
         set_test_roles(resource_admin, org, agent, resource_mapping.resource_role)
 
@@ -462,7 +462,7 @@ class Test_Organization_RBAC(APITest):
     @pytest.mark.parametrize('agent', ['user', 'team'])
     def test_organization_resource_admins_cannot_grant_permissions_to_external_users(self, factories, resource_mapping, agent, set_test_roles):
         org = factories.organization()
-        resource_admin, user = [factories.v2_user(
+        resource_admin, user = [factories.user(
             organization=o) for o in (None, None)]
         set_test_roles(resource_admin, org, agent, resource_mapping.resource_role)
 
@@ -480,8 +480,8 @@ class Test_Organization_RBAC(APITest):
     @pytest.mark.parametrize('resource_mapping', org_resource_admin_mappings, ids=mapping_id)
     @pytest.mark.parametrize('agent', ['user', 'team'])
     def test_organization_resource_admins_cannot_modify_resources_in_other_orgs(self, factories, resource_mapping, agent, set_test_roles):
-        org1, org2 = [factories.v2_organization() for _ in range(2)]
-        resource_admin, user = [factories.v2_user(
+        org1, org2 = [factories.organization() for _ in range(2)]
+        resource_admin, user = [factories.user(
             organization=o) for o in (None, org2)]
 
         set_test_roles(resource_admin, org1, agent, resource_mapping.resource_role)
@@ -503,7 +503,7 @@ class Test_Organization_RBAC(APITest):
         """Grant a user resource admin rights, create a resource, remove user's role, and verify
         that they are not able to modify the resource"""
         org = factories.organization()
-        resource_admin, user = [factories.v2_user(
+        resource_admin, user = [factories.user(
             organization=org) for _ in range(2)]
         team = set_test_roles(resource_admin, org, agent, resource_mapping.resource_role)
 
@@ -518,30 +518,30 @@ class Test_Organization_RBAC(APITest):
             assert_response_raised(resource, http.client.FORBIDDEN)
 
     def test_workflow_admins_cannot_add_templates_to_workflows_without_permission(self, factories):
-        org = factories.v2_organization()
-        workflow_admin = factories.v2_user()
+        org = factories.organization()
+        workflow_admin = factories.user()
         org.set_object_roles(workflow_admin, 'Workflow Admin')
 
-        inv = factories.v2_inventory(organization=org)
-        jt = factories.v2_job_template(inventory=inv)
+        inv = factories.inventory(organization=org)
+        jt = factories.job_template(inventory=inv)
 
         with self.current_user(workflow_admin):
-            wfjt = factories.v2_workflow_job_template(organization=org)
+            wfjt = factories.workflow_job_template(organization=org)
             with pytest.raises(towerkit.exceptions.Forbidden):
-                factories.v2_workflow_job_template_node(
+                factories.workflow_job_template_node(
                     workflow_job_template=wfjt, unified_job_template=jt)
 
     def test_workflow_admins_can_only_modify_vars_on_nodes_with_permission(self, factories):
-        org = factories.v2_organization()
-        inv = factories.v2_inventory(organization=org)
+        org = factories.organization()
+        inv = factories.inventory(organization=org)
 
-        workflow_admin = factories.v2_user()
+        workflow_admin = factories.user()
         org.set_object_roles(workflow_admin, 'Workflow Admin')
 
-        jt = factories.v2_job_template(
+        jt = factories.job_template(
             inventory=inv, ask_variables_on_launch=True)
-        wfjt = factories.v2_workflow_job_template(organization=org)
-        wfnode = factories.v2_workflow_job_template_node(
+        wfjt = factories.workflow_job_template(organization=org)
+        wfnode = factories.workflow_job_template_node(
             workflow_job_template=wfjt, unified_job_template=jt)
         # Verify that the workflow admin can't modify extra vars on templates they don't
         # have access to
@@ -558,8 +558,8 @@ class Test_Organization_RBAC(APITest):
 
     @pytest.mark.parametrize('resource_mapping', org_resource_admin_mappings, ids=mapping_id)
     def test_normal_users_cannot_grant_roles(self, factories, resource_mapping):
-        org = factories.v2_organization()
-        user1, user2 = [factories.v2_user(organization=o) for o in (org, org)]
+        org = factories.organization()
+        user1, user2 = [factories.user(organization=o) for o in (org, org)]
         with self.current_user(user1):
             with pytest.raises(towerkit.exceptions.Forbidden):
                 org.set_object_roles(user2, resource_mapping.resource_role)
@@ -572,8 +572,8 @@ class Test_Organization_RBAC(APITest):
     def test_resource_admins_cannot_manage_unassociated_resources(self, factories, resource_mapping, agent, set_test_roles):
         resource = self.create_resource(factories, resource_mapping.resource_type, None)
         resource.organization = None
-        org = factories.v2_organization()
-        resource_admin, user = [factories.v2_user(
+        org = factories.organization()
+        resource_admin, user = [factories.user(
             organization=o) for o in (org, None)]
         set_test_roles(resource_admin, org, agent, resource_mapping.resource_role)
         with self.current_user(resource_admin):
@@ -595,10 +595,10 @@ class TestManageOrgAuthFalse(APITest):
         """
         auth_settings = v2.settings.get().get_endpoint('authentication')
         update_setting_pg(auth_settings, dict(MANAGE_ORGANIZATION_AUTH=False))
-        org = factories.v2_organization()
-        team = factories.v2_team(organization=org)
-        proj = factories.v2_project(organization=org)
-        jt = factories.v2_job_template(project=proj)
+        org = factories.organization()
+        team = factories.team(organization=org)
+        proj = factories.project(organization=org)
+        jt = factories.job_template(project=proj)
         org_user = factories.user()
         org_user2 = factories.user()
         org_admin = factories.user()

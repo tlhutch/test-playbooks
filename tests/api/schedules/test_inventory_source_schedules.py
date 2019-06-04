@@ -11,7 +11,7 @@ from tests.api.schedules import SchedulesTest
 class TestInventorySourceSchedules(SchedulesTest):
 
     def test_inventory_source_schedules_are_functional(self, factories):
-        schedule = factories.v2_inventory_source().add_schedule(rrule=self.minutely_rrule())
+        schedule = factories.inventory_source().add_schedule(rrule=self.minutely_rrule())
 
         schedule_jobs = schedule.related.unified_jobs.get()
         poll_until(lambda: schedule_jobs.get().count == 1, interval=15, timeout=5 * 60)

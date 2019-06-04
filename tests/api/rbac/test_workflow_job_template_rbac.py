@@ -213,7 +213,7 @@ class Test_Workflow_Job_Template_RBAC(APITest):
         'prompt',    # tests use role needed for launching
     ))
     def test_prompts_access(self, factories, source):
-        inventory = factories.v2_inventory()
+        inventory = factories.inventory()
         if source == 'prompt':
             wfjt = factories.workflow_job_template(ask_inventory_on_launch=True)
         else:
@@ -232,7 +232,7 @@ class Test_Workflow_Job_Template_RBAC(APITest):
                     wfjt.inventory = inventory.id
 
     def test_user_with_execute_can_use_wfjt_with_inventory(self, factories):
-        inventory = factories.v2_inventory()
+        inventory = factories.inventory()
         wfjt = factories.workflow_job_template(inventory=inventory)
 
         # assert that if the inventory is allready set,

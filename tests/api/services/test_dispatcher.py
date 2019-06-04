@@ -83,7 +83,7 @@ class TestDispatcher(APITest):
         return _get_dispatcher_pids
 
     def test_dispatcher_graceful_restart(self, factories, v2, run_remote_command):
-        jt = factories.v2_job_template(playbook='sleep.yml',
+        jt = factories.job_template(playbook='sleep.yml',
                                        extra_vars=dict(sleep_interval=30))
         jt.ds.inventory.add_host()
         self.ensure_jt_runs_on_primary_instance(jt, v2)
@@ -101,7 +101,7 @@ class TestDispatcher(APITest):
         job.assert_successful()
 
     def test_dispatcher_hard_restart(self, factories, v2, run_remote_command):
-        jt = factories.v2_job_template(playbook='sleep.yml',
+        jt = factories.job_template(playbook='sleep.yml',
                                        extra_vars=dict(sleep_interval=30))
         jt.ds.inventory.add_host()
         self.ensure_jt_runs_on_primary_instance(jt, v2)

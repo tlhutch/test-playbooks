@@ -111,7 +111,7 @@ class Test_Workflow_Convergence(APITest):
          - convergence_node should not have started until all parents have finished or they have been marked
            "do not run"
         """
-        host = factories.v2_host()
+        host = factories.host()
         wfjt = factories.workflow_job_template()
         jt = factories.job_template(
             inventory=host.ds.inventory,
@@ -214,7 +214,7 @@ class Test_Workflow_Convergence(APITest):
          - convergence_node should run and succeed
          - convergence_node should not have started until all parents have been canceled
         """
-        host = factories.v2_host()
+        host = factories.host()
         wfjt = factories.workflow_job_template()
         jt = factories.job_template(
             inventory=host.ds.inventory,
@@ -266,7 +266,7 @@ class Test_Workflow_Convergence(APITest):
         assert get_job_node(wfj, dnr.id, mapping).do_not_run is True
 
     def test_dnr_is_propagated(self, factories):
-        host = factories.v2_host()
+        host = factories.host()
         wfjt = factories.workflow_job_template()
         jt = factories.job_template(
             inventory=host.ds.inventory,
@@ -305,21 +305,21 @@ class Test_Workflow_Convergence(APITest):
                              ids=supported_workflow_node_types)
     def test_convergence_nodes_may_be_of_any_valid_type(
             self, factories, node_type):
-        host = factories.v2_host()
+        host = factories.host()
         if node_type == 'project_update':
-            unified_jt = factories.v2_project()
+            unified_jt = factories.project()
         elif node_type == 'job_template':
             unified_jt = factories.job_template(
                 inventory=host.ds.inventory, allow_simultaneous=True)
         elif node_type == 'inventory_sync':
-            unified_jt = factories.v2_inventory_source()
+            unified_jt = factories.inventory_source()
 
-        wfjt = factories.v2_workflow_job_template()
-        parent_jt = factories.v2_job_template(
+        wfjt = factories.workflow_job_template()
+        parent_jt = factories.job_template(
             playbook='ping.yml', allow_simultaneous=True)
         parent_nodes = []
         for i in range(3):
-            parent_node = factories.v2_workflow_job_template_node(
+            parent_node = factories.workflow_job_template_node(
                 workflow_job_template=wfjt, unified_job_template=parent_jt
             )
             parent_nodes.append(parent_node)
@@ -376,17 +376,17 @@ class Test_Workflow_Convergence(APITest):
                     raise AssertionError(
                         'Cycle was created where convergence node was allowed to add parent as always node child.')
 
-        jt = factories.v2_job_template()
-        wfjt = factories.v2_workflow_job_template()
-        ancestor_1 = factories.v2_workflow_job_template_node(
+        jt = factories.job_template()
+        wfjt = factories.workflow_job_template()
+        ancestor_1 = factories.workflow_job_template_node(
             workflow_job_template=wfjt, unified_job_template=jt
         )
-        ancestor_2 = factories.v2_workflow_job_template_node(
+        ancestor_2 = factories.workflow_job_template_node(
             workflow_job_template=wfjt, unified_job_template=jt
         )
         parent_nodes_1 = []
         for i in range(2):
-            parent_node = factories.v2_workflow_job_template_node(
+            parent_node = factories.workflow_job_template_node(
                 workflow_job_template=wfjt, unified_job_template=jt
             )
             parent_nodes_1.append(parent_node)
@@ -395,7 +395,7 @@ class Test_Workflow_Convergence(APITest):
 
         parent_nodes_2 = []
         for i in range(2):
-            parent_node = factories.v2_workflow_job_template_node(
+            parent_node = factories.workflow_job_template_node(
                 workflow_job_template=wfjt, unified_job_template=jt
             )
             parent_nodes_2.append(parent_node)
@@ -443,11 +443,11 @@ class Test_Workflow_Convergence(APITest):
     def test_modification_of_workflows_with_convergence_nodes_does_not_break_convergence_and_relaunch_works(
             self,
             factories):
-        jt = factories.v2_job_template()
-        wfjt = factories.v2_workflow_job_template()
+        jt = factories.job_template()
+        wfjt = factories.workflow_job_template()
         parent_nodes = []
         for i in range(3):
-            parent_node = factories.v2_workflow_job_template_node(
+            parent_node = factories.workflow_job_template_node(
                 workflow_job_template=wfjt, unified_job_template=jt
             )
             parent_nodes.append(parent_node)
@@ -462,7 +462,7 @@ class Test_Workflow_Convergence(APITest):
                 node.related.always_nodes.post(dict(id=convergence_node.id))
 
         # Add a grandparent to one of the parents
-        grandparent = factories.v2_workflow_job_template_node(
+        grandparent = factories.workflow_job_template_node(
             workflow_job_template=wfjt, unified_job_template=jt
         )
         node_to_delete = parent_nodes.pop()
@@ -505,7 +505,7 @@ class Test_Workflow_Convergence(APITest):
         }
         # create a jt for each set of vars
         wfjt = factories.workflow_job_template()
-        host = factories.v2_host()
+        host = factories.host()
         failure_jt = factories.job_template(
             inventory=host.ds.inventory,
             allow_simultaneous=True,
@@ -518,13 +518,13 @@ class Test_Workflow_Convergence(APITest):
             playbook='test_set_stats.yml',
             extra_vars=yaml.dump(success_vars),
         )
-        convergence_jt = factories.v2_job_template(playbook='ping.yml')
+        convergence_jt = factories.job_template(playbook='ping.yml')
 
-        wfjt = factories.v2_workflow_job_template()
-        success_parent_node = factories.v2_workflow_job_template_node(
+        wfjt = factories.workflow_job_template()
+        success_parent_node = factories.workflow_job_template_node(
             workflow_job_template=wfjt, unified_job_template=success_jt
         )
-        failure_parent_node = factories.v2_workflow_job_template_node(
+        failure_parent_node = factories.workflow_job_template_node(
             workflow_job_template=wfjt, unified_job_template=failure_jt
         )
         parent_nodes = [success_parent_node, failure_parent_node]
@@ -597,25 +597,25 @@ class Test_Workflow_Convergence(APITest):
         # create a jt for each set of vars
         set_stat_jts = []
         for extra_vars_as_python in all_vars_as_python:
-            jt = factories.v2_job_template(
+            jt = factories.job_template(
                 playbook='test_set_stats.yml',
                 extra_vars=yaml.dump(extra_vars_as_python))
             jt.add_instance_group(instance_group)
             set_stat_jts.append(jt)
 
-        convergence_jt = factories.v2_job_template(playbook='ping.yml')
+        convergence_jt = factories.job_template(playbook='ping.yml')
 
-        wfjt = factories.v2_workflow_job_template()
+        wfjt = factories.workflow_job_template()
         parent_nodes = []
         for jt in set_stat_jts:
-            parent_node = factories.v2_workflow_job_template_node(
+            parent_node = factories.workflow_job_template_node(
                 workflow_job_template=wfjt, unified_job_template=jt
             )
             parent_nodes.append(parent_node)
 
         # want to test that having "grandparents" on some paths does not effect
         # behavior at all
-        grandparent_node = factories.v2_workflow_job_template_node(
+        grandparent_node = factories.workflow_job_template_node(
             workflow_job_template=wfjt, unified_job_template=jt
         )
         first_parent = parent_nodes[0]
@@ -628,7 +628,7 @@ class Test_Workflow_Convergence(APITest):
         # response.
         convergence_node = parent_nodes[0].add_always_node(
             unified_job_template=convergence_jt)
-        last_jt = factories.v2_job_template(playbook='ping.yml')
+        last_jt = factories.job_template(playbook='ping.yml')
         last_jt.add_instance_group(instance_group)
         convergence_node.add_always_node(unified_job_template=last_jt)
         for node in parent_nodes[1:]:
@@ -737,7 +737,7 @@ class Test_Workflow_Convergence(APITest):
         assert len(merge_errors) == 0, '\n'.join(merge_errors)
 
     def test_complex_convergence(self, factories):
-        host = factories.v2_host()
+        host = factories.host()
         wfjt = factories.workflow_job_template()
         jt = factories.job_template(
             inventory=host.ds.inventory,
@@ -866,7 +866,7 @@ class Test_Workflow_Convergence(APITest):
         if not NUM_NODES:
             pytest.skip(
                 'Set TOWERQA_NUM_NODES_DENSE_CONVERGENCE to a positive integer to run test')
-        host = factories.v2_host()
+        host = factories.host()
         temp_jt = factories.job_template(
             inventory=host.ds.inventory,
             allow_simultaneous=True)

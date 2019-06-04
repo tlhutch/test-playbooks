@@ -66,7 +66,7 @@ class TestTACACSPlus(APITest):
     def test_login_as_existing_user(self, factories, protocol, enable_tacacs_auth, api_me_pg):
         enable_tacacs_auth(protocol)
         tacacs_config = config.credentials.tacacs_plus
-        factories.v2_user(username=tacacs_config.user)
+        factories.user(username=tacacs_config.user)
 
         with self.current_user(tacacs_config.user, getattr(tacacs_config, protocol + '_pass')):
             with pytest.raises(exc.Unauthorized):
@@ -82,7 +82,7 @@ class TestTACACSPlus(APITest):
     def test_timeout(self, factories, enable_tacacs_auth, api_me_pg, api_settings_tacacsplus_pg):
         enable_tacacs_auth()
         api_settings_tacacsplus_pg.patch(TACACSPLUS_HOST='169.254.1.0', TACACSPLUS_SESSION_TIMEOUT=20)
-        user = factories.v2_user()
+        user = factories.user()
 
         start = datetime.now()
         # Tower should first attempt to authenticate using TACACS+ server, then use local login

@@ -130,8 +130,8 @@ class Test_Team_RBAC(APITest):
 
     def test_member_role_inheritance(self, factories):
         """Test that team-member gets included with team-admin permissions."""
-        team = factories.v2_team()
-        user = factories.v2_user()
+        team = factories.team()
+        user = factories.user()
 
         team.set_object_roles(user, "admin")
 

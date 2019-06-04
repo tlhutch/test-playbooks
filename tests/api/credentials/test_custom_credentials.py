@@ -17,10 +17,10 @@ class TestCustomCredentials(APITest):
         inputs = dict(fields=[dict(id='field', label='Field', type=field_type)], required=['field'])
         credential_type = factories.credential_type(inputs=inputs)
 
-        payload = factories.v2_credential.payload(credential_type=credential_type)
+        payload = factories.credential.payload(credential_type=credential_type)
         cred = v2.credentials.post(payload)
 
-        jt = factories.v2_job_template()
+        jt = factories.job_template()
         jt.add_credential(cred)
         job = jt.launch().wait_until_completed()
 
@@ -35,7 +35,7 @@ class TestCustomCredentials(APITest):
                                                                              format='ssh_private_key')]))
 
         with pytest.raises(exc.BadRequest) as e:
-            factories.v2_credential(credential_type=credential_type, inputs=dict(field_name='NotAnRSAKey'))
+            factories.credential(credential_type=credential_type, inputs=dict(field_name='NotAnRSAKey'))
         assert e.value.msg == {'inputs': {'field_name': ['Invalid certificate or key: NotAnRSAKey...']}}
 
     def test_extraneous_input_field(self, factories):
@@ -43,7 +43,7 @@ class TestCustomCredentials(APITest):
         credential_type = factories.credential_type(inputs=inputs)
 
         with pytest.raises(exc.BadRequest) as e:
-            factories.v2_credential(credential_type=credential_type,
+            factories.credential(credential_type=credential_type,
                                     inputs=dict(not_a_field=123))
         desired = {'inputs': ["Additional properties are not allowed ('not_a_field' was unexpected)"]}
         assert e.value.msg == desired
@@ -53,12 +53,12 @@ class TestCustomCredentials(APITest):
         credential_type = factories.credential_type(inputs=inputs)
 
         with pytest.raises(exc.BadRequest) as e:
-            factories.v2_credential(credential_type=credential_type,
+            factories.credential(credential_type=credential_type,
                                     inputs=dict(field=123))
         assert e.value.msg == {'inputs': {'field': ["123 is not of type 'boolean'"]}}
 
         with pytest.raises(exc.BadRequest) as e:
-            factories.v2_credential(credential_type=credential_type,
+            factories.credential(credential_type=credential_type,
                                     inputs=dict(field='string'))
         assert e.value.msg == {'inputs': {'field': ["'string' is not of type 'boolean'"]}}
 
@@ -76,10 +76,10 @@ class TestCustomCredentials(APITest):
         input_values = dict(field_one='FieldOneVal', field_two='True', field_three=False, field_four=True)
         field_to_var = dict(field_one='extra_var_from_field_one', field_two='extra_var_from_field_two',
                             field_three='extra_var_from_field_three', field_four='extra_var_from_field_four')
-        credential = factories.v2_credential(credential_type=credential_type, inputs=input_values)
+        credential = factories.credential(credential_type=credential_type, inputs=input_values)
 
-        host = factories.v2_host()
-        jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='debug_hostvars.yml')
+        host = factories.host()
+        jt = factories.job_template(inventory=host.ds.inventory, playbook='debug_hostvars.yml')
         jt.add_extra_credential(credential)
         job = jt.launch().wait_until_completed()
         job.assert_successful()
@@ -99,12 +99,12 @@ class TestCustomCredentials(APITest):
                                   EXTRA_VAR_FROM_FIELD_FOUR='{{ field_four }}'))
         credential_type = factories.credential_type(inputs=inputs, injectors=injectors)
 
-        credential = factories.v2_credential(credential_type=credential_type,
+        credential = factories.credential(credential_type=credential_type,
                                              inputs=dict(field_one='FieldOneVal', field_two='True',
                                                          field_three=False, field_four=True))
 
-        host = factories.v2_host()
-        jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='ansible_env.yml')
+        host = factories.host()
+        jt = factories.job_template(inventory=host.ds.inventory, playbook='ansible_env.yml')
         jt.add_extra_credential(credential)
         job = jt.launch().wait_until_completed()
         job.assert_successful()
@@ -131,10 +131,10 @@ class TestCustomCredentials(APITest):
         injectors.update(injector_var)
         credential_type = factories.credential_type(injectors=injectors)
 
-        credential = factories.v2_credential(credential_type=credential_type)
+        credential = factories.credential(credential_type=credential_type)
 
-        host = factories.v2_host()
-        jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='cat_file.yml')
+        host = factories.host()
+        jt = factories.job_template(inventory=host.ds.inventory, playbook='cat_file.yml')
         jt.add_extra_credential(credential)
         job = jt.launch().wait_until_completed()
         job.assert_successful()
@@ -155,10 +155,10 @@ class TestCustomCredentials(APITest):
         injectors.update(injector_var)
         credential_type = factories.credential_type(injectors=injectors)
 
-        credential = factories.v2_credential(credential_type=credential_type)
+        credential = factories.credential(credential_type=credential_type)
 
-        host = factories.v2_host()
-        jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='cat_file.yml')
+        host = factories.host()
+        jt = factories.job_template(inventory=host.ds.inventory, playbook='cat_file.yml')
         jt.add_extra_credential(credential)
         job = jt.launch().wait_until_completed()
         job.assert_successful()
@@ -176,10 +176,10 @@ class TestCustomCredentials(APITest):
         injectors.update(injector_vars)
         credential_type = factories.credential_type(injectors=injectors)
 
-        credential = factories.v2_credential(credential_type=credential_type)
+        credential = factories.credential(credential_type=credential_type)
 
-        host = factories.v2_host()
-        jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='cat_files.yml')
+        host = factories.host()
+        jt = factories.job_template(inventory=host.ds.inventory, playbook='cat_files.yml')
         jt.add_credential(credential)
         job = jt.launch().wait_until_completed()
         job.assert_successful()
@@ -196,11 +196,11 @@ class TestCustomCredentials(APITest):
                                   EXTRA_VAR_FROM_FIELD_TWO='{{ field_two }}'))
         credential_type = factories.credential_type(inputs=inputs, injectors=injectors)
 
-        credential = factories.v2_credential(credential_type=credential_type,
+        credential = factories.credential(credential_type=credential_type,
                                              inputs=dict(field_one='FieldOneVal', field_two='FieldTwoVal'))
 
-        host = factories.v2_host()
-        jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='ansible_env.yml')
+        host = factories.host()
+        jt = factories.job_template(inventory=host.ds.inventory, playbook='ansible_env.yml')
         jt.add_extra_credential(credential)
         job = jt.launch().wait_until_completed()
         job.assert_successful()

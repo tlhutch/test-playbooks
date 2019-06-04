@@ -13,9 +13,9 @@ from tests.api import APITest
 class Test_Labels(APITest):
 
     def test_duplicate_labels_disallowed_by_organization(self, factories):
-        label = factories.v2_label()
+        label = factories.label()
         with pytest.raises(exc.Duplicate) as e:
-            factories.v2_label(name=label.name, organization=label.ds.organization)
+            factories.label(name=label.name, organization=label.ds.organization)
         assert e.value[1]['__all__'] == ['Label with this Name and Organization already exists.']
 
     def test_duplicate_across_different_organizations(self, label, another_organization, api_labels_pg):

@@ -24,7 +24,7 @@ class TestInstanceGroupRBAC(APITest):
         """
         ig = factories.instance_group()
         instance = v2.instances.get(rampart_groups__controller__isnull=True).results.pop()
-        user = factories.v2_user()
+        user = factories.user()
 
         with self.current_user(user):
             with pytest.raises(exc.Forbidden):
@@ -55,7 +55,7 @@ class TestInstanceGroupRBAC(APITest):
 
         excluded_ig = factories.instance_group()
 
-        org = factories.v2_organization()
+        org = factories.organization()
         org.add_instance_group(ig)
         user = factories.user()
         org.add_admin(user)

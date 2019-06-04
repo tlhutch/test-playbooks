@@ -257,12 +257,12 @@ class TestGeneralSettings(APITest):
             job.wait_until_completed()
 
     def test_schedule_max_jobs_workflow_level(self, factories, api_settings_jobs_pg, update_setting_pg):
-        host = factories.v2_host()
-        jt = factories.v2_job_template(
+        host = factories.host()
+        jt = factories.job_template(
             inventory=host.ds.inventory, playbook='sleep.yml', extra_vars='{"sleep_interval": 120}'
         )
-        wfjt = factories.v2_workflow_job_template()
-        factories.v2_workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt)
+        wfjt = factories.workflow_job_template()
+        factories.workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt)
 
         payload = dict(SCHEDULE_MAX_JOBS=1)
         update_setting_pg(api_settings_jobs_pg, payload)
@@ -298,7 +298,7 @@ class TestGeneralSettings(APITest):
         in instances where both timeout values are supplied.
         """
         job_template = factories.job_template(timeout=timeout, playbook='sleep.yml', extra_vars='sleep_interval: 10')
-        factories.v2_host(inventory=job_template.ds.inventory)
+        factories.host(inventory=job_template.ds.inventory)
 
         # update job timeout flag
         payload = dict(DEFAULT_JOB_TIMEOUT=default_job_timeout)
@@ -376,8 +376,8 @@ class TestGeneralSettings(APITest):
         payload = dict(ANSIBLE_FACT_CACHE_TIMEOUT=timeout)
         update_setting_pg(api_settings_jobs_pg, payload)
 
-        host = factories.v2_host()
-        jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='gather_facts.yml', use_fact_cache=True)
+        host = factories.host()
+        jt = factories.job_template(inventory=host.ds.inventory, playbook='gather_facts.yml', use_fact_cache=True)
         jt.launch().wait_until_completed().assert_successful()
 
         jt.patch(playbook='use_facts.yml', job_tags='ansible_facts')
@@ -664,7 +664,7 @@ class TestGeneralSettings(APITest):
         updated_task_env['SOME_TEST_ENV_VAR'] = desired_val
         job_settings.AWX_TASK_ENV = updated_task_env
 
-        custom_source = factories.v2_inventory_source(source='custom')
+        custom_source = factories.inventory_source(source='custom')
         inv_update = custom_source.update().wait_until_completed()
         inv_update.assert_successful()
         assert inv_update.job_env.SOME_TEST_ENV_VAR == desired_val
@@ -672,7 +672,7 @@ class TestGeneralSettings(APITest):
         inventory = custom_source.ds.inventory
         host = inventory.related.hosts.get().results[0]
 
-        jt = factories.v2_job_template(inventory=inventory, playbook='ansible_env.yml')
+        jt = factories.job_template(inventory=inventory, playbook='ansible_env.yml')
         job = jt.launch().wait_until_completed()
         job.assert_successful()
 
@@ -686,7 +686,7 @@ class TestGeneralSettings(APITest):
         project_update = project_update.get()
         assert project_update.job_env.SOME_TEST_ENV_VAR == desired_val
 
-        ahc = factories.v2_ad_hoc_command(inventory=inventory, limit=host.name)
+        ahc = factories.ad_hoc_command(inventory=inventory, limit=host.name)
         ahc.wait_until_completed()
         ahc.assert_successful()
         assert ahc.job_env.SOME_TEST_ENV_VAR == desired_val

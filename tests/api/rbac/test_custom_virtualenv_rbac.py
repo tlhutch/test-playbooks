@@ -15,7 +15,7 @@ class TestCustomVirtualenvRBAC(APITest):
     @pytest.mark.parametrize('resource_name', RESOURCES_WITH_VENV)
     def test_org_admin_can_set_venv_on_org_resources(self, factories, resource_name, create_venv, venv_path, org_admin):
         org = org_admin.related.organizations.get().results.pop()
-        other_org = factories.v2_organization()
+        other_org = factories.organization()
 
         if resource_name == 'v2_organization':
             resource = org

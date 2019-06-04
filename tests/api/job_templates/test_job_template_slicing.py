@@ -28,7 +28,7 @@ class TestJobTemplateSlicing(APITest):
                 jt_kwargs = {}
             if not host_ct:
                 host_ct = ct
-            jt = factories.v2_job_template(job_slice_count=ct, **jt_kwargs)
+            jt = factories.job_template(job_slice_count=ct, **jt_kwargs)
             inventory = jt.ds.inventory
             hosts = []
             if 'inventory' not in jt_kwargs:
@@ -88,7 +88,7 @@ class TestJobTemplateSlicing(APITest):
     def test_job_template_many_slices_with_one_host_does_not_run_as_workflow(self, factories, v2):
         """Tests that a slice value of "2" does not create a workflow job when 1 host present
         """
-        jt = factories.v2_job_template(job_slice_count=2)
+        jt = factories.job_template(job_slice_count=2)
         inventory = jt.ds.inventory
         inventory.related.hosts.post(payload=dict(name='foo', variables='ansible_connection: local'))
 
@@ -420,14 +420,14 @@ class TestJobTemplateSlicing(APITest):
         assert workflow_job.get().status == 'failed'
 
     def test_job_template_slice_with_smart_inventory(self, factories, v2, sliced_jt_factory):
-        inventory = factories.v2_inventory()
+        inventory = factories.inventory()
 
         for n in range(9):
-            factories.v2_host(name="test_host_{0}".format(
+            factories.host(name="test_host_{0}".format(
                 str(n)), inventory=inventory)
-            factories.v2_host(name="excluded_host_{0}".format(
+            factories.host(name="excluded_host_{0}".format(
                 str(n)), inventory=inventory)
-        smart_inventory = factories.v2_inventory(organization=inventory.ds.organization, host_filter="search=test_host",
+        smart_inventory = factories.inventory(organization=inventory.ds.organization, host_filter="search=test_host",
                                                  kind="smart")
         jt = sliced_jt_factory(3, jt_kwargs=dict(inventory=smart_inventory))
         workflow_job = jt.launch()
@@ -438,10 +438,10 @@ class TestJobTemplateSlicing(APITest):
             assert job.get().host_status_counts['ok'] == 3
 
     def test_job_template_admin_can_set_slices(self, factories, sliced_jt_factory):
-        org = factories.v2_organization()
-        inv = factories.v2_inventory(organization=org)
-        jt = factories.v2_job_template(inventory=inv)
-        user = factories.v2_user(organization=org)
+        org = factories.organization()
+        inv = factories.inventory(organization=org)
+        jt = factories.job_template(inventory=inv)
+        user = factories.user(organization=org)
         org.set_object_roles(user, 'Job Template Admin')
         with self.current_user(user):
             jt.job_slice_count = 2

@@ -27,7 +27,7 @@ def user_payload(**kwargs):
 class Test_Users(APITest):
 
     def test_duplicate_users_disallowed(self, factories):
-        user = factories.v2_user()
+        user = factories.user()
 
         with pytest.raises(exc.Duplicate) as e:
             factories.user(username=user.username)
@@ -101,7 +101,7 @@ class Test_Users(APITest):
                 api_users_pg.post(user_payload())
 
     def test_user_creation_doesnt_leak_password_into_activity_stream(self, v2, factories):
-        superuser = factories.v2_user(is_superuser=True)
+        superuser = factories.user(is_superuser=True)
         user_activity_stream = str(superuser.related.activity_stream.get())
         for secret in (superuser.password, 'md5'):
             assert secret not in user_activity_stream

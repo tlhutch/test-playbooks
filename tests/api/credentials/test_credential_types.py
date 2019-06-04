@@ -239,14 +239,14 @@ class TestCredentialTypes(APITest):
             assert e.value.msg['detail'] == 'Deletion not allowed for managed credential types'
 
     def test_sourced_credential_type_cannot_be_deleted(self, factories):
-        cred = factories.v2_credential(credential_type=True)
+        cred = factories.credential(credential_type=True)
 
         with pytest.raises(exc.Forbidden) as e:
             cred.ds.credential_type.delete()
         assert e.value.msg['detail'] == 'Credential types that are in use cannot be deleted'
 
     def test_sourced_credential_type_inputs_are_read_only(self, factories):
-        cred = factories.v2_credential(credential_type=True)
+        cred = factories.credential(credential_type=True)
 
         with pytest.raises(exc.Forbidden) as e:
             cred.ds.credential_type.inputs = dict(test=True)
@@ -274,10 +274,10 @@ class TestCredentialTypes(APITest):
         inputs = dict(fields=[dict(id='field_one', label='FieldOne', choices=['one', 'two', 'three'])])
         cred_type = factories.credential_type(inputs=inputs)
 
-        factories.v2_credential(credential_type=cred_type, inputs=dict(field_one='one'))
+        factories.credential(credential_type=cred_type, inputs=dict(field_one='one'))
 
         with pytest.raises(exc.BadRequest) as e:
-            factories.v2_credential(credential_type=cred_type, inputs=dict(field_one='NotAChoice'))
+            factories.credential(credential_type=cred_type, inputs=dict(field_one='NotAChoice'))
 
         assert e.value.msg == {'inputs': {'field_one': ["'NotAChoice' is not one of ['one', 'two', 'three']"]}}
 

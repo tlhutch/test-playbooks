@@ -62,9 +62,9 @@ class TestJobTemplateCallbacks(APITest):
 
     @pytest.fixture
     def job_template_with_host_config_key(self, factories, remote_hosts, host_config_key):
-        jt = factories.v2_job_template(host_config_key=host_config_key)
+        jt = factories.job_template(host_config_key=host_config_key)
         for h in remote_hosts:
-            factories.v2_host(
+            factories.host(
                 inventory=jt.ds.inventory,
                 name=h,
                 variables=dict(
@@ -189,7 +189,7 @@ class TestJobTemplateCallbacks(APITest):
     def test_provision_failure_with_multiple_host_matches(self, skip_if_openshift, ansible_runner, factories, ansible_default_ipv4,
                                                           host_config_key, callback_host):
         """Verify launch failure when launching a job_template where multiple hosts match"""
-        inventory = factories.v2_inventory()
+        inventory = factories.inventory()
 
         # account for dev container
         ansible_host = '127.0.0.1' if 'localhost' in callback_host else ansible_default_ipv4
@@ -493,12 +493,12 @@ class TestJobTemplateCallbacks(APITest):
             'print(json.dumps(inventory))'
         ]).format(ansible_host)
 
-        inv_script = factories.v2_inventory_script(script=script)
-        inv_source = factories.v2_inventory_source(source_script=inv_script)
+        inv_script = factories.inventory_script(script=script)
+        inv_source = factories.inventory_source(source_script=inv_script)
         assert inv_source.source_script == inv_script.id
         inv_source.update_on_launch = True
 
-        job_template = factories.v2_job_template(inventory=inv_source.ds.inventory)
+        job_template = factories.job_template(inventory=inv_source.ds.inventory)
         job_template.host_config_key = host_config_key
 
         assert inv_source.last_updated is None
@@ -540,16 +540,16 @@ class TestJobTemplateCallbacks(APITest):
             'print(json.dumps(inventory))'
         ])
 
-        inv_script = factories.v2_inventory_script(script=script)
-        inv_source = factories.v2_inventory_source(source_script=inv_script)
+        inv_script = factories.inventory_script(script=script)
+        inv_source = factories.inventory_source(source_script=inv_script)
         assert inv_source.source_script == inv_script.id
         inv_source.update_on_launch = True
 
         ansible_host = '127.0.0.1' if 'localhost' in callback_host else ansible_default_ipv4
-        factories.v2_host(name=ansible_host, inventory=inv_source.ds.inventory,
+        factories.host(name=ansible_host, inventory=inv_source.ds.inventory,
                           variables=dict(ansible_host=ansible_host, ansible_connection='local'))
 
-        job_template = factories.v2_job_template(inventory=inv_source.ds.inventory)
+        job_template = factories.job_template(inventory=inv_source.ds.inventory)
         job_template.host_config_key = host_config_key
 
         assert inv_source.last_updated is None
@@ -631,7 +631,7 @@ class TestJobTemplateCallbacks(APITest):
         job_id = self.get_job_id_from_location_header(res)
         job1 = v2.jobs.get(id=job_id).results[0]
 
-        user = factories.v2_user()
+        user = factories.user()
         jt.ds.inventory.ds.organization.set_object_roles(user, 'member')
         [jt.ds[resource].set_object_roles(user, 'use')
             for resource in ['credential', 'project', 'inventory']]

@@ -229,11 +229,11 @@ class TestInventoryUpdate(APITest):
 
     def test_v2_update_all_inventory_sources_with_functional_sources(self, factories):
         """Verify behavior when inventory has functional inventory sources."""
-        inventory = factories.v2_inventory()
-        azure_cred, aws_cred = [factories.v2_credential(kind=kind) for kind in ('azure_rm', 'aws')]
-        azure_source = factories.v2_inventory_source(inventory=inventory, source='azure_rm', credential=azure_cred)
-        ec2_source = factories.v2_inventory_source(inventory=inventory, source='ec2', credential=aws_cred)
-        scm_source = factories.v2_inventory_source(inventory=inventory, source='scm',
+        inventory = factories.inventory()
+        azure_cred, aws_cred = [factories.credential(kind=kind) for kind in ('azure_rm', 'aws')]
+        azure_source = factories.inventory_source(inventory=inventory, source='azure_rm', credential=azure_cred)
+        ec2_source = factories.inventory_source(inventory=inventory, source='ec2', credential=aws_cred)
+        scm_source = factories.inventory_source(inventory=inventory, source='scm',
                                                    source_path='inventories/inventory.ini')
 
         prelaunch = inventory.related.update_inventory_sources.get()
@@ -263,10 +263,10 @@ class TestInventoryUpdate(APITest):
         """Verify behavior when inventory has an inventory source that is ready for update
         and one that is not.
         """
-        inv_source1 = factories.v2_inventory_source()
+        inv_source1 = factories.inventory_source()
         inv_source1.ds.inventory_script.delete()
         inventory = inv_source1.ds.inventory
-        inv_source2 = factories.v2_inventory_source(inventory=inventory)
+        inv_source2 = factories.inventory_source(inventory=inventory)
 
         prelaunch = inventory.related.update_inventory_sources.get()
         assert dict(can_update=False, inventory_source=inv_source1.id) in prelaunch
@@ -291,8 +291,8 @@ class TestInventoryUpdate(APITest):
 
     def test_v2_update_all_inventory_sources_with_nonfunctional_sources(self, factories):
         """Verify behavior when inventory has nonfunctional inventory sources."""
-        inventory = factories.v2_inventory()
-        inv_source1, inv_source2 = [factories.v2_inventory_source(inventory=inventory) for _ in range(2)]
+        inventory = factories.inventory()
+        inv_source1, inv_source2 = [factories.inventory_source(inventory=inventory) for _ in range(2)]
 
         inv_source1.ds.inventory_script.delete()
         inv_source2.ds.inventory_script.delete()
@@ -314,10 +314,10 @@ class TestInventoryUpdate(APITest):
     def test_v2_update_duplicate_inventory_sources(self, factories):
         """Verify updating custom inventory sources under the same inventory with
         the same custom script."""
-        inv_source1 = factories.v2_inventory_source()
+        inv_source1 = factories.inventory_source()
         inventory = inv_source1.ds.inventory
         inv_script = inv_source1.ds.inventory_script
-        inv_source2 = factories.v2_inventory_source(inventory=inventory,
+        inv_source2 = factories.inventory_source(inventory=inventory,
                                                     source_script=inv_script)
         assert inv_source1.source_script == inv_script.id
         assert inv_source2.source_script == inv_source1.source_script
@@ -330,7 +330,7 @@ class TestInventoryUpdate(APITest):
         inv_source2.get().assert_successful()
 
     def test_v2_update_with_no_inventory_sources(self, factories):
-        inventory = factories.v2_inventory()
+        inventory = factories.inventory()
         with pytest.raises(exc.BadRequest) as e:
             inventory.update_inventory_sources()
         assert e.value[1] == {'detail': 'No inventory sources to update.'}
@@ -382,11 +382,11 @@ print(json.dumps({
         "children": ["ghost3"]
     }
 }))"""
-        inv_script = factories.v2_inventory_script(
+        inv_script = factories.inventory_script(
             script=custom_script,
             organization=shared_org,
         )
-        inv_source = factories.v2_inventory_source(
+        inv_source = factories.inventory_source(
             source_script=inv_script,
             organization=shared_org,
             inventory=parent_inv
@@ -403,7 +403,7 @@ print(json.dumps({
         * Memberships created within our script-spawned group should removed by a 2nd import.
         * Hosts, groups, and memberships created outside of our custom group should persist.
         """
-        inv_script = factories.v2_inventory_script(script="""#!/usr/bin/env python
+        inv_script = factories.inventory_script(script="""#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import json
 print(json.dumps({
@@ -419,7 +419,7 @@ print(json.dumps({
     'will_remove_group': {'hosts': ['host_2']},
     'parent_group': {'hosts': ['host_1', 'host_2'], 'children': ['child_group', 'child_group2']}
 }))""")
-        inv_source = factories.v2_inventory_source(
+        inv_source = factories.inventory_source(
             overwrite=True,
             source_script=inv_script
         )
@@ -495,7 +495,7 @@ print(json.dumps({
         * Hosts and groups created within our script-spawned group should persist.
         * Hosts and groups created outside of our custom group should persist.
         """
-        inv_source = factories.v2_inventory_source()
+        inv_source = factories.inventory_source()
         inventory = inv_source.ds.inventory
         inv_source.update().wait_until_completed()
         spawned_group = inv_source.related.groups.get().results.pop()
@@ -539,7 +539,7 @@ print(json.dumps({
         enabled. Final group and host variables should be those sourced from
         the script. Inventory variables should persist.
         """
-        inv_source = factories.v2_inventory_source(overwrite_vars=True)
+        inv_source = factories.inventory_source(overwrite_vars=True)
         inventory = inv_source.ds.inventory
         inv_source.update().wait_until_completed().assert_successful()
         custom_group = inv_source.related.groups.get().results.pop()
@@ -568,7 +568,7 @@ print(json.dumps({
         group and host variables should be a union of those sourced from the inventory
         script and those manually inserted. Inventory variables should persist.
         """
-        inv_source = factories.v2_inventory_source()
+        inv_source = factories.inventory_source()
         inventory = inv_source.ds.inventory
         inv_source.update().wait_until_completed().assert_successful()
         custom_group = inv_source.related.groups.get().results.pop()
@@ -602,10 +602,10 @@ print(json.dumps({
         if ansible_version_cmp('2.4.0') >= 1 and ansible_version_cmp('2.5.1') < 1:
             # this doesn't work with ansible-inventory from 2.4 through 2.5.1
             pytest.skip('https://github.com/ansible/ansible/issues/33776')
-        inv_script = factories.v2_inventory_script(script=("#!/usr/bin/env python\n"
+        inv_script = factories.inventory_script(script=("#!/usr/bin/env python\n"
                                                            "from __future__ import print_function\nimport sys\n"
                                                            "print('TEST', file=sys.stderr)\nprint('{}')"))
-        inv_source = factories.v2_inventory_source(source_script=inv_script)
+        inv_source = factories.inventory_source(source_script=inv_script)
         assert inv_source.source_script == inv_script.id
 
         inv_update = inv_source.update().wait_until_completed()
@@ -617,7 +617,7 @@ print(json.dumps({
             # this doesn't work with ansible-inventory from 2.4 through 2.5.1
             pytest.skip('https://github.com/ansible/ansible/issues/33776')
         org = factories.organization()
-        inv = factories.v2_inventory(organization=org)
+        inv = factories.inventory(organization=org)
         credential_type = factories.credential_type(
             inputs={
                 'fields': [{
@@ -632,16 +632,16 @@ print(json.dumps({
                 'env': {'AWX_CUSTOM_INI': '{{ tower.filename }}'}
             }
         )
-        inv_script = factories.v2_inventory_script(
+        inv_script = factories.inventory_script(
             organization=org,
             script=("#!/usr/bin/env python\n"
                     "from __future__ import print_function\nimport os, sys\n"
                     "print(open(os.environ['AWX_CUSTOM_INI']).read(), file=sys.stderr)\nprint('{}')")
         )
-        inv_source = factories.v2_inventory_source(
+        inv_source = factories.inventory_source(
             inventory=inv,
             source_script=inv_script,
-            credential=factories.v2_credential(
+            credential=factories.credential(
                 credential_type=credential_type,
                 inputs={'password': 'SECRET123'}
             ),
@@ -668,7 +668,7 @@ print(json.dumps({
         if is_docker and verbosity == 0:
             pytest.skip('Dev Container has debug logging so this test will likely fail')
 
-        inv_source = factories.v2_inventory_source(verbosity=verbosity)
+        inv_source = factories.inventory_source(verbosity=verbosity)
         inv_update = inv_source.update().wait_until_completed()
 
         inv_update.assert_successful()
@@ -691,7 +691,7 @@ print(json.dumps({
     def test_inventory_plugin_traceback_surfaced(self, factories, verbosity, ansible_version_cmp):
         if ansible_version_cmp('2.9.0') < 0:
             pytest.skip('Custom user plugins were not fixed until Ansible 2.9')
-        inv_src = factories.v2_inventory_source(
+        inv_src = factories.inventory_source(
             source='scm',
             source_path='inventories/user_plugins/fox.yaml',
             verbosity=verbosity
@@ -825,7 +825,7 @@ print(json.dumps({
         """Tests inventory imports with matched AWS instance filters. NOTE: test may fail
         if our expected test hosts are down.
         """
-        aws_inventory_source = factories.v2_inventory_source(source='ec2', instance_filters=instance_filter, credential=aws_credential)
+        aws_inventory_source = factories.inventory_source(source='ec2', instance_filters=instance_filter, credential=aws_credential)
         update = aws_inventory_source.update().wait_until_completed()
         update.assert_successful()
         aws_inventory_source.get().assert_successful()
@@ -903,7 +903,7 @@ print(json.dumps({
         }
         if only_group_by:
             group_by_dict['group_by_{}'.format(only_group_by)] = True
-        inv_source = factories.v2_inventory_source(
+        inv_source = factories.inventory_source(
             source='azure_rm',
             credential=factories.credential(kind='azure_rm'),
             source_vars=json.dumps(group_by_dict)
@@ -934,7 +934,7 @@ print(json.dumps({
 
     def test_azure_use_private_ip(self, factories, ansible_version_cmp):
         source_vars = {"use_private_ip": True}
-        inv_source = factories.v2_inventory_source(
+        inv_source = factories.inventory_source(
             source='azure_rm',
             credential=factories.credential(kind='azure_rm'),
             source_vars=json.dumps(source_vars)
@@ -963,7 +963,7 @@ print(json.dumps({
         # Bug in previous ansible versions caused host with same name as group to have hostvars stolen
         res_group = "demo-dj"
         source_vars = {"resource_groups": res_group}
-        inv_source = factories.v2_inventory_source(
+        inv_source = factories.inventory_source(
             source='azure_rm',
             credential=factories.credential(kind='azure_rm'),
             source_vars=json.dumps(source_vars)
@@ -984,11 +984,11 @@ print(json.dumps({
         """Tests that AWS inventory groups will be registered with underscores instead of hyphens
         when using "replace_dash_in_groups" source variable
         """
-        inv_source = factories.v2_inventory_source(
+        inv_source = factories.inventory_source(
             source='ec2',
             source_regions='us-east-1',  # region where the flag is located, to reduce import size
             group_by='tag_keys',  # assure the tag groups are returned in all cases
-            credential=factories.v2_credential(kind='aws'),
+            credential=factories.credential(kind='aws'),
             source_vars=json.dumps(dict(replace_dash_in_groups=True))
         )
 
@@ -1027,14 +1027,14 @@ print(json.dumps({
 
     @pytest.mark.parametrize('inventory_source', ['azure_rm', None], ids=['azure', 'custom'])
     def test_environment_variables_sourced_with_inventory_update_with_azure_credential(self, factories, inventory_source):
-        azure_cred = factories.v2_credential(kind='azure_rm', client='SomeClient', cloud_environment='SomeCloudEnvironment',
+        azure_cred = factories.credential(kind='azure_rm', client='SomeClient', cloud_environment='SomeCloudEnvironment',
                                              password='SomePassword', secret='SomeSecret', subscription='SomeSubscription',
                                              tenant='SomeTenant', username='SomeUsername')
         if inventory_source:
-            azure = factories.v2_inventory_source(credential=azure_cred, inventory_source=inventory_source)
+            azure = factories.inventory_source(credential=azure_cred, inventory_source=inventory_source)
         else:
             # custom inventory script created when no inventory_source specified
-            azure = factories.v2_inventory_source(credential=azure_cred)
+            azure = factories.inventory_source(credential=azure_cred)
         update = azure.update().wait_until_completed()
         job_env = update.job_env
         assert job_env.AZURE_CLIENT_ID == 'SomeClient'
@@ -1051,11 +1051,11 @@ print(json.dumps({
     }.items())
     def test_config_parser_properly_escapes_special_characters_in_passwords(self, v2, factories, source, cred_type):
         cred_type = v2.credential_types.get(managed_by_tower=True, name=cred_type).results.pop()
-        cred = factories.v2_credential(
+        cred = factories.credential(
             credential_type=cred_type,
             inputs={'host': 'http://example.org', 'username': 'xyz', 'password': 'pass%word'}
         )
-        source = factories.v2_inventory_source(source=source, credential=cred)
+        source = factories.inventory_source(source=source, credential=cred)
         inv_update = source.update().wait_until_completed()
         assert 'ERROR! No inventory was parsed, please check your configuration and options' in inv_update.result_stdout
         assert 'SyntaxError' not in inv_update.result_stdout
@@ -1063,9 +1063,9 @@ print(json.dumps({
     # Skip for Openshift because of Github Issue: https://github.com/ansible/tower-qa/issues/2591
     def test_inventory_events_are_inserted_in_the_background(self, factories, inventory_script_code_with_sleep):
         sleep_time = 20  # similar to AWS inventory plugin performance
-        inventory = factories.v2_inventory()
-        inv_source = factories.v2_inventory_source(
-            source_script=factories.v2_inventory_script(
+        inventory = factories.inventory()
+        inv_source = factories.inventory_source(
+            source_script=factories.inventory_script(
                 script=inventory_script_code_with_sleep(sleep_time),
                 organization=inventory.ds.organization
             ),
@@ -1103,8 +1103,8 @@ print(json.dumps({
         assert (max_create - min_create).total_seconds() > sleep_time * 0.95
 
     def test_inventory_events_are_searchable(self, factories):
-        aws_cred = factories.v2_credential(kind='aws')
-        ec2_source = factories.v2_inventory_source(source='ec2', credential=aws_cred)
+        aws_cred = factories.credential(kind='aws')
+        ec2_source = factories.inventory_source(source='ec2', credential=aws_cred)
         inv_update = ec2_source.update().wait_until_completed()
         assert inv_update.related.events.get().count > 0
         assert inv_update.related.events.get(search='Updating inventory').count > 0
@@ -1112,8 +1112,8 @@ print(json.dumps({
 
     @pytest.mark.ansible_integration
     def test_inventory_hosts_cannot_be_deleted_during_sync(self, factories):
-        aws_cred = factories.v2_credential(kind='aws')
-        aws_inventory_source = factories.v2_inventory_source(source='ec2', credential=aws_cred, verbosity=2)
+        aws_cred = factories.credential(kind='aws')
+        aws_inventory_source = factories.inventory_source(source='ec2', credential=aws_cred, verbosity=2)
         aws_inventory = aws_inventory_source.related.inventory.get()
 
         inv_update = aws_inventory_source.update().wait_until_completed()
@@ -1132,9 +1132,9 @@ print(json.dumps({
             host.delete()
 
     def test_tower_inventory_sync_success(self, factories):
-        target_host = factories.v2_host()
+        target_host = factories.host()
         target_inventory = target_host.ds.inventory
-        tower_cred = factories.v2_credential(
+        tower_cred = factories.credential(
             kind='tower',
             inputs={
                 'host': config.base_url,
@@ -1143,7 +1143,7 @@ print(json.dumps({
                 'verify_ssl': False
             }
         )
-        tower_source = factories.v2_inventory_source(
+        tower_source = factories.inventory_source(
             source='tower', credential=tower_cred,
             instance_filters=target_inventory.id
         )
@@ -1156,7 +1156,7 @@ print(json.dumps({
         assert loaded_hosts.results[0].name == target_host.name
 
     def test_tower_inventory_incorrect_password(self, ansible_version_cmp, factories):
-        tower_cred = factories.v2_credential(
+        tower_cred = factories.credential(
             kind='tower',
             inputs={
                 'host': config.base_url,
@@ -1165,7 +1165,7 @@ print(json.dumps({
                 'verify_ssl': False
             }
         )
-        tower_source = factories.v2_inventory_source(
+        tower_source = factories.inventory_source(
             source='tower', credential=tower_cred,
             instance_filters='123',
         )
@@ -1185,12 +1185,12 @@ print(json.dumps({
             error = error[0]
         else:
             error = error[1]
-        tower_cred = factories.v2_credential(kind='tower', inputs={
+        tower_cred = factories.credential(kind='tower', inputs={
             'host': hostname,
             'username': 'x',
             'password': 'y'
         })
-        tower_source = factories.v2_inventory_source(
+        tower_source = factories.inventory_source(
             source='tower', credential=tower_cred,
             instance_filters='123'
         )

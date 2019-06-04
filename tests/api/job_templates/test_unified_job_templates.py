@@ -22,11 +22,11 @@ class TestUnifiedJobTemplates(APITest):
         ujt_factory_kwargs = dict(name=fauxfactory.gen_utf8())
 
         if ujt_type == 'v2_inventory_source':
-            org = factories.v2_organization()
-            ujt_factory_kwargs['inventory'] = factories.v2_inventory(organization=org)
+            org = factories.organization()
+            ujt_factory_kwargs['inventory'] = factories.inventory(organization=org)
             ujt_factory_kwargs['inventory_script'] = (True, dict(organization=org))
         else:
-            ujt_factory_kwargs['organization'] = factories.v2_organization()
+            ujt_factory_kwargs['organization'] = factories.organization()
 
         ujt_factory(**ujt_factory_kwargs)
 

@@ -35,13 +35,13 @@ class TestChannelsRBAC(APITest):
             pass
 
     def test_ad_hoc_command_events_unauthorized_subscription(self, factories, user_ws_client):
-        inventory = factories.v2_host().ds.inventory
-        user = factories.v2_user()
+        inventory = factories.host().ds.inventory
+        user = factories.user()
         ws = user_ws_client(user).connect()
         ws.status_changes()
         self.sleep_and_clear_messages(ws)
 
-        ahc = factories.v2_ad_hoc_command(module_name='shell', module_args='true', inventory=inventory)
+        ahc = factories.ad_hoc_command(module_name='shell', module_args='true', inventory=inventory)
         ws.ad_hoc_stdout(ahc.id)
         ahc.wait_until_completed()
         received = [m for m in ws]
@@ -55,15 +55,15 @@ class TestChannelsRBAC(APITest):
     @pytest.mark.parametrize('role', ['ad hoc', 'admin', 'read', 'update', 'use'])
     def test_ad_hoc_command_events_with_allowed_role(self, factories, user_ws_client, role):
         """Confirm that a user is only alerted of ad hoc events when provided an allowed role"""
-        inventory = factories.v2_host().ds.inventory
-        user = factories.v2_user()
+        inventory = factories.host().ds.inventory
+        user = factories.user()
         assert inventory.set_object_roles(user, role)
 
         ws = user_ws_client(user).connect()
         ws.status_changes()
         self.sleep_and_clear_messages(ws)
 
-        ahc = factories.v2_ad_hoc_command(module_name='shell', module_args='true', inventory=inventory)
+        ahc = factories.ad_hoc_command(module_name='shell', module_args='true', inventory=inventory)
         ws.ad_hoc_stdout(ahc.id)
         ahc.wait_until_completed()
 
@@ -93,9 +93,9 @@ class TestChannelsRBAC(APITest):
             assert expected in filtered_received
 
     def test_job_events_unauthorized_subscription(self, factories, user_ws_client):
-        user = factories.v2_user()
-        inventory = factories.v2_host().ds.inventory
-        jt = factories.v2_job_template(inventory=inventory)
+        user = factories.user()
+        inventory = factories.host().ds.inventory
+        jt = factories.job_template(inventory=inventory)
 
         ws = user_ws_client(user).connect()
         ws.status_changes()
@@ -115,9 +115,9 @@ class TestChannelsRBAC(APITest):
     @pytest.mark.parametrize('role', ['admin', 'execute', 'read'])
     def test_job_events_with_allowed_role(self, factories, user_ws_client, role):
         """Confirm that a user is only alerted of job events when provided an allowed role"""
-        user = factories.v2_user()
-        inventory = factories.v2_host().ds.inventory
-        jt = factories.v2_job_template(inventory=inventory)
+        user = factories.user()
+        inventory = factories.host().ds.inventory
+        jt = factories.job_template(inventory=inventory)
         assert jt.set_object_roles(user, role)
 
         ws = user_ws_client(user).connect()
@@ -159,12 +159,12 @@ class TestChannelsRBAC(APITest):
     @pytest.mark.parametrize('role', ['admin', 'update', 'use', 'read'])
     def test_project_update_status_changes_with_allowed_role(self, factories, user_ws_client, role):
         """Confirm that a user is only alerted of project updates statuses when provided an allowed role"""
-        user = factories.v2_user()
+        user = factories.user()
         ws = user_ws_client(user).connect()
         ws.status_changes()
         self.sleep_and_clear_messages(ws)
 
-        project = factories.v2_project()
+        project = factories.project()
         assert not [m for m in ws]  # no messages should be broadcasted to client
 
         assert project.set_object_roles(user, role)
@@ -183,16 +183,16 @@ class TestChannelsRBAC(APITest):
             assert message in received
 
     def test_workflow_events_unauthorized_subscription(self, factories, user_ws_client):
-        user = factories.v2_user()
+        user = factories.user()
         ws = user_ws_client(user).connect()
         ws.status_changes()
         self.sleep_and_clear_messages(ws)
 
-        inventory = factories.v2_host().ds.inventory
-        success_jt = factories.v2_job_template(inventory=inventory, playbook='debug.yml')
-        fail_jt = factories.v2_job_template(inventory=inventory, playbook='fail_unless.yml')
-        wfjt = factories.v2_workflow_job_template()
-        root = factories.v2_workflow_job_template_node(workflow_job_template=wfjt,
+        inventory = factories.host().ds.inventory
+        success_jt = factories.job_template(inventory=inventory, playbook='debug.yml')
+        fail_jt = factories.job_template(inventory=inventory, playbook='fail_unless.yml')
+        wfjt = factories.workflow_job_template()
+        root = factories.workflow_job_template_node(workflow_job_template=wfjt,
                                                     unified_job_template=success_jt)
         failure = root.related.success_nodes.post(dict(unified_job_template=fail_jt.id))
         failure.related.failure_nodes.post(dict(unified_job_template=success_jt.id))
@@ -212,15 +212,15 @@ class TestChannelsRBAC(APITest):
     @pytest.mark.parametrize('role', ['admin', 'execute', 'read'])
     def test_workflow_events_with_allowed_role(self, factories, user_ws_client, role):
         """Confirm that a user is only alerted of workflow events when provided an allowed role"""
-        user = factories.v2_user()
-        inventory = factories.v2_host().ds.inventory
-        success_jt = factories.v2_job_template(inventory=inventory, playbook='debug.yml')
-        fail_jt = factories.v2_job_template(inventory=inventory, playbook='fail_unless.yml')
-        wfjt = factories.v2_workflow_job_template()
+        user = factories.user()
+        inventory = factories.host().ds.inventory
+        success_jt = factories.job_template(inventory=inventory, playbook='debug.yml')
+        fail_jt = factories.job_template(inventory=inventory, playbook='fail_unless.yml')
+        wfjt = factories.workflow_job_template()
         for resource in (fail_jt, success_jt, wfjt):
             assert resource.set_object_roles(user, role)
 
-        root = factories.v2_workflow_job_template_node(workflow_job_template=wfjt,
+        root = factories.workflow_job_template_node(workflow_job_template=wfjt,
                                                     unified_job_template=success_jt)
         failure = root.related.success_nodes.post(dict(unified_job_template=fail_jt.id))
         success = failure.related.failure_nodes.post(dict(unified_job_template=success_jt.id))

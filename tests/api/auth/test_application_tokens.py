@@ -94,7 +94,7 @@ class TestApplications(APITest):
         assert list_item.client_id == client_id
 
     def test_application_organization_name_unique(self, v2, factories):
-        org = factories.v2_organization()
+        org = factories.organization()
         app = factories.application(
             organization=org,
             authorization_grant_type='password',
@@ -111,7 +111,7 @@ class TestApplications(APITest):
         assert e.value.msg == {'__all__': ['Application with this Name and Organization already exists.']}
 
     def test_patch_modified_application_integrity(self, v2, factories):
-        org = factories.v2_organization()
+        org = factories.organization()
         app = factories.application(organization=org, authorization_grant_type='password',
                                     client_type='public')
         name = random_title(3)
@@ -131,7 +131,7 @@ class TestApplications(APITest):
         assert app.get().redirect_uris == uris
 
     def test_put_modified_application_integrity(self, v2, factories):
-        org = factories.v2_organization()
+        org = factories.organization()
         app = factories.application(organization=org, authorization_grant_type='password',
                                     client_type='public')
         app_body = deepcopy(app.json)
@@ -152,7 +152,7 @@ class TestApplications(APITest):
         assert app.get().redirect_uris == app_body['redirect_uris']
 
     def test_delete_application(self, v2, factories):
-        org = factories.v2_organization()
+        org = factories.organization()
         app = factories.application(organization=org, authorization_grant_type='password',
                                     client_type='public')
         apps = v2.applications.get(id=app.id)
@@ -164,7 +164,7 @@ class TestApplications(APITest):
 
     @pytest.mark.parametrize('field', ('client_id', 'client_secret', 'authorization_grant_type'))
     def test_read_only_application_fields_have_forbidden_writes(self, factories, field):
-        org = factories.v2_organization()
+        org = factories.organization()
         app = factories.application(organization=org, client_type='confidential')
         app = app.get()
         expected = app[field]
@@ -229,7 +229,7 @@ class TestApplications(APITest):
     def test_org_admins_cannot_read_or_modify_applications_in_other_orgs(self, v2, factories):
         org1, org2 = [factories.organization() for _ in range(2)]
         app = factories.application(organization=org1)
-        org2_admin = factories.v2_user(organization=org2)
+        org2_admin = factories.user(organization=org2)
         org2.set_object_roles(org2_admin, 'Admin')
 
         with self.current_user(org2_admin):
@@ -250,7 +250,7 @@ class TestApplications(APITest):
     def test_org_admins_can_manage_applications_in_their_org(self, v2, factories):
         org = factories.organization()
         app = factories.application(organization=org)
-        org_admin = factories.v2_user(organization=org)
+        org_admin = factories.user(organization=org)
         org.set_object_roles(org_admin, 'Admin')
 
         with self.current_user(org_admin):
@@ -265,7 +265,7 @@ class TestApplications(APITest):
     def test_non_admin_users_cannot_modify_applications(self, v2, factories):
         org = factories.organization()
         app = factories.application(organization=org)
-        org_user = factories.v2_user(organization=org)
+        org_user = factories.user(organization=org)
 
         with self.current_user(org_user):
             app.get()
@@ -284,7 +284,7 @@ class TestApplications(APITest):
     def test_app_in_activity_stream_for_org_users(self, v2, factories):
         org = factories.organization()
         app = factories.application(organization=org)
-        org_user = factories.v2_user(organization=org)
+        org_user = factories.user(organization=org)
 
         with self.current_user(org_user):
             assert app.related.activity_stream.get().count == 1
@@ -292,7 +292,7 @@ class TestApplications(APITest):
     def test_app_not_in_activity_stream_for_non_org_users(self, v2, factories):
         org1, org2 = [factories.organization() for _ in range(2)]
         app = factories.application(organization=org1)
-        org2_user = factories.v2_user(organization=org2)
+        org2_user = factories.user(organization=org2)
         activity_stream_entry = app.related.activity_stream.get().results.pop()
 
         with self.current_user(org2_user):
@@ -449,7 +449,7 @@ class TestApplicationTokens(APITest):
         assert_stream_validity(token, token_body, orig_body)
 
     def test_user_access_token_login_reflects_user(self, v2, factories):
-        user = factories.v2_user()
+        user = factories.user()
         with self.current_user(user):
             token = factories.access_token(organization=None)
         with self.current_user(token):
@@ -459,8 +459,8 @@ class TestApplicationTokens(APITest):
     @pytest.mark.parametrize('ct', ('confidential', 'public'))
     @pytest.mark.parametrize('agt', ('authorization-code', 'password'))
     def test_user_application_token_login_reflects_user(self, v2, factories, ct, agt):
-        org = factories.v2_organization()
-        user = factories.v2_user(organization=org)
+        org = factories.organization()
+        user = factories.user(organization=org)
         app = factories.application(organization=org, client_type=ct, authorization_grant_type=agt,
                                     redirect_uris='https://example.com')
         with self.current_user(user):
@@ -475,8 +475,8 @@ class TestApplicationTokens(APITest):
     @pytest.mark.parametrize('ct', ('confidential', 'public'))
     @pytest.mark.parametrize('agt', ('authorization-code', 'password'))
     def test_users_cannot_read_other_user_tokens(self, v2, factories, ct, agt):
-        org = factories.v2_organization()
-        user1, user2 = [factories.v2_user(organization=org) for _ in range(2)]
+        org = factories.organization()
+        user1, user2 = [factories.user(organization=org) for _ in range(2)]
         app = factories.application(organization=org, client_type=ct, authorization_grant_type=agt,
                                     redirect_uris='https://example.com')
         with self.current_user(user1):
@@ -492,8 +492,8 @@ class TestApplicationTokens(APITest):
     @pytest.mark.parametrize('ct', ('confidential', 'public'))
     @pytest.mark.parametrize('agt', ('authorization-code', 'password'))
     def test_users_cannot_modify_other_user_tokens(self, v2, factories, ct, agt):
-        org = factories.v2_organization()
-        user1, user2 = [factories.v2_user(organization=org) for _ in range(2)]
+        org = factories.organization()
+        user1, user2 = [factories.user(organization=org) for _ in range(2)]
         app = factories.application(organization=org, client_type=ct, authorization_grant_type=agt,
                                     redirect_uris='https://example.com')
         with self.current_user(user1):
@@ -516,8 +516,8 @@ class TestApplicationTokens(APITest):
     def test_token_creation_not_in_activity_stream_for_non_org_users(self, v2, factories):
         org1, org2 = [factories.organization() for _ in range(2)]
         app = factories.application(organization=org1)
-        org1_user = factories.v2_user(organization=org1)
-        org2_user = factories.v2_user(organization=org2)
+        org1_user = factories.user(organization=org1)
+        org2_user = factories.user(organization=org2)
         with self.current_user(org1_user):
             token = factories.access_token(oauth_2_application=app)
 
@@ -529,8 +529,8 @@ class TestApplicationTokens(APITest):
     def test_token_creation_not_in_activity_stream_for_other_org_users(self, v2, factories):
         org = factories.organization()
         app = factories.application(organization=org)
-        org_user1 = factories.v2_user(organization=org)
-        org_user2 = factories.v2_user(organization=org)
+        org_user1 = factories.user(organization=org)
+        org_user2 = factories.user(organization=org)
         with self.current_user(org_user1):
             token = factories.access_token(oauth_2_application=app)
         activity_stream_entry = token.related.activity_stream.get().results.pop()
@@ -540,8 +540,8 @@ class TestApplicationTokens(APITest):
     def test_token_creation_in_activity_stream_for_org_admin(self, v2, factories):
         org = factories.organization()
         app = factories.application(organization=org)
-        org_user = factories.v2_user(organization=org)
-        org_admin = factories.v2_user(organization=org)
+        org_user = factories.user(organization=org)
+        org_admin = factories.user(organization=org)
         org.set_object_roles(org_admin, 'Admin')
         with self.current_user(org_user):
             token = factories.access_token(oauth_2_application=app)
@@ -571,8 +571,8 @@ class TestTokenAuthentication(TestTokenAuthenticationBase):
             assert 'Authentication credentials were not provided. To establish a login session, visit /api/login/.' in str(e)
 
     def test_authenticate_with_access_token(self, v2, factories):
-        org = factories.v2_organization()
-        user = factories.v2_user(organization=org)
+        org = factories.organization()
+        user = factories.user(organization=org)
         app = factories.application(organization=org,
                                     client_type='confidential',
                                     authorization_grant_type='password',
@@ -584,7 +584,7 @@ class TestTokenAuthentication(TestTokenAuthenticationBase):
         assert res.results.pop().username == user.username
 
     def test_authenticate_with_personal_access_token(self, v2, factories):
-        user = factories.v2_user(organization=factories.v2_organization())
+        user = factories.user(organization=factories.organization())
         with self.current_user(user):
             token = user.related.personal_tokens.post()
         res = self.me(token.token)
@@ -592,7 +592,7 @@ class TestTokenAuthentication(TestTokenAuthenticationBase):
 
     @pytest.mark.yolo
     def test_access_token_revocation(self, v2, factories):
-        user = factories.v2_user(organization=factories.v2_organization())
+        user = factories.user(organization=factories.organization())
         with self.current_user(user):
             token = user.related.personal_tokens.post()
 
@@ -613,7 +613,7 @@ class TestTokenAuthentication(TestTokenAuthenticationBase):
         }
         update_setting_pg(auth_settings, payload)
 
-        user = factories.v2_user(organization=factories.v2_organization())
+        user = factories.user(organization=factories.organization())
         with self.current_user(user):
             token = user.related.personal_tokens.post()
             # the difference between the created and expiration dates
@@ -630,7 +630,7 @@ class TestTokenAuthentication(TestTokenAuthenticationBase):
         ('write', False)
     ])
     def test_read_scope_cannot_create(self, v2, factories, scope, forbidden):
-        user = factories.v2_user(organization=factories.v2_organization())
+        user = factories.user(organization=factories.organization())
         token = v2.tokens.post({'scope': scope})
 
         username = random_title(3, non_ascii=False)
@@ -648,7 +648,7 @@ class TestTokenAuthentication(TestTokenAuthenticationBase):
         ('write', False)
     ])
     def test_read_scope_cannot_edit(self, v2, factories, scope, forbidden):
-        user = factories.v2_user(organization=factories.v2_organization())
+        user = factories.user(organization=factories.organization())
         token = v2.tokens.post({'scope': scope})
 
         page = self.get_page(token.token, user.endpoint)
@@ -666,7 +666,7 @@ class TestTokenAuthentication(TestTokenAuthenticationBase):
         ('write', False)
     ])
     def test_read_scope_cannot_delete(self, v2, factories, scope, forbidden):
-        user = factories.v2_user(organization=factories.v2_organization())
+        user = factories.user(organization=factories.organization())
         token = v2.tokens.post({'scope': scope})
 
         page = self.get_page(token.token, user.endpoint)
@@ -703,7 +703,7 @@ class TestTokenAuthentication(TestTokenAuthenticationBase):
     ])
     def test_read_scope_cannot_attach_detach(self, v2, factories, scope, forbidden):
         token = v2.tokens.post({'scope': scope})
-        jt = factories.v2_job_template()
+        jt = factories.job_template()
         page = self.get_page(token.token, jt.related.credentials.endpoint)
         assert page.count == 1
         credential_pk = page.get().results.pop().id
@@ -729,7 +729,7 @@ class TestTokenAuthentication(TestTokenAuthenticationBase):
     ])
     def test_read_scope_cannot_copy(self, v2, factories, scope, forbidden):
         token = v2.tokens.post({'scope': scope})
-        jt = factories.v2_job_template()
+        jt = factories.job_template()
         page = self.get_page(token.token, jt.get_related('copy').endpoint)
 
         if forbidden:
@@ -747,8 +747,8 @@ class TestTokenUsage(TestTokenAuthenticationBase):
     @pytest.mark.parametrize('ct', ('confidential', 'public'))
     @pytest.mark.parametrize('agt', ('authorization-code', 'password'))
     def test_password_can_be_changed_while_using_authtoken(self, factories, v2, agt, ct):
-        org = factories.v2_organization()
-        user = factories.v2_user(organization=org)
+        org = factories.organization()
+        user = factories.user(organization=org)
         app = factories.application(organization=org,
                                     client_type=ct,
                                     authorization_grant_type=agt,
@@ -776,7 +776,7 @@ class TestDjangoOAuthToolkitTokenManagement(TestTokenAuthenticationBase):
         (False, 400)  # used to be 401 https://github.com/oauthlib/oauthlib/issues/264
     ])
     def test_token_creation(self, factories, scope, password_is_correct, expected_status):
-        app = factories.application(organization=factories.v2_organization(),
+        app = factories.application(organization=factories.organization(),
                                     client_type='confidential',
                                     authorization_grant_type='password',
                                     redirect_uris='https://example.com')
@@ -813,7 +813,7 @@ class TestDjangoOAuthToolkitTokenManagement(TestTokenAuthenticationBase):
 
     @pytest.mark.parametrize('scope', ['read', 'write'])
     def test_token_revocation(self, factories, scope):
-        app = factories.application(organization=factories.v2_organization(),
+        app = factories.application(organization=factories.organization(),
                                     client_type='confidential',
                                     authorization_grant_type='password',
                                     redirect_uris='https://example.com')
@@ -861,7 +861,7 @@ class TestDjangoOAuthToolkitTokenManagement(TestTokenAuthenticationBase):
     @pytest.mark.yolo
     @pytest.mark.parametrize('scope', ['read', 'write'])
     def test_refresh_token(self, factories, scope):
-        app = factories.application(organization=factories.v2_organization(),
+        app = factories.application(organization=factories.organization(),
                                     client_type='confidential',
                                     authorization_grant_type='password',
                                     redirect_uris='https://example.com')

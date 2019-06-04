@@ -158,7 +158,7 @@ class TestSchedules(SchedulesTest):
         assert schedule.next_run == rule.next_run
 
     def test_expected_fields_are_readonly(self, factories):
-        schedule = factories.v2_job_template().add_schedule()
+        schedule = factories.job_template().add_schedule()
         original_dtstart = schedule.dtstart
         schedule.dtstart = 'Undesired dtstart'
         assert schedule.dtstart == original_dtstart
@@ -230,9 +230,9 @@ class TestSchedules(SchedulesTest):
             v2.settings.get().get_endpoint('jobs'),
             dict(ALLOW_JINJA_IN_EXTRA_VARS='always')
         )
-        jt = factories.v2_job_template(playbook='debug_extra_vars.yml',
+        jt = factories.job_template(playbook='debug_extra_vars.yml',
                                        extra_vars='var1: "{{ awx_schedule_id }}"')
-        factories.v2_host(inventory=jt.ds.inventory)
+        factories.host(inventory=jt.ds.inventory)
         schedule = jt.add_schedule(rrule=self.minutely_rrule())
 
         unified_jobs = schedule.related.unified_jobs.get()

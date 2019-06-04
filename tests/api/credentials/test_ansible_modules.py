@@ -11,8 +11,8 @@ from tests.api import APITest
 class TestGCECredentials(APITest):
 
     def test_gce_playbook_module(self, factories, gce_credential):
-        host = factories.v2_host()
-        jt = factories.v2_job_template(
+        host = factories.host()
+        jt = factories.job_template(
             inventory=host.ds.inventory,
             playbook='cloud_modules/gce.yml',
             verbosity=2,
@@ -26,7 +26,7 @@ class TestGCECredentials(APITest):
         assert job.status == 'successful'
 
     def test_gce_inventory_sync(self, factories, gce_credential):
-        inv_source = factories.v2_inventory_source(source='gce', credential=gce_credential, verbosity=2)
+        inv_source = factories.inventory_source(source='gce', credential=gce_credential, verbosity=2)
         inv_update = inv_source.update().wait_until_completed()
         assert inv_update.status == 'successful'
 

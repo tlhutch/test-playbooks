@@ -326,7 +326,7 @@ class Test_Job_Template_RBAC(APITest):
         delete jobs from his own organization.
         """
         # create two JTs from different orgs
-        jt1, jt2 = [factories.v2_job_template() for _ in range(2)]
+        jt1, jt2 = [factories.job_template() for _ in range(2)]
         org1, org2 = [jt.ds.inventory.ds.organization for jt in (jt1, jt2)]
         assert org1.id != org2.id  # sanity check
 

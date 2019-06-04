@@ -26,7 +26,7 @@ def another_ssh_credential(admin_user, factories):
 @pytest.fixture(scope="function")
 def ssh_credential_ask(admin_user, factories):
     """Create ssh credential with 'ASK' password"""
-    cred = factories.v2_credential(description="machine credential with ASK password - %s" % fauxfactory.gen_utf8(),
+    cred = factories.credential(description="machine credential with ASK password - %s" % fauxfactory.gen_utf8(),
                                 kind='ssh', user=admin_user, password='ASK', become_password=None,
                                 ssh_key_data=None)
     return cred
@@ -399,4 +399,4 @@ def write_access_git_credential(class_factories):
                               GIT_KEY="{{tower.filename}}"))
     cred_type = class_factories.credential_type(inputs=inputs, injectors=injectors)
     pk = config.credentials.scm.test_playbooks.ssh_key_data
-    return class_factories.v2_credential(credential_type=cred_type, inputs=dict(git_key=pk))
+    return class_factories.credential(credential_type=cred_type, inputs=dict(git_key=pk))

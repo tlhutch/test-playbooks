@@ -92,7 +92,7 @@ class TestOpenShiftCluster(APITest):
         assert tower_ig_contains_all_instances()
 
         # verify that jobs run
-        jt = factories.v2_job_template()
+        jt = factories.job_template()
         jt.add_instance_group(tower_instance_group)
 
         job = jt.launch().wait_until_completed(timeout=180)
@@ -108,9 +108,9 @@ class TestOpenShiftCluster(APITest):
         instance = v2.instances.get().results.pop()
         ig.add_instance(instance)
 
-        jt = factories.v2_job_template(playbook='sleep.yml', extra_vars='{"sleep_interval": 180}')
+        jt = factories.job_template(playbook='sleep.yml', extra_vars='{"sleep_interval": 180}')
         jt.add_instance_group(ig)
-        factories.v2_host(inventory=jt.ds.inventory)
+        factories.host(inventory=jt.ds.inventory)
 
         job = jt.launch()
         utils.poll_until(lambda: job.get().execution_node, interval=1, timeout=60)

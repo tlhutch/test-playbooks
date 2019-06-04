@@ -57,12 +57,12 @@ def ansible_default_ipv4(ansible_facts):
 
 @pytest.fixture(scope="function")
 def inventory(factories, organization):
-    return factories.v2_inventory(organization=organization, localhost=None)
+    return factories.inventory(organization=organization, localhost=None)
 
 
 @pytest.fixture(scope="function")
 def another_inventory(factories, organization):
-    return factories.v2_inventory(organization=organization, localhost=None)
+    return factories.inventory(organization=organization, localhost=None)
 
 
 @pytest.fixture(scope="function")
@@ -91,11 +91,11 @@ def group(factories, inventory):
 @pytest.fixture(scope="function")
 def inventory_source(factories, inventory_script):
     organization = inventory_script.related.organization.get()
-    inventory = factories.v2_inventory(
+    inventory = factories.inventory(
         organization=organization,
         variables=json.dumps(dict(ansible_connection="local"))
     )
-    return factories.v2_inventory_source(inventory=inventory, source_script=inventory_script)
+    return factories.inventory_source(inventory=inventory, source_script=inventory_script)
 
 
 @pytest.fixture(scope="function")
@@ -152,12 +152,12 @@ inventory['{0}']['hosts'] = list()
 
 @pytest.fixture(scope="function")
 def inventory_script(factories, script_source, organization):
-    return factories.v2_inventory_script(organization=organization, script=script_source)
+    return factories.inventory_script(organization=organization, script=script_source)
 
 
 @pytest.fixture(scope="function")
 def aws_inventory_source(factories, aws_credential):
-    return factories.v2_inventory_source(credential=aws_credential, source='ec2')
+    return factories.inventory_source(credential=aws_credential, source='ec2')
 
 
 @pytest.fixture(scope="function")
@@ -434,12 +434,12 @@ def cloud_inventory_hostgroups(azure_inventory_hostgroups, gce_inventory_hostgro
 
 @pytest.fixture(scope="function")
 def azure_inventory_source(factories, azure_credential):
-    return factories.v2_inventory_source(credential=azure_credential, source='azure_rm')
+    return factories.inventory_source(credential=azure_credential, source='azure_rm')
 
 
 @pytest.fixture(scope="function")
 def gce_inventory_source(factories, gce_credential):
-    return factories.v2_inventory_source(credential=gce_credential, source='gce')
+    return factories.inventory_source(credential=gce_credential, source='gce')
 
 
 @pytest.fixture(scope="function")
@@ -449,7 +449,7 @@ def vmware_inventory_source(vmware_credential):
 
 @pytest.fixture(scope="function")
 def openstack_inventory_source(factories, openstack_v3_credential):
-    return factories.v2_inventory_source(source='openstack', credential=openstack_v3_credential)
+    return factories.inventory_source(source='openstack', credential=openstack_v3_credential)
 
 
 @pytest.fixture(scope="function")
@@ -474,7 +474,7 @@ def cloud_inventory(request, factories):
         pytest.skip('Currently without publicly-facing VMware')
 
     cred = request.getfixturevalue(cred_fixture)
-    inv_source = factories.v2_inventory_source(source=inv_source, credential=cred)
+    inv_source = factories.inventory_source(source=inv_source, credential=cred)
     return inv_source.ds.inventory
 
 

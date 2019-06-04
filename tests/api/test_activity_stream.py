@@ -24,15 +24,15 @@ class TestActivityStream(APITest):
     def test_deleted_resources_logged_as_deleted_user(self, v2, factories, resource):
         is_survey = False
         if resource == 'schedule':
-            resource = factories.v2_job_template().add_schedule()
+            resource = factories.job_template().add_schedule()
         elif resource == 'survey':
             is_survey = True
-            resource = factories.v2_job_template().add_survey()
+            resource = factories.job_template().add_survey()
         elif resource in ('credential_type', 'instance_group'):
             resource = getattr(factories, resource)()
         else:
             resource = getattr(factories, 'v2_' + resource)()
-        superuser = factories.v2_user(is_superuser=True)
+        superuser = factories.user(is_superuser=True)
 
         with self.current_user(superuser):
             resource.delete()
@@ -66,7 +66,7 @@ class TestActivityStream(APITest):
                              ids=['job', 'workflow job', 'ad hoc command', 'project_update',
                                   'inventory_update', 'system job'])
     def test_deleted_uj_logged_as_deleted_user(self, request, v2, factories, fixture, method):
-        superuser = factories.v2_user(is_superuser=True)
+        superuser = factories.user(is_superuser=True)
 
         if method:
             resource = request.getfixturevalue(fixture)
@@ -113,7 +113,7 @@ class TestActivityStream(APITest):
 
     def test_inventory_id_in_group_activity_stream(self, factories):
         """Confirms that inventory_id is included in the group summary_fields for all non-delete operations"""
-        inventory = factories.v2_inventory()
+        inventory = factories.inventory()
         group = factories.group(inventory=inventory)
         host = factories.host(inventory=inventory)
 
@@ -178,8 +178,8 @@ class TestActivityStream(APITest):
 
     def test_copying_jt_with_labels_should_not_create_activity_stream_entries_for_each_label(self, factories, admin_user):
         label_name = fauxfactory.gen_alphanumeric()
-        org = factories.v2_organization()
-        jt = factories.v2_job_template()
+        org = factories.organization()
+        jt = factories.job_template()
 
         # original JT has 3 labels and one associate activity stream entry each
         for i in range(3):
@@ -196,12 +196,12 @@ class TestActivityStream(APITest):
     @pytest.mark.parametrize('_type', ['job_template', 'workflow_job_template'])
     def test_launching_template_with_labels_should_not_create_activity_stream_entries_for_each_label(self, factories, admin_user, _type):
         label_name = fauxfactory.gen_alphanumeric()
-        org = factories.v2_organization()
+        org = factories.organization()
         jt = getattr(factories, 'v2_{}'.format(_type))()
         actual_jt = jt
 
         if _type == 'workflow_job_template':
-            actual_jt = factories.v2_job_template()
+            actual_jt = factories.job_template()
             factories.workflow_job_template_node(
                 workflow_job_template=jt,
                 unified_job_template=actual_jt
@@ -226,8 +226,8 @@ class TestActivityStream(APITest):
                                       'Credential Admin', 'Job Template Admin', 'Project Admin', 'Inventory Admin',
                                       'Auditor'])
     def test_entry_generated_when_org_role_associated_with_user(self, factories, role):
-        org = factories.v2_organization()
-        user = factories.v2_user()
+        org = factories.organization()
+        user = factories.user()
         org.set_object_roles(user, role)
 
         activity = org.related.activity_stream.get().results.pop()
