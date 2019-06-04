@@ -404,7 +404,6 @@ class TestJobTemplateExtraCredentials(APITest):
                 assert e.value.msg == {'error': 'Cannot assign a Credential of kind `scm`.'}
             elif cred == ssh_cred:
                 assert e.value.msg == {'error': 'Cannot assign multiple Machine credentials.'}
-                import pdb; pdb.set_trace()
             assert not jt.related.extra_credentials.get().results
 
     @pytest.fixture(scope='class')
