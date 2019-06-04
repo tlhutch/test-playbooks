@@ -139,41 +139,34 @@ class Test_Job_Template_RBAC(APITest):
 
     @pytest.mark.parametrize('payload_resource_roles, response_codes', [
         (
-            # Previously this was allowed as it is a "no-op"
-            # But this situation would only arise if someone else added the credential to the JT
-            # When we try and save and only have read on the credential, we should be notified
-            # that we don't have permission to the credential.
-            # FIXME: Not sure about this analysis
-            {'credential': ['read'], 'inventory': ['use'], 'project': ['use']},
+            {'inventory': ['read'], 'project': ['use']},
             {'PATCH': http.client.FORBIDDEN, 'PUT': http.client.FORBIDDEN}
         ),
         (
-            {'credential': ['use'], 'inventory': ['read'], 'project': ['use']},
+            {'inventory': ['use'], 'project': ['read']},
             {'PATCH': http.client.FORBIDDEN, 'PUT': http.client.FORBIDDEN}
         ),
         (
-            {'credential': ['use'], 'inventory': ['use'], 'project': ['read']},
-            {'PATCH': http.client.FORBIDDEN, 'PUT': http.client.FORBIDDEN}
-        ),
-        (
-            {'credential': ['use'], 'inventory': ['use'], 'project': ['use']},
+            {'inventory': ['use'], 'project': ['use']},
             {'PATCH': http.client.OK, 'PUT': http.client.OK}
         ),
-    ], ids=['only_read_on_credential', 'only_read_on_inventory', 'only_read_on_project', 'use_access_for_all'])
+    ], ids=['only_read_on_inventory', 'only_read_on_project', 'use_access_for_both'])
     def test_job_template_change_request_without_usage_role_returns_code_403(self,
             factories, payload_resource_roles, response_codes):
-        """Verify that a user cannot change the related project, inventory, or
-        credential of a job template unless they have usage permissions on all
-        three resources and are admins of the job template
+        """Verify that a user cannot change the related project or inventory
+        of a job template unless they have usage permissions to both
+        resources and are admins of the job template
         """
         user = factories.user()
         organization = factories.organization()
         cred = factories.credential(organization=organization)
         inv = factories.inventory(organization=organization)
         project = factories.project(organization=organization)
-        job_template = factories.job_template(credential=cred, inventory=inv)
+        # so that we change the one resource we don't have access to
+        job_template = factories.job_template()
         organization.set_object_roles(user, 'member')
         job_template.set_object_roles(user, 'admin')
+        cred.set_object_roles(user, 'use')
         # generate test request payload
 
         jt_payload = factories.job_template.payload(inventory=inv,
@@ -181,14 +174,13 @@ class Test_Job_Template_RBAC(APITest):
                                                     project=project)
         assert jt_payload['project'] == project.id
         assert jt_payload['inventory'] == inv.id
+        del jt_payload['credential']
         jt_payload['name'] = job_template.name
         jt_payload['description'] = job_template.description
 
         # assign test permissions
         for name, roles in payload_resource_roles.items():
-            if name == 'credential':
-                cred.set_object_roles(user, *roles)
-            elif name == 'inventory':
+            if name == 'inventory':
                 inv.set_object_roles(user, *roles)
             elif name == 'project':
                 project.set_object_roles(user, *roles)
