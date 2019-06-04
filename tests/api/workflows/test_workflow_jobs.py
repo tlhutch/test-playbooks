@@ -125,7 +125,7 @@ class Test_Workflow_Jobs(APITest):
         job.assert_successful()
 
         # Confirm WFJ correctly references job
-        assert re.match(towerkit.resources.v2_job, wfjn.related.job)
+        assert re.match(towerkit.resources.job, wfjn.related.job)
         assert wfjn.get_related('job').endpoint == jt.get().get_related('last_job').endpoint
 
     @pytest.mark.ansible_integration
@@ -269,7 +269,7 @@ class Test_Workflow_Jobs(APITest):
         factories.workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=project)
         wfj = wfjt.launch().wait_until_completed()
         wfjn = wfj.related.workflow_nodes.get().results.pop()
-        assert re.match(towerkit.resources.v2_project_update, wfjn.related.job)
+        assert re.match(towerkit.resources.project_update, wfjn.related.job)
         assert wfjn.get_related('job').endpoint == project.get().get_related('last_job').endpoint
 
     # Canceling jobs

@@ -100,11 +100,11 @@ class TestEnterpriseLicense(LicenseTest):
         enterprise auth endpoints.
         """
         endpoints = [setting.endpoint for setting in api_settings_pg.results]
-        assert(resources.v2_settings_saml in endpoints), \
+        assert(resources.settings_saml in endpoints), \
             "Expected to find an /api/v2/settings/saml/ entry under /api/v2/settings/."
-        assert(resources.v2_settings_radius in endpoints), \
+        assert(resources.settings_radius in endpoints), \
             "Expected to find an /api/v2/settings/radius/ entry under /api/v2/settings/."
-        assert(resources.v2_settings_ldap in endpoints), \
+        assert(resources.settings_ldap in endpoints), \
             "Expected to find an /api/v2/settings/ldap/ entry under /api/v2/settings/."
 
     def test_nested_enterprise_auth_endpoints(self, api_settings_pg):
