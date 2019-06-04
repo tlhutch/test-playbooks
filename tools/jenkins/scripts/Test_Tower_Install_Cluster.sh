@@ -71,7 +71,7 @@ INSTANCE_NAME_PREFIX=${INSTANCE_NAME_PREFIX}
 EOF
 
 TOWER_URL=`ansible -i playbooks/inventory.cluster --list-hosts tower | grep -v -m 1 hosts | xargs`
-TOWER_VERSION=`curl -ks https://${TOWER_URL}/api/v1/ping/ | jq -r .version | cut -d . -f 1-3`
+TOWER_VERSION=`curl -ks https://${TOWER_URL}/api/v2/ping/ | jq -r .version | cut -d . -f 1-3`
 echo ${TOWER_VERSION}
 
 TRIGGER_FILE=".trigger"
