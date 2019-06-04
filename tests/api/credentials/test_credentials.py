@@ -77,7 +77,7 @@ class TestCredentials(APITest):
         # Successfully create two credentials with same name but different user and without an organization
         name = 'duplicate_user_cred_{}'.format(fauxfactory.gen_utf8())
         for user in [user1, user2]:
-            cred = factories.credential(user=user, name=name)
+            factories.credential(user=user, name=name)
 
         # attempt to create duplicate organization credentials
         name = 'duplicate_org_cred_{}'.format(fauxfactory.gen_utf8())
@@ -99,7 +99,6 @@ class TestCredentials(APITest):
         del payload.inputs['project'] # required for openstack
         cred = v2.credentials.post(payload)
         request.addfinalizer(cred.silent_delete)
-
 
         jt = factories.v2_job_template()
         jt.add_credential(cred)

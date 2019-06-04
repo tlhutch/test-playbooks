@@ -1,4 +1,3 @@
-import fauxfactory
 import pytest
 
 from tests.api import APITest

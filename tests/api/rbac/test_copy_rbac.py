@@ -136,7 +136,7 @@ class Test_Copy_RBAC(APITest):
 
         cred_ids = [cred.id for cred in jt.related.credentials.get().results]
         assert vault_cred.id in cred_ids
-        assert  machine_cred.id in cred_ids
+        assert machine_cred.id in cred_ids
         assert aws_cred.id in cred_ids
         assert len(cred_ids) == 3
 

@@ -229,6 +229,7 @@ class TestJobTemplateLaunchCredentials(APITest):
         assert set(c.id for c in job_creds) == set([vault_cred1.id, vault_cred2.id])
         assert job.related.credentials.get().count == 2
 
+
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestJobTemplateVaultCredentials(APITest):
 

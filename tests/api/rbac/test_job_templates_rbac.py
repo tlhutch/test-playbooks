@@ -129,7 +129,7 @@ class Test_Job_Template_RBAC(APITest):
         user = factories.user(organization=org)
         # set user resource role associations
         org.set_object_roles(user, 'admin')
-        #for resource in (cred, project, inv):
+        # for resource in (cred, project, inv):
         #    resource.set_object_roles(user, 'use')
         # create a job template as the test user
         with self.current_user(user):
