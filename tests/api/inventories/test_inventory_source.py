@@ -22,16 +22,16 @@ class TestInventorySource(APITest):
             else:
                 cred = factories.v2_credential(organization=org, kind=kind)
 
-            error = {'credential': ['Credentials of type machine, source control, insights and vault are disallowed for custom inventory sources.']}
+            error = 'Credentials of type machine, source control, insights and vault are disallowed for custom inventory sources.'
             with pytest.raises(exc.BadRequest) as e:
                 factories.v2_inventory_source(inventory=inventory, source_script=inv_script, credential=cred)
-            assert e.value[1] == error
+            assert error in str(e.value[1])
 
             inv_source = factories.v2_inventory_source(inventory=inventory, source_script=inv_script)
             assert inv_source.source_script == inv_script.id
             with pytest.raises(exc.BadRequest) as e:
                 inv_source.related.credentials.post(dict(id=cred.id))
-            assert e.value[1] == error
+            assert error in str(e.value[1])
 
     @pytest.mark.ansible_integration
     @pytest.mark.github('https://github.com/ansible/awx/issues/2240', skip=True)
