@@ -319,6 +319,10 @@ pipeline {
                                 value: false
                             ),
                             string(
+                                name: 'TOWER_QA_FORK',
+                                value: params.TOWER_QA_FORK
+                            ),
+                            string(
                                 name: 'TOWERQA_GIT_BRANCH',
                                 value: "origin/${params.TOWER_QA_BRANCH}"
                             ),
