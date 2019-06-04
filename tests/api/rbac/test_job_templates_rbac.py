@@ -177,7 +177,10 @@ class Test_Job_Template_RBAC(APITest):
         # generate test request payload
 
         jt_payload = factories.job_template.payload(inventory=inv,
-                                                    credential=cred)
+                                                    credential=cred,
+                                                    project=project)
+        assert jt_payload['project'] == project.id
+        assert jt_payload['inventory'] == inv.id
         jt_payload['name'] = job_template.name
         jt_payload['description'] = job_template.description
 
