@@ -16,7 +16,6 @@ def escape_pluses(name):
 
 
 def make_api_url(resource_name, format_string, *params):
-    #url_template = f'/api/v2/{resource_name.replace(" ", "+")}/{format_string}/'
     url_template = f'/api/v2/{resource_name}/{format_string}/'
     return url_template.format(resources, *[escape_pluses(param) for param in params])
 
