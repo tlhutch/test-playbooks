@@ -98,6 +98,30 @@
         dest: "/etc/tower/conf.d/load_balancer.py"
       when: "'haproxy' in hostvars.keys()"
 
+# Make managed hosts accessible by password auth
+- name: Enable password auth to managed hosts
+  hosts: 'managed_hosts'
+  become: true
+  become_method: sudo
+  tasks:
+    - name: Enable password auth in sshd_config
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^PasswordAuthentication no'
+        line: 'PasswordAuthentication yes'
+        state: present
+
+    - name: Set password for user
+      user:
+        name: "{{ ansible_user }}"
+        password: "{{ admin_password|password_hash('sha512') }}"
+
+    - name: Restart sshd
+      service:
+        name: sshd
+        enabled: yes
+        state: restarted
+
 - name: Remove IPV4
   hosts: tower
   tasks:
