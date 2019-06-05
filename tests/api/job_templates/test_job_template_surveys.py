@@ -298,7 +298,7 @@ class TestJobTemplateSurveys(APITest):
     @pytest.mark.mp_group(group="get_pg_dump", strategy="serial")
     @pytest.mark.parametrize('template', ['job', 'workflow_job'])
     def test_confirm_no_plaintext_survey_passwords_in_db(self, skip_if_cluster, v2, factories, get_pg_dump, template):
-        resource = getattr(factories, 'v2_' + template + '_template')()
+        resource = getattr(factories, template + '_template')()
         password = "don't expose me - {0}".format(fauxfactory.gen_utf8(3).encode('utf8'))
         survey = [dict(required=False,
                        question_name='Test',

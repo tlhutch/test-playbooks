@@ -4,7 +4,7 @@ import pytest
 
 from tests.api import APITest
 
-RESOURCES_WITH_VENV = ('v2_job_template', 'v2_project', 'v2_organization')
+RESOURCES_WITH_VENV = ('job_template', 'project', 'organization')
 
 
 @pytest.mark.api
@@ -17,16 +17,16 @@ class TestCustomVirtualenvRBAC(APITest):
         org = org_admin.related.organizations.get().results.pop()
         other_org = factories.organization()
 
-        if resource_name == 'v2_organization':
+        if resource_name == 'organization':
             resource = org
             other_resource = other_org
         else:
             resource = getattr(factories, resource_name)()
             other_resource = getattr(factories, resource_name)()
 
-        if resource_name == 'v2_job_template':
+        if resource_name == 'job_template':
             resource.ds.project.organization = org.id
-        elif resource_name == 'v2_project':
+        elif resource_name == 'project':
             resource.organization = org.id
 
         folder_name = random_title(non_ascii=False)

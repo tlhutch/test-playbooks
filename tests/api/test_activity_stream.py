@@ -31,7 +31,7 @@ class TestActivityStream(APITest):
         elif resource in ('credential_type', 'instance_group'):
             resource = getattr(factories, resource)()
         else:
-            resource = getattr(factories, 'v2_' + resource)()
+            resource = getattr(factories, resource)()
         superuser = factories.user(is_superuser=True)
 
         with self.current_user(superuser):
@@ -193,14 +193,14 @@ class TestActivityStream(APITest):
         assert copied.related.activity_stream.get(operation='create').count == 1
         assert copied.related.activity_stream.get(operation='associate', object2='label').count == 0
 
-    @pytest.mark.parametrize('_type', ['job_template', 'workflow_job_template'])
-    def test_launching_template_with_labels_should_not_create_activity_stream_entries_for_each_label(self, factories, admin_user, _type):
+    @pytest.mark.parametrize('jt_type', ['job_template', 'workflow_job_template'])
+    def test_launching_template_with_labels_should_not_create_activity_stream_entries_for_each_label(self, factories, admin_user, jt_type):
         label_name = fauxfactory.gen_alphanumeric()
         org = factories.organization()
-        jt = getattr(factories, 'v2_{}'.format(_type))()
+        jt = getattr(factories, jt_type)()
         actual_jt = jt
 
-        if _type == 'workflow_job_template':
+        if jt_type == 'workflow_job_template':
             actual_jt = factories.job_template()
             factories.workflow_job_template_node(
                 workflow_job_template=jt,
@@ -212,7 +212,7 @@ class TestActivityStream(APITest):
             actual_jt.related.labels.post({'name': label_name + str(i), 'organization': org.id})
 
         job = jt.launch().wait_until_completed()
-        if _type == 'workflow_job_template':
+        if jt_type == 'workflow_job_template':
             wfjn = job.related.workflow_nodes.get().results.pop()
             job = wfjn.get_related('job')
         assert job.related.activity_stream.get(operation='create').count == 1

@@ -181,7 +181,7 @@ class TestInventoryUpdateWithVenvs(APITest):
 
     @pytest.mark.custom_venvs
     @pytest.mark.ansible_integration
-    def test_v2_update_cloud_inventory_source(self,
+    def test_update_cloud_inventory_source(self,
             ansible_version_cmp,
             cloud_inventory,
             custom_venv_path,
@@ -227,7 +227,7 @@ class TestInventoryUpdateWithVenvs(APITest):
 )
 class TestInventoryUpdate(APITest):
 
-    def test_v2_update_all_inventory_sources_with_functional_sources(self, factories):
+    def test_update_all_inventory_sources_with_functional_sources(self, factories):
         """Verify behavior when inventory has functional inventory sources."""
         inventory = factories.inventory()
         azure_cred, aws_cred = [factories.credential(kind=kind) for kind in ('azure_rm', 'aws')]
@@ -259,7 +259,7 @@ class TestInventoryUpdate(APITest):
         ec2_update.assert_successful()
         scm_update.assert_successful()
 
-    def test_v2_update_all_inventory_sources_with_semifunctional_sources(self, factories):
+    def test_update_all_inventory_sources_with_semifunctional_sources(self, factories):
         """Verify behavior when inventory has an inventory source that is ready for update
         and one that is not.
         """
@@ -289,7 +289,7 @@ class TestInventoryUpdate(APITest):
         inv_update.assert_successful()
         inv_source2.assert_successful()
 
-    def test_v2_update_all_inventory_sources_with_nonfunctional_sources(self, factories):
+    def test_update_all_inventory_sources_with_nonfunctional_sources(self, factories):
         """Verify behavior when inventory has nonfunctional inventory sources."""
         inventory = factories.inventory()
         inv_source1, inv_source2 = [factories.inventory_source(inventory=inventory) for _ in range(2)]
@@ -311,7 +311,7 @@ class TestInventoryUpdate(APITest):
         assert not inv_source1.last_updated
         assert not inv_source2.last_updated
 
-    def test_v2_update_duplicate_inventory_sources(self, factories):
+    def test_update_duplicate_inventory_sources(self, factories):
         """Verify updating custom inventory sources under the same inventory with
         the same custom script."""
         inv_source1 = factories.inventory_source()
@@ -329,7 +329,7 @@ class TestInventoryUpdate(APITest):
         inv_source1.get().assert_successful()
         inv_source2.get().assert_successful()
 
-    def test_v2_update_with_no_inventory_sources(self, factories):
+    def test_update_with_no_inventory_sources(self, factories):
         inventory = factories.inventory()
         with pytest.raises(exc.BadRequest) as e:
             inventory.update_inventory_sources()

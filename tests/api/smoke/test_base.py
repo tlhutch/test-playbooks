@@ -62,12 +62,12 @@ class Test_Api_Basics(APITest):
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestResourceBasics(APITest):
 
-    @pytest.mark.parametrize('resource', ['credential_type', 'v2_credential', 'v2_group',
-                                          'v2_host', 'v2_inventory', 'v2_inventory_script',
-                                          'v2_inventory_source', 'v2_job_template', 'v2_label',
-                                          'v2_notification_template', 'v2_organization',
-                                          'v2_project', 'v2_team', 'v2_user',
-                                          'v2_workflow_job_template', 'v2_workflow_job_template_node'])
+    @pytest.mark.parametrize('resource', ['credential_type', 'credential', 'group',
+                                          'host', 'inventory', 'inventory_script',
+                                          'inventory_source', 'job_template', 'label',
+                                          'notification_template', 'organization',
+                                          'project', 'team', 'user',
+                                          'workflow_job_template', 'workflow_job_template_node'])
     def test_all_resources_can_have_name_and_descriptions_changed(self, factories, resource):
         instance = getattr(factories, resource)()
         instance.name = "TestName"

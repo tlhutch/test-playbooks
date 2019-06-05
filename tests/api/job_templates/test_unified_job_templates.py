@@ -12,16 +12,16 @@ from tests.api import APITest
 class TestUnifiedJobTemplates(APITest):
 
     @pytest.mark.parametrize('ujt_type, ujt_type_name',
-                             [('v2_job_template', 'JobTemplate'),
-                              ('v2_workflow_job_template', 'WorkflowJobTemplate'),
-                              ('v2_project', 'Project'),
-                              ('v2_inventory_source', 'InventorySource')],
+                             [('job_template', 'JobTemplate'),
+                              ('workflow_job_template', 'WorkflowJobTemplate'),
+                              ('project', 'Project'),
+                              ('inventory_source', 'InventorySource')],
                              ids=('Job Template', 'Workflow Job Template', 'Project', 'Inventory Source'))
     def test_unique_together_violating_duplicates_disallowed(self, factories, ujt_type, ujt_type_name):
         ujt_factory = getattr(factories, ujt_type)
         ujt_factory_kwargs = dict(name=fauxfactory.gen_utf8())
 
-        if ujt_type == 'v2_inventory_source':
+        if ujt_type == 'inventory_source':
             org = factories.organization()
             ujt_factory_kwargs['inventory'] = factories.inventory(organization=org)
             ujt_factory_kwargs['inventory_script'] = (True, dict(organization=org))

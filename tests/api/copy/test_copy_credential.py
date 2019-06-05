@@ -13,9 +13,9 @@ class Test_Copy_Credential(APITest):
     unequal_fields = ['id', 'created', 'modified']
 
     def test_copy_normal(self, factories, copy_with_teardown):
-        v2_credential = factories.credential()
-        new_credential = copy_with_teardown(v2_credential)
-        check_fields(v2_credential, new_credential, self.identical_fields, self.unequal_fields)
+        credential = factories.credential()
+        new_credential = copy_with_teardown(credential)
+        check_fields(credential, new_credential, self.identical_fields, self.unequal_fields)
 
     @pytest.mark.yolo
     def test_check_copied_secret_input(self, factories, copy_with_teardown):

@@ -34,7 +34,7 @@ class TestCredentials(APITest):
                                                    become_method='',
                                                    become_username='',
                                                    become_password='')])
-    def test_v2_ssh_credential_valid_payload_field_integrity(self, factories, v2, input_fields):
+    def test_ssh_credential_valid_payload_field_integrity(self, factories, v2, input_fields):
         cred_type = v2.credential_types.get(managed_by_tower=True, kind='ssh').results.pop()
         kwargs = {'name': fauxfactory.gen_utf8(), 'description': fauxfactory.gen_utf8()}
         credential = factories.credential(credential_type=cred_type, inputs=input_fields, **kwargs)
@@ -91,7 +91,7 @@ class TestCredentials(APITest):
         with pytest.raises(exc.Duplicate):
             factories.credential(name=name, team=team)
 
-    def test_credential_v2_with_missing_required_field_fails_job_prestart_check(self, request, factories, v2):
+    def test_credential_with_missing_required_field_fails_job_prestart_check(self, request, factories, v2):
         """Confirms that a credential with a missing required field causes the
         job prestart check to fail.
         """

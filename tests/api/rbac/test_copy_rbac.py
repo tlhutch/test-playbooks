@@ -11,8 +11,8 @@ from tests.api import APITest
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class Test_Copy_RBAC(APITest):
 
-    copiable_resource_names = ('v2_job_template', 'v2_project', 'v2_inventory', 'v2_workflow_job_template',
-                               'v2_credential', 'v2_notification_template', 'v2_inventory_script')
+    copiable_resource_names = ('job_template', 'project', 'inventory', 'workflow_job_template',
+                               'credential', 'notification_template', 'inventory_script')
 
     @pytest.mark.parametrize('resource_name', copiable_resource_names)
     def test_superuser_can_copy(self, factories, resource_name, copy_with_teardown):
@@ -34,7 +34,7 @@ class Test_Copy_RBAC(APITest):
             with pytest.raises(exc.Forbidden):
                 copy_with_teardown(resource)
 
-    @pytest.mark.parametrize('resource_name', [m for m in copiable_resource_names if m != 'v2_notification_template'])
+    @pytest.mark.parametrize('resource_name', [m for m in copiable_resource_names if m != 'notification_template'])
     @pytest.mark.parametrize('agent', ['user', 'team'])
     def test_resource_admin_cannot_copy(self, factories, resource_name, set_test_roles, agent, copy_with_teardown):
         organization = factories.organization()
@@ -51,7 +51,7 @@ class Test_Copy_RBAC(APITest):
     @pytest.mark.parametrize('resource_name', copiable_resource_names)
     def test_org_admin_can_copy_resource_of_same_org(self, factories, resource_name, copy_with_teardown):
         organization = factories.organization()
-        if resource_name == 'v2_job_template':
+        if resource_name == 'job_template':
             inventory = factories.inventory(organization=organization)
             resource = factories.job_template(inventory=inventory)
         else:
@@ -66,31 +66,31 @@ class Test_Copy_RBAC(APITest):
     def test_can_copy_project_credential_with_use_role(self, factories, copy_with_teardown):
         orgA, orgB = [factories.organization() for _ in range(2)]
         credential = factories.credential(kind='scm', organization=orgA)
-        v2_project = factories.project(credential=credential, organization=orgB, wait=False)
+        project = factories.project(credential=credential, organization=orgB, wait=False)
         user = factories.user()
 
         orgA.add_user(user)
         orgB.add_admin(user)
         credential.set_object_roles(user, 'Use')
         with self.current_user(user):
-            assert v2_project.can_copy()
-            new_project = copy_with_teardown(v2_project)
+            assert project.can_copy()
+            new_project = copy_with_teardown(project)
             assert new_project.related.current_update
-            assert new_project.credential == v2_project.credential
+            assert new_project.credential == project.credential
 
     def test_cannot_copy_project_credential_with_read_role(self, factories, copy_with_teardown):
         orgA, orgB = [factories.organization() for _ in range(2)]
         credential = factories.credential(kind='scm', organization=orgA)
-        v2_project = factories.project(credential=credential, organization=orgB, wait=False)
+        project = factories.project(credential=credential, organization=orgB, wait=False)
         user = factories.user()
 
         orgA.add_user(user)
         orgB.add_admin(user)
         credential.set_object_roles(user, 'Read')
         with self.current_user(user):
-            assert not v2_project.can_copy()
+            assert not project.can_copy()
             with pytest.raises(exc.Forbidden):
-                copy_with_teardown(v2_project)
+                copy_with_teardown(project)
 
     def test_can_copy_inventory_insights_credential_with_use_role(self, factories, copy_with_teardown):
         orgA, orgB = [factories.organization() for _ in range(2)]

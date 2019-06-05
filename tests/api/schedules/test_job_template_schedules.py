@@ -150,7 +150,7 @@ class TestJobTemplateSchedules(SchedulesTest):
 
     @pytest.mark.parametrize('ujt_type', ['job_template', 'workflow_job_template'])
     def test_cannot_create_schedule_without_answering_required_survey_questions(self, factories, ujt_type):
-        template = getattr(factories, 'v2_' + ujt_type)()
+        template = getattr(factories, ujt_type)()
         survey = [dict(required=True,
                        question_name='Q1',
                        variable='var1',
@@ -209,7 +209,7 @@ class TestJobTemplateSchedules(SchedulesTest):
 
     @pytest.mark.parametrize('ujt_type', ['job_template', 'workflow_job_template'])
     def test_can_create_schedule_when_optional_survey_questions_are_unanswered(self, factories, ujt_type):
-        template = getattr(factories, 'v2_' + ujt_type)()
+        template = getattr(factories, ujt_type)()
         survey = [dict(required=False,
                        question_name='Q1',
                        variable='var1',
@@ -227,7 +227,7 @@ class TestJobTemplateSchedules(SchedulesTest):
     @pytest.mark.parametrize('ujt_type', ['job_template', 'workflow_job_template'])
     def test_can_create_schedule_when_defaults_are_supplied_with_required_survey_questions_with_defaults(self, factories,
                                                                                                          ujt_type):
-        template = getattr(factories, 'v2_' + ujt_type)()
+        template = getattr(factories, ujt_type)()
         survey = [dict(required=True,
                        question_name='Q1',
                        variable='var1',

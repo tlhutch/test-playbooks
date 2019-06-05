@@ -89,7 +89,7 @@ class TestRelaunchAskRBAC(APITest):
     def test_relaunch_with_inventory_allowed(self, factories, job_template, relaunch_job_as_diff_user_allowed, patch_payload, resource):
         job_template.patch(**patch_payload)
         payload = dict()
-        payload[resource] = getattr(factories, 'v2_' + resource)().id
+        payload[resource] = getattr(factories, resource)().id
         job = job_template.launch(payload).wait_until_completed()
         relaunch_job_as_diff_user_allowed(job)
 

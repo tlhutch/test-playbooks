@@ -10,7 +10,7 @@ from tests.api import APITest
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestCredentialTypes(APITest):
 
-    def test_v2_credential_types_options(self, v2):
+    def test_credential_types_options(self, v2):
         """confirms that OPTIONS for credential types provides desired information for type creation and retrieval"""
         options = v2.credential_types.options()
 

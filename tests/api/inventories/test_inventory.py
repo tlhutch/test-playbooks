@@ -121,7 +121,7 @@ class TestInventory(APITest):
         assert inv.inventory_sources_with_failures == 1
         assert inv.has_active_failures
 
-    def test_v2_update_cascade_delete(self, factories):
+    def test_update_cascade_delete(self, factories):
         """Verify that v2 inventory updates get cascade deleted with their inventory source."""
         inv_source = factories.inventory_source()
         inv_update1, inv_update2 = [inv_source.update().wait_until_completed() for _ in range(2)]

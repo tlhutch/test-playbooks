@@ -333,7 +333,7 @@ class Test_Organization_RBAC(APITest):
                 kwargs['credential'] = factories.credential(organization=org)
         else:
             kwargs['organization'] = org
-        return getattr(factories, 'v2_{}'.format(res_type))(**kwargs)
+        return getattr(factories, res_type)(**kwargs)
 
     @pytest.mark.parametrize('resource_type', [item.resource_type for item in org_resource_admin_mappings])
     def test_non_authorized_user_cannot_create_resources(self, factories, resource_type, non_superuser):

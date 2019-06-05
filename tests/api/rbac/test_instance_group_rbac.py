@@ -182,7 +182,7 @@ class TestInstanceGroupAssignmentRBAC(APITest):
             assert org.get_related('instance_groups').count == len(org_instance_groups)
             assert other_org.get_related('instance_groups').count == len(org_instance_groups)
 
-    @pytest.mark.parametrize('resource_type', ['v2_job_template', 'v2_inventory', 'v2_organization'])
+    @pytest.mark.parametrize('resource_type', ['job_template', 'inventory', 'organization'])
     def test_regular_user(self, v2, factories, resource_type):
         """A regular user should not be able to (un)assign instance groups to any resources."""
         user = factories.user()

@@ -478,7 +478,7 @@ class TestWorkflowExtraVars(APITest):
             assert sourced_vars == {}, 'Variables ended up in other jobs where set_stats should not have propogated.'
 
     @pytest.mark.parametrize("res_type", [
-        'v2_inventory_source',
+        'inventory_source',
         'project',
         'workflow_job_template'
     ])

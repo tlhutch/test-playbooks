@@ -405,7 +405,7 @@ class TestJobTemplateExtraCredentials(APITest):
             assert not jt.related.extra_credentials.get().results
 
     @pytest.fixture(scope='class')
-    def v2_job_template(self, class_factories):
+    def job_template(self, class_factories):
         return class_factories.job_template()
 
     @pytest.mark.parametrize('credential_kind, kind_name',
@@ -417,23 +417,23 @@ class TestJobTemplateExtraCredentials(APITest):
                               ('cloudforms', 'Red Hat CloudForms'),
                               ('satellite6', 'Red Hat Satellite 6'),
                               ('vmware', 'VMware vCenter')])
-    def test_confirm_only_single_managed_by_tower_extra_credential_allowed(self, factories, v2_job_template,
+    def test_confirm_only_single_managed_by_tower_extra_credential_allowed(self, factories, job_template,
                                                                            credential_kind, kind_name):
         cred_one, cred_two = [factories.credential(kind=credential_kind) for _ in range(2)]
 
-        v2_job_template.add_extra_credential(cred_one)
+        job_template.add_extra_credential(cred_one)
 
         with pytest.raises(exc.BadRequest) as e:
-            v2_job_template.add_extra_credential(cred_two)
+            job_template.add_extra_credential(cred_two)
         assert e.value.msg == {'error': 'Cannot assign multiple {} credentials.'.format(kind_name)}
 
-        assert cred_two.id not in [c.id for c in v2_job_template.related.extra_credentials.get().results]
+        assert cred_two.id not in [c.id for c in job_template.related.extra_credentials.get().results]
 
-        v2_job_template.remove_extra_credential(cred_one)
-        assert cred_one.id not in [c.id for c in v2_job_template.related.extra_credentials.get().results]
+        job_template.remove_extra_credential(cred_one)
+        assert cred_one.id not in [c.id for c in job_template.related.extra_credentials.get().results]
 
-        v2_job_template.add_extra_credential(cred_two)
-        assert cred_two.id in [c.id for c in v2_job_template.related.extra_credentials.get().results]
+        job_template.add_extra_credential(cred_two)
+        assert cred_two.id in [c.id for c in job_template.related.extra_credentials.get().results]
 
     def test_confirm_extra_credentials_injectors_are_sourced(self, request, factories):
         host = factories.host()

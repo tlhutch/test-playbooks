@@ -9,7 +9,7 @@ from tests.api import APITest
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestJobsRBAC(APITest):
 
-    def test_v2_launch_as_all_users(self, factories, v2, all_users):
+    def test_launch_as_all_users(self, factories, v2, all_users):
         """Creating jobs via post to /api/v2/jobs/ should raise 405."""
         for user in all_users:
             with self.current_user(user):

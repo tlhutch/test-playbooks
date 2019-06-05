@@ -374,7 +374,7 @@ class Test_Sequential_Jobs(APITest):
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class Test_Autospawned_Jobs(APITest):
 
-    def test_v2_inventory(self, factories):
+    def test_inventory(self, factories):
         """Verify that an inventory update is triggered by our job launch. Job ordering
         should be as follows:
         * Inventory update should run first.

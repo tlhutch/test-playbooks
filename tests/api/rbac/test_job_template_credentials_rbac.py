@@ -56,7 +56,7 @@ class TestJobTemplateCredentialsRBAC(APITest):
                 factories.job_template(organization=organization, project=project, credential=vault_credential, inventory=inventory)
 
     @pytest.mark.parametrize('cred_kind', ('net', 'aws', 'custom'))
-    def test_v2_job_template_extra_credential_association_without_credential_access_forbidden(self, request, factories,
+    def test_job_template_extra_credential_association_without_credential_access_forbidden(self, request, factories,
                                                                                               cred_kind):
         jt = factories.job_template()
         organization = jt.ds.inventory.ds.organization
