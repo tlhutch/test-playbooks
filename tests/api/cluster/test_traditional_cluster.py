@@ -199,7 +199,6 @@ class TestTraditionalCluster(APITest):
             assert set(ig_hostnames).isdisjoint(set(isolated_instance_hostnames))
 
     @pytest.mark.mp_group(group="check_instance_stats_during_quiet_period", strategy="isolated_serial")
-    @pytest.mark.github('https://github.com/ansible/tower/issues/2310', skip=True)
     def test_default_instance_attributes(self, v2):
         for instance in v2.instances.get().results:
             assert instance.enabled
