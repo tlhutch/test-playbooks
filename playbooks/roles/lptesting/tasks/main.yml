@@ -1,0 +1,43 @@
+- block:
+  - name: Set Compose ID yum repositories
+    yum_repository:
+      name: '{{ item.name }}'
+      description: 'description - {{ item.name }}'
+      baseurl: '{{ item.base_url }}'
+      gpgcheck: no
+    loop:
+      - name: '{{ rhel_compose_id  | replace(".", "_") }}_Server'
+        base_url: 'http://download.eng.bos.redhat.com/rhel-7/rel-eng/RHEL-7/{{ rhel_compose_id }}/compose/Server/x86_64/os'
+      - name: '{{ rhel_compose_id  | replace(".", "_") }}_Server_optional'
+        base_url: 'http://download.eng.bos.redhat.com/rhel-7/rel-eng/RHEL-7/{{ rhel_compose_id }}/compose/Server-optional/x86_64/os'
+
+  - name: Register system to subscription-manager
+    redhat_subscription:
+      username: '{{ red_hat_username }}'
+      password: '{{ red_hat_password }}'
+      pool_ids: 8a85f98260c27fc50160c323247e39e0
+
+  - name: Disable rhel-7-server-rpms
+    yum_repository:
+      name: rhel-7-server-rpms
+      state: absent
+
+  - name: Enable rhel-7-server-extras-rpms
+    command: yum-config-manager --enable rhel-7-server-extras-rpms
+
+  when: "'RHEL-7' in rhel_compose_id"
+
+- block:
+  - name: Set Compose ID yum repositories
+    yum_repository:
+      name: '{{ item.name }}'
+      description: 'description - {{ item.name }}'
+      baseurl: '{{ item.base_url }}'
+      gpgcheck: no
+    loop:
+      - name: '{{ rhel_compose_id  | replace(".", "_") }}_BaseOS'
+        base_url: 'http://download.eng.bos.redhat.com/rhel-8/rel-eng/RHEL-8/{{ rhel_compose_id }}/compose/BaseOS/x86_64/os/'
+      - name: '{{ rhel_compose_id  | replace(".", "_") }}_AppStream'
+        base_url: 'http://download.eng.bos.redhat.com/rhel-8/rel-eng/RHEL-8/{{ rhel_compose_id }}/compose/AppStream/x86_64/os/'
+
+  when: "'RHEL-8' in rhel_compose_id"

@@ -1,0 +1,56 @@
+---
+- hosts: localhost
+  tags:
+    - deploy
+  tasks:
+    - name: Set ansible_python_interpreter (RHEL-7)
+      set_fact:
+        remote_ansible_python_interpreter: /usr/bin/env python
+        image_name: '{{ rhel_compose_id }}-Server-x86_64'
+      when: "'RHEL-7' in rhel_compose_id"
+
+    - name: Set ansible_python_interpreter (RHEL-8)
+      set_fact:
+        remote_ansible_python_interpreter: /usr/libexec/platform-python
+        image_name: '{{ rhel_compose_id }}-x86_64'
+      when: "'RHEL-8' in rhel_compose_id"
+
+    - name: Deploy OpenStack node(s)
+      include_role:
+        name: create_openstack
+      loop:
+        - name: '{{ rhel_compose_id }}-{{ tower_version }}'
+          key_name: ansible-jenkins
+          security_groups: tower
+          flavor: m1.medium
+          image: '{{ image_name }}'
+          net_id: ee7dcdfe-2b6e-4b7e-bbe9-3dabc0972bb5
+
+    - name: Save OpenStack node(s) inventory in file
+      include_role:
+        name: save_inventory
+      vars:
+        my_inventory_file: 'inventory.lptesting'
+        remote_ansible_python_interpreter: '{{ remote_ansible_python_interpreter }}'
+
+
+- hosts: tower
+  gather_facts: no
+  become: true
+  tags:
+    - prepare
+  tasks:
+    - name: Prepare the node repositories
+      include_role:
+        name: lptesting
+
+
+- hosts: tower
+  gather_facts: no
+  become: true
+  tags:
+    - install
+  tasks:
+    - name: Deploy Tower
+      include_role:
+        name: awx_setup

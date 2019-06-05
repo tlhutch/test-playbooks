@@ -1,0 +1,36 @@
+---
+- name: Make sure node(s) are absent
+  os_server:
+    name: '{{ item.name }}'
+    state: absent
+  tags:
+    - cleanup
+
+
+- name: Deploy node(s)
+  os_server:
+    name: '{{ item.name }}'
+    key_name: '{{ item.key_name }}'
+    security_groups: '{{ item.security_groups }}'
+    flavor: '{{ item.flavor }}'
+    image: '{{ item.image }}'
+    nics:
+      - net-id: '{{ item.net_id }}'
+  register: openstack_node
+
+
+- name: wait for instances to listen on port:22
+  wait_for:
+    state: started
+    host: '{{ openstack_node.openstack.accessIPv4 }}'
+    port: 22
+    search_regex: OpenSSH
+
+
+- name: add host
+  add_host:
+    name: '{{ openstack_node.openstack.accessIPv4 }}'
+    groups: tower,database
+    ansible_user: cloud-user
+    ansible_host: '{{ openstack_node.openstack.accessIPv4 }}'
+    controller: ''
