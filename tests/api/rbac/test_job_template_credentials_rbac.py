@@ -109,6 +109,7 @@ class TestJobTemplateCredentialsRBAC(APITest):
         organization = host.ds.inventory.ds.organization
 
         jt = factories.job_template(inventory=host.ds.inventory, ask_credential_on_launch=True)
+        # Make sure there is no other credential that causes RBAC problem
         jt.remove_all_credentials()
 
         user_1, user_2 = [factories.user(organization=organization) for _ in range(2)]
@@ -119,8 +120,10 @@ class TestJobTemplateCredentialsRBAC(APITest):
                                                              credential_type=factories.credential_type(),
                                                              organization=None, user=user_1))
 
+        for user in [user_1, user_2]:
+            jt.set_object_roles(user, 'execute')
+
         with self.current_user(user_1):
-            # FIXME: This works when you pass in credentials=[list of credentials] but gets Forbidden with extra_credentials
             job = jt.launch(dict(extra_credentials=[c.id for c in cloud_credentials[:2]])).wait_until_completed()
 
         with self.current_user(user_2):
