@@ -29,7 +29,7 @@ def project_with_queued_updates(project_ansible_playbooks_git_nowait):
 
 @pytest.fixture(scope="function")
 def project_with_galaxy_requirements(factories):
-    return factories.v2_project(
+    return factories.project(
         name="project-with-galaxy-requirements - %s" % fauxfactory.gen_utf8(),
         scm_type='git',
         scm_url='https://github.com/ansible/test-playbooks',
