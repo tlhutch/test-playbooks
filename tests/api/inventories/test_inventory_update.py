@@ -680,15 +680,15 @@ print(json.dumps({
         inv_update.assert_successful()
         assert inv_update.verbosity == inv_source.verbosity
         if verbosity == 0 and ansible_version_cmp('2.4.0') >= 1:
-            if (ansible_version_cmp('2.8.0') >= 1):
+            if (ansible_version_cmp('2.8.0') < 0):
+                # https://github.com/ansible/awx/issues/792
+                assert inv_update.result_stdout == ''
+            else:
                 for line in inv_update.result_stdout.split('\n'):
                     if 'ERROR' in line:
                         pass
                     else:
                         assert line == ''
-            else:
-                # https://github.com/ansible/awx/issues/792
-                assert inv_update.result_stdout == ''
         else:
             for line in stdout_lines:
                 assert line in inv_update.result_stdout
@@ -1174,20 +1174,20 @@ print(json.dumps({
         )
         inv_update = tower_source.update().wait_until_completed()
         assert inv_update.status == 'failed'
-        if ansible_version_cmp('2.8.0') >= 1:
-            inv_update.assert_text_in_stdout('HTTP Error 401: Unauthorized')
-        else:
+        if ansible_version_cmp('2.8.0') < 0:
             inv_update.assert_text_in_stdout('Failed to validate the license')
+        else:
+            inv_update.assert_text_in_stdout('HTTP Error 401: Unauthorized')
 
     @pytest.mark.parametrize('hostname, error', [
         ['https://###/', ('Invalid URL', 'error no host given')],
         ['example.org', ('Failed to validate the license', 'HTTP Error 404')],
     ])
     def test_tower_inventory_sync_failure_has_descriptive_error_message(self, ansible_version_cmp, factories, hostname, error):
-        if ansible_version_cmp('2.8.0') >= 1:
-            error = error[1]
-        else:
+        if ansible_version_cmp('2.8.0') < 0:
             error = error[0]
+        else:
+            error = error[1]
         tower_cred = factories.v2_credential(kind='tower', inputs={
             'host': hostname,
             'username': 'x',
