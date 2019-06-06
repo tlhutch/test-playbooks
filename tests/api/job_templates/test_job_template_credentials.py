@@ -395,16 +395,19 @@ class TestJobTemplateVaultCredentials(APITest):
 
         vault_cred1 = factories.v2_credential(kind='vault', vault_password='secret1', vault_id='first')
         vault_cred2 = factories.v2_credential(kind='vault', vault_password='secret2', vault_id='second')
+        vault_cred3 = factories.v2_credential(kind='vault', vault_password='secret3', vault_id='dotted.id')
         jt.add_credential(vault_cred1)
         jt.add_credential(vault_cred2)
+        jt.add_credential(vault_cred3)
 
         job = jt.launch().wait_until_completed()
         job.assert_successful()
 
         debug_tasks = job.related.job_events.get(host_name=host.name, task='debug', event__startswith='runner_on_ok').results
-        assert len(debug_tasks) == 2
+        assert len(debug_tasks) == 3
         assert any('First!' in task.stdout for task in debug_tasks)
         assert any('Second!' in task.stdout for task in debug_tasks)
+        assert any('Dotted!' in task.stdout for task in debug_tasks)
 
     @pytest.mark.yolo
     def test_decrypt_vaulted_playbook_with_multiple_ask_on_launch_vault_credentials(self, factories):
@@ -413,24 +416,32 @@ class TestJobTemplateVaultCredentials(APITest):
 
         vault_cred1 = factories.v2_credential(kind='vault', vault_password='ASK', vault_id='first')
         vault_cred2 = factories.v2_credential(kind='vault', vault_password='ASK', vault_id='second')
+        vault_cred3 = factories.v2_credential(kind='vault', vault_password='ASK', vault_id='dotted.id')
         jt.add_credential(vault_cred1)
         jt.add_credential(vault_cred2)
+        jt.add_credential(vault_cred3)
 
         with pytest.raises(exc.BadRequest) as e:
             jt.launch().wait_until_completed()
-        assert set(e.value.msg['passwords_needed_to_start']) == set(['vault_password.first', 'vault_password.second'])
-        assert len(e.value.msg['passwords_needed_to_start']) == 2
+        assert set(e.value.msg['passwords_needed_to_start']) == set([
+            'vault_password.first',
+            'vault_password.second',
+            'vault_password.dotted.id'
+        ])
+        assert len(e.value.msg['passwords_needed_to_start']) == 3
 
         payload = {'vault_password.first': 'secret1',
-                   'vault_password.second': 'secret2'}
+                   'vault_password.second': 'secret2',
+                   'vault_password.dotted.id': 'secret3'}
 
         job = jt.launch(payload).wait_until_completed()
         job.assert_successful()
 
         debug_tasks = job.related.job_events.get(host_name=host.name, task='debug', event__startswith='runner_on_ok').results
-        assert len(debug_tasks) == 2
+        assert len(debug_tasks) == 3
         assert any('First!' in task.stdout for task in debug_tasks)
         assert any('Second!' in task.stdout for task in debug_tasks)
+        assert any('Dotted!' in task.stdout for task in debug_tasks)
 
     def test_cannot_assign_multiple_vault_credentials_with_same_vault_id(self, factories):
         jt = factories.v2_job_template()
