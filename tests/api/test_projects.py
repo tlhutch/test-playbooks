@@ -319,7 +319,7 @@ class Test_Projects(APITest):
                 assert project_ansible_playbooks_git.get_related(related)
 
     @pytest.mark.ansible_integration
-    def test_project_with_galaxy_requirements(self, factories, ansible_runner, project_with_galaxy_requirements):
+    def test_project_with_galaxy_requirements(self, skip_if_cluster, factories, ansible_runner, project_with_galaxy_requirements):
         """Verify that project requirements are downloaded when specified in a requirements file."""
         # create a JT with our project and launch a job with this JT
         job_template_pg = factories.job_template(
