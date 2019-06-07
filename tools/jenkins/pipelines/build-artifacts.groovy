@@ -90,4 +90,15 @@ pipeline {
         }
     }
 
+    post {
+        always {
+            node('jenkins-jnlp-agent') {
+                script {
+                    json = "{\"os\":\"Artifacts\", \"tower\": \"${params.TOWER_VERSION}\", \"status\": \"${currentBuild.result}\", \"url\": \"${env.RUN_DISPLAY_URL}\"}"
+                }
+                sh "curl -v -X POST 'http://tower-qe-dashboard.ansible.eng.rdu2.redhat.com/jenkins/results' -H 'Content-type: application/json' -d '${json}'"
+            }
+        }
+    }
+
 }
