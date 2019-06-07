@@ -391,7 +391,11 @@ class TestJobTemplateVaultCredentials(APITest):
 
     def test_decrypt_vaulted_playbook_with_multiple_vault_credentials(self, factories):
         host = factories.v2_host()
-        jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='multivault.yml')
+        jt = factories.v2_job_template(
+            inventory=host.ds.inventory,
+            playbook='multivault.yml',
+            extra_vars='{"with_dotted": 1}'
+        )
 
         vault_cred1 = factories.v2_credential(kind='vault', vault_password='secret1', vault_id='first')
         vault_cred2 = factories.v2_credential(kind='vault', vault_password='secret2', vault_id='second')
@@ -412,7 +416,11 @@ class TestJobTemplateVaultCredentials(APITest):
     @pytest.mark.yolo
     def test_decrypt_vaulted_playbook_with_multiple_ask_on_launch_vault_credentials(self, factories):
         host = factories.v2_host()
-        jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='multivault.yml')
+        jt = factories.v2_job_template(
+            inventory=host.ds.inventory,
+            playbook='multivault.yml',
+            extra_vars='{"with_dotted": 1}'
+        )
 
         vault_cred1 = factories.v2_credential(kind='vault', vault_password='ASK', vault_id='first')
         vault_cred2 = factories.v2_credential(kind='vault', vault_password='ASK', vault_id='second')
