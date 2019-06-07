@@ -280,8 +280,13 @@ class TestSmartInventory(APITest):
         hosts = [factories.host(name='test_host', inventory=inv) for inv in (inv1, inv2)]
 
         inv_hosts = inventory.related.hosts.get()
+        smart_host_id = min([host.id for host in hosts])
         assert inv_hosts.count == 1
-        assert inv_hosts.results.pop().id == min([host.id for host in hosts])
+        assert inv_hosts.results.pop().id == smart_host_id
+
+        # verify that the events link back to the hosts, and to the correct hosts
+        job = factories.v2_job_template(inventory=inventory).launch().wait_until_completed()
+        assert set(event.host for event in job.get_related('job_events').results) == set([None, smart_host_id])
 
     def test_source_inventory_variables_ignored(self, factories):
         inventory = factories.inventory(variables="ansible_connection: local")
