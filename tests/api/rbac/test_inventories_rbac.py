@@ -24,11 +24,11 @@ class TestInventoryRBAC(APITest):
         * Edit/delete the inventory
         * Create/edit/delete inventory groups, hosts, and sources
         """
-        inventory = factories.v2_inventory()
-        group = factories.v2_group(inventory=inventory)
-        host = factories.v2_host(inventory=inventory)
-        custom_inv_source = factories.v2_inventory_source(inventory=inventory)
-        aws_inv_source = factories.v2_inventory_source(inventory=inventory, source='ec2', credential=aws_credential)
+        inventory = factories.inventory()
+        group = factories.group(inventory=inventory)
+        host = factories.host(inventory=inventory)
+        custom_inv_source = factories.inventory_source(inventory=inventory)
+        aws_inv_source = factories.inventory_source(inventory=inventory, source='ec2', credential=aws_credential)
         user = factories.user()
 
         with self.current_user(username=user.username, password=user.password):
@@ -65,8 +65,8 @@ class TestInventoryRBAC(APITest):
         * Edit/delete the inventory
         * Create/edit/delete inventory groups, hosts, and sources
         """
-        inventory = factories.v2_inventory()
-        inv_script = factories.v2_inventory_script(organization=inventory.ds.organization)
+        inventory = factories.inventory()
+        inv_script = factories.inventory_script(organization=inventory.ds.organization)
         user = factories.user()
 
         # give agent admin_role
@@ -77,9 +77,9 @@ class TestInventoryRBAC(APITest):
             check_read_access(inventory, ["organization"])
 
             # check ability to create group and host
-            group = factories.v2_group(inventory=inventory)
-            host = factories.v2_host(inventory=inventory)
-            inv_source = factories.v2_inventory_source(inventory=inventory, source_script=inv_script)
+            group = factories.group(inventory=inventory)
+            host = factories.host(inventory=inventory)
+            inv_source = factories.inventory_source(inventory=inventory, source_script=inv_script)
             assert inv_source.source_script == inv_script.id
 
             # check put/patch/delete on inventory and inventory resources
@@ -95,11 +95,11 @@ class TestInventoryRBAC(APITest):
         * Edit/delete the inventory
         * Create/edit/delete inventory groups, hosts, and sources
         """
-        inventory = factories.v2_inventory()
-        group = factories.v2_group(inventory=inventory)
-        host = factories.v2_host(inventory=inventory)
-        inv_source = factories.v2_inventory_source(inventory=inventory)
-        inv_script = factories.v2_inventory_script(organization=inventory.ds.organization)
+        inventory = factories.inventory()
+        group = factories.group(inventory=inventory)
+        host = factories.host(inventory=inventory)
+        inv_source = factories.inventory_source(inventory=inventory)
+        inv_script = factories.inventory_script(organization=inventory.ds.organization)
         user = factories.user()
 
         # give agent use_role
@@ -111,11 +111,11 @@ class TestInventoryRBAC(APITest):
 
             # check ability to create group and host
             with pytest.raises(towerkit.exceptions.Forbidden):
-                factories.v2_group(inventory=inventory)
+                factories.group(inventory=inventory)
             with pytest.raises(towerkit.exceptions.Forbidden):
-                factories.v2_host(inventory=inventory)
+                factories.host(inventory=inventory)
             with pytest.raises(towerkit.exceptions.Forbidden):
-                factories.v2_inventory_source(inventory=inventory, source_script=inv_script)
+                factories.inventory_source(inventory=inventory, source_script=inv_script)
 
             # check put/patch/delete on inventory and inventory resoures
             for resource in [host, group, inv_source, inventory]:
@@ -130,11 +130,11 @@ class TestInventoryRBAC(APITest):
         * Edit/delete the inventory
         * Create/edit/delete inventory groups, hosts, and sources
         """
-        inventory = factories.v2_inventory()
-        group = factories.v2_group(inventory=inventory)
-        host = factories.v2_host(inventory=inventory)
-        inv_source = factories.v2_inventory_source(inventory=inventory)
-        inv_script = factories.v2_inventory_script(organization=inventory.ds.organization)
+        inventory = factories.inventory()
+        group = factories.group(inventory=inventory)
+        host = factories.host(inventory=inventory)
+        inv_source = factories.inventory_source(inventory=inventory)
+        inv_script = factories.inventory_script(organization=inventory.ds.organization)
         user = factories.user()
 
         # give agent adhoc_role
@@ -146,11 +146,11 @@ class TestInventoryRBAC(APITest):
 
             # check ability to create group and host
             with pytest.raises(towerkit.exceptions.Forbidden):
-                factories.v2_group(inventory=inventory)
+                factories.group(inventory=inventory)
             with pytest.raises(towerkit.exceptions.Forbidden):
-                factories.v2_host(inventory=inventory)
+                factories.host(inventory=inventory)
             with pytest.raises(towerkit.exceptions.Forbidden):
-                factories.v2_inventory_source(inventory=inventory, source_script=inv_script)
+                factories.inventory_source(inventory=inventory, source_script=inv_script)
 
             # check put/patch/delete on inventory and inventory resources
             for resource in [host, group, inv_source, inventory]:
@@ -165,11 +165,11 @@ class TestInventoryRBAC(APITest):
         * Edit/delete the inventory
         * Create/edit/delete inventory groups, hosts, and sources
         """
-        inventory = factories.v2_inventory()
-        group = factories.v2_group(inventory=inventory)
-        host = factories.v2_host(inventory=inventory)
-        inv_source = factories.v2_inventory_source(inventory=inventory)
-        inv_script = factories.v2_inventory_script(organization=inventory.ds.organization)
+        inventory = factories.inventory()
+        group = factories.group(inventory=inventory)
+        host = factories.host(inventory=inventory)
+        inv_source = factories.inventory_source(inventory=inventory)
+        inv_script = factories.inventory_script(organization=inventory.ds.organization)
         user = factories.user()
 
         # give agent update_role
@@ -181,11 +181,11 @@ class TestInventoryRBAC(APITest):
 
             # check ability to create group and host
             with pytest.raises(towerkit.exceptions.Forbidden):
-                factories.v2_group(inventory=inventory)
+                factories.group(inventory=inventory)
             with pytest.raises(towerkit.exceptions.Forbidden):
-                factories.v2_host(inventory=inventory)
+                factories.host(inventory=inventory)
             with pytest.raises(towerkit.exceptions.Forbidden):
-                factories.v2_inventory_source(inventory=inventory, source_script=inv_script)
+                factories.inventory_source(inventory=inventory, source_script=inv_script)
 
             # check put/patch/delete on inventory, group, and host
             for resource in [host, group, inv_source, inventory]:
@@ -200,11 +200,11 @@ class TestInventoryRBAC(APITest):
         * Edit/delete the inventory
         * Create/edit/delete inventory groups, hosts, and sources
         """
-        inventory = factories.v2_inventory()
-        group = factories.v2_group(inventory=inventory)
-        host = factories.v2_host(inventory=inventory)
-        inv_source = factories.v2_inventory_source(inventory=inventory)
-        inv_script = factories.v2_inventory_script(organization=inventory.ds.organization)
+        inventory = factories.inventory()
+        group = factories.group(inventory=inventory)
+        host = factories.host(inventory=inventory)
+        inv_source = factories.inventory_source(inventory=inventory)
+        inv_script = factories.inventory_script(organization=inventory.ds.organization)
         user = factories.user()
 
         # give agent read_role
@@ -216,11 +216,11 @@ class TestInventoryRBAC(APITest):
 
             # check ability to create group and host
             with pytest.raises(towerkit.exceptions.Forbidden):
-                factories.v2_group(inventory=inventory)
+                factories.group(inventory=inventory)
             with pytest.raises(towerkit.exceptions.Forbidden):
-                factories.v2_host(inventory=inventory)
+                factories.host(inventory=inventory)
             with pytest.raises(towerkit.exceptions.Forbidden):
-                factories.v2_inventory_source(inventory=inventory, source_script=inv_script)
+                factories.inventory_source(inventory=inventory, source_script=inv_script)
 
             # check put/patch/delete on inventory, group, and host
             for resource in [host, group, inv_source, inventory]:
@@ -233,10 +233,10 @@ class TestInventoryRBAC(APITest):
         Note: this test serves as a smoke test with user_capabilites and team credentials.
         This is the only place in tower-qa where we test user_capabilities with team credentials.
         """
-        inventory = factories.v2_inventory()
-        factories.v2_group(inventory=inventory)
-        factories.v2_host(inventory=inventory)
-        factories.v2_inventory_source(inventory=inventory)
+        inventory = factories.inventory()
+        factories.group(inventory=inventory)
+        factories.host(inventory=inventory)
+        factories.inventory_source(inventory=inventory)
         user = factories.user()
 
         # give agent target role privileges
@@ -254,7 +254,7 @@ class TestInventoryRBAC(APITest):
 
         user = factories.user()
 
-        inv_source = factories.v2_inventory_source()
+        inv_source = factories.inventory_source()
         inv_source.ds.inventory.set_object_roles(user, role)
 
         with self.current_user(username=user.username, password=user.password):
@@ -278,8 +278,8 @@ class TestInventoryRBAC(APITest):
 
         user = factories.user()
 
-        aws_cred = factories.v2_credential(kind='aws')
-        inv_source = factories.v2_inventory_source(source='ec2', credential=aws_cred)
+        aws_cred = factories.credential(kind='aws')
+        inv_source = factories.inventory_source(source='ec2', credential=aws_cred)
         inv_source.ds.inventory.set_object_roles(user, role)
 
         with self.current_user(username=user.username, password=user.password):
@@ -300,10 +300,10 @@ class TestInventoryRBAC(APITest):
         ALLOWED_ROLES = ['admin', 'update']
         REJECTED_ROLES = ['use', 'ad hoc', 'read']
 
-        inventory = factories.v2_inventory()
-        gce_cred, aws_cred = [factories.v2_credential(kind=kind) for kind in ('gce', 'aws')]
-        gce_source = factories.v2_inventory_source(inventory=inventory, source='gce', credential=gce_cred)
-        ec2_source = factories.v2_inventory_source(inventory=inventory, source='ec2', credential=aws_cred)
+        inventory = factories.inventory()
+        gce_cred, aws_cred = [factories.credential(kind=kind) for kind in ('gce', 'aws')]
+        gce_source = factories.inventory_source(inventory=inventory, source='gce', credential=gce_cred)
+        ec2_source = factories.inventory_source(inventory=inventory, source='ec2', credential=aws_cred)
 
         user = factories.user()
         inventory.set_object_roles(user, role)
@@ -328,7 +328,7 @@ class TestInventoryRBAC(APITest):
 
         user = factories.user()
 
-        inv_source = factories.v2_inventory_source()
+        inv_source = factories.inventory_source()
         inv_source.ds.inventory.set_object_roles(user, role)
 
         with self.current_user(username=user.username, password=user.password):
@@ -349,8 +349,8 @@ class TestInventoryRBAC(APITest):
 
         user = factories.user()
 
-        aws_cred = factories.v2_credential(kind='aws')
-        inv_source = factories.v2_inventory_source(source='ec2', credential=aws_cred)
+        aws_cred = factories.credential(kind='aws')
+        inv_source = factories.inventory_source(source='ec2', credential=aws_cred)
         inv_source.ds.inventory.set_object_roles(user, role)
 
         update = inv_source.update()
@@ -374,7 +374,7 @@ class TestInventoryRBAC(APITest):
 
         user = factories.user()
 
-        inv_source = factories.v2_inventory_source()
+        inv_source = factories.inventory_source()
         inv_source.ds.inventory.set_object_roles(user, role)
 
         update = inv_source.update().wait_until_completed()
@@ -395,7 +395,7 @@ class TestInventoryRBAC(APITest):
         """
         user = factories.user()
 
-        inv_source = factories.v2_inventory_source()
+        inv_source = factories.inventory_source()
         inv_source.ds.inventory.set_object_roles(user, role)
 
         # launch inventory_update
@@ -411,21 +411,21 @@ class TestInventoryRBAC(APITest):
         ALLOWED_ROLES = ['admin', 'ad hoc']
         REJECTED_ROLES = ['use', 'update', 'read']
 
-        inventory = factories.v2_inventory()
+        inventory = factories.inventory()
         user = factories.user()
-        credential = factories.v2_credential(user=user, organization=None)
+        credential = factories.credential(user=user, organization=None)
 
         inventory.set_object_roles(user, role)
 
         with self.current_user(username=user.username, password=user.password):
             if role in ALLOWED_ROLES:
-                ahc = factories.v2_ad_hoc_command(inventory=inventory,
+                ahc = factories.ad_hoc_command(inventory=inventory,
                                                   credential=credential,
                                                   module_name="ping").wait_until_completed()
                 ahc.assert_successful()
             elif role in REJECTED_ROLES:
                 with pytest.raises(towerkit.exceptions.Forbidden):
-                    factories.v2_ad_hoc_command(inventory=inventory,
+                    factories.ad_hoc_command(inventory=inventory,
                                                 credential=credential,
                                                 module_name="ping")
             else:
@@ -437,11 +437,11 @@ class TestInventoryRBAC(APITest):
         ALLOWED_ROLES = ['admin', 'ad hoc']
         REJECTED_ROLES = ['use', 'update', 'read']
 
-        inventory = factories.v2_inventory()
+        inventory = factories.inventory()
         user = factories.user()
-        credential = factories.v2_credential(user=user, organization=None)
+        credential = factories.credential(user=user, organization=None)
 
-        ahc = factories.v2_ad_hoc_command(inventory=inventory,
+        ahc = factories.ad_hoc_command(inventory=inventory,
                                          credential=credential,
                                          module_name="ping").wait_until_completed()
         ahc.assert_successful()
@@ -466,7 +466,7 @@ class TestInventoryRBAC(APITest):
 
         user = factories.user()
 
-        ahc = factories.v2_ad_hoc_command(module_args="sleep 10")
+        ahc = factories.ad_hoc_command(module_args="sleep 10")
         ahc.ds.inventory.set_object_roles(user, role)
 
         with self.current_user(username=user.username, password=user.password):
@@ -485,7 +485,7 @@ class TestInventoryRBAC(APITest):
         its organization.
         """
         # launch both commands
-        ahc1, ahc2 = [factories.v2_ad_hoc_command(module_name="ping").wait_until_completed() for _ in range(2)]
+        ahc1, ahc2 = [factories.ad_hoc_command(module_name="ping").wait_until_completed() for _ in range(2)]
 
         # create org admins
         org_admin1, org_admin2 = [factories.user() for _ in range(2)]
@@ -510,7 +510,7 @@ class TestInventoryRBAC(APITest):
         """Tests ability to delete an ad hoc command as a privileged org_user."""
         user = factories.user()
 
-        ahc = factories.v2_ad_hoc_command(module_name="ping").wait_until_completed()
+        ahc = factories.ad_hoc_command(module_name="ping").wait_until_completed()
         ahc.ds.inventory.set_object_roles(user, "admin")
 
         with self.current_user(username=user.username, password=user.password):
@@ -522,7 +522,7 @@ class TestInventoryRBAC(APITest):
         """Test user_capabilities given each inventory role on spawned
         ad hoc commands.
         """
-        ahc = factories.v2_ad_hoc_command(module_name="ping").wait_until_completed()
+        ahc = factories.ad_hoc_command(module_name="ping").wait_until_completed()
 
         user = factories.user(organization=ahc.ds.credential.ds.organization)
         ahc.ds.inventory.set_object_roles(user, role)
@@ -532,11 +532,11 @@ class TestInventoryRBAC(APITest):
             check_user_capabilities(ahc.get(), role)
             check_user_capabilities(v2.ad_hoc_commands.get(id=ahc.id).results.pop(), role)
 
-    def test_cloud_source_credential_reassignment(self, factories, openstack_v2_credential):
+    def test_cloud_source_credential_reassignment(self, factories, openstack_credential):
         """Test that a user with inventory-admin may not patch an inventory source with another user's
         personal user credential.
         """
-        inventory = factories.v2_inventory()
+        inventory = factories.inventory()
         user = factories.user()
 
         inventory.set_object_roles(user, 'admin')
@@ -544,8 +544,7 @@ class TestInventoryRBAC(APITest):
         with self.current_user(username=user.username, password=user.password):
             os_cred = factories.credential(kind='openstack',
                                            user=user,
-                                           organization=None,
-                                           password=self.credentials['cloud']['openstack_v2']['password'])
-            os_group = factories.group(inventory=inventory, credential=os_cred)
+                                           organization=None)
+            os_inv_source = factories.inventory_source(source='openstack', inventory=inventory, credential=os_cred)
             with pytest.raises(towerkit.exceptions.Forbidden):
-                os_group.related.inventory_source.patch(credential=openstack_v2_credential.id)
+                os_inv_source.patch(credential=openstack_credential.id)

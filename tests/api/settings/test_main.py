@@ -46,27 +46,27 @@ def assess_created_elements(elements, criteria, expected_count):
 def modify_settings(api_settings_all_pg, update_setting_pg):
     """Helper fixture used for changing Tower settings."""
     def func():
-        """Change one setting under each nested /api/v1/settings/ endpoint. The setting selected
+        """Change one setting under each nested /api/v2/settings/ endpoint. The setting selected
         must not change the system in a manner that will interfere with tests.
 
         Example: disabiling "AUTH_BASIC_ENABLED" will cause Tower to reject all subsequent REST
         requests.
         """
         # update Tower settings
-        payload = dict(SESSION_COOKIE_AGE=100000,  # /api/v1/settings/authentication/
-                       SOCIAL_AUTH_AZUREAD_OAUTH2_KEY="test",  # /api/v1/settings/azuread-oauth2/
-                       SOCIAL_AUTH_GITHUB_KEY="test",  # /api/v1/settings/settings/github/
-                       SOCIAL_AUTH_GITHUB_ORG_KEY="test",  # /api/v1/settings/settings/github-org/
-                       SOCIAL_AUTH_GITHUB_TEAM_KEY="test",  # /api/v1/settings/settings/github-team/
-                       SOCIAL_AUTH_GOOGLE_OAUTH2_KEY="test",  # /api/v1/settings/google-oauth2/
-                       SCHEDULE_MAX_JOBS=30,  # /api/v1/settings/jobs/
-                       AUTH_LDAP_START_TLS=True,  # /api/v1/settings/ldap/
-                       LOG_AGGREGATOR_USERNAME="test",  # /api/v1/settings/logging/
-                       RADIUS_PORT=1000,  # /api/v1/settings/radius/
-                       SOCIAL_AUTH_SAML_SP_ENTITY_ID="test",  # /api/v1/settings/saml/
-                       TOWER_ADMIN_ALERTS=False,  # /api/v1/settings/system/
-                       TACACSPLUS_PORT=777,  # /api/v1/settings/tacasplus/
-                       CUSTOM_LOGIN_INFO="test")  # /api/v1/settings/ui/
+        payload = dict(SESSION_COOKIE_AGE=100000,  # /api/v2/settings/authentication/
+                       SOCIAL_AUTH_AZUREAD_OAUTH2_KEY="test",  # /api/v2/settings/azuread-oauth2/
+                       SOCIAL_AUTH_GITHUB_KEY="test",  # /api/v2/settings/settings/github/
+                       SOCIAL_AUTH_GITHUB_ORG_KEY="test",  # /api/v2/settings/settings/github-org/
+                       SOCIAL_AUTH_GITHUB_TEAM_KEY="test",  # /api/v2/settings/settings/github-team/
+                       SOCIAL_AUTH_GOOGLE_OAUTH2_KEY="test",  # /api/v2/settings/google-oauth2/
+                       SCHEDULE_MAX_JOBS=30,  # /api/v2/settings/jobs/
+                       AUTH_LDAP_START_TLS=True,  # /api/v2/settings/ldap/
+                       LOG_AGGREGATOR_USERNAME="test",  # /api/v2/settings/logging/
+                       RADIUS_PORT=1000,  # /api/v2/settings/radius/
+                       SOCIAL_AUTH_SAML_SP_ENTITY_ID="test",  # /api/v2/settings/saml/
+                       TOWER_ADMIN_ALERTS=False,  # /api/v2/settings/system/
+                       TACACSPLUS_PORT=777,  # /api/v2/settings/tacasplus/
+                       CUSTOM_LOGIN_INFO="test")  # /api/v2/settings/ui/
         update_setting_pg(api_settings_all_pg, payload)
         return payload
     return func
@@ -84,17 +84,17 @@ def modify_obfuscated_settings(api_settings_all_pg, update_setting_pg, unencrypt
         """
         # update Tower settings
         required_plaintext_fields = ['TACACSPLUS_HOST']
-        payload = dict(SOCIAL_AUTH_AZUREAD_OAUTH2_SECRET="test",  # /api/v1/settings/azuread-oauth2/
-                       SOCIAL_AUTH_GITHUB_SECRET="test",  # /api/v1/settings/github/
-                       SOCIAL_AUTH_GITHUB_ORG_SECRET="test",  # /api/v1/settings/github-org/
-                       SOCIAL_AUTH_GITHUB_TEAM_SECRET="test",  # /api/v1/settings/github-team/
-                       SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET="test",  # /api/v1/settings/google-oauth2//
-                       AUTH_LDAP_BIND_PASSWORD="test",  # /api/v1/settings/ldap/
-                       LOG_AGGREGATOR_PASSWORD="test",  # /api/v1/settings/logging/
-                       RADIUS_SECRET="test",  # /api/v1/settings/radius/
-                       SOCIAL_AUTH_SAML_SP_PRIVATE_KEY=unencrypted_rsa_ssh_key_data,  # /api/v1/settings/saml/
-                       TACACSPLUS_HOST="test",  # /api/v1/settings/tacasplus/ (required by TACACSPLUS_SECRET)
-                       TACACSPLUS_SECRET="test")  # /api/v1/settings/tacasplus/
+        payload = dict(SOCIAL_AUTH_AZUREAD_OAUTH2_SECRET="test",  # /api/v2/settings/azuread-oauth2/
+                       SOCIAL_AUTH_GITHUB_SECRET="test",  # /api/v2/settings/github/
+                       SOCIAL_AUTH_GITHUB_ORG_SECRET="test",  # /api/v2/settings/github-org/
+                       SOCIAL_AUTH_GITHUB_TEAM_SECRET="test",  # /api/v2/settings/github-team/
+                       SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET="test",  # /api/v2/settings/google-oauth2//
+                       AUTH_LDAP_BIND_PASSWORD="test",  # /api/v2/settings/ldap/
+                       LOG_AGGREGATOR_PASSWORD="test",  # /api/v2/settings/logging/
+                       RADIUS_SECRET="test",  # /api/v2/settings/radius/
+                       SOCIAL_AUTH_SAML_SP_PRIVATE_KEY=unencrypted_rsa_ssh_key_data,  # /api/v2/settings/saml/
+                       TACACSPLUS_HOST="test",  # /api/v2/settings/tacasplus/ (required by TACACSPLUS_SECRET)
+                       TACACSPLUS_SECRET="test")  # /api/v2/settings/tacasplus/
         update_setting_pg(api_settings_all_pg, payload)
         return payload, required_plaintext_fields
     return func
@@ -257,12 +257,12 @@ class TestGeneralSettings(APITest):
             job.wait_until_completed()
 
     def test_schedule_max_jobs_workflow_level(self, factories, api_settings_jobs_pg, update_setting_pg):
-        host = factories.v2_host()
-        jt = factories.v2_job_template(
+        host = factories.host()
+        jt = factories.job_template(
             inventory=host.ds.inventory, playbook='sleep.yml', extra_vars='{"sleep_interval": 120}'
         )
-        wfjt = factories.v2_workflow_job_template()
-        factories.v2_workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt)
+        wfjt = factories.workflow_job_template()
+        factories.workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt)
 
         payload = dict(SCHEDULE_MAX_JOBS=1)
         update_setting_pg(api_settings_jobs_pg, payload)
@@ -298,7 +298,7 @@ class TestGeneralSettings(APITest):
         in instances where both timeout values are supplied.
         """
         job_template = factories.job_template(timeout=timeout, playbook='sleep.yml', extra_vars='sleep_interval: 10')
-        factories.v2_host(inventory=job_template.ds.inventory)
+        factories.host(inventory=job_template.ds.inventory)
 
         # update job timeout flag
         payload = dict(DEFAULT_JOB_TIMEOUT=default_job_timeout)
@@ -376,8 +376,8 @@ class TestGeneralSettings(APITest):
         payload = dict(ANSIBLE_FACT_CACHE_TIMEOUT=timeout)
         update_setting_pg(api_settings_jobs_pg, payload)
 
-        host = factories.v2_host()
-        jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='gather_facts.yml', use_fact_cache=True)
+        host = factories.host()
+        jt = factories.job_template(inventory=host.ds.inventory, playbook='gather_facts.yml', use_fact_cache=True)
         jt.launch().wait_until_completed().assert_successful()
 
         jt.patch(playbook='use_facts.yml', job_tags='ansible_facts')
@@ -574,7 +574,7 @@ class TestGeneralSettings(APITest):
                 "ORG_ADMINS_CAN_SEE_ALL_USERS:False" % matching_non_org_users.count
 
     def test_displayed_system_license(self, api_config_pg, api_settings_system_pg):
-        """Verifies that our exact license contents gets displayed under /api/v1/settings/system/.
+        """Verifies that our exact license contents gets displayed under /api/v2/settings/system/.
 
         Note: the towerkit license generator auto-appends a 'eula_accepted' field which is not
         actually part of the license so we remove that manually below.
@@ -588,10 +588,10 @@ class TestGeneralSettings(APITest):
         api_config_pg.post(license_info)
         del license_info['eula_accepted']
 
-        # check /api/v1/settings/system/ 'LICENSE' field
+        # check /api/v2/settings/system/ 'LICENSE' field
         returned_license = api_settings_system_pg.get().json['LICENSE']
         assert license_info == returned_license, \
-            "Discrepancy between license and license displayed under /api/v1/settings/system/." \
+            "Discrepancy between license and license displayed under /api/v2/settings/system/." \
             "\n\nLicense:\n{0}\n\nAPI returned:\n{1}\n".format(json.dumps(license_info), json.dumps(returned_license))
 
     def test_unable_to_change_system_license(self, v2):
@@ -603,7 +603,7 @@ class TestGeneralSettings(APITest):
         assert system_settings.get().LICENSE == license
 
     def test_changed_settings(self, modify_settings, api_settings_changed_pg):
-        """Verifies that changed entries show under /api/v1/settings/changed/.
+        """Verifies that changed entries show under /api/v2/settings/changed/.
         Note: "TOWER_URL_BASE", "LICENSE" and "INSTALL_UUID" always show here regardless of
         the changes that we make.
         """
@@ -611,12 +611,12 @@ class TestGeneralSettings(APITest):
         settings_changed = api_settings_changed_pg.get()
         optional_read_only_fields = ['AWX_ISOLATED_PRIVATE_KEY', 'AWX_ISOLATED_PUBLIC_KEY']
 
-        # check that all of our updated settings are present under /api/v1/settings/changed/
+        # check that all of our updated settings are present under /api/v2/settings/changed/
         assert all([item in settings_changed.json.items() for item in payload.items()]), \
-            "Not all changed entries listed under /api/v1/settings/changed/."
-        # check for two additional entries under /api/v1/settings/changed/
+            "Not all changed entries listed under /api/v2/settings/changed/."
+        # check for two additional entries under /api/v2/settings/changed/
         assert set(settings_changed.json.keys()) - set(payload.keys()) - set(optional_read_only_fields) == \
-            set(['TOWER_URL_BASE', 'INSTALL_UUID', 'LICENSE']), "Unexpected additional items listed under /api/v1/settings/changed/."
+            set(['TOWER_URL_BASE', 'INSTALL_UUID', 'LICENSE']), "Unexpected additional items listed under /api/v2/settings/changed/."
 
     def test_setting_obfuscation(self, api_settings_pg, modify_obfuscated_settings):
         """Verifies that sensitive setting values get obfuscated."""
@@ -664,7 +664,7 @@ class TestGeneralSettings(APITest):
         updated_task_env['SOME_TEST_ENV_VAR'] = desired_val
         job_settings.AWX_TASK_ENV = updated_task_env
 
-        custom_source = factories.v2_inventory_source(source='custom')
+        custom_source = factories.inventory_source(source='custom')
         inv_update = custom_source.update().wait_until_completed()
         inv_update.assert_successful()
         assert inv_update.job_env.SOME_TEST_ENV_VAR == desired_val
@@ -672,7 +672,7 @@ class TestGeneralSettings(APITest):
         inventory = custom_source.ds.inventory
         host = inventory.related.hosts.get().results[0]
 
-        jt = factories.v2_job_template(inventory=inventory, playbook='ansible_env.yml')
+        jt = factories.job_template(inventory=inventory, playbook='ansible_env.yml')
         job = jt.launch().wait_until_completed()
         job.assert_successful()
 
@@ -686,7 +686,7 @@ class TestGeneralSettings(APITest):
         project_update = project_update.get()
         assert project_update.job_env.SOME_TEST_ENV_VAR == desired_val
 
-        ahc = factories.v2_ad_hoc_command(inventory=inventory, limit=host.name)
+        ahc = factories.ad_hoc_command(inventory=inventory, limit=host.name)
         ahc.wait_until_completed()
         ahc.assert_successful()
         assert ahc.job_env.SOME_TEST_ENV_VAR == desired_val

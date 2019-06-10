@@ -212,7 +212,7 @@ class TestTraditionalCluster(APITest):
     def test_isolated_instance_control_node(self, v2, factories):
         ig = v2.instance_groups.get(name='protected').results[0]
 
-        jt = factories.v2_job_template()
+        jt = factories.job_template()
         jt.add_instance_group(ig)
 
         job = jt.launch().wait_until_completed()
@@ -232,8 +232,8 @@ class TestTraditionalCluster(APITest):
 
     def test_isolated_artifacts(self, v2, factories, artifacts_from_stats_playbook):
         # Create JT that does set_stats
-        host = factories.v2_host()
-        set_stats_jt = factories.v2_job_template(
+        host = factories.host()
+        set_stats_jt = factories.job_template(
             playbook='test_set_stats.yml', inventory=host.ds.inventory
         )
 
@@ -258,10 +258,10 @@ class TestTraditionalCluster(APITest):
                                                          user_password):
         managed = hosts_in_group('managed_hosts')[0]
         username = hostvars_for_host(managed).get('ansible_user')
-        cred = factories.v2_credential(username=username, password=user_password)
+        cred = factories.credential(username=username, password=user_password)
         host = factories.host(name=managed, variables=dict(ansible_host=managed))
 
-        jt = factories.v2_job_template(allow_simultaneous=True, inventory=host.ds.inventory, credential=cred)
+        jt = factories.job_template(allow_simultaneous=True, inventory=host.ds.inventory, credential=cred)
         protected_ig = v2.instance_groups.get(name='protected').results.pop()
         jt.add_instance_group(protected_ig)
 
@@ -335,9 +335,9 @@ class TestTraditionalCluster(APITest):
     def test_job_with_unicode_successfully_runs_on_isolated_node(self, v2, factories):
         ig = v2.instance_groups.get(name='protected').results.pop()
 
-        jt = factories.v2_job_template(playbook='utf-8-䉪ቒ칸ⱷꯔ噂폄蔆㪗輥.yml')
+        jt = factories.job_template(playbook='utf-8-䉪ቒ칸ⱷꯔ噂폄蔆㪗輥.yml')
         jt.add_instance_group(ig)
-        factories.v2_host(inventory=jt.ds.inventory)
+        factories.host(inventory=jt.ds.inventory)
 
         job = jt.launch().wait_until_completed()
         assert job.status == 'successful'
@@ -356,9 +356,9 @@ class TestTraditionalCluster(APITest):
             pytest.skip('Test requires multiple instance groups')
 
         base_instance_group, parent_instance_group = self.mutually_exclusive_instance_groups(instance_groups)
-        host = factories.v2_host()
-        jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='sleep.yml', extra_vars=dict(sleep_interval=600), allow_simultaneous=True)
-        factories.v2_host(inventory=jt.ds.inventory)
+        host = factories.host()
+        jt = factories.job_template(inventory=host.ds.inventory, playbook='sleep.yml', extra_vars=dict(sleep_interval=600), allow_simultaneous=True)
+        factories.host(inventory=jt.ds.inventory)
 
         get_resource_from_jt(jt, base_resource).add_instance_group(base_instance_group)
         get_resource_from_jt(jt, parent_resource).add_instance_group(parent_instance_group)
@@ -387,9 +387,9 @@ class TestTraditionalCluster(APITest):
         protected = v2.instance_groups.get(name='protected').results[0]
 
         username = hostvars_for_host(managed).get('ansible_user')
-        cred = factories.v2_credential(username=username, password=user_password)
+        cred = factories.credential(username=username, password=user_password)
         host = factories.host(name=managed, variables=dict(ansible_host=managed))
-        jt = factories.v2_job_template(inventory=host.ds.inventory, credential=cred)
+        jt = factories.job_template(inventory=host.ds.inventory, credential=cred)
         jt.add_instance_group(protected)
         jt.launch().wait_until_completed()
 
@@ -427,8 +427,8 @@ class TestTraditionalCluster(APITest):
         # Ensure no capacity consumed initially
         utils.poll_until(lambda: ig.get().consumed_capacity == 0, interval=10, timeout=60)
 
-        host = factories.v2_host()
-        jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='sleep.yml', extra_vars=dict(sleep_interval=600), allow_simultaneous=True)
+        host = factories.host()
+        jt = factories.job_template(inventory=host.ds.inventory, playbook='sleep.yml', extra_vars=dict(sleep_interval=600), allow_simultaneous=True)
         jt.add_instance_group(ig)
 
         previous_ig_consumed_capacity = 0
@@ -478,8 +478,8 @@ class TestTraditionalCluster(APITest):
             protected_group = v2.instance_groups.get(name="protected").results[0]
             original_capacity_protected_ig = protected_group.capacity
 
-            host = factories.v2_host()
-            jt = factories.v2_job_template(playbook='sleep.yml',
+            host = factories.host()
+            jt = factories.job_template(playbook='sleep.yml',
                                            extra_vars=dict(sleep_interval=600),
                                            inventory=host.ds.inventory)
             jt.add_instance_group(protected_group)
@@ -503,7 +503,7 @@ class TestTraditionalCluster(APITest):
                 assert long_job.job_explanation == explanation
 
                 # Start a new job and check it remains pending
-                jt = factories.v2_job_template(inventory=host.ds.inventory)
+                jt = factories.job_template(inventory=host.ds.inventory)
                 jt.add_instance_group(protected_group)
                 job = jt.launch()
 
@@ -570,7 +570,7 @@ class TestTraditionalCluster(APITest):
         ig = ig.get()  # needed for accurate capacity value
 
         # create a long running job template
-        jt = factories.v2_job_template(playbook='sleep.yml',
+        jt = factories.job_template(playbook='sleep.yml',
                                        extra_vars=dict(sleep_interval=600))
         jt.ds.inventory.add_host()
         jt.add_instance_group(ig)
@@ -751,20 +751,20 @@ class TestTraditionalCluster(APITest):
             ig1, ig2 = self.mutually_exclusive_instance_groups(v2.instance_groups.get().results)
 
         # Create project on first instance
-        org = factories.v2_organization()
+        org = factories.organization()
         org.add_instance_group(ig1)
         # Workaround for https://github.com/ansible/ansible/issues/17720#issuecomment-322628667
         if scm_type == 'svn':
-            proj = factories.v2_project(organization=org, scm_type='svn', scm_url='https://github.com/jladdjr/ansible-playbooks', scm_branch='44')
+            proj = factories.project(organization=org, scm_type='svn', scm_url='https://github.com/jladdjr/ansible-playbooks', scm_branch='44')
             playbook = 'trunk/sleep.yml'
         else:
-            proj = factories.v2_project(organization=org, scm_type=scm_type)
+            proj = factories.project(organization=org, scm_type=scm_type)
             playbook = 'sleep.yml'
         org.remove_instance_group(ig1)
 
         # Run job template on second instance
-        host = factories.v2_host()
-        jt = factories.v2_job_template(project=proj, inventory=host.ds.inventory, playbook=playbook)
+        host = factories.host()
+        jt = factories.job_template(project=proj, inventory=host.ds.inventory, playbook=playbook)
         jt.add_instance_group(ig2)
 
         job = jt.launch().wait_until_completed()
@@ -802,8 +802,8 @@ class TestTraditionalCluster(APITest):
         """Inventory scripts are printed to a file and sent to isolated nodes.
         Test ensures that escaped characters are preserved in the process.
         """
-        host = factories.v2_host(variables=dict(ansible_host='127.0.0.1', ansible_connection='local', should_be_preserved='\f"'))
-        jt = factories.v2_job_template(playbook='debug_hostvars.yml', inventory=host.ds.inventory)
+        host = factories.host(variables=dict(ansible_host='127.0.0.1', ansible_connection='local', should_be_preserved='\f"'))
+        jt = factories.job_template(playbook='debug_hostvars.yml', inventory=host.ds.inventory)
         ig_protected = v2.instance_groups.get(name='protected').results.pop()
         jt.add_instance_group(ig_protected)
         job = jt.launch().wait_until_completed()
@@ -819,7 +819,7 @@ class TestTraditionalCluster(APITest):
         folder_name = random_title(non_ascii=False)
         with create_venv(folder_name, cluster=True):
             assert venv_path(folder_name) in v2.config.get().custom_virtualenvs
-            jt = factories.v2_job_template()
+            jt = factories.job_template()
             jt.ds.inventory.add_host()
             jt.custom_virtualenv = venv_path(folder_name)
 
@@ -847,7 +847,7 @@ class TestTraditionalCluster(APITest):
             assert instance.get().capacity == 0
 
         # Ensure that job assigned to IG remains in pending state
-        jt = factories.v2_job_template()
+        jt = factories.job_template()
         jt.ds.inventory.add_host()
         jt.add_instance_group(ig_protected)
         job = jt.launch()

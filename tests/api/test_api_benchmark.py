@@ -92,21 +92,21 @@ class TestApiPerformance(APITest):
     @pytest.mark.mp_group('Benchmarking', 'isolated_serial')
     def test_benchmark_user_creation(self, v2, factories, benchmark):
         f = self.resource_creation_function(v2, 'users')
-        org = factories.v2_organization()
+        org = factories.organization()
         benchmark(f, organization=org)
 
     @pytest.mark.mp_group('Benchmarking', 'isolated_serial')
     def test_benchmark_team_creation(self, v2, factories, benchmark):
         f = self.resource_creation_function(v2, 'teams')
-        org = factories.v2_organization()
+        org = factories.organization()
         benchmark(f, organization=org)
 
     @pytest.mark.mp_group('Benchmarking', 'isolated_serial')
     def test_benchmark_associate_user_with_org(self, factories, benchmark):
         # Need a setup function because we can't reuse the "user" value
         def setup():
-            user = factories.v2_user()
-            org = factories.v2_organization()
+            user = factories.user()
+            org = factories.organization()
             return (org, user), {}
 
         def associate_user(org, user):
@@ -116,9 +116,9 @@ class TestApiPerformance(APITest):
     @pytest.mark.mp_group('Benchmarking', 'isolated_serial')
     def test_benchmark_associate_user_with_team(self, factories, benchmark):
         def setup():
-            user = factories.v2_user()
-            org = factories.v2_organization()
-            team = factories.v2_team(organization=org)
+            user = factories.user()
+            org = factories.organization()
+            team = factories.team(organization=org)
             return (team, user), {}
 
         def associate_user(team, user):
@@ -128,52 +128,52 @@ class TestApiPerformance(APITest):
     @pytest.mark.mp_group('Benchmarking', 'isolated_serial')
     def test_benchmark_cloud_credential_creation(self, v2, factories, benchmark):
         f = self.resource_creation_function(v2, 'credentials')
-        org = factories.v2_organization()
+        org = factories.organization()
         benchmark(f, organization=org, kind='aws', username='foo', password='bar')
 
     @pytest.mark.mp_group('Benchmarking', 'isolated_serial')
     def test_benchmark_machine_credential_creation(self, v2, factories, benchmark):
         f = self.resource_creation_function(v2, 'credentials')
-        org = factories.v2_organization()
+        org = factories.organization()
         benchmark(f, organization=org, kind='ssh',
                   username='foo', password='bar', ssh_key_data=config.credentials.ssh.ssh_key_data)
 
     @pytest.mark.mp_group('Benchmarking', 'isolated_serial')
     def test_benchmark_project_creation(self, v2, factories, benchmark):
         f = self.resource_creation_function(v2, 'projects')
-        org = factories.v2_organization()
+        org = factories.organization()
         benchmark(f, organization=org, wait=False)
 
     @pytest.mark.mp_group('Benchmarking', 'isolated_serial')
     def test_benchmark_inventory_creation(self, v2, factories, benchmark):
         f = self.resource_creation_function(v2, 'inventory')
-        org = factories.v2_organization()
+        org = factories.organization()
         benchmark(f, organization=org)
 
     @pytest.mark.mp_group('Benchmarking', 'isolated_serial')
     def test_benchmark_inventory_group_creation(self, factories, benchmark):
         def create_group(inventory, org):
-            factories.v2_group(inventory=inventory, organization=org)
-        org = factories.v2_organization()
-        inventory = factories.v2_inventory(organization=org)
+            factories.group(inventory=inventory, organization=org)
+        org = factories.organization()
+        inventory = factories.inventory(organization=org)
         benchmark(create_group, inventory, org)
 
     @pytest.mark.mp_group('Benchmarking', 'isolated_serial')
     def test_benchmark_inventory_source_update(self, factories, benchmark):
         def update_source(source):
             source.update().wait_until_completed(interval=0.25)
-        credential = factories.v2_credential(kind='aws')
-        source = factories.v2_inventory_source(source='ec2', credential=credential)
+        credential = factories.credential(kind='aws')
+        source = factories.inventory_source(source='ec2', credential=credential)
         benchmark(update_source, source)
 
     @pytest.mark.mp_group('Benchmarking', 'isolated_serial')
     def test_benchmark_job_template_start_time(self, factories, benchmark):
-        jt = factories.v2_job_template(allow_simultaneous=True)
+        jt = factories.job_template(allow_simultaneous=True)
         benchmark(self.wait_for_job_start, jt)
 
     @pytest.mark.mp_group('Benchmarking', 'isolated_serial')
     def test_benchmark_workflow_node_start_time(self, factories, benchmark):
-        jt = factories.v2_job_template(
+        jt = factories.job_template(
             playbook='ping.yml', allow_simultaneous=True)
         wfjt = factories.workflow_job_template(allow_simultaneous=True)
         factories.workflow_job_template_node(
@@ -206,9 +206,9 @@ class TestApiPerformance(APITest):
 
     @pytest.mark.mp_group('Benchmarking', 'isolated_serial')
     def test_benchmark_job_template_creation(self, v2, factories, benchmark):
-        org = factories.v2_organization()
-        inventory = factories.v2_inventory(organization=org)
-        project = factories.v2_project(organization=org)
+        org = factories.organization()
+        inventory = factories.inventory(organization=org)
+        project = factories.project(organization=org)
         f = self.resource_creation_function(v2, 'job_templates')
         benchmark(f, organization=org, inventory=inventory, project=project)
 
@@ -218,7 +218,7 @@ class TestApiPerformance(APITest):
             rampart_groups__controller__isnull=True, page_size=200, capacity__gt=0).results
         ct = len(instances)
         host_count = ct * 20
-        jt = factories.v2_job_template(
+        jt = factories.job_template(
             job_slice_count=ct, forks=20, playbook='gather_facts.yml')
         for _ in range(host_count):
             jt.ds.inventory.add_host()
@@ -229,8 +229,8 @@ class TestApiPerformance(APITest):
         instances = v2.instances.get(
             rampart_groups__controller__isnull=True, page_size=200, capacity__gt=0).results
         ct = len(instances)
-        inventory = factories.v2_inventory()
-        jt = factories.v2_job_template(
+        inventory = factories.inventory()
+        jt = factories.job_template(
             forks=20, inventory=inventory, allow_simultaneous=True, playbook='gather_facts.yml')
         for _ in range(20):
             inventory.add_host()
@@ -242,8 +242,8 @@ class TestApiPerformance(APITest):
             rampart_groups__controller__isnull=True, page_size=200, capacity__gt=0).results
         ct = len(instances)
         job_size = ct * 20
-        inventory = factories.v2_inventory()
-        jt = factories.v2_job_template(
+        inventory = factories.inventory()
+        jt = factories.job_template(
             forks=20, inventory=inventory, allow_simultaneous=True, playbook='gather_facts.yml')
         for _ in range(job_size):
             inventory.add_host()

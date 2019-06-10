@@ -19,17 +19,17 @@ from tests.api.schedules import SchedulesTest
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestSchedules(SchedulesTest):
 
-    def test_new_resources_are_without_schedules(self, v2_unified_job_template):
-        assert v2_unified_job_template.related.schedules.get().count == 0
+    def test_new_resources_are_without_schedules(self, unified_job_template):
+        assert unified_job_template.related.schedules.get().count == 0
 
-    def test_duplicate_schedules_disallowed(self, v2_unified_job_template):
-        schedule = v2_unified_job_template.add_schedule()
+    def test_duplicate_schedules_disallowed(self, unified_job_template):
+        schedule = unified_job_template.add_schedule()
 
         with pytest.raises(exc.Duplicate) as e:
-            v2_unified_job_template.add_schedule(name=schedule.name)
+            unified_job_template.add_schedule(name=schedule.name)
         assert e.match('Schedule with this Unified job template and Name already exists.')
 
-    def test_invalid_rrules_are_rejected(self, v2_unified_job_template):
+    def test_invalid_rrules_are_rejected(self, unified_job_template):
         invalid_rrules = [
             ('', 'This field may not be blank.'),
             ('DTSTART:asdf asdf', 'Valid DTSTART required in rrule. Value should start with: DTSTART:YYYYMMDDTHHMMSSZ'),
@@ -67,14 +67,14 @@ class TestSchedules(SchedulesTest):
         ]
         for invalid, expected in invalid_rrules:
             with pytest.raises(exc.BadRequest) as e:
-                v2_unified_job_template.add_schedule(rrule=invalid)
+                unified_job_template.add_schedule(rrule=invalid)
                 pytest.fail('Failed to raise for invalid rrule "{}"'.format(invalid))
             assert e.value[1].get('rrule', [e.value[1]])[0] == expected
 
     @pytest.mark.yolo
-    def test_schedule_basic_integrity(self, v2_unified_job_template):
-        if v2_unified_job_template.type in ('job_template', 'workflow_job_template'):
-            v2_unified_job_template.ask_variables_on_launch = True
+    def test_schedule_basic_integrity(self, unified_job_template):
+        if unified_job_template.type in ('job_template', 'workflow_job_template'):
+            unified_job_template.ask_variables_on_launch = True
             extra_data = {random_title(): random_title() for _ in range(20)}
         else:
             extra_data = {}
@@ -84,14 +84,14 @@ class TestSchedules(SchedulesTest):
                        enabled=False,
                        rrule=str(rule),
                        extra_data=extra_data)
-        schedule = v2_unified_job_template.related.schedules.post(payload)
+        schedule = unified_job_template.related.schedules.post(payload)
         assert schedule.name == payload['name']
         assert schedule.description == payload['description']
         assert schedule.rrule == str(rule)
         assert not schedule.enabled
         assert schedule.extra_data == extra_data
 
-        schedules = v2_unified_job_template.related.schedules.get()
+        schedules = unified_job_template.related.schedules.get()
         assert schedules.count == 1
         assert schedules.results.pop().id == schedule.id
         # Confirm basic REST operations are successful
@@ -103,47 +103,47 @@ class TestSchedules(SchedulesTest):
         schedule.description = 'Some Other Description'
         assert schedule.get().description == 'Some Other Description'
 
-    def test_only_count_limited_previous_recurrencences_are_evaluated(self, v2_unified_job_template):
+    def test_only_count_limited_previous_recurrencences_are_evaluated(self, unified_job_template):
         epoch = parse('Jan 1 1970')
         dtend = epoch + relativedelta(years=9)
         rule = RRule(rrule.YEARLY, dtstart=epoch, count=10, interval=1)
-        schedule = v2_unified_job_template.add_schedule(rrule=rule)
+        schedule = unified_job_template.add_schedule(rrule=rule)
         assert schedule.dtstart == self.strftime(epoch)
         assert schedule.dtend == self.strftime(dtend)
         assert schedule.next_run is None
 
-    def test_only_count_limited_future_recurrences_are_evaluated(self, v2_unified_job_template):
+    def test_only_count_limited_future_recurrences_are_evaluated(self, unified_job_template):
         odyssey_three = parse('Jan 1 2061')
         dtend = odyssey_three + relativedelta(years=9)
         rule = RRule(rrule.YEARLY, dtstart=odyssey_three, count=10, interval=1)
-        schedule = v2_unified_job_template.add_schedule(rrule=rule)
+        schedule = unified_job_template.add_schedule(rrule=rule)
         assert schedule.dtstart == self.strftime(odyssey_three)
         assert schedule.dtend == self.strftime(dtend)
         assert schedule.next_run == rule.next_run
 
-    def test_only_count_limited_overlapping_recurrences_are_evaluated(self, v2_unified_job_template):
+    def test_only_count_limited_overlapping_recurrences_are_evaluated(self, unified_job_template):
         last_week = datetime.utcnow() + relativedelta(weeks=-1, minutes=+1)
         dtend = datetime.utcnow() + relativedelta(days=2, minutes=+1)
         rule = RRule(rrule.DAILY, dtstart=last_week, count=10)
-        schedule = v2_unified_job_template.add_schedule(rrule=rule)
+        schedule = unified_job_template.add_schedule(rrule=rule)
         assert schedule.dtstart == self.strftime(last_week)
         assert schedule.dtend == self.strftime(dtend)
         assert schedule.next_run == rule.next_run
 
-    def test_only_until_limited_previous_recurrencences_are_evaluated(self, v2_unified_job_template):
+    def test_only_until_limited_previous_recurrencences_are_evaluated(self, unified_job_template):
         epoch = parse('Jan 1 1970')
         dtend = epoch + relativedelta(years=9)
         rule = RRule(rrule.YEARLY, dtstart=epoch, until=dtend, interval=1)
-        schedule = v2_unified_job_template.add_schedule(rrule=rule)
+        schedule = unified_job_template.add_schedule(rrule=rule)
         assert schedule.dtstart == self.strftime(epoch)
         assert schedule.dtend == self.strftime(dtend)
         assert schedule.next_run is None
 
-    def test_only_until_limited_future_recurrences_are_evaluated(self, v2_unified_job_template):
+    def test_only_until_limited_future_recurrences_are_evaluated(self, unified_job_template):
         odyssey_three = parse('Jan 1 2061')
         dtend = odyssey_three + relativedelta(years=9)
         rule = RRule(rrule.YEARLY, dtstart=odyssey_three, until=dtend, interval=1)
-        schedule = v2_unified_job_template.add_schedule(rrule=rule)
+        schedule = unified_job_template.add_schedule(rrule=rule)
         assert schedule.dtstart == self.strftime(odyssey_three)
         assert schedule.dtend == self.strftime(dtend)
         assert schedule.next_run == rule.next_run
@@ -158,7 +158,7 @@ class TestSchedules(SchedulesTest):
         assert schedule.next_run == rule.next_run
 
     def test_expected_fields_are_readonly(self, factories):
-        schedule = factories.v2_job_template().add_schedule()
+        schedule = factories.job_template().add_schedule()
         original_dtstart = schedule.dtstart
         schedule.dtstart = 'Undesired dtstart'
         assert schedule.dtstart == original_dtstart
@@ -176,26 +176,26 @@ class TestSchedules(SchedulesTest):
         assert schedule.dtend == original_dtend
         assert schedule.next_run == original_next_run
 
-    def test_successful_schedule_deletions(self, v2_unified_job_template):
-        added_schedules = [v2_unified_job_template.add_schedule() for _ in range(5)]
-        schedules = v2_unified_job_template.related.schedules.get()
+    def test_successful_schedule_deletions(self, unified_job_template):
+        added_schedules = [unified_job_template.add_schedule() for _ in range(5)]
+        schedules = unified_job_template.related.schedules.get()
         for _ in range(5):
             assert set([s.id for s in schedules.get().results]) == set([s.id for s in added_schedules])
             added_schedules.pop().delete()
         assert not schedules.get().count
         assert not schedules.results
 
-    def test_successful_cascade_schedule_deletions(self, v2_unified_job_template):
-        schedules = [v2_unified_job_template.add_schedule() for _ in range(5)]
-        v2_unified_job_template.delete()
+    def test_successful_cascade_schedule_deletions(self, unified_job_template):
+        schedules = [unified_job_template.add_schedule() for _ in range(5)]
+        unified_job_template.delete()
         for schedule in schedules:
             with pytest.raises(exc.NotFound):
                 schedule.get()
 
     @pytest.mark.github('https://github.com/ansible/tower-qa/issues/2591', skip=True)
-    def test_schedule_triggers_launch_without_count(self, v2_unified_job_template):
+    def test_schedule_triggers_launch_without_count(self, unified_job_template):
         rule = self.minutely_rrule()
-        schedule = v2_unified_job_template.add_schedule(rrule=rule)
+        schedule = unified_job_template.add_schedule(rrule=rule)
         assert schedule.next_run == rule.next_run
 
         unified_jobs = schedule.related.unified_jobs.get()
@@ -205,9 +205,9 @@ class TestSchedules(SchedulesTest):
         assert schedule.get().next_run == rule.next_run
 
     @pytest.mark.github('https://github.com/ansible/tower-qa/issues/2591', skip=True)
-    def test_schedule_triggers_launch_with_count(self, v2_unified_job_template):
+    def test_schedule_triggers_launch_with_count(self, unified_job_template):
         rule = self.minutely_rrule(count=2)
-        schedule = v2_unified_job_template.add_schedule(rrule=rule)
+        schedule = unified_job_template.add_schedule(rrule=rule)
         assert schedule.next_run == rule.next_run
 
         unified_jobs = schedule.related.unified_jobs.get()
@@ -230,9 +230,9 @@ class TestSchedules(SchedulesTest):
             v2.settings.get().get_endpoint('jobs'),
             dict(ALLOW_JINJA_IN_EXTRA_VARS='always')
         )
-        jt = factories.v2_job_template(playbook='debug_extra_vars.yml',
+        jt = factories.job_template(playbook='debug_extra_vars.yml',
                                        extra_vars='var1: "{{ awx_schedule_id }}"')
-        factories.v2_host(inventory=jt.ds.inventory)
+        factories.host(inventory=jt.ds.inventory)
         schedule = jt.add_schedule(rrule=self.minutely_rrule())
 
         unified_jobs = schedule.related.unified_jobs.get()

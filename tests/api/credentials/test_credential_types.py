@@ -10,7 +10,7 @@ from tests.api import APITest
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestCredentialTypes(APITest):
 
-    def test_v2_credential_types_options(self, v2):
+    def test_credential_types_options(self, v2):
         """confirms that OPTIONS for credential types provides desired information for type creation and retrieval"""
         options = v2.credential_types.options()
 
@@ -38,11 +38,6 @@ class TestCredentialTypes(APITest):
             assert desired_type in creating_help_text
         for undesired_type in ('insights', 'ssh', 'scm', 'vault'):
             assert undesired_type not in creating_help_text
-
-    def test_v1_credential_options_dont_contain_credential_type(self, v1):
-        options = str(v1.credentials.options()).lower()
-        assert "credential type" not in options
-        assert "credential_type" not in options
 
     def test_confirm_empty_defaults_for_credential_type(self, factories):
         for kind in credential_type_kinds:
@@ -244,14 +239,14 @@ class TestCredentialTypes(APITest):
             assert e.value.msg['detail'] == 'Deletion not allowed for managed credential types'
 
     def test_sourced_credential_type_cannot_be_deleted(self, factories):
-        cred = factories.v2_credential(credential_type=True)
+        cred = factories.credential(credential_type=True)
 
         with pytest.raises(exc.Forbidden) as e:
             cred.ds.credential_type.delete()
         assert e.value.msg['detail'] == 'Credential types that are in use cannot be deleted'
 
     def test_sourced_credential_type_inputs_are_read_only(self, factories):
-        cred = factories.v2_credential(credential_type=True)
+        cred = factories.credential(credential_type=True)
 
         with pytest.raises(exc.Forbidden) as e:
             cred.ds.credential_type.inputs = dict(test=True)
@@ -279,10 +274,10 @@ class TestCredentialTypes(APITest):
         inputs = dict(fields=[dict(id='field_one', label='FieldOne', choices=['one', 'two', 'three'])])
         cred_type = factories.credential_type(inputs=inputs)
 
-        factories.v2_credential(credential_type=cred_type, inputs=dict(field_one='one'))
+        factories.credential(credential_type=cred_type, inputs=dict(field_one='one'))
 
         with pytest.raises(exc.BadRequest) as e:
-            factories.v2_credential(credential_type=cred_type, inputs=dict(field_one='NotAChoice'))
+            factories.credential(credential_type=cred_type, inputs=dict(field_one='NotAChoice'))
 
         assert e.value.msg == {'inputs': {'field_one': ["'NotAChoice' is not one of ['one', 'two', 'three']"]}}
 

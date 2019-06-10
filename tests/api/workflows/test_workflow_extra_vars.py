@@ -266,10 +266,10 @@ class TestWorkflowExtraVars(APITest):
         assert node_job_vars['intersection'] == wfjt_survey_vars['intersection']
 
     def test_extra_vars_passed_with_wfjt_when_ask_variables_enabled_and_launch_vars_supplied(self, factories):
-        host = factories.v2_host()
-        wfjt = factories.v2_workflow_job_template(ask_variables_on_launch=True)
-        jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='debug_extra_vars.yml')
-        factories.v2_workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt)
+        host = factories.host()
+        wfjt = factories.workflow_job_template(ask_variables_on_launch=True)
+        jt = factories.job_template(inventory=host.ds.inventory, playbook='debug_extra_vars.yml')
+        factories.workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt)
 
         wfj = wfjt.launch(dict(extra_vars=dict(var1='launch', var2='$encrypted$'))).wait_until_completed()
         job = jt.get().related.last_job.get()
@@ -282,10 +282,10 @@ class TestWorkflowExtraVars(APITest):
         assert json.loads(job.extra_vars) == dict(var1='launch', var2='$encrypted$')
 
     def test_extra_vars_not_passed_with_wfjt_when_ask_variables_enabled_and_none_supplied(self, factories):
-        host = factories.v2_host()
-        wfjt = factories.v2_workflow_job_template(ask_variables_on_launch=True)
-        jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='debug_extra_vars.yml')
-        factories.v2_workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt)
+        host = factories.host()
+        wfjt = factories.workflow_job_template(ask_variables_on_launch=True)
+        jt = factories.job_template(inventory=host.ds.inventory, playbook='debug_extra_vars.yml')
+        factories.workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt)
 
         wfj = wfjt.launch(dict(extra_vars=dict())).wait_until_completed()
         job = jt.get().related.last_job.get()
@@ -296,11 +296,11 @@ class TestWorkflowExtraVars(APITest):
         assert json.loads(job.extra_vars) == dict()
 
     def test_extra_vars_passed_with_wfjt_when_encrypted_keywords_supplied_at_launch(self, instance_group, factories):
-        host = factories.v2_host()
-        wfjt = factories.v2_workflow_job_template(ask_variables_on_launch=True)
-        jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='debug_extra_vars.yml')
+        host = factories.host()
+        wfjt = factories.workflow_job_template(ask_variables_on_launch=True)
+        jt = factories.job_template(inventory=host.ds.inventory, playbook='debug_extra_vars.yml')
         jt.add_instance_group(instance_group)
-        factories.v2_workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt)
+        factories.workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt)
 
         survey = [dict(required=False,
                        question_name='Q1',
@@ -328,10 +328,10 @@ class TestWorkflowExtraVars(APITest):
 
     @pytest.mark.parametrize('required', [True, False])
     def test_launch_vars_passed_with_wfjt_when_launch_vars_and_survey_defaults_present(self, factories, required):
-        host = factories.v2_host()
-        wfjt = factories.v2_workflow_job_template(ask_variables_on_launch=True)
-        jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='debug_extra_vars.yml')
-        factories.v2_workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt)
+        host = factories.host()
+        wfjt = factories.workflow_job_template(ask_variables_on_launch=True)
+        jt = factories.job_template(inventory=host.ds.inventory, playbook='debug_extra_vars.yml')
+        factories.workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt)
 
         survey = [dict(required=required,
                        question_name='Q1',
@@ -362,10 +362,10 @@ class TestWorkflowExtraVars(APITest):
             Required (True): Job should fail to start
             Not Required (False): Job should start and the defaults should be used
         """
-        host = factories.v2_host()
-        wfjt = factories.v2_workflow_job_template(ask_variables_on_launch=True)
-        jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='debug_extra_vars.yml')
-        factories.v2_workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt)
+        host = factories.host()
+        wfjt = factories.workflow_job_template(ask_variables_on_launch=True)
+        jt = factories.job_template(inventory=host.ds.inventory, playbook='debug_extra_vars.yml')
+        factories.workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt)
 
         survey = [dict(required=required,
                        question_name='Q1',
@@ -396,12 +396,12 @@ class TestWorkflowExtraVars(APITest):
             assert "variables_needed_to_start" in e.value.msg
 
     def test_launch_vars_passed_with_wfjt_when_launch_vars_and_multiple_surveys_present(self, instance_group, factories):
-        host = factories.v2_host()
-        wfjt = factories.v2_workflow_job_template(ask_variables_on_launch=True, extra_vars=dict(var1='wfjt', var2='wfjt'))
-        jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='debug_extra_vars.yml',
+        host = factories.host()
+        wfjt = factories.workflow_job_template(ask_variables_on_launch=True, extra_vars=dict(var1='wfjt', var2='wfjt'))
+        jt = factories.job_template(inventory=host.ds.inventory, playbook='debug_extra_vars.yml',
                                        extra_vars=dict(var1='jt', var2='jt'))
         jt.add_instance_group(instance_group)
-        factories.v2_workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt)
+        factories.workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt)
 
         wfjt_survey = [dict(required=False,
                             question_name='Q1',
@@ -432,21 +432,21 @@ class TestWorkflowExtraVars(APITest):
         assert json.loads(job.extra_vars) == dict(var1='launch', var2='$encrypted$', var3='launch')
 
     def test_wfjt_nodes_source_variables_with_set_stats(self, instance_group, factories, artifacts_from_stats_playbook):
-        host = factories.v2_host()
-        set_stats_jt = factories.v2_job_template(playbook='test_set_stats.yml')
+        host = factories.host()
+        set_stats_jt = factories.job_template(playbook='test_set_stats.yml')
         set_stats_jt.add_instance_group(instance_group)
-        no_stats_jt = factories.v2_job_template()
+        no_stats_jt = factories.job_template()
         no_stats_jt.add_instance_group(instance_group)
-        success_jt = factories.v2_job_template()
+        success_jt = factories.job_template()
         success_jt.add_instance_group(instance_group)
-        failure_jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='fail_unless.yml')
+        failure_jt = factories.job_template(inventory=host.ds.inventory, playbook='fail_unless.yml')
         failure_jt.add_instance_group(instance_group)
 
-        wfjt = factories.v2_workflow_job_template()
+        wfjt = factories.workflow_job_template()
         # Create common ancestor for two branches, one that has set_stats
         # passed downstream and another that has no stats set.
-        ancestor = factories.v2_workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=no_stats_jt)
-        stats_node = factories.v2_workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=set_stats_jt)
+        ancestor = factories.workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=no_stats_jt)
+        stats_node = factories.workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=set_stats_jt)
         with pytest.raises(NoContent):
             ancestor.related.success_nodes.post(dict(id=stats_node.id))
         # Create branch of nodes that should have no stats passed to them
@@ -478,7 +478,7 @@ class TestWorkflowExtraVars(APITest):
             assert sourced_vars == {}, 'Variables ended up in other jobs where set_stats should not have propogated.'
 
     @pytest.mark.parametrize("res_type", [
-        'v2_inventory_source',
+        'inventory_source',
         'project',
         'workflow_job_template'
     ])
@@ -489,10 +489,10 @@ class TestWorkflowExtraVars(APITest):
         Doing this, we confirm that job2 receives the vars from artifacts,
         and we confirm that the non-job job is not in any way broken
         """
-        set_stats_jt = factories.v2_job_template(playbook='test_set_stats.yml')
+        set_stats_jt = factories.job_template(playbook='test_set_stats.yml')
         set_stats_jt.add_instance_group(instance_group)
-        wfjt = factories.v2_workflow_job_template()
-        stats_node = factories.v2_workflow_job_template_node(
+        wfjt = factories.workflow_job_template()
+        stats_node = factories.workflow_job_template_node(
             workflow_job_template=wfjt,
             unified_job_template=set_stats_jt
         )
@@ -522,9 +522,9 @@ class TestWorkflowExtraVars(APITest):
     def test_artifacts_passed_to_workflow_nodes(self, instance_group, factories, artifacts_from_stats_playbook):
         """Test artifacts used with workflows-in-workflows
         """
-        set_stats_jt = factories.v2_job_template(playbook='test_set_stats.yml')
+        set_stats_jt = factories.job_template(playbook='test_set_stats.yml')
         set_stats_jt.add_instance_group(instance_group)
-        receiving_jt = factories.v2_job_template(ask_variables_on_launch=True)
+        receiving_jt = factories.job_template(ask_variables_on_launch=True)
         receiving_jt.add_instance_group(instance_group)
         receiving_wfjt = factories.workflow_job_template(ask_variables_on_launch=True)
         factories.workflow_job_template_node(
@@ -532,8 +532,8 @@ class TestWorkflowExtraVars(APITest):
             unified_job_template=receiving_jt
         )
 
-        wfjt = factories.v2_workflow_job_template()
-        stats_node = factories.v2_workflow_job_template_node(
+        wfjt = factories.workflow_job_template()
+        stats_node = factories.workflow_job_template_node(
             workflow_job_template=wfjt,
             unified_job_template=set_stats_jt
         )

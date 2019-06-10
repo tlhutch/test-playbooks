@@ -33,13 +33,13 @@ class Test_Copy_Inventory(APITest):
         check_fields(old_host, new_host, identical_fields, unequal_fields)
 
     def test_copy_normal_inventory_with_variables(self, factories, copy_with_teardown):
-        inventory = factories.v2_inventory(variables='{"foo": "bar"}')
+        inventory = factories.inventory(variables='{"foo": "bar"}')
         new_inventory = copy_with_teardown(inventory)
         check_fields(inventory, new_inventory, self.identical_fields, self.unequal_fields)
 
     def test_copy_inventory_instance_groups(self, factories, copy_with_teardown):
         ig = factories.instance_group()
-        inventory = factories.v2_inventory()
+        inventory = factories.inventory()
         inventory.add_instance_group(ig)
         new_inventory = copy_with_teardown(inventory)
         check_fields(inventory, new_inventory, self.identical_fields, self.unequal_fields)
@@ -53,11 +53,11 @@ class Test_Copy_Inventory(APITest):
 
     def test_copy_smart_inventory(self, factories, copy_with_teardown):
         # Create one host
-        organization = factories.v2_organization()
-        inventory = factories.v2_inventory(organization=organization)
-        factories.v2_host(inventory=inventory)
+        organization = factories.organization()
+        inventory = factories.inventory(organization=organization)
+        factories.host(inventory=inventory)
 
-        smart_inventory = factories.v2_inventory(organization=organization, kind='smart', host_filter='id__gt=0')
+        smart_inventory = factories.inventory(organization=organization, kind='smart', host_filter='id__gt=0')
         assert smart_inventory.total_hosts == 1
 
         new_inventory = copy_with_teardown(smart_inventory)
@@ -65,9 +65,9 @@ class Test_Copy_Inventory(APITest):
 
     def test_copy_inventory_hosts_and_groups(self, factories, copy_with_teardown):
         # Create a DAG of groups and hosts
-        inventory = factories.v2_inventory()
-        groups = [factories.v2_group(inventory=inventory, variables='{"foo": "bar"}') for _ in range(4)]
-        hosts = [factories.v2_host(inventory=inventory, enabled=gen_boolean(), variables='{"foo": "bar"}',
+        inventory = factories.inventory()
+        groups = [factories.group(inventory=inventory, variables='{"foo": "bar"}') for _ in range(4)]
+        hosts = [factories.host(inventory=inventory, enabled=gen_boolean(), variables='{"foo": "bar"}',
                                    instance_id=gen_alpha()) for _ in range(3)]
         groups[0].add_group(groups[1])
         groups[0].add_group(groups[2])
@@ -115,10 +115,10 @@ class Test_Copy_Inventory(APITest):
 
     @pytest.mark.github('https://github.com/ansible/tower/issues/2846', skip=True)
     def test_host_fact_is_not_copied(self, factories, copy_with_teardown):
-        host = factories.v2_host()
+        host = factories.host()
         inventory = host.ds.inventory
         poll_until(lambda: inventory.get().total_hosts == 1, timeout=30)
-        jt = factories.v2_job_template(playbook='gather_facts.yml', inventory=inventory, use_fact_cache=True)
+        jt = factories.job_template(playbook='gather_facts.yml', inventory=inventory, use_fact_cache=True)
         jt.launch().wait_until_completed()
         facts = host.get_related('ansible_facts')
         assert facts.json

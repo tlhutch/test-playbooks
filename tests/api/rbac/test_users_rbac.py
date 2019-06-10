@@ -106,7 +106,7 @@ class Test_User_RBAC(APITest):
 
     def test_non_superusers_cannot_edit_system_user_passwords(self, factories, non_superusers):
         new_pass = utils.random_title()
-        system_users = [factories.v2_user(is_superuser=True), factories.v2_user(is_system_auditor=True)]
+        system_users = [factories.user(is_superuser=True), factories.user(is_system_auditor=True)]
 
         for non_superuser in non_superusers:
             with self.current_user(non_superuser):
@@ -122,9 +122,9 @@ class Test_User_RBAC(APITest):
     def test_org_admin_can_only_edit_users_from_own_organization(self, factories, org_users, organization):
         first_pass, second_pass = [utils.random_title() for _ in range(2)]
 
-        org_admin1, org_admin2 = [factories.v2_user() for _ in range(2)]
+        org_admin1, org_admin2 = [factories.user() for _ in range(2)]
         organization.add_admin(org_admin1)
-        factories.v2_organization().add_admin(org_admin2)
+        factories.organization().add_admin(org_admin2)
 
         # org_admin1 should be able to edit users
         for org_user in org_users:
@@ -149,10 +149,10 @@ class Test_User_RBAC(APITest):
                                                                                      organization):
         new_pass = utils.random_title()
 
-        org_admin = factories.v2_user()
+        org_admin = factories.user()
         organization.add_admin(org_admin)
 
-        org2 = factories.v2_organization()
+        org2 = factories.organization()
         for user in org_users:
             org2.add_user(user)
 
@@ -180,8 +180,8 @@ class Test_User_RBAC(APITest):
                                                                                             system_users):
         new_pass = utils.random_title()
 
-        org = factories.v2_organization()
-        org_admin = factories.v2_user()
+        org = factories.organization()
+        org_admin = factories.user()
         org.add_admin(org_admin)
 
         for system_user in system_users:
@@ -206,8 +206,8 @@ class Test_User_RBAC(APITest):
                 user.get()
 
     def test_org_admins_can_add_and_remove_orphaned_users_from_their_organization(self, factories):
-        org = factories.v2_organization()
-        org_admin, orphaned_user = [factories.v2_user() for _ in range(2)]
+        org = factories.organization()
+        org_admin, orphaned_user = [factories.user() for _ in range(2)]
         org.add_admin(org_admin)
 
         with self.current_user(org_admin):

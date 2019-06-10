@@ -44,10 +44,10 @@ def team_payload(**kwargs):
 class Test_Teams(APITest):
 
     def test_duplicate_teams_disallowed_by_organization(self, factories):
-        team = factories.v2_team()
+        team = factories.team()
 
         with pytest.raises(exc.Duplicate) as e:
-            factories.v2_team(name=team.name, organization=team.ds.organization)
+            factories.team(name=team.name, organization=team.ds.organization)
         assert e.value[1]['__all__'] == ['Team with this Organization and Name already exists.']
 
     def test_privileged_user_can_create_team(self, request, api_teams_pg, privileged_user, user_password, organization):

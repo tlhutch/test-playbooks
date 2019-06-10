@@ -41,16 +41,16 @@ class TestInsights(APITest):
 
     @pytest.fixture(scope="class")
     def insights_inventory(self, request, class_factories, modified_ansible_adhoc, is_docker):
-        inventory = class_factories.v2_inventory()
+        inventory = class_factories.inventory()
         for name in (
                 'registered_host', 'unregistered_host', 'no_system_id_host'):
-            class_factories.v2_host(name=name, inventory=inventory)
+            class_factories.host(name=name, inventory=inventory)
 
         modified_ansible_adhoc().tower.file(path='/etc/redhat-access-insights', state="directory")
         request.addfinalizer(lambda: modified_ansible_adhoc().tower.file(path='/etc/redhat-access-insights', state="absent"))
 
-        project = class_factories.v2_project(scm_url="https://github.com/ansible/awx-facts-playbooks", wait=True)
-        jt = class_factories.v2_job_template(project=project, inventory=inventory, playbook='scan_facts.yml',
+        project = class_factories.project(scm_url="https://github.com/ansible/awx-facts-playbooks", wait=True)
+        jt = class_factories.job_template(project=project, inventory=inventory, playbook='scan_facts.yml',
                                              use_fact_cache=True, limit="registered_host")
 
         # update registered host with registered machine ID
@@ -70,7 +70,7 @@ class TestInsights(APITest):
 
     def test_default_host_machine_id(self, factories):
         """Verify that a normal host has no machine ID."""
-        host = factories.v2_host()
+        host = factories.host()
         assert not host.insights_system_id
 
     def test_insights_host_machine_id(self, skip_if_cluster, insights_inventory):
@@ -96,7 +96,7 @@ class TestInsights(APITest):
         assert not insights_inventory.insights_credential
         assert not insights_inventory.summary_fields.get('insights_credential')
 
-        credential = factories.v2_credential(kind='insights')
+        credential = factories.credential(kind='insights')
         insights_inventory.insights_credential = credential.id
 
         assert insights_inventory.insights_credential == credential.id
@@ -114,7 +114,7 @@ class TestInsights(APITest):
 
     def test_access_insights_with_valid_credential_and_registered_host(self, skip_if_cluster, factories, insights_inventory):
         """Verify that attempts to access Insights from a registered host with a valid Insights credential succeed."""
-        credential = factories.v2_credential(kind='insights')
+        credential = factories.credential(kind='insights')
         insights_inventory.insights_credential = credential.id
         host = insights_inventory.related.hosts.get(name="registered_host").results.pop()
 
@@ -137,7 +137,7 @@ class TestInsights(APITest):
         """Verify that attempts to access Insights from an unregistered host with a valid Insights credential
         raises a 404.
         """
-        credential = factories.v2_credential(kind='insights')
+        credential = factories.credential(kind='insights')
         insights_inventory.insights_credential = credential.id
         host = insights_inventory.related.hosts.get(name="unregistered_host").results.pop()
 
@@ -149,7 +149,7 @@ class TestInsights(APITest):
         """Verify that attempts to access Insights from a host with no system
         id with a valid Insights credential raises a 502.
         """
-        credential = factories.v2_credential(kind='insights')
+        credential = factories.credential(kind='insights')
         insights_inventory.insights_credential = credential.id
         host = insights_inventory.related.hosts.get(name="no_system_id_host").results.pop()
 
@@ -159,7 +159,7 @@ class TestInsights(APITest):
 
     def test_access_insights_with_invalid_credential(self, skip_if_cluster, factories, insights_inventory):
         """Verify that attempts to access Insights with a bad Insights credential raise a 502."""
-        credential = factories.v2_credential(kind='insights', inputs=dict(username="fake", password="fake"))
+        credential = factories.credential(kind='insights', inputs=dict(username="fake", password="fake"))
         insights_inventory.insights_credential = credential.id
         hosts = insights_inventory.related.hosts.get().results
 
@@ -182,15 +182,15 @@ class TestInsights(APITest):
     def test_insights_project_no_credential(self, factories):
         """Verify that attempts to create an Insights project without an Insights credential raise a 400."""
         with pytest.raises(exc.BadRequest) as e:
-            factories.v2_project(scm_type='insights', credential=None)
+            factories.project(scm_type='insights', credential=None)
         assert e.value[1] == {'credential': ['Insights Credential is required for an Insights Project.']}
 
     def test_insights_project_with_valid_credential(self, factories):
         """Verify the creation of an Insights project with a valid Insights credential and its
         auto-spawned project update.
         """
-        insights_cred = factories.v2_credential(kind='insights')
-        project = factories.v2_project(scm_type='insights', credential=insights_cred, wait=True)
+        insights_cred = factories.credential(kind='insights')
+        project = factories.project(scm_type='insights', credential=insights_cred, wait=True)
         update = project.related.last_update.get()
 
         project.assert_successful()
@@ -203,6 +203,7 @@ class TestInsights(APITest):
         update.assert_successful()
         assert not update.job_explanation
         assert update.project == project.id
+
         assert update.credential == insights_cred.id
         assert update.job_type == 'check'
         assert update.launch_type == 'manual'
@@ -214,8 +215,8 @@ class TestInsights(APITest):
         """Verify the creation of an Insights project with an invalid Insights credential and its
         auto-spawned project update.
         """
-        insights_cred = factories.v2_credential(kind='insights', inputs=dict(username="fake", password="fake"))
-        project = factories.v2_project(scm_type='insights', credential=insights_cred, wait=True)
+        insights_cred = factories.credential(kind='insights', inputs=dict(username="fake", password="fake"))
+        project = factories.project(scm_type='insights', credential=insights_cred, wait=True)
         update = project.related.last_update.get()
 
         assert project.status == "failed"
@@ -226,8 +227,8 @@ class TestInsights(APITest):
 
     def test_insights_project_directory(self, skip_if_cluster, factories, v2, ansible_runner):
         """Verify created project directory."""
-        insights_cred = factories.v2_credential(kind='insights')
-        project = factories.v2_project(scm_type='insights', credential=insights_cred, wait=True)
+        insights_cred = factories.credential(kind='insights')
+        project = factories.project(scm_type='insights', credential=insights_cred, wait=True)
         directory_path = os.path.join(v2.config.get().project_base_dir, project.local_path)
 
         # assert project directory created
@@ -245,8 +246,8 @@ class TestInsights(APITest):
         * Project update standard output.
         * .verison under our project directory.
         """
-        insights_cred = factories.v2_credential(kind='insights')
-        project = factories.v2_project(scm_type='insights', credential=insights_cred, wait=True)
+        insights_cred = factories.credential(kind='insights')
+        project = factories.project(scm_type='insights', credential=insights_cred, wait=True)
         update = project.related.last_update.get()
 
         # Ansible stdout output will escape some characters on the revision and
@@ -319,13 +320,13 @@ class TestInsightsAnalytics(APITest):
             filepath = '{}/{}'.format(tempdir, f)
             assert filepath in files
             content = self.read_json_file(filepath, ansible_runner)
-            assert type(content) == dict
+            assert isinstance(content, dict)
 
     @pytest.mark.ansible(host_pattern='tower[0]')
     def test_awxmanage_gather_analytics_project_count_incremented(self, ansible_runner, factories, skip_if_not_rhel, skip_if_openshift, analytics_enabled):
         counts = self.collect_stats(['counts.json'], ansible_runner)
         projects_before = counts['counts']['project']
-        factories.v2_project()
+        factories.project()
         counts = self.collect_stats(['counts.json'], ansible_runner)
         projects_after = counts['counts']['project']
 
@@ -333,7 +334,7 @@ class TestInsightsAnalytics(APITest):
 
     @pytest.mark.ansible(host_pattern='tower[0]')
     def test_awxmanage_gather_analytics_job_status_manual_launch_count_incremented(self, ansible_runner, factories, skip_if_openshift, skip_if_not_rhel, analytics_enabled):
-        jt = factories.v2_job_template()
+        jt = factories.job_template()
         counts = self.collect_stats(['job_counts.json'], ansible_runner)
         manual_launch_before = counts['job_counts']['launch_type']['manual']
 
@@ -347,8 +348,8 @@ class TestInsightsAnalytics(APITest):
     def test_awxmanage_gather_analytics_inventory_counts_incremented(self, ansible_runner, factories, skip_if_not_rhel, skip_if_openshift, analytics_enabled):
         counts = self.collect_stats(['counts.json'], ansible_runner)
         inventory_types_before = counts['counts']['inventories']
-        [factories.v2_inventory() for _ in range(2)]
-        factories.v2_inventory(kind='smart', host_filter='search=foo')
+        [factories.inventory() for _ in range(2)]
+        factories.inventory(kind='smart', host_filter='search=foo')
         counts = self.collect_stats(['counts.json'], ansible_runner)
         inventory_types_after = counts['counts']['inventories']
 
@@ -357,13 +358,13 @@ class TestInsightsAnalytics(APITest):
 
     @pytest.mark.ansible(host_pattern='tower[0]')
     def test_awxmanage_gather_analytics_inventory_host_counts_incremented(self, ansible_runner, factories, skip_if_not_rhel, skip_if_openshift, analytics_enabled):
-        org = factories.v2_organization()
-        empty_inventory = factories.v2_inventory(organization=org)
-        two_host_inventory = factories.v2_inventory(organization=org)
-        smart_inventory = factories.v2_inventory(kind='smart', host_filter='search=smart-test', organization=org)
+        org = factories.organization()
+        empty_inventory = factories.inventory(organization=org)
+        two_host_inventory = factories.inventory(organization=org)
+        smart_inventory = factories.inventory(kind='smart', host_filter='search=smart-test', organization=org)
         inventory_counts_before = self.collect_stats(['inventory_counts.json'], ansible_runner)
-        [factories.v2_host(name="smart-test_{0}".format(i), inventory=two_host_inventory) for i in range(2)]
-        factories.v2_host(organization=org)
+        [factories.host(name="smart-test_{0}".format(i), inventory=two_host_inventory) for i in range(2)]
+        factories.host(organization=org)
         inventory_counts_after = self.collect_stats(['inventory_counts.json'], ansible_runner)
 
         assert inventory_counts_after['inventory_counts'][str(empty_inventory.id)]['hosts'] == inventory_counts_before['inventory_counts'][str(empty_inventory.id)]['hosts'] == 0
@@ -372,7 +373,7 @@ class TestInsightsAnalytics(APITest):
 
     @pytest.mark.ansible(host_pattern='tower[0]')
     def test_awxmanage_gather_analytics_job_status_counts_incremented(self, ansible_runner, factories, skip_if_not_rhel, skip_if_openshift, analytics_enabled):
-        jt = factories.v2_job_template()
+        jt = factories.job_template()
         jt.ds.project.patch(scm_update_on_launch=False)
         jt.ds.project.update().wait_until_completed()
         counts = self.collect_stats(['job_instance_counts.json'], ansible_runner)
@@ -395,7 +396,7 @@ class TestInsightsAnalytics(APITest):
     def test_awxmanage_gather_analytics_events_table_accurate(self, ansible_runner, factories, skip_if_not_rhel, skip_if_openshift, analytics_enabled):
         # Gather analytics to set last_run
         self.gather_analytics(ansible_runner)
-        jt = factories.v2_job_template()
+        jt = factories.job_template()
         job = jt.launch().wait_until_completed()
 
         events = []
@@ -419,11 +420,11 @@ class TestInsightsAnalytics(APITest):
 
     @pytest.mark.ansible(host_pattern='tower[0]')
     def test_awxmanage_gather_analytics_unicode(self, ansible_runner, factories, skip_if_not_rhel, skip_if_openshift, analytics_enabled):
-        project = factories.v2_project(name='🖖')
+        project = factories.project(name='🖖')
         project.update().wait_until_completed()
-        inventory = factories.v2_inventory(name='🤔')
-        org = factories.v2_organization(name='🤬🥔')
-        jt = factories.v2_job_template(playbook='utf-8-䉪ቒ칸ⱷꯔ噂폄蔆㪗輥.yml')
+        inventory = factories.inventory(name='🤔')
+        org = factories.organization(name='🤬🥔')
+        jt = factories.job_template(playbook='utf-8-䉪ቒ칸ⱷꯔ噂폄蔆㪗輥.yml')
         jt.launch().wait_until_completed()
         counts = self.collect_stats(['inventory_counts.json',
                                      'org_counts.json',

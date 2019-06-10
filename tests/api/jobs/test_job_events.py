@@ -79,7 +79,7 @@ class Test_Job_Events(APITest):
         """Launch a linear playbook of several plays and confirm desired events are at its related job events"""
         # ensure desired verbose events regarding authentication
         cred = factories.credential(password='passphrase')
-        host = factories.v2_host()
+        host = factories.host()
         jt = factories.job_template(credential=cred,
                                     inventory=host.ds.inventory,
                                     playbook='dynamic_inventory.yml',
@@ -203,7 +203,7 @@ class Test_Job_Events(APITest):
     def test_async_tasks(self, factories, ansible_version_cmp):
         """Runs a single play with async tasks and confirms desired events at related endpoint"""
         credential = factories.credential(password='passphrase')
-        inventory = factories.v2_inventory()
+        inventory = factories.inventory()
         for _ in range(5):
             factories.host(inventory=inventory)
         jt = factories.job_template(credential=credential,
@@ -257,7 +257,7 @@ class Test_Job_Events(APITest):
     def test_free_strategy(self, factories, ansible_version_cmp):
         """Runs a single play with free strategy and confirms desired events at related endpoint"""
         credential = factories.credential(password='passphrase')
-        inventory = factories.v2_inventory()
+        inventory = factories.inventory()
         for _ in range(5):
             factories.host(inventory=inventory)
         jt = factories.job_template(credential=credential,
@@ -299,7 +299,7 @@ class Test_Job_Events(APITest):
 
         number_of_hosts = 2
         credential = factories.credential(password='passphrase')
-        inventory = factories.v2_inventory()
+        inventory = factories.inventory()
         for _ in range(number_of_hosts):
             factories.host(inventory=inventory)
         jt = factories.job_template(credential=credential,
@@ -410,7 +410,7 @@ class Test_Job_Events(APITest):
         if ansible_version_cmp('2.4.2.0') == 0:
             pytest.skip('Known regression under Ansible-2.4.2.0')
 
-        jt = factories.v2_job_template(playbook='test_include_role.yml')
+        jt = factories.job_template(playbook='test_include_role.yml')
         job = jt.launch().wait_until_completed()
         job.assert_successful()
 
@@ -419,16 +419,16 @@ class Test_Job_Events(APITest):
     def test_playbook_on_notify(self, factories, ansible_version_cmp):
         if ansible_version_cmp('2.5.0.0') < 0:
             pytest.skip('playbook_on_notify does not work _at all_ prior to Ansible 2.5')
-        host = factories.v2_host()
-        jt = factories.v2_job_template(playbook='handler.yml', inventory=host.ds.inventory)
+        host = factories.host()
+        jt = factories.job_template(playbook='handler.yml', inventory=host.ds.inventory)
         job = jt.launch().wait_until_completed()
         job.assert_successful()
         assert job.related.job_events.get(event='playbook_on_notify').count == 1
 
     def test_long_task_name_is_truncated(self, factories, ansible_version_cmp):
         # Our event models support a max of 1024 characters; we should truncate after that
-        host = factories.v2_host()
-        jt = factories.v2_job_template(playbook='long_task_name.yml', inventory=host.ds.inventory)
+        host = factories.host()
+        jt = factories.job_template(playbook='long_task_name.yml', inventory=host.ds.inventory)
         job = jt.launch().wait_until_completed()
         job.assert_successful()
         on_ok = job.related.job_events.get(event='runner_on_ok')
@@ -474,8 +474,8 @@ class Test_Job_Events(APITest):
                                'failures': {'4_failed': 1},
                                }
         job_statuses = ['ignored', 'skipped', 'ok', 'changed', 'failed', 'failures', 'rescued', 'skipped']
-        jt = factories.v2_job_template(playbook='gen_host_status.yml')
-        [factories.v2_host(name=name, inventory=jt.ds.inventory, variables={}) for name in
+        jt = factories.job_template(playbook='gen_host_status.yml')
+        [factories.host(name=name, inventory=jt.ds.inventory, variables={}) for name in
                  ('1_ok', '2_skipped', '3_changed', '4_failed', '5_ignored', '6_rescued')]
         job = jt.launch().wait_until_completed()
         assert not job.is_successful

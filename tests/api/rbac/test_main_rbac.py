@@ -224,7 +224,7 @@ class Test_Main_RBAC(APITest):
                 'workflow_job_template']
     )
     def test_admin_role_filter(self, request, factories, resource_name, fixture_name):
-        """Tower supports query filters of the following form: /api/v1/projects/?role_level=admin_role.
+        """Tower supports query filters of the following form: /api/v2/projects/?role_level=admin_role.
         Test that this query filter works with the admin role of select Tower resources. Note: we choose
         not to test other roles here because the admin role filter is the filter used in the UI.
         """
@@ -254,7 +254,7 @@ class Test_Main_RBAC(APITest):
     @pytest.mark.parametrize('resource_name', ['job_template', 'workflow_job_template'])
     def test_admin_role_filter_polymorphic(self, factories, resource_name, api_unified_job_templates_pg):
         """To a limited extent, tower also supports query filters of the following form:
-        /api/v1/unified_job_template/?role_level=admin_role.
+        /api/v2/unified_job_template/?role_level=admin_role.
         """
         user = factories.user()
         admin_resource = getattr(factories, resource_name)()

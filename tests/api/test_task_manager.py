@@ -15,13 +15,13 @@ time.sleep(300)
 inventory = dict()
 print(json.dumps(inventory))
 """
-    return factories.v2_inventory_script(script=source_script)
+    return factories.inventory_script(script=source_script)
 
 
 @pytest.fixture(scope="function")
-def cloud_inventory_job_template(job_template, cloud_group):
+def cloud_inventory_job_template(job_template, cloud_inventory_source):
     # Substitute in no-op playbook that does not attempt to connect to host
-    job_template.patch(playbook='debug.yml', inventory=cloud_group.inventory)
+    job_template.patch(playbook='debug.yml', inventory=cloud_inventory_source.related.inventory.get())
     return job_template
 
 
@@ -273,36 +273,36 @@ class Test_Sequential_Jobs(APITest):
         assert ordered_node_jobs[0].get().status == 'running'
         assert ordered_node_jobs[1].get().status == 'running'
 
-    def test_sequential_ad_hoc_commands(self, request, v1):
+    def test_sequential_ad_hoc_commands(self, request, v2):
         """Launch three ad hoc commands on the same inventory. Check that:
         * No commands ran simultaneously.
         * Commands ran in the order spawned.
         """
-        host = v1.hosts.create()
+        host = v2.hosts.create()
         request.addfinalizer(host.teardown)
 
         # lauch three commands
-        ahc1 = v1.ad_hoc_commands.create(module_name='shell', module_args='true', inventory=host.ds.inventory)
-        ahc2 = v1.ad_hoc_commands.create(module_name='shell', module_args='true', inventory=host.ds.inventory)
-        ahc3 = v1.ad_hoc_commands.create(module_name='shell', module_args='true', inventory=host.ds.inventory)
+        ahc1 = v2.ad_hoc_commands.create(module_name='shell', module_args='true', inventory=host.ds.inventory)
+        ahc2 = v2.ad_hoc_commands.create(module_name='shell', module_args='true', inventory=host.ds.inventory)
+        ahc3 = v2.ad_hoc_commands.create(module_name='shell', module_args='true', inventory=host.ds.inventory)
         ordered_commands = [ahc1, ahc2, ahc3]
 
         # confirm unified jobs ran as expected
         confirm_unified_jobs(ordered_commands)
 
     # Skip for openshift because of Github Issue: https://github.com/ansible/tower-qa/issues/2591
-    def test_simultaneous_ad_hoc_commands(self, skip_if_openshift, request, v1):
+    def test_simultaneous_ad_hoc_commands(self, skip_if_openshift, request, v2):
         """Launch two ad hoc commands on different inventories. Check that
         our commands run simultaneously.
         """
-        host1 = v1.hosts.create()
+        host1 = v2.hosts.create()
         request.addfinalizer(host1.teardown)
-        host2 = v1.hosts.create()
+        host2 = v2.hosts.create()
         request.addfinalizer(host2.teardown)
 
         # launch two commands
-        ahc1 = v1.ad_hoc_commands.create(module_name='shell', module_args='sleep 5s', inventory=host1.ds.inventory)
-        ahc2 = v1.ad_hoc_commands.create(module_name='shell', module_args='sleep 5s', inventory=host2.ds.inventory)
+        ahc1 = v2.ad_hoc_commands.create(module_name='shell', module_args='sleep 5s', inventory=host1.ds.inventory)
+        ahc2 = v2.ad_hoc_commands.create(module_name='shell', module_args='sleep 5s', inventory=host2.ds.inventory)
         ordered_commands = [ahc1, ahc2]
         wait_for_jobs_to_finish(ordered_commands)
 
@@ -333,16 +333,15 @@ class Test_Sequential_Jobs(APITest):
         # confirm unified jobs ran as expected
         confirm_unified_jobs(sorted_unified_jobs)
 
-    def test_related_inventory_update_with_job(self, job_template, custom_group):
+    def test_related_inventory_update_with_job(self, custom_inventory_source, factories):
         """If an inventory is used in a JT and has a group that allows for updates, then spawned
         jobs and updates must run sequentially. Check that:
         * Spawned unified jobs run sequentially.
         * Unified jobs run in the order launched.
         """
-        inv_source = custom_group.related.inventory_source.get()
-
         # launch jobs
-        update = inv_source.update()
+        update = custom_inventory_source.update()
+        job_template = factories.job_template(inventory=custom_inventory_source.related.inventory.get())
         job = job_template.launch()
         sorted_unified_jobs = [update, job]
 
@@ -355,10 +354,10 @@ class Test_Sequential_Jobs(APITest):
         * Spawned unified jobs run sequentially.
         * Unified jobs run in the order launched.
         """
-        org = factories.v2_organization()
-        inventory_script = factories.v2_inventory_script(organization=org)
-        inventory = factories.v2_inventory(organization=org)
-        inv_source = factories.v2_inventory_source(inventory=inventory, source_script=inventory_script)
+        org = factories.organization()
+        inventory_script = factories.inventory_script(organization=org)
+        inventory = factories.inventory(organization=org)
+        inv_source = factories.inventory_source(inventory=inventory, source_script=inventory_script)
         assert inv_source.source_script == inventory_script.id
 
         # launch unified jobs
@@ -375,48 +374,17 @@ class Test_Sequential_Jobs(APITest):
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class Test_Autospawned_Jobs(APITest):
 
-    def test_v1_inventory(self, cloud_inventory_job_template, cloud_group):
+    def test_inventory(self, factories):
         """Verify that an inventory update is triggered by our job launch. Job ordering
         should be as follows:
         * Inventory update should run first.
         * Job should run after the completion of our inventory update.
         """
-        # set update_on_launch
-        inv_src_pg = cloud_group.get_related('inventory_source')
-        inv_src_pg.patch(update_on_launch=True)
-        assert inv_src_pg.update_cache_timeout == 0
-        assert inv_src_pg.last_updated is None, \
-            "Not expecting our inventory source to have been updated - %s." % inv_src_pg
-
-        # launch job_template and assert successful
-        job_pg = cloud_inventory_job_template.launch().wait_until_completed(timeout=600)
-        job_pg.assert_successful()
-
-        # check that inventory update triggered
-        inv_src_pg.get()
-        assert inv_src_pg.last_updated is not None, "Expecting value for last_updated - %s." % inv_src_pg
-        assert inv_src_pg.last_job_run is not None, "Expecting value for last_job_run - %s." % inv_src_pg
-
-        # check that inventory update and source are successful
-        inv_update = inv_src_pg.get_related('last_update')
-        inv_update.assert_successful()
-        inv_src_pg.assert_successful()
-
-        # check that jobs ran sequentially and in the right order
-        sorted_unified_jobs = [inv_update, job_pg]
-        confirm_unified_jobs(sorted_unified_jobs)
-
-    def test_v2_inventory(self, factories):
-        """Verify that an inventory update is triggered by our job launch. Job ordering
-        should be as follows:
-        * Inventory update should run first.
-        * Job should run after the completion of our inventory update.
-        """
-        inv_source = factories.v2_inventory_source(update_on_launch=True)
+        inv_source = factories.inventory_source(update_on_launch=True)
         assert not inv_source.last_updated
         assert not inv_source.last_job_run
 
-        jt = factories.v2_job_template(inventory=inv_source.ds.inventory, playbook='debug.yml')
+        jt = factories.job_template(inventory=inv_source.ds.inventory, playbook='debug.yml')
         job = jt.launch().wait_until_completed()
         job.assert_successful()
 
@@ -432,15 +400,20 @@ class Test_Autospawned_Jobs(APITest):
 
     # Skip for Openshift because of Github Issue: https://github.com/ansible/tower-qa/issues/2591
     @pytest.mark.yolo
-    def test_inventory_multiple(self, skip_if_openshift, job_template, aws_inventory_source, gce_inventory_source):
+    def test_inventory_multiple(self, skip_if_openshift, job_template, aws_credential, gce_credential, factories):
         """Verify that multiple inventory updates are triggered by job launch. Job ordering
         should be as follows:
         * AWS and GCE inventory updates should run simultaneously.
         * Upon completion of both inventory imports, job should run.
         """
         # set update_on_launch
+        aws_inventory_source = factories.inventory_source(credential=aws_credential, source='ec2')
+        inventory = aws_inventory_source.related.inventory.get()
+        gce_inventory_source = factories.inventory_source(credential=gce_credential, source='gce', inventory=inventory)
         aws_inventory_source.patch(update_on_launch=True)
         gce_inventory_source.patch(update_on_launch=True)
+        # Sanity check
+        assert gce_inventory_source.inventory == aws_inventory_source.inventory
 
         # check inventory sources
         for inv_source in (aws_inventory_source, gce_inventory_source):
@@ -448,10 +421,6 @@ class Test_Autospawned_Jobs(APITest):
             assert inv_source.update_cache_timeout == 0
             assert inv_source.last_updated is None, \
                 "Not expecting inventory source to have been updated - %s." % inv_source
-
-        # sanity check: cloud groups should be in the same inventory
-        assert gce_inventory_source.inventory == aws_inventory_source.inventory, \
-            "The inventory differs between the two inventory sources."
 
         # update job_template to cloud inventory
         # substitute in no-op playbook that does not attempt to connect to host
@@ -487,7 +456,7 @@ class Test_Autospawned_Jobs(APITest):
         * Job upon completion of inventory update.
         """
         # set update_on_launch and a five minute update_cache_timeout
-        custom_inventory_job_template = factories.v2_job_template(inventory=custom_inventory_source.related.inventory.get())
+        custom_inventory_job_template = factories.job_template(inventory=custom_inventory_source.related.inventory.get())
         cache_timeout = 60 * 5
         custom_inventory_source.patch(update_on_launch=True, update_cache_timeout=cache_timeout)
         assert custom_inventory_source.update_cache_timeout == cache_timeout
@@ -611,7 +580,7 @@ class Test_Autospawned_Jobs(APITest):
         * Our job should run simultaneously with our 'run' project update.
         """
         # set scm_update_on_launch for the project
-        custom_inventory_job_template = factories.v2_job_template(inventory=custom_inventory_source.related.inventory.get())
+        custom_inventory_job_template = factories.job_template(inventory=custom_inventory_source.related.inventory.get())
         project = custom_inventory_job_template.related.project.get()
         project.patch(scm_update_on_launch=True)
         assert project.scm_update_on_launch
@@ -663,9 +632,9 @@ class Test_Autospawned_Jobs(APITest):
 class Test_Cascade_Fail_Dependent_Jobs(APITest):
 
     def test_canceling_inventory_update_should_cascade_cancel_dependent_job(self, factories, sleeping_inventory_script):
-        inv_source = factories.v2_inventory_source(source_script=sleeping_inventory_script, update_on_launch=True)
+        inv_source = factories.inventory_source(source_script=sleeping_inventory_script, update_on_launch=True)
         assert inv_source.source_script == sleeping_inventory_script.id
-        jt = factories.v2_job_template(inventory=inv_source.ds.inventory)
+        jt = factories.job_template(inventory=inv_source.ds.inventory)
 
         job = jt.launch()
 
@@ -687,14 +656,14 @@ class Test_Cascade_Fail_Dependent_Jobs(APITest):
         """Tests that if you cancel an inventory update before it finishes that
         its dependent jobs fail.
         """
-        inventory = factories.v2_inventory(organization=sleeping_inventory_script.ds.organization)
-        sources = [factories.v2_inventory_source(inventory=inventory, source_script=sleeping_inventory_script,
+        inventory = factories.inventory(organization=sleeping_inventory_script.ds.organization)
+        sources = [factories.inventory_source(inventory=inventory, source_script=sleeping_inventory_script,
                                                  update_on_launch=True) for _ in range(2)]
         for source in sources:
             assert not source.get().last_updated
             assert source.source_script == sleeping_inventory_script.id
 
-        job_template = factories.v2_job_template(inventory=inventory)
+        job_template = factories.job_template(inventory=inventory)
         job_pg = job_template.launch()
 
         update_1, update_2 = [src.wait_until_started(interval=.5,
@@ -731,9 +700,9 @@ class Test_Cascade_Fail_Dependent_Jobs(APITest):
         check_chain_canceled_job_explanation(first_inv_update_pg, [job_pg, second_inv_update_pg])
 
     def test_canceling_project_update_should_cascade_cancel_dependent_job(self, factories):
-        project = factories.v2_project(scm_type='git', scm_url='https://github.com/ansible/ansible.git',
+        project = factories.project(scm_type='git', scm_url='https://github.com/ansible/ansible.git',
                                        scm_delete_on_update=True, scm_update_on_launch=True)
-        jt = factories.v2_job_template(project=project, playbook='test/integration/targets/unicode/unicode.yml')
+        jt = factories.job_template(project=project, playbook='test/integration/targets/unicode/unicode.yml')
 
         job = jt.launch()
 
@@ -754,11 +723,11 @@ class Test_Cascade_Fail_Dependent_Jobs(APITest):
         check_chain_canceled_job_explanation(project_update, [job])
 
     def test_canceling_project_update_should_cascade_cancel_inventory_update_and_dependent_job(self, factories, sleeping_inventory_script):
-        project = factories.v2_project(scm_type='git', scm_url='https://github.com/ansible/ansible.git',
+        project = factories.project(scm_type='git', scm_url='https://github.com/ansible/ansible.git',
                                        scm_delete_on_update=True, scm_update_on_launch=True)
-        inv_source = factories.v2_inventory_source(source_script=sleeping_inventory_script, update_on_launch=True)
+        inv_source = factories.inventory_source(source_script=sleeping_inventory_script, update_on_launch=True)
         assert inv_source.source_script == sleeping_inventory_script.id
-        jt = factories.v2_job_template(project=project, inventory=inv_source.ds.inventory,
+        jt = factories.job_template(project=project, inventory=inv_source.ds.inventory,
                                        playbook='test/integration/targets/unicode/unicode.yml')
 
         job = jt.launch()
@@ -789,11 +758,11 @@ class Test_Cascade_Fail_Dependent_Jobs(APITest):
 
     def test_canceling_inventory_update_should_cascade_cancel_project_update_and_dependent_job(self, factories,
             sleeping_inventory_script):
-        project = factories.v2_project(scm_type='git', scm_url='https://github.com/ansible/ansible.git',
+        project = factories.project(scm_type='git', scm_url='https://github.com/ansible/ansible.git',
                                        scm_delete_on_update=True, scm_update_on_launch=True)
-        inv_source = factories.v2_inventory_source(source_script=sleeping_inventory_script, update_on_launch=True)
+        inv_source = factories.inventory_source(source_script=sleeping_inventory_script, update_on_launch=True)
         assert inv_source.source_script == sleeping_inventory_script.id
-        jt = factories.v2_job_template(project=project, inventory=inv_source.ds.inventory,
+        jt = factories.job_template(project=project, inventory=inv_source.ds.inventory,
                                        playbook='test/integration/targets/unicode/unicode.yml')
 
         job = jt.launch()
@@ -824,9 +793,9 @@ class Test_Cascade_Fail_Dependent_Jobs(APITest):
         check_chain_canceled_job_explanation(inv_update, [job, project_update])
 
     def test_failed_inventory_update_should_cascade_fail_dependent_job(self, factories):
-        aws_cred = factories.v2_credential(kind='aws', inputs=dict(username='fake', password='fake'))
-        inv_source = factories.v2_inventory_source(source='ec2', credential=aws_cred, update_on_launch=True)
-        jt = factories.v2_job_template(inventory=inv_source.ds.inventory)
+        aws_cred = factories.credential(kind='aws', inputs=dict(username='fake', password='fake'))
+        inv_source = factories.inventory_source(source='ec2', credential=aws_cred, update_on_launch=True)
+        jt = factories.job_template(inventory=inv_source.ds.inventory)
         job = jt.launch().wait_until_completed()
 
         inv_updates = inv_source.related.inventory_updates.get()
@@ -846,7 +815,7 @@ class Test_Cascade_Fail_Dependent_Jobs(APITest):
         assert inv_source.last_job_failed
 
     def test_failed_project_update_should_cascade_fail_dependent_job(self, factories):
-        jt = factories.v2_job_template()
+        jt = factories.job_template()
         project = jt.ds.project
         project.scm_url = "will_fail"
         failed_update = project.get_related('last_update')  # changing details created new update

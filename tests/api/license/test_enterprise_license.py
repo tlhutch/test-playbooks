@@ -74,38 +74,38 @@ class TestEnterpriseLicense(LicenseTest):
         job_template_ping.add_survey(spec=required_survey_spec)
         survey_spec = job_template_ping.get_related('survey_spec')
         assert survey_spec.spec == required_survey_spec, \
-            "Expected /api/v1/job_templates/N/survey_spec/ to reflect our survey_spec."
+            "Expected /api/v2/job_templates/N/survey_spec/ to reflect our survey_spec."
 
-    def test_activity_stream_get(self, v1):
-        """Verify that GET requests to /api/v1/activity_stream/ are allowed with an enterprise license."""
-        v1.activity_stream.get()
+    def test_activity_stream_get(self, v2):
+        """Verify that GET requests to /api/v2/activity_stream/ are allowed with an enterprise license."""
+        v2.activity_stream.get()
 
     def test_able_to_create_workflow_job_template(self, factories):
-        factories.v2_workflow_job_template()
+        factories.workflow_job_template()
 
     def test_activity_stream_settings(self, api_settings_system_pg):
         """Verify that activity stream flags are visible with an enterprise license."""
         settings_pg = api_settings_system_pg.get()
         assert all(flag in settings_pg.json for flag in self.ACTIVITY_STREAM_FLAGS), \
-            "Activity stream flags not visible under /api/v1/settings/system/ with an enterprise license."
+            "Activity stream flags not visible under /api/v2/settings/system/ with an enterprise license."
 
     def test_custom_rebranding_settings(self, api_settings_ui_pg):
         """Verify that custom rebranding flags are visible with an enterprise license."""
         for flag in self.REBRANDING_FLAGS:
             assert flag in api_settings_ui_pg.json, \
-                "Flag '{0}' not displayed under /api/v1/settings/ui/ with an enterprise license.".format(flag)
+                "Flag '{0}' not displayed under /api/v2/settings/ui/ with an enterprise license.".format(flag)
 
     def test_main_settings_endpoint(self, api_settings_pg):
-        """Verify that the top-level /api/v1/settings/ endpoint shows our
+        """Verify that the top-level /api/v2/settings/ endpoint shows our
         enterprise auth endpoints.
         """
         endpoints = [setting.endpoint for setting in api_settings_pg.results]
-        assert(resources.v1_settings_saml in endpoints), \
-            "Expected to find an /api/v1/settings/saml/ entry under /api/v1/settings/."
-        assert(resources.v1_settings_radius in endpoints), \
-            "Expected to find an /api/v1/settings/radius/ entry under /api/v1/settings/."
-        assert(resources.v1_settings_ldap in endpoints), \
-            "Expected to find an /api/v1/settings/ldap/ entry under /api/v1/settings/."
+        assert(resources.settings_saml in endpoints), \
+            "Expected to find an /api/v2/settings/saml/ entry under /api/v2/settings/."
+        assert(resources.settings_radius in endpoints), \
+            "Expected to find an /api/v2/settings/radius/ entry under /api/v2/settings/."
+        assert(resources.settings_ldap in endpoints), \
+            "Expected to find an /api/v2/settings/ldap/ entry under /api/v2/settings/."
 
     def test_nested_enterprise_auth_endpoints(self, api_settings_pg):
         """Verify that enterprise license users have access to our enterprise

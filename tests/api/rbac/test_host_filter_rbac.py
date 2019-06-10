@@ -18,8 +18,8 @@ class TestHostFilterRBAC(APITest):
 
     @pytest.fixture(scope="class")
     def loaded_inventories(self, class_factories):
-        orgA, orgB = [class_factories.v2_organization() for _ in range(2)]
-        invA, invB = [class_factories.v2_inventory(organization=org) for org in (orgA, orgB)]
+        orgA, orgB = [class_factories.organization() for _ in range(2)]
+        invA, invB = [class_factories.inventory(organization=org) for org in (orgA, orgB)]
 
         hostDupA = class_factories.host(name="hostDup", inventory=invA)
         hostDupB = class_factories.host(name="hostDup", inventory=invB)

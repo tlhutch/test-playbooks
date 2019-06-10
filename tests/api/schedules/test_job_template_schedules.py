@@ -11,8 +11,8 @@ from tests.api.schedules import SchedulesTest
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestJobTemplateSchedules(SchedulesTest):
 
-    select_jt_fields = ('inventory', 'project', 'credential', 'playbook', 'job_type')
-    promptable_fields = ('inventory', 'credential', 'job_type', 'job_tags', 'skip_tags', 'verbosity',
+    select_jt_fields = ('inventory', 'project', 'playbook', 'job_type')
+    promptable_fields = ('inventory', 'job_type', 'job_tags', 'skip_tags', 'verbosity',
                          'diff_mode', 'limit')
 
     def ask_everything(self, setup=False, inventory=None, config=False):
@@ -44,8 +44,8 @@ class TestJobTemplateSchedules(SchedulesTest):
         return r
 
     def test_schedule_uses_prompted_fields(self, factories):
-        jt = factories.v2_job_template(**self.ask_everything(setup=True))
-        inventory = factories.v2_inventory()
+        jt = factories.job_template(**self.ask_everything(setup=True))
+        inventory = factories.inventory()
         schedule = jt.add_schedule(rrule=self.minutely_rrule(),
             **self.ask_everything(inventory=inventory, config=True))
 
@@ -56,7 +56,7 @@ class TestJobTemplateSchedules(SchedulesTest):
         assert not bad_params, 'Schedule parameters {} were not enabled.'.format(bad_params)
 
     def test_schedule_creation_rejected_when_jt_ask_disabled(self, factories, inventory):
-        jt = factories.v2_job_template()
+        jt = factories.job_template()
         mrrule = self.minutely_rrule()
         schedule_prompts = self.ask_everything(inventory=inventory, config=True)
         for key, value in schedule_prompts.items():
@@ -72,18 +72,18 @@ class TestJobTemplateSchedules(SchedulesTest):
             assert e.value[1] == {key: [msg]}
 
     def test_schedule_creation_rejected_when_jt_ask_credential_disabled(self, factories):
-        jt = factories.v2_job_template()
+        jt = factories.job_template()
         mrrule = self.minutely_rrule()
         schedule = jt.add_schedule(rrule=mrrule)
-        credential = factories.v2_credential()
+        credential = factories.credential()
 
         with pytest.raises(exc.BadRequest) as e:
             schedule.add_credential(credential)
         assert e.value[1] == {'msg': 'Related template is not configured to accept credentials on launch.'}
 
     def test_schedule_jobs_should_source_from_underlying_template(self, factories):
-        jt = factories.v2_job_template()
-        factories.v2_host(inventory=jt.ds.inventory)
+        jt = factories.job_template()
+        factories.host(inventory=jt.ds.inventory)
 
         survey = [dict(required=False,
                        question_name='Q1',
@@ -108,9 +108,12 @@ class TestJobTemplateSchedules(SchedulesTest):
             assert getattr(jt, field) == getattr(job, field)
         for field in self.promptable_fields:
             assert getattr(jt, field) == getattr(job, field)
+        job_creds = [cred.id for cred in job.related.credentials.get().results]
+        jt_creds = [cred.id for cred in jt.related.credentials.get().results]
+        assert sorted(job_creds) == sorted(jt_creds)
 
     def test_schedule_values_take_precedence_over_jt_values(self, factories, ask_everything_jt):
-        host = factories.v2_host()
+        host = factories.host()
 
         survey = [dict(required=False,
                        question_name='Q1',
@@ -128,8 +131,8 @@ class TestJobTemplateSchedules(SchedulesTest):
                        extra_data={'var1': 'schedule', 'var2': 'schedule'})
         schedule = ask_everything_jt.add_schedule(**payload)
 
-        creds = [factories.v2_credential(kind=kind) for kind in ('ssh', 'aws')]
-        creds.append(factories.v2_credential(kind='vault', inputs={'vault_password': 'fake'}))
+        creds = [factories.credential(kind=kind) for kind in ('ssh', 'aws')]
+        creds.append(factories.credential(kind='vault', inputs={'vault_password': 'fake'}))
         for cred in creds:
             schedule.add_credential(cred)
 
@@ -147,7 +150,7 @@ class TestJobTemplateSchedules(SchedulesTest):
 
     @pytest.mark.parametrize('ujt_type', ['job_template', 'workflow_job_template'])
     def test_cannot_create_schedule_without_answering_required_survey_questions(self, factories, ujt_type):
-        template = getattr(factories, 'v2_' + ujt_type)()
+        template = getattr(factories, ujt_type)()
         survey = [dict(required=True,
                        question_name='Q1',
                        variable='var1',
@@ -165,8 +168,8 @@ class TestJobTemplateSchedules(SchedulesTest):
 
     @pytest.mark.parametrize('ujt_type', ['job_template', 'workflow_job_template'])
     def test_can_create_schedule_when_required_survey_questions_answered(self, factories, ujt_type):
-        jt = factories.v2_job_template(playbook='debug_extra_vars.yml')
-        factories.v2_host(inventory=jt.ds.inventory)
+        jt = factories.job_template(playbook='debug_extra_vars.yml')
+        factories.host(inventory=jt.ds.inventory)
 
         survey = [dict(required=True,
                        question_name='Q1',
@@ -182,10 +185,10 @@ class TestJobTemplateSchedules(SchedulesTest):
         if ujt_type == 'job_template':
             survey_template = jt
         else:
-            survey_template = factories.v2_workflow_job_template()
+            survey_template = factories.workflow_job_template()
             # jt needs survey applied so that it "prompts" for those variables
             jt.add_survey(spec=survey)
-            factories.v2_workflow_job_template_node(workflow_job_template=survey_template, unified_job_template=jt)
+            factories.workflow_job_template_node(workflow_job_template=survey_template, unified_job_template=jt)
 
         survey_template.add_survey(spec=survey)
         schedule = survey_template.add_schedule(rrule=self.minutely_rrule(), extra_data={'var1': 'var1', 'var2': 'very_secret'})
@@ -206,7 +209,7 @@ class TestJobTemplateSchedules(SchedulesTest):
 
     @pytest.mark.parametrize('ujt_type', ['job_template', 'workflow_job_template'])
     def test_can_create_schedule_when_optional_survey_questions_are_unanswered(self, factories, ujt_type):
-        template = getattr(factories, 'v2_' + ujt_type)()
+        template = getattr(factories, ujt_type)()
         survey = [dict(required=False,
                        question_name='Q1',
                        variable='var1',
@@ -224,7 +227,7 @@ class TestJobTemplateSchedules(SchedulesTest):
     @pytest.mark.parametrize('ujt_type', ['job_template', 'workflow_job_template'])
     def test_can_create_schedule_when_defaults_are_supplied_with_required_survey_questions_with_defaults(self, factories,
                                                                                                          ujt_type):
-        template = getattr(factories, 'v2_' + ujt_type)()
+        template = getattr(factories, ujt_type)()
         survey = [dict(required=True,
                        question_name='Q1',
                        variable='var1',
@@ -240,8 +243,8 @@ class TestJobTemplateSchedules(SchedulesTest):
         assert schedule.extra_data == {'var1': 'var1'}
 
     def test_schedule_spawned_jobs_source_survey_defaults(self, factories):
-        jt = factories.v2_job_template(playbook='debug_extra_vars.yml')
-        factories.v2_host(inventory=jt.ds.inventory)
+        jt = factories.job_template(playbook='debug_extra_vars.yml')
+        factories.host(inventory=jt.ds.inventory)
 
         survey = [dict(required=False,
                        question_name='Q1',
@@ -266,8 +269,8 @@ class TestJobTemplateSchedules(SchedulesTest):
         assert '"var2": "very_secret"' in job.result_stdout
 
     def test_schedule_spawned_jobs_source_schedule_variables(self, factories):
-        jt = factories.v2_job_template(playbook='debug_extra_vars.yml', ask_variables_on_launch=True)
-        factories.v2_host(inventory=jt.ds.inventory)
+        jt = factories.job_template(playbook='debug_extra_vars.yml', ask_variables_on_launch=True)
+        factories.host(inventory=jt.ds.inventory)
 
         survey = [dict(required=False,
                        question_name='Q1',
@@ -293,8 +296,8 @@ class TestJobTemplateSchedules(SchedulesTest):
         assert '"var2": "very_secret"' in job.result_stdout
 
     def test_schedule_spawned_jobs_source_updated_survey_defaults(self, factories):
-        jt = factories.v2_job_template(playbook='debug_extra_vars.yml')
-        factories.v2_host(inventory=jt.ds.inventory)
+        jt = factories.job_template(playbook='debug_extra_vars.yml')
+        factories.host(inventory=jt.ds.inventory)
 
         survey = [dict(required=False,
                        question_name='Q1',
@@ -323,8 +326,8 @@ class TestJobTemplateSchedules(SchedulesTest):
         assert '"var2": "new_survey"' in job.result_stdout
 
     def test_schedule_spawned_jobs_source_updated_survey_and_schedule(self, factories):
-        jt = factories.v2_job_template(playbook='debug_extra_vars.yml', ask_variables_on_launch=True)
-        factories.v2_host(inventory=jt.ds.inventory)
+        jt = factories.job_template(playbook='debug_extra_vars.yml', ask_variables_on_launch=True)
+        factories.host(inventory=jt.ds.inventory)
 
         survey = [dict(required=False,
                        question_name='Q1',
@@ -355,8 +358,8 @@ class TestJobTemplateSchedules(SchedulesTest):
         assert '"var1": "new_schedule"' in job.result_stdout
 
     def test_plaintext_survey_defaults_get_encrypted_when_question_types_are_changed(self, factories):
-        jt = factories.v2_job_template(playbook='debug_extra_vars.yml', ask_variables_on_launch=True)
-        factories.v2_host(inventory=jt.ds.inventory)
+        jt = factories.job_template(playbook='debug_extra_vars.yml', ask_variables_on_launch=True)
+        factories.host(inventory=jt.ds.inventory)
 
         survey = [dict(required=False,
                        question_name='Q1',
@@ -378,7 +381,7 @@ class TestJobTemplateSchedules(SchedulesTest):
         assert '"var1": "survey"' in job.result_stdout
 
     def test_scheduled_jobs_fail_with_deleted_inventory(self, factories):
-        jt = factories.v2_job_template()
+        jt = factories.job_template()
         schedule = jt.add_schedule(rrule=self.minutely_rrule())
         jt.ds.inventory.delete().wait_until_deleted()
 

@@ -12,7 +12,7 @@ class WorkflowTree(object):
 
     ex:
     # Create tree based on WFJT page object
-    >>> wfjt = v1.workflow_job_templates.get(id=1).results.pop()
+    >>> wfjt = v2.workflow_job_templates.get(id=1).results.pop()
     >>> tree1 = WorkflowTree(wfjt)
 
     # Create tree by hand

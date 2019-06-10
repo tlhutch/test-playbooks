@@ -93,11 +93,11 @@ class Test_Workflow_Jobs(APITest):
         """Confirms that inventory sources are treated as unified job templates in addition to confirming
         related workflow job nodes of inventory update types have correct url
         """
-        inv_script = factories.v2_inventory_script()
-        inv_source = factories.v2_inventory_source(source_script=inv_script)
+        inv_script = factories.inventory_script()
+        inv_source = factories.inventory_source(source_script=inv_script)
         assert inv_source.source_script == inv_script.id
-        wfjt = factories.v2_workflow_job_template()
-        factories.v2_workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=inv_source)
+        wfjt = factories.workflow_job_template()
+        factories.workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=inv_source)
         wfj = wfjt.launch().wait_until_completed()
         wfjn = wfj.related.workflow_nodes.get().results.pop()
         assert('inventory_updates' in wfjn.related.job)  # confirm that it's not linked as a job
@@ -125,7 +125,7 @@ class Test_Workflow_Jobs(APITest):
         job.assert_successful()
 
         # Confirm WFJ correctly references job
-        assert re.match(towerkit.resources.v1_job, wfjn.related.job)
+        assert re.match(towerkit.resources.job, wfjn.related.job)
         assert wfjn.get_related('job').endpoint == jt.get().get_related('last_job').endpoint
 
     @pytest.mark.ansible_integration
@@ -269,7 +269,7 @@ class Test_Workflow_Jobs(APITest):
         factories.workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=project)
         wfj = wfjt.launch().wait_until_completed()
         wfjn = wfj.related.workflow_nodes.get().results.pop()
-        assert re.match(towerkit.resources.v1_project_update, wfjn.related.job)
+        assert re.match(towerkit.resources.project_update, wfjn.related.job)
         assert wfjn.get_related('job').endpoint == project.get().get_related('last_job').endpoint
 
     # Canceling jobs
@@ -442,9 +442,9 @@ class Test_Workflow_Jobs(APITest):
 
     @pytest.mark.parametrize('dependency', ['inventory', 'project'])
     def test_downstream_jt_jobs_fail_appropriately_when_missing_deleted_dependencies(self, factories, dependency):
-        wfjt = factories.v2_workflow_job_template()
-        jt = factories.v2_job_template()
-        factories.v2_workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt)
+        wfjt = factories.workflow_job_template()
+        jt = factories.job_template()
+        factories.workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt)
 
         getattr(jt.ds, dependency).delete()
 
@@ -498,9 +498,9 @@ class Test_Workflow_Jobs(APITest):
           - workflow job nodes spawned from n2_child, n3_child should be marked DNR
           - The fact that n2's job node had no JT associated and no error path should be the reason the WF is marked failed
         """
-        wfjt = factories.v2_workflow_job_template()
-        wfjt_inner = factories.v2_workflow_job_template()
-        jt_to_delete = factories.v2_job_template()
+        wfjt = factories.workflow_job_template()
+        wfjt_inner = factories.workflow_job_template()
+        jt_to_delete = factories.job_template()
         ancestor = factories.workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt_to_delete)
         n0 = factories.workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt_to_delete)
         n1 = factories.workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt_to_delete)
@@ -580,11 +580,11 @@ class Test_Workflow_Jobs(APITest):
             v2.settings.get().get_endpoint('jobs'),
             dict(ALLOW_JINJA_IN_EXTRA_VARS='always')
         )
-        wfjt = factories.v2_workflow_job_template()
-        jt = factories.v2_job_template(playbook='debug_extra_vars.yml',
+        wfjt = factories.workflow_job_template()
+        jt = factories.job_template(playbook='debug_extra_vars.yml',
                                        extra_vars='var1: "{{ awx_workflow_job_id }}"\nvar2: "{{ awx_user_name }}"')
-        factories.v2_host(inventory=jt.ds.inventory)
-        factories.v2_workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt)
+        factories.host(inventory=jt.ds.inventory)
+        factories.workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt)
         wf_job = wfjt.launch().wait_until_completed()
         wf_job.assert_successful()
 

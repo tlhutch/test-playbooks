@@ -29,7 +29,7 @@ class TestRelaunchAskRBAC(APITest):
 
     @pytest.fixture
     def relaunch_user(self, factories):
-        return factories.v2_user()
+        return factories.user()
 
     @pytest.fixture
     def relaunch_job_as_diff_user_forbidden(self, relaunch_user):
@@ -89,13 +89,13 @@ class TestRelaunchAskRBAC(APITest):
     def test_relaunch_with_inventory_allowed(self, factories, job_template, relaunch_job_as_diff_user_allowed, patch_payload, resource):
         job_template.patch(**patch_payload)
         payload = dict()
-        payload[resource] = getattr(factories, 'v2_' + resource)().id
+        payload[resource] = getattr(factories, resource)().id
         job = job_template.launch(payload).wait_until_completed()
         relaunch_job_as_diff_user_allowed(job)
 
     def test_relaunch_with_credentials_allowed(self, v2, factories, job_template, relaunch_user, relaunch_job_as_diff_user_allowed):
         job_template.patch(ask_credential_on_launch=True)
-        cloud_credentials = [factories.v2_credential(credential_type=factories.credential_type(),
+        cloud_credentials = [factories.credential(credential_type=factories.credential_type(),
                                                      user=relaunch_user,
                                                      organization=job_template.ds.project.organization) for i in [1, 2]]
 
@@ -110,9 +110,9 @@ class TestRelaunchAskRBAC(APITest):
         `extra_credentials` were provided. This deprecated field cannot have its
         prompts re-applied since it does not use the up-to-date credential merging logic.
         """
-        job_template = factories.v2_job_template(ask_credential_on_launch=True, credential=None)  # must be v2 type
+        job_template = factories.job_template(ask_credential_on_launch=True, credential=None)  # must be v2 type
         job_template.set_object_roles(relaunch_user, 'execute')
-        cloud_credentials = [factories.v2_credential(credential_type=factories.credential_type(),
+        cloud_credentials = [factories.credential(credential_type=factories.credential_type(),
                                                      user=relaunch_user,
                                                      organization=job_template.ds.project.organization) for i in [1, 2]]
         cred_list = [c.id for c in cloud_credentials]
@@ -137,7 +137,7 @@ class TestRelaunchAskRBAC(APITest):
         """Verify that relaunching a job w/ credential that has ask for password and password not provided
         results in no new job
         """
-        jt = factories.v2_job_template(credential=ssh_credential_ask)
+        jt = factories.job_template(credential=ssh_credential_ask)
 
         job = jt.launch(dict(ssh_password=config.credentials.ssh.password)).wait_until_completed()
         with pytest.raises(exc.BadRequest) as e:

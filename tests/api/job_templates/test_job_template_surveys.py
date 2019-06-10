@@ -40,8 +40,8 @@ class TestJobTemplateSurveys(APITest):
         assert job_extra_vars == expected_job_vars
 
     def test_jt_survey_password_defaults_passed_to_jobs(self, factories):
-        host = factories.v2_host()
-        jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='debug_extra_vars.yml')
+        host = factories.host()
+        jt = factories.job_template(inventory=host.ds.inventory, playbook='debug_extra_vars.yml')
 
         survey = [dict(required=False,
                        question_name='Test-1',
@@ -66,8 +66,8 @@ class TestJobTemplateSurveys(APITest):
         assert '"var2": "var2_default"' in relaunched_job.result_stdout
 
     def test_jt_survey_defaults_and_additional_variables_passed_to_jobs(self, factories):
-        host = factories.v2_host()
-        jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='debug_extra_vars.yml', ask_variables_on_launch=True)
+        host = factories.host()
+        jt = factories.job_template(inventory=host.ds.inventory, playbook='debug_extra_vars.yml', ask_variables_on_launch=True)
 
         survey = [dict(required=False,
                        question_name='Test-1',
@@ -88,8 +88,8 @@ class TestJobTemplateSurveys(APITest):
         assert json.loads(job.extra_vars) == dict(var1='$encrypted$', var2='var2_default', var3='launch')
 
     def test_jt_survey_with_required_and_optional_fields(self, factories):
-        host = factories.v2_host()
-        jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='debug_extra_vars.yml')
+        host = factories.host()
+        jt = factories.job_template(inventory=host.ds.inventory, playbook='debug_extra_vars.yml')
 
         survey = [dict(required=True,
                        question_name='Test-1',
@@ -110,8 +110,8 @@ class TestJobTemplateSurveys(APITest):
         assert json.loads(job.extra_vars) == dict(var1='$encrypted$', var2='$encrypted$')
 
     def test_null_jt_survey_defaults_passed_to_jobs(self, factories):
-        host = factories.v2_host()
-        jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='debug_extra_vars.yml')
+        host = factories.host()
+        jt = factories.job_template(inventory=host.ds.inventory, playbook='debug_extra_vars.yml')
         survey = [dict(required=False,
                        question_name='Q1',
                        variable='var1',
@@ -178,8 +178,8 @@ class TestJobTemplateSurveys(APITest):
         assert survey_spec.spec == required_survey_spec
 
     def test_updating_survey_password_default_with_reserved_password_keyword_is_idempotent(self, factories):
-        host = factories.v2_host()
-        jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='debug_extra_vars.yml')
+        host = factories.host()
+        jt = factories.job_template(inventory=host.ds.inventory, playbook='debug_extra_vars.yml')
         survey = [dict(required=False,
                        question_name='Q',
                        variable='var1',
@@ -196,8 +196,8 @@ class TestJobTemplateSurveys(APITest):
         assert '"var1": ""' in job.result_stdout
 
     def test_only_select_jt_survey_fields_editable(self, factories):
-        host = factories.v2_host()
-        jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='debug_extra_vars.yml')
+        host = factories.host()
+        jt = factories.job_template(inventory=host.ds.inventory, playbook='debug_extra_vars.yml')
         survey = [dict(required=True,
                        question_name='Q',
                        variable='var1',
@@ -266,7 +266,7 @@ class TestJobTemplateSurveys(APITest):
         assert set(job_extra_vars) == set(expected_extra_vars)
 
     def test_confirm_survey_spec_password_defaults_censored(self, factories):
-        jt = factories.v2_job_template()
+        jt = factories.job_template()
         survey = [dict(required=False,
                        question_name='Test',
                        variable='var',
@@ -279,8 +279,8 @@ class TestJobTemplateSurveys(APITest):
 
     @pytest.mark.yolo
     def test_confirm_survey_secret_extra_vars_not_in_activity_stream(self, factories):
-        host = factories.v2_host()
-        jt = factories.v2_job_template(inventory=host.ds.inventory, ask_variables_on_launch=True)
+        host = factories.host()
+        jt = factories.job_template(inventory=host.ds.inventory, ask_variables_on_launch=True)
         jt.add_survey()
         job = jt.launch().wait_until_completed()
         job.assert_successful()
@@ -298,7 +298,7 @@ class TestJobTemplateSurveys(APITest):
     @pytest.mark.mp_group(group="get_pg_dump", strategy="serial")
     @pytest.mark.parametrize('template', ['job', 'workflow_job'])
     def test_confirm_no_plaintext_survey_passwords_in_db(self, skip_if_cluster, v2, factories, get_pg_dump, template):
-        resource = getattr(factories, 'v2_' + template + '_template')()
+        resource = getattr(factories, template + '_template')()
         password = "don't expose me - {0}".format(fauxfactory.gen_utf8(3).encode('utf8'))
         survey = [dict(required=False,
                        question_name='Test',

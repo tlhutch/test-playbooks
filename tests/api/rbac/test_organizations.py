@@ -24,9 +24,9 @@ class Test_Organizations(APITest):
     """Verify the /users endpoint displays the expected information based on the current user"""
 
     def test_duplicate_organizations_disallowed(self, factories):
-        org = factories.v2_organization()
+        org = factories.organization()
         with pytest.raises(towerkit.exceptions.Duplicate) as e:
-            factories.v2_organization(name=org.name)
+            factories.organization(name=org.name)
         assert e.value[1]['name'] == ['Organization with this Name already exists.']
 
     def test_delete(self, api_organizations_pg, organization):
@@ -36,7 +36,7 @@ class Test_Organizations(APITest):
 
         # assert the organization was deleted
         matches = api_organizations_pg.get(id=organization.id)
-        assert matches.count == 0, "An organization was deleted, but is still visible from the /api/v1/organizations/ endpoint"
+        assert matches.count == 0, "An organization was deleted, but is still visible from the /api/v2/organizations/ endpoint"
 
     @pytest.mark.yolo
     def test_organization_related_counts(self, organization, related_organization_object, api_job_templates_pg):
@@ -73,32 +73,32 @@ class Test_Organizations(APITest):
             "Incorrect value for job_templates. Expected %s, got %s." % (job_templates_count, related_field_counts['job_templates'])
 
     def test_organization_host_limits_do_not_allow_adding_too_many_hosts(self, factories):
-        org = factories.v2_organization()
+        org = factories.organization()
         org.max_hosts = 2
-        inv = factories.v2_inventory(organization=org)
+        inv = factories.inventory(organization=org)
         [inv.add_host() for _ in range(2)]
         with pytest.raises(towerkit.exceptions.Forbidden) as e:
             inv.add_host()
         assert e.value.msg['detail'] == 'You have already reached the maximum number of 2 hosts allowed for your organization. Contact your System Administrator for assistance.'
 
     def test_organization_host_limits_apply_across_all_inventories(self, factories):
-        org = factories.v2_organization()
+        org = factories.organization()
         org.max_hosts = 2
-        inv = factories.v2_inventory(organization=org)
+        inv = factories.inventory(organization=org)
         [inv.add_host() for _ in range(2)]
-        inv2 = factories.v2_inventory(organization=org)
+        inv2 = factories.inventory(organization=org)
         with pytest.raises(towerkit.exceptions.Forbidden) as e:
             inv2.add_host()
         assert e.value.msg['detail'] == 'You have already reached the maximum number of 2 hosts allowed for your organization. Contact your System Administrator for assistance.'
 
     @pytest.mark.yolo
     def test_organization_host_limits_allow_same_host_multiple_inventories(self, factories):
-        org = factories.v2_organization()
+        org = factories.organization()
         org.max_hosts = 2
-        inv = factories.v2_inventory(organization=org)
+        inv = factories.inventory(organization=org)
         hosts = [inv.add_host() for _ in range(2)]
-        inv2 = factories.v2_inventory(organization=org)
-        factories.v2_host(name=hosts[1].name, inventory=inv2)
+        inv2 = factories.inventory(organization=org)
+        factories.host(name=hosts[1].name, inventory=inv2)
         utils.logged_sleep(5)
         assert inv.get_related('hosts').count == 2
         assert inv2.get_related('hosts').count == 1
@@ -109,10 +109,10 @@ class Test_Organizations(APITest):
         assert len(host_set) == 2
 
     def test_organization_host_limits_no_longer_apply_to_inventory_if_org_changed(self, factories):
-        org = factories.v2_organization()
-        org2 = factories.v2_organization()
+        org = factories.organization()
+        org2 = factories.organization()
         org.max_hosts = 2
-        inv = factories.v2_inventory(organization=org)
+        inv = factories.inventory(organization=org)
         [inv.add_host() for _ in range(2)]
         inv.patch(organization=org2.id)
         inv.add_host()
@@ -120,9 +120,9 @@ class Test_Organizations(APITest):
         assert inv.get().total_hosts == 3
 
     def test_organization_host_limits_no_longer_apply_if_max_hosts_zero(self, factories):
-        org = factories.v2_organization()
+        org = factories.organization()
         org.max_hosts = 2
-        inv = factories.v2_inventory(organization=org)
+        inv = factories.inventory(organization=org)
         [inv.add_host() for _ in range(2)]
         org.max_hosts = 0
         inv.add_host()
@@ -130,7 +130,7 @@ class Test_Organizations(APITest):
         assert inv.get().total_hosts == 3
 
     def test_organization_host_limits_rbac_only_superuser_can_change_max_hosts(self, factories):
-        org = factories.v2_organization()
+        org = factories.organization()
         user = factories.user()
         org.set_object_roles(user, 'admin')
         with self.current_user(username=user.username, password=user.password):
@@ -139,23 +139,23 @@ class Test_Organizations(APITest):
         assert e.value.msg['__all__'] == ['Cannot change max_hosts.']
 
     def test_organization_host_limits_dynamic_inventory(self, factories, host_script):
-        org = factories.v2_organization()
+        org = factories.organization()
         org.max_hosts = 4
-        inv = factories.v2_inventory(organization=org)
-        inv_script = factories.v2_inventory_script(organization=org, script=host_script(5))
-        inv_source = factories.v2_inventory_source(inventory=inv, source_script=inv_script)
+        inv = factories.inventory(organization=org)
+        inv_script = factories.inventory_script(organization=org, script=host_script(5))
+        inv_source = factories.inventory_source(inventory=inv, source_script=inv_script)
         assert inv_source.source_script == inv_script.id
         assert inv.organization == org.id
         job = inv.update_inventory_sources(wait=True).pop()
         assert job.org_host_limit_error is True, job
 
     def test_organization_host_limits_cannot_launch_jt_if_limit_exceeded(self, factories):
-        org = factories.v2_organization()
+        org = factories.organization()
         org.max_hosts = 5
-        inv = factories.v2_inventory(organization=org)
+        inv = factories.inventory(organization=org)
         [inv.add_host() for _ in range(5)]
         org.max_hosts = 1
-        jt = factories.v2_job_template(inventory=inv)
+        jt = factories.job_template(inventory=inv)
         utils.logged_sleep(5)
         with pytest.raises(towerkit.exceptions.Forbidden) as e:
             jt.launch()
@@ -172,9 +172,9 @@ class Test_Organizations(APITest):
                             force=True,
                             mode='0644',
                             content=inventory_content)
-        org = factories.v2_organization()
+        org = factories.organization()
         org.max_hosts = 2
-        inv = factories.v2_inventory(organization=org)
+        inv = factories.inventory(organization=org)
         contacted = ansible_runner.shell(
             "awx-manage inventory_import --overwrite --inventory-id {0.id} "
             "--source {1}".format(inv, inv_filename)
