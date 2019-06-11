@@ -6,8 +6,6 @@ from tests.api import APITest
 from tests.lib.helpers.rbac_utils import check_user_capabilities
 
 
-@pytest.mark.api
-@pytest.mark.rbac
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class Test_Schedules_RBAC(APITest):
 
@@ -97,8 +95,8 @@ class Test_Schedules_RBAC(APITest):
 
     @pytest.mark.parametrize('role', ['admin', 'execute', 'read'])
     def test_create_schedule_with_jt_job(self, factories, role):
-        jt = factories.v2_job_template()
-        user = factories.v2_user()
+        jt = factories.job_template()
+        user = factories.user()
         jt.set_object_roles(user, role)
 
         job = jt.launch().wait_until_completed()
@@ -113,11 +111,11 @@ class Test_Schedules_RBAC(APITest):
 
     @pytest.mark.parametrize('role', ['admin', 'execute', 'read'])
     def test_create_schedule_with_wfjtn_job(self, factories, role):
-        jt = factories.v2_job_template()
-        wfjt = factories.v2_workflow_job_template()
-        factories.v2_workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt)
+        jt = factories.job_template()
+        wfjt = factories.workflow_job_template()
+        factories.workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt)
 
-        user = factories.v2_user()
+        user = factories.user()
         jt.set_object_roles(user, role)
 
         wfj = wfjt.launch().wait_until_completed()

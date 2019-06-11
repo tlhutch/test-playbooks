@@ -5,8 +5,7 @@ import pytest
 from tests.api.license import LicenseTest
 
 
-@pytest.mark.api
-@pytest.mark.mp_group(group="TestBasicLicense", strategy="isolated_free")
+@pytest.mark.serial
 @pytest.mark.usefixtures('authtoken', 'install_basic_license')
 class TestBasicLicense(LicenseTest):
 
@@ -55,8 +54,7 @@ class TestBasicLicense(LicenseTest):
         job_template.launch().wait_until_completed()
 
 
-@pytest.mark.api
-@pytest.mark.mp_group(group="TestBasicLicenseSerial", strategy="isolated_serial")
+@pytest.mark.serial
 @pytest.mark.usefixtures('authtoken', 'install_basic_license')
 class TestBasicLicenseSerial(LicenseTest):
 

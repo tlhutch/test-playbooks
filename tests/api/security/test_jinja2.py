@@ -3,8 +3,7 @@ import pytest
 from tests.api import APITest
 
 
-@pytest.mark.api
-@pytest.mark.mp_group('Jinja2', 'isolated_serial')
+@pytest.mark.serial
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestJinja2(APITest):
 
@@ -17,9 +16,9 @@ class TestJinja2(APITest):
         payload = dict(ALLOW_JINJA_IN_EXTRA_VARS=allow_jinja)
         update_setting_pg(jobs_settings, payload)
 
-        jt = factories.v2_job_template(playbook='debug_extra_vars.yml',
+        jt = factories.job_template(playbook='debug_extra_vars.yml',
                                        extra_vars="var1: \"{{ 'target_text'|upper }}\"")
-        factories.v2_host(inventory=jt.ds.inventory)
+        factories.host(inventory=jt.ds.inventory)
 
         job = jt.launch().wait_until_completed()
         job.assert_successful()
@@ -35,9 +34,9 @@ class TestJinja2(APITest):
         payload = dict(ALLOW_JINJA_IN_EXTRA_VARS=allow_jinja)
         update_setting_pg(jobs_settings, payload)
 
-        jt = factories.v2_job_template(playbook='debug_extra_vars.yml', ask_variables_on_launch=True,
+        jt = factories.job_template(playbook='debug_extra_vars.yml', ask_variables_on_launch=True,
                                        extra_vars="var1: \"{{ 'target_text'|upper }}\"")
-        factories.v2_host(inventory=jt.ds.inventory)
+        factories.host(inventory=jt.ds.inventory)
 
         job = jt.launch(dict(extra_vars="var1: \"{{ 'target_text'|upper }}\"")).wait_until_completed()
         job.assert_successful()
@@ -64,9 +63,9 @@ class TestJinja2(APITest):
                        type='password',
                        default="{{ 'target_text'|upper }}")]
 
-        jt = factories.v2_job_template(playbook='debug_extra_vars.yml', ask_variables_on_launch=True)
+        jt = factories.job_template(playbook='debug_extra_vars.yml', ask_variables_on_launch=True)
         jt.add_survey(spec=survey)
-        factories.v2_host(inventory=jt.ds.inventory)
+        factories.host(inventory=jt.ds.inventory)
 
         job = jt.launch().wait_until_completed()
         job.assert_successful()
@@ -93,9 +92,9 @@ class TestJinja2(APITest):
                        type='password',
                        default="{{ 'target_text'|lower }}")]
 
-        jt = factories.v2_job_template(playbook='debug_extra_vars.yml', ask_variables_on_launch=True)
+        jt = factories.job_template(playbook='debug_extra_vars.yml', ask_variables_on_launch=True)
         jt.add_survey(spec=survey)
-        factories.v2_host(inventory=jt.ds.inventory)
+        factories.host(inventory=jt.ds.inventory)
 
         payload = dict(extra_vars=dict(var1="{{ 'target_text'|upper }}", var2="{{ 'target_text'|upper }}"))
         job = jt.launch(payload).wait_until_completed()
@@ -112,10 +111,10 @@ class TestJinja2(APITest):
         payload = dict(ALLOW_JINJA_IN_EXTRA_VARS=allow_jinja)
         update_setting_pg(jobs_settings, payload)
 
-        host = factories.v2_host()
-        wfjt = factories.v2_workflow_job_template(extra_vars="var1: \"{{ 'target_text'|upper }}\"")
-        jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='debug_extra_vars.yml')
-        factories.v2_workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt)
+        host = factories.host()
+        wfjt = factories.workflow_job_template(extra_vars="var1: \"{{ 'target_text'|upper }}\"")
+        jt = factories.job_template(inventory=host.ds.inventory, playbook='debug_extra_vars.yml')
+        factories.workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt)
 
         wfj = wfjt.launch().wait_until_completed()
         job = jt.get().related.last_job.get()
@@ -133,10 +132,10 @@ class TestJinja2(APITest):
         payload = dict(ALLOW_JINJA_IN_EXTRA_VARS=allow_jinja)
         update_setting_pg(jobs_settings, payload)
 
-        host = factories.v2_host()
-        wfjt = factories.v2_workflow_job_template(extra_vars="var1: \"{{ 'target_text'|upper }}\"")
-        jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='debug_extra_vars.yml')
-        factories.v2_workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt)
+        host = factories.host()
+        wfjt = factories.workflow_job_template(extra_vars="var1: \"{{ 'target_text'|upper }}\"")
+        jt = factories.job_template(inventory=host.ds.inventory, playbook='debug_extra_vars.yml')
+        factories.workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt)
 
         survey = [dict(required=False,
                        question_name='Q1',
@@ -166,8 +165,8 @@ class TestJinja2(APITest):
         payload = dict(ALLOW_JINJA_IN_EXTRA_VARS=allow_jinja)
         update_setting_pg(jobs_settings, payload)
 
-        host = factories.v2_host()
-        ahc = factories.v2_ad_hoc_command(inventory=host.ds.inventory, module_name='shell',
+        host = factories.host()
+        ahc = factories.ad_hoc_command(inventory=host.ds.inventory, module_name='shell',
                                           module_args="echo {{ 'target_text'|upper }}").wait_until_completed()
 
         if allow_jinja == 'always':
@@ -183,12 +182,12 @@ class TestJinja2(APITest):
         payload = dict(ALLOW_JINJA_IN_EXTRA_VARS='always')
         update_setting_pg(jobs_settings, payload)
 
-        cred = factories.v2_credential(inputs=dict(username="{{ 'target_text'|upper }}",
+        cred = factories.credential(inputs=dict(username="{{ 'target_text'|upper }}",
                                                    become_username="{{ 'target_text'|upper }}",
                                                    password="{{ 'target_text'|upper }}",
                                                    become_password="{{ 'target_text'|upper }}"))
-        jt = factories.v2_job_template(credential=cred)
-        factories.v2_host(inventory=jt.ds.inventory)
+        jt = factories.job_template(credential=cred)
+        factories.host(inventory=jt.ds.inventory)
 
         job = jt.launch().wait_until_completed()
         assert job.status == 'error'

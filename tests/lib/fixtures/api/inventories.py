@@ -1,7 +1,6 @@
 import logging
 import json
 import uuid
-import re
 
 from towerkit.utils import not_provided
 import fauxfactory
@@ -58,12 +57,12 @@ def ansible_default_ipv4(ansible_facts):
 
 @pytest.fixture(scope="function")
 def inventory(factories, organization):
-    return factories.v2_inventory(organization=organization, localhost=None)
+    return factories.inventory(organization=organization, localhost=None)
 
 
 @pytest.fixture(scope="function")
 def another_inventory(factories, organization):
-    return factories.v2_inventory(organization=organization, localhost=None)
+    return factories.inventory(organization=organization, localhost=None)
 
 
 @pytest.fixture(scope="function")
@@ -92,11 +91,11 @@ def group(factories, inventory):
 @pytest.fixture(scope="function")
 def inventory_source(factories, inventory_script):
     organization = inventory_script.related.organization.get()
-    inventory = factories.v2_inventory(
+    inventory = factories.inventory(
         organization=organization,
         variables=json.dumps(dict(ansible_connection="local"))
     )
-    return factories.v2_inventory_source(inventory=inventory, source_script=inventory_script)
+    return factories.inventory_source(inventory=inventory, source_script=inventory_script)
 
 
 @pytest.fixture(scope="function")
@@ -134,16 +133,18 @@ def script_source(request):
     if fixture_args and 'source_script' in fixture_args.kwargs:
         return fixture_args.kwargs['source_script']
 
-    group_name = re.sub(r"[\']", "", "group_%s" % fauxfactory.gen_utf8())
+    group_name = f'group_{fauxfactory.gen_utf8()}'
     script = """#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import json
 inventory = dict()
-inventory['{0}'] = list()
+inventory['{0}'] = dict()
+inventory['{0}']['hosts'] = list()
 """.format(group_name)
     for i in range(5):
-        host_name = re.sub(r"[\':]", "", "host_%s" % fauxfactory.gen_utf8())
-        script += "inventory['{0}'].append('{1}')\n".format(group_name, host_name)
+        host_name = f"host_{fauxfactory.gen_utf8()}"
+        script += f"inventory['{group_name}']['hosts'].append('{host_name}')\n"
+    script += f"inventory['{group_name}']['vars'] = dict(ansible_host='127.0.0.1', ansible_connection='local')\n"
     script += "print(json.dumps(inventory))\n"
     log.debug(script)
     return script
@@ -151,20 +152,12 @@ inventory['{0}'] = list()
 
 @pytest.fixture(scope="function")
 def inventory_script(factories, script_source, organization):
-    return factories.v2_inventory_script(organization=organization, script=script_source)
+    return factories.inventory_script(organization=organization, script=script_source)
 
 
 @pytest.fixture(scope="function")
-def aws_group(factories, inventory, aws_credential):
-    group = factories.group(name="aws-group-%s" % fauxfactory.gen_alphanumeric(),
-                            description="AWS group %s" % fauxfactory.gen_utf8(),
-                            source='ec2', inventory=inventory, credential=aws_credential)
-    return group
-
-
-@pytest.fixture(scope="function")
-def aws_inventory_source(aws_group):
-    return aws_group.related.inventory_source.get()
+def aws_inventory_source(factories, aws_credential):
+    return factories.inventory_source(credential=aws_credential, source='ec2')
 
 
 @pytest.fixture(scope="function")
@@ -331,7 +324,7 @@ def cloud_inventory_hostvars(azure_inventory_hostvars, gce_inventory_hostvars, a
     These are what we consider a minimum acceptable set of hostvars that each host should have defined.
     """
     return {
-        'aws': aws_inventory_hostvars,
+        'ec2': aws_inventory_hostvars,
         'azure_rm': azure_inventory_hostvars,
         'gce': gce_inventory_hostvars,
         'openstack': openstack_inventory_hostvars,
@@ -391,7 +384,7 @@ def _emulate_core_sanitization(s):
 @pytest.fixture(scope="function")
 def cloud_hostvars_that_create_groups():
     return {
-        'aws': {
+        'ec2': {
                 'ec2_placement': lambda x: x,
                 'ec2_region': lambda x: x,
                 'ec2_vpc_id': lambda x: 'vpc_id_{}'.format('_'.join([word for word in x.split('-')])),
@@ -413,7 +406,7 @@ def cloud_hostvars_that_create_groups():
 @pytest.fixture(scope="function")
 def cloud_hostvars_that_create_host_names():
     return {
-        'aws': ['ec2_ip_address', 'ec2_dns_name'],
+        'ec2': ['ec2_ip_address', 'ec2_dns_name'],
         'gce': ['gce_name'],
         'azure_rm': ['computer_name']  # also name
     }
@@ -432,7 +425,7 @@ def cloud_inventory_hostgroups(azure_inventory_hostgroups, gce_inventory_hostgro
     hostvar that would provide the data is present.
     """
     return {
-        'aws': aws_inventory_hostgroups,
+        'ec2': aws_inventory_hostgroups,
         'azure_rm': azure_inventory_hostgroups,
         'gce': gce_inventory_hostgroups,
         'openstack': openstack_inventory_hostgroups,
@@ -440,84 +433,23 @@ def cloud_inventory_hostgroups(azure_inventory_hostgroups, gce_inventory_hostgro
 
 
 @pytest.fixture(scope="function")
-def azure_group(factories, inventory, azure_credential):
-    group = factories.group(name="azure-group-%s" % fauxfactory.gen_alphanumeric(),
-                            description="Microsoft Azure %s" % fauxfactory.gen_utf8(),
-                            source='azure_rm', inventory=inventory, credential=azure_credential)
-    return group
+def azure_inventory_source(factories, azure_credential):
+    return factories.inventory_source(credential=azure_credential, source='azure_rm')
 
 
 @pytest.fixture(scope="function")
-def azure_inventory_source(azure_group):
-    return azure_group.related.inventory_source.get()
+def gce_inventory_source(factories, gce_credential):
+    return factories.inventory_source(credential=gce_credential, source='gce')
 
 
 @pytest.fixture(scope="function")
-def gce_group(factories, inventory, gce_credential):
-    group = factories.group(name="gce-group-%s" % fauxfactory.gen_alphanumeric(),
-                            description="Google Compute Engine %s" % fauxfactory.gen_utf8(),
-                            source='gce', inventory=inventory, credential=gce_credential)
-    return group
-
-
-@pytest.fixture(scope="function")
-def gce_inventory_source(gce_group):
-    return gce_group.related.inventory_source.get()
-
-
-@pytest.fixture(scope="function")
-def vmware_group(factories, inventory, vmware_credential):
+def vmware_inventory_source(vmware_credential):
     pytest.skip('Currently without access to functional VMware system')
-    group = factories.group(name="vmware-group-%s" % fauxfactory.gen_alphanumeric(),
-                            description="VMware vCenter %s" % fauxfactory.gen_utf8(),
-                            source='vmware', inventory=inventory, credential=vmware_credential,
-                            source_vars="---\nvalidate_certs: false")
-    return group
 
 
 @pytest.fixture(scope="function")
-def vmware_inventory_source(vmware_group):
-    return vmware_group.related.inventory_source.get()
-
-
-@pytest.fixture(scope="function")
-def openstack_v2_group(factories, inventory, openstack_v2_credential):
-    group = factories.group(name="openstack-v2-group-%s" % fauxfactory.gen_alphanumeric(),
-                            description="Openstack %s" % fauxfactory.gen_utf8(),
-                            source='openstack', inventory=inventory, credential=openstack_v2_credential)
-    return group
-
-
-@pytest.fixture(scope="function")
-def openstack_v2_inventory_source(openstack_v2_group):
-    return openstack_v2_group.related.inventory_source.get()
-
-
-@pytest.fixture(scope="function")
-def openstack_v3_group(factories, inventory, openstack_v3_credential):
-    group = factories.group(name="openstack-v3-group-%s" % fauxfactory.gen_alphanumeric(),
-                            description="Openstack %s" % fauxfactory.gen_utf8(),
-                            source='openstack', inventory=inventory, credential=openstack_v3_credential)
-    return group
-
-
-@pytest.fixture(scope="function")
-def openstack_v3_inventory_source(request, authtoken, openstack_v3_group):
-    return openstack_v3_group.related.inventory_source.get()
-
-
-@pytest.fixture(scope="function", params=['openstack_v2', 'openstack_v3'])
-def openstack_group(request):
-    return request.getfixturevalue(request.param + '_group')
-
-
-@pytest.fixture(scope="function")
-def custom_group(factories, inventory, inventory_script):
-    group = factories.group(name="custom-group-%s" % fauxfactory.gen_alphanumeric(),
-                            description="Custom Group %s" % fauxfactory.gen_utf8(),
-                            inventory=inventory, source_script=inventory_script,
-                            variables=json.dumps(dict(my_group_variable=True)))
-    return group
+def openstack_inventory_source(factories, openstack_v3_credential):
+    return factories.inventory_source(source='openstack', credential=openstack_v3_credential)
 
 
 @pytest.fixture(scope="function")
@@ -525,40 +457,31 @@ def custom_inventory_source(request, authtoken, inventory_source):
     return inventory_source.get()
 
 
-@pytest.fixture(scope="function", params=['aws', 'azure', 'gce', 'vmware',
-                                          'openstack_v2', 'openstack_v3'])
-def cloud_group(request):
-    return request.getfixturevalue(request.param + '_group')
+@pytest.fixture(scope="function", params=['aws', 'azure', 'gce', 'vmware', 'openstack'])
+def cloud_inventory_source(request):
+    return request.getfixturevalue(request.param + '_inventory_source')
 
 
 @pytest.fixture(scope="function", params=[('ec2', 'aws_credential'),
                                           ('azure_rm', 'azure_credential'),
                                           ('gce', 'gce_credential'),
                                           ('vmware', 'vmware_credential'),
-                                          ('openstack', 'openstack_v2_credential'),
                                           ('openstack', 'openstack_v3_credential')
-    ], ids=['aws', 'azure', 'gce', 'vmware', 'openstack_v2', 'openstack_v3'])
+    ], ids=['aws', 'azure', 'gce', 'vmware', 'openstack'])
 def cloud_inventory(request, factories):
     inv_source, cred_fixture = request.param
     if inv_source == 'vmware':
         pytest.skip('Currently without publicly-facing VMware')
 
     cred = request.getfixturevalue(cred_fixture)
-    inv_source = factories.v2_inventory_source(source=inv_source, credential=cred)
+    inv_source = factories.inventory_source(source=inv_source, credential=cred)
     return inv_source.ds.inventory
-
-
-# Convenience fixture that returns all of our cloud_groups as a list
-@pytest.fixture(scope="function")
-def cloud_groups(aws_group, azure_group, gce_group, openstack_v2_group,
-                 openstack_v3_group):  # TODO: Add VMware when possible
-    return [aws_group, azure_group, gce_group, openstack_v2_group, openstack_v3_group]
 
 
 # Convenience fixture that iterates through cloud_groups that support source_regions
 @pytest.fixture(scope="function", params=['aws', 'azure', 'gce'])
-def cloud_group_supporting_source_regions(request):
-    return request.getfixturevalue(request.param + '_group')
+def cloud_inventory_source_supporting_source_regions(request):
+    return request.getfixturevalue(request.param + '_inventory_source')
 
 
 @pytest.fixture

@@ -9,8 +9,7 @@ from tests.lib.helpers import openshift_utils
 from tests.api import APITest
 
 
-@pytest.mark.api
-@pytest.mark.mp_group('ExecutionNodeAssignment', 'isolated_serial')
+@pytest.mark.serial
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited', 'skip_if_not_cluster')
 class TestExecutionNodeAssignment(APITest):
 
@@ -52,17 +51,17 @@ class TestExecutionNodeAssignment(APITest):
     @pytest.fixture
     def jt_generator_for_consuming_given_capacity(self, v2, organization, factories):
         def fn(capacity_size):
-            jt = factories.v2_job_template(allow_simultaneous=True,
+            jt = factories.job_template(allow_simultaneous=True,
                                            forks=capacity_size,
                                            playbook='sleep.yml',
                                            extra_vars=dict(sleep_interval=60),
                                            limit="all[0]")
-            [factories.v2_host(inventory=jt.ds.inventory) for _ in range(0, capacity_size + 1)]
+            [factories.host(inventory=jt.ds.inventory) for _ in range(0, capacity_size + 1)]
             return jt
         return fn
 
     def test_jobs_should_distribute_among_tower_instance_group_members(self, factories, tower_instance_group):
-        jt = factories.v2_job_template(allow_simultaneous=True)
+        jt = factories.job_template(allow_simultaneous=True)
         jt.add_instance_group(tower_instance_group)
 
         instances = tower_instance_group.related.instances.get().results
@@ -78,7 +77,7 @@ class TestExecutionNodeAssignment(APITest):
 
     def test_jt_with_no_instance_groups_defaults_to_tower_instance_group_instance(self, factories,
                                                                                   tower_ig_instances):
-        jt = factories.v2_job_template(allow_simultaneous=True)
+        jt = factories.job_template(allow_simultaneous=True)
 
         num_jobs = self.find_num_jobs(tower_ig_instances)
         for _ in range(num_jobs):
@@ -102,11 +101,11 @@ class TestExecutionNodeAssignment(APITest):
         for ig in (ig1, ig2):
             ig.add_instance(instances[2])
 
-        jt = factories.v2_job_template(playbook='sleep.yml', allow_simultaneous=True,
+        jt = factories.job_template(playbook='sleep.yml', allow_simultaneous=True,
                                        extra_vars='{"sleep_interval": 60}')
         task_impact = 2
         for _ in range(task_impact - 1):
-            factories.v2_host(inventory=jt.ds.inventory)
+            factories.host(inventory=jt.ds.inventory)
         for ig in (ig1, ig2):
             jt.add_instance_group(ig)
 
@@ -132,7 +131,7 @@ class TestExecutionNodeAssignment(APITest):
         for instance in instances:
             ig.add_instance(instance)
 
-        jt = factories.v2_job_template(allow_simultaneous=True)
+        jt = factories.job_template(allow_simultaneous=True)
         jt.add_instance_group(ig)
 
         num_jobs = self.find_num_jobs(instances)
@@ -152,14 +151,14 @@ class TestExecutionNodeAssignment(APITest):
         ig.add_instance(instance)
         assert ig.related.instances.get().count == 1  # test flake due to github.com/ansible/tower/issues/2772
 
-        inv = factories.v2_inventory()
+        inv = factories.inventory()
 
         if resource in ('inventory', 'both'):
             inv.add_instance_group(ig)
         if resource in ('organization', 'both'):
             inv.ds.organization.add_instance_group(ig)
 
-        ahc = factories.v2_ad_hoc_command(inventory=inv, module_name='ping')
+        ahc = factories.ad_hoc_command(inventory=inv, module_name='ping')
         ahc.wait_until_completed().assert_successful()
         assert ahc.execution_node == instance.hostname
 
@@ -173,10 +172,10 @@ class TestExecutionNodeAssignment(APITest):
         for _ in range(num_jobs):
             # inventory must be specific to each ad hoc command, otherwise
             # they will block each other from running
-            inv = factories.v2_inventory()
-            host = factories.v2_host(inventory=inv)
+            inv = factories.inventory()
+            host = factories.host(inventory=inv)
             inv.add_instance_group(ig)
-            factories.v2_ad_hoc_command(
+            factories.ad_hoc_command(
                 inventory=inv, module_name='command', module_args="sleep 300",
                 limit=host.name
             )
@@ -195,7 +194,7 @@ class TestExecutionNodeAssignment(APITest):
         instance = random.sample(tower_ig_instances, 1).pop()
         ig.add_instance(instance)
 
-        project = factories.v2_project()
+        project = factories.project()
         project.ds.organization.add_instance_group(ig)
 
         project_update = project.update()
@@ -211,7 +210,7 @@ class TestExecutionNodeAssignment(APITest):
         for instance in instances:
             ig.add_instance(instance)
 
-        projects = [factories.v2_project(scm_delete_on_update=True,
+        projects = [factories.project(scm_delete_on_update=True,
                                          scm_url='https://github.com/ansible/ansible.git') for _ in range(2)]
         project_updates = []
         for project in projects:
@@ -235,7 +234,7 @@ class TestExecutionNodeAssignment(APITest):
         instance = random.sample(tower_ig_instances, 1).pop()
         ig.add_instance(instance)
 
-        inv_source = factories.v2_inventory_source()
+        inv_source = factories.inventory_source()
         inv = inv_source.ds.inventory
 
         if resource in ('inventory', 'both'):
@@ -260,10 +259,10 @@ class TestExecutionNodeAssignment(APITest):
             ig.add_instance(instance)
 
         num_jobs = self.find_num_jobs(instances)
-        inv_script = factories.v2_inventory_script(script=inventory_script_code_with_sleep(20))
+        inv_script = factories.inventory_script(script=inventory_script_code_with_sleep(20))
         inv_sources = []
         for _ in range(num_jobs):
-            inv_source = factories.v2_inventory_source(source_script=inv_script)
+            inv_source = factories.inventory_source(source_script=inv_script)
             assert inv_source.source_script == inv_script.id
             inv_source.ds.inventory.add_instance_group(ig)
             inv_sources.append(inv_source)
@@ -285,12 +284,12 @@ class TestExecutionNodeAssignment(APITest):
         instance = random.sample(tower_ig_instances, 1).pop()
         ig.add_instance(instance)
 
-        wfjt = factories.v2_workflow_job_template()
-        jt = factories.v2_job_template()
-        inv_source = factories.v2_inventory_source()
+        wfjt = factories.workflow_job_template()
+        jt = factories.job_template()
+        inv_source = factories.inventory_source()
         project = jt.ds.project
 
-        node1 = factories.v2_workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt)
+        node1 = factories.workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt)
         node2 = node1.add_always_node(unified_job_template=inv_source)
         node2.add_always_node(unified_job_template=project)
 
@@ -307,7 +306,7 @@ class TestExecutionNodeAssignment(APITest):
         ig = v2.instance_groups.get(name='protected').results.pop()
         instances = ig.related.instances.get().results
 
-        jt = factories.v2_job_template(playbook='sleep.yml', allow_simultaneous=True,
+        jt = factories.job_template(playbook='sleep.yml', allow_simultaneous=True,
                                        extra_vars=dict(sleep_interval=10))
         jt.ds.inventory.add_host()
         jt.add_instance_group(ig)
@@ -335,7 +334,7 @@ class TestExecutionNodeAssignment(APITest):
             reset_instance(instance)
             instance.enabled = False
 
-        jt = factories.v2_job_template()
+        jt = factories.job_template()
         jt.add_instance_group(ig)
 
         job = jt.launch().wait_until_completed()
@@ -346,7 +345,7 @@ class TestExecutionNodeAssignment(APITest):
         assert ig.instances == 0
         assert ig.capacity == 0
 
-        jt = factories.v2_job_template()
+        jt = factories.job_template()
         jt.add_instance_group(ig)
         job = jt.launch()
 
@@ -361,7 +360,7 @@ class TestExecutionNodeAssignment(APITest):
         assert ig.instances == 0
         assert ig.capacity == 0
 
-        jt = factories.v2_job_template()
+        jt = factories.job_template()
         jt.add_instance_group(ig)
         job = jt.launch()
 

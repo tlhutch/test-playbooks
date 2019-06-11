@@ -6,9 +6,7 @@ import pytest
 from tests.api import APITest
 
 
-@pytest.mark.api
-@pytest.mark.destructive
-@pytest.mark.mp_group('Proot', 'isolated_serial')
+@pytest.mark.serial
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class Test_Proot(APITest):
     """Tests to assert correctness while running with AWX_PROOT_ENABLED=True"""
@@ -27,8 +25,8 @@ class Test_Proot(APITest):
 
         Regression test for https://github.com/ansible/tower/issues/3431
         """
-        host = factories.v2_host()
-        jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='chatty_tasks.yml')
+        host = factories.host()
+        jt = factories.job_template(inventory=host.ds.inventory, playbook='chatty_tasks.yml')
         jt.add_instance_group(isolated_instance_group)
         job = jt.launch()
         job.wait_until_completed().assert_successful()
@@ -49,9 +47,9 @@ class Test_Proot(APITest):
          - /etc/awx/settings.py - No such file or directory
          - /var/log/supervisor/* - Permission Denied
         """
-        project = factories.v2_project()
-        host = factories.v2_host()
-        proot_1, proot_2 = [factories.v2_job_template(inventory=host.ds.inventory,
+        project = factories.project()
+        host = factories.host()
+        proot_1, proot_2 = [factories.job_template(inventory=host.ds.inventory,
                                                       project=project, playbook='test_proot.yml',
                                                       verbosity=3) for _ in range(2)]
 

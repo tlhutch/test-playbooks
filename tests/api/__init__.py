@@ -7,7 +7,6 @@ import contextlib
 import pytest
 
 
-@pytest.mark.api
 class APITest(object):
     """Base class"""
 

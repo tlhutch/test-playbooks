@@ -56,7 +56,7 @@ if [[ -e "./run_integration_tests" ]]; then
     ansible-playbook -i playbooks/inventory -e @vars.yml playbooks/deploy-tower.yml
 
     TOWER_URL=`ansible -i playbooks/inventory.log --list-hosts tower | grep -v -m 1 hosts | xargs`
-    TOWER_VERSION=`curl -ks https://${TOWER_URL}/api/v1/ping/ | jq -r .version | cut -d . -f 1-3`
+    TOWER_VERSION=`curl -ks https://${TOWER_URL}/api/v2/ping/ | jq -r .version | cut -d . -f 1-3`
     echo ${TOWER_VERSION}
 
     #

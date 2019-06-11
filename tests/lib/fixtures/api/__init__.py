@@ -25,26 +25,6 @@ def get_api_version(available_versions):
 
 
 @pytest.fixture(scope="class")
-def api_v1_url(get_api_version):
-    return get_api_version('v1')
-
-
-@pytest.fixture(scope="class")
-def api_v1_pg(connection, api_v1_url):
-    return get_registered_page(api_v1_url)(connection, endpoint=api_v1_url).get()
-
-
-@pytest.fixture(scope='class')
-def v1_class(api_v1_pg):
-    return api_v1_pg
-
-
-@pytest.fixture
-def v1(v1_class):
-    return v1_class
-
-
-@pytest.fixture(scope="class")
 def api_v2_url(get_api_version):
     return get_api_version('v2')
 
@@ -64,10 +44,10 @@ def v2(v2_class):
     return v2_class
 
 
-# /api/v1/authtoken
+# /api/v2/authtoken
 @pytest.fixture(scope="class")
-def api_authtoken_url(v1_class):
-    return v1_class.authtoken
+def api_authtoken_url(v2_class):
+    return v2_class.authtoken
 
 
 @pytest.fixture(scope="class")
@@ -76,20 +56,20 @@ def api_authtoken_pg(api_authtoken_url):
 
 
 @pytest.fixture(scope="class")
-def authtoken(v1_class):
+def authtoken(v2_class):
     """Logs in to the application with default credentials"""
     if qe_config.use_sessions:
-        v1_class.load_session()
-        return v1_class.connection.session_id
-    token = v1_class.get_authtoken()
-    v1_class.connection.login(token=token)
+        v2_class.load_session()
+        return v2_class.connection.session_id
+    token = v2_class.get_authtoken()
+    v2_class.connection.login(token=token)
     return token
 
 
-# /api/v1/dashboard
+# /api/v2/dashboard
 @pytest.fixture(scope="class")
-def api_dashboard_url(v1_class):
-    return v1_class.dashboard
+def api_dashboard_url(v2_class):
+    return v2_class.dashboard
 
 
 @pytest.fixture(scope="class")
@@ -97,10 +77,10 @@ def api_dashboard_pg(api_dashboard_url):
     return api_dashboard_url.get()
 
 
-# /api/v1/ping
+# /api/v2/ping
 @pytest.fixture(scope="class")
-def api_ping_url(v1_class):
-    return v1_class.ping
+def api_ping_url(v2_class):
+    return v2_class.ping
 
 
 @pytest.fixture(scope="class")
@@ -108,10 +88,10 @@ def api_ping_pg(api_ping_url):
     return api_ping_url.get()
 
 
-# /api/v1/config
+# /api/v2/config
 @pytest.fixture(scope="class")
-def api_config_url(v1_class):
-    return v1_class.config
+def api_config_url(v2_class):
+    return v2_class.config
 
 
 @pytest.fixture(scope="class")
@@ -145,14 +125,14 @@ def ansible_version_cmp(request, ansible_version):
 
 
 @pytest.fixture(scope="class")
-def awx_config(v1_class):
-    return v1_class.config.get()
+def awx_config(v2_class):
+    return v2_class.config.get()
 
 
-# /api/v1/me
+# /api/v2/me
 @pytest.fixture(scope="class")
-def api_me_url(v1_class):
-    return v1_class.me
+def api_me_url(v2_class):
+    return v2_class.me
 
 
 @pytest.fixture(scope="class")
@@ -160,10 +140,10 @@ def api_me_pg(api_me_url):
     return api_me_url.get()
 
 
-# /api/v1/organizations
+# /api/v2/organizations
 @pytest.fixture(scope="class")
-def api_organizations_url(v1_class):
-    return v1_class.organizations
+def api_organizations_url(v2_class):
+    return v2_class.organizations
 
 
 @pytest.fixture(scope="class")
@@ -171,10 +151,10 @@ def api_organizations_pg(api_organizations_url):
     return api_organizations_url.get()
 
 
-# /api/v1/users
+# /api/v2/users
 @pytest.fixture(scope="class")
-def api_users_url(v1_class):
-    return v1_class.users
+def api_users_url(v2_class):
+    return v2_class.users
 
 
 @pytest.fixture(scope="class")
@@ -182,10 +162,10 @@ def api_users_pg(api_users_url):
     return api_users_url.get()
 
 
-# /api/v1/teams
+# /api/v2/teams
 @pytest.fixture(scope="class")
-def api_teams_url(v1_class):
-    return v1_class.teams
+def api_teams_url(v2_class):
+    return v2_class.teams
 
 
 @pytest.fixture(scope="class")
@@ -193,10 +173,10 @@ def api_teams_pg(api_teams_url):
     return api_teams_url.get()
 
 
-# /api/v1/projects
+# /api/v2/projects
 @pytest.fixture(scope="class")
-def api_projects_url(v1_class):
-    return v1_class.projects
+def api_projects_url(v2_class):
+    return v2_class.projects
 
 
 @pytest.fixture(scope="class")
@@ -204,10 +184,10 @@ def api_projects_pg(api_projects_url):
     return api_projects_url.get()
 
 
-# /api/v1/project_updates
+# /api/v2/project_updates
 @pytest.fixture(scope="class")
-def api_project_updates_url(v1_class):
-    return v1_class.project_updates
+def api_project_updates_url(v2_class):
+    return v2_class.project_updates
 
 
 @pytest.fixture(scope="class")
@@ -215,10 +195,10 @@ def api_project_updates_pg(api_project_updates_url):
     return api_project_updates_url.get()
 
 
-# /api/v1/activity_stream
+# /api/v2/activity_stream
 @pytest.fixture(scope="class")
-def api_activity_stream_url(v1_class):
-    return v1_class.activity_stream
+def api_activity_stream_url(v2_class):
+    return v2_class.activity_stream
 
 
 @pytest.fixture(scope="class")
@@ -226,10 +206,10 @@ def api_activity_stream_pg(api_activity_stream_url):
     return api_activity_stream_url.get()
 
 
-# /api/v1/credentials
+# /api/v2/credentials
 @pytest.fixture(scope="class")
-def api_credentials_url(v1_class):
-    return v1_class.credentials
+def api_credentials_url(v2_class):
+    return v2_class.credentials
 
 
 @pytest.fixture(scope="class")
@@ -237,10 +217,10 @@ def api_credentials_pg(api_credentials_url):
     return api_credentials_url.get()
 
 
-# /api/v1/inventory
+# /api/v2/inventory
 @pytest.fixture(scope="class")
-def api_inventories_url(v1_class):
-    return v1_class.inventory
+def api_inventories_url(v2_class):
+    return v2_class.inventory
 
 
 @pytest.fixture(scope="class")
@@ -248,10 +228,10 @@ def api_inventories_pg(api_inventories_url):
     return api_inventories_url.get()
 
 
-# /api/v1/inventory_updates
+# /api/v2/inventory_updates
 @pytest.fixture(scope="class")
-def api_inventory_updates_url(v1_class):
-    return v1_class.inventory_updates
+def api_inventory_updates_url(v2_class):
+    return v2_class.inventory_updates
 
 
 @pytest.fixture(scope="class")
@@ -259,10 +239,10 @@ def api_inventory_updates_pg(api_inventory_updates_url):
     return api_inventory_updates_url.get()
 
 
-# /api/v1/inventory_sources
+# /api/v2/inventory_sources
 @pytest.fixture(scope="class")
-def api_inventory_sources_url(v1_class):
-    return v1_class.inventory_sources
+def api_inventory_sources_url(v2_class):
+    return v2_class.inventory_sources
 
 
 @pytest.fixture(scope="class")
@@ -270,10 +250,10 @@ def api_inventory_sources_pg(api_inventory_sources_url):
     return api_inventory_sources_url.get()
 
 
-# /api/v1/inventory_scripts
+# /api/v2/inventory_scripts
 @pytest.fixture(scope="class")
-def api_inventory_scripts_url(v1_class):
-    return v1_class.inventory_scripts
+def api_inventory_scripts_url(v2_class):
+    return v2_class.inventory_scripts
 
 
 @pytest.fixture(scope="class")
@@ -281,10 +261,10 @@ def api_inventory_scripts_pg(api_inventory_scripts_url):
     return api_inventory_scripts_url.get()
 
 
-# /api/v1/groups
+# /api/v2/groups
 @pytest.fixture(scope="class")
-def api_groups_url(v1_class):
-    return v1_class.groups
+def api_groups_url(v2_class):
+    return v2_class.groups
 
 
 @pytest.fixture(scope="class")
@@ -292,10 +272,10 @@ def api_groups_pg(api_groups_url):
     return api_groups_url.get()
 
 
-# /api/v1/hosts
+# /api/v2/hosts
 @pytest.fixture(scope="class")
-def api_hosts_url(v1_class):
-    return v1_class.hosts
+def api_hosts_url(v2_class):
+    return v2_class.hosts
 
 
 @pytest.fixture(scope="class")
@@ -303,10 +283,10 @@ def api_hosts_pg(api_hosts_url):
     return api_hosts_url.get()
 
 
-# /api/v1/job_templates
+# /api/v2/job_templates
 @pytest.fixture(scope="class")
-def api_job_templates_url(v1_class):
-    return v1_class.job_templates
+def api_job_templates_url(v2_class):
+    return v2_class.job_templates
 
 
 @pytest.fixture(scope="class")
@@ -314,10 +294,10 @@ def api_job_templates_pg(api_job_templates_url):
     return api_job_templates_url.get()
 
 
-# /api/v1/schedules
+# /api/v2/schedules
 @pytest.fixture(scope="class")
-def api_schedules_url(v1_class):
-    return v1_class.schedules
+def api_schedules_url(v2_class):
+    return v2_class.schedules
 
 
 @pytest.fixture(scope="class")
@@ -325,10 +305,10 @@ def api_schedules_pg(api_schedules_url):
     return api_schedules_url.get()
 
 
-# /api/v1/jobs
+# /api/v2/jobs
 @pytest.fixture(scope="class")
-def api_jobs_url(v1_class):
-    return v1_class.jobs
+def api_jobs_url(v2_class):
+    return v2_class.jobs
 
 
 @pytest.fixture(scope="class")
@@ -336,10 +316,10 @@ def api_jobs_pg(api_jobs_url):
     return api_jobs_url.get()
 
 
-# /api/v1/unified_jobs
+# /api/v2/unified_jobs
 @pytest.fixture(scope="class")
-def api_unified_jobs_url(v1_class):
-    return v1_class.unified_jobs
+def api_unified_jobs_url(v2_class):
+    return v2_class.unified_jobs
 
 
 @pytest.fixture(scope="class")
@@ -347,10 +327,10 @@ def api_unified_jobs_pg(api_unified_jobs_url):
     return api_unified_jobs_url.get()
 
 
-# /api/v1/unified_job_templates
+# /api/v2/unified_job_templates
 @pytest.fixture(scope="class")
-def api_unified_job_templates_url(v1_class):
-    return v1_class.unified_job_templates
+def api_unified_job_templates_url(v2_class):
+    return v2_class.unified_job_templates
 
 
 @pytest.fixture(scope="class")
@@ -358,10 +338,10 @@ def api_unified_job_templates_pg(api_unified_job_templates_url):
     return api_unified_job_templates_url.get()
 
 
-# /api/v1/system_jobs
+# /api/v2/system_jobs
 @pytest.fixture(scope="class")
-def api_system_jobs_url(v1_class):
-    return v1_class.system_jobs
+def api_system_jobs_url(v2_class):
+    return v2_class.system_jobs
 
 
 @pytest.fixture(scope="class")
@@ -369,10 +349,10 @@ def api_system_jobs_pg(api_system_jobs_url):
     return api_system_jobs_url.get()
 
 
-# /api/v1/system_job_templates
+# /api/v2/system_job_templates
 @pytest.fixture(scope="class")
-def api_system_job_templates_url(v1_class):
-    return v1_class.system_job_templates
+def api_system_job_templates_url(v2_class):
+    return v2_class.system_job_templates
 
 
 @pytest.fixture(scope="class")
@@ -380,10 +360,10 @@ def api_system_job_templates_pg(api_system_job_templates_url):
     return api_system_job_templates_url.get()
 
 
-# /api/v1/ad_hoc_commands
+# /api/v2/ad_hoc_commands
 @pytest.fixture(scope="class")
-def api_ad_hoc_commands_url(v1_class):
-    return v1_class.ad_hoc_commands
+def api_ad_hoc_commands_url(v2_class):
+    return v2_class.ad_hoc_commands
 
 
 @pytest.fixture(scope="class")
@@ -401,10 +381,10 @@ def region_choices(api_inventory_sources_pg):
                 gce=[r[0] for r in options.json.get('actions', {}).get('GET', {}).get('source_regions', {}).get('gce_region_choices', [])])
 
 
-# /api/v1/notifications
+# /api/v2/notifications
 @pytest.fixture(scope="class")
-def api_notifications_url(v1_class):
-    return v1_class.notifications
+def api_notifications_url(v2_class):
+    return v2_class.notifications
 
 
 @pytest.fixture(scope="class")
@@ -412,10 +392,10 @@ def api_notifications_pg(api_notifications_url):
     return api_notifications_url.get()
 
 
-# /api/v1/notification_templates
+# /api/v2/notification_templates
 @pytest.fixture(scope="class")
-def api_notification_templates_url(v1_class):
-    return v1_class.notification_templates
+def api_notification_templates_url(v2_class):
+    return v2_class.notification_templates
 
 
 @pytest.fixture(scope="class")
@@ -423,10 +403,10 @@ def api_notification_templates_pg(api_notification_templates_url):
     return api_notification_templates_url.get()
 
 
-# /api/v1/labels
+# /api/v2/labels
 @pytest.fixture(scope="class")
-def api_labels_url(v1_class):
-    return v1_class.labels
+def api_labels_url(v2_class):
+    return v2_class.labels
 
 
 @pytest.fixture(scope="class")
@@ -434,10 +414,10 @@ def api_labels_pg(api_labels_url):
     return api_labels_url.get()
 
 
-# /api/v1/roles
+# /api/v2/roles
 @pytest.fixture(scope="class")
-def api_roles_url(v1_class):
-    return v1_class.roles
+def api_roles_url(v2_class):
+    return v2_class.roles
 
 
 @pytest.fixture(scope="class")
@@ -445,10 +425,10 @@ def api_roles_pg(api_roles_url):
     return api_roles_url.get()
 
 
-# /api/v1/workflow_job_templates
+# /api/v2/workflow_job_templates
 @pytest.fixture(scope="class")
-def api_workflow_job_templates_url(v1_class):
-    return v1_class.workflow_job_templates
+def api_workflow_job_templates_url(v2_class):
+    return v2_class.workflow_job_templates
 
 
 @pytest.fixture(scope="class")
@@ -456,10 +436,10 @@ def api_workflow_job_templates_pg(api_workflow_job_templates_url):
     return api_workflow_job_templates_url.get()
 
 
-# /api/v1/workflow_job_template_nodes
+# /api/v2/workflow_job_template_nodes
 @pytest.fixture(scope="class")
-def api_workflow_job_template_nodes_url(v1_class):
-    return v1_class.workflow_job_template_nodes
+def api_workflow_job_template_nodes_url(v2_class):
+    return v2_class.workflow_job_template_nodes
 
 
 @pytest.fixture(scope="class")
@@ -467,10 +447,10 @@ def api_workflow_job_template_nodes_pg(api_workflow_job_template_nodes_url):
     return api_workflow_job_template_nodes_url.get()
 
 
-# /api/v1/workflow_jobs
+# /api/v2/workflow_jobs
 @pytest.fixture(scope="class")
-def api_workflow_jobs_url(v1_class):
-    return v1_class.workflow_jobs
+def api_workflow_jobs_url(v2_class):
+    return v2_class.workflow_jobs
 
 
 @pytest.fixture(scope="class")
@@ -478,10 +458,10 @@ def api_workflow_jobs_pg(api_workflow_jobs_url):
     return api_workflow_jobs_url.get()
 
 
-# /api/v1/workflow_job_nodes
+# /api/v2/workflow_job_nodes
 @pytest.fixture(scope="class")
-def api_workflow_job_nodes_url(v1_class):
-    return v1_class.workflow_job_nodes
+def api_workflow_job_nodes_url(v2_class):
+    return v2_class.workflow_job_nodes
 
 
 @pytest.fixture(scope="class")
@@ -489,10 +469,10 @@ def api_workflow_job_nodes_pg(api_workflow_job_nodes_url):
     return api_workflow_job_nodes_url.get()
 
 
-# /api/v1/settings
+# /api/v2/settings
 @pytest.fixture(scope="class")
-def api_settings_url(v1_class):
-    return v1_class.settings
+def api_settings_url(v2_class):
+    return v2_class.settings
 
 
 @pytest.fixture(scope="class")
@@ -500,103 +480,103 @@ def api_settings_pg(api_settings_url):
     return api_settings_url.get()
 
 
-# /api/v1/settings/all
+# /api/v2/settings/all
 @pytest.fixture(scope="class")
 def api_settings_all_pg(api_settings_pg):
     return api_settings_pg.get_endpoint('all')
 
 
-# /api/v1/settings/authentication
+# /api/v2/settings/authentication
 @pytest.fixture(scope="class")
 def api_settings_auth_pg(api_settings_pg):
     return api_settings_pg.get_endpoint('authentication')
 
 
-# /api/v1/settings/azuread-oauth2
+# /api/v2/settings/azuread-oauth2
 @pytest.fixture(scope="class")
 def api_settings_azuread_pg(api_settings_pg):
     return api_settings_pg.get_endpoint('azuread-oauth2')
 
 
-# /api/v1/settings/changed
+# /api/v2/settings/changed
 @pytest.fixture(scope="class")
 def api_settings_changed_pg(api_settings_pg):
     return api_settings_pg.get_endpoint('changed')
 
 
-# /api/v1/settings/github
+# /api/v2/settings/github
 @pytest.fixture(scope="class")
 def api_settings_github_pg(api_settings_pg):
     return api_settings_pg.get_endpoint('github')
 
 
-# /api/v1/settings/github-org
+# /api/v2/settings/github-org
 @pytest.fixture(scope="class")
 def api_settings_github_org_pg(api_settings_pg):
     return api_settings_pg.get_endpoint('github-org')
 
 
-# /api/v1/settings/github-team
+# /api/v2/settings/github-team
 @pytest.fixture(scope="class")
 def api_settings_github_team_pg(api_settings_pg):
     return api_settings_pg.get_endpoint('github-team')
 
 
-# /api/v1/settings/google-oauth2
+# /api/v2/settings/google-oauth2
 @pytest.fixture(scope="class")
 def api_settings_google_pg(api_settings_pg):
     return api_settings_pg.get_endpoint('google-oauth2')
 
 
-# /api/v1/settings/jobs
+# /api/v2/settings/jobs
 @pytest.fixture(scope="class")
 def api_settings_jobs_pg(api_settings_pg):
     return api_settings_pg.get_endpoint('jobs')
 
 
-# /api/v1/settings/ldap
+# /api/v2/settings/ldap
 @pytest.fixture(scope="class")
 def api_settings_ldap_pg(api_settings_pg):
     return api_settings_pg.get_endpoint('ldap')
 
 
-# /api/v1/settings/radius
+# /api/v2/settings/radius
 @pytest.fixture(scope="class")
 def api_settings_radius_pg(api_settings_pg):
     return api_settings_pg.get_endpoint('radius')
 
 
-# /api/v1/settings/saml
+# /api/v2/settings/saml
 @pytest.fixture(scope="class")
 def api_settings_saml_pg(api_settings_pg):
     return api_settings_pg.get_endpoint('saml')
 
 
-# /api/v1/settings/system
+# /api/v2/settings/system
 @pytest.fixture(scope="class")
 def api_settings_system_pg(api_settings_pg):
     return api_settings_pg.get_endpoint('system')
 
 
-# /api/v1/settings/tacasplus
+# /api/v2/settings/tacasplus
 @pytest.fixture(scope="class")
 def api_settings_tacacsplus_pg(api_settings_pg):
     return api_settings_pg.get_endpoint('tacacsplus')
 
 
-# /api/v1/settings/ui
+# /api/v2/settings/ui
 @pytest.fixture(scope="class")
 def api_settings_ui_pg(api_settings_pg):
     return api_settings_pg.get_endpoint('ui')
 
 
-# /api/v1/settings/user
+# /api/v2/settings/user
 @pytest.fixture(scope="class")
 def api_settings_user_pg(api_settings_pg):
     return api_settings_pg.get_endpoint('user')
 
 
-# /api/v1/settings/user-defaults
+# /api/v2/settings/user-defaults
 @pytest.fixture(scope="class")
 def api_settings_user_defaults_pg(api_settings_pg):
     return api_settings_pg.get_endpoint('user-defaults')

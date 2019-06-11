@@ -14,9 +14,7 @@ log = logging.getLogger(__name__)
 
 
 @pytest.mark.second
-@pytest.mark.api
-@pytest.mark.destructive
-@pytest.mark.mp_group('AnsibleTowerService', 'isolated_serial')
+@pytest.mark.serial
 @pytest.mark.usefixtures('authtoken', 'skip_if_openshift')
 class TestTowerServices(APITest):
 
@@ -71,7 +69,7 @@ class TestTowerServices(APITest):
         assert not plugin_off, f"sosreport --list-plugins showed that {plugin} plugin was installed but not enabled (off). \n stdout: {pformat(stdout)}\n stderr: {pformat(stderr)}"
 
     def test_tower_restart(self, install_enterprise_license_unlimited, factories, v2, ansible_runner):
-        jt = factories.v2_job_template(playbook='sleep.yml',
+        jt = factories.job_template(playbook='sleep.yml',
                                        extra_vars=dict(sleep_interval=60))
         jt.ds.inventory.add_host()
         self.ensure_jt_runs_on_primary_instance(jt, v2)
@@ -106,7 +104,7 @@ class TestTowerServices(APITest):
 
     def test_rabbitmq_unavailable(self, install_enterprise_license_unlimited,
                                   factories, v2, ansible_runner, ansible_os_family):
-        jt = factories.v2_job_template(playbook='sleep.yml',
+        jt = factories.job_template(playbook='sleep.yml',
                                        extra_vars=dict(sleep_interval=60))
         jt.ds.inventory.add_host()
         # Important to run jt on same node where we stop rabbitmq because
@@ -146,7 +144,7 @@ class TestTowerServices(APITest):
         job.assert_successful(msg='Newly launched job was not successful after rabbitmq restart!')
 
         # Test that we can create new job templates and run them
-        new_jt = factories.v2_job_template(playbook='sleep.yml',
+        new_jt = factories.job_template(playbook='sleep.yml',
                                        extra_vars=dict(sleep_interval=1))
         new_job = new_jt.launch().wait_until_completed()
         new_job.assert_successful(msg='Job launched from newly created JT after rabbitmq restart failed!')
@@ -158,7 +156,7 @@ class TestTowerServices(APITest):
             pg_service = 'postgresql'
         else:
             pg_service = 'postgresql-9.6'
-        jt = factories.v2_job_template(playbook='sleep.yml',
+        jt = factories.job_template(playbook='sleep.yml',
                                        extra_vars=dict(sleep_interval=120))
         jt.ds.inventory.add_host()
         job = jt.launch().wait_until_status('running')
@@ -231,7 +229,7 @@ class TestTowerServices(APITest):
             assert job.job_explanation == 'Task was marked as running in Tower but was not present in the job queue, so it has been marked as failed.'
 
         # Test that we can create new job templates and run them
-        new_jt = factories.v2_job_template(playbook='sleep.yml',
+        new_jt = factories.job_template(playbook='sleep.yml',
                                        extra_vars=dict(sleep_interval=1))
         new_job = new_jt.launch().wait_until_completed()
         new_job.assert_successful(msg='Job launched from newly created JT after DB restart failed!')

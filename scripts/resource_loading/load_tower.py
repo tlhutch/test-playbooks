@@ -17,20 +17,20 @@ handler.setLevel('DEBUG')
 log.addHandler(handler)
 
 
-v1 = api.ApiV1()
-if uses_sessions(v1.connection):
+v2 = api.ApiV2()
+if uses_sessions(v2.connection):
     config.use_sessions = True
-    v1.load_session().get()
+    v2.load_session().get()
 else:
-    v1.load_authtoken().get()
-v1.config.get().install_license()
+    v2.load_authtoken().get()
+v2.config.get().install_license()
 
 
 # Create users
 users = {}
 for user in resources.users:
     log.info('Creating User: {0.username}'.format(user))
-    users[user.username] = v1.users.create(user.username, user.password,
+    users[user.username] = v2.users.create(user.username, user.password,
                                            email=user.email,
                                            first_name=user.first_name,
                                            last_name=user.last_name,
@@ -40,7 +40,7 @@ for user in resources.users:
 organizations = {}
 for organization in resources.organizations:
     log.info('Creating Organization: {0.name}'.format(organization))
-    org = v1.organizations.create(organization.name, organization.description)
+    org = v2.organizations.create(organization.name, organization.description)
     organizations[organization.name] = org
     for username in organization.users:
         org.add_user(users[username])
@@ -51,7 +51,7 @@ for organization in resources.organizations:
 teams = {}
 for team in resources.teams:
     log.info('Creating Team: {0.name}'.format(team))
-    created_team = v1.teams.create(team.name, description=team.get('description', ''),
+    created_team = v2.teams.create(team.name, description=team.get('description', ''),
                                    organization=organizations[team.organization])
     teams[team.name] = created_team
     for username in team.users:
@@ -82,7 +82,7 @@ for credential in resources.credentials:
     if 'project' in credential:
         credential['project_id' if credential.kind == 'gce' else 'project_name'] = credential.pop('project')
 
-    credentials[credential.name] = v1.credentials.create(**credential)
+    credentials[credential.name] = v2.credentials.create(**credential)
 
 # Create projects
 projects = {}
@@ -92,7 +92,7 @@ for project in resources.projects:
     project['organization'] = organizations[project['organization']]
     if 'credential' in project:
         project['credential'] = credentials[project['credential']]
-    projects[project.name] = v1.projects.create(wait=False, **project)
+    projects[project.name] = v2.projects.create(wait=False, **project)
     project_updates.append(projects[project.name].related.current_update.get())
 
 for update in project_updates:
@@ -108,7 +108,7 @@ for update in project_updates:
 inventory_scripts = {}
 for inventory_script in resources.inventory_scripts:
     log.info('Creating Inventory Script: {0.name}'.format(inventory_script))
-    inv_script = v1.inventory_scripts.create(inventory_script.name, inventory_script.description,
+    inv_script = v2.inventory_scripts.create(inventory_script.name, inventory_script.description,
                                              organization=organizations[inventory_script.organization],
                                              script=inventory_script.script)
     inventory_scripts[inventory_script.name] = inv_script
@@ -120,7 +120,7 @@ for inventory in resources.inventories:
     inventory['organization'] = organizations[inventory.organization]
     if 'variables' in inventory:
         inventory['variables'] = json.dumps(inventory['variables'])
-    inventories[inventory.name] = v1.inventory.create(**inventory)
+    inventories[inventory.name] = v2.inventory.create(**inventory)
 
 # Create groups
 groups = {}
@@ -131,7 +131,7 @@ for group in resources.groups:
         group['variables'] = json.dumps(group['variables'])
     if 'parent' in group:
         group['parent'] = groups[group['parent']]
-    groups[group.name] = v1.groups.create(**group)
+    groups[group.name] = v2.groups.create(**group)
 
 # Create hosts
 hosts = {}
@@ -141,7 +141,7 @@ for host in resources.hosts:
     if 'variables' in host:
         host['variables'] = json.dumps(host['variables'])
     host['inventory'] = inventories[host.inventory]
-    hosts[host.name] = v1.hosts.create(**host)
+    hosts[host.name] = v2.hosts.create(**host)
     for group in _groups:
         groups[group].add_host(hosts[host.name])
 
@@ -179,7 +179,7 @@ for job_template in resources.job_templates:
     if 'extra_vars' in job_template:
         jt_args['extra_vars'] = json.dumps(job_template.extra_vars)
 
-    jt = v1.job_templates.create(**jt_args)
+    jt = v2.job_templates.create(**jt_args)
 
     job_templates[job_template.name] = jt
 
@@ -202,15 +202,15 @@ for job in jobs:
     except Exception as e:
         log.exception(e)
 
-igs = v1.instance_groups.get().results
-proj = v1.projects.create()
+igs = v2.instance_groups.get().results
+proj = v2.projects.create()
 
 for ig in igs:
-    jt = v1.job_templates.create(project=proj, name=u'igmapping JT - {}'.format(ig.name))
+    jt = v2.job_templates.create(project=proj, name=u'igmapping JT - {}'.format(ig.name))
     jt.add_instance_group(ig)
 for ig in igs:
-    inv = v1.inventory.create(name=u'igmapping Inventory - {}'.format(ig.name))
+    inv = v2.inventory.create(name=u'igmapping Inventory - {}'.format(ig.name))
     inv.add_instance_group(ig)
 for ig in igs:
-    org = v1.organizations.create(name=u'igmapping Org - {}'.format(ig.name))
+    org = v2.organizations.create(name=u'igmapping Org - {}'.format(ig.name))
     org.add_instance_group(ig)

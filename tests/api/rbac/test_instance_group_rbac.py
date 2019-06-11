@@ -9,8 +9,6 @@ from tests.lib.helpers.rbac_utils import assert_response_raised, check_read_acce
 from tests.api import APITest
 
 
-@pytest.mark.api
-@pytest.mark.rbac
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestInstanceGroupRBAC(APITest):
 
@@ -24,7 +22,7 @@ class TestInstanceGroupRBAC(APITest):
         """
         ig = factories.instance_group()
         instance = v2.instances.get(rampart_groups__controller__isnull=True).results.pop()
-        user = factories.v2_user()
+        user = factories.user()
 
         with self.current_user(user):
             with pytest.raises(exc.Forbidden):
@@ -55,7 +53,7 @@ class TestInstanceGroupRBAC(APITest):
 
         excluded_ig = factories.instance_group()
 
-        org = factories.v2_organization()
+        org = factories.organization()
         org.add_instance_group(ig)
         user = factories.user()
         org.add_admin(user)
@@ -80,9 +78,7 @@ class TestInstanceGroupRBAC(APITest):
                 ig.remove_instance(instance)
 
 
-@pytest.mark.api
-@pytest.mark.rbac
-@pytest.mark.mp_group('InstanceGroupAssignmentRBAC', 'isolated_serial')
+@pytest.mark.serial
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestInstanceGroupAssignmentRBAC(APITest):
 
@@ -182,7 +178,7 @@ class TestInstanceGroupAssignmentRBAC(APITest):
             assert org.get_related('instance_groups').count == len(org_instance_groups)
             assert other_org.get_related('instance_groups').count == len(org_instance_groups)
 
-    @pytest.mark.parametrize('resource_type', ['v2_job_template', 'v2_inventory', 'v2_organization'])
+    @pytest.mark.parametrize('resource_type', ['job_template', 'inventory', 'organization'])
     def test_regular_user(self, v2, factories, resource_type):
         """A regular user should not be able to (un)assign instance groups to any resources."""
         user = factories.user()

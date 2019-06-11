@@ -29,7 +29,7 @@ def project_with_queued_updates(project_ansible_playbooks_git_nowait):
 
 @pytest.fixture(scope="function")
 def project_with_galaxy_requirements(factories):
-    return factories.v2_project(
+    return factories.project(
         name="project-with-galaxy-requirements - %s" % fauxfactory.gen_utf8(),
         scm_type='git',
         scm_url='https://github.com/ansible/test-playbooks',
@@ -37,8 +37,6 @@ def project_with_galaxy_requirements(factories):
     )
 
 
-@pytest.mark.api
-@pytest.mark.destructive
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class Test_Projects(APITest):
 
@@ -123,7 +121,7 @@ class Test_Projects(APITest):
 
     # Skip for Openshift because of Github Issue: https://github.com/ansible/tower-qa/issues/2591
     def test_automatic_deletion_of_project_folder(self, skip_if_openshift, factories, ansible_adhoc, api_config_pg, api_ping_pg, v2):
-        project = factories.v2_project()
+        project = factories.project()
         expected_project_path = os.path.join(api_config_pg.project_base_dir, project.local_path)  # absolute path
 
         # Test has 2 variations - standalone and cluster
@@ -213,7 +211,7 @@ class Test_Projects(APITest):
         ('git', {'scm_url': 'https://github.com/alancoding/ansible-playbooks.git'})
     ], ids=['hg-branch', 'git-branch', 'scm_type', 'git-url'])
     def test_auto_update_on_modification_of_scm_fields(self, factories, scm_type, mod_kwargs):
-        project = factories.v2_project(scm_type=scm_type)
+        project = factories.project(scm_type=scm_type)
         assert project.related.project_updates.get().count == 1
 
         # verify that changing update-relevant parameters causes new update
@@ -298,7 +296,7 @@ class Test_Projects(APITest):
             "Unexpected number of project updates after deleting project. Expected zero updates."
 
     def test_conflict_exception_with_running_project_update(self, factories):
-        project = factories.v2_project()
+        project = factories.project()
         update = project.update()
 
         with pytest.raises(exc.Conflict) as e:
@@ -345,9 +343,9 @@ class Test_Projects(APITest):
                 expected_role_path
 
     def test_project_with_galaxy_requirements_processed_on_scm_change(self, factories, job_template_that_writes_to_source):
-        project_with_requirements = factories.v2_project(scm_url='https://github.com/ansible/test-playbooks.git',
+        project_with_requirements = factories.project(scm_url='https://github.com/ansible/test-playbooks.git',
                                                          scm_branch='with_requirements')
-        jt_with_requirements = factories.v2_job_template(project=project_with_requirements,
+        jt_with_requirements = factories.job_template(project=project_with_requirements,
                                                          playbook='debug.yml')
 
         jt_with_requirements.launch().wait_until_completed().assert_successful(
@@ -370,10 +368,10 @@ class Test_Projects(APITest):
                              ids=['invalid_cred', 'valid_cred', 'cred_in_url'])
     def test_project_update_results_do_not_leak_credential(self, factories, scm_url, use_credential):
         if use_credential:
-            cred = factories.v2_credential(kind='scm', username='foobar', password='barfoo')
+            cred = factories.credential(kind='scm', username='foobar', password='barfoo')
         else:
             cred = None
-        project = factories.v2_project(credential=cred, scm_url=scm_url)
+        project = factories.project(credential=cred, scm_url=scm_url)
         pu = project.related.project_updates.get().results.pop()
         assert pu.is_completed
 

@@ -5,7 +5,6 @@ from tests.api import APITest
 from tests.lib.helpers.copy_utils import check_fields
 
 
-@pytest.mark.api
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class Test_Copy_Job_Template(APITest):
 
@@ -21,10 +20,10 @@ class Test_Copy_Job_Template(APITest):
     @pytest.mark.parametrize("same_org_proj", [True, False], ids=['same_org_proj', 'another_org_proj'])
     @pytest.mark.parametrize("same_org_inv", [True, False], ids=['same_org_inv', 'another_org_inv'])
     def test_org_admin_can_copy(self, factories, copy_with_teardown, same_org_proj, same_org_inv):
-        orgA, orgB = [factories.v2_organization() for _ in range(2)]
-        project = factories.v2_project(organization=orgA if same_org_proj else orgB)
-        inventory = factories.v2_inventory(organization=orgA if same_org_inv else orgB)
-        jt = factories.v2_job_template(inventory=inventory, project=project)
+        orgA, orgB = [factories.organization() for _ in range(2)]
+        project = factories.project(organization=orgA if same_org_proj else orgB)
+        inventory = factories.inventory(organization=orgA if same_org_inv else orgB)
+        jt = factories.job_template(inventory=inventory, project=project)
         user = factories.user()
         orgA.set_object_roles(user, 'admin')
         jt.set_object_roles(user, 'admin')
@@ -40,7 +39,7 @@ class Test_Copy_Job_Template(APITest):
                     copy_with_teardown(jt)
 
     def test_copy_normal(self, factories, copy_with_teardown):
-        jt = factories.v2_job_template()
+        jt = factories.job_template()
         new_jt = copy_with_teardown(jt)
         check_fields(jt, new_jt, self.identical_fields, self.unequal_fields)
 
@@ -50,7 +49,7 @@ class Test_Copy_Job_Template(APITest):
 
     def test_copy_jt_instance_groups(self, factories, copy_with_teardown):
         ig = factories.instance_group()
-        jt = factories.v2_job_template()
+        jt = factories.job_template()
         jt.add_instance_group(ig)
         new_jt = copy_with_teardown(jt)
 
@@ -63,8 +62,8 @@ class Test_Copy_Job_Template(APITest):
         assert new_igs.results[0].id == old_igs.results[0].id
 
     def test_copy_jt_labels(self, factories, copy_with_teardown):
-        jt = factories.v2_job_template()
-        label = factories.v2_label()
+        jt = factories.job_template()
+        label = factories.label()
         jt.add_label(label)
         new_jt = copy_with_teardown(jt)
 
@@ -78,7 +77,7 @@ class Test_Copy_Job_Template(APITest):
 
     @pytest.mark.yolo
     def test_copy_jt_survey_spec(self, factories, copy_with_teardown):
-        jt = factories.v2_job_template()
+        jt = factories.job_template()
         survey = [dict(required=False,
                        question_name='Test-1',
                        variable='var1',

@@ -8,9 +8,7 @@ import pytest
 from tests.api import APITest
 
 
-@pytest.mark.api
-@pytest.mark.nondestructive
-@pytest.mark.mp_group('InstanceGroups', 'isolated_serial')
+@pytest.mark.serial
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestInstanceGroups(APITest):
 
@@ -108,8 +106,8 @@ class TestInstanceGroups(APITest):
         ig = factories.instance_group()
         ig.add_instance(instance)
 
-        jt = factories.v2_job_template(playbook='sleep.yml', extra_vars=dict(sleep_interval=360))
-        factories.v2_host(inventory=jt.ds.inventory)
+        jt = factories.job_template(playbook='sleep.yml', extra_vars=dict(sleep_interval=360))
+        factories.host(inventory=jt.ds.inventory)
         jt.add_instance_group(ig)
 
         job = jt.launch()
@@ -126,7 +124,7 @@ class TestInstanceGroups(APITest):
         ig = factories.instance_group()
         ig.add_instance(instance)
 
-        project = factories.v2_project(scm_url='https://github.com/ansible/ansible.git', scm_delete_on_update=True)
+        project = factories.project(scm_url='https://github.com/ansible/ansible.git', scm_delete_on_update=True)
         project.ds.organization.add_instance_group(ig)
 
         assert ig.related.instances.get().count == 1  # test flake due to github.com/ansible/tower/issues/2772
@@ -148,8 +146,8 @@ class TestInstanceGroups(APITest):
         ig = factories.instance_group()
         ig.add_instance(instance)
 
-        inv_script = factories.v2_inventory_script(script=inventory_script_code_with_sleep(20))
-        inv_source = factories.v2_inventory_source(source_script=inv_script)
+        inv_script = factories.inventory_script(script=inventory_script_code_with_sleep(20))
+        inv_source = factories.inventory_source(source_script=inv_script)
         assert inv_source.source_script == inv_script.id
         inv_source.ds.inventory.add_instance_group(ig)
 

@@ -46,8 +46,6 @@ def custom_inventory_source_with_vars(request, custom_inventory_source, custom_i
     return custom_inventory_source
 
 
-@pytest.mark.api
-@pytest.mark.destructive
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class Test_Inventory_Scripts(APITest):
     """Verifies basic CRUD operations against the /inventory_scripts endpoint"""
@@ -136,10 +134,10 @@ class Test_Inventory_Scripts(APITest):
                 inventory_script.get()
 
     def test_duplicate_inventory_scripts_disallowed_by_organization(self, factories):
-        inv_script = factories.v2_inventory_script()
+        inv_script = factories.inventory_script()
 
         with pytest.raises(exc.Duplicate) as e:
-            factories.v2_inventory_script(name=inv_script.name, organization=inv_script.ds.organization)
+            factories.inventory_script(name=inv_script.name, organization=inv_script.ds.organization)
         assert e.value[1]['__all__'] == ['Custom inventory script with this Name and Organization already exists.']
 
     def test_unique(self, request, api_inventory_scripts_pg, inventory_script, another_organization):
@@ -289,8 +287,8 @@ class Test_Inventory_Scripts(APITest):
         """Verify an inventory_update fails when using various bad inventory_scripts"""
         # PATCH inventory_source
         org = bad_inventory_script.related.organization.get()
-        inventory = factories.v2_inventory(organization=org)
-        custom_inventory_source = factories.v2_inventory_source(source_script=bad_inventory_script, inventory=inventory)
+        inventory = factories.inventory(organization=org)
+        custom_inventory_source = factories.inventory_source(source_script=bad_inventory_script, inventory=inventory)
         assert custom_inventory_source.source_script == bad_inventory_script.id
 
         # Update inventory_source and wait for completion

@@ -5,7 +5,6 @@ import pytest
 from tests.api import APITest
 
 
-@pytest.mark.api
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited', 'skip_if_not_cluster')
 class TestClusterCommon(APITest):
 
@@ -17,7 +16,7 @@ class TestClusterCommon(APITest):
             ig.add_instance(instance)
             igs.append(ig)
 
-        jt = factories.v2_job_template()
+        jt = factories.job_template()
         jt.ds.inventory.add_host()
 
         for ig in igs:
@@ -35,9 +34,9 @@ class TestClusterCommon(APITest):
         ig1.add_instance(instances[0])
         ig2.add_instance(instances[1])
 
-        host = factories.v2_host()
-        gather_facts_jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='gather_facts.yml', use_fact_cache=True)
-        use_facts_jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='use_facts.yml', job_tags='ansible_facts',
+        host = factories.host()
+        gather_facts_jt = factories.job_template(inventory=host.ds.inventory, playbook='gather_facts.yml', use_fact_cache=True)
+        use_facts_jt = factories.job_template(inventory=host.ds.inventory, playbook='use_facts.yml', job_tags='ansible_facts',
                                                  use_fact_cache=True)
         gather_facts_jt.add_instance_group(ig1)
         use_facts_jt.add_instance_group(ig2)
@@ -52,7 +51,7 @@ class TestClusterCommon(APITest):
         assert use_facts_job.result_stdout.count(ansible_facts.ansible_system) == 1
 
     @pytest.mark.parametrize('isolated', [False, True])
-    @pytest.mark.mp_group('JobTemplateSlicing', 'isolated_serial')
+    @pytest.mark.serial
     def test_sliced_job_distributes_through_instance_group(self, v2, factories, isolated):
         if isolated:
             instances = v2.instances.get(rampart_groups__name='protected').results
@@ -74,7 +73,7 @@ class TestClusterCommon(APITest):
         available_hostnames = set(inst.hostname for inst in instances)
 
         # duplicated with sliced_jt_factory fixture
-        jt = factories.v2_job_template(job_slice_count=ct, playbook='sleep.yml', extra_vars='{"sleep_interval": 30}')
+        jt = factories.job_template(job_slice_count=ct, playbook='sleep.yml', extra_vars='{"sleep_interval": 30}')
         jt.add_instance_group(ig)
         inventory = jt.ds.inventory
         for i in range(ct):
@@ -117,7 +116,7 @@ class TestClusterCommon(APITest):
         ig = factories.instance_group()
         for inst in instances:
             ig.add_instance(inst)
-        jt = factories.v2_job_template()
+        jt = factories.job_template()
         resource_to_modify = get_resource_from_jt(jt, resource)
         resource_to_modify.remove_all_instance_groups()
         resource_to_modify.add_instance_group(ig)

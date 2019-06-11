@@ -6,7 +6,6 @@ from tests.api import APITest
 from tests.lib.helpers.copy_utils import check_fields
 
 
-@pytest.mark.api
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class Test_Copy_Workflow_Job_Template(APITest):
 
@@ -48,10 +47,10 @@ class Test_Copy_Workflow_Job_Template(APITest):
         post_options = v2.workflow_job_template_nodes.options().actions.POST
         job_types = list(dict(post_options.job_type.choices).keys())
         verbosities = list(dict(post_options.verbosity.choices).keys())
-        wfjt = factories.v2_workflow_job_template()
+        wfjt = factories.workflow_job_template()
         nodes = []
         for i in range(4):
-            jt = factories.v2_job_template(ask_variables_on_launch=gen_boolean(), ask_job_type_on_launch=gen_boolean(),
+            jt = factories.job_template(ask_variables_on_launch=gen_boolean(), ask_job_type_on_launch=gen_boolean(),
                                            ask_tags_on_launch=gen_boolean(), ask_skip_tags_on_launch=gen_boolean(),
                                            ask_limit_on_launch=gen_boolean(), ask_verbosity_on_launch=gen_boolean(),
                                            ask_diff_mode_on_launch=gen_boolean())
@@ -62,27 +61,27 @@ class Test_Copy_Workflow_Job_Template(APITest):
             limit = gen_alpha() if jt.ask_limit_on_launch else None
             verbosity = gen_choice(verbosities) if jt.ask_verbosity_on_launch else None
             diff_mode = gen_boolean() if jt.ask_diff_mode_on_launch else None
-            nodes.append(factories.v2_workflow_job_template_node(workflow_job_template=wfjt, extra_data=extra_data,
+            nodes.append(factories.workflow_job_template_node(workflow_job_template=wfjt, extra_data=extra_data,
                                                                  job_type=job_type, job_tags=job_tags,
                                                                  skip_tags=skip_tags, limit=limit, verbosity=verbosity,
                                                                  diff_mode=diff_mode, unified_job_template=jt))
         return wfjt
 
     def test_copy_normal(self, factories, copy_with_teardown):
-        wfjt = factories.v2_workflow_job_template()
+        wfjt = factories.workflow_job_template()
         new_wfjt = copy_with_teardown(wfjt)
         check_fields(wfjt, new_wfjt, self.identical_fields, self.unequal_fields)
 
     def test_copy_wfjt_with_non_default_values(self, factories, copy_with_teardown):
-        wfjt = factories.v2_workflow_job_template(extra_vars='{"foo": "bar"}', survey_enabled=gen_boolean(),
+        wfjt = factories.workflow_job_template(extra_vars='{"foo": "bar"}', survey_enabled=gen_boolean(),
                                                   allow_simultaneous=gen_boolean(),
                                                   ask_variables_on_launch=gen_boolean())
         new_wfjt = copy_with_teardown(wfjt)
         check_fields(wfjt, new_wfjt, self.identical_fields, self.unequal_fields)
 
     def test_copy_wfjt_labels(self, factories, copy_with_teardown):
-        wfjt = factories.v2_workflow_job_template()
-        label = factories.v2_label()
+        wfjt = factories.workflow_job_template()
+        label = factories.label()
         wfjt.add_label(label)
         new_wfjt = copy_with_teardown(wfjt)
 
@@ -95,7 +94,7 @@ class Test_Copy_Workflow_Job_Template(APITest):
         assert new_labels.results[0].id == old_labels.results[0].id
 
     def test_copy_wfjt_survey_spec(self, factories, copy_with_teardown):
-        wfjt = factories.v2_workflow_job_template()
+        wfjt = factories.workflow_job_template()
         survey = [dict(required=False,
                        question_name='Test-1',
                        variable='var1',

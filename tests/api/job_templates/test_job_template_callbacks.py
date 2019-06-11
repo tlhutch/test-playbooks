@@ -15,8 +15,6 @@ import pytest
 from tests.api import APITest
 
 
-@pytest.mark.api
-@pytest.mark.destructive
 @pytest.mark.ansible(host_pattern='tower[0]')  # do callbacks from node in cluster
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestJobTemplateCallbacks(APITest):
@@ -62,9 +60,9 @@ class TestJobTemplateCallbacks(APITest):
 
     @pytest.fixture
     def job_template_with_host_config_key(self, factories, remote_hosts, host_config_key):
-        jt = factories.v2_job_template(host_config_key=host_config_key)
+        jt = factories.job_template(host_config_key=host_config_key)
         for h in remote_hosts:
-            factories.v2_host(
+            factories.host(
                 inventory=jt.ds.inventory,
                 name=h,
                 variables=dict(
@@ -189,7 +187,7 @@ class TestJobTemplateCallbacks(APITest):
     def test_provision_failure_with_multiple_host_matches(self, skip_if_openshift, ansible_runner, factories, ansible_default_ipv4,
                                                           host_config_key, callback_host):
         """Verify launch failure when launching a job_template where multiple hosts match"""
-        inventory = factories.v2_inventory()
+        inventory = factories.inventory()
 
         # account for dev container
         ansible_host = '127.0.0.1' if 'localhost' in callback_host else ansible_default_ipv4
@@ -493,12 +491,12 @@ class TestJobTemplateCallbacks(APITest):
             'print(json.dumps(inventory))'
         ]).format(ansible_host)
 
-        inv_script = factories.v2_inventory_script(script=script)
-        inv_source = factories.v2_inventory_source(source_script=inv_script)
+        inv_script = factories.inventory_script(script=script)
+        inv_source = factories.inventory_source(source_script=inv_script)
         assert inv_source.source_script == inv_script.id
         inv_source.update_on_launch = True
 
-        job_template = factories.v2_job_template(inventory=inv_source.ds.inventory)
+        job_template = factories.job_template(inventory=inv_source.ds.inventory)
         job_template.host_config_key = host_config_key
 
         assert inv_source.last_updated is None
@@ -540,16 +538,16 @@ class TestJobTemplateCallbacks(APITest):
             'print(json.dumps(inventory))'
         ])
 
-        inv_script = factories.v2_inventory_script(script=script)
-        inv_source = factories.v2_inventory_source(source_script=inv_script)
+        inv_script = factories.inventory_script(script=script)
+        inv_source = factories.inventory_source(source_script=inv_script)
         assert inv_source.source_script == inv_script.id
         inv_source.update_on_launch = True
 
         ansible_host = '127.0.0.1' if 'localhost' in callback_host else ansible_default_ipv4
-        factories.v2_host(name=ansible_host, inventory=inv_source.ds.inventory,
+        factories.host(name=ansible_host, inventory=inv_source.ds.inventory,
                           variables=dict(ansible_host=ansible_host, ansible_connection='local'))
 
-        job_template = factories.v2_job_template(inventory=inv_source.ds.inventory)
+        job_template = factories.job_template(inventory=inv_source.ds.inventory)
         job_template.host_config_key = host_config_key
 
         assert inv_source.last_updated is None
@@ -577,9 +575,9 @@ class TestJobTemplateCallbacks(APITest):
         assert host_summaries[0].related.host.get().name == ansible_host
 
     def test_provision_without_inventory_update_on_launch(self, skip_if_openshift, ansible_runner, factories, host_config_key,
-                                                          custom_group, ansible_default_ipv4, callback_host):
+                                                          custom_inventory_source, ansible_default_ipv4, callback_host):
         """Assert that a callback job against a job_template does not initiate an inventory_update"""
-        inventory = custom_group.ds.inventory
+        inventory = custom_inventory_source.ds.inventory
         ansible_host = '127.0.0.1' if 'localhost' in callback_host else ansible_default_ipv4
         factories.host(name='callback_host', inventory=inventory,
                        variables=json.dumps(dict(ansible_host=ansible_host,
@@ -588,9 +586,9 @@ class TestJobTemplateCallbacks(APITest):
         job_template = factories.job_template(inventory=inventory)
         job_template.host_config_key = host_config_key
 
-        custom_group.related.inventory_source.patch(update_on_launch=False)
+        custom_inventory_source.patch(update_on_launch=False)
 
-        assert custom_group.get_related('inventory_source').last_updated is None
+        assert custom_inventory_source.last_updated is None
 
         contacted = ansible_runner.uri(method="POST",
                                        timeout=60,
@@ -607,9 +605,10 @@ class TestJobTemplateCallbacks(APITest):
         job_id = result['location'].split('jobs/')[1].split('/')[0]
         job_template.related.jobs.get(id=job_id).results.pop().wait_until_completed()
 
-        assert custom_group.get_related('hosts').count == 0
-        assert custom_group.get_related('children').count == 0
-        assert custom_group.get_related('inventory_source').last_updated is None
+        # The host we created
+        assert inventory.get_related('hosts').count == 1
+        assert inventory.get_related('groups').count == 0
+        assert custom_inventory_source.get().last_updated is None
 
     def test_provision_callback_user_relaunch_forbidden(self, v2, factories, job_template_with_host_config_key, host_config_key, remote_hosts):
         """
@@ -630,7 +629,7 @@ class TestJobTemplateCallbacks(APITest):
         job_id = self.get_job_id_from_location_header(res)
         job1 = v2.jobs.get(id=job_id).results[0]
 
-        user = factories.v2_user()
+        user = factories.user()
         jt.ds.inventory.ds.organization.set_object_roles(user, 'member')
         [jt.ds[resource].set_object_roles(user, 'use')
             for resource in ['credential', 'project', 'inventory']]

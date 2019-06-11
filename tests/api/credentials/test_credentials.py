@@ -8,65 +8,8 @@ import pytest
 from tests.api import APITest
 
 
-@pytest.mark.api
-@pytest.mark.destructive
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestCredentials(APITest):
-
-    def test_credential_creation_attempt_with_invalid_kind(self, v1, factories):
-        payload = factories.credential.payload()
-        payload['kind'] = 'invalid_kind'
-
-        with pytest.raises(exc.BadRequest) as e:
-            v1.credentials.post(payload)
-        assert e.value.msg == {'kind': ['"invalid_kind" is not a valid choice']}
-
-    @pytest.mark.parametrize('fields', [dict(name=fauxfactory.gen_utf8(),
-                                             description=fauxfactory.gen_utf8(),
-                                             username=fauxfactory.gen_alphanumeric(),
-                                             password=fauxfactory.gen_utf8(),
-                                             ssh_key_data=config.credentials.ssh.ssh_key_data,
-                                             ssh_key_unlock='',
-                                             become_method="sudo",
-                                             become_username=fauxfactory.gen_alphanumeric(),
-                                             become_password=fauxfactory.gen_utf8()),
-                                        dict(name=fauxfactory.gen_utf8(),
-                                             description=fauxfactory.gen_utf8(),
-                                             username=fauxfactory.gen_alphanumeric(),
-                                             password=fauxfactory.gen_utf8(),
-                                             ssh_key_data='',
-                                             ssh_key_unlock='',
-                                             become_method="sudo",
-                                             become_username=fauxfactory.gen_alphanumeric(),
-                                             become_password=fauxfactory.gen_utf8()),
-                                        dict(name=fauxfactory.gen_utf8(),
-                                             description=fauxfactory.gen_utf8(),
-                                             username=fauxfactory.gen_alphanumeric(),
-                                             password=fauxfactory.gen_utf8(),
-                                             ssh_key_data='',
-                                             ssh_key_unlock='',
-                                             become_method="plugin",
-                                             become_username=fauxfactory.gen_alphanumeric(),
-                                             become_password=fauxfactory.gen_utf8()),
-                                        dict(name=fauxfactory.gen_utf8(),
-                                             description=fauxfactory.gen_utf8(),
-                                             username='',
-                                             password='',
-                                             ssh_key_data='',
-                                             ssh_key_unlock='',
-                                             become_method='',
-                                             become_username='',
-                                             become_password='')])
-    def test_v1_ssh_credential_valid_payload_field_integrity(self, factories, v1, fields):
-        credential = factories.credential(kind='ssh', **fields)
-
-        def validate_fields():
-            for field in ('name', 'description', 'username', 'become_method', 'become_username'):
-                assert credential[field] == fields[field]
-
-        validate_fields()
-        credential.put()
-        validate_fields()
 
     @pytest.mark.parametrize('input_fields', [dict(username=fauxfactory.gen_alphanumeric(),
                                                    password=fauxfactory.gen_utf8(),
@@ -89,10 +32,10 @@ class TestCredentials(APITest):
                                                    become_method='',
                                                    become_username='',
                                                    become_password='')])
-    def test_v2_ssh_credential_valid_payload_field_integrity(self, factories, v2, input_fields):
+    def test_ssh_credential_valid_payload_field_integrity(self, factories, v2, input_fields):
         cred_type = v2.credential_types.get(managed_by_tower=True, kind='ssh').results.pop()
         kwargs = {'name': fauxfactory.gen_utf8(), 'description': fauxfactory.gen_utf8()}
-        credential = factories.v2_credential(credential_type=cred_type, inputs=input_fields, **kwargs)
+        credential = factories.credential(credential_type=cred_type, inputs=input_fields, **kwargs)
 
         def validate_fields():
             for field in ('name', 'description'):
@@ -104,11 +47,10 @@ class TestCredentials(APITest):
         credential.put()
         validate_fields()
 
-    @pytest.mark.parametrize('v', ('v1', 'v2'))
-    def test_team_credentials_are_organization_credentials(self, factories, v):
+    def test_team_credentials_are_organization_credentials(self, factories, v2):
         """confirm that a team credential's organization is sourced from the team"""
-        team_factory = getattr(factories, 'team' if v == 'v1' else 'v2_team')
-        cred_factory = getattr(factories, 'credential' if v == 'v1' else 'v2_credential')
+        team_factory = factories.team
+        cred_factory = factories.credential
 
         team = team_factory()
         credential = cred_factory(team=team, organization=None)
@@ -121,66 +63,42 @@ class TestCredentials(APITest):
 
         assert owner_organizations[0].get("id") == team.organization
 
-    @pytest.mark.parametrize('v', ('v1', 'v2'))
-    def test_duplicate_credential_creation(self, request, factories, v):
+    def test_duplicate_credential_creation(self, request, factories, v2):
         """Confirms that duplicate credentials are allowed when an organization isn't shared (user only)
         and disallowed when one is (including one sourced from a team)
         """
-        version = request.getfixturevalue(v)
-        user_factory = getattr(factories, 'user' if v == 'v1' else 'v2_user')
-        team_factory = getattr(factories, 'team' if v == 'v1' else 'v2_team')
-        cred_factory = getattr(factories, 'credential' if v == 'v1' else 'v2_credential')
-
-        # Successfully create duplicate user credentials without an organization
-        payload = cred_factory.payload(user=user_factory(), organization=None)
-        for _ in range(2):
-            cred = version.credentials.post(payload)
-            request.addfinalizer(cred.silent_delete)
+        org1 = factories.organization()
+        org2 = factories.organization()
+        team = factories.team(organization=org1)
+        user1 = factories.user(organization=org1)
+        user2 = factories.user(organization=org2)
+        # Successfully create two credentials with same name but different user and without an organization
+        name = 'duplicate_user_cred_{}'.format(fauxfactory.gen_utf8())
+        for user in [user1, user2]:
+            factories.credential(user=user, name=name)
 
         # attempt to create duplicate organization credentials
-        payload = cred_factory.payload()
-        cred = version.credentials.post(payload)
-        request.addfinalizer(cred.silent_delete)
+        name = 'duplicate_org_cred_{}'.format(fauxfactory.gen_utf8())
+        factories.credential(name=name, organization=org2)
         with pytest.raises(exc.Duplicate):
-            version.credentials.post(payload)
+            factories.credential(name=name, organization=org2)
 
         # attempt to create duplicate team (thus organization) credentials
-        payload = cred_factory.payload(team=team_factory(), organization=None)
-        cred = version.credentials.post(payload)
-        request.addfinalizer(cred.silent_delete)
+        name = 'duplicate_team_cred_{}'.format(fauxfactory.gen_utf8())
+        factories.credential(name=name, team=team)
         with pytest.raises(exc.Duplicate):
-            version.credentials.post(payload)
+            factories.credential(name=name, team=team)
 
-    def test_credential_v1_with_missing_required_field_fails_job_prestart_check(self, factories, v1):
+    def test_credential_with_missing_required_field_fails_job_prestart_check(self, request, factories, v2):
         """Confirms that a credential with a missing required field causes the
         job prestart check to fail.
         """
-        payload = factories.credential.payload(kind='openstack')
-        del payload['project'] # required for openstack
-        cred = v1.credentials.post(payload)
-
-        jt = factories.job_template()
-        jt.cloud_credential = cred.id
-        job = jt.launch().wait_until_completed()
-
-        assert job.status == 'failed'
-        assert 'Job cannot start' in job.job_explanation
-        assert 'does not provide one or more required fields (project)' in job.job_explanation
-        assert 'Task failed pre-start check' in job.job_explanation
-
-    @pytest.fixture(scope='class')
-    def openstack_credential_type(self, v2_class):
-        return v2_class.credential_types.get(name__icontains='openstack', managed_by_tower=True).results.pop()
-
-    def test_credential_v2_with_missing_required_field_fails_job_prestart_check(self, factories, v2, openstack_credential_type):
-        """Confirms that a credential with a missing required field causes the
-        job prestart check to fail.
-        """
-        payload = factories.v2_credential.payload(credential_type=openstack_credential_type)
+        payload = factories.credential.payload(kind='openstack_v3')
         del payload.inputs['project'] # required for openstack
         cred = v2.credentials.post(payload)
+        request.addfinalizer(cred.silent_delete)
 
-        jt = factories.v2_job_template()
+        jt = factories.job_template()
         jt.add_credential(cred)
         job = jt.launch().wait_until_completed()
 
@@ -189,14 +107,11 @@ class TestCredentials(APITest):
         assert 'does not provide one or more required fields (project)' in job.job_explanation
         assert 'Task failed pre-start check' in job.job_explanation
 
-    @pytest.mark.parametrize('version', ('v1', 'v2'))
-    def test_invalid_ssh_key_data_creation_attempt(self, request, factories, version):
-        v = request.getfixturevalue(version)
-        cred_factory = factories.credential if version == 'v1' else factories.v2_credential
-        payload = cred_factory.payload(kind='ssh', ssh_key_data='NotAnRSAKey')
+    def test_invalid_ssh_key_data_creation_attempt(self, request, factories):
 
         with pytest.raises(exc.BadRequest) as e:
-            v.credentials.post(payload)
+            factories.credential(kind='ssh', ssh_key_data='NotAnRSAKey')
+
         error = e.value.msg.get('inputs', e.value.msg)
         assert error == {'ssh_key_data': ['Invalid certificate or key: NotAnRSAKey...']}
 
@@ -208,8 +123,8 @@ class TestCredentials(APITest):
     ], ids=["ssh-passphrase", "ssh-ASK", "net-passphrase", "net-ASK"])
     def test_ssh_key_unlock_with_unencrypted_key_data(self, v2, factories, kind, ssh_key_unlock):
         """Credentials with unencrypted key data should reject both passphrases and passphrase-ASK."""
-        user = factories.v2_user()
-        payload = factories.v2_credential.payload(kind=kind, user=user, ssh_key_unlock=ssh_key_unlock)
+        user = factories.user()
+        payload = factories.credential.payload(kind=kind, user=user, ssh_key_unlock=ssh_key_unlock)
 
         with pytest.raises(exc.BadRequest) as e:
             v2.credentials.post(payload)
@@ -222,14 +137,14 @@ class TestCredentials(APITest):
                               'git@github.com:/ansible/tower-qa.git']],
                              ids=['by unencrypted key', 'by encrypted key'])
     def test_scm_credential_with_private_github_repo(self, factories, cred_args, scm_url):
-        scm_cred = factories.v2_credential(kind='scm', **cred_args)
-        project = factories.v2_project(scm_url=scm_url, credential=scm_cred)
+        scm_cred = factories.credential(kind='scm', **cred_args)
+        project = factories.project(scm_url=scm_url, credential=scm_cred)
         project.assert_successful()
         assert len(project.related.playbooks.get().json)
 
     @pytest.mark.parametrize('cred_type', ['Machine', 'Vault'])
     def test_changing_credential_types_only_allowed_for_unused_credentials(self, factories, v2, cred_type):
-        cred = factories.v2_credential(kind='insights')
+        cred = factories.credential(kind='insights')
         insights_type_id = cred.credential_type
 
         cred_type_id = v2.credential_types.get(name=cred_type).results.pop().id
@@ -240,11 +155,11 @@ class TestCredentials(APITest):
         cred.patch(**payload)
         assert cred.credential_type == cred_type_id
 
-        project = factories.v2_project()
+        project = factories.project()
         if cred_type == 'Machine':
-            factories.v2_job_template(project=project, credential=cred)
+            factories.job_template(project=project, credential=cred)
         else:
-            factories.v2_job_template(project=project, vault_credential=cred.id)
+            factories.job_template(project=project, vault_credential=cred.id)
 
         with pytest.raises(exc.BadRequest) as e:
             cred.credential_type = insights_type_id
@@ -252,10 +167,10 @@ class TestCredentials(APITest):
         assert cred.credential_type == cred_type_id
 
     def test_changing_extra_credential_types_only_allowed_for_unused_credentials(self, factories, v2):
-        cred = factories.v2_credential(kind='aws')
+        cred = factories.credential(kind='aws')
         aws_type_id = cred.credential_type
 
-        jt = factories.v2_job_template()
+        jt = factories.job_template()
         jt.add_extra_credential(cred)
 
         machine_type_id = v2.credential_types.get(name='Machine').results.pop().id
@@ -266,15 +181,14 @@ class TestCredentials(APITest):
         assert cred.credential_type == aws_type_id
 
     def test_confirm_boto_exception_in_ec2_inv_sync_without_credential(self, factories):
-        inv_source = factories.v2_inventory_source(source='ec2')
+        inv_source = factories.inventory_source(source='ec2')
         assert not inv_source.credential
         update = inv_source.update().wait_until_completed()
         assert update.failed
         assert ('NoAuthHandlerFound' in update.result_stdout) or ('Insufficient boto credentials found' in update.result_stdout)
 
-    @pytest.mark.mp_group(group="get_pg_dump", strategy="serial")
     def test_confirm_no_plaintext_secrets_in_db(self, skip_if_cluster, v2, factories, get_pg_dump):
-        cred_payloads = [factories.v2_credential.payload(kind=k) for k in ('aws', 'azure_rm', 'gce', 'net', 'ssh')]
+        cred_payloads = [factories.credential.payload(kind=k) for k in ('aws', 'azure_rm', 'gce', 'net', 'ssh')]
         secrets = set()
         for payload in cred_payloads:
             for field in ('password', 'ssh_key_data', 'authorize_password', 'become_password', 'secret'):
@@ -295,10 +209,9 @@ class TestCredentials(APITest):
             locations = '\n'.join(pg_dump[location - 200:location + 200] for location in undesired_locations)
             pytest.fail('Found plaintext secret in db: {}'.format(locations))
 
-    @pytest.mark.mp_group(group="get_pg_dump", strategy="serial")
     def test_confirm_desired_encryption_schemes_in_db(self, skip_if_cluster, v2, factories, get_pg_dump):
         for kind in ('aws', 'azure_rm', 'gce', 'net', 'ssh'):
-            factories.v2_credential(kind=kind)
+            factories.credential(kind=kind)
 
         encrypted_content_pat = re.compile(r'\$encrypted\$[a-zA-Z0-9$]*=*')
         encrypted_content = encrypted_content_pat.findall(get_pg_dump())

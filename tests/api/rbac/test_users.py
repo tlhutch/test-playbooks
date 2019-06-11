@@ -9,7 +9,7 @@ from tests.api import APITest
 
 def user_payload(**kwargs):
     """Convenience function to return a API payload for use with posting to
-    /api/v1/users/.
+    /api/v2/users/.
     """
     payload = dict(username="joe_user_%s" % fauxfactory.gen_alphanumeric(),
                    first_name="Joe (%s)" % fauxfactory.gen_utf8(),
@@ -21,13 +21,11 @@ def user_payload(**kwargs):
     return payload
 
 
-@pytest.mark.api
-@pytest.mark.destructive
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class Test_Users(APITest):
 
     def test_duplicate_users_disallowed(self, factories):
-        user = factories.v2_user()
+        user = factories.user()
 
         with pytest.raises(exc.Duplicate) as e:
             factories.user(username=user.username)
@@ -69,7 +67,7 @@ class Test_Users(APITest):
 
     def test_org_member_cannot_elevate_themselves_to_org_admin(self, org_user, user_password):
         """Verifies that an org_member cannot elevate himself to an org_admin by associating himself
-        via /api/v1/organizations/N/admins/.
+        via /api/v2/organizations/N/admins/.
         """
         org_admin_pg = org_user.get_related('organizations').results[0].get_related('admins')
 
@@ -95,13 +93,13 @@ class Test_Users(APITest):
                 users_pg.post(user_payload())
 
     def test_nonsuperusers_cannot_create_orphaned_user(self, api_users_pg, non_superuser, user_password):
-        """Verify that a non_superuser cannot create users via /api/v1/users/."""
+        """Verify that a non_superuser cannot create users via /api/v2/users/."""
         with self.current_user(non_superuser.username, user_password):
             with pytest.raises(exc.Forbidden):
                 api_users_pg.post(user_payload())
 
     def test_user_creation_doesnt_leak_password_into_activity_stream(self, v2, factories):
-        superuser = factories.v2_user(is_superuser=True)
+        superuser = factories.user(is_superuser=True)
         user_activity_stream = str(superuser.related.activity_stream.get())
         for secret in (superuser.password, 'md5'):
             assert secret not in user_activity_stream

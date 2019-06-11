@@ -37,7 +37,7 @@ def delete_license_until_effective(config):
 
 
 @pytest.fixture(scope='session')
-def apply_license(api, mp_trail, mp_message_board):
+def apply_license(api):
     """Create a context manager for on-the-fly license switching. The initial
     license intallation state is retained after exiting.
     """
@@ -68,44 +68,34 @@ def apply_license(api, mp_trail, mp_message_board):
         trial = kwargs.get('trial', False)
         license_hash = str(license_type) + str(days) + str(instance_count) + str(trial)
 
-        initial_info_key = license_hash + '_initial_info'
+        # Fetch the current license information to restore later
+        config = api.current_version.get().config.get()
+        initial_license_info = config.license_info
 
         node_name = request.node.name if request else "Unknown"
         func_name = request._pyfuncitem.name if request else "Unknown"
 
         def teardown_license():
             log.debug("{}::{} teardown license {}".format(node_name, func_name, license_hash))
-            with mp_trail(license_hash, 'finish') as finish:
-                if finish:
-                    config = api.current_version.get().config.get()
-                    initial_info = mp_message_board[initial_info_key]
-                    log.info('Restoring initial license.')
-                    if not initial_info:
-                        delete_license_until_effective(config)
-                    else:
-                        initial_info['eula_accepted'] = True
-                        apply_license_until_effective(config, initial_info)
-                    del mp_message_board[initial_info_key]
-
-                    log.debug(str(mp_message_board))
+            config = api.current_version.get().config.get()
+            license_info = initial_license_info
+            log.info('Restoring initial license.')
+            if not license_info:
+                delete_license_until_effective(config)
+            else:
+                license_info['eula_accepted'] = True
+                apply_license_until_effective(config, license_info)
 
         try:
             log.debug("{}::{} setup license {}".format(node_name, func_name, license_hash))
-            with mp_trail(license_hash, 'start') as start:
-                if start:
-                    config = api.current_version.get().config.get()
-                    mp_message_board[initial_info_key] = config.license_info
-
-                    if license_type is None:
-                        delete_license_until_effective(config)
-                    else:
-                        instance_count = kwargs.pop('instance_count', sys.maxsize)
-                        license_info = generate_license(instance_count=instance_count,
-                                                        days=days,
-                                                        license_type=license_type, **kwargs)
-                        apply_license_until_effective(config, license_info)
-
-                    log.debug(str(mp_message_board))
+            if license_type is None:
+                delete_license_until_effective(config)
+            else:
+                instance_count = kwargs.pop('instance_count', sys.maxsize)
+                license_info = generate_license(instance_count=instance_count,
+                                                days=days,
+                                                license_type=license_type, **kwargs)
+                apply_license_until_effective(config, license_info)
 
             if request:
                 # We need to explictly register teardowns instead of yield-driven

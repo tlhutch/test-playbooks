@@ -8,8 +8,7 @@ import pytest
 from tests.api.license import LicenseTest
 
 
-@pytest.mark.api
-@pytest.mark.mp_group(group="NoLicense", strategy="isolated_free")
+@pytest.mark.serial
 @pytest.mark.usefixtures('authtoken', 'no_license')
 class TestNoLicense(LicenseTest):
 
@@ -84,21 +83,20 @@ class TestNoLicense(LicenseTest):
         assert conf.license_info == {}, "No license was expected, found %s" % conf.license_info
 
 
-@pytest.mark.api
-@pytest.mark.mp_group(group="NoLicenseSerial", strategy="isolated_serial")
+@pytest.mark.serial
 @pytest.mark.usefixtures('authtoken', 'no_license')
 class TestNoLicenseSerial(LicenseTest):
 
     def test_post_legacy_license(self, api_config_pg, legacy_license_json):
         """Verify that a license can be installed by issuing a POST to the /config endpoint"""
-        # Assert that no license present at /api/v1/config/
+        # Assert that no license present at /api/v2/config/
         conf = api_config_pg.get()
         assert not conf.is_valid_license, "No license was expected, but one was found"
 
         # Install the license
         api_config_pg.post(legacy_license_json)
 
-        # Assert that license present at /api/v1/config/
+        # Assert that license present at /api/v2/config/
         conf = api_config_pg.get()
         assert conf.license_info != {}, "License expected, but none found"
         assert conf.license_info.license_key == legacy_license_json['license_key']
@@ -108,4 +106,4 @@ class TestNoLicenseSerial(LicenseTest):
         api_config_pg.delete()
         poll_until(lambda: not v2.config.get().license_info, interval=1, timeout=15)
         with pytest.raises(exc.LicenseExceeded):
-            job_template.launch_job()
+            job_template.launch()

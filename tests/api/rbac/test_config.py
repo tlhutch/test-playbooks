@@ -2,7 +2,6 @@ import pytest
 from tests.api import APITest
 
 
-@pytest.mark.api
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestConfigUserAccess(APITest):
     """Verify the /config endpoint displays the expected information based on the current user"""

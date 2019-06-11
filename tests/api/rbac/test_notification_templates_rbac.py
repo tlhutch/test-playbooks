@@ -8,8 +8,6 @@ from tests.lib.helpers.rbac_utils import (
 from tests.api import APITest
 
 
-@pytest.mark.api
-@pytest.mark.rbac
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class Test_Notification_Template_RBAC(APITest):
 

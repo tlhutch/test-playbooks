@@ -45,7 +45,7 @@ python scripts/cloud_vars_from_env.py --cloud-provider ${CLOUD_PROVIDER} --platf
 ansible-playbook -i playbooks/inventory -e @playbooks/vars.yml -e aw_repo_url=${AW_REPO_URL} playbooks/deploy-tower.yml
 
 TOWER_URL=`ansible -i playbooks/inventory.log --list-hosts tower | grep -v -m 1 hosts | xargs`
-TOWER_VERSION=`curl -ks https://${TOWER_URL}/api/v1/ping/ | jq -r .version | cut -d . -f 1-3`
+TOWER_VERSION=`curl -ks https://${TOWER_URL}/api/v2/ping/ | jq -r .version | cut -d . -f 1-3`
 echo ${TOWER_VERSION}
 
 TRIGGER_FILE=".trigger"

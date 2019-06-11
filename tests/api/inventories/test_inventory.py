@@ -11,16 +11,14 @@ from tests.api import APITest
 log = logging.getLogger(__name__)
 
 
-@pytest.mark.api
-@pytest.mark.destructive
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestInventory(APITest):
 
     def test_inventory_names(self, factories):
         """Test that we can have inventories with the same name in different organizations."""
         name = fauxfactory.gen_alphanumeric()
-        factories.v2_inventory(name=name)
-        factories.v2_inventory(name=name)
+        factories.inventory(name=name)
+        factories.inventory(name=name)
 
     def test_host_without_group(self, host_without_group):
         """Verify that inventories/N/script includes hosts that are not a member of any group.
@@ -41,11 +39,11 @@ class TestInventory(APITest):
 
     def test_host_related_groups(self, factories):
         """Verifies the hosts/N/groups related field."""
-        inventory = factories.v2_inventory()
-        parent_group, child_group = [factories.v2_group(inventory=inventory) for _ in range(2)]
+        inventory = factories.inventory()
+        parent_group, child_group = [factories.group(inventory=inventory) for _ in range(2)]
         parent_group.add_group(child_group)
 
-        isolated_host, parent_host, duplicate_host = [factories.v2_host(inventory=inventory) for _ in range(3)]
+        isolated_host, parent_host, duplicate_host = [factories.host(inventory=inventory) for _ in range(3)]
         parent_group.add_host(parent_host)
         for group in [parent_group, child_group]:
             group.add_host(duplicate_host)
@@ -59,13 +57,13 @@ class TestInventory(APITest):
         * Should only show five results.
         * Results should be from parent groups only.
         """
-        inventory = factories.v2_inventory()
-        host = factories.v2_host(inventory=inventory)
+        inventory = factories.inventory()
+        host = factories.host(inventory=inventory)
 
-        groups = [factories.v2_group(inventory=inventory) for i in range(6)]
+        groups = [factories.group(inventory=inventory) for i in range(6)]
         for group in groups:
             group.add_host(host)
-        parent_group = factories.v2_group(inventory=inventory)
+        parent_group = factories.group(inventory=inventory)
         parent_group.add_group(groups[0])
 
         sf_groups = host.get().summary_fields.groups
@@ -79,9 +77,9 @@ class TestInventory(APITest):
             all_results.append(result)
 
     def test_jobs_run_on_enabled_hosts_only(self, factories):
-        inventory = factories.v2_inventory()
-        enabled_host, disabled_host = [factories.v2_host(inventory=inventory, enabled=enabled) for enabled in (True, False)]
-        jt = factories.v2_job_template(inventory=inventory)
+        inventory = factories.inventory()
+        enabled_host, disabled_host = [factories.host(inventory=inventory, enabled=enabled) for enabled in (True, False)]
+        jt = factories.job_template(inventory=inventory)
 
         job = jt.launch().wait_until_completed()
         job.assert_successful()
@@ -91,10 +89,10 @@ class TestInventory(APITest):
         assert jhs.results.pop().host == enabled_host.id
 
     def test_jobs_not_run_on_disabled_hosts(self, factories):
-        inventory = factories.v2_inventory()
+        inventory = factories.inventory()
         for _ in range(3):
-            factories.v2_host(inventory=inventory, enabled=False)
-        jt = factories.v2_job_template(inventory=inventory)
+            factories.host(inventory=inventory, enabled=False)
+        jt = factories.job_template(inventory=inventory)
 
         job = jt.launch().wait_until_completed()
         job.assert_successful()
@@ -102,13 +100,13 @@ class TestInventory(APITest):
         assert job.related.job_host_summaries.get().count == 0
 
     def test_inventory_reflects_dependent_resources_and_active_failures(self, factories):
-        inv = factories.v2_inventory()
-        group = factories.v2_group(inventory=inv)
-        group.add_host(factories.v2_host(inventory=inv))
-        inv_source = factories.v2_inventory_source(inventory=inv, source='ec2')
+        inv = factories.inventory()
+        group = factories.group(inventory=inv)
+        group.add_host(factories.host(inventory=inv))
+        inv_source = factories.inventory_source(inventory=inv, source='ec2')
 
         inv_source.update().wait_until_completed()
-        jt = factories.v2_job_template(inventory=inv, playbook='fail_unless.yml')
+        jt = factories.job_template(inventory=inv, playbook='fail_unless.yml')
         assert jt.launch().wait_until_completed().status == 'failed'
 
         assert inv.get().total_hosts == 1
@@ -121,9 +119,9 @@ class TestInventory(APITest):
         assert inv.inventory_sources_with_failures == 1
         assert inv.has_active_failures
 
-    def test_v2_update_cascade_delete(self, factories):
+    def test_update_cascade_delete(self, factories):
         """Verify that v2 inventory updates get cascade deleted with their inventory source."""
-        inv_source = factories.v2_inventory_source()
+        inv_source = factories.inventory_source()
         inv_update1, inv_update2 = [inv_source.update().wait_until_completed() for _ in range(2)]
 
         inv_source.delete()
@@ -134,12 +132,12 @@ class TestInventory(APITest):
 
     def test_resource_cascade_delete(self, factories):
         """Verify that inventory resources get cascade deleted with their inventory."""
-        inventory = factories.v2_inventory()
-        parent_group, child_group = [factories.v2_group(inventory=inventory) for _ in range(2)]
+        inventory = factories.inventory()
+        parent_group, child_group = [factories.group(inventory=inventory) for _ in range(2)]
         parent_group.add_group(child_group)
-        isolated_host, group_host = [factories.v2_host(inventory=inventory) for _ in range(2)]
+        isolated_host, group_host = [factories.host(inventory=inventory) for _ in range(2)]
         parent_group.add_host(group_host)
-        inv_source = factories.v2_inventory_source(inventory=inventory)
+        inv_source = factories.inventory_source(inventory=inventory)
 
         inventory.delete().wait_until_deleted()
         for resource in [inventory, parent_group, child_group, group_host, isolated_host, inv_source]:
@@ -147,21 +145,21 @@ class TestInventory(APITest):
                 resource.get()
 
     def test_duplicate_inventories_disallowed_by_organization(self, factories):
-        inv = factories.v2_inventory()
+        inv = factories.inventory()
 
         with pytest.raises(exc.Duplicate) as e:
-            factories.v2_inventory(name=inv.name, organization=inv.ds.organization)
+            factories.inventory(name=inv.name, organization=inv.ds.organization)
         assert e.value[1]['__all__'] == ['Inventory with this Name and Organization already exists.']
 
     def test_confirm_inventory_not_in_host_put_options(self, v2, factories):
-        assert 'inventory' not in factories.v2_host().options().actions.PUT
+        assert 'inventory' not in factories.host().options().actions.PUT
 
     def test_confirm_computed_fields_tasks_dont_overwhelm_system(self, factories):
         """Verify that numerous individual inventory modifications don't affect system's ability to run jobs"""
-        jt = factories.v2_job_template()
-        invs = [factories.v2_inventory() for _ in range(10)]
+        jt = factories.job_template()
+        invs = [factories.inventory() for _ in range(10)]
         hosts = {inv: [inv.add_host() for _ in range(20)] for inv in invs}
-        groups = [factories.v2_group(inventory=inv) for inv in invs]
+        groups = [factories.group(inventory=inv) for inv in invs]
         for group in groups:
             for host in hosts[group.ds.inventory]:
                 group.add_host(host)
@@ -201,9 +199,9 @@ class TestInventory(APITest):
     def test_confirm_large_inventory_copies_dont_overwhelm_system(self, factories, host_script):
         """Verify that copying an inventory with many hosts doesn't affect system's ability to run jobs"""
         total = 5000
-        jt = factories.v2_job_template()
-        inv_script = factories.v2_inventory_script(script=host_script(total))
-        inv_source = factories.v2_inventory_source(source_script=inv_script)
+        jt = factories.job_template()
+        inv_script = factories.inventory_script(script=host_script(total))
+        inv_source = factories.inventory_source(source_script=inv_script)
         assert inv_source.source_script == inv_script.id
         inv = inv_source.ds.inventory
         inv.update_inventory_sources(wait=True)
@@ -215,8 +213,8 @@ class TestInventory(APITest):
 
     def test_large_import_activity_stream(self, v2, factories, host_script):
         total = 25
-        inv_script = factories.v2_inventory_script(script=host_script(hosts=total, groups=total))
-        inv_source = factories.v2_inventory_source(source_script=inv_script)
+        inv_script = factories.inventory_script(script=host_script(hosts=total, groups=total))
+        inv_source = factories.inventory_source(source_script=inv_script)
         assert inv_source.source_script == inv_script.id
         inv = inv_source.ds.inventory
         search_kernel = inv.name[:-3]  # work around https://github.com/ansible/awx/issues/2570

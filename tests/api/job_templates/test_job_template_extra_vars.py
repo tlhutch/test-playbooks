@@ -13,7 +13,6 @@ from tests.api import APITest
 log = logging.getLogger(__name__)
 
 
-@pytest.mark.api
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestJobTemplateExtraVars(APITest):
 
@@ -45,7 +44,7 @@ class TestJobTemplateExtraVars(APITest):
             return yaml.dump(launch_time_vars)
 
     def test_confirm_invalid_extra_vars_rejected(self, factories):
-        jt = factories.v2_job_template()
+        jt = factories.job_template()
         for invalid, message in (
                 ('"{"', 'Input type `str` is not a dictionary'),
                 (('a', 'b'), 'Cannot parse as JSON'),
@@ -63,7 +62,7 @@ class TestJobTemplateExtraVars(APITest):
             assert message in e.value.msg['extra_vars'][0]
 
     def test_confirm_recursive_extra_vars_rejected(self, factories):
-        jt = factories.v2_job_template()
+        jt = factories.job_template()
         with pytest.raises(towerkit.exceptions.BadRequest) as e:
             jt.extra_vars = "&id001\nfoo: *id001\n"
             assert 'Variables not compatible with JSON standard (error: Circular reference detected)' in e.msg
@@ -339,8 +338,8 @@ class TestJobTemplateExtraVars(APITest):
             Required (True): Job should fail to start
             Not Required (False): Job should start and the defaults should be used
         """
-        host = factories.v2_host()
-        jt = factories.v2_job_template(
+        host = factories.host()
+        jt = factories.job_template(
             inventory=host.ds.inventory, playbook='debug_extra_vars.yml')
 
         survey = [dict(required=required,
@@ -373,9 +372,9 @@ class TestJobTemplateExtraVars(APITest):
             assert "variables_needed_to_start" in e.value.msg
 
     def test_included_extra_vars_with_vault_content(self, factories):
-        cred = factories.v2_credential(kind='vault', vault_password='password')
-        jt = factories.v2_job_template(playbook='custom_json.yml')
-        jt.vault_credential = cred.id
+        cred = factories.credential(kind='vault', vault_password='password')
+        jt = factories.job_template(playbook='custom_json.yml')
+        jt.add_credential(cred)
         job = jt.launch().wait_until_completed(interval=1, timeout=30)
         job.assert_successful()
 
