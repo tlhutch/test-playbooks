@@ -260,6 +260,7 @@ pipeline {
                              "SCENARIO=${SCENARIO}",
                              "PLATFORM=${PLATFORM}",
                              "ANSIBLE_VERSION=${ANSIBLE_NIGHTLY_BRANCH}",
+                             "DEPLOYMENT_NAME=yolo-build-${env.BUILD_ID}",
                              "AW_REPO_URL=http://nightlies.testing.ansible.com/ansible-tower_nightlies_m8u16fz56qr6q7/${NIGHTLY_REPO_DIR}"]) {
                         sshagent(credentials : ['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
                             sh 'mkdir -p ~/.ssh && cp ${PUBLIC_KEY} ~/.ssh/id_rsa.pub'
