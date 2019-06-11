@@ -6,75 +6,183 @@ import fauxfactory
 import pytest
 
 
+# Session scoped fixtures
+#
+
+@pytest.fixture(scope='session')
+def session_ansible_adhoc(request):
+    plugin = request.config.pluginmanager.getplugin("ansible")
+
+    def init_host_mgr(**kwargs):
+        return plugin.initialize(request.config, request, **kwargs)
+    return init_host_mgr
+
+
+@pytest.fixture(scope='session')
+def session_ansible_module(session_ansible_adhoc):
+    """Return a subclass of BaseModuleDispatcher."""
+    host_mgr = session_ansible_adhoc()
+    return getattr(host_mgr, host_mgr.options['host_pattern'])
+
+
+@pytest.fixture(scope='session')
+def session_ansible_facts(session_ansible_module):
+    """Return ansible_facts dictionary."""
+    return session_ansible_module.setup()
+
+
+@pytest.fixture(scope='session')
+def session_hostvars_for_host(session_ansible_adhoc):
+    """Returns a generator that takes a host name in the inventory file
+    and returns variables for that host
+    """
+    manager = session_ansible_adhoc().options['inventory_manager']
+
+    def gimme_hostvars(host_name):
+        # Look up host by name
+        host = manager.get_host(host_name)
+        # .. if no host found, attempt to find by ansible_host
+        if not host:
+            hosts = [h for h in manager.get_hosts() if h.vars.get('ansible_host', '') == host_name]
+            if not hosts:
+                raise Exception("Could not find host '{}'".format(host_name))
+            host = hosts.pop()
+        return host.get_vars()
+
+    return gimme_hostvars
+
+
+@pytest.fixture(scope='session')
+def session_hosts_in_group(session_ansible_adhoc):
+    """Returns a generator that takes group name of a group in the inventory
+    file and returns a list of instance hostnames in that group
+    """
+    manager = session_ansible_adhoc().options['inventory_manager']
+
+    def gimme_hosts(group_name, return_hostnames=False, return_map=False):
+        """
+        Default behavior is to return list of ansible_host, if present
+
+        :param return_hostnames: Boolean, return list of hostnames instead
+
+        :param return_map: Boolean, return a mapping between hostname and
+            ansible_host if it is available. Otherwise just a map of the
+            hostname to the hostname to keep tests sane, because in this case
+            that is all the info we have and just have to run with it.
+        """
+        group = manager.groups.get(group_name)
+        if group is None:
+            return []
+        addresses = []
+        if return_map:
+            addresses = {}
+        for host in group.get_hosts():
+            ansible_host = host.vars.get('ansible_host', '')
+            if return_map:
+                addresses[host.name] = ansible_host if ansible_host else host.name
+                continue
+            elif return_hostnames:
+                address = host.name
+            elif ansible_host:
+                address = ansible_host
+            else:
+                address = host.name
+            addresses.append(address)
+        return addresses
+
+    return gimme_hosts
+
+
+@pytest.fixture(scope='session')
+def is_docker(session_hosts_in_group, session_hostvars_for_host):
+    try:
+        tower_hosts = session_hosts_in_group('tower')
+        return session_hostvars_for_host(tower_hosts[0]).get('ansible_connection') == 'docker'
+    except (TypeError, IndexError):
+        return False
+
+
+@pytest.fixture(scope='session')
+def is_fips_enabled(is_docker, session_ansible_facts):
+    if is_docker:
+        return False
+    return True in [dict(facts)['ansible_facts']['ansible_fips'] for host, facts in session_ansible_facts.contacted.items()]
+
+
+@pytest.fixture(scope='session')
+def is_cluster(is_traditional_cluster, is_openshift_cluster):
+    return is_traditional_cluster or is_openshift_cluster
+
+
+@pytest.fixture(scope='session')
+def is_traditional_cluster(v2_session, is_docker):
+    return v2_session.ping.get()['ha'] and not is_docker
+
+
+@pytest.fixture(scope='session')
+def is_openshift_cluster(v2_session, is_docker):
+    return v2_session.ping.get()['ha'] and is_docker
+
+
+@pytest.fixture(scope='session')
+def skip_docker(is_docker):
+    if is_docker:
+        pytest.skip("Test doesn't support dev container")
+
+
+@pytest.fixture(scope='session')
+def skip_if_fips_enabled(is_fips_enabled):
+    if is_fips_enabled:
+        pytest.skip('Cannot run on a FIPS enabled platform')
+
+
+@pytest.fixture(scope='session')
+def skip_if_not_traditional_cluster(is_traditional_cluster):
+    if not is_traditional_cluster:
+        pytest.skip('Cannot run on an non traditional cluster install')
+
+
+@pytest.fixture(scope='session')
+def skip_if_openshift(is_openshift_cluster):
+    if is_openshift_cluster:
+        pytest.skip('Cannot run on an OpenShift install')
+
+
+@pytest.fixture(scope='session')
+def skip_if_not_openshift(is_openshift_cluster):
+    if not is_openshift_cluster:
+        pytest.skip('Cannot run on an non-OpenShift install')
+
+
+@pytest.fixture(scope='session')
+def skip_if_not_cluster(is_cluster):
+    if not is_cluster:
+        pytest.skip('Cannot run on a non-cluster install')
+
+
+@pytest.fixture(scope='session')
+def skip_if_cluster(is_cluster):
+    if is_cluster:
+        pytest.skip('Cannot run on a cluster install')
+
+
+@pytest.fixture(scope='session')
+def skip_if_pre_ansible28(ansible_version_cmp):
+    if ansible_version_cmp('2.8.0') < 0:
+        pytest.skip('Cannot run with version of Ansible pre 2.8.0')
+
+
+# Class scoped fixtures
+#
+
 @pytest.fixture(scope='class')
 def is_traditional_cluster_class(v2_class):
     return v2_class.ping.get()['ha'] and not is_docker
 
 
-@pytest.fixture
-def subrequest(request):
-    # https://github.com/pytest-dev/pytest/issues/2495
-    # To ensure that teardowns occur roughly in registered order
-    # do not use the request fixture directly as all its finalizer calls
-    # will occur in same block
-    return request
-
-
 @pytest.fixture(scope='class')
 def class_subrequest(request):
     return request
-
-
-@pytest.fixture
-def get_pg_dump(request, ansible_runner, skip_docker, hostvars_for_host):
-    """Returns the dump of Tower's Postgres DB as a string.
-    It may consume a lot of memory if the db is big. Thus we should mark all tests using this fixture with:
-    @pytest.mark.serial
-    """
-
-    def _pg_dump():
-        # Run full garbage collection to release memory
-        gc.collect()
-        request.addfinalizer(gc.collect)
-
-        inv_path = os.environ.get('TQA_INVENTORY_FILE_PATH', '/tmp/setup/inventory')
-        dump_filename = 'pg_{}.txt'.format(fauxfactory.gen_alphanumeric())
-        contacted = ansible_runner.shell("""PGPASSWORD=`grep {} -e "pg_password=.*" """
-                                         """| sed \'s/pg_password="//\' | sed \'s/"//\'` """
-                                         """pg_dump -U awx -d awx -f {} -w""".format(inv_path, dump_filename))
-        for res in contacted.values():
-            assert res.get('changed') and not res.get('failed')
-
-        user = ansible_runner.options['user']
-        if not user:
-            host_pattern = ansible_runner.options['host_pattern']
-            this_host_vars = hostvars_for_host(host_pattern)
-            user = this_host_vars['ansible_user']
-        pg_dump_path = '/home/{0}/{1}'.format(user, dump_filename)
-        request.addfinalizer(lambda: ansible_runner.file(path=pg_dump_path, state='absent'))
-
-        # Don't log the dumped db.
-        pa_logger = logging.getLogger('pytest_ansible')
-        prev_level = pa_logger.level
-        pa_logger.setLevel('INFO')
-        restored = [False]
-
-        def restore_log_level():
-            if not restored[0]:
-                pa_logger.setLevel(prev_level)
-                restored[0] = True
-
-        request.addfinalizer(restore_log_level)
-
-        contacted = ansible_runner.slurp(src=pg_dump_path)
-        restore_log_level()
-
-        res = list(contacted.values()).pop()
-
-        assert not res.get('failed') and res['content']
-        return b64decode(res['content']).decode()
-
-    return _pg_dump
 
 
 @pytest.fixture(scope='class')
@@ -175,92 +283,68 @@ def inventory_hostname_map(modified_ansible_adhoc):
     return get_alternate_hostname
 
 
-@pytest.fixture(scope='class')
-def is_docker(hosts_in_group, hostvars_for_host):
-    try:
-        tower_hosts = hosts_in_group('tower')
-        return hostvars_for_host(tower_hosts[0]).get('ansible_connection') == 'docker'
-    except (TypeError, IndexError):
-        return False
+# Function scoped fixtures
+#
 
-
-docker_skip_msg = "Test doesn't support dev container"
-
-
-@pytest.fixture(scope='class')
-def skip_docker(is_docker):
-    if is_docker:
-        pytest.skip(docker_skip_msg)
-
-
-@pytest.fixture(autouse=True, scope='class')
-def _skip_docker(request, is_docker):
-    if request.node.get_closest_marker('skip_docker') and is_docker:
-        pytest.skip(docker_skip_msg)
+@pytest.fixture
+def subrequest(request):
+    # https://github.com/pytest-dev/pytest/issues/2495
+    # To ensure that teardowns occur roughly in registered order
+    # do not use the request fixture directly as all its finalizer calls
+    # will occur in same block
+    return request
 
 
 @pytest.fixture
-def skip_if_fips_enabled(is_fips_enabled):
-    if is_fips_enabled:
-        pytest.skip('Cannot run on a FIPS enabled platform')
+def get_pg_dump(request, ansible_runner, skip_docker, hostvars_for_host):
+    """Returns the dump of Tower's Postgres DB as a string.
+    It may consume a lot of memory if the db is big. Thus we should mark all tests using this fixture with:
+    @pytest.mark.serial
+    """
 
+    def _pg_dump():
+        # Run full garbage collection to release memory
+        gc.collect()
+        request.addfinalizer(gc.collect)
 
-@pytest.fixture
-def is_fips_enabled(is_docker, ansible_facts):
-    if is_docker:
-        return False
-    return True in [dict(facts)['ansible_facts']['ansible_fips'] for host, facts in ansible_facts.contacted.items()]
+        inv_path = os.environ.get('TQA_INVENTORY_FILE_PATH', '/tmp/setup/inventory')
+        dump_filename = 'pg_{}.txt'.format(fauxfactory.gen_alphanumeric())
+        contacted = ansible_runner.shell("""PGPASSWORD=`grep {} -e "pg_password=.*" """
+                                         """| sed \'s/pg_password="//\' | sed \'s/"//\'` """
+                                         """pg_dump -U awx -d awx -f {} -w""".format(inv_path, dump_filename))
+        for res in contacted.values():
+            assert res.get('changed') and not res.get('failed')
 
+        user = ansible_runner.options['user']
+        if not user:
+            host_pattern = ansible_runner.options['host_pattern']
+            this_host_vars = hostvars_for_host(host_pattern)
+            user = this_host_vars['ansible_user']
+        pg_dump_path = '/home/{0}/{1}'.format(user, dump_filename)
+        request.addfinalizer(lambda: ansible_runner.file(path=pg_dump_path, state='absent'))
 
-@pytest.fixture(scope='class')
-def skip_if_not_traditional_cluster(is_traditional_cluster):
-    if not is_traditional_cluster:
-        pytest.skip('Cannot run on an non traditional cluster install')
+        # Don't log the dumped db.
+        pa_logger = logging.getLogger('pytest_ansible')
+        prev_level = pa_logger.level
+        pa_logger.setLevel('INFO')
+        restored = [False]
 
+        def restore_log_level():
+            if not restored[0]:
+                pa_logger.setLevel(prev_level)
+                restored[0] = True
 
-@pytest.fixture(scope='class')
-def is_traditional_cluster(v2_class, is_docker):
-    return v2_class.ping.get()['ha'] and not is_docker
+        request.addfinalizer(restore_log_level)
 
+        contacted = ansible_runner.slurp(src=pg_dump_path)
+        restore_log_level()
 
-@pytest.fixture(scope='class')
-def skip_if_openshift(is_openshift_cluster):
-    if is_openshift_cluster:
-        pytest.skip('Cannot run on an OpenShift install')
+        res = list(contacted.values()).pop()
 
+        assert not res.get('failed') and res['content']
+        return b64decode(res['content']).decode()
 
-@pytest.fixture(scope='class')
-def skip_if_not_openshift(is_openshift_cluster):
-    if not is_openshift_cluster:
-        pytest.skip('Cannot run on an non-OpenShift install')
-
-
-@pytest.fixture(scope='class')
-def is_openshift_cluster(v2_class, is_docker):
-    return v2_class.ping.get()['ha'] and is_docker
-
-
-@pytest.fixture(scope='class')
-def skip_if_not_cluster(is_cluster):
-    if not is_cluster:
-        pytest.skip('Cannot run on a non-cluster install')
-
-
-@pytest.fixture(scope='class')
-def skip_if_cluster(is_cluster):
-    if is_cluster:
-        pytest.skip('Cannot run on a cluster install')
-
-
-@pytest.fixture(scope='class')
-def is_cluster(is_traditional_cluster, is_openshift_cluster):
-    return is_traditional_cluster or is_openshift_cluster
-
-
-@pytest.fixture(scope='class')
-def skip_if_pre_ansible28(ansible_version_cmp):
-    if ansible_version_cmp('2.8.0') < 0:
-        pytest.skip('Cannot run with version of Ansible pre 2.8.0')
+    return _pg_dump
 
 
 @pytest.fixture

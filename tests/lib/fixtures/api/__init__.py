@@ -39,6 +39,11 @@ def v2_class(api_v2_pg):
     return api_v2_pg
 
 
+@pytest.fixture(scope='session')
+def v2_session(connection, get_api_version):
+    return get_registered_page(get_api_version('v2'))(connection, endpoint=get_api_version('v2')).get()
+
+
 @pytest.fixture
 def v2(v2_class):
     return v2_class
@@ -117,9 +122,10 @@ def ansible_version(api_config_pg):
     return api_config_pg.get().ansible_version
 
 
-@pytest.fixture(scope="class")
-def ansible_version_cmp(request, ansible_version):
+@pytest.fixture(scope='session')
+def ansible_version_cmp(request, v2_session):
     def func(x):
+        ansible_version = v2_session.config.get().ansible_version
         return towerkit.tower.version_cmp(ansible_version, x)
     return func
 
