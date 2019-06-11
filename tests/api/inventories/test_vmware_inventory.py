@@ -41,9 +41,19 @@ def k8s_govcsim(gke_client_cscope, request):
     return sim_url
 
 
-@pytest.mark.api
-@pytest.mark.destructive
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestGovcsim(APITest):
-    def test_govcsim_spawn(self, k8s_govcsim):
-    
+
+    @pytest.fixture
+    def vmware_credential(self, factories, k8s_govcsim):
+        return factories.credential(name=f'vmware-cred-{fauxfactory.gen_utf8()}',
+                                    kind='vmware', inputs={'host': k8s_govcsim})
+
+    @pytest.fixture
+    def vmware_inventory_source(self, factories, vmware_credential):
+        return factories.inventory_source(name=f'vmware-inventory-source{fauxfactory.gen_utf8()}',
+                                          source='vmware', credential=vmware_credential)
+
+    def test_vmware_inventory_source(self, vmware_inventory_source):
+        update = vmware_inventory_source.update()
+        update.wait_until_completed().assert_successful()
