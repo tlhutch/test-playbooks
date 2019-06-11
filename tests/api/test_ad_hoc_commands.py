@@ -119,6 +119,13 @@ class Test_Ad_Hoc_Commands_Host(APITest):
         command_pg.wait_until_completed()
         command_pg.assert_successful()
 
+    def test_host_event_links(self, factories):
+        inventory = factories.inventory()
+        host = factories.host(name='test_host', inventory=inventory)
+
+        ahc = factories.ad_hoc_command(inventory=inventory).wait_until_completed()
+        assert set(event.host for event in ahc.get_related('events').results) == set([None, host.id])
+
 
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class Test_Ad_Hoc_Commands_Main(APITest):
