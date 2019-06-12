@@ -34,11 +34,11 @@ def k8s_govcsim(gke_client_cscope, request):
     K8sClient.core.create_namespaced_service(body=govcsim_service, namespace='default')
     request.addfinalizer(lambda: K8sClient.destroy(deployment_name))
     controller_url = "https://http-{}-port-5000.{}".format(deployment_name, cluster_domain)
-    sim_url = "https://https-{}-port-443.{}".format(deployment_name, cluster_domain)
+    sim_fqdn = "https-{}-port-443.{}".format(deployment_name, cluster_domain)
 
     sess = requests.Session()
     sim = sess.get('{}/spawn?username=user&password=pass&cluster=1&port=443&vm=5'.format(controller_url))
-    return sim_url
+    return sim_fqdn
 
 
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
