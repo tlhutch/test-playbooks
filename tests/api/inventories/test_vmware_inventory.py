@@ -1,13 +1,11 @@
 import fauxfactory
 import pytest
 import requests
-from urllib.parse import urljoin
 
 from towerkit.config import config
-from towerkit import utils, exceptions
-from kubernetes.stream import stream
 
 from tests.api import APITest
+
 
 @pytest.fixture(scope='class')
 def k8s_govcsim(gke_client_cscope, request):
@@ -37,7 +35,7 @@ def k8s_govcsim(gke_client_cscope, request):
     sim_fqdn = "https-{}-port-443.{}".format(deployment_name, cluster_domain)
 
     sess = requests.Session()
-    sim = sess.get('{}/spawn?username=user&password=pass&cluster=1&port=443&vm=5'.format(controller_url))
+    sess.get('{}/spawn?username=user&password=pass&cluster=1&port=443&vm=5'.format(controller_url))
     return sim_fqdn
 
 
@@ -57,4 +55,3 @@ class TestGovcsim(APITest):
     def test_vmware_inventory_source(self, vmware_inventory_source):
         update = vmware_inventory_source.update()
         update.wait_until_completed().assert_successful()
-        
