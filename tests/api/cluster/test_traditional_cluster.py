@@ -752,13 +752,10 @@ class TestTraditionalCluster(APITest):
         # Create project on first instance
         org = factories.organization()
         org.add_instance_group(ig1)
-        # Workaround for https://github.com/ansible/ansible/issues/17720#issuecomment-322628667
+        proj = factories.project(organization=org, scm_type=scm_type)
+        playbook = 'sleep.yml'
         if scm_type == 'svn':
-            proj = factories.project(organization=org, scm_type='svn', scm_url='https://github.com/jladdjr/ansible-playbooks', scm_branch='44')
-            playbook = 'trunk/sleep.yml'
-        else:
-            proj = factories.project(organization=org, scm_type=scm_type)
-            playbook = 'sleep.yml'
+            playbook = 'trunk/{}'.format(playbook)
         org.remove_instance_group(ig1)
 
         # Run job template on second instance

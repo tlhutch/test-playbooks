@@ -483,8 +483,8 @@ class Test_Autospawned_Jobs(APITest):
         sorted_unified_jobs = [inv_update_pg, job_pg]
         confirm_unified_jobs(sorted_unified_jobs)
 
-    @pytest.mark.parametrize('project', ['project_ansible_playbooks_git', 'project_ansible_helloworld_hg'])
-    def test_project_update_on_launch(self, request, factories, project):
+    @pytest.mark.parametrize('scm_type', ['git', 'hg', 'svn'])
+    def test_project_update_on_launch(self, scm_type, factories):
         """Verify that two project updates are triggered by a job launch when we
         enable project update_on_launch. Job ordering should be as follows:
         * Our initial project-post should launch a project update of job_type 'check.'
@@ -492,9 +492,12 @@ class Test_Autospawned_Jobs(APITest):
         'check' and one of job_type 'run.' Our check update should run before the job
         launch and our run update should run simultaneously with our job.
         """
-        project = request.getfixturevalue(project)
+        project = factories.project(scm_type=scm_type)
+        playbook = 'debug.yml'
+        if scm_type == 'svn':
+            playbook = 'trunk/{}'.format(playbook)
         host = factories.host()
-        job_template = factories.job_template(project=project, inventory=host.ds.inventory)
+        job_template = factories.job_template(project=project, inventory=host.ds.inventory, playbook=playbook)
         project.scm_update_on_launch = True
         assert project.scm_update_on_launch
         assert project.scm_update_cache_timeout == 0
