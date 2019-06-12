@@ -1159,8 +1159,8 @@ def check_cyberark_aim(request):
     factories = request.getfixturevalue('factories')
     v2 = request.getfixturevalue('v2')
 
-    host = factories.v2_host()
-    cred = factories.v2_credential()
+    host = factories.host()
+    cred = factories.credential()
     job = v2.ad_hoc_commands.post({
         'inventory': host.inventory,
         'credential': cred.id,
