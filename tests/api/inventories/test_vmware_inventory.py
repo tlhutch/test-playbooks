@@ -57,3 +57,4 @@ class TestGovcsim(APITest):
     def test_vmware_inventory_source(self, vmware_inventory_source):
         update = vmware_inventory_source.update()
         update.wait_until_completed().assert_successful()
+        
