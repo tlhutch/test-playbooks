@@ -173,6 +173,15 @@ function retrieve_system_user_from_inventory {
     fi
 }
 
+function is_tower_cluster {
+    local inventory="$1"
+    if grep -q "cluster_installer" "${inventory}"; then
+        return 0
+    else
+        return 1
+    fi
+}
+
 function is_tower_ready {
 
     tower_url=$1

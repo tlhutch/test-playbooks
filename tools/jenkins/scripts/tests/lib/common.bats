@@ -137,3 +137,17 @@ source ../../lib/common
     [[ "$status" -eq 0 ]]
     [[ "$output" = "/setup-bundle/ansible-tower-setup-bundle-latest.el7.tar.gz" ]]
 }
+
+@test "is_tower_cluster[true]" {
+    local inventory="$(mktemp)"
+    echo "[cluster_installer]" > "${inventory}"
+    run is_tower_cluster "${inventory}"
+    [ "${status}" -eq 0 ]
+}
+
+@test "is_tower_cluster[false]" {
+    local inventory="$(mktemp)"
+    echo "not_cluster" > "${inventory}"
+    run is_tower_cluster "${inventory}"
+    [ "${status}" -eq 1 ]
+}

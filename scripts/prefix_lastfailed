@@ -1,0 +1,34 @@
+#!/usr/bin/env python
+"""
+Edit the lastfailed pytest cache to prefix the failures with tests/api because
+of https://github.com/pytest-dev/pytest-xdist/issues/445.
+"""
+import argparse
+import json
+import os
+import sys
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        'lastfailedpath',
+        help='Path to the lastfailed pytest cache.',
+        metavar='LAST_FAILED_PATH',
+    )
+
+    args = parser.parse_args()
+    if not os.path.isfile(args.lastfailedpath):
+        sys.exit()
+
+    with open(args.lastfailedpath) as handler:
+        data = json.load(handler)
+
+    edited = data.copy()
+    for k, v in data.items():
+        if not k.startswith('tests/api'):
+            edited.pop(k)
+            edited[os.path.join('tests/api/', k)] = v
+
+    with open(args.lastfailedpath, 'w') as handler:
+        json.dump(edited, handler)

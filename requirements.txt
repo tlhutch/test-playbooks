@@ -17,6 +17,7 @@ pycrypto
 pytest
 pytest-benchmark
 pytest-ordering
+pytest-xdist
 python-dateutil
 pytz
 requests

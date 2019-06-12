@@ -21,24 +21,69 @@ CREDS=$(retrieve_credential_file "${INVENTORY}")
 
 set +e
 
-pytest -c config/api.cfg \
-    --ansible-host-pattern="${TOWER_HOST}" \
-    --ansible-inventory="${INVENTORY}" \
-    --api-credentials="${CREDS}" \
-    --github-cfg="${CREDS}" \
-    -k "${TESTEXPR}" --base-url="https://${TOWER_HOST}"
+if ! is_tower_cluster "${INVENTORY}"; then
+    # Let's run tests in parallel
+    if ! pytest -v -c config/api.cfg \
+        --junit-xml=reports/junit/results-parallel.xml \
+        --ansible-host-pattern="${TOWER_HOST}" \
+        --ansible-inventory="${INVENTORY}" \
+        --api-credentials="${CREDS}" \
+        --github-cfg="${CREDS}" \
+        --base-url="https://${TOWER_HOST}" \
+        -k "not serial and (${TESTEXPR})" \
+        -n 4 --dist=loadfile
+    then
+        sleep 300
+        pytest --cache-show "cache/lastfailed"
+    fi
 
-sleep 360
+    # Run tests that need to run serially
+    if ! pytest -v -c config/api.cfg \
+        --ansible-host-pattern="${TOWER_HOST}" \
+        --ansible-inventory="${INVENTORY}" \
+        --api-credentials="${CREDS}" \
+        --github-cfg="${CREDS}" \
+        --base-url="https://${TOWER_HOST}" \
+        -k "serial and (${TESTEXPR})"
+    then
+        sleep 300
+        pytest --cache-show "cache/lastfailed"
+    fi
 
-pytest -c config/api.cfg \
+    # Workaround https://github.com/pytest-dev/pytest-xdist/issues/445<Paste>
+    ./scripts/prefix_lastfailed "$(find .pytest_cache -name lastfailed)"
+    pytest --cache-show "cache/lastfailed"
+else
+    if ! pytest -v -c config/api.cfg \
+        --ansible-host-pattern="${TOWER_HOST}" \
+        --ansible-inventory="${INVENTORY}" \
+        --api-credentials="${CREDS}" \
+        --github-cfg="${CREDS}" \
+        --base-url="https://${TOWER_HOST}" \
+        -k "${TESTEXPR}"
+    then
+        sleep 300
+        pytest --cache-show "cache/lastfailed"
+    fi
+
+fi
+
+pytest -v -c config/api.cfg \
     --last-failed --last-failed-no-failures none \
     --junit-xml=reports/junit/results-rerun.xml \
     --ansible-host-pattern="${TOWER_HOST}" \
     --ansible-inventory="${INVENTORY}" \
     --api-credentials="${CREDS}" \
     --github-cfg="${CREDS}" \
-    -k "${TESTEXPR}" --base-url="https://${TOWER_HOST}"
+    --base-url="https://${TOWER_HOST}"
 
-python scripts/override_junit.py reports/junit/results.xml reports/junit/results-rerun.xml reports/junit/results-final.xml
+if [[ -f reports/junit/results-parallel.xml ]]; then
+    ./scripts/merge_junit \
+        reports/junit/results-parallel.xml \
+        reports/junit/results{,-rerun,-final}.xml
+else
+    ./scripts/merge_junit \
+        reports/junit/results{,-rerun,-final}.xml
+fi
 
 set -e

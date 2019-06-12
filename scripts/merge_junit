@@ -1,0 +1,76 @@
+#!/usr/bin/env python
+"""
+Takes one or more jUnit XML report files and merge them into a single jUnit XML
+report file.
+
+If the same test is present on multiple jUnit XML report files, then its result
+will be the first result found. The result will be updated only if the first
+result is failed, errored or skipped and a success result is found later.
+"""
+import argparse
+import textwrap
+
+from junitparser import JUnitXml, TestSuite
+
+
+_CACHE = {}
+
+
+def _format_result(result, indent=4 * ' '):
+    output = result.replace('\\n', '\n')
+    return textwrap.indent(output, indent)
+
+
+def _merge_junit(junit, output):
+    for case in junit:
+        if case.name not in _CACHE:
+            output.add_testcase(case)
+            _CACHE[case.name] = case
+        elif _CACHE[case.name].result is not None:
+            if case.result is None:
+                previous_result = _format_result(
+                    _CACHE[case.name].result.message)
+                print(
+                    f'{case.name} with the following previous result is '
+                    f'being updated to success:\n\n'
+                    f'{previous_result}\n'
+                )
+                output.remove_testcase(_CACHE[case.name])
+                output.add_testcase(case)
+                _CACHE[case.name] = case
+            elif _CACHE[case.name].result != case.result:
+                previous_result = _format_result(
+                    _CACHE[case.name].result.message)
+                current_result = _format_result(case.result.message)
+                print(
+                    f'{case.name} was initially stored with result:\n\n'
+                    f'{previous_result}\n\n'
+                    f'But a different result was found:\n\n'
+                    f'{current_result}\n'
+                )
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        'junit_paths',
+        help='Original jUnit XML path(s).',
+        metavar='JUNIT_PATH',
+        nargs='+',
+    )
+    parser.add_argument(
+        'output_path',
+        help='Merged jUnit XML Path.',
+        metavar='OUTPUT_PATH',
+    )
+    args = parser.parse_args()
+
+    output_suite = TestSuite('pytest')
+    for junit_path in args.junit_paths:
+        junit = JUnitXml.fromfile(junit_path)
+        _merge_junit(junit, output_suite)
+    output_suite.update_statistics()
+
+    output = JUnitXml()
+    output.add_testsuite(output_suite)
+    output.write(args.output_path)
