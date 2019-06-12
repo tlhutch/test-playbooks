@@ -12,13 +12,6 @@ log = logging.getLogger(__name__)
 
 
 @pytest.fixture(scope="function")
-def project_ansible_helloworld_hg(factories, organization):
-    project = factories.project(scm_type='hg', scm_url='https://bitbucket.org/jlaska/ansible-helloworld',
-                                organization=organization)
-    return project
-
-
-@pytest.fixture(scope="function")
 def project_ansible_playbooks_git_nowait(factories, organization):
     project = factories.project(scm_type='git', scm_url='https://github.com/ansible/test-playbooks.git',
                                 organization=organization, wait=False)

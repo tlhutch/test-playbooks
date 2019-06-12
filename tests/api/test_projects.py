@@ -57,6 +57,16 @@ class Test_Projects(APITest):
                         task_icontains, 'runner_on_', project.related.last_update)
         return (_res)
 
+    @pytest.mark.parametrize('scm_type', ['git', 'hg', 'svn'])
+    def test_project_update_basics(self, factories, scm_type):
+        project = factories.project(scm_type=scm_type)
+        assert project.status == 'successful'
+        assert project.scm_revision
+        assert project.summary_fields.last_update
+        assert project.scm_type == scm_type
+        assert str(project.id) in project.local_path
+        assert project.last_updated == project.last_job_run
+
     def test_manual_project(self, skip_if_cluster, project_ansible_playbooks_manual):
         """Verify tower can successfully creates a manual project (scm_type='').
         This includes verifying UTF-8 local-path.
