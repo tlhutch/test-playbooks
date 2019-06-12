@@ -24,10 +24,9 @@ class TestApplications(APITest):
         assert agt.label == 'Authorization Grant Type'
         assert agt.type == 'choice'
         expected_choices = {
-                            'authorization-code': 'Authorization code',
-                            'password': 'Resource owner password-based',
-                            'implicit': 'Implicit',
-                            }
+            'authorization-code': 'Authorization code',
+            'password': 'Resource owner password-based',
+        }
         assert {c[0]: c[1] for c in agt.choices} == expected_choices
         assert agt.required is True
 
