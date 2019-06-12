@@ -8,7 +8,6 @@ import pytest
 from tests.api import APITest
 
 
-@pytest.mark.api
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestFactCache(APITest):
 
@@ -20,11 +19,11 @@ class TestFactCache(APITest):
         assert 'ansible_system' in ansible_facts
 
     def test_ingest_facts_with_gather_facts_playbook(self, factories):
-        host = factories.v2_host()
+        host = factories.host()
         ansible_facts = host.related.ansible_facts.get()
         assert not ansible_facts.json
 
-        jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='gather_facts.yml', use_fact_cache=True)
+        jt = factories.job_template(inventory=host.ds.inventory, playbook='gather_facts.yml', use_fact_cache=True)
         jt.launch().wait_until_completed().assert_successful()
 
         self.assert_updated_facts(ansible_facts.get())
@@ -33,12 +32,12 @@ class TestFactCache(APITest):
 
     @pytest.fixture
     def scan_facts_job_template(self, factories):
-        host = factories.v2_host()
-        project = factories.v2_project(scm_url='https://github.com/ansible/awx-facts-playbooks', wait=True)
-        return factories.v2_job_template(description="3.2 scan_facts JT %s" % fauxfactory.gen_utf8(), project=project,
+        host = factories.host()
+        project = factories.project(scm_url='https://github.com/ansible/awx-facts-playbooks', wait=True)
+        return factories.job_template(description="3.2 scan_facts JT %s" % fauxfactory.gen_utf8(), project=project,
                                          inventory=host.ds.inventory, playbook='scan_facts.yml', use_fact_cache=True)
 
-    @pytest.mark.mp_group('AWX_PROOT_ENABLED', 'isolated_serial')
+    @pytest.mark.serial
     def test_ingest_facts_with_tower_scan_playbook(self, skip_if_cluster, request, factories, ansible_runner, ansible_os_family,
                                                    is_docker, scan_facts_job_template, v2, update_setting_pg):
         machine_id = "4da7d1f8-14f3-4cdc-acd5-a3465a41f25d"
@@ -64,24 +63,24 @@ class TestFactCache(APITest):
         assert ansible_facts.insights['system_id'] == machine_id
 
     def test_ingest_facts_with_host_with_unicode_hostname(self, factories):
-        host = factories.v2_host(name=fauxfactory.gen_utf8())
-        jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='gather_facts.yml', use_fact_cache=True)
+        host = factories.host(name=fauxfactory.gen_utf8())
+        jt = factories.job_template(inventory=host.ds.inventory, playbook='gather_facts.yml', use_fact_cache=True)
         jt.launch().wait_until_completed().assert_successful()
 
         ansible_facts = host.related.ansible_facts.get()
         self.assert_updated_facts(ansible_facts)
 
     def test_ingest_facts_with_host_with_hostname_with_spaces(self, factories):
-        host = factories.v2_host(name="hostname with spaces")
-        jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='gather_facts.yml', use_fact_cache=True)
+        host = factories.host(name="hostname with spaces")
+        jt = factories.job_template(inventory=host.ds.inventory, playbook='gather_facts.yml', use_fact_cache=True)
         jt.launch().wait_until_completed().assert_successful()
 
         ansible_facts = host.related.ansible_facts.get()
         self.assert_updated_facts(ansible_facts)
 
     def test_consume_facts_with_single_host(self, factories):
-        host = factories.v2_host()
-        jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='gather_facts.yml', use_fact_cache=True)
+        host = factories.host()
+        jt = factories.job_template(inventory=host.ds.inventory, playbook='gather_facts.yml', use_fact_cache=True)
         jt.launch().wait_until_completed().assert_successful()
 
         jt.patch(playbook='use_facts.yml', job_tags='ansible_facts')
@@ -94,10 +93,10 @@ class TestFactCache(APITest):
         assert ansible_facts.ansible_system in job.result_stdout
 
     def test_consume_facts_with_multiple_hosts(self, factories):
-        inventory = factories.v2_inventory()
-        hosts = [factories.v2_host(inventory=inventory) for _ in range(3)]
+        inventory = factories.inventory()
+        hosts = [factories.host(inventory=inventory) for _ in range(3)]
 
-        jt = factories.v2_job_template(inventory=hosts[0].ds.inventory, playbook='gather_facts.yml', use_fact_cache=True)
+        jt = factories.job_template(inventory=hosts[0].ds.inventory, playbook='gather_facts.yml', use_fact_cache=True)
         jt.launch().wait_until_completed().assert_successful()
 
         jt.patch(playbook='use_facts.yml', job_tags='ansible_facts')
@@ -113,11 +112,11 @@ class TestFactCache(APITest):
             assert host.get().summary_fields.last_job.id == job.id
 
     def test_consume_facts_with_multiple_hosts_and_limit(self, factories):
-        inventory = factories.v2_inventory()
-        hosts = [factories.v2_host(inventory=inventory) for _ in range(3)]
+        inventory = factories.inventory()
+        hosts = [factories.host(inventory=inventory) for _ in range(3)]
         target_host = hosts.pop()
 
-        jt = factories.v2_job_template(inventory=target_host.ds.inventory, playbook='gather_facts.yml', use_fact_cache=True)
+        jt = factories.job_template(inventory=target_host.ds.inventory, playbook='gather_facts.yml', use_fact_cache=True)
         scan_job = jt.launch().wait_until_completed()
         scan_job.assert_successful()
 
@@ -136,9 +135,9 @@ class TestFactCache(APITest):
             assert host.get().summary_fields.last_job.id == scan_job.id
 
     def test_consume_updated_facts(self, factories):
-        host = factories.v2_host()
+        host = factories.host()
 
-        jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='gather_facts.yml', use_fact_cache=True)
+        jt = factories.job_template(inventory=host.ds.inventory, playbook='gather_facts.yml', use_fact_cache=True)
         jt.launch().wait_until_completed().assert_successful()
         ansible_facts = host.related.ansible_facts.get()
         first_time = ansible_facts.ansible_date_time.time
@@ -156,8 +155,8 @@ class TestFactCache(APITest):
 
     @pytest.mark.yolo
     def test_consume_facts_with_custom_ansible_module(self, factories):
-        host = factories.v2_host()
-        jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='scan_custom.yml', use_fact_cache=True)
+        host = factories.host()
+        jt = factories.job_template(inventory=host.ds.inventory, playbook='scan_custom.yml', use_fact_cache=True)
         job = jt.launch().wait_until_completed()
         job.assert_successful()
 
@@ -196,9 +195,9 @@ class TestFactCache(APITest):
         assert '"msg": {}' in result_stdout
 
     def test_deleted_hosts_not_reused_by_cache(self, factories):
-        jt = factories.v2_job_template(playbook='gather_facts.yml', use_fact_cache=True)
+        jt = factories.job_template(playbook='gather_facts.yml', use_fact_cache=True)
         inv = jt.ds.inventory
-        deleted_host = factories.v2_host(inventory=inv)
+        deleted_host = factories.host(inventory=inv)
 
         job = jt.launch().wait_until_completed()
         job.assert_successful()
@@ -212,9 +211,9 @@ class TestFactCache(APITest):
     def test_clear_facts(self, factories, ansible_version_cmp):
         if ansible_version_cmp("2.3.2") < 0:
             pytest.skip("Not support on Ansible versions predating 2.3.2.")
-        host = factories.v2_host()
+        host = factories.host()
 
-        jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='gather_facts.yml', use_fact_cache=True)
+        jt = factories.job_template(inventory=host.ds.inventory, playbook='gather_facts.yml', use_fact_cache=True)
         jt.launch().wait_until_completed().assert_successful()
         ansible_facts = host.related.ansible_facts.get()
         self.assert_updated_facts(ansible_facts)
@@ -239,7 +238,7 @@ class TestFactCache(APITest):
             assert any([file_path.startswith(path) for path in scan_file_paths])
 
     @pytest.mark.ansible_integration
-    @pytest.mark.mp_group(group="pytest_mark_requires_isolation", strategy="isolated_serial")
+    @pytest.mark.serial
     def test_scan_file_paths_are_traversed(self, skip_if_cluster, v2, request, ansible_runner, scan_facts_job_template):
         test_dir = '/tmp/test{}'.format(fauxfactory.gen_alphanumeric())
         request.addfinalizer(lambda: ansible_runner.file(path=test_dir, state='absent'))
@@ -295,11 +294,11 @@ inv = dict(somegroup{0}=dict(hosts=['somehost{0}'],
                                        cruft='x' * 1024 ** 2)))
 
 print(json.dumps(inv))""".format(random_title(non_ascii=False))
-        inv_script = factories.v2_inventory_script(script=script)
-        inv_source = factories.v2_inventory_source(source_script=inv_script)
+        inv_script = factories.inventory_script(script=script)
+        inv_source = factories.inventory_source(source_script=inv_script)
         assert inv_source.source_script == inv_script.id
         inv_source.update().wait_until_completed().assert_successful()
-        jt = factories.v2_job_template(inventory=inv_source.ds.inventory,
+        jt = factories.job_template(inventory=inv_source.ds.inventory,
                                        use_fact_cache=True,
                                        playbook='scan_custom.yml')
         jt.launch().wait_until_completed().assert_successful()
@@ -308,8 +307,8 @@ print(json.dumps(inv))""".format(random_title(non_ascii=False))
         assert facts.string == "abc"
 
     def test_cachable_custom_fact(self, factories):
-        host = factories.v2_host()
-        jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='gather_facts.yml',
+        host = factories.host()
+        jt = factories.job_template(inventory=host.ds.inventory, playbook='gather_facts.yml',
                                        use_fact_cache=True, extra_vars=dict(set_fact_cacheable=True))
         job = jt.launch().wait_until_completed()
         job.assert_successful()

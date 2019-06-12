@@ -10,8 +10,6 @@ from tests.lib.helpers.rbac_utils import (
 from tests.api import APITest
 
 
-@pytest.mark.api
-@pytest.mark.rbac
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class Test_Team_RBAC(APITest):
 
@@ -111,7 +109,7 @@ class Test_Team_RBAC(APITest):
 
     def test_member_role_association(self, factories):
         """Tests that after a user is granted the member_role that he now shows
-        up under /api/v1/teams/N/users/.
+        up under /api/v2/teams/N/users/.
         """
         team = factories.team()
         user = factories.user()
@@ -138,9 +136,9 @@ class Test_Team_RBAC(APITest):
         # check that our team is listed under the /users/N/teams/ endpoint
         with self.current_user(username=user.username, password=user.password):
             teams = user.related.teams.get()
-            assert teams.count == 1, "Target team not found under /api/v1/users/N/teams/."
+            assert teams.count == 1, "Target team not found under /api/v2/users/N/teams/."
             assert teams.results.pop().id == team.id, \
-                "Unexpected team returned under /api/v1/users/N/teams/."
+                "Unexpected team returned under /api/v2/users/N/teams/."
 
     def test_system_roles_forbidden(self, factories, api_roles_pg):
         """Teams are not allowed to be given the system admin and auditor roles."""

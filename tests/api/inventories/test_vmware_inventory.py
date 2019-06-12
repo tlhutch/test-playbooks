@@ -34,16 +34,27 @@ def k8s_govcsim(gke_client_cscope, request):
     K8sClient.core.create_namespaced_service(body=govcsim_service, namespace='default')
     request.addfinalizer(lambda: K8sClient.destroy(deployment_name))
     controller_url = "https://http-{}-port-5000.{}".format(deployment_name, cluster_domain)
-    sim_url = "https://https-{}-port-443.{}".format(deployment_name, cluster_domain)
+    sim_fqdn = "https-{}-port-443.{}".format(deployment_name, cluster_domain)
 
     sess = requests.Session()
     sim = sess.get('{}/spawn?username=user&password=pass&cluster=1&port=443&vm=5'.format(controller_url))
-    return sim_url
+    return sim_fqdn
 
 
-@pytest.mark.api
-@pytest.mark.destructive
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestGovcsim(APITest):
-    def test_govcsim_spawn(self, k8s_govcsim):
-    
+
+    @pytest.fixture
+    def vmware_credential(self, factories, k8s_govcsim):
+        return factories.credential(name=f'vmware-cred-{fauxfactory.gen_utf8()}',
+                                    kind='vmware', inputs={'host': k8s_govcsim})
+
+    @pytest.fixture
+    def vmware_inventory_source(self, factories, vmware_credential):
+        return factories.inventory_source(name=f'vmware-inventory-source{fauxfactory.gen_utf8()}',
+                                          source='vmware', credential=vmware_credential)
+
+    def test_vmware_inventory_source(self, vmware_inventory_source):
+        update = vmware_inventory_source.update()
+        update.wait_until_completed().assert_successful()
+        

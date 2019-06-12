@@ -29,7 +29,7 @@ def ad_hoc_with_status_completed(ad_hoc_command):
 
 @pytest.fixture(scope="function")
 def ad_hoc_module_name_choices(api_ad_hoc_commands_pg):
-    """Returns the list of module_names from api/v1/ad_hoc_commands OPTIONS."""
+    """Returns the list of module_names from api/v2/ad_hoc_commands OPTIONS."""
     def func():
         options = api_ad_hoc_commands_pg.options()
         return options.actions.POST.module_name.choices

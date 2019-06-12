@@ -29,7 +29,7 @@ def class_subrequest(request):
 def get_pg_dump(request, ansible_runner, skip_docker, hostvars_for_host):
     """Returns the dump of Tower's Postgres DB as a string.
     It may consume a lot of memory if the db is big. Thus we should mark all tests using this fixture with:
-    @pytest.mark.mp_group(group="get_pg_dump", strategy="serial")
+    @pytest.mark.serial
     """
 
     def _pg_dump():
@@ -255,18 +255,6 @@ def skip_if_cluster(is_cluster):
 @pytest.fixture(scope='class')
 def is_cluster(is_traditional_cluster, is_openshift_cluster):
     return is_traditional_cluster or is_openshift_cluster
-
-
-@pytest.fixture(scope='function')
-def is_rhel(ansible_facts):
-    return 'RedHat' in [ansible_facts[host]['ansible_facts']
-           ['ansible_distribution'] for host in ansible_facts.contacted]
-
-
-@pytest.fixture(scope='function')
-def skip_if_not_rhel(is_rhel):
-    if not is_rhel:
-        pytest.skip('Cannot run on platforms other than RHEL')
 
 
 @pytest.fixture(scope='class')

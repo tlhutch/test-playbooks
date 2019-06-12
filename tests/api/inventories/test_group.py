@@ -198,8 +198,6 @@ def variation(request, authtoken, inventory, ansible_runner):
     return inventory
 
 
-@pytest.mark.api
-@pytest.mark.destructive
 @pytest.mark.ansible(host_pattern='tower[0]')  # target 1 normal instance
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestGroup(APITest):
@@ -590,9 +588,9 @@ class TestGroup(APITest):
 
     def test_circular_association(self, factories):
         """Verify that child groups cannot list their parents and grandparents as a child."""
-        parent_group = factories.v2_group()
+        parent_group = factories.group()
         inventory = parent_group.ds.inventory
-        child_group, grandchild_group = [factories.v2_group(inventory=inventory) for group in range(2)]
+        child_group, grandchild_group = [factories.group(inventory=inventory) for group in range(2)]
         parent_group.add_group(child_group)
         child_group.add_group(grandchild_group)
 
@@ -603,36 +601,36 @@ class TestGroup(APITest):
 
     def test_self_association(self, factories):
         """Verify that groups cannot list themselves as a child."""
-        group = factories.v2_group()
+        group = factories.group()
         with pytest.raises(exc.BadRequest) as e:
             group.add_group(group)
         assert e.value[1] == {'error': 'Cyclical Group association.'}
 
     def test_duplicate_groups_allowed_in_different_inventories(self, factories):
         """Verify that duplicate groups are allowed in different inventories."""
-        parent1 = factories.v2_group()
-        child1 = factories.v2_group(inventory=parent1.ds.inventory)
+        parent1 = factories.group()
+        child1 = factories.group(inventory=parent1.ds.inventory)
         parent1.add_group(child1)
 
-        inventory = factories.v2_inventory()
-        parent2, child2 = [factories.v2_group(inventory=inventory, name=name) for name in (parent1.name, child1.name)]
+        inventory = factories.inventory()
+        parent2, child2 = [factories.group(inventory=inventory, name=name) for name in (parent1.name, child1.name)]
         parent2.add_group(child2)
 
     def test_duplicate_groups_disallowed_in_same_inventory(self, factories):
         """Verify that duplicate groups are not allowed in the same inventory."""
-        parent = factories.v2_group()
+        parent = factories.group()
         inventory = parent.ds.inventory
-        child = factories.v2_group(inventory=inventory)
+        child = factories.group(inventory=inventory)
         parent.add_group(child)
 
         for group in [parent, child]:
             with pytest.raises(exc.Duplicate):
-                factories.v2_group(inventory=inventory, name=group.name)
+                factories.group(inventory=inventory, name=group.name)
 
     def test_reused_names(self, factories):
         """Verify that group names may be reused after group deletion."""
-        group = factories.v2_group()
+        group = factories.group()
         inventory = group.ds.inventory
 
         group.delete()
-        factories.v2_group(inventory=inventory, name=group.name)
+        factories.group(inventory=inventory, name=group.name)

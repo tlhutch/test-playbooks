@@ -50,7 +50,7 @@ def update_setting_pg(request):
 @pytest.fixture(scope="function", params=["all", "auth", "azuread", "changed", "github_org", "github_team", "google", "jobs",
                                           "ldap", "radius", "saml", "system", "tacacsplus", "ui"])
 def setting_pg(request):
-    """Returns each of our nested /api/v1/settings/\\w+/ endpoints.
+    """Returns each of our nested /api/v2/settings/\\w+/ endpoints.
 
     FIXME: we do not include "github" here because tests will
     choke on pytest-github.

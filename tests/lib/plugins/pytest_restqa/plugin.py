@@ -31,13 +31,6 @@ def pytest_addoption(parser):
                     default=False,
                     help='record REST API calls in pytestdebug-rest.log.')
 
-    group = parser.getgroup('safety', 'safety')
-    group.addoption('--api-destructive',
-                    action='store_true',
-                    dest='run_destructive',
-                    default=False,
-                    help='include destructive tests (tests not explicitly marked as \'nondestructive\'). (default: %default)')
-
     group = parser.getgroup('credentials', 'credentials')
     group.addoption('--api-credentials',
                     action='store',
@@ -80,19 +73,6 @@ def set_connection(base_url, config):
 
 
 def pytest_configure(config):
-    if not hasattr(config, 'slaveinput'):
-        config.addinivalue_line(
-            'markers', 'nondestructive: mark the test as nondestructive. '
-            'Tests are assumed to be destructive unless this marker is '
-            'present. This reduces the risk of running destructive '
-            'tests accidentally.')
-
-        if not config.option.run_destructive:
-            if config.option.markexpr:
-                config.option.markexpr = 'nondestructive and (%s)' % config.option.markexpr
-            else:
-                config.option.markexpr = 'nondestructive'
-
     # If --debug was provided, set the root logger to logging.DEBUG
     if config.option.debug:
         logger = logging.getLogger()
@@ -140,7 +120,7 @@ def pytest_unconfigure(config):
         sys.stderr.write("Wrote pytest-rest information to %s\n" % config._debug_rest_hdlr.baseFilename)
 
 
-@pytest.mark.hookwrapper
+@pytest.hookimpl(hookwrapper=True)
 def pytest_runtest_makereport(item, call):
     if 'skip_restqa' in item.keywords:
         return

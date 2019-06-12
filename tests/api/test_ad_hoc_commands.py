@@ -41,8 +41,6 @@ def ad_hoc_command_with_multi_ask_credential_and_password_in_payload(request, ho
     return command_pg
 
 
-@pytest.mark.api
-@pytest.mark.destructive
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class Test_Ad_Hoc_Commands_Inventory(APITest):
 
@@ -70,8 +68,6 @@ class Test_Ad_Hoc_Commands_Inventory(APITest):
         command_pg.assert_successful()
 
 
-@pytest.mark.api
-@pytest.mark.destructive
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class Test_Ad_Hoc_Commands_Group(APITest):
 
@@ -98,8 +94,6 @@ class Test_Ad_Hoc_Commands_Group(APITest):
         command_pg.assert_successful()
 
 
-@pytest.mark.api
-@pytest.mark.destructive
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class Test_Ad_Hoc_Commands_Host(APITest):
 
@@ -126,8 +120,6 @@ class Test_Ad_Hoc_Commands_Host(APITest):
         command_pg.assert_successful()
 
 
-@pytest.mark.api
-@pytest.mark.destructive
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class Test_Ad_Hoc_Commands_Main(APITest):
 
@@ -221,7 +213,7 @@ class Test_Ad_Hoc_Commands_Main(APITest):
             "Unexpected response upon launching ad hoc command 'command' without " \
             "specifying module_args. %s" % json.dumps(result)
 
-    @pytest.mark.mp_group('ad_hoc_with_status_pending', 'isolated_serial')
+    @pytest.mark.serial
     @pytest.mark.fixture_args(module_name='command', module_args='sleep 60s')
     def test_cancel_command(self, ad_hoc_with_status_pending):
         """Tests that posting to the cancel endpoint cancels a command."""
@@ -468,7 +460,7 @@ print(json.dumps(inv, indent=2))
         with pytest.raises(exc.BadRequest):
             relaunch_pg.post(payload)
 
-    @pytest.mark.mp_group('Jinja2', 'isolated_serial')
+    @pytest.mark.serial
     @pytest.mark.parametrize('extra_vars, exp_stdout', [("{'test': 'json'}", "json"), ("---\ntest: yaml", "yaml")])
     def test_launch_ahc_with_extra_vars(self, v2, factories, extra_vars, exp_stdout):
         # Need to set this so that templating is allowed
@@ -476,15 +468,15 @@ print(json.dumps(inv, indent=2))
         payload = dict(ALLOW_JINJA_IN_EXTRA_VARS='always')
         api_settings_jobs_pg.patch(**payload)
 
-        host = factories.v2_host()
-        ahc = factories.v2_ad_hoc_command(inventory=host.ds.inventory, module_name='shell', module_args='echo {{test}}',
+        host = factories.host()
+        ahc = factories.ad_hoc_command(inventory=host.ds.inventory, module_name='shell', module_args='echo {{test}}',
                                           extra_vars=extra_vars).wait_until_completed()
         ahc.assert_successful()
         assert exp_stdout in ahc.result_stdout
 
     def test_launch_with_blacklisted_extra_vars(self, factories):
         with pytest.raises(exc.BadRequest) as e:
-            factories.v2_ad_hoc_command(extra_vars="{'ansible_connection': 'local', 'ansible_ssh': 127.0.0.1}")
+            factories.ad_hoc_command(extra_vars="{'ansible_connection': 'local', 'ansible_ssh': 127.0.0.1}")
         assert e.value[1]['extra_vars'] == ['ansible_ssh, ansible_connection are prohibited from use in ad hoc commands.']
 
     def test_relaunch_with_deleted_related(self, ad_hoc_with_status_completed, deleted_object):
@@ -516,12 +508,12 @@ print(json.dumps(inv, indent=2))
         assert matching_job_events.count == 1, \
             "Unexpected number of matching job events (%s != 1)" % matching_job_events.count
 
-    @pytest.mark.mp_group('AHCFile', 'isolated_serial')
+    @pytest.mark.serial
     def test_launch_ahc_with_diff(self, factories, api_settings_jobs_pg, update_setting_pg):
-        host = factories.v2_host()
+        host = factories.host()
         payload = dict(AD_HOC_COMMANDS=['file'])
         update_setting_pg(api_settings_jobs_pg, payload)
-        ahc = factories.v2_ad_hoc_command(inventory=host.ds.inventory, module_name='file', module_args='dest=/tmp/test_directory, state=touch',
+        ahc = factories.ad_hoc_command(inventory=host.ds.inventory, module_name='file', module_args='dest=/tmp/test_directory, state=touch',
                                           diff_mode=True).wait_until_completed()
 
         ahc.assert_successful()
@@ -593,9 +585,8 @@ print(json.dumps(inv, indent=2))
         ['email', 'email'],
     ])
     @pytest.mark.parametrize('prefix', ['awx', 'tower'])
-    @pytest.mark.mp_group('UpdateJobsSetting', 'serial')
     def test_awx_metavars_for_adhoc_commands(self, v2, factories, host, update_setting_pg, extra_var, attr, prefix):
-        admin_user = factories.v2_user(first_name='Joe', last_name='Admin', is_superuser=True)
+        admin_user = factories.user(first_name='Joe', last_name='Admin', is_superuser=True)
         value = str(getattr(admin_user, attr))
         var_name = '{}_user_{}'.format(prefix, extra_var)
         update_setting_pg(
@@ -603,14 +594,14 @@ print(json.dumps(inv, indent=2))
             dict(ALLOW_JINJA_IN_EXTRA_VARS='always')
         )
         with self.current_user(admin_user):
-            ahc = factories.v2_ad_hoc_command(inventory=host.ds.inventory, module_name='shell',
+            ahc = factories.ad_hoc_command(inventory=host.ds.inventory, module_name='shell',
                                               module_args='echo "%s={{ %s }}"' % (attr, var_name)).wait_until_completed()
         assert "=".join([attr, value]) in ahc.result_stdout
 
     def test_output_unicode(self, v2, factories):
-        host = factories.v2_host()
+        host = factories.host()
 
-        ahc = factories.v2_ad_hoc_command(inventory=host.ds.inventory, module_name='shell',
+        ahc = factories.ad_hoc_command(inventory=host.ds.inventory, module_name='shell',
                                           module_args="python -c 'print(\"\xe8\xb5\xb7\xe5\x8b\x95\" * 1000000)'").wait_until_completed()
         ahc.assert_successful()
         assert "\xe8\xb5\xb7\xe5\x8b\x95" * 1000000 in ahc.result_stdout

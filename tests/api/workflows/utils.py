@@ -5,7 +5,7 @@ def get_job_node(wfj, wfj_node_id, mapping):
     """Given a WFJ, the WFJ node id, and the proper mapping object, return the node.
 
     Example:
-        host = factories.v2_host()
+        host = factories.host()
         wfjt = factories.workflow_job_template()
         jt_failure = factories.job_template(inventory=host.ds.inventory, allow_simultaneous=True, playbook='fail_unless.yml')
 
@@ -33,7 +33,7 @@ def get_job_status(wfj, wfj_node_id, mapping):
     """Given the WFJ, WFJ node id, and proper mapping object, return the job's current status if it exists.
 
     Example:
-        host = factories.v2_host()
+        host = factories.host()
         wfjt = factories.workflow_job_template()
         jt_failure = factories.job_template(inventory=host.ds.inventory, allow_simultaneous=True, playbook='fail_unless.yml')
 

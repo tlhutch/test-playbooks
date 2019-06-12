@@ -8,7 +8,7 @@ import time
 from tests.api import APITest
 
 
-@pytest.mark.mp_group('SESSIONS', 'isolated_serial')
+@pytest.mark.serial
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestBasicAuth(APITest):
 
@@ -53,8 +53,8 @@ class TestBasicAuth(APITest):
         total = 3
         update_setting_pg(v2.settings.get().get_endpoint(
             'authentication'), {'SESSIONS_PER_USER': max_logins})
-        org = factories.v2_organization()
-        user = factories.v2_user(organization=org)
+        org = factories.organization()
+        user = factories.user(organization=org)
 
         sessions = []
         ws_clients = []
@@ -93,8 +93,8 @@ class TestBasicAuth(APITest):
     def test_authtoken_maximum_concurrent_sessions_does_not_kick_other_users(self, factories, v2, update_setting_pg):
         update_setting_pg(v2.settings.get().get_endpoint(
             'authentication'), {'SESSIONS_PER_USER': 1})
-        org = factories.v2_organization()
-        user1, user2 = [factories.v2_user(organization=org) for _ in range(2)]
+        org = factories.organization()
+        user1, user2 = [factories.user(organization=org) for _ in range(2)]
 
         sessions = []
         session1 = self.spawn_session(user1)
@@ -116,7 +116,7 @@ class TestBasicAuth(APITest):
         return cookies[0].expires
 
     def test_session_cookie_age_is_applied(self, factories, v2, update_setting_pg):
-        user = factories.v2_user()
+        user = factories.user()
         update_setting_pg(v2.settings.get().get_endpoint(
             'authentication'), {'SESSION_COOKIE_AGE': 1000})
         session = self.spawn_session(user)
@@ -125,7 +125,7 @@ class TestBasicAuth(APITest):
             session.session.cookies) - time.time() < 1000
 
     def test_session_cookie_age_change_affects_active_sessions(self, factories, v2, update_setting_pg):
-        user = factories.v2_user()
+        user = factories.user()
         session = self.spawn_session(user)
 
         session.get('/api/v2/me/')

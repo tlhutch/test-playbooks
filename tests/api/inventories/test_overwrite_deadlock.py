@@ -87,7 +87,6 @@ print(json.dumps({
 }))"""
 
 
-@pytest.mark.api
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestInventoryUpdateOverlappingSources(APITest):
 
@@ -119,11 +118,11 @@ class TestInventoryUpdateOverlappingSources(APITest):
             pytest.skip(
                 'Set TOWERQA_NUM_IVENTORY_SOURCES_OVERWRITE_DEADLOCK to a positive integer to run test')
         for i in range(NUM_INV_SOURCES):
-            inv_script = factories.v2_inventory_script(
+            inv_script = factories.inventory_script(
                 script=CUSTOM_SCRIPT,
                 organization=shared_org,
             )
-            inv_source = factories.v2_inventory_source(
+            inv_source = factories.inventory_source(
                 overwrite=True,
                 overwrite_vars=True,
                 source_script=inv_script,
@@ -167,19 +166,19 @@ class TestInventoryUpdateOverlappingSources(APITest):
                 assert host.name == host.related.variable_data.get()['name']
         for i, source in enumerate(inv_sources):
             if i % 3 == 0:
-                inv_script = factories.v2_inventory_script(
+                inv_script = factories.inventory_script(
                     script=DELETE_GROUP_1_CUSTOM_SCRIPT,
                     organization=shared_org,
                     )
                 source.source_script = inv_script.id
             if i % 3 == 1:
-                inv_script = factories.v2_inventory_script(
+                inv_script = factories.inventory_script(
                     script=DELETE_GROUP_2_CUSTOM_SCRIPT,
                     organization=shared_org,
                     )
                 source.source_script = inv_script.id
             if i % 3 == 2:
-                inv_script = factories.v2_inventory_script(
+                inv_script = factories.inventory_script(
                     script=DELETE_GROUP_3_CUSTOM_SCRIPT,
                     organization=shared_org,
                     )

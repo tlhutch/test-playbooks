@@ -54,6 +54,8 @@ class HasCreateFactory(object):
         payload = cls.model(connection).create_payload(**kwargs)
 
         resources = []
+        if isinstance(payload, tuple):
+            payload = payload[0]
         for resource_type in payload.ds:
             try:
                 resource = payload.ds[resource_type]
@@ -74,10 +76,6 @@ class OrganizationFactory(HasCreateFactory):
     model = pages.Organization
 
 
-class V2OrganizationFactory(HasCreateFactory):
-    model = pages.V2Organization
-
-
 class InstanceGroupFactory(HasCreateFactory):
     model = pages.InstanceGroup
 
@@ -86,24 +84,12 @@ class UserFactory(HasCreateFactory):
     model = pages.User
 
 
-class V2UserFactory(HasCreateFactory):
-    model = pages.V2User
-
-
 class WorkflowJobTemplateFactory(HasCreateFactory):
     model = pages.WorkflowJobTemplate
 
 
-class V2WorkflowJobTemplateFactory(HasCreateFactory):
-    model = pages.V2WorkflowJobTemplate
-
-
 class CredentialFactory(HasCreateFactory):
     model = pages.Credential
-
-
-class V2CredentialFactory(HasCreateFactory):
-    model = pages.V2Credential
 
 
 class CredentialTypeFactory(HasCreateFactory):
@@ -114,92 +100,48 @@ class InventoryFactory(HasCreateFactory):
     model = pages.Inventory
 
 
-class V2InventoryFactory(HasCreateFactory):
-    model = pages.V2Inventory
-
-
 class InventoryScriptFactory(HasCreateFactory):
     model = pages.InventoryScript
 
 
-class V2InventoryScriptFactory(HasCreateFactory):
-    model = pages.V2InventoryScript
-
-
-class V2InventorySourceFactory(HasCreateFactory):
-    model = pages.V2InventorySource
+class InventorySourceFactory(HasCreateFactory):
+    model = pages.InventorySource
 
 
 class LabelFactory(HasCreateFactory):
     model = pages.Label
 
 
-class V2LabelFactory(HasCreateFactory):
-    model = pages.V2Label
-
-
 class NotificationTemplateFactory(HasCreateFactory):
     model = pages.NotificationTemplate
-
-
-class V2NotificationTemplateFactory(HasCreateFactory):
-    model = pages.V2NotificationTemplate
 
 
 class ProjectFactory(HasCreateFactory):
     model = pages.Project
 
 
-class V2ProjectFactory(HasCreateFactory):
-    model = pages.V2Project
-
-
 class TeamFactory(HasCreateFactory):
     model = pages.Team
-
-
-class V2TeamFactory(HasCreateFactory):
-    model = pages.V2Team
 
 
 class AdHocCommandFactory(HasCreateFactory):
     model = pages.AdHocCommand
 
 
-class V2AdHocCommandFactory(HasCreateFactory):
-    model = pages.V2AdHocCommand
-
-
 class GroupFactory(HasCreateFactory):
     model = pages.Group
-
-
-class V2GroupFactory(HasCreateFactory):
-    model = pages.V2Group
 
 
 class HostFactory(HasCreateFactory):
     model = pages.Host
 
 
-class V2HostFactory(HasCreateFactory):
-    model = pages.V2Host
-
-
 class JobTemplateFactory(HasCreateFactory):
     model = pages.JobTemplate
 
 
-class V2JobTemplateFactory(HasCreateFactory):
-    model = pages.V2JobTemplate
-
-
 class WorkflowJobTemplateNodeFactory(HasCreateFactory):
     model = pages.WorkflowJobTemplateNode
-
-
-class V2WorkflowJobTemplateNodeFactory(HasCreateFactory):
-    model = pages.V2WorkflowJobTemplateNode
 
 
 class ApplicationFactory(HasCreateFactory):
@@ -239,6 +181,7 @@ def factory_namespace(request):
         instance_group=FactoryFixture(request, InstanceGroupFactory),
         inventory=FactoryFixture(request, InventoryFactory),
         inventory_script=FactoryFixture(request, InventoryScriptFactory),
+        inventory_source=FactoryFixture(request, InventorySourceFactory),
         job_template=FactoryFixture(request, JobTemplateFactory),
         label=FactoryFixture(request, LabelFactory),
         notification_template=FactoryFixture(request, NotificationTemplateFactory),
@@ -247,23 +190,7 @@ def factory_namespace(request):
         team=FactoryFixture(request, TeamFactory),
         user=FactoryFixture(request, UserFactory),
         workflow_job_template=FactoryFixture(request, WorkflowJobTemplateFactory),
-        workflow_job_template_node=FactoryFixture(request, WorkflowJobTemplateNodeFactory),
-        v2_ad_hoc_command=FactoryFixture(request, V2AdHocCommandFactory),
-        v2_credential=FactoryFixture(request, V2CredentialFactory),
-        v2_group=FactoryFixture(request, V2GroupFactory),
-        v2_host=FactoryFixture(request, V2HostFactory),
-        v2_inventory=FactoryFixture(request, V2InventoryFactory),
-        v2_inventory_script=FactoryFixture(request, V2InventoryScriptFactory),
-        v2_inventory_source=FactoryFixture(request, V2InventorySourceFactory),
-        v2_job_template=FactoryFixture(request, V2JobTemplateFactory),
-        v2_label=FactoryFixture(request, V2LabelFactory),
-        v2_notification_template=FactoryFixture(request, V2NotificationTemplateFactory),
-        v2_organization=FactoryFixture(request, V2OrganizationFactory),
-        v2_project=FactoryFixture(request, V2ProjectFactory),
-        v2_team=FactoryFixture(request, V2TeamFactory),
-        v2_user=FactoryFixture(request, V2UserFactory),
-        v2_workflow_job_template=FactoryFixture(request, V2WorkflowJobTemplateFactory),
-        v2_workflow_job_template_node=FactoryFixture(request, V2WorkflowJobTemplateNodeFactory)
+        workflow_job_template_node=FactoryFixture(request, WorkflowJobTemplateNodeFactory)
     )
 
 

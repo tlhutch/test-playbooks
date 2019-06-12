@@ -45,7 +45,7 @@ def assert_response(connection, resource, method, response_code=http.client.OK, 
     method = method.lower()
 
     # Call the desired API $method on the provided $resource (e.g.
-    # api.get('/api/v1/me/')
+    # api.get('/api/v2/me/')
     if method in ['get', 'head', 'options']:
         r = getattr(connection, method)(resource)
     else:
@@ -61,9 +61,7 @@ method_not_allowed = (http.client.METHOD_NOT_ALLOWED, 'method_not_allowed')
 unauthorized = (http.client.UNAUTHORIZED, 'unauthorized')
 
 
-@pytest.mark.api
-@pytest.mark.nondestructive
-@pytest.mark.mp_group('TestCrawler', 'isolated_free')
+@pytest.mark.serial
 def test_unauthenticated(authtoken, resource, method):
     expected = {'HEAD': (http.client.UNAUTHORIZED, 'head'),
                 'GET': unauthorized,
@@ -98,9 +96,7 @@ def test_unauthenticated(authtoken, resource, method):
                     expected_response_code, expected_response_schema)
 
 
-@pytest.mark.api
-@pytest.mark.nondestructive
-@pytest.mark.mp_group('TestCrawler')
+@pytest.mark.serial
 def test_authenticated(connection, authtoken, no_license, resource, method):
 
     expected = {'HEAD': (http.client.OK, 'head'),
@@ -116,7 +112,6 @@ def test_authenticated(connection, authtoken, no_license, resource, method):
                   'config/': {'POST': (http.client.BAD_REQUEST, 'license_invalid')},
                   'dashboard/': {'POST': method_not_allowed},
                   'instances/': {'POST': method_not_allowed},
-                  '/api/v1/inventory_sources/': {'POST': method_not_allowed},
                   'inventory_updates/': {'POST': method_not_allowed},
                   'job_events/': {'POST': method_not_allowed},
                   '/api/v2/jobs/': {'POST': method_not_allowed},

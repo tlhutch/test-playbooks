@@ -56,9 +56,7 @@ def k8s_prometheus(gke_client_cscope, request, class_factories):
     return prometheus_url
 
 
-@pytest.mark.mp_group(group="PrometheusMetrics", strategy="isolated_serial")
-@pytest.mark.api
-@pytest.mark.destructive
+@pytest.mark.serial
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestMetrics(APITest):
 
@@ -90,7 +88,7 @@ class TestMetrics(APITest):
         inventory = factories.inventory(organization=org)
         project = factories.project(organization=org)
         factories.job_template(inventory=inventory, project=project)
-        factories.v2_workflow_job_template(organization=org, inventory=inventory, project=project)
+        factories.workflow_job_template(organization=org, inventory=inventory, project=project)
         factories.host(inventory=inventory)
         prometheus_data_after = v2.metrics.get()
         assert prometheus_data_after['awx_organizations_total']['value'] == prometheus_data_before['awx_organizations_total']['value'] + 1
@@ -110,7 +108,7 @@ class TestMetrics(APITest):
         inventory = factories.inventory(organization=org)
         project = factories.project(organization=org)
         factories.job_template(inventory=inventory, project=project)
-        factories.v2_workflow_job_template(organization=org, inventory=inventory, project=project)
+        factories.workflow_job_template(organization=org, inventory=inventory, project=project)
         factories.host(inventory=inventory)
         utils.poll_until(lambda: self.query_prometheus(k8s_prometheus, 'awx_hosts_total') > int(prometheus_data_before['awx_hosts_total']['value']), timeout=30)
         assert self.query_prometheus(k8s_prometheus, 'awx_organizations_total') == int(prometheus_data_before['awx_organizations_total']['value'] + 1)

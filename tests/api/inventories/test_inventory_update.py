@@ -34,7 +34,7 @@ def assert_expected_hostvars(inv_source,
 
     Return set of expected groups to be constructed.
     """
-    kind = inv_source.summary_fields.credential.kind
+    kind = inv_source.source
     expected_hostvars = cloud_inventory_hostvars.get(kind, {})
     missing_hostvars = dict()
     hosts_missing_vars = dict()
@@ -99,7 +99,7 @@ def assert_expected_hostvars(inv_source,
 
 def assert_expected_hostgroups(inv_source, inv_update, cloud_inventory_hostgroups, constructed_groups):
     """For given inventory source and inventory update, assert expected groups were created."""
-    kind = inv_source.summary_fields.credential.kind
+    kind = inv_source.source
     inventory = inv_source.related.inventory.get()
     expected_hostgroups = cloud_inventory_hostgroups.get(kind, {})
     expected_hostgroups.update({k: '' for k in constructed_groups})
@@ -132,7 +132,7 @@ def assert_expected_hostgroups(inv_source, inv_update, cloud_inventory_hostgroup
 
 def assert_expected_hostnames(inv_source, cloud_hostvars_that_create_host_names):
     """For given inventory, assert expected host names were created."""
-    kind = inv_source.summary_fields.credential.kind
+    kind = inv_source.source
     inventory = inv_source.related.inventory.get()
     expected_host_name_vars = cloud_hostvars_that_create_host_names.get(kind, [])
 
@@ -154,15 +154,13 @@ def assert_expected_hostnames(inv_source, cloud_hostvars_that_create_host_names)
                 )
 
 
-@pytest.mark.api
-@pytest.mark.destructive
 @pytest.mark.usefixtures(
     'authtoken',
     'install_enterprise_license_unlimited',
     'skip_if_openshift',
     'shared_custom_venvs'
 )
-@pytest.mark.mp_group('CustomVirtualenv', 'isolated_serial')
+@pytest.mark.serial
 @pytest.mark.fixture_args(venvs=CUSTOM_VENVS)
 class TestInventoryUpdateWithVenvs(APITest):
     """Test inventory updates in the default as well as other venvs.
@@ -179,9 +177,8 @@ class TestInventoryUpdateWithVenvs(APITest):
         else:
             return None
 
-    @pytest.mark.custom_venvs
     @pytest.mark.ansible_integration
-    def test_v2_update_inventory_source(self,
+    def test_update_cloud_inventory_source(self,
             ansible_version_cmp,
             cloud_inventory,
             custom_venv_path,
@@ -195,7 +192,7 @@ class TestInventoryUpdateWithVenvs(APITest):
         # Set venv to use
         # Will use venvs defined in CUSTOM_VENVS as well as the default venv
         inv_source.custom_virtualenv = custom_venv_path
-        kind = inv_source.summary_fields.credential.kind
+        kind = inv_source.source
         if kind == 'azure_rm':
             inv_source.source_vars = json.dumps({
                 'group_by_location': True,
@@ -220,26 +217,19 @@ class TestInventoryUpdateWithVenvs(APITest):
         assert_expected_hostnames(inv_source, cloud_hostvars_that_create_host_names)
 
 
-@pytest.mark.api
 @pytest.mark.usefixtures(
     'authtoken',
     'install_enterprise_license_unlimited',
 )
 class TestInventoryUpdate(APITest):
 
-    def test_v1_update_inventory_source(self, cloud_group):
-        """Verify successful inventory import using /api/v1/inventory_sources/N/update/."""
-        inv_source = cloud_group.get_related('inventory_source')
-        inv_update = inv_source.update().wait_until_completed()
-        inv_update.assert_successful()
-
-    def test_v2_update_all_inventory_sources_with_functional_sources(self, factories):
+    def test_update_all_inventory_sources_with_functional_sources(self, factories):
         """Verify behavior when inventory has functional inventory sources."""
-        inventory = factories.v2_inventory()
-        azure_cred, aws_cred = [factories.v2_credential(kind=kind) for kind in ('azure_rm', 'aws')]
-        azure_source = factories.v2_inventory_source(inventory=inventory, source='azure_rm', credential=azure_cred)
-        ec2_source = factories.v2_inventory_source(inventory=inventory, source='ec2', credential=aws_cred)
-        scm_source = factories.v2_inventory_source(inventory=inventory, source='scm',
+        inventory = factories.inventory()
+        azure_cred, aws_cred = [factories.credential(kind=kind) for kind in ('azure_rm', 'aws')]
+        azure_source = factories.inventory_source(inventory=inventory, source='azure_rm', credential=azure_cred)
+        ec2_source = factories.inventory_source(inventory=inventory, source='ec2', credential=aws_cred)
+        scm_source = factories.inventory_source(inventory=inventory, source='scm',
                                                    source_path='inventories/inventory.ini')
 
         prelaunch = inventory.related.update_inventory_sources.get()
@@ -265,14 +255,14 @@ class TestInventoryUpdate(APITest):
         ec2_update.assert_successful()
         scm_update.assert_successful()
 
-    def test_v2_update_all_inventory_sources_with_semifunctional_sources(self, factories):
+    def test_update_all_inventory_sources_with_semifunctional_sources(self, factories):
         """Verify behavior when inventory has an inventory source that is ready for update
         and one that is not.
         """
-        inv_source1 = factories.v2_inventory_source()
+        inv_source1 = factories.inventory_source()
         inv_source1.ds.inventory_script.delete()
         inventory = inv_source1.ds.inventory
-        inv_source2 = factories.v2_inventory_source(inventory=inventory)
+        inv_source2 = factories.inventory_source(inventory=inventory)
 
         prelaunch = inventory.related.update_inventory_sources.get()
         assert dict(can_update=False, inventory_source=inv_source1.id) in prelaunch
@@ -295,10 +285,10 @@ class TestInventoryUpdate(APITest):
         inv_update.assert_successful()
         inv_source2.assert_successful()
 
-    def test_v2_update_all_inventory_sources_with_nonfunctional_sources(self, factories):
+    def test_update_all_inventory_sources_with_nonfunctional_sources(self, factories):
         """Verify behavior when inventory has nonfunctional inventory sources."""
-        inventory = factories.v2_inventory()
-        inv_source1, inv_source2 = [factories.v2_inventory_source(inventory=inventory) for _ in range(2)]
+        inventory = factories.inventory()
+        inv_source1, inv_source2 = [factories.inventory_source(inventory=inventory) for _ in range(2)]
 
         inv_source1.ds.inventory_script.delete()
         inv_source2.ds.inventory_script.delete()
@@ -317,13 +307,13 @@ class TestInventoryUpdate(APITest):
         assert not inv_source1.last_updated
         assert not inv_source2.last_updated
 
-    def test_v2_update_duplicate_inventory_sources(self, factories):
+    def test_update_duplicate_inventory_sources(self, factories):
         """Verify updating custom inventory sources under the same inventory with
         the same custom script."""
-        inv_source1 = factories.v2_inventory_source()
+        inv_source1 = factories.inventory_source()
         inventory = inv_source1.ds.inventory
         inv_script = inv_source1.ds.inventory_script
-        inv_source2 = factories.v2_inventory_source(inventory=inventory,
+        inv_source2 = factories.inventory_source(inventory=inventory,
                                                     source_script=inv_script)
         assert inv_source1.source_script == inv_script.id
         assert inv_source2.source_script == inv_source1.source_script
@@ -335,8 +325,8 @@ class TestInventoryUpdate(APITest):
         inv_source1.get().assert_successful()
         inv_source2.get().assert_successful()
 
-    def test_v2_update_with_no_inventory_sources(self, factories):
-        inventory = factories.v2_inventory()
+    def test_update_with_no_inventory_sources(self, factories):
+        inventory = factories.inventory()
         with pytest.raises(exc.BadRequest) as e:
             inventory.update_inventory_sources()
         assert e.value[1] == {'detail': 'No inventory sources to update.'}
@@ -388,11 +378,11 @@ print(json.dumps({
         "children": ["ghost3"]
     }
 }))"""
-        inv_script = factories.v2_inventory_script(
+        inv_script = factories.inventory_script(
             script=custom_script,
             organization=shared_org,
         )
-        inv_source = factories.v2_inventory_source(
+        inv_source = factories.inventory_source(
             source_script=inv_script,
             organization=shared_org,
             inventory=parent_inv
@@ -409,7 +399,7 @@ print(json.dumps({
         * Memberships created within our script-spawned group should removed by a 2nd import.
         * Hosts, groups, and memberships created outside of our custom group should persist.
         """
-        inv_script = factories.v2_inventory_script(script="""#!/usr/bin/env python
+        inv_script = factories.inventory_script(script="""#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import json
 print(json.dumps({
@@ -425,7 +415,7 @@ print(json.dumps({
     'will_remove_group': {'hosts': ['host_2']},
     'parent_group': {'hosts': ['host_1', 'host_2'], 'children': ['child_group', 'child_group2']}
 }))""")
-        inv_source = factories.v2_inventory_source(
+        inv_source = factories.inventory_source(
             overwrite=True,
             source_script=inv_script
         )
@@ -501,7 +491,7 @@ print(json.dumps({
         * Hosts and groups created within our script-spawned group should persist.
         * Hosts and groups created outside of our custom group should persist.
         """
-        inv_source = factories.v2_inventory_source()
+        inv_source = factories.inventory_source()
         inventory = inv_source.ds.inventory
         inv_source.update().wait_until_completed()
         spawned_group = inv_source.related.groups.get().results.pop()
@@ -545,7 +535,7 @@ print(json.dumps({
         enabled. Final group and host variables should be those sourced from
         the script. Inventory variables should persist.
         """
-        inv_source = factories.v2_inventory_source(overwrite_vars=True)
+        inv_source = factories.inventory_source(overwrite_vars=True)
         inventory = inv_source.ds.inventory
         inv_source.update().wait_until_completed().assert_successful()
         custom_group = inv_source.related.groups.get().results.pop()
@@ -574,7 +564,7 @@ print(json.dumps({
         group and host variables should be a union of those sourced from the inventory
         script and those manually inserted. Inventory variables should persist.
         """
-        inv_source = factories.v2_inventory_source()
+        inv_source = factories.inventory_source()
         inventory = inv_source.ds.inventory
         inv_source.update().wait_until_completed().assert_successful()
         custom_group = inv_source.related.groups.get().results.pop()
@@ -608,10 +598,10 @@ print(json.dumps({
         if ansible_version_cmp('2.4.0') >= 1 and ansible_version_cmp('2.5.1') < 1:
             # this doesn't work with ansible-inventory from 2.4 through 2.5.1
             pytest.skip('https://github.com/ansible/ansible/issues/33776')
-        inv_script = factories.v2_inventory_script(script=("#!/usr/bin/env python\n"
+        inv_script = factories.inventory_script(script=("#!/usr/bin/env python\n"
                                                            "from __future__ import print_function\nimport sys\n"
                                                            "print('TEST', file=sys.stderr)\nprint('{}')"))
-        inv_source = factories.v2_inventory_source(source_script=inv_script)
+        inv_source = factories.inventory_source(source_script=inv_script)
         assert inv_source.source_script == inv_script.id
 
         inv_update = inv_source.update().wait_until_completed()
@@ -623,7 +613,7 @@ print(json.dumps({
             # this doesn't work with ansible-inventory from 2.4 through 2.5.1
             pytest.skip('https://github.com/ansible/ansible/issues/33776')
         org = factories.organization()
-        inv = factories.v2_inventory(organization=org)
+        inv = factories.inventory(organization=org)
         credential_type = factories.credential_type(
             inputs={
                 'fields': [{
@@ -638,16 +628,16 @@ print(json.dumps({
                 'env': {'AWX_CUSTOM_INI': '{{ tower.filename }}'}
             }
         )
-        inv_script = factories.v2_inventory_script(
+        inv_script = factories.inventory_script(
             organization=org,
             script=("#!/usr/bin/env python\n"
                     "from __future__ import print_function\nimport os, sys\n"
                     "print(open(os.environ['AWX_CUSTOM_INI']).read(), file=sys.stderr)\nprint('{}')")
         )
-        inv_source = factories.v2_inventory_source(
+        inv_source = factories.inventory_source(
             inventory=inv,
             source_script=inv_script,
-            credential=factories.v2_credential(
+            credential=factories.credential(
                 credential_type=credential_type,
                 inputs={'password': 'SECRET123'}
             ),
@@ -674,21 +664,21 @@ print(json.dumps({
         if is_docker and verbosity == 0:
             pytest.skip('Dev Container has debug logging so this test will likely fail')
 
-        inv_source = factories.v2_inventory_source(verbosity=verbosity)
+        inv_source = factories.inventory_source(verbosity=verbosity)
         inv_update = inv_source.update().wait_until_completed()
 
         inv_update.assert_successful()
         assert inv_update.verbosity == inv_source.verbosity
         if verbosity == 0 and ansible_version_cmp('2.4.0') >= 1:
-            if (ansible_version_cmp('2.8.0') >= 1):
+            if (ansible_version_cmp('2.8.0') < 0):
+                # https://github.com/ansible/awx/issues/792
+                assert inv_update.result_stdout == ''
+            else:
                 for line in inv_update.result_stdout.split('\n'):
                     if 'ERROR' in line:
                         pass
                     else:
                         assert line == ''
-            else:
-                # https://github.com/ansible/awx/issues/792
-                assert inv_update.result_stdout == ''
         else:
             for line in stdout_lines:
                 assert line in inv_update.result_stdout
@@ -697,7 +687,7 @@ print(json.dumps({
     def test_inventory_plugin_traceback_surfaced(self, factories, verbosity, ansible_version_cmp):
         if ansible_version_cmp('2.9.0') < 0:
             pytest.skip('Custom user plugins were not fixed until Ansible 2.9')
-        inv_src = factories.v2_inventory_source(
+        inv_src = factories.inventory_source(
             source='scm',
             source_path='inventories/user_plugins/fox.yaml',
             verbosity=verbosity
@@ -711,15 +701,16 @@ print(json.dumps({
         else:
             assert 'ancient_mystery' in reduced_output, output
 
-    def test_update_with_source_region(self, region_choices, cloud_group_supporting_source_regions):
+    def test_cloud_update_with_source_region(self, region_choices, cloud_inventory_source_supporting_source_regions):
         """Assess inventory imports with all possible choices for source_regions.
 
         Note: we expect inventory imports with certain regions to fail. For more context,
         please see https://github.com/ansible/ansible-tower/issues/545.
         """
+        inv_source_pg = cloud_inventory_source_supporting_source_regions
         # provide list of values for source_regions given each provider
-        cloud_provider = cloud_group_supporting_source_regions.get_related('inventory_source').get_related('credential').kind
-        if cloud_provider == 'aws':
+        cloud_provider = inv_source_pg.source
+        if cloud_provider == 'ec2':
             source_regions = region_choices['ec2']
         elif cloud_provider == 'azure_rm':
             source_regions = region_choices['azure']
@@ -731,7 +722,7 @@ print(json.dumps({
 
         for source_region in source_regions:
             # patch inv_source_pg and launch update
-            inv_source_pg = cloud_group_supporting_source_regions.get_related('inventory_source')
+            inv_source_pg = cloud_inventory_source_supporting_source_regions
             inv_source_pg.patch(source_regions=source_region)
             assert inv_source_pg.source_regions.lower() == source_region.lower(), \
                 "Unexpected value for inv_source_pg.source_regions after patching the inv_source_pg with %s." % source_region
@@ -751,7 +742,7 @@ print(json.dumps({
 
             # TODO: Assert specific cloud instance is now listed in group
 
-    def test_update_with_populated_source_region(self, cloud_group_supporting_source_regions):
+    def test_cloud_update_with_populated_source_region(self, cloud_inventory_source_supporting_source_regions):
         """Tests that hosts are imported when applying source regions containing hosts.
 
         NOTE: test may fail if our expected test hosts are down.
@@ -759,9 +750,11 @@ print(json.dumps({
         # TODO: Once we populate all regions with an instance, don't think we'll need a test
         # tailored to a subset of regions with instances.
 
+        inv_source_pg = cloud_inventory_source_supporting_source_regions
+
         # provide test source_region given each provider
-        cloud_provider = cloud_group_supporting_source_regions.get_related('inventory_source').get_related('credential').kind
-        if cloud_provider == 'aws':
+        cloud_provider = inv_source_pg.source
+        if cloud_provider == 'ec2':
             source_region = "us-east-1"
         elif cloud_provider == 'azure_rm':
             source_region = "eastus"
@@ -769,9 +762,6 @@ print(json.dumps({
             source_region = "all"
         else:
             raise NotImplementedError("Unexpected cloud_provider: %s." % cloud_provider)
-
-        # patch inv_source_pg
-        inv_source_pg = cloud_group_supporting_source_regions.get_related('inventory_source')
 
         inv_source_pg.patch(source_regions=source_region)
         assert inv_source_pg.source_regions.lower() == source_region.lower(), \
@@ -783,11 +773,11 @@ print(json.dumps({
         inv_source_pg.get().assert_successful()
 
         # assert that hosts were imported
-        assert cloud_group_supporting_source_regions.ds.inventory.get().total_hosts > 0, \
-            "Unexpected number of hosts returned %s." % cloud_group_supporting_source_regions.total_hosts
+        hosts_imported = inv_source_pg.related.inventory.get().total_hosts
+        assert hosts_imported > 0, f"Expected there to be hosts in this region! Found {hosts_imported} instead."
 
     @pytest.mark.ansible_integration
-    def test_update_with_unpopulated_source_region(self, cloud_group_supporting_source_regions):
+    def test_cloud_update_with_unpopulated_source_region(self, cloud_inventory_source_supporting_source_regions):
         """Tests that hosts are not imported when applying source regions not containing hosts.
 
         NOTE: test may fail if someone spins up an instance in one of these regions. Regions correspond as follow:
@@ -798,10 +788,12 @@ print(json.dumps({
         """
         # TODO: Once we populate all regions with an instance, don't think we'll need a test
         # geared towards empty regions.
+        # patch inv_source_pg
+        inv_source_pg = cloud_inventory_source_supporting_source_regions
 
         # provide test source_region given each provider
-        cloud_provider = cloud_group_supporting_source_regions.get_related('inventory_source').get_related('credential').kind
-        if cloud_provider == 'aws':
+        cloud_provider = inv_source_pg.source
+        if cloud_provider == 'ec2':
             source_region = "sa-east-1"
         elif cloud_provider == 'azure_rm':
             source_region = "japanwest"
@@ -809,9 +801,6 @@ print(json.dumps({
             source_region = "asia-east1-c"
         else:
             raise NotImplementedError("Unexpected cloud_provider: %s." % cloud_provider)
-
-        # patch inv_source_pg
-        inv_source_pg = cloud_group_supporting_source_regions.get_related('inventory_source')
 
         inv_source_pg.patch(source_regions=source_region)
         assert inv_source_pg.source_regions.lower() == source_region.lower(), \
@@ -823,8 +812,8 @@ print(json.dumps({
         inv_source_pg.get().assert_successful()
 
         # assert that no hosts were imported
-        assert cloud_group_supporting_source_regions.ds.inventory.get().total_hosts == 0, \
-            "Unexpected number of hosts returned (%s != 0)." % cloud_group_supporting_source_regions.total_hosts
+        hosts_imported = inv_source_pg.related.inventory.get().total_hosts
+        assert hosts_imported == 0, f"Unexpected number of hosts returned ({hosts_imported} != 0)."
 
     @pytest.mark.parametrize("instance_filter", ["tag-key=Name", "key-name=jenkins", "tag:Name=*"])
     @pytest.mark.ansible_integration
@@ -832,7 +821,7 @@ print(json.dumps({
         """Tests inventory imports with matched AWS instance filters. NOTE: test may fail
         if our expected test hosts are down.
         """
-        aws_inventory_source = factories.v2_inventory_source(source='ec2', instance_filters=instance_filter, credential=aws_credential)
+        aws_inventory_source = factories.inventory_source(source='ec2', instance_filters=instance_filter, credential=aws_credential)
         update = aws_inventory_source.update().wait_until_completed()
         update.assert_successful()
         aws_inventory_source.get().assert_successful()
@@ -841,13 +830,14 @@ print(json.dumps({
 
     @pytest.mark.parametrize("instance_filter", ["tag-key=UNMATCHED", "key-name=UNMATCHED", "tag:Name=UNMATCHED"])
     @pytest.mark.ansible_integration
-    def test_update_with_unmatched_aws_instance_filter(self, aws_group, instance_filter):
+    def test_update_with_unmatched_aws_instance_filter(self, aws_inventory_source, instance_filter):
         """Tests inventory imports with unmatched AWS instance filters
 
         NOTE: test may fail if someone spins up an unexpected instance.
         """
         # patch the inv_source_pg and launch the update
-        inv_source_pg = aws_group.get_related('inventory_source')
+        inv_source_pg = aws_inventory_source
+        inventory = aws_inventory_source.related.inventory.get()
         inv_source_pg.patch(instance_filters=instance_filter)
         update_pg = inv_source_pg.update().wait_until_completed()
 
@@ -856,7 +846,8 @@ print(json.dumps({
         inv_source_pg.get().assert_successful()
 
         # assert whether hosts were imported
-        assert aws_group.get().total_hosts == 0, "Unexpected number of hosts returned (%s != 0)." % aws_group.total_hosts
+        hosts_imported = inventory.get().total_hosts
+        assert hosts_imported == 0, f"Unexpected number of hosts returned ({hosts_imported} != 0)."
 
     @pytest.mark.ansible_integration
     @pytest.mark.parametrize("only_group_by, expected_group_names",
@@ -873,9 +864,10 @@ print(json.dumps({
                               ("platform", ["ec2", "platforms"],)],
                              ids=['""', "availability_zone", "ami_id", "instance_id", "instance_type", "key_pair",
                                   "region", "security_group", "availability_zone,ami_id", "platform"])
-    def test_aws_update_with_only_group_by(self, aws_group, only_group_by, expected_group_names):
+    def test_aws_update_with_only_group_by(self, aws_inventory_source, only_group_by, expected_group_names):
         """Tests that expected groups are created when supplying value for only_group_by."""
-        inv_source = aws_group.get_related('inventory_source')
+        inv_source = aws_inventory_source
+        inventory = aws_inventory_source.related.inventory.get()
         inv_source.compatibility_mode = True
         inv_source.group_by = only_group_by
 
@@ -883,8 +875,8 @@ print(json.dumps({
         update.assert_successful()
         inv_source.get().assert_successful()
 
-        groups = aws_group.ds.inventory.related.root_groups.get()
-        actual_group_names = set([group.name for group in groups.results if group.name != aws_group.name])
+        groups = inventory.related.root_groups.get()
+        actual_group_names = set([group.name for group in groups.results])
         # extra group name returned by the plugin
         if 'aws_ec2' in actual_group_names:
             actual_group_names.remove('aws_ec2')
@@ -907,7 +899,7 @@ print(json.dumps({
         }
         if only_group_by:
             group_by_dict['group_by_{}'.format(only_group_by)] = True
-        inv_source = factories.v2_inventory_source(
+        inv_source = factories.inventory_source(
             source='azure_rm',
             credential=factories.credential(kind='azure_rm'),
             source_vars=json.dumps(group_by_dict)
@@ -938,7 +930,7 @@ print(json.dumps({
 
     def test_azure_use_private_ip(self, factories, ansible_version_cmp):
         source_vars = {"use_private_ip": True}
-        inv_source = factories.v2_inventory_source(
+        inv_source = factories.inventory_source(
             source='azure_rm',
             credential=factories.credential(kind='azure_rm'),
             source_vars=json.dumps(source_vars)
@@ -950,7 +942,7 @@ print(json.dumps({
         host_results = inv_source.get_related('hosts')
         assert host_results.count > 0  # this did an unfiltered import, so this should not fail
         for host in host_results.results:
-            if (ansible_version_cmp('2.8.0') < 1) and host.name == 'demo-dj':
+            if (ansible_version_cmp('2.8.0') < 0) and host.name == 'demo-dj':
                 # Fix for bug was merged into 2.8 https://github.com/ansible/ansible/pull/54099
                 # Bug in previous ansible versions caused host with same name as group to have hostvars stolen
                 continue
@@ -967,7 +959,7 @@ print(json.dumps({
         # Bug in previous ansible versions caused host with same name as group to have hostvars stolen
         res_group = "demo-dj"
         source_vars = {"resource_groups": res_group}
-        inv_source = factories.v2_inventory_source(
+        inv_source = factories.inventory_source(
             source='azure_rm',
             credential=factories.credential(kind='azure_rm'),
             source_vars=json.dumps(source_vars)
@@ -988,11 +980,11 @@ print(json.dumps({
         """Tests that AWS inventory groups will be registered with underscores instead of hyphens
         when using "replace_dash_in_groups" source variable
         """
-        inv_source = factories.v2_inventory_source(
+        inv_source = factories.inventory_source(
             source='ec2',
             source_regions='us-east-1',  # region where the flag is located, to reduce import size
             group_by='tag_keys',  # assure the tag groups are returned in all cases
-            credential=factories.v2_credential(kind='aws'),
+            credential=factories.credential(kind='aws'),
             source_vars=json.dumps(dict(replace_dash_in_groups=True))
         )
 
@@ -1031,14 +1023,14 @@ print(json.dumps({
 
     @pytest.mark.parametrize('inventory_source', ['azure_rm', None], ids=['azure', 'custom'])
     def test_environment_variables_sourced_with_inventory_update_with_azure_credential(self, factories, inventory_source):
-        azure_cred = factories.v2_credential(kind='azure_rm', client='SomeClient', cloud_environment='SomeCloudEnvironment',
+        azure_cred = factories.credential(kind='azure_rm', client='SomeClient', cloud_environment='SomeCloudEnvironment',
                                              password='SomePassword', secret='SomeSecret', subscription='SomeSubscription',
                                              tenant='SomeTenant', username='SomeUsername')
         if inventory_source:
-            azure = factories.v2_inventory_source(credential=azure_cred, inventory_source=inventory_source)
+            azure = factories.inventory_source(credential=azure_cred, inventory_source=inventory_source)
         else:
             # custom inventory script created when no inventory_source specified
-            azure = factories.v2_inventory_source(credential=azure_cred)
+            azure = factories.inventory_source(credential=azure_cred)
         update = azure.update().wait_until_completed()
         job_env = update.job_env
         assert job_env.AZURE_CLIENT_ID == 'SomeClient'
@@ -1055,11 +1047,11 @@ print(json.dumps({
     }.items())
     def test_config_parser_properly_escapes_special_characters_in_passwords(self, v2, factories, source, cred_type):
         cred_type = v2.credential_types.get(managed_by_tower=True, name=cred_type).results.pop()
-        cred = factories.v2_credential(
+        cred = factories.credential(
             credential_type=cred_type,
             inputs={'host': 'http://example.org', 'username': 'xyz', 'password': 'pass%word'}
         )
-        source = factories.v2_inventory_source(source=source, credential=cred)
+        source = factories.inventory_source(source=source, credential=cred)
         inv_update = source.update().wait_until_completed()
         assert 'ERROR! No inventory was parsed, please check your configuration and options' in inv_update.result_stdout
         assert 'SyntaxError' not in inv_update.result_stdout
@@ -1067,9 +1059,9 @@ print(json.dumps({
     # Skip for Openshift because of Github Issue: https://github.com/ansible/tower-qa/issues/2591
     def test_inventory_events_are_inserted_in_the_background(self, factories, inventory_script_code_with_sleep):
         sleep_time = 20  # similar to AWS inventory plugin performance
-        inventory = factories.v2_inventory()
-        inv_source = factories.v2_inventory_source(
-            source_script=factories.v2_inventory_script(
+        inventory = factories.inventory()
+        inv_source = factories.inventory_source(
+            source_script=factories.inventory_script(
                 script=inventory_script_code_with_sleep(sleep_time),
                 organization=inventory.ds.organization
             ),
@@ -1107,8 +1099,8 @@ print(json.dumps({
         assert (max_create - min_create).total_seconds() > sleep_time * 0.95
 
     def test_inventory_events_are_searchable(self, factories):
-        aws_cred = factories.v2_credential(kind='aws')
-        ec2_source = factories.v2_inventory_source(source='ec2', credential=aws_cred)
+        aws_cred = factories.credential(kind='aws')
+        ec2_source = factories.inventory_source(source='ec2', credential=aws_cred)
         inv_update = ec2_source.update().wait_until_completed()
         assert inv_update.related.events.get().count > 0
         assert inv_update.related.events.get(search='Updating inventory').count > 0
@@ -1116,8 +1108,9 @@ print(json.dumps({
 
     @pytest.mark.ansible_integration
     def test_inventory_hosts_cannot_be_deleted_during_sync(self, factories):
-        aws_cred = factories.v2_credential(kind='aws')
-        aws_inventory_source = factories.v2_inventory_source(source='ec2', credential=aws_cred, verbosity=2)
+        aws_cred = factories.credential(kind='aws')
+        aws_inventory_source = factories.inventory_source(source='ec2', credential=aws_cred, verbosity=2)
+        aws_inventory = aws_inventory_source.related.inventory.get()
 
         inv_update = aws_inventory_source.update().wait_until_completed()
         inv_update.assert_successful()
@@ -1129,15 +1122,15 @@ print(json.dumps({
             timeout=15
         )
 
-        hosts = aws_inventory_source.ds.inventory.related.hosts.get()
+        hosts = aws_inventory.related.hosts.get()
         host = hosts.results.pop()
         with pytest.raises(exc.Conflict):
             host.delete()
 
     def test_tower_inventory_sync_success(self, factories):
-        target_host = factories.v2_host()
+        target_host = factories.host()
         target_inventory = target_host.ds.inventory
-        tower_cred = factories.v2_credential(
+        tower_cred = factories.credential(
             kind='tower',
             inputs={
                 'host': config.base_url,
@@ -1146,7 +1139,7 @@ print(json.dumps({
                 'verify_ssl': False
             }
         )
-        tower_source = factories.v2_inventory_source(
+        tower_source = factories.inventory_source(
             source='tower', credential=tower_cred,
             instance_filters=target_inventory.id
         )
@@ -1159,7 +1152,7 @@ print(json.dumps({
         assert loaded_hosts.results[0].name == target_host.name
 
     def test_tower_inventory_incorrect_password(self, ansible_version_cmp, factories):
-        tower_cred = factories.v2_credential(
+        tower_cred = factories.credential(
             kind='tower',
             inputs={
                 'host': config.base_url,
@@ -1168,32 +1161,32 @@ print(json.dumps({
                 'verify_ssl': False
             }
         )
-        tower_source = factories.v2_inventory_source(
+        tower_source = factories.inventory_source(
             source='tower', credential=tower_cred,
             instance_filters='123',
         )
         inv_update = tower_source.update().wait_until_completed()
         assert inv_update.status == 'failed'
-        if ansible_version_cmp('2.8.0') >= 1:
-            inv_update.assert_text_in_stdout('HTTP Error 401: Unauthorized')
-        else:
+        if ansible_version_cmp('2.8.0') < 0:
             inv_update.assert_text_in_stdout('Failed to validate the license')
+        else:
+            inv_update.assert_text_in_stdout('HTTP Error 401: Unauthorized')
 
     @pytest.mark.parametrize('hostname, error', [
         ['https://###/', ('Invalid URL', 'error no host given')],
         ['example.org', ('Failed to validate the license', 'HTTP Error 404')],
     ])
     def test_tower_inventory_sync_failure_has_descriptive_error_message(self, ansible_version_cmp, factories, hostname, error):
-        if ansible_version_cmp('2.8.0') >= 1:
-            error = error[1]
-        else:
+        if ansible_version_cmp('2.8.0') < 0:
             error = error[0]
-        tower_cred = factories.v2_credential(kind='tower', inputs={
+        else:
+            error = error[1]
+        tower_cred = factories.credential(kind='tower', inputs={
             'host': hostname,
             'username': 'x',
             'password': 'y'
         })
-        tower_source = factories.v2_inventory_source(
+        tower_source = factories.inventory_source(
             source='tower', credential=tower_cred,
             instance_filters='123'
         )

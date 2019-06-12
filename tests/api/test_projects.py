@@ -28,22 +28,15 @@ def project_with_queued_updates(project_ansible_playbooks_git_nowait):
 
 
 @pytest.fixture(scope="function")
-def project_with_galaxy_requirements(request, authtoken, organization):
-    # Create project
-    payload = dict(name="project-with-galaxy-requirements - %s" % fauxfactory.gen_utf8(),
-                   scm_type='git',
-                   scm_url='https://github.com/ansible/test-playbooks',
-                   scm_branch='with_requirements',
-                   scm_clean=False,
-                   scm_delete_on_update=False,
-                   scm_update_on_launch=False,)
-    obj = organization.get_related('projects').post(payload)
-    request.addfinalizer(obj.silent_delete)
-    return obj
+def project_with_galaxy_requirements(factories):
+    return factories.project(
+        name="project-with-galaxy-requirements - %s" % fauxfactory.gen_utf8(),
+        scm_type='git',
+        scm_url='https://github.com/ansible/test-playbooks',
+        scm_branch='with_requirements'
+    )
 
 
-@pytest.mark.api
-@pytest.mark.destructive
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class Test_Projects(APITest):
 
@@ -128,7 +121,7 @@ class Test_Projects(APITest):
 
     # Skip for Openshift because of Github Issue: https://github.com/ansible/tower-qa/issues/2591
     def test_automatic_deletion_of_project_folder(self, skip_if_openshift, factories, ansible_adhoc, api_config_pg, api_ping_pg, v2):
-        project = factories.v2_project()
+        project = factories.project()
         expected_project_path = os.path.join(api_config_pg.project_base_dir, project.local_path)  # absolute path
 
         # Test has 2 variations - standalone and cluster
@@ -218,7 +211,7 @@ class Test_Projects(APITest):
         ('git', {'scm_url': 'https://github.com/alancoding/ansible-playbooks.git'})
     ], ids=['hg-branch', 'git-branch', 'scm_type', 'git-url'])
     def test_auto_update_on_modification_of_scm_fields(self, factories, scm_type, mod_kwargs):
-        project = factories.v2_project(scm_type=scm_type)
+        project = factories.project(scm_type=scm_type)
         assert project.related.project_updates.get().count == 1
 
         # verify that changing update-relevant parameters causes new update
@@ -303,7 +296,7 @@ class Test_Projects(APITest):
             "Unexpected number of project updates after deleting project. Expected zero updates."
 
     def test_conflict_exception_with_running_project_update(self, factories):
-        project = factories.v2_project()
+        project = factories.project()
         update = project.update()
 
         with pytest.raises(exc.Conflict) as e:
@@ -324,28 +317,35 @@ class Test_Projects(APITest):
                 assert project_ansible_playbooks_git.get_related(related)
 
     @pytest.mark.ansible_integration
-    def test_project_with_galaxy_requirements(self, skip_if_cluster, factories, ansible_runner, project_with_galaxy_requirements, api_config_pg):
+    def test_project_with_galaxy_requirements(self, skip_if_cluster, factories, ansible_runner, project_with_galaxy_requirements):
         """Verify that project requirements are downloaded when specified in a requirements file."""
-        last_update_pg = project_with_galaxy_requirements.wait_until_completed().get_related('last_update')
-        last_update_pg.assert_successful()
-
         # create a JT with our project and launch a job with this JT
-        job_template_pg = factories.job_template(project=project_with_galaxy_requirements, playbook="debug.yml")
-        job_pg = job_template_pg.launch().wait_until_completed()
-        job_pg.assert_successful()
+        job_template_pg = factories.job_template(
+            project=project_with_galaxy_requirements,
+            playbook="sleep.yml",
+            extra_vars=dict(sleep_interval=60*3)
+        )
+        job_template_pg.ds.inventory.add_host()
+        # keep job running so files will be in place while we shell in
+        job_pg = job_template_pg.launch()
+
+        # The job cwd is not populated until prep is finished, which happens after
+        # it is changed to running status, but before events come in...
+        poll_until(lambda: job_pg.get_related('job_events').count, timeout=30)
+        job_pg = job_pg.get()  # job_cwd is only in detail view
 
         # assert that expected galaxy requirements were downloaded
-        expected_role_path = os.path.join(api_config_pg.project_base_dir,
-                                          last_update_pg.local_path, "roles/yatesr.timezone")
+        # wherever the job runs, that is where the roles should be
+        expected_role_path = os.path.join(job_pg.job_cwd, "roles/yatesr.timezone")
         contacted = ansible_runner.stat(path=expected_role_path)
         for result in contacted.values():
             assert result['stat']['exists'], "The expected galaxy role requirement was not found (%s)." % \
                 expected_role_path
 
     def test_project_with_galaxy_requirements_processed_on_scm_change(self, factories, job_template_that_writes_to_source):
-        project_with_requirements = factories.v2_project(scm_url='https://github.com/ansible/test-playbooks.git',
+        project_with_requirements = factories.project(scm_url='https://github.com/ansible/test-playbooks.git',
                                                          scm_branch='with_requirements')
-        jt_with_requirements = factories.v2_job_template(project=project_with_requirements,
+        jt_with_requirements = factories.job_template(project=project_with_requirements,
                                                          playbook='debug.yml')
 
         jt_with_requirements.launch().wait_until_completed().assert_successful(
@@ -368,10 +368,10 @@ class Test_Projects(APITest):
                              ids=['invalid_cred', 'valid_cred', 'cred_in_url'])
     def test_project_update_results_do_not_leak_credential(self, factories, scm_url, use_credential):
         if use_credential:
-            cred = factories.v2_credential(kind='scm', username='foobar', password='barfoo')
+            cred = factories.credential(kind='scm', username='foobar', password='barfoo')
         else:
             cred = None
-        project = factories.v2_project(credential=cred, scm_url=scm_url)
+        project = factories.project(credential=cred, scm_url=scm_url)
         pu = project.related.project_updates.get().results.pop()
         assert pu.is_completed
 

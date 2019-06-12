@@ -100,8 +100,8 @@ if use_v2:
     for found_credential in found_credentials:
         for ctid in list(found_credentials[found_credential]):
             val = found_credentials[found_credential][ctid]
-            v1_kind = ctid_to_kind(ctid)
-            found_credentials[found_credential][v1_kind] = val
+            v2_kind = ctid_to_kind(ctid)
+            found_credentials[found_credential][v2_kind] = val
             del found_credentials[found_credential][ctid]
 else:
     found_credentials = find_resources(v.credentials)

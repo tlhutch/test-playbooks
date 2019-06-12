@@ -26,9 +26,9 @@ def delete_all(endpoint):
             return
 
 
-def delete_all_created(v1):
-    for endpoint in (v1.jobs, v1.job_templates, v1.projects, v1.inventory, v1.inventory_scripts,
-                     v1.credentials, v1.teams, v1.users, v1.organizations):
+def delete_all_created(v2):
+    for endpoint in (v2.jobs, v2.job_templates, v2.projects, v2.inventory, v2.inventory_scripts,
+                     v2.credentials, v2.teams, v2.users, v2.organizations):
         delete_all(endpoint)
 
 

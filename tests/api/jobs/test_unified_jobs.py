@@ -8,7 +8,6 @@ import pytest
 from tests.api import APITest
 
 
-@pytest.mark.api
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestUnifiedJobs(APITest):
 
@@ -25,9 +24,9 @@ class TestUnifiedJobs(APITest):
             resource = request.getfixturevalue(fixture)
             if fixture == 'workflow_job_template':
                 # Workflow jobs run too fast for this test to reliably work while empty
-                factories.v2_workflow_job_template_node(
+                factories.workflow_job_template_node(
                     workflow_job_template=resource,
-                    unified_job_template=factories.v2_job_template()
+                    unified_job_template=factories.job_template()
                 )
             uj = getattr(resource, method)()
         else:
@@ -41,7 +40,7 @@ class TestUnifiedJobs(APITest):
 
     @pytest.mark.parametrize('template', ['job', 'workflow_job'])
     def test_confirm_survey_password_defaults_censored_in_unified_job_extra_vars(self, factories, template):
-        resource = getattr(factories, 'v2_' + template + '_template')()
+        resource = getattr(factories, template + '_template')()
         password = "don't expose me - {0}".format(fauxfactory.gen_utf8(3).encode('utf8'))
         survey = [dict(required=False,
                        question_name='Test',
@@ -66,13 +65,13 @@ class TestUnifiedJobs(APITest):
     @pytest.mark.parametrize('jobtype', uj_with_stdout)
     def test_job_stdout_can_be_downloaded(self, jobtype, factories, request):
         if jobtype == 'job_template_plain':
-            job = factories.v2_job_template().launch().wait_until_completed()
+            job = factories.job_template().launch().wait_until_completed()
         if jobtype == 'adhoc':
-            job = factories.v2_ad_hoc_command().wait_until_completed()
+            job = factories.ad_hoc_command().wait_until_completed()
         if jobtype == 'inventory_source':
-            job = factories.v2_inventory_source().update().wait_until_completed()
+            job = factories.inventory_source().update().wait_until_completed()
         if jobtype == 'project':
-            job = factories.v2_project().update().wait_until_completed()
+            job = factories.project().update().wait_until_completed()
 
         connection = Connection(self.connections['root'].server)
         connection.login(self.credentials.default['username'],

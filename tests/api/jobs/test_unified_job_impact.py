@@ -4,8 +4,7 @@ import pytest
 from tests.api import APITest
 
 
-@pytest.mark.api
-@pytest.mark.mp_group('UnifiedJobImpact', 'isolated_serial')
+@pytest.mark.serial
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestUnifiedJobImpact(APITest):
 
@@ -50,13 +49,13 @@ class TestUnifiedJobImpact(APITest):
 
     @pytest.mark.parametrize('num_hosts', [3, 5, 7])
     def test_job_impact_scales_with_number_of_hosts(self, factories, ig_with_single_instance, num_hosts):
-        jt = factories.v2_job_template(playbook='sleep.yml', extra_vars='{"sleep_interval": 120}')
+        jt = factories.job_template(playbook='sleep.yml', extra_vars='{"sleep_interval": 120}')
         jt.add_instance_group(ig_with_single_instance)
         instance = ig_with_single_instance.related.instances.get().results.pop()
 
         inventory = jt.ds.inventory
         for _ in range(num_hosts):
-            factories.v2_host(inventory=inventory)
+            factories.host(inventory=inventory)
 
         self.assert_instance_reflects_zero_running_jobs(instance.get())
         self.assert_instance_group_reflects_zero_running_jobs(ig_with_single_instance.get())
@@ -77,15 +76,15 @@ class TestUnifiedJobImpact(APITest):
     def test_ahc_impact_scales_with_number_of_hosts(self, factories, ig_with_single_instance, num_hosts):
         instance = ig_with_single_instance.related.instances.get().results.pop()
 
-        inventory = factories.v2_inventory()
+        inventory = factories.inventory()
         inventory.add_instance_group(ig_with_single_instance)
         for _ in range(num_hosts):
-            factories.v2_host(inventory=inventory)
+            factories.host(inventory=inventory)
 
         self.assert_instance_reflects_zero_running_jobs(instance.get())
         self.assert_instance_group_reflects_zero_running_jobs(ig_with_single_instance.get())
 
-        factories.v2_ad_hoc_command(inventory=inventory, module_name='shell', module_args='sleep 120')
+        factories.ad_hoc_command(inventory=inventory, module_name='shell', module_args='sleep 120')
 
         utils.poll_until(lambda: instance.get().jobs_running == 1, interval=1, timeout=60)
         assert instance.get().consumed_capacity == self.unified_job_impact('ahc', num_hosts=num_hosts)
@@ -97,13 +96,13 @@ class TestUnifiedJobImpact(APITest):
 
     @pytest.mark.parametrize('forks', [3, 5, 7])
     def test_job_impact_scales_with_number_of_forks(self, factories, ig_with_single_instance, forks):
-        jt = factories.v2_job_template(playbook='sleep.yml', extra_vars='{"sleep_interval": 120}', forks=forks)
+        jt = factories.job_template(playbook='sleep.yml', extra_vars='{"sleep_interval": 120}', forks=forks)
         jt.add_instance_group(ig_with_single_instance)
         instance = ig_with_single_instance.related.instances.get().results.pop()
 
         inventory = jt.ds.inventory
         for _ in range(5):
-            factories.v2_host(inventory=inventory)
+            factories.host(inventory=inventory)
 
         self.assert_instance_reflects_zero_running_jobs(instance.get())
         self.assert_instance_group_reflects_zero_running_jobs(ig_with_single_instance.get())
@@ -125,15 +124,15 @@ class TestUnifiedJobImpact(APITest):
     def test_ahc_impact_scales_with_number_of_forks(self, factories, ig_with_single_instance, forks):
         instance = ig_with_single_instance.related.instances.get().results.pop()
 
-        inventory = factories.v2_inventory()
+        inventory = factories.inventory()
         inventory.add_instance_group(ig_with_single_instance)
         for _ in range(5):
-            factories.v2_host(inventory=inventory)
+            factories.host(inventory=inventory)
 
         self.assert_instance_reflects_zero_running_jobs(instance.get())
         self.assert_instance_group_reflects_zero_running_jobs(ig_with_single_instance.get())
 
-        factories.v2_ad_hoc_command(inventory=inventory, module_name='shell', module_args='sleep 120',
+        factories.ad_hoc_command(inventory=inventory, module_name='shell', module_args='sleep 120',
                                     forks=forks)
 
         utils.poll_until(lambda: instance.get().jobs_running == 1, interval=1, timeout=60)
@@ -147,11 +146,11 @@ class TestUnifiedJobImpact(APITest):
 
     def test_instance_group_updates_for_simultaneously_running_jobs(self, factories, ig_with_single_instance):
         instance = ig_with_single_instance.related.instances.get().results.pop()
-        jt = factories.v2_job_template(playbook='sleep.yml', extra_vars='{"sleep_interval": 120}',
+        jt = factories.job_template(playbook='sleep.yml', extra_vars='{"sleep_interval": 120}',
                                        allow_simultaneous=True)
         jt.add_instance_group(ig_with_single_instance)
         inventory = jt.ds.inventory
-        factories.v2_host(inventory=inventory)
+        factories.host(inventory=inventory)
 
         self.assert_instance_reflects_zero_running_jobs(instance.get())
         self.assert_instance_group_reflects_zero_running_jobs(ig_with_single_instance.get())
@@ -175,18 +174,18 @@ class TestUnifiedJobImpact(APITest):
         for instance in instances:
             ig.add_instance(instance)
 
-        jt = factories.v2_job_template(playbook='sleep.yml', extra_vars='{"sleep_inverval": 120}')
-        factories.v2_host(inventory=jt.ds.inventory)
+        jt = factories.job_template(playbook='sleep.yml', extra_vars='{"sleep_inverval": 120}')
+        factories.host(inventory=jt.ds.inventory)
         jt.add_instance_group(ig)
 
-        ahc_host = factories.v2_host()
+        ahc_host = factories.host()
         ahc_host.ds.inventory.add_instance_group(ig)
 
-        project = factories.v2_project(scm_url='https://github.com/django/django.git')
+        project = factories.project(scm_url='https://github.com/django/django.git')
         project.ds.organization.add_instance_group(ig)
 
-        cred = factories.v2_credential(kind='aws')
-        inv_source = factories.v2_inventory_source(source='ec2', credential=cred)
+        cred = factories.credential(kind='aws')
+        inv_source = factories.inventory_source(source='ec2', credential=cred)
         inv = inv_source.ds.inventory
         inv.add_instance_group(ig)
 
@@ -195,7 +194,7 @@ class TestUnifiedJobImpact(APITest):
         self.assert_instance_group_reflects_zero_running_jobs(ig.get())
 
         jt.launch()
-        factories.v2_ad_hoc_command(inventory=ahc_host.ds.inventory, module_name='shell', module_args='sleep 120')
+        factories.ad_hoc_command(inventory=ahc_host.ds.inventory, module_name='shell', module_args='sleep 120')
         project.update()
         inv_source.update()
 
@@ -206,10 +205,10 @@ class TestUnifiedJobImpact(APITest):
         self.verify_resource_percent_capacity_remaining(ig)
 
     def test_all_groups_that_contain_job_execution_node_update_for_running_job(self, factories, v2):
-        jt = factories.v2_job_template(playbook='sleep.yml', extra_vars='{"sleep_interval": 120}',
+        jt = factories.job_template(playbook='sleep.yml', extra_vars='{"sleep_interval": 120}',
                                        allow_simultaneous=True)
 
-        factories.v2_host(inventory=jt.ds.inventory)
+        factories.host(inventory=jt.ds.inventory)
 
         instance = v2.instances.get(rampart_groups__controller__isnull=True).results.pop()
         igs = [factories.instance_group() for _ in range(4)]
@@ -244,7 +243,7 @@ class TestUnifiedJobImpact(APITest):
             self.verify_resource_percent_capacity_remaining(ig)
 
     def test_project_updates_have_an_impact_of_one(self, factories, v2, tower_instance_group):
-        project = factories.v2_project(scm_url='https://github.com/django/django.git', wait=False)
+        project = factories.project(scm_url='https://github.com/django/django.git', wait=False)
         project_update = project.related.current_job.get()
         utils.poll_until(lambda: project_update.get().execution_node, interval=1, timeout=30)
         instance = v2.instances.get(hostname=project_update.execution_node).results.pop()
@@ -268,8 +267,8 @@ class TestUnifiedJobImpact(APITest):
         instance = v2.instances.get(hostname=inst_hostname).results.pop()
 
         script_text = inventory_script_code_with_sleep(20)
-        inv_script = factories.v2_inventory_script(script=script_text)
-        slow_inventory_source = factories.v2_inventory_source(
+        inv_script = factories.inventory_script(script=script_text)
+        slow_inventory_source = factories.inventory_source(
             source_script=inv_script,
         )
         assert slow_inventory_source.source_script == inv_script.id
@@ -310,12 +309,12 @@ class TestUnifiedJobImpact(APITest):
         self.assert_instance_group_reflects_zero_running_jobs(tower_instance_group.get())
 
     def test_only_workflow_constituent_jobs_affect_capacity(self, factories, v2, tower_instance_group):
-        host = factories.v2_host()
-        wfjt = factories.v2_workflow_job_template()
-        jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='sleep.yml',
+        host = factories.host()
+        wfjt = factories.workflow_job_template()
+        jt = factories.job_template(inventory=host.ds.inventory, playbook='sleep.yml',
                                        extra_vars='{"sleep_interval": 30}')
         jt.add_instance_group(tower_instance_group)
-        factories.v2_workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt)
+        factories.workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt)
 
         wfj = wfjt.launch()
 

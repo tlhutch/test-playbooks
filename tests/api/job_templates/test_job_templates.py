@@ -23,8 +23,6 @@ def job_template_with_deleted_related(request, job_template):
     return (request.param, job_template)
 
 
-@pytest.mark.api
-@pytest.mark.destructive
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestJobTemplates(APITest):
 
@@ -47,7 +45,7 @@ class TestJobTemplates(APITest):
         job_pg.assert_successful()
 
     def test_modified_by_unaffected_by_launch(self, v2, factories, job_template_ping):
-        admin_user = factories.v2_user(first_name='Joe', last_name='Admin', is_superuser=True)
+        admin_user = factories.user(first_name='Joe', last_name='Admin', is_superuser=True)
         assert job_template_ping.summary_fields.modified_by['username'] == config.credentials.users.admin.username
         with self.current_user(admin_user):
             job = job_template_ping.launch()
@@ -134,8 +132,8 @@ class TestJobTemplates(APITest):
     @pytest.mark.yolo
     @pytest.mark.parametrize('diff_mode', [True, False])
     def test_launch_with_diff_mode_in_payload(self, factories, diff_mode):
-        host = factories.v2_host()
-        jt = factories.v2_job_template(inventory=host.ds.inventory, playbook='file.yml', ask_diff_mode_on_launch=True)
+        host = factories.host()
+        jt = factories.job_template(inventory=host.ds.inventory, playbook='file.yml', ask_diff_mode_on_launch=True)
         job = jt.launch(dict(diff_mode=diff_mode)).wait_until_completed()
 
         job.assert_successful()
@@ -158,8 +156,8 @@ class TestJobTemplates(APITest):
               re.compile("EXEC /bin/sh -c 'echo ~(awx)? && sleep 0'"), 'Loading callback plugin awx_display'])],
          ids=['0-normal', '1-verbose', '2-more verbose', '3-debug', '4-connection debug', '5-winrm debug'])
     def test_launch_with_verbosity_in_payload(self, factories, verbosity, stdout_lines):
-        host = factories.v2_host()
-        jt = factories.v2_job_template(inventory=host.ds.inventory, ask_verbosity_on_launch=True)
+        host = factories.host()
+        jt = factories.job_template(inventory=host.ds.inventory, ask_verbosity_on_launch=True)
         job = jt.launch(dict(verbosity=verbosity)).wait_until_completed()
         job.assert_successful()
 
@@ -210,8 +208,9 @@ class TestJobTemplates(APITest):
             "JT job_type overridden. Expected %s, got %s." % (job_template.job_type, job.job_type)
         assert job.inventory == job_template.inventory, \
             "JT inventory overridden. Expected inventory %s, got %s." % (job_template.inventory, job.inventory)
-        assert job.credential == job_template.credential, \
-            "JT credential overridden. Expected credential %s, got %s." % (job_template.credential, job.credential)
+        job_credentials = [c.id for c in job.related.credentials.get().results]
+        jt_credentials = [c.id for c in job_template.related.credentials.get().results]
+        assert job_credentials == jt_credentials, "JT credential overridden. Expected credential {jt_credentials}, got {job_credentials}."
         assert job.diff_mode == job_template.diff_mode, \
             "JT diff_mode overridden. Expected %s, got %s." % (job_template.diff_mode, job.diff_mode)
         assert job.verbosity == job_template.verbosity, \
@@ -221,7 +220,7 @@ class TestJobTemplates(APITest):
     @pytest.mark.parametrize("job_type", ["run", "check"])
     def test_launch_with_job_type_in_payload(self, factories, job_type):
         """Verifies that "job_type" may be given at launch-time with run/check JTs."""
-        jt = factories.v2_job_template(ask_job_type_on_launch=True)
+        jt = factories.job_template(ask_job_type_on_launch=True)
         launch = jt.get_related('launch')
 
         # assert values on launch resource
@@ -400,7 +399,7 @@ print(json.dumps(inv, indent=2))
     def test_launch_with_timeout(self, factories, timeout, status, job_explanation):
         """Tests JTs with timeouts."""
         job_template = factories.job_template(timeout=timeout, playbook='sleep.yml', extra_vars='sleep_interval: 10')
-        factories.v2_host(inventory=job_template.ds.inventory)
+        factories.host(inventory=job_template.ds.inventory)
 
         # launch JT and assess spawned job
         job_pg = job_template.launch().wait_until_completed()
@@ -431,7 +430,7 @@ print(json.dumps(inv, indent=2))
     @pytest.mark.github('https://github.com/ansible/tower/issues/789', skip=True)
     def test_job_listing_after_delete_does_not_500(self, factories, v2):
         num_jobs = 2
-        host = factories.v2_host()
+        host = factories.host()
         jt = factories.job_template(inventory=host.ds.inventory, allow_simultaneous=True)
         [jt.launch() for i in range(num_jobs)]
 
@@ -464,7 +463,7 @@ print(json.dumps(inv, indent=2))
                     "template resulted in a 500 error"
 
     def test_launch_with_diff_mode(self, factories):
-        host = factories.v2_host()
+        host = factories.host()
         jt = factories.job_template(inventory=host.ds.inventory, playbook='file.yml', diff_mode=True)
         job = jt.launch().wait_until_completed()
 
@@ -495,13 +494,13 @@ print(json.dumps(inv, indent=2))
 
     def test_tower_host_undefined_for_job(self, v2, factories):
         # AWX_HOST should still work
-        jt = factories.v2_job_template(
+        jt = factories.job_template(
             playbook='environ_test.yml',
             extra_vars='env_variable: AWX_HOST\nenv_value: {}'.format(
                 v2.settings.get().get_endpoint('system').TOWER_URL_BASE
             )
         )
-        factories.v2_host(inventory=jt.ds.inventory)
+        factories.host(inventory=jt.ds.inventory)
         job = jt.launch().wait_until_completed()
         job.assert_successful()
 
@@ -519,7 +518,7 @@ print(json.dumps(inv, indent=2))
     ])
     @pytest.mark.parametrize('prefix', ['awx', 'tower'])
     def test_awx_metavars_for_jobs(self, v2, factories, update_setting_pg, extra_var, attr, prefix):
-        admin_user = factories.v2_user(first_name='Joe', last_name='Admin', is_superuser=True)
+        admin_user = factories.user(first_name='Joe', last_name='Admin', is_superuser=True)
         value = str(getattr(admin_user, attr))
         var_name = '{}_user_{}'.format(prefix, extra_var)
         update_setting_pg(
@@ -527,17 +526,17 @@ print(json.dumps(inv, indent=2))
             dict(ALLOW_JINJA_IN_EXTRA_VARS='always')
         )
         with self.current_user(admin_user):
-            jt = factories.v2_job_template(playbook='debug_extra_vars.yml',
+            jt = factories.job_template(playbook='debug_extra_vars.yml',
                                            extra_vars='var1: "{{ %s }}"' % var_name)
-            factories.v2_host(inventory=jt.ds.inventory)
+            factories.host(inventory=jt.ds.inventory)
             job = jt.launch().wait_until_completed()
         job.assert_successful()
         assert '"var1": "{}"'.format(value) in job.result_stdout
 
     @pytest.mark.ansible_integration
     def test_playbook_calling_ansible_with_shell_and_inventory_file(self, factories):
-        jt = factories.v2_job_template(playbook='test_ansible_shell.yml')
-        factories.v2_host(inventory=jt.ds.inventory)
+        jt = factories.job_template(playbook='test_ansible_shell.yml')
+        factories.host(inventory=jt.ds.inventory)
         job = jt.launch().wait_until_completed()
 
         playbook_event = job.related.job_events.get(

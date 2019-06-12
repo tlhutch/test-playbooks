@@ -2,7 +2,7 @@
 
 Welcome to `tower-qa`! Herein lies our beloved API integration tests, playbooks, and scripts.
 
-##### Getting Started with API Tests 
+##### Getting Started with API Tests
 Clone the `tower-qa` repo with:
 ```
 $ git clone git@github.com:ansible/tower-qa.git tower-qa
@@ -51,7 +51,7 @@ $ pip install .
 
 Run tests against Tower in Docker with:
 ```
-$ py.test --ansible-host-pattern=127.0.0.1 --base-url http://127.0.0.1:8013 --api-destructive --api-credentials=config/credentials.yml --ansible-sudo --pdb -vs -k test_labels.py 
+$ py.test --ansible-host-pattern=127.0.0.1 --base-url http://127.0.0.1:8013 --api-credentials=config/credentials.yml --ansible-sudo --pdb -vs -k test_labels.py
 ```
 * If the test fails, it will drop into a `pdb` session with `--pdb`.
 * `-vs` will give you a REST log.
@@ -59,7 +59,7 @@ $ py.test --ansible-host-pattern=127.0.0.1 --base-url http://127.0.0.1:8013 --ap
 
 Run tests with four processes to increase speed:
 ```
-$ py.test --ansible-host-pattern=127.0.0.1 --base-url http://127.0.0.1:8013 --api-destructive --api-credentials=config/credentials.yml --ansible-sudo -vs --mp --np 4 -k test_labels.py
+$ py.test --ansible-host-pattern=127.0.0.1 --base-url http://127.0.0.1:8013 --api-credentials=config/credentials.yml --ansible-sudo -vs --mp --np 4 -k test_labels.py
 ```
 
 ##### Getting Started with Playbooks

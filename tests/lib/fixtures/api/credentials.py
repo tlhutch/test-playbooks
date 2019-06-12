@@ -8,17 +8,11 @@ import pytest
 fixtures_dir = os.path.dirname(__file__)
 
 
-@pytest.fixture(scope="function")
-def credential_kind_choices(authtoken, api_credentials_pg):
-    """Return supported credential kinds"""
-    return dict(api_credentials_pg.options().actions.POST.kind.choices)
-
-
 # SSH machine credentials
 @pytest.fixture(scope="function")
 def ssh_credential(admin_user, factories):
-    cred = factories.credential(description="machine credential - %s" % fauxfactory.gen_utf8(),
-                                kind='ssh', user=admin_user, ssh_key_data=None, become_password=None)
+    cred = factories.credential(description="machine (ssh) credential - %s" % fauxfactory.gen_utf8(),
+                                kind='ssh', user=admin_user, ssh_key_data=None, become_password=None, organization=None)
     return cred
 
 
@@ -32,7 +26,7 @@ def another_ssh_credential(admin_user, factories):
 @pytest.fixture(scope="function")
 def ssh_credential_ask(admin_user, factories):
     """Create ssh credential with 'ASK' password"""
-    cred = factories.v2_credential(description="machine credential with ASK password - %s" % fauxfactory.gen_utf8(),
+    cred = factories.credential(description="machine credential with ASK password - %s" % fauxfactory.gen_utf8(),
                                 kind='ssh', user=admin_user, password='ASK', become_password=None,
                                 ssh_key_data=None)
     return cred
@@ -267,27 +261,32 @@ def encrypted_ssh_credential_with_ssh_key_data(request, is_fips_enabled):
 
 
 # Network credentials
+@pytest.fixture
+def network_credential_type(v2):
+    return v2.credential_types.get(name__icontains='network', managed_by_tower=True).results.pop()
+
+
 @pytest.fixture(scope="function")
-def network_credential_with_basic_auth(admin_user, factories):
+def network_credential_with_basic_auth(admin_user, factories, network_credential_type):
     cred = factories.credential(name="network credentials-%s" % fauxfactory.gen_utf8(),
                                 description="network credential - %s" % fauxfactory.gen_utf8(),
-                                kind='net', user=admin_user, ssh_key_data=None, authorize_password=None)
+                                credential_type=network_credential_type, user=admin_user, ssh_key_data=None, authorize_password=None)
     return cred
 
 
 @pytest.fixture(scope="function")
-def network_credential_with_authorize(admin_user, factories):
+def network_credential_with_authorize(admin_user, factories, network_credential_type):
     cred = factories.credential(name="network credentials-%s" % fauxfactory.gen_utf8(),
                                 description="network credential - %s" % fauxfactory.gen_utf8(),
-                                kind='net', user=admin_user, ssh_key_data=None)
+                                credential_type=network_credential_type, user=admin_user, ssh_key_data=None)
     return cred
 
 
 @pytest.fixture(scope="function")
-def network_credential_with_ssh_key_data(admin_user, factories):
+def network_credential_with_ssh_key_data(admin_user, factories, network_credential_type):
     cred = factories.credential(name="network credentials-%s" % fauxfactory.gen_utf8(),
                                 description="network credential - %s" % fauxfactory.gen_utf8(),
-                                kind='net', user=admin_user, password=None, authorize_password=None)
+                                credential_type=network_credential_type, user=admin_user, password=None, authorize_password=None)
     return cred
 
 
@@ -350,26 +349,23 @@ def vmware_credential(admin_user, factories):
     return cred
 
 
-@pytest.fixture(scope="function")
-def openstack_v2_credential(admin_user, factories):
-    cred = factories.credential(name="openstack-v2-credential-%s" % fauxfactory.gen_utf8(),
-                                description="OpenStack credential %s" % fauxfactory.gen_utf8(),
-                                kind='openstack_v2', user=admin_user)
-    return cred
-
-
-@pytest.fixture(scope="function")
+@pytest.fixture
 def openstack_v3_credential(admin_user, factories):
     cred = factories.credential(name="openstack-v3-credential-%s" % fauxfactory.gen_utf8(),
                                 description="OpenStack credential %s" % fauxfactory.gen_utf8(),
-                                kind='openstack_v3', user=admin_user)
+                                kind='openstack', user=admin_user,
+                                inputs=dict(host=config.credentials.cloud.openstack_v3.host,
+                                domain=config.credentials.cloud.openstack_v3.domain,
+                                password=config.credentials.cloud.openstack_v3.password,
+                                username=config.credentials.cloud.openstack_v3.username,
+                                project=config.credentials.cloud.openstack_v3.project,
+                                ))
     return cred
 
 
-# Convenience fixture that iterates through OpenStack credentials
-@pytest.fixture(scope="function", params=['openstack_v2', 'openstack_v3'])
+@pytest.fixture(scope="function", params=['openstack_v3_credential'])
 def openstack_credential(request):
-    return request.getfixturevalue(request.param + '_credential')
+    return request.getfixturevalue(request.param)
 
 
 @pytest.fixture(scope="function")
@@ -389,8 +385,7 @@ def satellite6_credential(admin_user, factories):
 
 
 # Convenience fixture that iterates through supported cloud_credential types
-@pytest.fixture(scope="function", params=['aws', 'azure', 'gce', 'vmware', 'openstack_v2', 'openstack_v3',
-                                          'cloudforms', 'satellite6'])
+@pytest.fixture(scope="function", params=['aws', 'azure', 'gce', 'vmware', 'openstack_v3', 'cloudforms', 'satellite6'])
 def cloud_credential(request):
     return request.getfixturevalue(request.param + '_credential')
 
@@ -404,4 +399,4 @@ def write_access_git_credential(class_factories):
                               GIT_KEY="{{tower.filename}}"))
     cred_type = class_factories.credential_type(inputs=inputs, injectors=injectors)
     pk = config.credentials.scm.test_playbooks.ssh_key_data
-    return class_factories.v2_credential(credential_type=cred_type, inputs=dict(git_key=pk))
+    return class_factories.credential(credential_type=cred_type, inputs=dict(git_key=pk))

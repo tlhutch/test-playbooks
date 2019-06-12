@@ -7,8 +7,6 @@ import pytest
 from tests.api import APITest
 
 
-@pytest.mark.api
-@pytest.mark.destructive
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestPrompts(APITest):
 
@@ -22,7 +20,7 @@ class TestPrompts(APITest):
         return str(schedule.dtstart).translate(str.maketrans('', '', '-:'))
 
     def test_created_schedule_with_default_jt(self, factories):
-        jt = factories.v2_job_template()
+        jt = factories.job_template()
         job = jt.launch().wait_until_completed()
         job.assert_successful()
 
@@ -50,7 +48,7 @@ class TestPrompts(APITest):
         assert not schedule.dtend
 
     def test_created_schedule_with_ask_jt_and_launch_values(self, factories):
-        jt = factories.v2_job_template(**self.ask_jt_attrs)
+        jt = factories.job_template(**self.ask_jt_attrs)
         job = jt.launch(dict(diff_mode=True, extra_vars=dict(var1='launch'), limit='launch', job_tags='launch',
                              skip_tags='launch', job_type='check', verbosity=5, inventory=jt.ds.inventory.id,
                              credentials=[jt.ds.credential.id])).wait_until_completed()
@@ -82,7 +80,7 @@ class TestPrompts(APITest):
         assert not schedule.dtend
 
     def test_created_schedule_with_ask_jt_when_jt_defaults_supplied(self, factories):
-        jt = factories.v2_job_template(**self.ask_jt_attrs)
+        jt = factories.job_template(**self.ask_jt_attrs)
         job = jt.launch(dict(diff_mode=jt.diff_mode, extra_vars=jt.extra_vars, limit=jt.limit, job_tags=jt.job_tags,
                              skip_tags=jt.skip_tags, job_type=jt.job_type, verbosity=jt.verbosity,
                              inventory=jt.ds.inventory.id, credentials=[jt.ds.credential.id])).wait_until_completed()
@@ -112,13 +110,13 @@ class TestPrompts(APITest):
         assert not schedule.dtend
 
     def test_created_schedule_with_ask_inventory_and_credential_and_launch_resources(self, factories):
-        inventory = factories.v2_inventory()
-        ssh_cred, aws_cred = [factories.v2_credential(kind=kind) for kind in ('ssh', 'aws')]
-        vault_cred = factories.v2_credential(kind='vault', inputs=dict(vault_password='fake'))
+        inventory = factories.inventory()
+        ssh_cred, aws_cred = [factories.credential(kind=kind) for kind in ('ssh', 'aws')]
+        vault_cred = factories.credential(kind='vault', inputs=dict(vault_password='fake'))
         credentials = [ssh_cred, aws_cred, vault_cred]
         cred_ids = [cred.id for cred in credentials]
 
-        jt = factories.v2_job_template(ask_inventory_on_launch=True, ask_credential_on_launch=True)
+        jt = factories.job_template(ask_inventory_on_launch=True, ask_credential_on_launch=True)
         job = jt.launch(dict(inventory=inventory.id, credentials=cred_ids)).wait_until_completed()
         job.assert_successful()
 
@@ -135,15 +133,15 @@ class TestPrompts(APITest):
             assert cred.id in cred_ids
 
     def test_launch_credentials_override_default_jt_credentials(self, factories):
-        jt_vault, launch_vault = [factories.v2_credential(kind='vault', inputs=dict(vault_password='fake')) for _ in range(2)]
-        jt_aws, jt_vmware = [factories.v2_credential(kind=kind) for kind in ('aws', 'vmware')]
-        launch_aws, launch_vmware = [factories.v2_credential(kind=kind) for kind in ('aws', 'vmware')]
+        jt_vault, launch_vault = [factories.credential(kind='vault', inputs=dict(vault_password='fake')) for _ in range(2)]
+        jt_aws, jt_vmware = [factories.credential(kind=kind) for kind in ('aws', 'vmware')]
+        launch_aws, launch_vmware = [factories.credential(kind=kind) for kind in ('aws', 'vmware')]
 
-        jt = factories.v2_job_template(vault_credential=jt_vault.id, ask_credential_on_launch=True)
+        jt = factories.job_template(vault_credential=jt_vault.id, ask_credential_on_launch=True)
         for cred in (jt_aws, jt_vmware):
             jt.add_extra_credential(cred)
 
-        launch_ssh = factories.v2_credential()
+        launch_ssh = factories.credential()
         launch_creds = [launch_ssh, launch_aws, launch_vmware, launch_vault]
         launch_cred_ids = [cred.id for cred in launch_creds]
         job = jt.launch(dict(credentials=launch_cred_ids)).wait_until_completed()
@@ -162,9 +160,9 @@ class TestPrompts(APITest):
             assert cred.id in launch_cred_ids
 
     def test_cannot_create_schedule_with_jt_with_ask_credential(self, factories):
-        cred = factories.v2_credential(ssh_key_data=self.credentials.ssh.encrypted.ssh_key_data, password='ASK',
+        cred = factories.credential(ssh_key_data=self.credentials.ssh.encrypted.ssh_key_data, password='ASK',
                                        become_password='ASK', ssh_key_unlock='ASK')
-        jt = factories.v2_job_template(credential=cred)
+        jt = factories.job_template(credential=cred)
 
         payload = dict(credential_passwords=dict(ssh_password='fake', become_password='fake',
                                                  ssh_key_unlock=self.credentials.ssh.encrypted.ssh_key_unlock))
@@ -180,7 +178,7 @@ class TestPrompts(APITest):
         assert e.value[1]['error'] == 'Cannot create schedule because job requires credential passwords.'
 
     def test_created_schedule_with_jt_with_survey_with_defaults(self, factories):
-        jt = factories.v2_job_template()
+        jt = factories.job_template()
         survey = [dict(required=False,
                        question_name='Q1',
                        variable='var1',
@@ -205,7 +203,7 @@ class TestPrompts(APITest):
 
     @pytest.mark.parametrize('required', [True, False])
     def test_created_schedule_with_jt_with_survey_with_defaults_when_answers_supplied(self, factories, required):
-        jt = factories.v2_job_template()
+        jt = factories.job_template()
         survey = [dict(required=required,
                        question_name='Q1',
                        variable='var1',
@@ -230,9 +228,9 @@ class TestPrompts(APITest):
         assert schedule.extra_data == dict(var1='$encrypted$', var2='launch')
 
     def test_created_schedule_from_wfj_with_default_jt(self, factories):
-        wfjt = factories.v2_workflow_job_template()
-        jt = factories.v2_job_template()
-        factories.v2_workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt)
+        wfjt = factories.workflow_job_template()
+        jt = factories.job_template()
+        factories.workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt)
 
         wfj = wfjt.launch().wait_until_completed()
         job = jt.get().related.last_job.get()
@@ -264,12 +262,12 @@ class TestPrompts(APITest):
 
     @pytest.mark.yolo
     def test_created_schedule_from_wfj_with_ask_jt(self, factories):
-        inventory = factories.v2_inventory()
-        credential = factories.v2_credential()
+        inventory = factories.inventory()
+        credential = factories.credential()
 
-        wfjt = factories.v2_workflow_job_template()
-        jt = factories.v2_job_template(**self.ask_jt_attrs)
-        factories.v2_workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt,
+        wfjt = factories.workflow_job_template()
+        jt = factories.job_template(**self.ask_jt_attrs)
+        factories.workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt,
                                                 extra_data=dict(var1='wfjtn'), job_type='check', job_tags='wfjtn',
                                                 skip_tags='wfjtn', limit='wfjtn', diff_mode=True, verbosity=2,
                                                 inventory=inventory, credential=credential)
@@ -315,9 +313,9 @@ class TestPrompts(APITest):
         assert not schedule.dtend
 
     def test_created_schedule_from_wfj_with_ask_jt_when_jt_defaults_supplied(self, factories):
-        wfjt = factories.v2_workflow_job_template()
-        jt = factories.v2_job_template(**self.ask_jt_attrs)
-        factories.v2_workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt,
+        wfjt = factories.workflow_job_template()
+        jt = factories.job_template(**self.ask_jt_attrs)
+        factories.workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt,
                                                 extra_data=jt.extra_vars, job_type=jt.job_type, job_tags=jt.job_tags,
                                                 skip_tags=jt.skip_tags, limit=jt.limit, diff_mode=jt.diff_mode,
                                                 verbosity=jt.verbosity, inventory=jt.ds.inventory, credential=jt.ds.credential)
@@ -352,9 +350,9 @@ class TestPrompts(APITest):
 
     @pytest.mark.parametrize('required', [True, False])
     def test_created_schedule_from_wfj_with_variables_on_launch_and_surveys(self, factories, required):
-        wfjt = factories.v2_workflow_job_template(ask_variables_on_launch=True)
-        jt = factories.v2_job_template()
-        factories.v2_workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt)
+        wfjt = factories.workflow_job_template(ask_variables_on_launch=True)
+        jt = factories.job_template()
+        factories.workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt)
 
         wfjt_survey = [dict(required=required,
                             question_name='Q1',
@@ -388,18 +386,18 @@ class TestPrompts(APITest):
 
     @pytest.mark.yolo
     def test_launch_credentials_override_default_wfjn_credentials(self, factories):
-        jt_vault, launch_vault = [factories.v2_credential(kind='vault', inputs=dict(vault_password='fake')) for _ in range(2)]
-        jt_aws, jt_vmware = [factories.v2_credential(kind=kind) for kind in ('aws', 'vmware')]
-        launch_aws, launch_vmware = [factories.v2_credential(kind=kind) for kind in ('aws', 'vmware')]
-        launch_ssh = factories.v2_credential()
+        jt_vault, launch_vault = [factories.credential(kind='vault', inputs=dict(vault_password='fake')) for _ in range(2)]
+        jt_aws, jt_vmware = [factories.credential(kind=kind) for kind in ('aws', 'vmware')]
+        launch_aws, launch_vmware = [factories.credential(kind=kind) for kind in ('aws', 'vmware')]
+        launch_ssh = factories.credential()
         launch_creds = [launch_ssh, launch_aws, launch_vmware, launch_vault]
         launch_cred_ids = [cred.id for cred in launch_creds]
 
-        wfjt = factories.v2_workflow_job_template()
-        jt = factories.v2_job_template(vault_credential=jt_vault.id, ask_credential_on_launch=True)
+        wfjt = factories.workflow_job_template()
+        jt = factories.job_template(vault_credential=jt_vault.id, ask_credential_on_launch=True)
         for cred in (jt_aws, jt_vmware):
             jt.add_extra_credential(cred)
-        wfjtn = factories.v2_workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt,
+        wfjtn = factories.workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt,
                                                         credential=launch_ssh)
         for cred in (launch_aws, launch_vmware, launch_vault):
             with utils.suppress(exc.NoContent):
@@ -423,7 +421,7 @@ class TestPrompts(APITest):
             assert cred.id in launch_cred_ids
 
     def test_cannot_create_schedule_from_job_with_missing_jt_dependency(self, factories):
-        jt = factories.v2_job_template()
+        jt = factories.job_template()
         job = jt.launch().wait_until_completed()
 
         jt.ds.inventory.delete().wait_until_deleted()
@@ -437,8 +435,8 @@ class TestPrompts(APITest):
         assert e.value[1]['error'] == 'Cannot create schedule because a related resource is missing.'
 
     def test_cannot_create_schedule_from_job_with_missing_ask_jt_dependency(self, factories):
-        inv = factories.v2_inventory()
-        jt = factories.v2_job_template(inventory=None, ask_inventory_on_launch=True)
+        inv = factories.inventory()
+        jt = factories.job_template(inventory=None, ask_inventory_on_launch=True)
         job = jt.launch(dict(inventory=inv.id)).wait_until_completed()
 
         inv.delete().wait_until_deleted()

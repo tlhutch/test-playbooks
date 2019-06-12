@@ -81,12 +81,7 @@ pipeline {
         string(
             name: 'TESTEXPR',
             description: 'Specify the TESTEXPR to pass to pytest if necessary',
-            defaultValue: ''
-        )
-        string(
-            name: 'PYTEST_MP_PROCESSES',
-            description: 'Number of processes to use for pytest',
-            defaultValue: '4'
+            defaultValue: 'yolo or ansible_integration'
         )
         choice(
             name: 'PLATFORM',
@@ -225,6 +220,69 @@ pipeline {
             }
         }
 
+        stage('Deploy test-runner node') {
+            when {
+                expression {
+                    return params.RUN_INSTALLER
+                }
+            }
+
+            steps {
+                checkout([
+                    $class: 'GitSCM',
+                    branches: [[name: "*/${params.TOWER_QA_BRANCH}" ]],
+                    userRemoteConfigs: [
+                        [
+                            credentialsId: 'd2d4d16b-dc9a-461b-bceb-601f9515c98a',
+                            url: "git@github.com:${params.TOWER_QA_FORK}/tower-qa.git"
+                        ]
+                    ]
+                ])
+
+                script {
+                    if (params.RUNNER_FORK != '' && params.RUNNER_BRANCH != '') {
+                        AWX_ANSIBLE_RUNNER_URL = "https://github.com/${params.RUNNER_FORK}/ansible-runner.git@${params.RUNNER_BRANCH}"
+                    } else {
+                        AWX_ANSIBLE_RUNNER_URL = ''
+                    }
+                }
+
+                withCredentials([file(credentialsId: '171764d8-e57c-4332-bff8-453670d0d99f', variable: 'PUBLIC_KEY'),
+                                 file(credentialsId: 'abcd0260-fb83-404e-860f-f9697911a0bc', variable: 'VAULT_FILE'),
+                                 file(credentialsId: '86ed99e9-dad9-49e9-b0db-9257fb563bad', variable: 'JSON_KEY_FILE'),
+                                 string(credentialsId: 'aws_access_key', variable: 'AWS_ACCESS_KEY'),
+                                 string(credentialsId: 'aws_secret_key', variable: 'AWS_SECRET_KEY'),
+                                 string(credentialsId: 'awx_admin_password', variable: 'AWX_ADMIN_PASSWORD')]) {
+                    withEnv(["AWS_SECRET_KEY=${AWS_SECRET_KEY}",
+                             "AWS_ACCESS_KEY=${AWS_ACCESS_KEY}",
+                             "AWX_ADMIN_PASSWORD=${AWX_ADMIN_PASSWORD}",
+                             "AWX_ANSIBLE_RUNNER_URL=${AWX_ANSIBLE_RUNNER_URL}",
+                             "SCENARIO=${SCENARIO}",
+                             "PLATFORM=${PLATFORM}",
+                             "ANSIBLE_VERSION=${ANSIBLE_NIGHTLY_BRANCH}",
+                             "DEPLOYMENT_NAME=yolo-build-${env.BUILD_ID}",
+                             "AW_REPO_URL=http://nightlies.testing.ansible.com/ansible-tower_nightlies_m8u16fz56qr6q7/${NIGHTLY_REPO_DIR}"]) {
+                        sshagent(credentials : ['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
+                            sh 'mkdir -p ~/.ssh && cp ${PUBLIC_KEY} ~/.ssh/id_rsa.pub'
+                            sh 'cp ${JSON_KEY_FILE} json_key_file'
+                            sh 'ansible-vault decrypt --vault-password-file="${VAULT_FILE}" config/credentials.vault --output=config/credentials.yml'
+                            sh 'ansible-vault decrypt --vault-password-file="${VAULT_FILE}" config/credentials-pkcs8.vault --output=config/credentials-pkcs8.yml || true'
+
+                            // Generate variable file for test runner
+                            sh 'SCENARIO=test_runner ./tools/jenkins/scripts/generate_vars.sh'
+
+                            // Generate variable file for tower deployment
+                            sh './tools/jenkins/scripts/generate_vars.sh'
+
+                            sh 'ansible-playbook -v -i playbooks/inventory -e @playbooks/test_runner_vars.yml playbooks/deploy-test-runner.yml'
+
+                            sh "ansible test-runner -i playbooks/inventory.test_runner -m git -a 'repo=git@github.com:${params.TOWER_QA_FORK}/tower-qa version=${params.TOWER_QA_BRANCH} dest=tower-qa ssh_opts=\"-o StrictHostKeyChecking=no\" force=yes'"
+                        }
+                    }
+                }
+            }
+        }
+
         stage('Install Tower') {
             when {
                 expression {
@@ -233,58 +291,14 @@ pipeline {
             }
 
             steps {
-                script {
-                    if (params.RUNNER_FORK != '' && params.RUNNER_BRANCH != '') {
-                        AWX_ANSIBLE_RUNNER_URL = "https://github.com/${params.RUNNER_FORK}/ansible-runner.git@${params.RUNNER_BRANCH}"
-                    } else {
-                        AWX_ANSIBLE_RUNNER_URL = ''
-                    }
-
-                    if (params.SCENARIO == 'standalone') {
-                        INSTALL_JOB_NAME='Test_Tower_Install_Plain'
-                    } else {
-                        INSTALL_JOB_NAME='Test_Tower_Install_Cluster_Plain'
-                    }
-
-                    install_build = build(
-                        job: INSTALL_JOB_NAME,
-                        parameters: [
-                            string(
-                                name: 'INSTANCE_NAME_PREFIX',
-                                value: "yolo-build-${env.BUILD_ID}"
-                            ),
-                            string(
-                                name: 'AW_REPO_URL',
-                                value: "${AWX_NIGHTLY_REPO_URL}/${NIGHTLY_REPO_DIR}"
-                            ),
-                            string(
-                                name: 'TOWERQA_GIT_BRANCH',
-                                value: "origin/${params.TOWER_QA_BRANCH}"
-                            ),
-                            string(
-                                name: 'PLATFORM',
-                                value: "${params.PLATFORM}"
-                            ),
-                            string(
-                                name: 'AWX_ANSIBLE_RUNNER_URL',
-                                value: AWX_ANSIBLE_RUNNER_URL
-                            ),
-                            string(
-                                name: 'ANSIBLE_NIGHTLY_BRANCH',
-                                value: "${params.ANSIBLE_NIGHTLY_BRANCH}"
-                            ),
-                            booleanParam(
-                                name: 'TRIGGER',
-                                value: false
-                            )
-                        ]
-                    )
-                    TOWER_INSTALL_BUILD_ID = install_build.getId()
+               sshagent(credentials : ['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
+                   sh 'ansible-playbook -v -i playbooks/inventory.test_runner playbooks/test_runner/run_install.yml'
+                   sh 'ansible-playbook -v -i playbooks/inventory.test_runner playbooks/test_runner/run_fetch_artifacts.yml'
                 }
             }
         }
 
-        stage('Test Tower Integration') {
+        stage('Run Integration Tests') {
             when {
                 expression {
                     return params.RUN_TESTS
@@ -292,55 +306,17 @@ pipeline {
             }
 
             steps {
-                script {
-                    if (params.SCENARIO == 'standalone') {
-                        INTEGRATION_JOB_NAME='Test_Tower_Integration_Plain'
-                    } else {
-                        INTEGRATION_JOB_NAME='Test_Tower_Integration_Cluster_Plain'
+                withEnv(["TESTEXPR=${TESTEXPR}"]) {
+                    sshagent(credentials : ['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
+                        sh 'ansible-playbook -v -i playbooks/inventory.test_runner playbooks/test_runner/run_integration_test.yml'
+                        junit 'artifacts/results.xml'
                     }
-
-                    build(
-                        job: INTEGRATION_JOB_NAME,
-                        parameters: [
-                            string(
-                                name: 'TESTEXPR',
-                                value: params.TESTEXPR
-                            ),
-                            string(
-                                name: 'TEST_TOWER_INSTALL_BUILD',
-                                value: TOWER_INSTALL_BUILD_ID
-                            ),
-                            booleanParam(
-                                name: 'DESTROY_TEST_INSTANCE',
-                                value: false
-                            ),
-                            string(
-                                name: 'TOWERQA_GIT_BRANCH',
-                                value: "origin/${params.TOWER_QA_BRANCH}"
-                            ),
-                            string(
-                                name: 'TOWERKIT_GIT_BRANCH',
-                                value: params.TOWERKIT_BRANCH
-                            ),
-                            string(
-                                name: 'PLATFORM',
-                                value: params.PLATFORM
-                            ),
-                            string(
-                                name: 'ANSIBLE_NIGHTLY_BRANCH',
-                                value: params.ANSIBLE_NIGHTLY_BRANCH
-                            ),
-                            string(
-                               name: 'PYTEST_MP_PROCESSES',
-                               value: params.PYTEST_MP_PROCESSES
-                            )
-                        ]
-                    )
                 }
             }
+
         }
 
-        stage('Test Tower E2E') {
+        stage('Run E2E Tests') {
             when {
                 expression {
                     return params.RUN_E2E
@@ -349,25 +325,7 @@ pipeline {
 
             steps {
                 script {
-                    if (params.SCENARIO == 'standalone') {
-                        INSTALL_JOB_NAME = 'Test_Tower_Install_Plain'
-                    } else {
-                        INSTALL_JOB_NAME = 'Test_Tower_Install_Cluster_Plain'
-                    }
-
-                    copyArtifacts(
-                        projectName: INSTALL_JOB_NAME,
-                        filter: '.tower_url',
-                        fingerprintArtifacts: true,
-                        flatten: true,
-                        selector: specific(TOWER_INSTALL_BUILD_ID)
-                    )
-
-                    script {
-                        AWX_E2E_URL = readFile '.tower_url'
-                    }
-
-                    echo "Running e2e tests against ${AWX_E2E_URL}"
+                    AWX_E2E_URL = readFile 'artifacts/tower_url'
 
                     retry(2) {
                         build(
@@ -375,7 +333,7 @@ pipeline {
                             parameters: [
                                 string(
                                     name: 'AWX_E2E_URL',
-                                    value: "https://${AWX_E2E_URL}"
+                                    value: AWX_E2E_URL
                                 ),
                                 string(
                                     name: 'TOWER_REPO',
@@ -393,6 +351,9 @@ pipeline {
         }
     }
     post {
+        always {
+            archiveArtifacts artifacts: 'artifacts/*'
+        }
         success {
             slackSend(
                 botUser: false,

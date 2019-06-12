@@ -54,53 +54,18 @@
 
           when: ansible_os_family == 'RedHat' and ansible_distribution_major_version == '8'
 
-        - block:
-            - name: Install virtualenv (Ubuntu - all other versions)
-              package:
-                name: virtualenv
-
-            - name: Install python3.6-dev for venv deps (Ubuntu)
-              package:
-                name: python3.6-dev
-              when: remote_python == 'python36'
-
-            - set_fact:
-               _remote_python: python36
-              when: remote_python == 'python36'
-
-          when: ansible_distribution == 'Debian'
-
-
         - name: Check if the virtualenv already exists
           stat:
             path: "{{ venv_base }}/{{ venv_folder_name }}"
           register: existing_folder
 
-        - name: Create custom virtualenv (Ubuntu python3.6)
-          command: "virtualenv -p python3.6 --system-site-packages {{ venv_base }}/{{ venv_folder_name }}"
-          when: not existing_folder.stat.exists and (ansible_pkg_mgr == 'apt' and remote_python == 'python36')
-
-        - name: Create custom virtualenv (All other distros)
+        - name: Create custom virtualenv
           command: "virtualenv -p {{ _remote_python | default(remote_python) }} --system-site-packages {{ venv_base }}/{{ venv_folder_name }}"
           when: not existing_folder.stat.exists and not (ansible_pkg_mgr == 'apt' and remote_python == 'python36')
 
         - name: Print packages to install
           debug:
             msg: "Packages to install in venv: {{ venv_packages|default('psutil (default packages)') }}"
-
-        - name: Pip install latest setuptools (Ubuntu)
-          command: "{{ venv_base }}/{{ venv_folder_name }}/bin/pip install -I -U setuptools"
-          when: ansible_pkg_mgr == 'apt'
-
-        - name: Install header files required by Ansible (Ubuntu)
-          apt:
-            name: "{{ packages }}"
-            state: present
-          vars:
-            packages:
-            - libssl-dev
-            - libffi-dev
-          when: ansible_pkg_mgr == 'apt'
 
         - name: Pip install required packages
           command: "{{ venv_base }}/{{ venv_folder_name }}/bin/pip install -I -U {{ venv_packages|default('psutil') }}"

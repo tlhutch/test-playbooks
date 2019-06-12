@@ -2,8 +2,6 @@ import pytest
 from tests.api import APITest
 
 
-@pytest.mark.api
-@pytest.mark.destructive
 class Test_Tower_Prepopulation(APITest):
 
     pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
@@ -49,6 +47,6 @@ class Test_Tower_Prepopulation(APITest):
             "JT created with incorrect playbook. Expected 'hello_world.yml', got %s." % job_templates.playbook
         assert job_template.project == project.id
         assert job_template.inventory == inventory.id
-        assert job_template.credential == credential.id
+        assert [c.id for c in job_template.related.credentials.get().results] == [credential.id]
         job = job_template.launch().wait_until_completed()
         job.assert_successful()

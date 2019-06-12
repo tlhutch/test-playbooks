@@ -6,7 +6,6 @@ import pytest
 from tests.api import APITest
 
 
-@pytest.mark.api
 @pytest.mark.usefixtures('authtoken')
 class TestPagination(APITest):
 

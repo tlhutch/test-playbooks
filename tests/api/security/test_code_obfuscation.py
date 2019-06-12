@@ -3,7 +3,6 @@ import pytest
 from tests.api import APITest
 
 
-@pytest.mark.api
 @pytest.mark.usefixtures(
     'skip_if_openshift',
     'authtoken',

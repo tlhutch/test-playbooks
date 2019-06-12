@@ -13,19 +13,19 @@ handler = logging.StreamHandler(sys.stdout)
 handler.setLevel('DEBUG')
 log.addHandler(handler)
 
-v1 = api.ApiV1().load_default_authtoken().get()
+v2 = api.ApiV2().load_default_authtoken().get()
 
 
-endpoints = (('organization', v1.organizations),
-             ('user', v1.users),
-             ('team', v1.teams),
-             ('credential', v1.credentials),
-             ('inventory', v1.inventory),
-             ('host', v1.hosts),
-             ('group', v1.groups),
-             ('project', v1.projects),
-             ('job template', v1.job_templates),
-             ('job', v1.jobs))
+endpoints = (('organization', v2.organizations),
+             ('user', v2.users),
+             ('team', v2.teams),
+             ('credential', v2.credentials),
+             ('inventory', v2.inventory),
+             ('host', v2.hosts),
+             ('group', v2.groups),
+             ('project', v2.projects),
+             ('job template', v2.job_templates),
+             ('job', v2.jobs))
 
 # getting tens of thousands of items over is unnecessary.
 item_limit = 2000
