@@ -1,16 +1,15 @@
 import fauxfactory
 import pytest
-import requests
-from urllib.parse import urljoin
 
 from towerkit.config import config
-from towerkit import utils, exceptions
-from kubernetes.stream import stream
 
 from tests.api import APITest
 
+
 @pytest.fixture(scope='class')
 def k8s_foreman_sim(gke_client_cscope, request):
+    pytest.skip("Currently this does not work with the inventory script that is in ansible, more research is needed.")
+    # Ostensibly works with the modern plugin
     K8sClient = gke_client_cscope(config.credentials)
     prefix = 'foreman-sim'
     cluster_domain = 'services.k8s.tower-qe.testing.ansible.com'
@@ -34,10 +33,19 @@ def k8s_foreman_sim(gke_client_cscope, request):
     return sim_url
 
 
-@pytest.mark.api
-@pytest.mark.destructive
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
 class TestForemanSim(APITest):
-    def test_foremansim_spawn(self, k8s_foreman_sim):
-        import pdb; pdb.set_trace()
-    
+
+    @pytest.fixture
+    def foreman_credential(self, factories, k8s_foreman_sim):
+        return factories.credential(name=f'foreman-cred-{fauxfactory.gen_utf8()}',
+                                    kind='satellite6', inputs={'host': k8s_foreman_sim})
+
+    @pytest.fixture
+    def foreman_inventory_source(self, factories, foreman_credential):
+        return factories.inventory_source(name=f'foreman-inventory-source{fauxfactory.gen_utf8()}',
+                                          source='satellite6', credential=foreman_credential)
+
+    def test_foreman_inventory_source(self, foreman_inventory_source):
+        update = foreman_inventory_source.update()
+        update.wait_until_completed().assert_successful()
