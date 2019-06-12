@@ -12,10 +12,10 @@ from tests.api import APITest
 log = logging.getLogger(__name__)
 
 
-def associate_notification_template(notification_template_pg, resource_pg, job_result="any"):
+def associate_notification_template(notification_template_pg, resource_pg, event='success'):
     """Associate notification template to tower resource"""
     nt_id = notification_template_pg.id
-    resource_nt_pg = resource_pg.get_related('notification_templates_' + job_result)
+    resource_nt_pg = resource_pg.get_related('notification_templates_' + event)
     nt_count = resource_nt_pg.get().count
 
     # Associate notification template
@@ -167,31 +167,40 @@ class Test_Notifications(APITest):
                 "Failed to find %s test notification (%s)" %\
                 (notification_type, msg)
 
-    @pytest.mark.parametrize("job_result", ['any', 'error', 'success'])
-    def test_system_job_notifications(self, request, system_job_template, slack_notification_template, job_result):
+    @pytest.mark.parametrize(
+        "notify_on_start,job_result",
+        [(True, 'success'), (True, 'error'), (False, 'success'), (False, 'error')]
+    )
+    def test_system_job_notifications(self, system_job_template, slack_notification_template,
+                                      notify_on_start, job_result):
         """Test notification templates attached to system job templates"""
-        notification_template = slack_notification_template
-        existing_notifications = system_job_template.get_related('notification_templates_any').count + \
-            system_job_template.get_related('notification_templates_success').count
-        notifications_expected = existing_notifications + (1 if job_result in ('any', 'success') else 0)
 
-        # Associate notification template
+        notification_template = slack_notification_template
+        notifications_expected = \
+            system_job_template.get_related('notification_templates_success').count + \
+            system_job_template.get_related('notification_templates_error').count + \
+            system_job_template.get_related('notification_templates_started').count
+
+        if notify_on_start:
+            notifications_expected += 1
+
+        if job_result == 'success':
+            notifications_expected += 1
+
+        if notify_on_start:
+            associate_notification_template(notification_template, system_job_template, 'started')
         associate_notification_template(notification_template, system_job_template, job_result)
 
-        # Launch job
         job = system_job_template.launch().wait_until_completed()
         job.assert_successful()
 
         # Find the notification that matches the expected template
         notifications_pg = job.get_related('notifications').wait_until_count(notifications_expected)
-        notification_pg = next(
-            filter(lambda x: x.notification_template == notification_template.id, notifications_pg.results),
-            None
-        )
+        notification_pg = notifications_pg.results[-1] if len(notifications_pg.results) else None
 
         assert notifications_pg.count == notifications_expected, \
             "Expected job to have %s notifications, found %s" % (notifications_expected, notifications_pg.count)
-        if job_result in ('any', 'success'):
+        if job_result == 'success':
             assert notification_pg is not None, \
                 "Expected notification to be associated with notification template %s" % notification_template.id
             notification_pg.wait_until_completed()
@@ -206,15 +215,18 @@ class Test_Notifications(APITest):
 
         # Check notification in notification service
         if can_confirm_notification(notification_template):
-            notification_expected = (True if job_result in ('any', 'success') else False)
+            notification_expected = (True if job_result == 'success' else False)
             msg = expected_job_notification(config.base_url, notification_template, job, job_result)
             assert confirm_notification(notification_template, msg, is_present=notification_expected), \
                 notification_template.notification_type + " notification " + \
                 ("not " if notification_expected else "") + "present (%s)" % msg
 
-    @pytest.mark.parametrize("job_result", ['any', 'error', 'success'])
+    @pytest.mark.parametrize(
+        "notify_on_start,job_result",
+        [(True, 'success'), (True, 'error'), (False, 'success'), (False, 'error')]
+    )
     @pytest.mark.parametrize("resource", ['organization', 'project', 'job_template'])
-    def test_notification_inheritance(self, request, resource, job_template, slack_notification_template, job_result):
+    def test_notification_inheritance(self, request, resource, job_template, slack_notification_template, notify_on_start, job_result):
         """Test inheritance of notifications when notification template attached to various tower resources"""
         # Get reference to resource
         notification_template = slack_notification_template
@@ -227,20 +239,25 @@ class Test_Notifications(APITest):
         else:
             pytest.fail("Test did not recognize resource: " + resource)
 
-        # Associate notification template
+        if notify_on_start:
+            associate_notification_template(notification_template, resource, 'started')
         associate_notification_template(notification_template, resource, job_result)
 
-        # Launch job
         job = job_template.launch().wait_until_completed(timeout=60 * 4)
         job.assert_successful()
 
-        # Check notification in job
-        notifications_expected = 1 if job_result in ('any', 'success') else 0
+        notifications_expected = 0
+        if notify_on_start:
+            notifications_expected += 1
+
+        if job_result == 'success':
+            notifications_expected += 1
+
         notifications_pg = job.get_related('notifications').wait_until_count(notifications_expected)
         assert notifications_pg.count == notifications_expected, \
             "Expected job to have %s notifications, found %s" % (notifications_expected, notifications_pg.count)
-        if job_result in ('any', 'success'):
-            notification_pg = notifications_pg.results[0].wait_until_completed()
+        if job_result == 'success':
+            notification_pg = notifications_pg.results[-1] if len(notifications_pg.results) else None
             tower_msg = expected_job_notification(config.base_url, notification_template, job, job_result, tower_message=True)
             assert notification_pg.notification_template == notification_template.id, \
                 "Expected notification to be associated with notification template %s, found %s" % \
@@ -255,7 +272,7 @@ class Test_Notifications(APITest):
 
         # Check notification in notification service
         if can_confirm_notification(notification_template):
-            notification_expected = (True if job_result == 'any' or job_result == 'success' else False)
+            notification_expected = (True if job_result == 'success' else False)
             msg = expected_job_notification(config.base_url, notification_template, job, job_result)
             assert confirm_notification(notification_template, msg) == notification_expected, \
                 notification_template.notification_type + " notification " + \
