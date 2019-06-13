@@ -75,8 +75,14 @@ def assert_expected_hostvars(inv_source,
                     parent_key = '{}:{}'.format(parent_key, key)
                 assert_keys(found_subdict, expected_subdict, parent_found_dict, host, key)
 
-    if expected_hostvars or hostvars_that_create_groups:
-        for host in inv_update.related.inventory.get().related.hosts.get().results:
+    # Due to https://github.com/ansible/tower/issues/3584 where a change in API response
+    # caused GCE to have no enabled hosts, we are going to make the very loose requirement
+    # that at least one enabled host exists in any source
+    num_enabled_hosts = 0
+
+    for host in inv_update.related.inventory.get().related.hosts.get().results:
+        num_enabled_hosts += 1 if host.enabled else 0
+        if expected_hostvars or hostvars_that_create_groups:
             hostvars = host.related.variable_data.get()
             # Need to turn into proper dictionary object to access with get()
             hostvars = json.loads(str(hostvars))
@@ -87,6 +93,8 @@ def assert_expected_hostvars(inv_source,
                 continue
             else:
                 assert_keys(hostvars, expected_hostvars, hostvars, host)
+
+    assert num_enabled_hosts > 0
 
     assert len(missing_hostvars) == 0, f'The {kind} inventory update failed to\n' \
         'provide the following keys in the hostvars of the listed hosts: \n' \
