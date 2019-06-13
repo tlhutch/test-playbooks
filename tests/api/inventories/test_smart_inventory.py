@@ -240,6 +240,15 @@ class TestSmartInventory(APITest):
         assert ahcs.results.pop().id == ahc.id
         assert host.related.ad_hoc_command_events.get().count > 0
 
+    def test_ad_hoc_host_event_links(self, factories):
+        org = factories.organization()
+        normal_inventory = factories.inventory(organization=org)
+        host = factories.host(name='test_host', inventory=normal_inventory)
+        smart_inventory = factories.inventory(organization=org, host_filter="name=test_host", kind="smart")
+
+        ahc = factories.ad_hoc_command(inventory=smart_inventory).wait_until_completed()
+        assert set(event.host for event in ahc.get_related('events').results) == set([None, host.id])
+
     def test_host_update_after_job(self, factories):
         host = factories.host()
         smart_inventory = factories.inventory(organization=host.ds.inventory.ds.organization, kind="smart",
