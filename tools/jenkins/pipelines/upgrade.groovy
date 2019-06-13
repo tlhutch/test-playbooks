@@ -201,11 +201,18 @@ Bundle?: ${params.BUNDLE}"""
 
         stage ('Upgrade') {
             steps {
+               script {
+                   if (params.CLEAN_DEPLOYMENT_AFTER_JOB_RUN == 'yes') {
+                       _delete = 'true'
+                   } else {
+                       _delete = 'false'
+                   }
+               }
                sshagent(credentials : ['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
                    sh 'ansible-playbook -v -i playbooks/inventory.test_runner playbooks/test_runner/run_install.yml'
 
                    // NOTE(spredzy): To change cleanly
-                   sh "ansible test-runner -i playbooks/inventory.test_runner -a 'sed -i \"s/delete_on_start: .*/delete_on_start: true/g\" /home/ec2-user/tower-qa/playbooks/vars.yml'"
+                   sh "ansible test-runner -i playbooks/inventory.test_runner -a 'sed -i \"s/delete_on_start: .*/delete_on_start: ${_delete}/g\" /home/ec2-user/tower-qa/playbooks/vars.yml'"
                 }
             }
         }
