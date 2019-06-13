@@ -1,4 +1,5 @@
 from towerkit import exceptions as exc
+from towerkit.utils import poll_until, logged_sleep
 import fauxfactory
 import pytest
 
@@ -289,8 +290,43 @@ class TestSmartInventory(APITest):
         hosts = [factories.host(name='test_host', inventory=inv) for inv in (inv1, inv2)]
 
         inv_hosts = inventory.related.hosts.get()
+        smart_host_id = min([host.id for host in hosts])
         assert inv_hosts.count == 1
-        assert inv_hosts.results.pop().id == min([host.id for host in hosts])
+        assert inv_hosts.results.pop().id == smart_host_id
+
+        # verify that the events link back to the hosts, and to the correct hosts
+        job = factories.job_template(inventory=inventory).launch().wait_until_completed()
+        assert set(event.host for event in job.get_related('job_events').results) == set([None, smart_host_id])
+
+    def test_deleted_host_does_not_error_event(self, factories):
+        """Smart inventories cannot reasonably have deletion protection like
+        what normal inventories do, because there is no universally reliable
+        link from the host to the inventory.
+        As such, hosts in smart inventories can be deleted while jobs are running.
+        Those jobs should not error when this happens.
+        """
+        org = factories.organization()
+        normal_inventory = factories.inventory(organization=org)
+        host = factories.host(name='test_host', inventory=normal_inventory)
+        smart_inventory = factories.inventory(organization=org, host_filter="name=test_host", kind="smart")
+
+        jt_sleep = factories.job_template(
+            inventory=smart_inventory,
+            playbook='sleep.yml',
+            extra_vars='{"sleep_interval": 1}'
+        )
+        job = jt_sleep.launch().wait_until_completed()
+        expected_event_ct = job.get_related('job_events').count
+
+        jt_sleep.extra_vars = '{"sleep_interval": 20}'
+        job2 = jt_sleep.launch()
+        poll_until(lambda: job2.get_related('job_events').count, timeout=30)
+        host.delete()
+        # we cannot use wait_until_completed because the error case is where
+        # not all events have come in, which would block this
+        poll_until(lambda: job2.get_related('job_events', event='playbook_on_stats').count, timeout=30)
+        logged_sleep(2)
+        assert job2.get_related('job_events').count == expected_event_ct
 
     def test_source_inventory_variables_ignored(self, factories):
         inventory = factories.inventory(variables="ansible_connection: local")
