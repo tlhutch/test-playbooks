@@ -7,7 +7,7 @@ import os
 import logging
 
 import towerkit.exceptions as exc
-from towerkit.utils import poll_until
+from towerkit.utils import poll_until, random_title
 
 import pytest
 import fauxfactory
@@ -59,13 +59,63 @@ class Test_Projects(APITest):
 
     @pytest.mark.parametrize('scm_type', ['git', 'hg', 'svn'])
     def test_project_update_basics(self, factories, scm_type):
-        project = factories.project(scm_type=scm_type)
+        project = factories.project(name='Basic {} project {}'.format(scm_type, random_title()), scm_type=scm_type)
         assert project.status == 'successful'
         assert project.scm_revision
         assert project.summary_fields.last_update
         assert project.scm_type == scm_type
         assert str(project.id) in project.local_path
         assert project.last_updated == project.last_job_run
+
+    @pytest.mark.parametrize('scm_type, playbook, before, after, expect_method', [
+        (
+            'git',
+            'utf-8.yml',
+            'a6b66f248c1819e9644112645ad043e96c57e94e',  # short: a6b66f2
+            'e11c99d1098ceaff44d8830546f03a12d16bf238',
+            lambda x: x
+        ),
+        (
+            'hg',
+            'utf-8.yml',
+            'e025df47a1d000c98a1f71932708ddaedf929452',  # short: e025df4
+            '5139fc9da4f3f79f689b6b56fd5b658d9e5c2eeb',
+            lambda x: x[:12]  # not consistent
+        ),
+        (
+            'svn',
+            'trunk/utf-8.yml',
+            'r9',  # short: 9,
+            'r10',
+            lambda x: x.strip('r')
+        )
+    ], ids=['git', 'hg', 'svn'])
+    def test_project_update_specific_commit(self, factories, active_instances,
+                                            scm_type, playbook, before, after, expect_method):
+        # assure it runs on same instance every time
+        org = factories.organization()
+        ig = factories.instance_group()
+        ig.add_instance(active_instances.results.pop())
+        org.add_instance_group(ig)
+        project = factories.project(
+            name='Commit checkout {} project {}'.format(scm_type, random_title()),
+            scm_type=scm_type, scm_branch=before, organization=org)
+
+        assert project.scm_type == scm_type
+        # the saved version of the commit follows some reliable syntax pattern
+        assert project.scm_revision == expect_method(before)
+        # current checkout is before playbook was added
+        assert playbook not in list(project.get_related('playbooks'))
+
+        project.scm_branch = after
+        update = project.get_related(
+            'project_updates', order_by='-created', status__in='pending,waiting,running'
+        ).results.pop()
+        update.wait_until_completed().assert_successful()
+        project.get()
+        assert project.scm_revision == expect_method(after)
+        # playbook was added in last comment
+        assert playbook in list(project.get_related('playbooks'))
 
     def test_manual_project(self, skip_if_cluster, project_ansible_playbooks_manual):
         """Verify tower can successfully creates a manual project (scm_type='').
