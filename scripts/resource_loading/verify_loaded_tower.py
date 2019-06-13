@@ -140,6 +140,9 @@ def confirm_field(field, found, desired, desired_to_json=False):
 
 def confirm_related_field(field, found, desired):
     """Determine if the related field name matches that of the desired"""
+    if field == 'credential' and found.type == 'job_template':
+        return found.related['credentials'].get().results[0].name == getattr(desired, field)
+
     return found.related[field].get().name == getattr(desired, field)
 
 

@@ -331,7 +331,7 @@ credentials:
     #
     - name: 'OpenStack (team:IT)'
       description: OpenStack credentials for team:IT
-      kind: openstack_v3
+      kind: OpenStack
       user: null
       team: Bender IT
       inputs:
