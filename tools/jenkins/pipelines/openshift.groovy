@@ -76,7 +76,7 @@ pipeline {
 
             steps {
                 build(
-                    job: 'brew',
+                    job: 'brew-pipeline',
                     parameters: [
                         string(name: 'TOWER_RELEASE', value: params.TOWER_VERSION),
                     ]
