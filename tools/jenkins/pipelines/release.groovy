@@ -58,7 +58,7 @@ Scope selected: ${params.SCOPE}"""
             }
         }
 
-        stage('OS Variant') {
+        stage('Pipelines') {
             parallel {
                 stage('Debian') {
                     when {
@@ -88,7 +88,49 @@ Scope selected: ${params.SCOPE}"""
                         )
                     }
                 }
+                stage('OpenShift') {
+                    steps {
+                        build(
+                            job: 'openshift',
+                            parameters: [
+                                string(name: 'TOWER_VERSION', value: _TOWER_VERSION),
+                                string(name: 'TRIGGER_BREW_PIPELINE', value: 'yes'),
+                            ]
+                        )
+                    }
+                }
+                stage('Artifacts') {
+                    steps {
+                        build(
+                            job: 'build-artifacts-pipeline',
+                            parameters: [
+                                string(name: 'TOWER_VERSION', value: _TOWER_VERSION),
+                            ]
+                        )
+                    }
+                }
             }
+        }
+    }
+
+    post {
+        success {
+            slackSend(
+                botUser: false,
+                color: "good",
+                teamDomain: "ansible",
+                channel: "#ship_it",
+                message: "*Tower version: ${_TOWER_VERSION}* | <${env.RUN_DISPLAY_URL}|Link>"
+            )
+        }
+        unsuccessful {
+            slackSend(
+                botUser: false,
+                color: "#FF9FA1",
+                teamDomain: "ansible",
+                channel: "#ship_it",
+                message: "*Tower version: ${_TOWER_VERSION}* | <${env.RUN_DISPLAY_URL}|Link>"
+            )
         }
     }
 }
