@@ -1,41 +1,113 @@
 #!/usr/bin/env bash
 
+# e2e.sh does a run of the E2E UI testing suite.
+
+# If you just want to use defaults and you have the following files,
+# then you don't need to set any environment variables:
+
+# If you don't have playbooks/inventory.cluster, then you need to define E2E_URL.
+# DEPLOYMENT_TYPE is, at time of writing, always set to "tower" by default. You
+# can change this to "awx" to skip trying to add a license.
+# If you lack a playbooks/vars.yml, you can provide AWX_ADMIN_PASSWORD instead.
+# If you lack a json_key_file, set SKIP_DOCKER_LOGIN to true and log in to docker
+# before running this script.
+
+# Full environment variable reference:
+
+# - VARS_FILE: Defaults to "playbooks/vars.yml".
+# - JSON_KEY_FILE_PATH. Defaults to "json_key_file". Used for docker login.
+# - SKIP_DOCKER_LOGIN: Ignores json_key_file. You'll need to "docker login" manually.
+# - DEPLOYMENT_TYPE: awx or tower. Currently defaults to tower.
+# - SELENIUM_DOCKER_TAG: This is the tag used for selenium/node-chrome
+#   and node/firefox images. Defaults to "latest".
+# - AWX_ADMIN_PASSWORD: Manually provide this if you don't have a VARS_FILE
+#   like playbooks/vars.yml.
+# - E2E_URL: Target instance to test.
+# - E2E_USERNAME: Login to use during tests. Defaults to "admin".
+# - E2E_PASSWORD: Password for tests. Defaults to the value of AWX_ADMIN_PASSWORD.
+#   Change this if you want to run E2E with a different user than admin.
+# - E2E_FORK: Fork of repo to draw tests from. Defaults to "ansible".
+# - E2E_BRANCH: Branch of repo to draw tests from. Defaults to "devel".
+# - E2E_TEST_SELECTION: Test filter for nightwatch tests. Defaults to "*".
+
 set -euxo pipefail
 
-TEST_SELECTION=${TEST_SELECTION:-'*'}
+function cleanup {
+    rc=$? # preserve return code before cleanup
+    cp e2e_repo/awx/ui/test/e2e/reports/*.xml e2e_results/reports
+    rm -rf e2e_repo
+    echo "return code before cleanup: $rc"
+}
+trap cleanup EXIT
+
 VARS_FILE=${VARS_FILE:-playbooks/vars.yml}
 JSON_KEY_FILE_PATH=${JSON_KEY_FILE_PATH:-json_key_file}
-
 
 # -- Start
 #
 # shellcheck source=lib/common
 source "$(dirname "${0}")"/lib/common
 
-INVENTORY=$(retrieve_inventory_file)
-TOWER_URL="https://$(retrieve_tower_server_from_inventory "${INVENTORY}")"
-DEPLOYMENT_TYPE=$(retrieve_deployment_type "${TOWER_URL}")
-AWX_ADMIN_PASSWORD=$(retrieve_value_from_vars_file "${VARS_FILE}" admin_password)
+# If you're not using the vars file for docker credentials, set this to true. You'll need to auth before running the script.
+SKIP_DOCKER_LOGIN=${SKIP_DOCKER_LOGIN:-false}
 
+# Define your target E2E_URL ahead of time if you do not have a playbooks/inventory.cluster file
+# generated to use for information.
+if [[ -z "$E2E_URL" ]]; then
+    INVENTORY=$(retrieve_inventory_file)
+    echo "inventory used: $INVENTORY"
+    E2E_URL="https://$(retrieve_tower_server_from_inventory "${INVENTORY}")"
+    echo "E2E_URL retrieved from inventory is $E2E_URL"
+fi
+
+# A string, either awx or tower
+if [[ -z "$DEPLOYMENT_TYPE" ]]; then
+    DEPLOYMENT_TYPE=$(retrieve_deployment_type "${E2E_URL}")
+fi
+
+if [[ -z "$AWX_ADMIN_PASSWORD" ]]; then
+    AWX_ADMIN_PASSWORD=$(retrieve_value_from_vars_file "${VARS_FILE}" admin_password)
+fi
+
+SELENIUM_DOCKER_TAG=${SELENIUM_DOCKER_TAG:-"latest"}
+
+# Include https:// in URL. This is the URL the tests will target.
+E2E_USERNAME=${E2E_USERNAME:-admin}
+E2E_PASSWORD=${E2E_PASSWORD:-"$AWX_ADMIN_PASSWORD"}
+E2E_FORK=${E2E_FORK:-"ansible"}
+E2E_BRANCH=${E2E_BRANCH:-"devel"}
+E2E_TEST_SELECTION=${E2E_TEST_SELECTION:-"*"}
+
+# Since E2E tests could be any arbitrary branch, we clone into a custom-named folder e2e_repo
+# to minimize space usage, we only fetch the specific branch.
+git clone -b ${E2E_BRANCH} git@github.com:${E2E_FORK}/${DEPLOYMENT_TYPE}.git --single-branch e2e_repo
 
 if [[ "$DEPLOYMENT_TYPE" == "tower" ]]; then
     curl -o add_license.py https://gist.githubusercontent.com/jakemcdermott/0aac520c7bb631ee46517dfab94bd6dd/raw/fd85fdad7395f90ac4acab1b6c2edf10df0bb3d7/apply_license.py
-    python add_license.py -u admin -p "${AWX_ADMIN_PASSWORD}" "${TOWER_URL}"
+    python add_license.py -u admin -p "${E2E_PASSWORD}" "${E2E_URL}"
     CONTAINER_IMAGE_NAME=tower_e2e
 else
     CONTAINER_IMAGE_NAME=awx_e2e
 fi
 
-curl -o tower/nightwatchxsl.xsl https://gist.githubusercontent.com/unlikelyzero/164f03df3bf4ee2b01ee8c263979051b/raw/8b3356e2a1e059bef6ec64ac7e9a16566f5f550e/nightwatchxsl.xsl
-mkdir -p tower/awx/ui/test/e2e/screenshots
+mkdir -p e2e_results/screenshots
+mkdir -p e2e_results/reports
+curl -o e2e_results/nightwatchxsl.xsl https://gist.githubusercontent.com/unlikelyzero/164f03df3bf4ee2b01ee8c263979051b/raw/8b3356e2a1e059bef6ec64ac7e9a16566f5f550e/nightwatchxsl.xsl
 
-docker login -u _json_key -p "$(cat "${JSON_KEY_FILE_PATH}")" https://gcr.io
+# Only skip login if explicitly set to true
+if ! [[ $SKIP_DOCKER_LOGIN == "true" ]]; then
+    docker login -u _json_key -p "$(cat "${JSON_KEY_FILE_PATH}")" https://gcr.io
+else
+    echo "SKIP_DOCKER_LOGIN is set to true, skipping and going to the docker pull step"
+fi
 docker pull gcr.io/ansible-tower-engineering/"${CONTAINER_IMAGE_NAME}":latest
 docker tag gcr.io/ansible-tower-engineering/"${CONTAINER_IMAGE_NAME}":latest ${CONTAINER_IMAGE_NAME}:latest
-docker-compose -f tower/awx/ui/test/e2e/cluster/docker-compose.yml run \
-    -e AWX_E2E_URL="${TOWER_URL}" \
-    -e AWX_E2E_USERNAME=admin \
-    -e AWX_E2E_PASSWORD="${AWX_ADMIN_PASSWORD}" \
+docker-compose \
+    -f e2e_repo/awx/ui/test/e2e/cluster/docker-compose.yml \
+    run \
+    -e AWX_E2E_URL="${E2E_URL}" \
+    -e AWX_E2E_USERNAME="${E2E_USERNAME}" \
+    -e AWX_E2E_PASSWORD="${E2E_PASSWORD}" \
     -e AWX_E2E_SCREENSHOTS_ENABLED=true \
-    -e AWX_E2E_SCREENSHOTS_PATH=tower/awx/awx/ui/test/e2e/screenshots \
-    e2e --filter="${TEST_SELECTION}"
+    -e AWX_E2E_SCREENSHOTS_PATH="e2e_results/screenshots" \
+    e2e --filter="${E2E_TEST_SELECTION}"
