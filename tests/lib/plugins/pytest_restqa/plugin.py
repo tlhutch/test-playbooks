@@ -7,8 +7,10 @@ import pytest
 
 from towerkit.tower.utils import uses_sessions
 from towerkit.utils import load_credentials
+from towerkit.utils import PseudoNamespace
 from towerkit.api.client import Connection
 from towerkit import config as qe_config
+from towerkit import yaml_file
 
 
 __version__ = '1.0'
@@ -37,6 +39,13 @@ def pytest_addoption(parser):
                     dest='credentials_file',
                     metavar='path',
                     help='location of yaml file containing user credentials.')
+
+    group = parser.getgroup('resource-loading', 'resource-loading')
+    group.addoption('--resource-file',
+                    action='store',
+                    dest='resource_file',
+                    metavar='path',
+                    help='YAML file that specifies resources expected on the Tower instance.')
 
 
 connections = {}
@@ -82,6 +91,9 @@ def pytest_configure(config):
         config._debug_rest_hdlr = logging.FileHandler('pytestdebug-rest.log')
         formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
         config._debug_rest_hdlr.setFormatter(formatter)
+
+    if config.option.resource_file:
+        qe_config.resources = PseudoNamespace(yaml_file.load_file(config.option.resource_file))
 
     if not (config.option.help or config.option.collectonly or config.option.showfixtures or config.option.markers):
         if config.option.base_url:
