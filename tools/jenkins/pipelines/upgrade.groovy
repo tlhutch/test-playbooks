@@ -62,6 +62,11 @@ pipeline {
             choices: ['no', 'yes']
         )
         choice(
+            name: 'OUT_OF_BOX_OS',
+            description: 'Should the deployment be made on a vanilla OS (ie. no prev preparation will take place) ?',
+            choices: ['no', 'yes']
+        )
+        choice(
             name: 'CLEAN_DEPLOYMENT_BEFORE_JOB_RUN',
             description: 'Should the deployment be cleaned before job is run ?',
             choices: ['yes', 'no']
