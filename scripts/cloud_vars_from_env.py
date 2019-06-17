@@ -14,7 +14,7 @@ import os
 
 # This is done by sourcing the following environment variables:
 # CLOUD_PROVIDER, PLATFORM and
-env_vars = ['AUTHORIZED_KEYS', 'DELETE_ON_START', 'MINIMUM_VAR_SPACE', 'OUT_OF_BOX_OS']
+env_vars = ['AUTHORIZED_KEYS', 'DELETE_ON_START', 'MINIMUM_VAR_SPACE', 'OUT_OF_BOX_OS', 'TOWER_VERSION']
 # as well as environment variables with the prefixes:
 prefixes = ['ANSIBLE', 'AW_', 'AWS', 'AWX', 'AZURE', 'CREATE_EC2', 'EC2',
             'GALAXY', 'GCE', 'INSTANCE', 'TERMINATE_EC2']

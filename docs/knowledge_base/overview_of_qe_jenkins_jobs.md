@@ -174,6 +174,24 @@ This [pipeline](https://github.com/ansible/tower-qa/blob/devel/tools/jenkins/pip
   * OpenShift Backup And Restore
   * OpenShift Integration
 
+#### [Pipelines/OpenShift Install](http://jenkins.ansible.eng.rdu2.redhat.com/job/Pipelines/job/openshift-install-pipeline/)
+
+This [pipeline](https://github.com/ansible/tower-qa/blob/devel/tools/jenkins/pipelines/openshift-install.groovy) is used to deploy a Tower instance in the OpenShift platform.
+
+#### [Pipelines/OpenShift Integration](http://jenkins.ansible.eng.rdu2.redhat.com/job/Pipelines/job/openshift-integration-pipeline/)
+
+This [pipeline](https://github.com/ansible/tower-qa/blob/devel/tools/jenkins/pipelines/openshift-integration.groovy) is used to deploy a Tower instance in the OpenShift platform and run the integration test suite.
+
+#### [Pipelines/OpenShift Backup And Restore](http://jenkins.ansible.eng.rdu2.redhat.com/job/Pipelines/job/openshift-backup-and-restore-pipeline/)
+
+This [pipeline](https://github.com/ansible/tower-qa/blob/devel/tools/jenkins/pipelines/openshift-install.groovy) is used to run the backup and restore scenario on an OpenShift deployment.
+It reuses the exact same steps and scripts the packages based pipeline uses.
+
+#### [Pipelines/OpenShift Upgrade](http://jenkins.ansible.eng.rdu2.redhat.com/job/Pipelines/job/openshift-upgrade/)
+
+This [pipeline](https://github.com/ansible/tower-qa/blob/devel/tools/jenkins/pipelines/openshift-upgrade.groovy) is used to run an upgrade scenario on an OpenShift deployment.
+It reuses the exact same steps and scripts the packages based pipeline uses.
+
 #### [Pipelines/Red Hat](http://jenkins.ansible.eng.rdu2.redhat.com/job/Pipelines/job/redhat-pipeline/)
 
 This [pipeline](https://github.com/ansible/tower-qa/blob/devel/tools/jenkins/pipelines/redhat.groovy) is not meant to be run directly but via the `Pipeline/Release` pipeline.

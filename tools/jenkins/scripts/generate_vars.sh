@@ -40,11 +40,6 @@ ANSIBLE_NIGHTLY_REPO=${ANSIBLE_NIGHTLY_REPO}/${ANSIBLE_VERSION}
 # shellcheck source=lib/common
 source "$(dirname "${0}")"/lib/common
 
-if [[ "${AWS_ACCESS_KEY}" == "" ]] || [[ "${AWS_SECRET_KEY}" == "" ]]; then
-    >&2 echo "install.sh: Environment variables \$AWS_ACCESS_KEY and \$AWS_SECRET_KEY must be specified"
-    exit 1
-fi
-
 setup_python3_env
 pip install PyYAML argparse
 setup_env_based_on_deployment_scenario "${SCENARIO}"

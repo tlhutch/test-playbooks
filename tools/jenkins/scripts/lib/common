@@ -56,6 +56,15 @@ function setup_env_based_on_deployment_scenario {
     scenario=$1
 
     case "${scenario}" in
+       openshift)
+           INVENTORY=playbooks/inventory.openshift
+           VARS_FILE=playbooks/vars.yml
+           # FIXME(spredzy): State for compatibility
+           # to be removed when cloud_vars_from_env
+           # is updated
+           PLAYBOOK=playbooks/deploy-tower.yml
+           IMAGE_VARS=playbooks/images-ec2.yml
+           ;;
        standalone)
            PLAYBOOK=playbooks/deploy-tower.yml
            INVENTORY=playbooks/inventory.log
@@ -79,7 +88,7 @@ function setup_env_based_on_deployment_scenario {
            AWX_IPV6_DEPLOYMENT=no
            ;;
        *)
-           (>&2 echo "\"${scenario}\" is not a supported scenario. Supported scenarios: standalone, cluster.")
+           (>&2 echo "\"${scenario}\" is not a supported scenario. Supported scenarios: standalone, cluster, openshift.")
            exit 1
            ;;
     esac
@@ -132,12 +141,16 @@ function retrieve_awx_setup_path_based_on_version_and_scenario {
     if [[ "${aw_repo_url}" =~ .*"nightlies.testing.ansible.com".* ]]; then
         if [[ "${bundle}" == "yes" ]]; then
             echo "/setup-bundle/ansible-tower-setup-bundle-latest.${_platform}.tar.gz"
+        elif [[ "${scenario}" == "openshift" ]]; then
+            echo "/setup_openshift/ansible-tower-openshift-setup-latest.tar.gz"
         else
             echo "/setup/ansible-tower-setup-latest.tar.gz"
         fi
     else
         if [[ "${bundle}" == "yes" ]]; then
             echo "/setup-bundle/ansible-tower-setup-bundle-${version}-1.${_platform}.tar.gz"
+        elif [[ "${scenario}" == "openshift" ]]; then
+            echo "/setup_openshift/ansible-tower-openshift-setup-${version}.tar.gz"
         else
             echo "/setup/ansible-tower-setup-${version}-1.tar.gz"
         fi
@@ -237,5 +250,38 @@ function is_rhel8 {
         return 0
     else
         return 1
+    fi
+}
+
+# OpenShit Related Methods
+#
+
+function openshift_login {
+    oc login \
+        -u jenkins \
+        -p "${OPENSHIFT_PASS}" \
+        https://console.openshift.ansible.eng.rdu2.redhat.com:8443 \
+        --insecure-skip-tls-verify=true
+}
+
+function openshift_bootstrap_project {
+
+    PROJ=$1
+
+    set +e
+    oc get project "${PROJ}" 2>&1 > /dev/null
+    rc=$?
+    set -e
+
+    if [[ "${rc}" == 0 ]]; then
+        oc delete dc --all -n "${PROJ}"
+        oc delete deploy --all -n "${PROJ}"
+        oc delete sts --all -n "${PROJ}"
+        oc delete pods --all --force --grace-period=0 -n "${PROJ}"
+        oc delete svc --all -n "${PROJ}"
+        oc delete route --all -n "${PROJ}"
+        oc delete secret postgresql --ignore-not-found -n "${PROJ}"
+    else
+        oc new-project "${PROJ}" 2>&1 > /dev/null
     fi
 }
