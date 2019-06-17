@@ -352,7 +352,7 @@ pipeline {
     }
     post {
         always {
-            archiveArtifacts artifacts: 'artifacts/*'
+            archiveArtifacts allowEmptyArchive: true, artifacts: 'artifacts/*'
         }
         success {
             slackSend(
