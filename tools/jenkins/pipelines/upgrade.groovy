@@ -67,6 +67,11 @@ pipeline {
             choices: ['no', 'yes']
         )
         choice(
+            name: 'FROM_STAGE',
+            description: 'Should the installs and RPM be pulled from staging environment ?',
+            choices: ['no', 'yes']
+        )
+        choice(
             name: 'CLEAN_DEPLOYMENT_BEFORE_JOB_RUN',
             description: 'Should the deployment be cleaned before job is run ?',
             choices: ['yes', 'no']

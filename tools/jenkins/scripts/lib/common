@@ -87,26 +87,30 @@ function setup_env_based_on_deployment_scenario {
 
 function retrieve_aw_repo_url_based_on_version {
 
-    version=$1
-    url="https://releases.ansible.com/ansible-tower/setup-bundle/ansible-tower-setup-bundle-${version}-1.el7.tar.gz"
-    http_code=$(curl -L -s -o /dev/null -I -w "%{http_code}" "${url}")
-
-    if [[ "${http_code}" == "200" ]]; then
-        echo 'https://releases.ansible.com/ansible-tower'
+    if [[ "${FROM_STAGE}" == "yes" ]]; then
+        echo "http://releases-master.ansible.com/ansible-tower-8a782eb3d5f796bac1dcfb9916757b1fde7500d2"
     else
-        url="http://nightlies.testing.ansible.com/ansible-tower_nightlies_m8u16fz56qr6q7/release_${version}"
+        version=$1
+        url="https://releases.ansible.com/ansible-tower/setup-bundle/ansible-tower-setup-bundle-${version}-1.el7.tar.gz"
         http_code=$(curl -L -s -o /dev/null -I -w "%{http_code}" "${url}")
-        if [[ "${http_code}" == "200"  ]]; then
-            echo "http://nightlies.testing.ansible.com/ansible-tower_nightlies_m8u16fz56qr6q7/release_${version}"
+
+        if [[ "${http_code}" == "200" ]]; then
+            echo 'https://releases.ansible.com/ansible-tower'
         else
-           url="http://nightlies.testing.ansible.com/ansible-tower_nightlies_m8u16fz56qr6q7/${version}"
-           http_code=$(curl -L -s -o /dev/null -I -w "%{http_code}" "${url}")
-           if [[ "${http_code}" == "200"  ]]; then
-               echo "http://nightlies.testing.ansible.com/ansible-tower_nightlies_m8u16fz56qr6q7/${version}"
-           else
-               >&2 echo "\"${version}\": specified version cannot be found."
-               exit 1
-           fi
+            url="http://nightlies.testing.ansible.com/ansible-tower_nightlies_m8u16fz56qr6q7/release_${version}"
+            http_code=$(curl -L -s -o /dev/null -I -w "%{http_code}" "${url}")
+            if [[ "${http_code}" == "200"  ]]; then
+                echo "http://nightlies.testing.ansible.com/ansible-tower_nightlies_m8u16fz56qr6q7/release_${version}"
+            else
+               url="http://nightlies.testing.ansible.com/ansible-tower_nightlies_m8u16fz56qr6q7/${version}"
+               http_code=$(curl -L -s -o /dev/null -I -w "%{http_code}" "${url}")
+               if [[ "${http_code}" == "200"  ]]; then
+                   echo "http://nightlies.testing.ansible.com/ansible-tower_nightlies_m8u16fz56qr6q7/${version}"
+               else
+                   >&2 echo "\"${version}\": specified version cannot be found."
+                   exit 1
+               fi
+            fi
         fi
     fi
 }
@@ -135,12 +139,7 @@ function retrieve_awx_setup_path_based_on_version_and_scenario {
         if [[ "${bundle}" == "yes" ]]; then
             echo "/setup-bundle/ansible-tower-setup-bundle-${version}-1.${_platform}.tar.gz"
         else
-            _vers=$(echo -e "${version}\n3.3.0" | sort -V | head -n 1)
-            if [[ "${version}" == "${_vers}" ]]; then
-                echo "/setup/ansible-tower-setup-${version}.tar.gz"
-            else
-                echo "/setup/ansible-tower-setup-${version}-1.tar.gz"
-            fi
+            echo "/setup/ansible-tower-setup-${version}-1.tar.gz"
         fi
     fi
 }
