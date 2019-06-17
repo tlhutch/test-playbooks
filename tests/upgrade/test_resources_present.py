@@ -48,45 +48,56 @@ def desired_resources(resource_type, *indices):
         _build_results(result, results, *indices)
     return results
 
+
 @pytest.fixture
 def desired_users():
     return desired_resources('users', 'username')
+
 
 @pytest.fixture
 def desired_organizations():
     return desired_resources('organizations')
 
+
 @pytest.fixture
 def desired_teams():
     return desired_resources('teams')
+
 
 @pytest.fixture
 def desired_credentials():
     return desired_resources('credentials', 'name', 'kind')
 
+
 @pytest.fixture
 def desired_projects():
     return desired_resources('projects')
+
 
 @pytest.fixture
 def desired_inventory_scripts():
     return desired_resources('inventory_scripts')
 
+
 @pytest.fixture
 def desired_inventories():
     return desired_resources('inventories')
+
 
 @pytest.fixture
 def desired_groups():
     return desired_resources('groups')
 
+
 @pytest.fixture
 def desired_inventory_sources():
     return desired_resources('inventory_sources')
 
+
 @pytest.fixture
 def desired_hosts():
     return desired_resources('hosts')
+
 
 @pytest.fixture
 def desired_job_templates():
@@ -104,17 +115,21 @@ def find_resources(endpoint, *indices):
             return results
         resources = resources.next.get()
 
+
 @pytest.fixture
 def found_users(authtoken, v2):
     return find_resources(v2.users, 'username')
+
 
 @pytest.fixture
 def found_organizations(authtoken, v2):
     return find_resources(v2.organizations)
 
+
 @pytest.fixture
 def found_teams(authtoken, v2):
     return find_resources(v2.teams)
+
 
 @pytest.fixture
 def found_credentials(authtoken, v2, ctid_to_kind):
@@ -127,17 +142,21 @@ def found_credentials(authtoken, v2, ctid_to_kind):
             del found_credentials[found_credential][ctid]
     return found_credentials
 
+
 @pytest.fixture
 def found_projects(authtoken, v2):
     return find_resources(v2.projects)
+
 
 @pytest.fixture
 def found_inventory_scripts(authtoken, v2):
     return find_resources(v2.inventory_scripts)
 
+
 @pytest.fixture
 def found_inventories(authtoken, v2):
     return find_resources(v2.inventory)
+
 
 @pytest.fixture
 def found_groups(authtoken, v2):
@@ -149,9 +168,11 @@ def found_groups(authtoken, v2):
         found_groups[group.name][_id] = group
     return found_groups
 
+
 @pytest.fixture
 def found_inventory_sources(authtoken, v2):
     return find_resources(v2.inventory_sources)
+
 
 @pytest.fixture
 def found_hosts(authtoken, v2):
@@ -163,9 +184,11 @@ def found_hosts(authtoken, v2):
         found_hosts[host.name][_id] = host
     return found_hosts
 
+
 @pytest.fixture
 def found_job_templates(authtoken, v2):
     return find_resources(v2.job_templates)
+
 
 @pytest.fixture
 def found_jobs(authtoken, v2):
@@ -177,16 +200,20 @@ def confirm_field(field, found, desired, desired_to_json=False):
     found_attr = getattr(found, field)
     desired_attr = getattr(desired, field)
     if desired_to_json:
-        return json.loads(found_attr) == desired_attr
-    return found_attr == desired_attr
+        assert json.loads(found_attr) == desired_attr, f"Expected {field} to be {desired_attr} but found {json.loads(found_attr)}"
+        return
+    assert found_attr == desired_attr, f"Expected {field} to be {desired_attr} but found {found_attr}"
 
 
 def confirm_related_field(field, found, desired):
     """Determine if the related field name matches that of the desired"""
+    desired_value = getattr(desired, field)
     if field == 'credential' and found.type == 'job_template':
-        return found.related['credentials'].get().results[0].name == getattr(desired, field)
-
-    return found.related[field].get().name == getattr(desired, field)
+        found_value = found.related['credentials'].get().results[0].name
+        assert found_value == desired_value, f"Expected {field} to be {desired_value} but found {found_value}"
+        return
+    found_value = found.related[field].get().name
+    assert found_value == getattr(desired, field), f"Expected {field} to be {desired_value} but found {found_value}"
 
 
 def resolve_duplicates_by_description(potential_duplicates, desired_object):
@@ -204,10 +231,11 @@ def test_found_users(authtoken, found_users, desired_users):
         for field in [x for x in desired_user if x != 'password']:
             assert getattr(found_user, field) == getattr(desired_user, field)
 
+
 def test_found_organizations(authtoken, found_organizations, desired_organizations):
     for name, desired_organization in desired_organizations.items():
         found_organization = found_organizations[name]
-        assert confirm_field('description', found_organization, desired_organization)
+        confirm_field('description', found_organization, desired_organization)
 
         found_org_users = [user.username for user in found_organization.related.users.get().results]
         for user in desired_organization.users:
@@ -221,17 +249,19 @@ def test_found_organizations(authtoken, found_organizations, desired_organizatio
         for project in desired_organization.projects:
             assert project in found_org_projects
 
+
 def test_found_teams(authtoken, found_teams, desired_teams):
     for name, desired_team in desired_teams.items():
         found_team = found_teams[name]
         if 'description' in desired_team:
-            assert confirm_field('description', found_team, desired_team)
+            confirm_field('description', found_team, desired_team)
 
-        assert confirm_related_field('organization', found_team, desired_team)
+        confirm_related_field('organization', found_team, desired_team)
 
         found_team_users = [user.username for user in found_team.related.users.get().results]
         for user in desired_team.users:
             assert user in found_team_users
+
 
 def test_found_credentials(authtoken, found_credentials, desired_credentials):
     for name in desired_credentials:
@@ -242,7 +272,7 @@ def test_found_credentials(authtoken, found_credentials, desired_credentials):
                 found_credential = found_credentials[name][kind]
 
             for field in ('description',):
-                assert confirm_field(field, found_credential, desired_credential)
+                confirm_field(field, found_credential, desired_credential)
 
             if desired_credential.user:
                 assert found_credential.related.owner_users.get().results.pop().username == desired_credential.user
@@ -250,15 +280,16 @@ def test_found_credentials(authtoken, found_credentials, desired_credentials):
             if desired_credential.team:
                 assert found_credential.related.owner_teams.get().results.pop().name == desired_credential.team
 
+
 def test_found_projects(authtoken, found_projects, desired_projects):
     projects_to_update = []
     for name, desired_project in desired_projects.items():
         found_project = found_projects[name]
         for field in [x for x in desired_project if x != 'name']:
             if field in ('organization', 'credential'):
-                assert confirm_related_field(field, found_project, desired_project)
+                confirm_related_field(field, found_project, desired_project)
             else:
-                assert confirm_field(field, found_project, desired_project)
+                confirm_field(field, found_project, desired_project)
         projects_to_update.append(found_project)
 
     project_updates = []
@@ -272,14 +303,16 @@ def test_found_projects(authtoken, found_projects, desired_projects):
             if '429 Too Many Requests' not in update.result_stdout:  # GH rate limit
                 assert update.is_successful, update.result_stdout
 
+
 def test_found_inventory_scripts(authtoken, found_inventory_scripts, desired_inventory_scripts):
     for name, desired_script in desired_inventory_scripts.items():
         found_script = found_inventory_scripts[name].get()
         for field in [x for x in desired_script if x not in ['name', 'script']]:
             if field in ('organization',):
-                assert confirm_related_field(field, found_script, desired_script)
+                confirm_related_field(field, found_script, desired_script)
             else:
-                assert confirm_field(field, found_script, desired_script)
+                confirm_field(field, found_script, desired_script)
+
 
 def test_found_inventories(authtoken, found_inventories, desired_inventories):
     for name, desired_inventory in desired_inventories.items():
@@ -294,9 +327,10 @@ def test_found_inventories(authtoken, found_inventories, desired_inventories):
 
         for field in [x for x in desired_inventory if x != 'name']:
             if field in ('organization',):
-                assert confirm_related_field(field, found_inventory, desired_inventory)
+                confirm_related_field(field, found_inventory, desired_inventory)
             else:
-                assert confirm_field(field, found_inventory, desired_inventory)
+                confirm_field(field, found_inventory, desired_inventory)
+
 
 def test_found_groups(authtoken, found_groups, desired_groups):
     for name, desired_group in desired_groups.items():
@@ -308,22 +342,24 @@ def test_found_groups(authtoken, found_groups, desired_groups):
                 continue
             else:
                 raise
-        assert confirm_related_field('inventory', found_group, desired_group)
+        confirm_related_field('inventory', found_group, desired_group)
         if 'parent' in desired_group:
             assert found_group.get_parents().pop().name == desired_group.parent
+
 
 def test_found_hosts(authtoken, found_hosts, desired_hosts):
     for name, desired_host in desired_hosts.items():
         found_host = resolve_duplicates_by_description(found_hosts[name], desired_host)
         for field in [x for x in desired_host if x not in ('name', 'description')]:
             if field == 'inventory':
-                assert confirm_related_field('inventory', found_host, desired_host)
+                confirm_related_field('inventory', found_host, desired_host)
             elif field == 'groups':
                 found_group_names = [group.name for group in found_host.related.groups.get().results]
                 for group in desired_host.groups:
                     assert group in found_group_names
             else:
-                assert confirm_field(field, found_host, desired_host)
+                confirm_field(field, found_host, desired_host)
+
 
 def test_found_inventory_sources(authtoken, found_inventory_sources, found_inventory_scripts, desired_inventory_sources):
     inventory_sources_to_update = []
@@ -346,12 +382,12 @@ def test_found_inventory_sources(authtoken, found_inventory_sources, found_inven
         exclusion = ('update_interval', 'name', 'group')
         for field in [x for x in desired_inventory_source if x not in exclusion]:
             if field in inclusion:
-                assert confirm_related_field(field, found_inventory_source, desired_inventory_source)
+                confirm_related_field(field, found_inventory_source, desired_inventory_source)
             elif field == 'source_script':
                 desired_script_id = found_inventory_scripts[desired_inventory_source.source_script].id
                 assert found_inventory_source.source_script == desired_script_id
             else:
-                assert confirm_field(field, found_inventory_source, desired_inventory_source, field == 'source_vars')
+                confirm_field(field, found_inventory_source, desired_inventory_source, field == 'source_vars')
         inventory_sources_to_update.append(found_inventory_source)
 
     source_updates = []
@@ -363,17 +399,18 @@ def test_found_inventory_sources(authtoken, found_inventory_sources, found_inven
         if update.source != 'vmware':  # Currently without vmware infra
             assert update.is_successful
 
+
 def test_found_job_templates(authtoken, found_job_templates, desired_job_templates):
     job_templates_to_check = []
     for name, desired_job_template in desired_job_templates.items():
         found_job_template = found_job_templates[name]
         for field in [x for x in desired_job_template if x != 'name']:
             if field in ('credential', 'group', 'inventory', 'project'):
-                assert confirm_related_field(field, found_job_template, desired_job_template)
+                confirm_related_field(field, found_job_template, desired_job_template)
             elif field == 'playbook' and desired_job_template.playbook == 'Default':
                 assert found_job_template.playbook == ''
             else:
-                assert confirm_field(field, found_job_template, desired_job_template, field == 'extra_vars')
+                confirm_field(field, found_job_template, desired_job_template, field == 'extra_vars')
         job_templates_to_check.append(found_job_template)
 
     jobs = []
@@ -392,6 +429,7 @@ def test_found_job_templates(authtoken, found_job_templates, desired_job_templat
             assert job.job_explanation == ''
         else:
             assert job.is_successful
+
 
 def test_ig_mapping(authtoken, v2):
     # Verify IG rebuild mapping
