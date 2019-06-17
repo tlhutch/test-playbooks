@@ -105,6 +105,7 @@ pipeline {
     options {
         timestamps()
         buildDiscarder(logRotator(daysToKeepStr: '30'))
+        timeout(time: 18, unit: 'HOURS')
     }
 
     stages {
