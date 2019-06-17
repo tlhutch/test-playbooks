@@ -1,3 +1,4 @@
+import threading
 import json
 import sys
 
@@ -35,13 +36,16 @@ class TestLoadResources():
         # Create teams
         teams = {}
         for team in config.resources.teams:
-            created_team = v2_class.teams.get_or_create(name=team.name, description=team.get('description', ''), organization=organizations[team.organization])
-            created_team.organization = organization = organizations[team.organization].id
+            description = team.get('description', '')
+            created_team = v2_class.teams.get_or_create(name=team.name, description=team.get('description'), organization=organizations[team.organization])
+            # this helps update stale resources if some resources have changed, but others remain since this resource was created
+            created_team.description = description
+            created_team.organization = organizations[team.organization].id
+            assert created_team.name == team.name
             teams[team.name] = created_team
             for username in team.users:
                 with utils.suppress(exceptions.NoContent):
                     created_team.related.users.post(users[username].json)
-
         return users, organizations, teams
 
     @pytest.fixture(scope='class')
@@ -70,9 +74,9 @@ class TestLoadResources():
             else:
                 config_credential = config.credentials[credential.kind]
 
-            for field in [x for x in config_credential if x in credential]:
-                value = credential[field].format(**config_credential)
-                credential[field] = value
+            for field in [x for x in config_credential if x in credential.inputs]:
+                value = credential.inputs[field].format(**config_credential)
+                credential.inputs[field] = value
 
             if 'project' in credential:
                 credential['project_id' if credential.kind == 'gce' else 'project_name'] = credential.pop('project')
@@ -92,6 +96,8 @@ class TestLoadResources():
             if 'credential' in project:
                 project['credential'] = credentials[project['credential']]
             projects[project.name] = v2_class.projects.get_or_create(wait=False, **project)
+            # this helps update stale resources if some resources have changed, but others remain since this resource was created
+            projects[project.name].description = project.get('description', '')
             if hasattr(projects[project.name].related, 'current_update'):
                 project_updates.append(projects[project.name].related.current_update.get())
             elif hasattr(projects[project.name].related, 'last_update'):
@@ -119,7 +125,11 @@ class TestLoadResources():
             inv_script = v2_class.inventory_scripts.get_or_create(name=inventory_script.name, description=inventory_script.description,
                                                      organization=organizations[inventory_script.organization],
                                                      script=inventory_script.script)
+            # this helps update stale resources if some resources have changed, but others remain since this resource was created
             inventory_scripts[inventory_script.name] = inv_script
+            inventory_scripts[inventory_script.name].description = inventory_script.description
+            inventory_scripts[inventory_script.name].organization = organizations[inventory_script.organization].id
+            inventory_scripts[inventory_script.name].script = inventory_script.script
 
         # Create inventories
         inventories = {}
@@ -157,16 +167,26 @@ class TestLoadResources():
             group = groups[inventory_source.pop('group')]
             if 'source_vars' in inventory_source:
                 inventory_source['source_vars'] = json.dumps(inventory_source['source_vars'])
-            for field, store in (('credential', credentials), ('source_script', inventory_scripts)):
+            for field, store in (('credential', credentials), ('source_script', inventory_scripts), ('inventory', inventories)):
                 if field in inventory_source:
                     inventory_source[field] = store[inventory_source[field]]
             created_inventory_source = v2_class.inventory_sources.get_or_create(**inventory_source)
-            inventory_sources[inventory_source.name] = created_inventory_source
-            inventory_source_updates.append(created_inventory_source.update())
+            # this helps update stale resources if some resources have changed, but others remain since this resource was created
+            created_inventory_source.inventory = inventory_source['inventory'].id
+            created_inventory_source.description = inventory_source.get('description', '')
+            if inventory_source.get('credential'):
+                created_inventory_source.credential = inventory_source['credential'].id
 
-        for update in inventory_source_updates:
-            #  TODO: check for success based on type and cert verification
-            update.wait_until_completed(timeout=1200, interval=30)
+            inventory_sources[inventory_source.name] = created_inventory_source
+            if hasattr(created_inventory_source.related, 'last_update'):
+                inventory_source_updates.append(created_inventory_source.related.last_update.get())
+            else:
+                inventory_source_updates.append(created_inventory_source.update())
+
+        # Wait for jobs to complete
+        threads = [threading.Thread(target=update.wait_until_completed, args=()) for update in inventory_source_updates]
+        [t.start() for t in threads]
+        [t.join() for t in threads]
 
         return inventory_scripts, inventories, groups, hosts, inventory_sources
 
@@ -183,6 +203,11 @@ class TestLoadResources():
                 found = jt_args.get(item, False)
                 if found:
                     jt_args[item] = source[found]
+                else:
+                    if item == 'project':
+                        jt_args[item] = v2_class.projects.create()
+                    if item == 'inventory':
+                        jt_args[item] = v2_class.iventory.create()
 
             if 'extra_vars' in job_template:
                 jt_args['extra_vars'] = json.dumps(job_template.extra_vars)
@@ -193,10 +218,15 @@ class TestLoadResources():
 
         jobs = []
         for jt in job_templates.values():
-            jobs.append(jt.launch())
+            if hasattr(jt.related, 'last_job'):
+                jobs.append(jt.related.last_job.get())
+            else:
+                jobs.append(jt.launch())
 
-        for job in jobs:
-            job.wait_until_completed(timeout=1800, interval=30)
+        # Wait for jobs to complete
+        threads = [threading.Thread(target=job.wait_until_completed, args=()) for job in jobs]
+        [t.start() for t in threads]
+        [t.join() for t in threads]
 
         for job in jobs:
             try:

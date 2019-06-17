@@ -23,3 +23,4 @@ reports
 *credentials-pkcs8.yaml*
 tools/docker/.build
 .DS_Store
+prof/*
