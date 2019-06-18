@@ -173,6 +173,8 @@ class Test_Notifications(APITest):
     )
     def test_system_job_notifications(self, system_job_template, slack_notification_template,
                                       notify_on_start, job_result):
+    def test_system_job_notifications(self, request, system_job_template, slack_notification_template, job_result):
+>>>>>>> Update test to include notifications on start
         """Test notification templates attached to system job templates"""
 
         notification_template = slack_notification_template
