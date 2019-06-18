@@ -49,8 +49,12 @@ def get_issues_from_project(project_id):
     _columns = github_request(url).json()
     cards_url = [column['cards_url'] for column in _columns if 'QE' not in column['name']]
 
+    page_1, page_2 = [], []
     for url in cards_url:
-        _issues += [github_request(_issue['content_url']).json() for _issue in github_request(url).json()]
+        page_1 = [github_request(_issue['content_url']).json() for _issue in github_request(url).json()]
+        if len(page_1) == 30:
+            page_2 = [github_request(_issue['content_url']).json() for _issue in github_request('%s?page=2' % url).json()]
+        _issues += page_1 + page_2
 
     return [issue for issue in _issues if issue['state'] == 'open']
 
@@ -64,6 +68,19 @@ def is_issue_in_need_test(issue):
     return False
 
 
+def is_issue_assigned(issue):
+
+    team_members = ['elyezer', 'Spredzy', 'kdelee',
+                    'one-t', 'dsesami', 'unlikelyzero']
+
+    assignees = [mate['login'] for mate in issue['assignees']]
+
+    if set(assignees) - set(team_members) == set(assignees):
+        return False
+
+    return True
+
+
 def post_slack_msg(text):
     slack.chat.post_message(slack_channel, text, icon_emoji=':ansible:')
 
@@ -73,20 +90,36 @@ def create_issue_update():
     project_id, project_number = get_project_id_and_number(tower_version)
     issues = get_issues_from_project(project_id)
 
-    needs_test = 0
+    needs_test = []
     for issue in issues:
         if is_issue_in_need_test(issue):
-            needs_test += 1
+            issue['assigned'] = is_issue_assigned(issue)
+            needs_test.append(issue)
+
+    unassigned_api, unassigned_ui = 0, 0
+    for issue in needs_test:
+        if not issue['assigned']:
+            labels = [label['name'] for label in issue['labels']]
+            if 'component:api' in labels:
+                unassigned_api += 1
+            if 'component:ui' in labels:
+                unassigned_ui += 1
+
+    extra_msg = ''
+    if unassigned_api or unassigned_ui:
+        extra_msg = " | {} API and {} UI issues are in needs_test and unassigned, @qe please assign yourselves".format(
+            unassigned_api, unassigned_ui
+        )
 
     url = 'https://github.com/issues?q=is:open+is:issue+project:ansible/{}'.format(
         project_number
     )
-    return "{} open issues in project `{}` ({} in `state:needs_test`) - Link: {}".format(
-        len(issues), tower_version, needs_test, url
+    return "{} open issues in project `{}` ({} in `state:needs_test`{}) - Link: {}".format(
+        len(issues), tower_version, len(needs_test), extra_msg, url
     )
 
 
-post_slack_msg(create_issue_update())
+print(create_issue_update())
 
 if __name__ == '__main__':
     create_issue_update()
