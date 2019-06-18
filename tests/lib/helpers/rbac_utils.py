@@ -106,9 +106,9 @@ def get_nt_endpoints(notifiable_resource):
     notifiable Tower resource.
     """
     if notifiable_resource.type == "organization":
-        return ['notification_templates', 'notification_templates_any', 'notification_templates_success', 'notification_templates_error']
+        return ['notification_templates', 'notification_templates_started', 'notification_templates_success', 'notification_templates_error']
     else:
-        return ['notification_templates_any', 'notification_templates_success', 'notification_templates_error']
+        return ['notification_templates_started', 'notification_templates_success', 'notification_templates_error']
 
 
 def check_user_capabilities(resource, role):
