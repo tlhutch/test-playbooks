@@ -1,10 +1,9 @@
 import threading
 import json
-import sys
 
 import pytest
 
-from towerkit import api, config, exceptions, utils
+from towerkit import config, exceptions, utils
 
 
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
@@ -148,6 +147,8 @@ class TestLoadResources():
             if 'parent' in group:
                 group['parent'] = groups[group['parent']]
             groups[group.name] = v2_class.groups.get_or_create(**group)
+            # this helps update stale resources if some resources have changed, but others remain since this resource was created
+            groups[group.name].inventory = inventories[group.inventory.name].id
 
         # Create hosts
         hosts = {}
@@ -157,8 +158,17 @@ class TestLoadResources():
                 host['variables'] = json.dumps(host['variables'])
             host['inventory'] = inventories[host.inventory]
             hosts[host.name] = v2_class.hosts.get_or_create(**host)
+            # If host has the wrong inventory, we cannot update it, so we need to delete this host
+            # and create it again with correct inventory
+            if hosts[host.name].inventory != inventories[host.inventory.name].id:
+                hosts[host.name].delete()
+                hosts[host.name] = v2_class.hosts.get_or_create(**host)
+                assert hosts[host.name].inventory == inventories[host.inventory.name].id
             for group in _groups:
-                groups[group].add_host(hosts[host.name])
+                if groups[group].inventory != hosts[host.name].inventory:
+                    raise AssertionError("Missed something!")
+                else:
+                    groups[group].add_host(hosts[host.name])
 
         # Create inventory sources
         inventory_sources = {}

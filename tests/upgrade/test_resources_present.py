@@ -4,7 +4,6 @@ import re
 import pytest
 
 from distutils.version import LooseVersion
-from towerkit import api, config, utils
 from towerkit.api.pages.credentials import credential_type_name_to_config_kind_map
 from towerkit import config as qe_config
 
