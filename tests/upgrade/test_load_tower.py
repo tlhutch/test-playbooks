@@ -13,7 +13,7 @@ class TestLoadResources():
         # Create users
         users = {}
         for user in config.resources.users:
-            created = v2_class.users.get_or_create(username=user.username,
+            created = v2_class.users.create_or_replace(username=user.username,
                                                email=user.email,
                                                first_name=user.first_name,
                                                last_name=user.last_name,
@@ -23,7 +23,7 @@ class TestLoadResources():
 
         organizations = {}
         for organization in config.resources.organizations:
-            org = v2_class.organizations.get_or_create(name=organization.name, description=organization.description)
+            org = v2_class.organizations.create_or_replace(name=organization.name, description=organization.description)
             organizations[organization.name] = org
             for username in organization.users:
                 if not org.related.users.get(username=username).results:
@@ -36,7 +36,7 @@ class TestLoadResources():
         teams = {}
         for team in config.resources.teams:
             description = team.get('description', '')
-            created_team = v2_class.teams.get_or_create(name=team.name, description=team.get('description'), organization=organizations[team.organization])
+            created_team = v2_class.teams.create_or_replace(name=team.name, description=team.get('description'), organization=organizations[team.organization])
             # this helps update stale resources if some resources have changed, but others remain since this resource was created
             created_team.description = description
             created_team.organization = organizations[team.organization].id
@@ -80,7 +80,7 @@ class TestLoadResources():
             if 'project' in credential:
                 credential['project_id' if credential.kind == 'gce' else 'project_name'] = credential.pop('project')
 
-            credentials[credential.name] = v2_class.credentials.get_or_create(**credential)
+            credentials[credential.name] = v2_class.credentials.create_or_replace(**credential)
         return credentials
 
     @pytest.fixture(scope='class')
@@ -94,7 +94,7 @@ class TestLoadResources():
             project['organization'] = organizations[project['organization']]
             if 'credential' in project:
                 project['credential'] = credentials[project['credential']]
-            projects[project.name] = v2_class.projects.get_or_create(wait=False, **project)
+            projects[project.name] = v2_class.projects.create_or_replace(wait=False, **project)
             # this helps update stale resources if some resources have changed, but others remain since this resource was created
             projects[project.name].description = project.get('description', '')
             if hasattr(projects[project.name].related, 'current_update'):
@@ -121,7 +121,7 @@ class TestLoadResources():
         # Create inventory scripts
         inventory_scripts = {}
         for inventory_script in config.resources.inventory_scripts:
-            inv_script = v2_class.inventory_scripts.get_or_create(name=inventory_script.name, description=inventory_script.description,
+            inv_script = v2_class.inventory_scripts.create_or_replace(name=inventory_script.name, description=inventory_script.description,
                                                      organization=organizations[inventory_script.organization],
                                                      script=inventory_script.script)
             # this helps update stale resources if some resources have changed, but others remain since this resource was created
@@ -136,7 +136,7 @@ class TestLoadResources():
             inventory['organization'] = organizations[inventory.organization]
             if 'variables' in inventory:
                 inventory['variables'] = json.dumps(inventory['variables'])
-            inventories[inventory.name] = v2_class.inventory.get_or_create(**inventory)
+            inventories[inventory.name] = v2_class.inventory.create_or_replace(**inventory)
 
         # Create groups
         groups = {}
@@ -146,7 +146,7 @@ class TestLoadResources():
                 group['variables'] = json.dumps(group['variables'])
             if 'parent' in group:
                 group['parent'] = groups[group['parent']]
-            groups[group.name] = v2_class.groups.get_or_create(**group)
+            groups[group.name] = v2_class.groups.create_or_replace(**group)
             # this helps update stale resources if some resources have changed, but others remain since this resource was created
             groups[group.name].inventory = inventories[group.inventory.name].id
 
@@ -157,12 +157,12 @@ class TestLoadResources():
             if 'variables' in host:
                 host['variables'] = json.dumps(host['variables'])
             host['inventory'] = inventories[host.inventory]
-            hosts[host.name] = v2_class.hosts.get_or_create(**host)
+            hosts[host.name] = v2_class.hosts.create_or_replace(**host)
             # If host has the wrong inventory, we cannot update it, so we need to delete this host
             # and create it again with correct inventory
             if hosts[host.name].inventory != inventories[host.inventory.name].id:
                 hosts[host.name].delete()
-                hosts[host.name] = v2_class.hosts.get_or_create(**host)
+                hosts[host.name] = v2_class.hosts.create_or_replace(**host)
                 assert hosts[host.name].inventory == inventories[host.inventory.name].id
             for group in _groups:
                 if groups[group].inventory != hosts[host.name].inventory:
@@ -180,7 +180,7 @@ class TestLoadResources():
             for field, store in (('credential', credentials), ('source_script', inventory_scripts), ('inventory', inventories)):
                 if field in inventory_source:
                     inventory_source[field] = store[inventory_source[field]]
-            created_inventory_source = v2_class.inventory_sources.get_or_create(**inventory_source)
+            created_inventory_source = v2_class.inventory_sources.create_or_replace(**inventory_source)
             # this helps update stale resources if some resources have changed, but others remain since this resource was created
             created_inventory_source.inventory = inventory_source['inventory'].id
             created_inventory_source.description = inventory_source.get('description', '')
@@ -222,7 +222,7 @@ class TestLoadResources():
             if 'extra_vars' in job_template:
                 jt_args['extra_vars'] = json.dumps(job_template.extra_vars)
 
-            jt = v2_class.job_templates.get_or_create(**jt_args)
+            jt = v2_class.job_templates.create_or_replace(**jt_args)
 
             job_templates[job_template.name] = jt
 
@@ -255,12 +255,12 @@ class TestLoadResources():
         proj = v2_class.projects.create()
 
         for ig in igs:
-            jt = v2_class.job_templates.get_or_create(name=u'igmapping JT - {}'.format(ig.name))
+            jt = v2_class.job_templates.create_or_replace(name=u'igmapping JT - {}'.format(ig.name))
             jt.project = proj.id
             jt.add_instance_group(ig)
         for ig in igs:
-            inv = v2_class.inventory.get_or_create(name=u'igmapping Inventory - {}'.format(ig.name))
+            inv = v2_class.inventory.create_or_replace(name=u'igmapping Inventory - {}'.format(ig.name))
             inv.add_instance_group(ig)
         for ig in igs:
-            org = v2_class.organizations.get_or_create(name=u'igmapping Org - {}'.format(ig.name))
+            org = v2_class.organizations.create_or_replace(name=u'igmapping Org - {}'.format(ig.name))
             org.add_instance_group(ig)
