@@ -119,7 +119,7 @@ def create_issue_update():
     )
 
 
-print(create_issue_update())
+post_slack_msg(create_issue_update())
 
 if __name__ == '__main__':
     create_issue_update()
