@@ -558,7 +558,7 @@ inventories:
       description: Includes only Custom inventory_script hosts
       organization: Ansible, Inc
 
-    - name: local,
+    - name: local
       description: 'Host(s) with ansible_connection:local'
       organization: Ansible, Inc
       variables:
@@ -995,7 +995,7 @@ hosts:
         - local_20
 
     - name: local
-      inventory: local,
+      inventory: local
 
 job_templates:
     - name: 'language_features/tags.yml (tags:foo, limit:unresolvable-name.example.com)'
@@ -1011,7 +1011,7 @@ job_templates:
       job_type: run
       project: Tower Fact Scan - Ansible, Inc
       playbook: scan_facts.yml
-      inventory: local,
+      inventory: local
       credential: 'SSH (user:bender_eng_user, password:***)'
       extra_vars:
         scan_file_paths: "/tmp,/bin"
@@ -1021,7 +1021,7 @@ job_templates:
       job_type: run
       playbook: setup/install.yml
       project: ansible-tower.git (github, ssh_key_data)
-      inventory: local,
+      inventory: local
       credential: 'SSH (team:Ansible Users, ssh_key_data)'
       limit: ansible-tower
       extra_vars:
@@ -1032,7 +1032,7 @@ job_templates:
       job_type: run
       project: ansible-playbooks.git (github, ssh_key_data)
       playbook: dynamic_inventory.yml
-      inventory: local,
+      inventory: local
       credential: 'SSH (team:Ansible Users, ssh_key_data)'
       extra_vars:
         num_hosts: 100
@@ -1041,7 +1041,7 @@ job_templates:
       job_type: run
       project: ansible-playbooks.git (github, ssh_key_data)
       playbook: fail_unless.yml
-      inventory: local,
+      inventory: local
       credential: 'SSH (team:Ansible Users, ssh_key_data)'
       extra_vars:
         fail: false
@@ -1050,7 +1050,7 @@ job_templates:
       job_type: run
       project: ansible-playbooks.git (github, ssh_key_data)
       playbook: pass_unless.yml
-      inventory: local,
+      inventory: local
       credential: 'SSH (team:Ansible Users, ssh_key_data, ssh_key_unlock:***)'
       extra_vars:
         fail: false
@@ -1059,5 +1059,5 @@ job_templates:
       job_type: run
       project: ansible-playbooks.git (github, ssh_key_data)
       playbook: sleep.yml
-      inventory: local,
+      inventory: local
       credential: 'SSH (team:Ansible Users, become_password:***)'
