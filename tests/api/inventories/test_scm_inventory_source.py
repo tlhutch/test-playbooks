@@ -372,7 +372,7 @@ class TestSCMInventorySource(APITest):
 
         utils.poll_until(lambda: project.get().status == 'canceled', interval=.5, timeout=30)
 
-    @pytest.mark.github('https://github.com/ansible/tower/issues/3605', skip=True, ids=['gce-python3_ansible_devel'])
+    @pytest.mark.github('https://github.com/ansible/tower-qa/issues/2432', skip=True)
     @pytest.mark.ansible_integration
     def test_custom_credential_affects_ansible_env_of_scm_inventory(self, factories,
                                                                     scm_inv_source_with_group_and_host_var_dirs):
