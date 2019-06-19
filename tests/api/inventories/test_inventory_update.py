@@ -185,6 +185,7 @@ class TestInventoryUpdateWithVenvs(APITest):
         else:
             return None
 
+    @pytest.mark.github('https://github.com/ansible/tower/issues/3605', skip=True)
     @pytest.mark.ansible_integration
     def test_update_cloud_inventory_source(self,
             ansible_version_cmp,
