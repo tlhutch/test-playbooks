@@ -19,16 +19,18 @@ import fixtures.api  # NOQA
 # Load any plugins, fixtures and markers
 def _pytest_plugins_generator(*extension_pkgs):
     # Finds all submodules in pytest extension packages and loads them
+    found_plugins = set()
     for extension_pkg in extension_pkgs:
         path = extension_pkg.__path__
-        prefix = '%s.' % extension_pkg.__name__
+        prefix = f'{extension_pkg.__name__}.'
         for importer, modname, is_package in pkgutil.iter_modules(path, prefix):
             if not is_package:
-                yield modname
+                found_plugins.add(modname)
+    return list(found_plugins)
 
 
 # Automatically import plugins
-pytest_plugins = tuple(_pytest_plugins_generator(fixtures, markers, plugins, fixtures.api))
+pytest_plugins = _pytest_plugins_generator(fixtures, markers, plugins, fixtures.api)
 
 
 def pytest_addoption(parser):
@@ -36,8 +38,3 @@ def pytest_addoption(parser):
                      action='store',
                      dest='base_url',
                      help='base url of tower instance under test')
-
-
-# Manually add other plugins
-pytest_plugins += (plugins.pytest_restqa.plugin.__name__,)
-pytest_plugins += (fixtures.api.__name__,)
