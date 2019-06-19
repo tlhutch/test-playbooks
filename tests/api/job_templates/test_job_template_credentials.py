@@ -486,7 +486,9 @@ class TestJobTemplateExtraCredentials(APITest):
         job = jt.launch(dict(extra_credentials=[cred.id for cred in credentials])).wait_until_completed()
         job.assert_successful()
 
-        ansible_env = job.related.job_events.get(host=host.id, task='debug').results.pop().event_data.res.ansible_env
+        runner_on_ok_events = job.related.job_events.get(host=host.id, task='debug', event__startswith='runner_on_ok').results
+        assert len(runner_on_ok_events) > 0, f"No events found! Only found {job.related.job_events.get(host=host.id, task='debug')}"
+        ansible_env = runner_on_ok_events.pop().event_data.res.ansible_env
         for var in ('EXTRA_VAR_FROM_FIELD_ONE', 'EXTRA_VAR_FROM_FIELD_TWO',
                     'EXTRA_VAR_FROM_FIELD_THREE', 'EXTRA_VAR_FROM_FIELD_FOUR'):
             assert getattr(ansible_env, var) == desired_value
