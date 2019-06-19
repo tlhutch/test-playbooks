@@ -198,6 +198,8 @@ class TestInventoryUpdateWithVenvs(APITest):
             ):
         """Verify successful inventory import using /api/v2/inventory_sources/N/update/."""
         inv_source = cloud_inventory.related.inventory_sources.get().results.pop()
+        # Test that we don't regress on https://github.com/ansible/awx/issues/4059
+        assert inv_source.credential == inv_source.summary_fields.credential.id
         # Set venv to use
         # Will use venvs defined in CUSTOM_VENVS as well as the default venv
         inv_source.custom_virtualenv = custom_venv_path
