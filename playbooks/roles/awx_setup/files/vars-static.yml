@@ -1,1 +1,2 @@
 rabbitmq_host: '{{ inventory_hostname }}'
+sup_dispatcher_add_lang: true
