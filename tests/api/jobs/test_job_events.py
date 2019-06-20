@@ -498,15 +498,15 @@ class Test_Job_Events(APITest):
                 if event.event == event_name:
                     return event
             else:
-                raise Exception('Job did not have expected event {}'.format(event_name))
+                raise AssertionError(f'Job did not have expected event {event_name}. All job events found:\n {job_events}')
 
         for parent, children in expected_structure:
             parent_event = get_event(parent)
             # requires https://github.com/ansible/awx/issues/3798
-            # assert parent_event.get_related('children').count
+            assert parent_event.get_related('children').count
             for child in children:
                 child_event = get_event(child)
-                # parent link regressed, still not fixed
+                # parent link regressed, still not fixed https://github.com/ansible/awx/issues/4127
                 # assert child_event.get_related('parent') == parent_event.url
                 assert child_event.parent_uuid == parent_event.uuid, (
                     'The event {} is not listed as a child of {}'.format(child, parent)
