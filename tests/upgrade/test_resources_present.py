@@ -186,6 +186,9 @@ class TestResourcesPresent():
             assert found_value == desired_value, f"Expected {field} to be {desired_value} but found {found_value}"
             return
         found_value = found.related[field].get().name
+        if field == 'inventory' and 'local' in found_value:
+            # There is a typo in older data sets where "local" is written as "local,"
+            found_value = found_value.replace(',', '')
         assert found_value == getattr(desired, field), f"Expected {field} to be {desired_value} but found {found_value}"
 
     def resolve_duplicates_by_description(self, potential_duplicates, desired_object):
@@ -287,6 +290,9 @@ class TestResourcesPresent():
                 if 'azure' in name.lower():
                     # currently we have been always skipping azure, so not going to focus on fixing that right now
                     continue
+                if 'local' in name.lower():
+                    # There is a typo in older data sets where "local" is written as "local,"
+                    found_inventory = found_inventories['local,']
                 else:
                     raise
 
