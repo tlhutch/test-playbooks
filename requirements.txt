@@ -10,7 +10,7 @@ junit-xml
 junit2html
 junitparser
 kubernetes>=8.0.0,<9.0.0
-openshift
+openshift==0.8.9
 pip
 pycodestyle
 pycrypto
