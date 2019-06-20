@@ -31,6 +31,11 @@ def _pytest_plugins_generator(*extension_pkgs):
 
 # Automatically import plugins
 pytest_plugins = _pytest_plugins_generator(fixtures, markers, plugins, fixtures.api)
+# Manually add other plugins
+pytest_plugins += [
+    plugins.pytest_restqa.plugin.__name__,
+    fixtures.api.__name__,
+]
 
 
 def pytest_addoption(parser):
