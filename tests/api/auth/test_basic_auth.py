@@ -1,9 +1,12 @@
+import pytest
+import time
+
+import fauxfactory
+
 from towerkit.api.client import Connection
 from towerkit.ws import WSClient
 from towerkit.config import config as qe_config
 from towerkit import utils
-import pytest
-import time
 
 from tests.api import APITest
 
@@ -19,6 +22,38 @@ class TestBasicAuth(APITest):
             qe_config.credentials.users.admin.username,
             qe_config.credentials.users.admin.password
         )
+        resp = conn.get('/api/v2/me/')
+        assert resp.json()['count'] == 1
+        assert resp.status_code == 200
+        assert 'sessionid' not in resp.headers.get('Set-Cookie', '')
+        assert 'csrftoken' not in resp.headers.get('Set-Cookie', '')
+
+    @pytest.mark.yolo
+    def test_basic_auth_user_in_mutliple_orgs_with_teams(self, factories):
+        """Regression test for https://github.com/ansible/tower/issues/3603."""
+        # Create user without organization
+        username = fauxfactory.gen_alphanumeric()
+        password = fauxfactory.gen_alphanumeric()
+        user = factories.user(username=username, password=password)
+
+        # Create two organizations which we will add user to
+        org1 = factories.organization()
+        org2 = factories.organization()
+
+        # Create multiple teams for each org
+        factories.team(organization=org1)
+        factories.team(organization=org1)
+        factories.team(organization=org2)
+        factories.team(organization=org2)
+
+        # Add user to organizations that have multiple teams (no need for user to be member of teams)
+        org1.add_user(user)
+        org2.add_user(user)
+
+        # Prior to bugfix this caused a 500 when the user tried to log in
+        # Now it should work
+        conn = Connection(qe_config.base_url)
+        conn.session.auth = (username, password)
         resp = conn.get('/api/v2/me/')
         assert resp.json()['count'] == 1
         assert resp.status_code == 200
