@@ -15,7 +15,8 @@ pipeline {
             description: 'Tower version to upgrade to ?',
             choices: ['devel', '3.5.1', '3.5.0',
                       '3.4.4', '3.4.3', '3.4.2', '3.4.1', '3.4.0',
-                      '3.3.6', '3.3.5', '3.3.4', '3.3.3', '3.3.2', '3.3.1', '3.3.0']
+                      '3.3.6', '3.3.5', '3.3.4', '3.3.3', '3.3.2', '3.3.1', '3.3.0',
+                      '3.2.8', '3.2.7', '3.2.6', '3.2.5', '3.2.4', '3.2.3', '3.2.2', '3.2.1', '3.2.0']
         )
         choice(
             name: 'ANSIBLE_VERSION',
@@ -108,9 +109,16 @@ Bundle?: ${params.BUNDLE}"""
 
         stage('Checkout tower-qa') {
             steps {
+                script {
+                    if (params.TOWERQA_BRANCH == '') {
+                        branch_name = "release_${params.TOWER_VERSION_TO_UPGRADE_FROM}"
+                    } else {
+                        branch_name = params.TOWERQA_BRANCH
+                    }
+                }
                 checkout([
                     $class: 'GitSCM',
-                    branches: [[name: "*/devel" ]],
+                    branches: [[name: "*/${branch_name}" ]],
                     userRemoteConfigs: [
                         [
                             credentialsId: 'd2d4d16b-dc9a-461b-bceb-601f9515c98a',
@@ -145,7 +153,7 @@ Bundle?: ${params.BUNDLE}"""
                             sh './tools/jenkins/scripts/generate_vars.sh'
 
                             sh 'ansible-playbook -v -i playbooks/inventory -e @playbooks/test_runner_vars.yml playbooks/deploy-test-runner.yml'
-                            sh "ansible test-runner -i playbooks/inventory.test_runner -m git -a 'repo=git@github.com:ansible/tower-qa version='release_${params.TOWER_VERSION}' dest=tower-qa ssh_opts=\"-o StrictHostKeyChecking=no\" force=yes'"
+                            sh "ansible test-runner -i playbooks/inventory.test_runner -m git -a 'repo=git@github.com:ansible/tower-qa version=${branch_name} dest=tower-qa ssh_opts=\"-o StrictHostKeyChecking=no\" force=yes'"
                         }
                     }
                 }
