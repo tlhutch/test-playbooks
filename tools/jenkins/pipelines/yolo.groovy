@@ -282,12 +282,18 @@ pipeline {
                                     sh 'mkdir -p artifacts'
 
                                     sh 'cat playbooks/inventory.test_runner | tee artifacts/inventory.test_runner'
+                                    sh 'grep -A 1 test-runner playbooks/inventory.test_runner | tail -n 1 | cut -d" " -f1 > artifacts/test_runner_host'
 
                                     sh 'ansible-playbook -v -i playbooks/inventory -e @playbooks/test_runner_vars.yml playbooks/deploy-test-runner.yml'
 
                                     sh "ansible test-runner -i playbooks/inventory.test_runner -m git -a 'repo=git@github.com:${params.TOWER_QA_FORK}/tower-qa version=${params.TOWER_QA_BRANCH} dest=tower-qa ssh_opts=\"-o StrictHostKeyChecking=no\" force=yes'"
                                 }
                             }
+                        }
+
+                        script {
+                            TEST_RUNNER_HOST = readFile('artifacts/test_runner_host').trim()
+                            SSH_OPTS = '-o ForwardAgent=yes -o StrictHostKeyChecking=no'
                         }
                     }
                 }
@@ -303,7 +309,7 @@ pipeline {
 
             steps {
                 sshagent(credentials : ['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
-                    sh 'ansible-playbook -v -i playbooks/inventory.test_runner playbooks/test_runner/run_install.yml'
+                    sh "ssh ${SSH_OPTS} ec2-user@${TEST_RUNNER_HOST} 'cd tower-qa && ./tools/jenkins/scripts/install.sh'"
                     sh 'ansible-playbook -v -i playbooks/inventory.test_runner playbooks/test_runner/run_fetch_artifacts.yml'
                 }
             }
@@ -319,7 +325,8 @@ pipeline {
             steps {
                 withEnv(["TESTEXPR=${TESTEXPR}"]) {
                     sshagent(credentials : ['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
-                        sh 'ansible-playbook -v -i playbooks/inventory.test_runner playbooks/test_runner/run_integration_test.yml'
+                        sh "ssh ${SSH_OPTS} ec2-user@${TEST_RUNNER_HOST} 'cd tower-qa && TESTEXPR=\"${TESTEXPR}\" ./tools/jenkins/scripts/test.sh'"
+                        sh 'ansible-playbook -v -i playbooks/inventory.test_runner playbooks/test_runner/run_fetch_artifacts_test.yml'
                         junit 'artifacts/results.xml'
                     }
                 }
