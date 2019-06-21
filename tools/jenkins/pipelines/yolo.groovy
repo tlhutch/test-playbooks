@@ -278,6 +278,11 @@ pipeline {
                                     // Generate variable file for tower deployment
                                     sh './tools/jenkins/scripts/generate_vars.sh'
 
+                                    // Archive test runner inventory file and show it to user so they can optionally shell in
+                                    sh 'mkdir -p artifacts'
+
+                                    sh 'cat playbooks/inventory.test_runner | tee artifacts/inventory.test_runner'
+
                                     sh 'ansible-playbook -v -i playbooks/inventory -e @playbooks/test_runner_vars.yml playbooks/deploy-test-runner.yml'
 
                                     sh "ansible test-runner -i playbooks/inventory.test_runner -m git -a 'repo=git@github.com:${params.TOWER_QA_FORK}/tower-qa version=${params.TOWER_QA_BRANCH} dest=tower-qa ssh_opts=\"-o StrictHostKeyChecking=no\" force=yes'"
