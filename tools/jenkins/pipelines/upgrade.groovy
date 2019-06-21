@@ -145,7 +145,7 @@ Bundle?: ${params.BUNDLE}"""
                             sh './tools/jenkins/scripts/generate_vars.sh'
 
                             sh 'ansible-playbook -v -i playbooks/inventory -e @playbooks/test_runner_vars.yml playbooks/deploy-test-runner.yml'
-                            sh "ansible test-runner -i playbooks/inventory.test_runner -m git -a 'repo=git@github.com:ansible/tower-qa version='release_${params.TOWER_VERSION_TO_UPGRADE_FROM}' dest=tower-qa ssh_opts=\"-o StrictHostKeyChecking=no\" force=yes'"
+                            sh "ansible test-runner -i playbooks/inventory.test_runner -m git -a 'repo=git@github.com:ansible/tower-qa version='release_${params.TOWER_VERSION}' dest=tower-qa ssh_opts=\"-o StrictHostKeyChecking=no\" force=yes'"
                         }
                     }
                 }
