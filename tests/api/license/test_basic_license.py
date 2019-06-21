@@ -35,15 +35,15 @@ class TestBasicLicense(LicenseTest):
             "Incorrect license_type returned. Expected 'basic,' " \
             "returned %s." % conf.license_info['license_type']
 
-        default_features = {'surveys': True,
-                            'multiple_organizations': True,
-                            'activity_streams': True,
-                            'ldap': True,
-                            'ha': True,
-                            'system_tracking': True,
-                            'enterprise_auth': True,
-                            'rebranding': True,
-                            'workflows': True}
+        default_features = {'surveys': False,
+                            'multiple_organizations': False,
+                            'activity_streams': False,
+                            'ldap': False,
+                            'ha': False,
+                            'system_tracking': False,
+                            'enterprise_auth': False,
+                            'rebranding': False,
+                            'workflows': False}
 
         # assess default features
         assert conf.license_info['features'] == default_features, \
