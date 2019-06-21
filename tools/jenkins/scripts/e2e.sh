@@ -80,7 +80,7 @@ E2E_TEST_SELECTION=${E2E_TEST_SELECTION:-"*"}
 
 # Since E2E tests could be any arbitrary branch, we clone into a custom-named folder e2e_repo
 # to minimize space usage, we only fetch the specific branch.
-git clone -b ${E2E_BRANCH} git@github.com:${E2E_FORK}/${DEPLOYMENT_TYPE}.git --single-branch e2e_repo
+git clone -b "${E2E_BRANCH}" git@github.com:"${E2E_FORK}"/"${DEPLOYMENT_TYPE}".git --single-branch e2e_repo
 
 if [[ "$DEPLOYMENT_TYPE" == "tower" ]]; then
     curl -o add_license.py https://gist.githubusercontent.com/jakemcdermott/0aac520c7bb631ee46517dfab94bd6dd/raw/fd85fdad7395f90ac4acab1b6c2edf10df0bb3d7/apply_license.py
