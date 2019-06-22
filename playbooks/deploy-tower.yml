@@ -4,11 +4,13 @@
   tasks:
     - include_role:
         name: create_ec2
+      when: not awx_upgrade | default(false) | bool
 
     - include_role:
         name: save_inventory
       vars:
         my_inventory_file: '{{inventory_dir}}/inventory.log'
+      when: not awx_upgrade | default(false) | bool
 
 - name: 'Add authorized keys on database'
   hosts: 'database'

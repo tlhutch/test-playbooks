@@ -17,7 +17,7 @@
 
 - name: is awx already installed?
   stat:
-    path: /etc/tower/awx.cert
+    path: /etc/tower/tower.cert
   register: is_awx_installed
 
 - name: create sudoers config
@@ -32,32 +32,29 @@
   template:
     src: inventory.j2
     dest: /tmp/setup/inventory
-  when: not is_awx_installed.stat.exists or not awx_upgrade or not cluster_install
+  when: not is_awx_installed.stat.exists and not cluster_install | default(false) | bool
 
 - name: create cluster inventory file
   template:
     src: inventory_cluster.j2
     dest: /tmp/setup/inventory
-  when: cluster_install
+  when: not is_awx_installed.stat.exists and cluster_install | default(false) | bool
 
 - name: create vars.yml file
   template:
     src: vars.yml.j2
     dest: /tmp/setup/vars.yml
-  when: not is_awx_installed.stat.exists or awx_upgrade
 
 - name: create vars-static.yml file
   copy:
     src: vars-static.yml
     dest: /tmp/setup/vars-static.yml
-  when: not is_awx_installed.stat.exists or awx_upgrade
 
 - name: setup.sh
   # Also set AW_REPO_URL so during bootstrap phase we use correct dependencies repo
   command: ./setup.sh -e @vars.yml -e @vars-static.yml
   args:
       chdir: /tmp/setup
-      # creates: /etc/tower/awx.cert
   environment:
     # To install with ansible < 1.9, sudo support is accessible by way of the following variable
     # ANSIBLE_SUDO: 'True'
@@ -65,7 +62,6 @@
     AW_REPO_URL: '{{ aw_repo_url }}'
     ANSIBLE_BECOME_METHOD: 'sudo'
     ANSIBLE_HOST_KEY_CHECKING: 'False'
-  when: not is_awx_installed.stat.exists or awx_upgrade
 
 - name: verify Tower API is accepting connections
   uri:
