@@ -366,7 +366,14 @@ pipeline {
                 color: "good",
                 teamDomain: "ansible",
                 channel: "${SLACK_USERNAME}",
-                message: "<${env.RUN_DISPLAY_URL}|yolo> is :party_parrot:"
+                message: """<${env.RUN_DISPLAY_URL}|yolo> is :party_parrot:
+    Job ID - ${env.BUILD_ID}
+    Platform - ${params.PLATFORM}
+    Product - ${params.PRODUCT} - ${params.TOWER_FORK}/${params.TOWER_BRANCH}
+    Tower-Packaging - ${params.TOWER_PACKAGING_FORK}/${params.TOWER_PACKAGING_BRANCH}
+    Tower-QA - ${params.TOWER_QA_FORK}/${params.TOWER_QA_BRANCH}
+    Ansible Version - ${params.ANSIBLE_NIGHTLY_BRANCH}
+    Test Expression - ${params.TESTEXPR}"""
             )
         }
         unsuccessful {
@@ -375,7 +382,14 @@ pipeline {
                 color: "bad",
                 teamDomain: "ansible",
                 channel: "${SLACK_USERNAME}",
-                message: "<${env.RUN_DISPLAY_URL}|yolo> is :sad_parrot:"
+                message: """<${env.RUN_DISPLAY_URL}|yolo> is :sad_parrot:
+    Job ID - ${env.BUILD_ID}
+    Platform - ${params.PLATFORM}
+    Product - ${params.PRODUCT} - ${params.TOWER_FORK}/${params.TOWER_BRANCH}
+    Tower-Packaging - ${params.TOWER_PACKAGING_FORK}/${params.TOWER_PACKAGING_BRANCH}
+    Tower-QA - ${params.TOWER_QA_FORK}/${params.TOWER_QA_BRANCH}
+    Ansible Version - ${params.ANSIBLE_NIGHTLY_BRANCH}
+    Test Expression - ${params.TESTEXPR}"""
             )
         }
     }
