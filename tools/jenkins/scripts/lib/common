@@ -229,3 +229,13 @@ function retrieve_value_from_vars_file {
 
     grep "^${KEY}:" "${FILE}" | cut -d' ' -f2
 }
+
+function is_rhel8 {
+
+    FILE=$1
+    if grep 'rhel-8' "${FILE}" > /dev/null; then
+        return 0
+    else
+        return 1
+    fi
+}

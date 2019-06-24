@@ -109,16 +109,9 @@ Bundle?: ${params.BUNDLE}"""
 
         stage('Checkout tower-qa') {
             steps {
-                script {
-                    if (params.TOWERQA_BRANCH == '') {
-                        branch_name = "release_${params.TOWER_VERSION_TO_UPGRADE_FROM}"
-                    } else {
-                        branch_name = params.TOWERQA_BRANCH
-                    }
-                }
                 checkout([
                     $class: 'GitSCM',
-                    branches: [[name: "*/${branch_name}" ]],
+                    branches: [[name: "*/release_${params.TOWER_VERSION_TO_UPGRADE_FROM}" ]],
                     userRemoteConfigs: [
                         [
                             credentialsId: 'd2d4d16b-dc9a-461b-bceb-601f9515c98a',
@@ -153,7 +146,7 @@ Bundle?: ${params.BUNDLE}"""
                             sh './tools/jenkins/scripts/generate_vars.sh'
 
                             sh 'ansible-playbook -v -i playbooks/inventory -e @playbooks/test_runner_vars.yml playbooks/deploy-test-runner.yml'
-                            sh "ansible test-runner -i playbooks/inventory.test_runner -m git -a 'repo=git@github.com:ansible/tower-qa version=${branch_name} dest=tower-qa ssh_opts=\"-o StrictHostKeyChecking=no\" force=yes'"
+                            sh "ansible test-runner -i playbooks/inventory.test_runner -m git -a 'repo=git@github.com:ansible/tower-qa version=release_${params.TOWER_VERSION_TO_UPGRADE_FROM} dest=tower-qa ssh_opts=\"-o StrictHostKeyChecking=no\" force=yes'"
                         }
                     }
                 }
