@@ -119,7 +119,6 @@ Platform under test: ${params.PLATFORM}"""
                                 retry(2) {
                                     build(
                                         job: 'backup-and-restore-pipeline',
-                                        propagate: false,
                                         parameters: [
                                             string(name: 'TOWER_VERSION', value: params.TOWER_VERSION),
                                             string(name: 'ANSIBLE_VERSION', value: params.ANSIBLE_VERSION),
@@ -206,7 +205,6 @@ Platform under test: ${params.PLATFORM}"""
                                 retry(2) {
                                     build(
                                         job: 'backup-and-restore-pipeline',
-                                        propagate: false,
                                         parameters: [
                                             string(name: 'TOWER_VERSION', value: params.TOWER_VERSION),
                                             string(name: 'ANSIBLE_VERSION', value: params.ANSIBLE_VERSION),
@@ -298,7 +296,6 @@ Platform under test: ${params.PLATFORM}"""
                                 retry(2) {
                                     build(
                                         job: 'backup-and-restore-pipeline',
-                                        propagate: false,
                                         parameters: [
                                             string(name: 'TOWER_VERSION', value: params.TOWER_VERSION),
                                             string(name: 'ANSIBLE_VERSION', value: params.ANSIBLE_VERSION),
@@ -390,7 +387,6 @@ Platform under test: ${params.PLATFORM}"""
                                 retry(2) {
                                     build(
                                         job: 'backup-and-restore-pipeline',
-                                        propagate: false,
                                         parameters: [
                                             string(name: 'TOWER_VERSION', value: params.TOWER_VERSION),
                                             string(name: 'ANSIBLE_VERSION', value: params.ANSIBLE_VERSION),
