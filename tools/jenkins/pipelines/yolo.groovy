@@ -100,6 +100,11 @@ pipeline {
             description: 'Send yourself a slack message when done. Use @slackaccount name (not your slack username)',
             defaultValue: '#jenkins'
         )
+        booleanParam(
+            name: 'TEARDOWN_INSTANCE_ON_SUCCESS',
+            description: 'Should tear the Tower instance down on pipeline success? This will only happen when RUN_TESTS and/or RUN_E2E are selected and the pipeline succeeds.',
+            defaultValue: true
+        )
     }
 
     options {
@@ -386,6 +391,14 @@ pipeline {
     Ansible Version - ${params.ANSIBLE_NIGHTLY_BRANCH}
     Test Expression - ${params.TESTEXPR}"""
             )
+
+            script {
+                if (params.TEARDOWN_INSTANCE_ON_SUCCESS && (params.RUN_TESTS || params.RUN_E2E)) {
+                    sshagent(credentials : ['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
+                        sh "ssh ${SSH_OPTS} ec2-user@${TEST_RUNNER_HOST} 'cd tower-qa && ./tools/jenkins/scripts/cleanup.sh'"
+                    }
+                }
+            }
         }
         unsuccessful {
             slackSend(
@@ -402,6 +415,11 @@ pipeline {
     Ansible Version - ${params.ANSIBLE_NIGHTLY_BRANCH}
     Test Expression - ${params.TESTEXPR}"""
             )
+        }
+        cleanup {
+            sshagent(credentials : ['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
+                sh 'ansible-playbook -v -i playbooks/inventory -e @playbooks/test_runner_vars.yml playbooks/reap-tower-ec2.yml'
+            }
         }
     }
 }
