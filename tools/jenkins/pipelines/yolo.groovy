@@ -102,9 +102,11 @@ pipeline {
         )
         booleanParam(
             name: 'TEARDOWN_INSTANCE_ON_SUCCESS',
-            description: """Will teardown the Tower instance if the pipeline succeeds. 
-            This will only happen when RUN_TESTS and/or RUN_E2E are selected.  
-            Note: the EC2 instance that runs pytest is cleaned up immediately after yolo completes.""",
+            description: """\
+            Will teardown the Tower instance if the pipeline succeeds.
+            This will only happen when RUN_TESTS and/or RUN_E2E are selected.
+            Note: the EC2 instance that runs pytest is cleaned up immediately after yolo completes.
+            """,
             defaultValue: true
         )
         string(
@@ -380,6 +382,10 @@ pipeline {
     post {
         always {
             archiveArtifacts allowEmptyArchive: true, artifacts: 'artifacts/*'
+
+            sh "env"
+
+            echo "${env}"
         }
         success {
             slackSend(
@@ -387,14 +393,17 @@ pipeline {
                 color: "good",
                 teamDomain: "ansible",
                 channel: "${SLACK_USERNAME}",
-                message: """<${env.RUN_DISPLAY_URL}|yolo #${env.BUILD_ID}> is :party_parrot:
-                Platform - ${params.PLATFORM}
-                Product - ${params.PRODUCT} - ${params.TOWER_FORK}/${params.TOWER_BRANCH}
-                Tower-Packaging - ${params.TOWER_PACKAGING_FORK}/${params.TOWER_PACKAGING_BRANCH}
-                Tower-QA - ${params.TOWER_QA_FORK}/${params.TOWER_QA_BRANCH}
-                Ansible Version - ${params.ANSIBLE_NIGHTLY_BRANCH}
-                Test Expression - ${params.TESTEXPR}
-                Comments - ${params.COMMENTS}""".stripIndent()
+                message: """\
+                    <${env.RUN_DISPLAY_URL}|yolo #${env.BUILD_ID}> took ${currentBuild.durationString.replace(' and counting', '')} and is :party_parrot:
+                    Instance URL - ${readFile('artifacts/tower_url').trim()}
+                    Platform - ${params.PLATFORM}
+                    Product - ${params.PRODUCT} - ${params.TOWER_FORK}/${params.TOWER_BRANCH}
+                    Tower-Packaging - ${params.TOWER_PACKAGING_FORK}/${params.TOWER_PACKAGING_BRANCH}
+                    Tower-QA - ${params.TOWER_QA_FORK}/${params.TOWER_QA_BRANCH}
+                    Ansible Version - ${params.ANSIBLE_NIGHTLY_BRANCH}
+                    Test Expression - ${params.TESTEXPR}
+                    Comments - ${params.COMMENTS}
+                """.stripIndent()
             )
 
             script {
@@ -405,20 +414,42 @@ pipeline {
                 }
             }
         }
-        unsuccessful {
+        failure {
             slackSend(
                 botUser: false,
-                color: "bad",
+                color: "danger",
                 teamDomain: "ansible",
                 channel: "${SLACK_USERNAME}",
-                message: """<${env.RUN_DISPLAY_URL}|yolo #${env.BUILD_ID}> is :sad_parrot:
-                Platform - ${params.PLATFORM}
-                Product - ${params.PRODUCT} - ${params.TOWER_FORK}/${params.TOWER_BRANCH}
-                Tower-Packaging - ${params.TOWER_PACKAGING_FORK}/${params.TOWER_PACKAGING_BRANCH}
-                Tower-QA - ${params.TOWER_QA_FORK}/${params.TOWER_QA_BRANCH}
-                Ansible Version - ${params.ANSIBLE_NIGHTLY_BRANCH}
-                Test Expression - ${params.TESTEXPR}
-                Comments - ${params.COMMENTS}""".stripIndent()
+                message: """\
+                    <${env.RUN_DISPLAY_URL}|yolo #${env.BUILD_ID}> took ${currentBuild.durationString.replace(' and counting', '')} and is :sad_parrot:
+                    Instance URL - ${readFile('artifacts/tower_url').trim()}
+                    Platform - ${params.PLATFORM}
+                    Product - ${params.PRODUCT} - ${params.TOWER_FORK}/${params.TOWER_BRANCH}
+                    Tower-Packaging - ${params.TOWER_PACKAGING_FORK}/${params.TOWER_PACKAGING_BRANCH}
+                    Tower-QA - ${params.TOWER_QA_FORK}/${params.TOWER_QA_BRANCH}
+                    Ansible Version - ${params.ANSIBLE_NIGHTLY_BRANCH}
+                    Test Expression - ${params.TESTEXPR}
+                    Comments - ${params.COMMENTS}
+                """.stripIndent()
+            )
+        }
+        unstable {
+            slackSend(
+                botUser: false,
+                color: "warning",
+                teamDomain: "ansible",
+                channel: "${SLACK_USERNAME}",
+                message: """\
+                    <${env.RUN_DISPLAY_URL}|yolo #${env.BUILD_ID}> took ${currentBuild.durationString.replace(' and counting', '')} and is :confusedparrot:
+                    Instance URL - ${readFile('artifacts/tower_url').trim()}
+                    Platform - ${params.PLATFORM}
+                    Product - ${params.PRODUCT} - ${params.TOWER_FORK}/${params.TOWER_BRANCH}
+                    Tower-Packaging - ${params.TOWER_PACKAGING_FORK}/${params.TOWER_PACKAGING_BRANCH}
+                    Tower-QA - ${params.TOWER_QA_FORK}/${params.TOWER_QA_BRANCH}
+                    Ansible Version - ${params.ANSIBLE_NIGHTLY_BRANCH}
+                    Test Expression - ${params.TESTEXPR}
+                    Comments - ${params.COMMENTS}
+                """.stripIndent()
             )
         }
         cleanup {
