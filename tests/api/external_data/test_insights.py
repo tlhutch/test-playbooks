@@ -412,7 +412,7 @@ class TestInsightsAnalytics(APITest):
             csv_uuids.remove('uuid')
         for e in events:
             event_uuids.add(e['uuid'])
-        assert csv_uuids == event_uuids
+        assert event_uuids.issubset(csv_uuids)
 
     @pytest.mark.ansible(host_pattern='tower[0]')
     def test_awxmanage_gather_analytics_unicode(self, ansible_runner, factories, skip_if_openshift, analytics_enabled):
