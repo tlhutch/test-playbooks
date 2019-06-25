@@ -8,7 +8,7 @@
 {% if 'instance_group_' in group or 'isolated_group_' in group %}
 [{{ group }}]
 {% for host in groups[group] %}
-{{ host }} ansible_user={{ hostvars[host]['ansible_user'] }} ansible_python_interpreter="{{ hostvars['localhost']['remote_ansible_python_interpreter'] | default('/usr/bin/env python')}}" ansible_host={{ hostvars[host]['ansible_host'] }} {% if hostvars[host]['controller']|length > 0 %} controller={{ hostvars[host]['controller'] }}
+{{ host }} ansible_user={{ hostvars[host]['ansible_user'] }} ansible_python_interpreter="{{ hostvars['localhost']['remote_ansible_python_interpreter'] | default('/usr/bin/env python')}}" ansible_host={{ hostvars[host]['ansible_host'] }} {% if hostvars[host]['controller'] is defined and hostvars[host]['controller']|length > 0 %} controller={{ hostvars[host]['controller'] }}
 {% endif %}
 
 {% endfor %}
