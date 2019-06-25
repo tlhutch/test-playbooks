@@ -147,9 +147,19 @@ Bundle?: ${params.BUNDLE}"""
 
                             sh 'ansible-playbook -v -i playbooks/inventory -e @playbooks/test_runner_vars.yml playbooks/deploy-test-runner.yml'
 
+                            // Archive test runner inventory file and show it to user so they can optionally shell in
+                            sh 'mkdir -p artifacts'
+                            sh 'cat playbooks/inventory.test_runner | tee artifacts/inventory.test_runner'
+                            sh 'grep -A 1 test-runner playbooks/inventory.test_runner | tail -n 1 | cut -d" " -f1 > artifacts/test_runner_host'
+
                             sh "ansible test-runner -i playbooks/inventory.test_runner -m git -a 'repo=git@github.com:ansible/tower-qa version=${branch_name} dest=tower-qa ssh_opts=\"-o StrictHostKeyChecking=no\" force=yes'"
                         }
                     }
+                }
+
+                script {
+                    TEST_RUNNER_HOST = readFile('artifacts/test_runner_host').trim()
+                    SSH_OPTS = '-o ForwardAgent=yes -o StrictHostKeyChecking=no'
                 }
             }
         }
@@ -181,6 +191,7 @@ Bundle?: ${params.BUNDLE}"""
         stage ('Re-Install') {
             steps {
                sshagent(credentials : ['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
+                   sh "ssh ${SSH_OPTS} ec2-user@${TEST_RUNNER_HOST} 'rm -f tower-qa/playbooks/inventory.{log,cluster}'"
                    sh 'ansible-playbook -v -i playbooks/inventory.test_runner playbooks/test_runner/run_install.yml'
                 }
             }
