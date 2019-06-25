@@ -373,6 +373,18 @@ class TestSCMInventorySource(APITest):
         for inv_update in update.get_related('scm_inventory_updates').results:
             inv_update.assert_status('canceled')
 
+        # although the last update may have been successful status, this would
+        # still leave the inventory source with a mis-matched version
+        update2 = project.update().wait_until_completed()
+        assert update2.get_related('scm_inventory_updates').count == 3
+
+        # subsequent updates should not update the inventory sources
+        # because they are now up-to-date
+        # NOTE: there is concern this may be flaky if another test happens to
+        # update the inventory_additions branch since the last assertion
+        update3 = project.update().wait_until_completed()
+        assert update3.get_related('scm_inventory_updates').count == 0
+
     @pytest.mark.github('https://github.com/ansible/tower-qa/issues/2432', skip=True)
     @pytest.mark.ansible_integration
     def test_custom_credential_affects_ansible_env_of_scm_inventory(self, factories,
