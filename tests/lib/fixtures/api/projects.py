@@ -74,19 +74,12 @@ def project_ansible_git(project_ansible_git_nowait):
 
 
 @pytest.fixture(scope="function")
-def project_ansible_docsite_git_nowait(factories, encrypted_scm_credential, organization):
+def project_ansible_docsite_git(factories, encrypted_scm_credential, organization):
     project = factories.project(name="ansible-docsite.git - {0}".format(fauxfactory.gen_alphanumeric()),
                                 scm_type='git', scm_url='git@github.com:ansible/docsite.git',
                                 credential=encrypted_scm_credential, organization=organization)
+    assert project.status == 'successful'
     return project
-
-
-@pytest.fixture(scope="function")
-def project_ansible_docsite_git(project_ansible_docsite_git_nowait):
-    updates = project_ansible_docsite_git_nowait.related.project_updates.get(order_by="-id")
-    assert updates.count > 0, 'No project updates found'
-    assert updates.results.pop().wait_until_completed().is_successful
-    return project_ansible_docsite_git_nowait.get()
 
 
 @pytest.fixture(scope="function")
