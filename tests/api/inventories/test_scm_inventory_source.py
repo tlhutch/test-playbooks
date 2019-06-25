@@ -273,12 +273,11 @@ class TestSCMInventorySource(APITest):
         host = inv_source.ds.inventory.related.hosts.get(name='localhost').results.pop()
         assert host.variables.test_env == 'TEST_ENV_1'
 
-    @pytest.mark.github('https://github.com/ansible/tower-qa/issues/2296', skip=True)
     @pytest.mark.parametrize('source_path', ['inventories/inventory.ini', 'inventories/dyn_inventory.py'])
-    def test_project_launch_using_update_on_project_update_with_scm_change(self, skip_if_openshift, factories, v2,
-                                                                           job_template_that_writes_to_source, source_path):
+    def test_project_launch_using_update_on_project_update_with_scm_change(self, git_file_path, factories, v2,
+                                                                           source_change_add_and_remove, source_path):
         """Verifies that an scm inventory sync runs after running a job that commits code to its upstream repo"""
-        project = job_template_that_writes_to_source.ds.project
+        project = factories.project(scm_url=git_file_path)
         assert project.related.project_updates.get(launch_type='manual').count == 1
         assert project.related.project_updates.get(launch_type='sync').count == 0
 
@@ -289,18 +288,13 @@ class TestSCMInventorySource(APITest):
         assert project.related.project_updates.get(launch_type='manual').count == 1
         assert project.related.project_updates.get(launch_type='sync').count == 1
 
-        job = job_template_that_writes_to_source.launch()
-        job.wait_until_completed().assert_successful()
-
-        assert project.related.project_updates.get(launch_type='manual').count == 1
-        assert project.related.project_updates.get(launch_type='sync').count == 2  # addtl sync from job launch
-        assert inv_source.related.inventory_updates.get().count == 1
+        source_change_add_and_remove()
 
         project.update().wait_until_completed().assert_successful()
         inv_source.wait_until_completed()
 
         assert project.related.project_updates.get(launch_type='manual').count == 2
-        assert project.related.project_updates.get(launch_type='sync').count == 2
+        assert project.related.project_updates.get(launch_type='sync').count == 1
         assert inv_source.related.inventory_updates.get().count == 2
 
     @pytest.mark.parametrize('source_path', ['inventories/inventory.ini', 'inventories/dyn_inventory.py'])

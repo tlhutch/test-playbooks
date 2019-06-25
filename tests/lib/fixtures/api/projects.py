@@ -4,11 +4,51 @@ import os.path
 import json
 
 from towerkit.rrule import RRule
+from towerkit.utils import random_title
+from towerkit.config import config
+
 import fauxfactory
 import pytest
 
 
 log = logging.getLogger(__name__)
+
+
+@pytest.fixture
+def git_file_path(skip_if_openshift, request, ansible_adhoc):
+    """Makes a git repo on the file system"""
+    path = '/home/at_{}_test/'.format(random_title(non_ascii=False))
+    ansible_module = ansible_adhoc().tower
+    if not config.prevent_teardown:
+        request.addfinalizer(lambda: ansible_module.file(path=path, state='absent'))
+    sync = ansible_module.git(repo='git://github.com/ansible/test-playbooks.git', dest=path)
+    rev = list(sync.values()).pop()['after']
+    assert rev
+    return 'file://{0}'.format(path)
+
+
+@pytest.fixture
+def source_change_add_and_remove(git_file_path, ansible_adhoc):
+    def rf():
+        ansible_module = ansible_adhoc().tower
+        local_path = git_file_path[len('file://'):]
+        tmp_filename = random_title(non_ascii=False)
+        ansible_module.file(path=os.path.join(local_path, tmp_filename), state='touch')
+        run_these = [
+            'git config user.email arominge@redhat.com',
+            'git config user.name DoneByTest',
+            'git add {}'.format(tmp_filename),
+            'git commit -m "Adding temporary file {}"'.format(tmp_filename),
+            'git rm {}'.format(tmp_filename),
+            'git commit -m "Removing temporary file {}"'.format(tmp_filename)
+        ]
+        for this_command in run_these:
+            contacted = ansible_module.shell(this_command, chdir=local_path)
+
+            for result in contacted.values():
+                assert 'rc' in result, result
+                assert result['rc'] == 0, result
+    return rf
 
 
 @pytest.fixture(scope="function")
