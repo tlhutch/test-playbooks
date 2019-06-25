@@ -32,13 +32,13 @@
   template:
     src: inventory.j2
     dest: /tmp/setup/inventory
-  when: not is_awx_installed.stat.exists and not cluster_install | default(false) | bool
+  when: not cluster_install | default(false) | bool
 
 - name: create cluster inventory file
   template:
     src: inventory_cluster.j2
     dest: /tmp/setup/inventory
-  when: not is_awx_installed.stat.exists and cluster_install | default(false) | bool
+  when: cluster_install | default(false) | bool
 
 - name: create vars.yml file
   template:
