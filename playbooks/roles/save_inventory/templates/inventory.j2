@@ -4,7 +4,8 @@
 {% if host == '127.0.0.1' or host == 'localhost' %}
 {{ host }} ansible_connection=local ansible_python_interpreter="/usr/bin/env python"
 {% else %}
-{{ host }} ansible_user={{ hostvars[host]['ansible_user'] }} ansible_host={{ hostvars[host]['ansible_host'] }} ansible_python_interpreter="{{ hostvars['localhost']['remote_ansible_python_interpreter'] }}"
+{{ host }} ansible_user={{ hostvars[host]['ansible_user'] }} ansible_host={{ hostvars[host]['ansible_host'] }} ansible_python_interpreter="{{ hostvars['localhost']['remote_ansible_python_interpreter'] }}"{% if hostvars[host]['controller'] != '' %} controller={{ hostvars[host]['controller'] }}{% endif %}
+
 {% endif %}
 {% endfor %}
 
