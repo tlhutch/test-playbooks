@@ -7,7 +7,7 @@ from tests.lib.helpers.rbac_utils import assert_response_raised, check_read_acce
 from tests.api import APITest
 
 
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+@pytest.mark.usefixtures('authtoken')
 class TestSmartInventoryRBAC(APITest):
 
     def check_host_filter_edit(self, smart_inventory, allowed=False):

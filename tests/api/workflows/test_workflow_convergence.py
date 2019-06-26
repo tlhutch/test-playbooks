@@ -39,7 +39,7 @@ def run_wfj_and_assert_completed(
     return wfj
 
 
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+@pytest.mark.usefixtures('authtoken')
 class Test_Workflow_Convergence(APITest):
     # Begin Convergence Node tests
     ConvergenceNodeTestCase = namedtuple(

@@ -5,7 +5,7 @@ import pytest
 from tests.api import APITest
 
 
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+@pytest.mark.usefixtures('authtoken')
 class TestCredentialTypesRBAC(APITest):
 
     def test_non_superuser_cannot_create_credential_type(self, factories, non_superuser):

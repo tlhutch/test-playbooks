@@ -3,7 +3,7 @@ import pytest
 from tests.api import APITest
 
 
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+@pytest.mark.usefixtures('authtoken')
 class TestCredentialSearch(APITest):
 
     related_search_fields = set(['ad_hoc_commands__search', 'created_by__search', 'credential_type__search',

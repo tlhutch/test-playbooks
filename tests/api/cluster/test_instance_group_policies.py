@@ -11,7 +11,7 @@ from tests.api import APITest
 
 
 @pytest.mark.serial
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited', 'skip_if_not_cluster')
+@pytest.mark.usefixtures('authtoken', 'skip_if_not_cluster')
 class TestInstanceGroupPolicies(APITest):
 
     def get_ig_instances(self, ig):

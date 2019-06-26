@@ -5,7 +5,7 @@ import pytest
 from tests.api import APITest
 
 
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+@pytest.mark.usefixtures('authtoken')
 class TestWorkflowJobTemplateNodeRBAC(APITest):
     def test_credential_association_requires_wfjt_admin_and_jt_execute(self, factories):
         wfjt = factories.workflow_job_template()

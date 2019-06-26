@@ -13,7 +13,7 @@ import pytest
 from tests.api import APITest
 
 
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+@pytest.mark.usefixtures('authtoken')
 class TestApplications(APITest):
 
     def test_options_validity(self, v2):
@@ -298,7 +298,7 @@ class TestApplications(APITest):
             assert v2.activity_stream.get(id=activity_stream_entry.id).count == 0
 
 
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+@pytest.mark.usefixtures('authtoken')
 class TestApplicationTokens(APITest):
 
     censored = '************'
@@ -561,7 +561,7 @@ class TestTokenAuthenticationBase(APITest):
         return self.get_page(token, '/api/v2/me/')
 
 
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+@pytest.mark.usefixtures('authtoken')
 class TestTokenAuthentication(TestTokenAuthenticationBase):
 
     def test_authenticate_with_invalid_access_token(self, v2, factories):
@@ -738,7 +738,7 @@ class TestTokenAuthentication(TestTokenAuthenticationBase):
             page.post({'name': 'My OAuth2 Copy'})
 
 
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+@pytest.mark.usefixtures('authtoken')
 class TestTokenUsage(TestTokenAuthenticationBase):
     """
     Used to test Tower operations while using token auth
@@ -763,7 +763,7 @@ class TestTokenUsage(TestTokenAuthenticationBase):
         assert res.username == user.username
 
 
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+@pytest.mark.usefixtures('authtoken')
 class TestDjangoOAuthToolkitTokenManagement(TestTokenAuthenticationBase):
     """
     Used to test the `/api/o/` endpoint

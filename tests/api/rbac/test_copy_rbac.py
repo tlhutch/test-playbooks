@@ -6,7 +6,7 @@ import pytest
 from tests.api import APITest
 
 
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+@pytest.mark.usefixtures('authtoken')
 class Test_Copy_RBAC(APITest):
 
     copiable_resource_names = ('job_template', 'project', 'inventory', 'workflow_job_template',

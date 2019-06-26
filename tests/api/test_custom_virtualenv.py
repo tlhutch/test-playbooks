@@ -11,7 +11,7 @@ from tests.api import APITest
 from tests.lib.helpers.workflow_utils import (WorkflowTree, WorkflowTreeMapper)
 
 
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited', 'skip_if_cluster')
+@pytest.mark.usefixtures('authtoken', 'skip_if_cluster')
 class TestCustomVirtualenv(APITest):
 
     @pytest.fixture
@@ -388,7 +388,6 @@ CUSTOM_VENVS = [
 @pytest.mark.fixture_args(venvs=CUSTOM_VENVS, cluster=True)
 @pytest.mark.usefixtures(
     'authtoken',
-    'install_enterprise_license_unlimited',
     'skip_if_not_traditional_cluster',
     'shared_custom_venvs'
     )

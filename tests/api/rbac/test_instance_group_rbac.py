@@ -9,7 +9,7 @@ from tests.lib.helpers.rbac_utils import assert_response_raised, check_read_acce
 from tests.api import APITest
 
 
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+@pytest.mark.usefixtures('authtoken')
 class TestInstanceGroupRBAC(APITest):
 
     def test_unprivileged_user(self, v2, factories):
@@ -79,7 +79,7 @@ class TestInstanceGroupRBAC(APITest):
 
 
 @pytest.mark.serial
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+@pytest.mark.usefixtures('authtoken')
 class TestInstanceGroupAssignmentRBAC(APITest):
 
     @pytest.mark.parametrize('resource_type', ['job_template', 'inventory', 'organization'])

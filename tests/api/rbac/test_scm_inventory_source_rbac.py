@@ -4,7 +4,7 @@ import pytest
 from tests.api import APITest
 
 
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+@pytest.mark.usefixtures('authtoken')
 class TestSCMInventorySourceRBAC(APITest):
 
     @pytest.mark.parametrize('role', ['admin', 'read', 'use', 'update'])

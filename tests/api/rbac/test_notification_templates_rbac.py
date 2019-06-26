@@ -8,7 +8,7 @@ from tests.lib.helpers.rbac_utils import (
 from tests.api import APITest
 
 
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+@pytest.mark.usefixtures('authtoken')
 class Test_Notification_Template_RBAC(APITest):
 
     def set_read_role(self, user, notifiable_resource):

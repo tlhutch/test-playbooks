@@ -5,7 +5,7 @@ from towerkit.utils import poll_until
 from tests.api.schedules import SchedulesTest
 
 
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+@pytest.mark.usefixtures('authtoken')
 class TestProjectSchedules(SchedulesTest):
 
     def test_project_schedules_are_functional(self, factories):

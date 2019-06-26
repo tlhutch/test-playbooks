@@ -13,7 +13,7 @@ from tests.api import APITest
 log = logging.getLogger(__name__)
 
 
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+@pytest.mark.usefixtures('authtoken')
 class TestJobTemplateExtraVars(APITest):
 
     def get_required_survey_vars(self, survey_spec):

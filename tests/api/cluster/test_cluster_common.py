@@ -5,7 +5,7 @@ import pytest
 from tests.api import APITest
 
 
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited', 'skip_if_not_cluster')
+@pytest.mark.usefixtures('authtoken', 'skip_if_not_cluster')
 class TestClusterCommon(APITest):
 
     def test_jobs_should_be_able_to_run_on_all_full_instances(self, active_instances, factories):

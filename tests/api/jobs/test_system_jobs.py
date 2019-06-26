@@ -45,7 +45,7 @@ def multiple_jobs_with_status_completed(cleanup_jobs_with_status_completed,
 
 
 @pytest.mark.first
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+@pytest.mark.usefixtures('authtoken')
 class Test_System_Jobs(APITest):
     """Verify actions with system_job_templates"""
 

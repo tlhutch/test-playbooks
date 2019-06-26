@@ -84,7 +84,7 @@ from tests.lib.helpers.workflow_utils import (WorkflowTree, WorkflowTreeMapper)
 log = logging.getLogger(__name__)
 
 
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+@pytest.mark.usefixtures('authtoken')
 class Test_Workflow_Jobs(APITest):
 
     def test_inventory_source_correctly_referenced_in_related_job_endpoint(self, factories):

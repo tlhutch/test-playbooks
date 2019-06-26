@@ -5,7 +5,7 @@ from towerkit.config import config
 
 @pytest.mark.benchmark
 @pytest.mark.serial
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+@pytest.mark.usefixtures('authtoken')
 class TestApiPerformance(APITest):
 
     endpoints = ['job_templates',

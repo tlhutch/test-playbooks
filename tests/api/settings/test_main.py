@@ -101,7 +101,7 @@ def modify_obfuscated_settings(api_settings_all_pg, update_setting_pg, unencrypt
 
 
 @pytest.mark.serial
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+@pytest.mark.usefixtures('authtoken')
 class TestGeneralSettings(APITest):
 
     def test_included_modules(self, host, ssh_credential, api_ad_hoc_commands_pg, ad_hoc_module_name_choices,

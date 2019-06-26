@@ -7,7 +7,7 @@ import pytest
 from tests.api import APITest
 
 
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+@pytest.mark.usefixtures('authtoken')
 class TestUnifiedJobTemplates(APITest):
 
     @pytest.mark.parametrize('ujt_type, ujt_type_name',

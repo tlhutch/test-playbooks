@@ -7,7 +7,7 @@ from tests.api import APITest
 RESOURCES_WITH_VENV = ('job_template', 'project', 'organization')
 
 
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited', 'skip_if_cluster')
+@pytest.mark.usefixtures('authtoken', 'skip_if_cluster')
 class TestCustomVirtualenvRBAC(APITest):
 
     @pytest.mark.parametrize('resource_name', RESOURCES_WITH_VENV)

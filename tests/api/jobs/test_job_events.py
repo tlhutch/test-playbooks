@@ -37,7 +37,7 @@ JOB_EVENT_TYPES = ['playbook_on_start',  # (once for each playbook file)
                    'playbook_on_stats']
 
 
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+@pytest.mark.usefixtures('authtoken')
 class Test_Job_Events(APITest):
 
     def get_job_events(self, job, query=None):
@@ -70,7 +70,7 @@ class Test_Job_Events(APITest):
         assert not actual_stdout, "Not all event stdout was expected."
         assert not desired_stdout, "Not all expected stdout was included."
 
-    pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+    pytestmark = pytest.mark.usefixtures('authtoken')
 
     @pytest.mark.ansible_integration
     def test_dynamic_inventory(self, factories, ansible_version_cmp):

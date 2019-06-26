@@ -2,7 +2,7 @@ import pytest
 from tests.api import APITest
 
 
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+@pytest.mark.usefixtures('authtoken')
 class Test_Me(APITest):
     """Verify the /me endpoint displays the expected information based on the current user"""
 

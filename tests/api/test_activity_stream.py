@@ -14,7 +14,7 @@ from tests.api import APITest
 log = logging.getLogger(__name__)
 
 
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+@pytest.mark.usefixtures('authtoken')
 class TestActivityStream(APITest):
 
     @pytest.mark.parametrize('resource', ['schedule', 'survey', 'job_template', 'workflow_job_template', 'credential',

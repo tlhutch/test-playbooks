@@ -7,7 +7,7 @@ import pytest
 from tests.api.schedules import SchedulesTest
 
 
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+@pytest.mark.usefixtures('authtoken')
 class TestJobTemplateSchedules(SchedulesTest):
 
     select_jt_fields = ('inventory', 'project', 'playbook', 'job_type')

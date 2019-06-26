@@ -10,7 +10,7 @@ from tests.lib.helpers.rbac_utils import (
 from tests.api import APITest
 
 
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+@pytest.mark.usefixtures('authtoken')
 class Test_Project_RBAC(APITest):
 
     def test_unprivileged_user(self, factories):

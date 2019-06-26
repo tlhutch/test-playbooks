@@ -12,7 +12,7 @@ from tests.api import APITest
 log = logging.getLogger(__name__)
 
 
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+@pytest.mark.usefixtures('authtoken')
 class TestJobTemplateSurveys(APITest):
 
     @pytest.mark.parametrize("launch_time_vars",

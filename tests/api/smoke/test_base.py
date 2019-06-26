@@ -6,7 +6,7 @@ import pytest
 from tests.api import APITest
 
 
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+@pytest.mark.usefixtures('authtoken')
 class Test_Api_Basics(APITest):
 
     def test_get_200(self, connection):
@@ -56,7 +56,7 @@ class Test_Api_Basics(APITest):
         assert description == 'AWX REST API'
 
 
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+@pytest.mark.usefixtures('authtoken')
 class TestResourceBasics(APITest):
 
     @pytest.mark.parametrize('resource', ['credential_type', 'credential', 'group',

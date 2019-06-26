@@ -7,7 +7,7 @@ import pytest
 from tests.api import APITest
 
 
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+@pytest.mark.usefixtures('authtoken')
 class Test_Labels(APITest):
 
     def test_duplicate_labels_disallowed_by_organization(self, factories):

@@ -24,7 +24,7 @@ def user_ws_client(request, v2):
     return _ws_client
 
 
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+@pytest.mark.usefixtures('authtoken')
 class TestChannelsRBAC(APITest):
 
     def sleep_and_clear_messages(self, ws):

@@ -23,7 +23,7 @@ def job_template_with_deleted_related(request, job_template):
     return (request.param, job_template)
 
 
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+@pytest.mark.usefixtures('authtoken')
 class TestJobTemplates(APITest):
 
     @pytest.mark.ansible_integration

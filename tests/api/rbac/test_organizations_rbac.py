@@ -12,7 +12,7 @@ from tests.lib.helpers.rbac_utils import (
 from tests.api import APITest
 
 
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+@pytest.mark.usefixtures('authtoken')
 class Test_Organization_RBAC(APITest):
 
     ResourceMapping = namedtuple('ResourceMapping', [
@@ -580,7 +580,7 @@ class Test_Organization_RBAC(APITest):
 
 
 @pytest.mark.serial
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+@pytest.mark.usefixtures('authtoken')
 class TestManageOrgAuthFalse(APITest):
 
     @pytest.mark.parametrize('endpoint', ['related_users', 'related_roles'])

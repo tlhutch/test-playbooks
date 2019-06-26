@@ -4,7 +4,7 @@ import towerkit.exceptions
 from tests.api import APITest
 
 
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+@pytest.mark.usefixtures('authtoken')
 class Test_Notifications_RBAC(APITest):
 
     def test_notification_read_as_unprivileged_user(self, email_notification_template, unprivileged_user):

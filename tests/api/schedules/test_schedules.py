@@ -15,7 +15,7 @@ import pytz
 from tests.api.schedules import SchedulesTest
 
 
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+@pytest.mark.usefixtures('authtoken')
 class TestSchedules(SchedulesTest):
 
     def test_new_resources_are_without_schedules(self, unified_job_template):

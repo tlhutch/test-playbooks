@@ -41,7 +41,7 @@ def ad_hoc_command_with_multi_ask_credential_and_password_in_payload(request, ho
     return command_pg
 
 
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+@pytest.mark.usefixtures('authtoken')
 class Test_Ad_Hoc_Commands_Inventory(APITest):
 
     def test_get_as_superuser(self, inventory):
@@ -68,7 +68,7 @@ class Test_Ad_Hoc_Commands_Inventory(APITest):
         command_pg.assert_successful()
 
 
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+@pytest.mark.usefixtures('authtoken')
 class Test_Ad_Hoc_Commands_Group(APITest):
 
     def test_get_as_superuser(self, group):
@@ -94,7 +94,7 @@ class Test_Ad_Hoc_Commands_Group(APITest):
         command_pg.assert_successful()
 
 
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+@pytest.mark.usefixtures('authtoken')
 class Test_Ad_Hoc_Commands_Host(APITest):
 
     def test_get_as_superuser(self, host):
@@ -127,7 +127,7 @@ class Test_Ad_Hoc_Commands_Host(APITest):
         assert set(event.host for event in ahc.get_related('events').results) == set([None, host.id])
 
 
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+@pytest.mark.usefixtures('authtoken')
 class Test_Ad_Hoc_Commands_Main(APITest):
 
     def test_get(self, api_ad_hoc_commands_pg, all_users, user_password):

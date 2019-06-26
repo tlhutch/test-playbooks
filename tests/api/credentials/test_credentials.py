@@ -8,7 +8,7 @@ import pytest
 from tests.api import APITest
 
 
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+@pytest.mark.usefixtures('authtoken')
 class TestCredentials(APITest):
 
     @pytest.mark.parametrize('input_fields', [dict(username=fauxfactory.gen_alphanumeric(),

@@ -26,7 +26,7 @@ log = logging.getLogger(__name__)
 # - access list
 # - user capability fields
 
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+@pytest.mark.usefixtures('authtoken')
 class Test_Workflow_Job_Template_RBAC(APITest):
 
     @pytest.mark.parametrize('wfjt_state', ['wfjt_has_org', 'wfjt_org_null'])

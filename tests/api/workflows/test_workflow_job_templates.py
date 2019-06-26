@@ -39,7 +39,7 @@ log = logging.getLogger(__name__)
 # [x] Deleting root node when depth > 1
 
 
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+@pytest.mark.usefixtures('authtoken')
 class Test_Workflow_Job_Templates(APITest):
 
     # Graph Topology Validation

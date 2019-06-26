@@ -38,7 +38,7 @@ def team_payload(**kwargs):
     return payload
 
 
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+@pytest.mark.usefixtures('authtoken')
 class Test_Teams(APITest):
 
     def test_duplicate_teams_disallowed_by_organization(self, factories):

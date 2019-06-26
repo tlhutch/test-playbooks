@@ -5,7 +5,7 @@ import threading
 from tests.api import APITest
 
 
-@ pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+@ pytest.mark.usefixtures('authtoken')
 class TestInventorySource(APITest):
 
     def test_reject_invalid_credential_types_with_custom_source(self, factories):

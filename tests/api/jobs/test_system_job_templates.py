@@ -18,7 +18,7 @@ def cleanup_jobs_template(request, api_system_job_templates_pg):
     return matches.results[0]
 
 
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+@pytest.mark.usefixtures('authtoken')
 class Test_System_Job_Template(APITest):
     """Verify actions with system_job_templates"""
 

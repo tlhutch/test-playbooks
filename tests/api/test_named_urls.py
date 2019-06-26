@@ -20,7 +20,7 @@ def make_api_url(resource_name, format_string, *params):
     return url_template.format(resources, *[escape_pluses(param) for param in params])
 
 
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+@pytest.mark.usefixtures('authtoken')
 class TestNamedURLs(APITest):
 
     @pytest.mark.yolo

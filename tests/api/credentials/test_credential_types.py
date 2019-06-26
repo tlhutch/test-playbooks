@@ -6,7 +6,7 @@ import pytest
 from tests.api import APITest
 
 
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+@pytest.mark.usefixtures('authtoken')
 class TestCredentialTypes(APITest):
 
     def test_credential_types_options(self, v2):
@@ -434,7 +434,7 @@ class TestCredentialTypes(APITest):
         assert cred_type.injectors == injectors
 
 
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+@pytest.mark.usefixtures('authtoken')
 class TestCredentialTypesActivityStream(APITest):
 
     def test_credential_type_activity_stream_create(self, factories):

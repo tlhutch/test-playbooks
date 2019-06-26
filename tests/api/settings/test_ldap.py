@@ -8,7 +8,7 @@ from tests.api import APITest
 
 
 @pytest.mark.serial
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+@pytest.mark.usefixtures('authtoken')
 class TestLDAP(APITest):
 
     ldap_password = config.credentials.freeipa.ldap_password

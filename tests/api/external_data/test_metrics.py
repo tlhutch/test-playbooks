@@ -57,7 +57,7 @@ def k8s_prometheus(gke_client_cscope, request, class_factories):
 
 
 @pytest.mark.serial
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+@pytest.mark.usefixtures('authtoken')
 class TestMetrics(APITest):
 
     def query_prometheus(self, prometheus_url, metric):

@@ -164,7 +164,6 @@ def assert_expected_hostnames(inv_source, cloud_hostvars_that_create_host_names)
 
 @pytest.mark.usefixtures(
     'authtoken',
-    'install_enterprise_license_unlimited',
     'skip_if_openshift',
     'shared_custom_venvs'
 )
@@ -228,10 +227,7 @@ class TestInventoryUpdateWithVenvs(APITest):
         assert_expected_hostnames(inv_source, cloud_hostvars_that_create_host_names)
 
 
-@pytest.mark.usefixtures(
-    'authtoken',
-    'install_enterprise_license_unlimited',
-)
+@pytest.mark.usefixtures('authtoken')
 class TestInventoryUpdate(APITest):
 
     def test_update_all_inventory_sources_with_functional_sources(self, factories):

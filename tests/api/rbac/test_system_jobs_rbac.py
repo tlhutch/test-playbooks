@@ -5,7 +5,7 @@ from tests.lib.helpers.rbac_utils import check_user_capabilities
 from tests.api import APITest
 
 
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+@pytest.mark.usefixtures('authtoken')
 class TestSystemJobRBAC(APITest):
 
     @pytest.mark.fixture_args(days=1000, granularity='1y', older_than='1y')

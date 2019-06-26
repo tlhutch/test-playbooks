@@ -873,7 +873,7 @@ inventory_dict = {
 
 
 @pytest.mark.ansible(host_pattern='tower[0]')  # target 1 normal instance
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited', 'skip_if_openshift')
+@pytest.mark.usefixtures('authtoken', 'skip_if_openshift')
 class TestLargeInventoryUpdateDatasetAC847(APITest):
 
     def test_import(self, request, ansible_runner, tmpdir, inventory):

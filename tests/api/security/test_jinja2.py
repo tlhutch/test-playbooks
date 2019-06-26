@@ -4,7 +4,7 @@ from tests.api import APITest
 
 
 @pytest.mark.serial
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+@pytest.mark.usefixtures('authtoken')
 class TestJinja2(APITest):
 
     target_text = 'TARGET_TEXT'

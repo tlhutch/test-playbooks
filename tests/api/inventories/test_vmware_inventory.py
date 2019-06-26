@@ -39,7 +39,7 @@ def k8s_govcsim(gke_client_cscope, request):
     return sim_fqdn
 
 
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+@pytest.mark.usefixtures('authtoken')
 class TestGovcsim(APITest):
 
     @pytest.fixture

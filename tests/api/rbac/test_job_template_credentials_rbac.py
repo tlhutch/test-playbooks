@@ -4,7 +4,7 @@ import pytest
 from tests.api import APITest
 
 
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+@pytest.mark.usefixtures('authtoken')
 class TestJobTemplateCredentialsRBAC(APITest):
 
     def test_job_template_creation_request_without_credential_access_forbidden(self, request, factories, v2):

@@ -11,7 +11,7 @@ from tests.api import APITest
 log = logging.getLogger(__name__)
 
 
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+@pytest.mark.usefixtures('authtoken')
 class TestJobTemplateCredentials(APITest):
 
     def test_job_template_creation_without_credential(self, factories):
@@ -34,7 +34,7 @@ class TestJobTemplateCredentials(APITest):
 
 
 @pytest.mark.ansible(host_pattern='tower[0]')  # assuming all nodes have same ssh installed
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+@pytest.mark.usefixtures('authtoken')
 class TestJobTemplateLaunchCredentials(APITest):
 
     def test_launch_without_credential(self, job_template_no_credential):
@@ -229,7 +229,7 @@ class TestJobTemplateLaunchCredentials(APITest):
         assert job.related.credentials.get().count == 2
 
 
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+@pytest.mark.usefixtures('authtoken')
 class TestJobTemplateVaultCredentials(APITest):
 
     @pytest.mark.parametrize('v, cred_args', [['v2', dict(kind='vault', vault_password='tower')]])
@@ -363,7 +363,7 @@ def custom_extra_credentials(request):
     return request.getfixturevalue(request.param)
 
 
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+@pytest.mark.usefixtures('authtoken')
 class TestJobTemplateExtraCredentials(APITest):
 
     def test_job_template_with_added_and_removed_custom_extra_credentials(self, factories, custom_extra_credentials):
@@ -518,7 +518,7 @@ class TestJobTemplateExtraCredentials(APITest):
             assert env_var in ansible_env
 
 
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+@pytest.mark.usefixtures('authtoken')
 class TestJobTemplateRelatedCredentials(APITest):
 
     def test_add_extra_credentials_check_related_credentials(self, factories, custom_extra_credentials):

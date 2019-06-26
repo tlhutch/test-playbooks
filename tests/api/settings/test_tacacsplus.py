@@ -23,7 +23,7 @@ def enable_tacacs_auth(update_setting_pg, api_settings_tacacsplus_pg):
 
 
 @pytest.mark.serial
-@pytest.mark.usefixtures('skip_docker', 'authtoken', 'install_enterprise_license_unlimited', 'skip_if_fips_enabled')
+@pytest.mark.usefixtures('skip_docker', 'authtoken', 'skip_if_fips_enabled')
 class TestTACACSPlus(APITest):
 
     @pytest.mark.parametrize('protocol', ['ascii', 'pap'])

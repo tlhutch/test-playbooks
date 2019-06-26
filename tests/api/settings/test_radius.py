@@ -6,7 +6,7 @@ from tests.api import APITest
 
 
 @pytest.mark.serial
-@pytest.mark.usefixtures('skip_docker', 'authtoken', 'install_enterprise_license_unlimited', 'skip_if_fips_enabled')
+@pytest.mark.usefixtures('skip_docker', 'authtoken', 'skip_if_fips_enabled')
 class TestRADIUS(APITest):
 
     username = config.credentials.radius.username

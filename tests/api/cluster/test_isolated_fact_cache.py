@@ -3,7 +3,7 @@ import pytest
 from tests.api import APITest
 
 
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited', 'skip_if_not_traditional_cluster')
+@pytest.mark.usefixtures('authtoken', 'skip_if_not_traditional_cluster')
 class TestIsolatedFactCache(APITest):
 
     @pytest.fixture

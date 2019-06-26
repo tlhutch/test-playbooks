@@ -7,7 +7,7 @@ import towerkit.exceptions as exc
 from tests.api import APITest
 
 
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+@pytest.mark.usefixtures('authtoken')
 class TestRelaunchAskRBAC(APITest):
 
     def give_user_relaunch_access(self, user, job):

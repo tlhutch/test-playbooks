@@ -136,7 +136,7 @@ def _expected_webhook_job_notification(tower_url, notification_template_pg, job_
     return job_msg
 
 
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+@pytest.mark.usefixtures('authtoken')
 class Test_Notification_Templates(APITest):
 
     def test_duplicate_notification_templates_disallowed_by_organization(self, factories):
@@ -149,7 +149,7 @@ class Test_Notification_Templates(APITest):
         assert e.value.msg['__all__'] == ['Notification template with this Organization and Name already exists.']
 
 
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+@pytest.mark.usefixtures('authtoken')
 class Test_Notifications(APITest):
     """Notification tests"""
 

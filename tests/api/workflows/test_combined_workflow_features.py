@@ -8,7 +8,7 @@ from tests.api.workflows.utils import get_job_node
 from tests.lib.helpers.workflow_utils import (WorkflowTree, WorkflowTreeMapper)
 
 
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+@pytest.mark.usefixtures('authtoken')
 class TestCombinedWorkflowFeatures(APITest):
     """This class of tests focuses on interoperability of various workflow features.
 

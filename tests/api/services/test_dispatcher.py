@@ -13,7 +13,6 @@ log = logging.getLogger(__name__)
 @pytest.mark.usefixtures(
     'skip_if_openshift',
     'authtoken',
-    'install_enterprise_license_unlimited',
 )
 @pytest.mark.serial
 class TestDispatcher(APITest):

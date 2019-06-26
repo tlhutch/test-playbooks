@@ -4,7 +4,7 @@ import towerkit.exceptions
 from tests.api import APITest
 
 
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+@pytest.mark.usefixtures('authtoken')
 class Test_Label_RBAC(APITest):
 
     def test_label_post_with_unprivileged_user(self, factories):

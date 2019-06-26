@@ -30,7 +30,7 @@ def register_rhn_and_insights(ansible_runner):
     ansible_runner.yum(state='absent', name='insights-client')
 
 
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+@pytest.mark.usefixtures('authtoken')
 class TestInsights(APITest):
 
     registered_machine_id = '654918b5-269d-4097-993e-dc384d831db8'
@@ -265,7 +265,7 @@ class TestInsights(APITest):
         assert result[0]['stdout'] == project.scm_revision
 
 
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+@pytest.mark.usefixtures('authtoken')
 class TestInsightsAnalytics(APITest):
 
     def toggle_analytics(self, update_setting_pg, v2, state=False):

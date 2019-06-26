@@ -5,7 +5,7 @@ import pytest
 from tests.api import APITest
 
 
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+@pytest.mark.usefixtures('authtoken')
 class TestCustomCredentials(APITest):
 
     @pytest.mark.parametrize('field_type', ['string', 'boolean'])

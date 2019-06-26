@@ -6,7 +6,7 @@ import pytest
 from tests.api import APITest
 
 
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+@pytest.mark.usefixtures('authtoken')
 class TestSmartInventory(APITest):
 
     def test_host_sourced_by_ansible_facts(self, factories):

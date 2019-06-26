@@ -7,7 +7,7 @@ import pytest
 from tests.api import APITest
 
 
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+@pytest.mark.usefixtures('authtoken')
 class TestPrompts(APITest):
 
     ask_jt_attrs = dict(ask_diff_mode_on_launch=True, ask_variables_on_launch=True,

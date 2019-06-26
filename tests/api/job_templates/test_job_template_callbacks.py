@@ -16,7 +16,7 @@ from tests.api import APITest
 
 
 @pytest.mark.ansible(host_pattern='tower[0]')  # do callbacks from node in cluster
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+@pytest.mark.usefixtures('authtoken')
 class TestJobTemplateCallbacks(APITest):
     @pytest.fixture(scope='class')
     def remote_hosts(self):

@@ -13,7 +13,7 @@ def find_settings(setting_pg, substrings):
 
 
 @pytest.mark.serial
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+@pytest.mark.usefixtures('authtoken')
 class Test_Auth(APITest):
 
     def test_default_entries(self, v2):

@@ -159,7 +159,7 @@ def azure_type(azure_credential):
         raise ValueError("Unhandled credential received - %s." % azure_credential)
 
 
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+@pytest.mark.usefixtures('authtoken')
 class Test_Job(APITest):
 
     @pytest.mark.ansible_integration
@@ -787,7 +787,7 @@ class Test_Job_Env(APITest):
     environment variables ('job_env').
     """
 
-    pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+    pytestmark = pytest.mark.usefixtures('authtoken')
 
     def test_job_env_variables_contains_utf8(self, request, job_template, api_settings_pg, factories):
         job_settings = api_settings_pg.get_endpoint('jobs')

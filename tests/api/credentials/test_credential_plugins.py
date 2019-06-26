@@ -111,7 +111,7 @@ def k8s_conjur(gke_client_cscope, request):
     return conjur_info
 
 
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+@pytest.mark.usefixtures('authtoken')
 class TestConjurCredential(APITest):
 
     def create_conjur_credential(self, factories, v2, url, api_key, account, username):
@@ -482,7 +482,7 @@ def k8s_vault(gke_client_cscope, request):
     return vault_url
 
 
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+@pytest.mark.usefixtures('authtoken')
 class TestHashiCorpVaultCredentials(APITest):
 
     def create_hashicorp_vault_credential(self, factories, v2, url, token, hashicorp_api_version):
@@ -795,7 +795,7 @@ class TestHashiCorpVaultCredentials(APITest):
             assert len(linkage) == 0
 
 
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+@pytest.mark.usefixtures('authtoken')
 class TestHashiCorpSSHEngine(APITest):
 
     def launch_job(self, factories, v2, path, role, passphrase,
@@ -887,7 +887,7 @@ class TestHashiCorpSSHEngine(APITest):
         assert 'requests.exceptions.HTTPError: 400 Client Error' in job.result_traceback
 
 
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+@pytest.mark.usefixtures('authtoken')
 class TestAzureKVCredentials(APITest):
 
     def create_azurekv_credential(self, factories, v2, url):
@@ -1178,7 +1178,7 @@ def check_cyberark_aim(request):
 
 
 @pytest.mark.usefixtures(
-    'authtoken', 'install_enterprise_license_unlimited', 'check_cyberark_aim')
+    'authtoken', 'check_cyberark_aim')
 class TestCyberArkAimCredentials(APITest):
 
     def create_aim_credential(self, factories, v2, url=None,

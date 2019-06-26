@@ -3,7 +3,7 @@ import pytest
 from tests.api.schedules import SchedulesTest
 
 
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+@pytest.mark.usefixtures('authtoken')
 class TestSystemJobTemplateSchedules(SchedulesTest):
 
     @pytest.mark.parametrize('name, extra_data',

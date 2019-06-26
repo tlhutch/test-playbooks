@@ -21,7 +21,7 @@ def user_payload(**kwargs):
     return payload
 
 
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+@pytest.mark.usefixtures('authtoken')
 class Test_Users(APITest):
 
     def test_duplicate_users_disallowed(self, factories):

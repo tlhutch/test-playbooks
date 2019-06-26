@@ -4,7 +4,7 @@ import pytest
 from tests.api import APITest
 
 
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+@pytest.mark.usefixtures('authtoken')
 class TestSettingsRBAC(APITest):
 
     def test_get_main_endpoint_as_non_superuser(self, non_superuser, api_settings_pg):

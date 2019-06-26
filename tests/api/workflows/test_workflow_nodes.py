@@ -24,7 +24,7 @@ log = logging.getLogger(__name__)
 # [ ] Deleting workflow job template used by node
 
 
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+@pytest.mark.usefixtures('authtoken')
 class Test_Workflow_Nodes(APITest):
 
     select_jt_fields = ('inventory', 'project', 'playbook', 'job_type')

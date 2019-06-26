@@ -8,7 +8,7 @@ import pytest
 from tests.api import APITest
 
 
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+@pytest.mark.usefixtures('authtoken')
 class TestWorkflowExtraVars(APITest):
 
     def test_launch_with_workflow_extra_vars(self, factories, workflow_job_template_with_extra_vars, job_template):

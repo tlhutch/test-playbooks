@@ -17,7 +17,7 @@ def related_organization_object(request):
     return request.getfixturevalue(request.param)
 
 
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+@pytest.mark.usefixtures('authtoken')
 class Test_Organizations(APITest):
     """Verify the /users endpoint displays the expected information based on the current user"""
 

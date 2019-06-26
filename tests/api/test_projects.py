@@ -37,7 +37,7 @@ def project_with_galaxy_requirements(factories):
     )
 
 
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+@pytest.mark.usefixtures('authtoken')
 class Test_Projects(APITest):
 
     def check_secret_fields(self, string_to_check, *secrets):

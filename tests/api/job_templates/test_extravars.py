@@ -117,7 +117,7 @@ def job_templates_yaml(request, authtoken, api_job_templates_pg, project, ssh_cr
     return obj
 
 
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+@pytest.mark.usefixtures('authtoken')
 class TestExtraVarsStoreRetreiveJsonYaml(APITest):
     """For API objects that support a 'variables' (or 'extra_vars') attribute,
     verify they support storing and retrieving JSON/YAML data.

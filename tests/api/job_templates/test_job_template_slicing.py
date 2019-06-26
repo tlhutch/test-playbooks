@@ -16,7 +16,7 @@ from towerkit.exceptions import BadRequest, NotFound, Forbidden
 log = logging.getLogger(__name__)
 
 
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+@pytest.mark.usefixtures('authtoken')
 class TestJobTemplateSlicing(APITest):
 
     @pytest.fixture

@@ -4,7 +4,7 @@ from tests.api import APITest
 
 class Test_Tower_Prepopulation(APITest):
 
-    pytestmark = pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+    pytestmark = pytest.mark.usefixtures('authtoken')
 
     @pytest.mark.yolo
     def test_success(self, default_organization):

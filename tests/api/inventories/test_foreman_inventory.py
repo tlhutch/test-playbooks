@@ -33,7 +33,7 @@ def k8s_foreman_sim(gke_client_cscope, request):
     return sim_url
 
 
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+@pytest.mark.usefixtures('authtoken')
 class TestForemanSim(APITest):
 
     @pytest.fixture

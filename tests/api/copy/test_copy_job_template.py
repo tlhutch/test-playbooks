@@ -5,7 +5,7 @@ from tests.api import APITest
 from tests.lib.helpers.copy_utils import check_fields
 
 
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+@pytest.mark.usefixtures('authtoken')
 class Test_Copy_Job_Template(APITest):
 
     identical_fields = ['type', 'description', 'job_type', 'inventory', 'project', 'playbook', 'forks', 'limit',

@@ -138,3 +138,8 @@ def install_enterprise_license(apply_license, class_subrequest):
 def install_enterprise_license_unlimited(apply_license, class_subrequest):
     with apply_license('enterprise', request=class_subrequest):
         yield
+
+@pytest.fixture(scope='session', autouse=True)
+def session_install_enterprise_license_unlimited(apply_license, class_subrequest):
+    with apply_license('enterprise', request=class_subrequest):
+        yield

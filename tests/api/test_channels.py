@@ -83,7 +83,7 @@ class TestWebSocketRequestForgery(ChannelsTest, APITest):
         ws.unsubscribe()
 
 
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+@pytest.mark.usefixtures('authtoken')
 class TestAdHocCommandChannels(ChannelsTest, APITest):
 
     @pytest.fixture(scope='class')
@@ -151,7 +151,7 @@ class TestAdHocCommandChannels(ChannelsTest, APITest):
         assert not [m for m in ws]
 
 
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+@pytest.mark.usefixtures('authtoken')
 class TestJobChannels(ChannelsTest, APITest):
 
     @pytest.fixture(scope='class')
@@ -218,7 +218,7 @@ class TestJobChannels(ChannelsTest, APITest):
         assert not [m for m in ws]
 
 
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+@pytest.mark.usefixtures('authtoken')
 class TestWorkflowChannels(ChannelsTest, APITest):
 
     # Previously effected by https://github.com/ansible/tower-qa/issues/2487
@@ -282,7 +282,7 @@ class TestWorkflowChannels(ChannelsTest, APITest):
         assert not [m for m in ws]
 
 
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+@pytest.mark.usefixtures('authtoken')
 class TestInventoryChannels(ChannelsTest, APITest):
 
     @pytest.fixture(scope='class')
@@ -349,7 +349,7 @@ class TestInventoryChannels(ChannelsTest, APITest):
         assert not [m for m in ws]
 
 
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+@pytest.mark.usefixtures('authtoken')
 class TestProjectUpdateChannels(ChannelsTest, APITest):
 
     @pytest.fixture(scope='class')

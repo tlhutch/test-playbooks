@@ -6,7 +6,7 @@ from tests.api import APITest
 from tests.lib.helpers.rbac_utils import check_user_capabilities
 
 
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+@pytest.mark.usefixtures('authtoken')
 class Test_Schedules_RBAC(APITest):
 
     def test_crud_as_superuser(self, resource_with_schedule):

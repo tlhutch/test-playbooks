@@ -10,7 +10,7 @@ from tests.api import APITest
 
 
 @pytest.mark.serial
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited', 'skip_if_not_cluster')
+@pytest.mark.usefixtures('authtoken', 'skip_if_not_cluster')
 class TestExecutionNodeAssignment(APITest):
 
     MAX_JOBS_PER_INSTANCE = 3

@@ -15,7 +15,7 @@ def hostnames_from_group_prefixes(prefixes, start=1, finish=5):
     return hostnames
 
 
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+@pytest.mark.usefixtures('authtoken')
 class TestSCMInventorySource(APITest):
 
     inventory_hostnames = hostnames_from_group_prefixes(['ungrouped', 'group_one', 'group_one_and_two',
