@@ -238,14 +238,14 @@ class TestCredentialTypes(APITest):
             assert e.value.msg['detail'] == 'Deletion not allowed for managed credential types'
 
     def test_sourced_credential_type_cannot_be_deleted(self, factories):
-        cred = factories.credential(credential_type=True)
+        cred = factories.credential(credential_type=factories.credential_type().id)
 
         with pytest.raises(exc.Forbidden) as e:
             cred.ds.credential_type.delete()
         assert e.value.msg['detail'] == 'Credential types that are in use cannot be deleted'
 
     def test_sourced_credential_type_inputs_are_read_only(self, factories):
-        cred = factories.credential(credential_type=True)
+        cred = factories.credential(credential_type=factories.credential_type().id)
 
         with pytest.raises(exc.Forbidden) as e:
             cred.ds.credential_type.inputs = dict(test=True)

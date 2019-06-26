@@ -66,7 +66,7 @@ class TestJobTemplateCredentialsRBAC(APITest):
             jt.ds[resource].set_object_roles(user, 'use')
 
         if cred_kind == 'custom':
-            extra_credential = factories.credential(credential_type=True, organization=organization)
+            extra_credential = factories.credential(credential_type=factories.credential_type().id, organization=organization)
         else:
             extra_credential = factories.credential(kind=cred_kind, organization=organization)
 
