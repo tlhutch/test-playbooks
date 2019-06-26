@@ -402,7 +402,7 @@ class Test_Projects(APITest):
             assert result['stat']['exists'], "The expected galaxy role requirement was not found (%s)." % \
                 expected_role_path
 
-    def test_project_with_galaxy_requirements_processed_on_scm_change(self, factories, job_template_that_writes_to_source):
+    def test_project_with_galaxy_requirements_processed_on_scm_change(self, factories):
         project_with_requirements = factories.project(scm_url='https://github.com/ansible/test-playbooks.git',
                                                          scm_branch='with_requirements')
         jt_with_requirements = factories.job_template(project=project_with_requirements,
@@ -410,9 +410,6 @@ class Test_Projects(APITest):
 
         jt_with_requirements.launch().wait_until_completed().assert_successful(
             msg="First job template run for a project always triggers the processing of requirements.yml"
-            )
-        job_template_that_writes_to_source.launch().wait_until_completed().assert_successful(
-            msg="Failed to update remote repository with a commit. This is needed to trigger processing of requirements.yml"
             )
         project_with_requirements.update().wait_until_completed().assert_successful(msg="Project update that pulls down newly written SCM commits failed.")
 
