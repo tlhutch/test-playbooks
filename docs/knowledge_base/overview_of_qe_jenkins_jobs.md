@@ -5,59 +5,29 @@ We use Jenkins to manage the running of our automated tests.
 
 Note that in order to access the above link you will need to be on the Red Hat VPN.
 
+The QE team as a whole maintains the pipelines and jobs listed below. Seasonally, the team will use a weekly rotation to review test results, write up regressions, and repair issues with the tests themselves. At all times it is an advisable and appropriate way to start your day by reviewing results of the pipelines at our dashboard located at http://tower-qe-dashboard.ansible.eng.rdu2.redhat.com/jenkins/releases (you must be on RH network/VPN to see this).
 
-The QE team as a whole maintains the jobs below. The team uses a weekly rotation to review test results, write up regressions, and repair issues with the tests themselves. You’ll sometimes hear the team refer to this as “the integration button” (which figuratively gets passed around). A description of the integration triage process is available [here](https://docs.google.com/document/d/1trChK3DScws2vJqEMMHdy3B0_9mHYcyxpZSbTlTq04k/edit). We had a meeting on 10/1/18 to ‘reboot’ the integration button - a recording of the meeting is available [here](https://bluejeans.com/s/PmDs3/).
+## Release Verification Pipelines
+The major release we are working on is always the top tab of http://tower-qe-dashboard.ansible.eng.rdu2.redhat.com/jenkins/releases
 
-## Main integration
+For each OS/Ansible combination we support, there is a status "orb" that indicates the status of the latest pipeline run. Yellow means there were some failed tests, but otherwise builds and upgrades and such completed. Red means there was a job that completely failed or no test results found, green means GREEN!
 
-- [Test_Tower_Integration](http://jenkins.ansible.eng.rdu2.redhat.com/view/Tower/job/Test_Tower_Integration/) - Runs the full suite of regression tests against the current version of tower in development against a matrix that includes all supported platforms and all supported versions of Ansible Core.
-- [Test_Tower_Install](http://jenkins.ansible.eng.rdu2.redhat.com/view/Tower/job/Test_Tower_Bundle_Install/) - Provisions instances used by the above integration job
-- Build Jobs
-	- [Test_Tower_TAR](http://jenkins.ansible.eng.rdu2.redhat.com/view/Tower/job/Build_Tower_TAR/) - prepares a tar file that contains the Tower install script (and associated Ansible playbooks / roles).
-	- [Test_Tower_RPM](http://jenkins.ansible.eng.rdu2.redhat.com/view/Tower/job/Build_Tower_RPM/) - prepares Tower RPM package
-	- [Test_Tower_DEB](http://jenkins.ansible.eng.rdu2.redhat.com/view/Tower/job/Build_Tower_DEB/) - prepares Tower Debian package
-	- [Test_Tower_Bundle_TAR](http://jenkins.ansible.eng.rdu2.redhat.com/view/Tower/job/Build_Tower_Bundle_TAR/) - prepares a install that bundles requirements
-- [Nightly_Tower](http://jenkins.ansible.eng.rdu2.redhat.com/view/Tower/job/Nightly_Tower/) - triggers downstream build, install, and test jobs
+By clicking on the status orb you will be directed to a jenkins blue ocean view of the pipeline that you can click through to find status for standalone integration, cluster integration, etc, etc.
 
-## Cluster integration
+Not every permutation runs the full test suite. Check in with the team for what permutations we run the full suite on nightly.
 
-Runs full integration including a suite of tests explicitly for clustered Tower. Clustered Tower refers to a traditional cluster installation on bare metal or vms. A separate test pipeline focuses on a Tower cluster deployment in Red Hat OpenShift.
+For minor releases, we run the upcoming minor release pipeline on a weekly basis, as well as more frequently as needed as we near release time.
 
-- [Test_Tower_Install_Cluster](http://jenkins.ansible.eng.rdu2.redhat.com/view/Tower/job/Test_Tower_Install_Cluster/)
-- [Test_Tower_Integration_Cluster](http://jenkins.ansible.eng.rdu2.redhat.com/view/Tower/job/Test_Tower_Integration_Cluster/)
+## Self-Service Jobs + Pipelines
 
-## OpenShift
+[Test_Tower_Yolo_Express](http://jenkins.ansible.eng.rdu2.redhat.com/blue/organizations/jenkins/Test_Tower_Yolo_Express/activity/) is your main point of contact if you want to deploy tower instances with specific branches and forks.
 
-Performs an installation of Tower in OpenShift nightly and then runs integration against this newly provisioned instance. Tower is deployed in a clustered setup.
+As a QE team member, `pipeline/Release`(http://jenkins.ansible.eng.rdu2.redhat.com/blue/organizations/jenkins/Pipelines%2Frelease-pipeline/activity) has replaced `Nightly_Tower`, which is now deactivated. It is a Jenkins pipeline that, based on the version specified, will trigger the proper actions. A Knowledge Base page is coming up to explain all the new pipelines available.
 
-- [Test_Tower_OpenShift_Deploy](http://jenkins.ansible.eng.rdu2.redhat.com/view/Tower/job/Test_Tower_OpenShift_Deploy/)
-- [Test_Tower_OpenShift_Integration](http://jenkins.ansible.eng.rdu2.redhat.com/view/Tower/job/Test_Tower_OpenShift_Integration/)
+As a user, if all one wants is to install is a specific version of Tower,
 
-We use the [tower-qe](https://console.openshift.ansible.eng.rdu2.redhat.com/console/project/tower-qe/overview) OpenShift project for this and you will need credentials to access this project. Come ask chrwang@redhat.com for credentials for this.
+`pipeline/Install`(http://jenkins.ansible.eng.rdu2.redhat.com/blue/organizations/jenkins/Pipelines%2Finstall-pipeline/activity) is here just for that.
 
-## Patch Integration
-
-Runs full integration against the latest patch release on a weekly basis. Pipeline is capable of running in parallel with main integration allowing the team to gather results for a main release and maintenance release.
-
-- [Test_Tower_Integration_Patch](http://jenkins.ansible.eng.rdu2.redhat.com/view/Tower/job/Test_Tower_Integration_Patch/)
-- [Test_Tower_Install](http://jenkins.ansible.eng.rdu2.redhat.com/job/Test_Tower_Install/#) provisions instances for both main integration and the above patch job.
-- [Nightly_Tower_Patch](http://jenkins.ansible.eng.rdu2.redhat.com/view/Tower/job/Nightly_Tower_Patch/) - triggers patch installs and tests each Sunday afternoon
-
-## Tower Upgrade
-
-Upgrades from the previous stable release on all supported platforms.
-
-- [Test_Tower_Upgrade](http://jenkins.ansible.eng.rdu2.redhat.com/view/Tower/job/Test_Tower_Upgrade/)
-
-## Backup and Restore
-
-Deploys a Tower instance, uses a python script to load the instance with a variety of resources, backs up this instance, deploys a separate instance, performs a restore, and runs another python script to confirm the resources created on the first instance have been restored.
-
-- [Test_Tower_Backup_and_Restore](http://jenkins.ansible.eng.rdu2.redhat.com/view/Tower/job/Test_Tower_Backup_and_Restore/)
-
-## Bundle Installer
-
-- [Test_Tower_Bundle_Install](http://jenkins.ansible.eng.rdu2.redhat.com/view/Tower/job/Test_Tower_Bundle_Install/) - confirms Tower bundle installer deploys Tower successfully. Job provisions Tower but is not followed by any additional testing.
 
 ## Ansible Core / Ansible Tower Product Integration Tests
 
@@ -93,17 +63,14 @@ Written by [Jim Ladd](mailto:jladd@redhat.com) (Github: jladdjr) Oct 15, 2018.
     * This is actually difficult to do! Jenkins only stores test results for 30 days.
     * Remediation: Archive results for each release and link to them from the release plan.
 * _If I want to trigger a test of Tower version X.Y.Z with Ansible Version X.Y.Z on OS X version Z, how do I do that?_
-    * Use the [YOLO](http://jenkins.ansible.eng.rdu2.redhat.com/job/Test_Tower_Yolo_Express/) job
-    * As of writing, does not let you choose ansible version -- see [RFE for ansible version selection](https://github.com/ansible/tower-qa/issues/2331)
-    * You can specify the platform and branch of TowerQA and TowerKit to use as well as the branch of Tower
-* _`Test_Tower_Integration` doesn’t run full integration on all Ansible versions, right?_
+    * Use the [YOLO](http://jenkins.ansible.eng.rdu2.redhat.com/job/Test_Tower_Yolo_Express/) job if you require a feature branch
+
+* _ We don't run full integration on all Ansible versions, right?_
     * No, Full integration is run with latest ansible version on each OS. So, right now, ansible stable-2.7 on each OS ( a whole column of matrix ).
-    * The rest run `-m test_crawler or ansible_integration`. `test_crawler` hits each endpoint to make sure it is responsive. `ansible_integration` is a marker that marks any tests that specifically test how Tower uses ansible
+    * The rest run `-m yolo or ansible_integration`. The `yolo` mark is a mark we have attempted to apply to get a minimum coverage of each component in Tower. the `ansible_integration` mark as been applied to tests known to expose our sensitive points of contact with breaking changes in Ansible.
 
 * _How do you find results?_
-    * _How do you tell when it was a nightly run versus a YOLO run?_
-	* Look at the timestamp! 7:35 ish pm is best way right now :'(
-        * Look at the triggers for the job -- if it was triggered by a YOLO Express run, it is not what you want.
+    * Look a the dashboard to find latest results for OS/Ansible version of interest.
 
 * _How do I tell how many times a test has failed in the nightly runs?_
     * The # in the test results is calculated based on job #’s  -- can be misleading
@@ -112,5 +79,3 @@ Written by [Jim Ladd](mailto:jladd@redhat.com) (Github: jladdjr) Oct 15, 2018.
       For a more accurate view, look at the particular test and then inspect the history (button on left when in detail view)
 * _How can I inspect the health of a current feature in the test results?_
     * Expand “all test results” and click through the tree. Tests are organized by module and/or folder, each associated with a feature or function.
-
-FAQ written by [Elijah DeLee](mailto:kdelee@redhat.com) (Github: kdelee) Oct 17, 2018.
