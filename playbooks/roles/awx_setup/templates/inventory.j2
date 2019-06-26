@@ -1,13 +1,13 @@
 {% if 'tower' in groups %}
 [tower]
-localhost ansible_connection=local ansible_python_interpreter="{{ hostvars['localhost']['remote_ansible_python_interpreter'] | default('/usr/bin/env python')}}"
+localhost ansible_connection=local ansible_python_interpreter="{{ hostvars[inventory_hostname]['ansible_python_interpreter'] | default('/usr/bin/env python')}}"
 {# {{ inventory_hostname }} ansible_user={{ hostvars[inventory_hostname]['ansible_user'] }} ansible_host={{ hostvars[inventory_hostname]['ansible_host'] }}   #}
 {% endif %}
 
 {% if 'database' in groups %}
 [database]
 {% for host in groups['database'] %}
-{{ host }} ansible_user={{ hostvars[host]['ansible_user'] }} ansible_host={{ hostvars[host]['ansible_host'] }} ansible_python_interpreter="{{ hostvars['localhost']['remote_ansible_python_interpreter'] | default('/usr/bin/python env') }}
+{{ host }} ansible_user={{ hostvars[host]['ansible_user'] }} ansible_host={{ hostvars[host]['ansible_host'] }} ansible_python_interpreter="{{ hostvars[host]['ansible_python_interpreter'] | default('/usr/bin/python env') }}
 {% endfor %}
 {% endif %}
 
