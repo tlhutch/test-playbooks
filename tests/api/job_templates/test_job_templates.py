@@ -322,11 +322,11 @@ for grp, hosts in inv.items():
 print(json.dumps(inv, indent=2))
 """)
     def test_launch_with_matched_limit_value(
-            self, limit_value,
+            self, job_template,
+            limit_value,
             expected_count,
             custom_inventory_source,
-            custom_inventory_update_with_status_completed,
-            job_template
+            custom_inventory_update_with_status_completed
     ):
         """Verifies that job_template launches with different values for limit behave as expected."""
         # patch job_template
