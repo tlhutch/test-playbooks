@@ -439,13 +439,8 @@ class Test_Projects(APITest):
             self.check_secret_fields(str(event.event_data), 'foobar', 'barfoo')
 
     @pytest.mark.ansible_integration
-    def test_git_project_from_file_path(self, skip_if_cluster, request, factories, ansible_runner):
+    def test_git_project_from_file_path(self, git_file_path, factories):
         """Confirms that local file paths can be used for git repos"""
-        path = '/home/at_3207_test/'
-        request.addfinalizer(lambda: ansible_runner.file(path=path, state='absent'))
-        sync = ansible_runner.git(repo='git://github.com/ansible/test-playbooks.git', dest=path)
-        rev = list(sync.values()).pop()['after']
-        assert rev
-        project = factories.project(scm_url='file://{0}'.format(path))
+        project = factories.project(scm_url=git_file_path)
         project.assert_successful()
-        assert project.scm_revision == rev
+        assert project.scm_revision
