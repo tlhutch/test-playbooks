@@ -27,11 +27,22 @@ CREDS=$(retrieve_credential_file "${INVENTORY}")
 set +e
 
 if ! is_tower_cluster "${INVENTORY}"; then
-    if [[ -n "${TESTEXPR}" ]]; then
-        TESTEXPR=" and (${TESTEXPR})"
+    # Run license tests that need to run serially
+    if ! pytest -v -c config/api.cfg \
+        --junit-xml=reports/junit/results-license.xml \
+        --ansible-host-pattern="${TOWER_HOST}" \
+        --ansible-inventory="${INVENTORY}" \
+        --api-credentials="${CREDS}" \
+        --github-cfg="${CREDS}" \
+        --base-url="https://${TOWER_HOST}" \
+        -k "(${TESTEXPR})"
+        tests/license
+    then
+        sleep 300
+        pytest --cache-show "cache/lastfailed"
     fi
 
-    # Let's run tests in parallel
+# Let's run tests in parallel
     if ! pytest -v -c config/api.cfg \
         --junit-xml=reports/junit/results-parallel.xml \
         --ansible-host-pattern="${TOWER_HOST}" \
@@ -87,9 +98,15 @@ pytest -v -c config/api.cfg \
     --base-url="https://${TOWER_HOST}"
 
 if [[ -f reports/junit/results-parallel.xml ]]; then
-    ./scripts/merge_junit \
-        reports/junit/results-parallel.xml \
-        reports/junit/results{,-rerun,-final}.xml
+    if [[ -f reports/junit/results-license.xml ]]; then
+        ./scripts/merge_junit \
+            reports/junit/results-parallel.xml \
+            reports/junit/results-license.xml \
+            reports/junit/results{,-rerun,-final}.xml
+    else
+        ./scripts/merge_junit \
+            reports/junit/results-parallel.xml \
+            reports/junit/results{,-rerun,-final}.xml
 else
     ./scripts/merge_junit \
         reports/junit/results{,-rerun,-final}.xml
