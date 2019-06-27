@@ -56,64 +56,6 @@ class TestEnterpriseLicense(LicenseTest):
         """Verify that job templates can be launched."""
         job_template.launch().wait_until_completed()
 
-    def test_post_multiple_organizations(self, api_organizations_pg):
-        """Verify that multiple organizations may exist with an enterprise license."""
-        # create second organization
-        payload = dict(name="org-%s" % fauxfactory.gen_utf8(),
-                       description="Random organization - %s" % fauxfactory.gen_utf8())
-        api_organizations_pg.post(payload)
-
-        # assert multiple organizations exist
-        organizations_pg = api_organizations_pg.get()
-        assert organizations_pg.count > 1, "Multiple organizations are supposed" \
-            "to exist, but do not. Instead, only %s exist." % api_organizations_pg.count
-
-    def test_create_survey(self, job_template_ping, required_survey_spec):
-        """Verify that surveys may be enabled and created with an enterprise license."""
-        job_template_ping.add_survey(spec=required_survey_spec)
-        survey_spec = job_template_ping.get_related('survey_spec')
-        assert survey_spec.spec == required_survey_spec, \
-            "Expected /api/v2/job_templates/N/survey_spec/ to reflect our survey_spec."
-
-    def test_activity_stream_get(self, v2):
-        """Verify that GET requests to /api/v2/activity_stream/ are allowed with an enterprise license."""
-        v2.activity_stream.get()
-
-    def test_able_to_create_workflow_job_template(self, factories):
-        factories.workflow_job_template()
-
-    def test_activity_stream_settings(self, api_settings_system_pg):
-        """Verify that activity stream flags are visible with an enterprise license."""
-        settings_pg = api_settings_system_pg.get()
-        assert all(flag in settings_pg.json for flag in self.ACTIVITY_STREAM_FLAGS), \
-            "Activity stream flags not visible under /api/v2/settings/system/ with an enterprise license."
-
-    def test_custom_rebranding_settings(self, api_settings_ui_pg):
-        """Verify that custom rebranding flags are visible with an enterprise license."""
-        for flag in self.REBRANDING_FLAGS:
-            assert flag in api_settings_ui_pg.json, \
-                "Flag '{0}' not displayed under /api/v2/settings/ui/ with an enterprise license.".format(flag)
-
-    def test_main_settings_endpoint(self, api_settings_pg):
-        """Verify that the top-level /api/v2/settings/ endpoint shows our
-        enterprise auth endpoints.
-        """
-        endpoints = [setting.endpoint for setting in api_settings_pg.results]
-        assert(resources.settings_saml in endpoints), \
-            "Expected to find an /api/v2/settings/saml/ entry under /api/v2/settings/."
-        assert(resources.settings_radius in endpoints), \
-            "Expected to find an /api/v2/settings/radius/ entry under /api/v2/settings/."
-        assert(resources.settings_ldap in endpoints), \
-            "Expected to find an /api/v2/settings/ldap/ entry under /api/v2/settings/."
-
-    def test_nested_enterprise_auth_endpoints(self, api_settings_pg):
-        """Verify that enterprise license users have access to our enterprise
-        authentication settings pages.
-        """
-        for service in self.ENTERPRISE_AUTH_SERVICES:
-            api_settings_pg.get_endpoint(service)
-
-
     def test_instance_counts(self, request, api_config_pg, api_hosts_pg, inventory, group):
         self.assert_instance_counts(request, api_config_pg, api_hosts_pg, group)
 
