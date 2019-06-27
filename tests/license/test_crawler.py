@@ -97,7 +97,8 @@ def test_unauthenticated(authtoken, resource, method):
 
 
 @pytest.mark.serial
-def test_authenticated(connection, authtoken, no_license, resource, method):
+@pytest.mark.usefixtures('authtoken', 'no_license')
+def test_authenticated(connection, resource, method):
 
     expected = {'HEAD': (http.client.OK, 'head'),
                 'GET': (http.client.OK, 'get'),

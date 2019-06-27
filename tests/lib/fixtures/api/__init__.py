@@ -44,6 +44,11 @@ def v2_session(connection, get_api_version):
     return get_registered_page(get_api_version('v2'))(connection, endpoint=get_api_version('v2')).get()
 
 
+@pytest.fixture(scope='session')
+def v2_module(connection, get_api_version):
+    return get_registered_page(get_api_version('v2'))(connection, endpoint=get_api_version('v2')).get()
+
+
 @pytest.fixture
 def v2(v2_class):
     return v2_class
@@ -77,6 +82,16 @@ def session_authtoken(v2_session):
         v2_session.load_session()
         return v2_session.connection.session_id
     token = v2_session.get_authtoken()
+    v2_session.connection.login(token=token)
+    return token
+
+@pytest.fixture(scope="module")
+def module_authtoken(v2_module):
+    """Logs in to the application with default credentials"""
+    if qe_config.use_sessions:
+        v2_module.load_session()
+        return v2_module.connection.session_id
+    token = v2_module.get_authtoken()
     v2_session.connection.login(token=token)
     return token
 
