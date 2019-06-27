@@ -184,6 +184,10 @@ def is_traditional_cluster_class(v2_class):
 def class_subrequest(request):
     return request
 
+@pytest.fixture(scope='module')
+def module_subrequest(request):
+    return request
+
 
 @pytest.fixture(scope='class')
 def modified_ansible_adhoc(request):

@@ -2,7 +2,7 @@ import json
 
 import pytest
 
-from tests.api.license import LicenseTest
+from tests.license.license import LicenseTest
 
 
 @pytest.mark.serial
@@ -35,28 +35,27 @@ class TestBasicLicense(LicenseTest):
             "Incorrect license_type returned. Expected 'basic,' " \
             "returned %s." % conf.license_info['license_type']
 
-        default_features = {'surveys': False,
-                            'multiple_organizations': False,
-                            'activity_streams': False,
-                            'ldap': False,
-                            'ha': False,
-                            'system_tracking': False,
-                            'enterprise_auth': False,
-                            'rebranding': False,
-                            'workflows': False}
+        # Since 3.5 we no longer limit features based on basic license https://github.com/ansible/tower/issues/3366
+        default_features = {'surveys': True,
+                            'multiple_organizations': True,
+                            'activity_streams': True,
+                            'ldap': True,
+                            'ha': True,
+                            'system_tracking': True,
+                            'enterprise_auth': True,
+                            'rebranding': True,
+                            'workflows': True}
 
         # assess default features
         assert conf.license_info['features'] == default_features, \
             "Unexpected features returned for basic license: %s." % conf.license_info
 
-    def test_job_launch(self, job_template):
+    def test_job_launch(self, v2, factories):
         """Verify that job templates can be launched."""
+        if v2.hosts.get(page_size=50).count >= 10:
+            pytest.skip("Skipping because tower has too many hosts for this to work. Clean up tower and try again.")
+        job_template = factories.job_template()
         job_template.launch().wait_until_completed()
-
-
-@pytest.mark.serial
-@pytest.mark.usefixtures('authtoken', 'install_basic_license')
-class TestBasicLicenseSerial(LicenseTest):
 
     def test_instance_counts(self, request, api_config_pg, api_hosts_pg, inventory, group):
         self.assert_instance_counts(request, api_config_pg, api_hosts_pg, group)

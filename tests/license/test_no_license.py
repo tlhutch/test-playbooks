@@ -5,7 +5,7 @@ from towerkit.utils import poll_until
 import fauxfactory
 import pytest
 
-from tests.api.license import LicenseTest
+from tests.license.license import LicenseTest
 
 
 @pytest.mark.serial
@@ -81,11 +81,6 @@ class TestNoLicense(LicenseTest):
         # Assert that no license has been applied
         conf = api_config_pg.get()
         assert conf.license_info == {}, "No license was expected, found %s" % conf.license_info
-
-
-@pytest.mark.serial
-@pytest.mark.usefixtures('authtoken', 'no_license')
-class TestNoLicenseSerial(LicenseTest):
 
     def test_post_legacy_license(self, api_config_pg, legacy_license_json):
         """Verify that a license can be installed by issuing a POST to the /config endpoint"""

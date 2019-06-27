@@ -5,7 +5,7 @@ from towerkit.tower import license
 import fauxfactory
 import pytest
 
-from tests.api.license import LicenseTest
+from tests.license.license import LicenseTest
 
 
 @pytest.mark.serial
@@ -113,10 +113,6 @@ class TestEnterpriseLicense(LicenseTest):
         for service in self.ENTERPRISE_AUTH_SERVICES:
             api_settings_pg.get_endpoint(service)
 
-
-@pytest.mark.serial
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license')
-class TestEnterpriseLicenseSerial(LicenseTest):
 
     def test_instance_counts(self, request, api_config_pg, api_hosts_pg, inventory, group):
         self.assert_instance_counts(request, api_config_pg, api_hosts_pg, group)

@@ -108,38 +108,3 @@ def apply_license(api):
                 teardown_license()
 
     return _apply_license
-
-
-@pytest.fixture(scope='class')
-def no_license(apply_license, class_subrequest):
-    with apply_license(None, request=class_subrequest):
-        yield
-
-
-@pytest.fixture(scope='class')
-def install_legacy_license(apply_license, class_subrequest):
-    with apply_license('legacy', request=class_subrequest):
-        yield
-
-
-@pytest.fixture(scope='class')
-def install_basic_license(apply_license, class_subrequest):
-    with apply_license('basic', request=class_subrequest):
-        yield
-
-
-@pytest.fixture(scope='class')
-def install_enterprise_license(apply_license, class_subrequest):
-    with apply_license('enterprise', request=class_subrequest):
-        yield
-
-
-@pytest.fixture(scope='class')
-def install_enterprise_license_unlimited(apply_license, class_subrequest):
-    with apply_license('enterprise', request=class_subrequest):
-        yield
-
-@pytest.fixture(scope='session', autouse=True)
-def session_install_enterprise_license_unlimited(apply_license, class_subrequest):
-    with apply_license('enterprise', request=class_subrequest):
-        yield

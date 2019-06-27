@@ -7,6 +7,8 @@ import fauxfactory
 @pytest.fixture(scope="function")
 def default_organization(api_organizations_pg):
     matches = api_organizations_pg.get(name='Default')
+    if matches.count < 1:
+        pytest.skip("Did not find Default organization, can't run this test! Skipping.")
     assert matches.count == 1, "Default organization not found."
     org = matches.results.pop()
 
