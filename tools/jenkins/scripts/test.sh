@@ -24,6 +24,10 @@ CREDS=$(retrieve_credential_file "${INVENTORY}")
 set +e
 
 if ! is_tower_cluster "${INVENTORY}"; then
+    if [[ -n "${TESTEXPR}" ]]; then
+        TESTEXPR=" and (${TESTEXPR})"
+    fi
+
     # Let's run tests in parallel
     if ! pytest -v -c config/api.cfg \
         --junit-xml=reports/junit/results-parallel.xml \
@@ -32,7 +36,7 @@ if ! is_tower_cluster "${INVENTORY}"; then
         --api-credentials="${CREDS}" \
         --github-cfg="${CREDS}" \
         --base-url="https://${TOWER_HOST}" \
-        -k "not serial and (${TESTEXPR})" \
+        -k "not serial${TESTEXPR}" \
         -n 4 --dist=loadfile
     then
         sleep 300
@@ -46,7 +50,7 @@ if ! is_tower_cluster "${INVENTORY}"; then
         --api-credentials="${CREDS}" \
         --github-cfg="${CREDS}" \
         --base-url="https://${TOWER_HOST}" \
-        -k "serial and (${TESTEXPR})"
+        -k "serial${TESTEXPR}"
     then
         sleep 300
         pytest --cache-show "cache/lastfailed"
