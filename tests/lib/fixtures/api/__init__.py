@@ -70,6 +70,16 @@ def authtoken(v2_class):
     v2_class.connection.login(token=token)
     return token
 
+@pytest.fixture(scope="session")
+def session_authtoken(v2_session):
+    """Logs in to the application with default credentials"""
+    if qe_config.use_sessions:
+        v2_session.load_session()
+        return v2_session.connection.session_id
+    token = v2_session.get_authtoken()
+    v2_session.connection.login(token=token)
+    return token
+
 
 # /api/v2/dashboard
 @pytest.fixture(scope="class")

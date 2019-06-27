@@ -188,7 +188,6 @@ def class_subrequest(request):
 def module_subrequest(request):
     return request
 
-
 @pytest.fixture(scope='class')
 def modified_ansible_adhoc(request):
     # HACK: re-implement ansible_adhoc fixture from pytest-ansible
