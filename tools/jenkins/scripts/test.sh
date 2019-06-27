@@ -26,21 +26,22 @@ CREDS=$(retrieve_credential_file "${INVENTORY}")
 
 set +e
 
+# Run license tests that need to run serially
+if ! pytest -v -c config/api.cfg \
+    --junit-xml=reports/junit/results-license.xml \
+    --ansible-host-pattern="${TOWER_HOST}" \
+    --ansible-inventory="${INVENTORY}" \
+    --api-credentials="${CREDS}" \
+    --github-cfg="${CREDS}" \
+    --base-url="https://${TOWER_HOST}" \
+    -k "(${TESTEXPR})" \
+    tests/license
+then
+    sleep 30
+    pytest --cache-show "cache/lastfailed"
+fi
+
 if ! is_tower_cluster "${INVENTORY}"; then
-    # Run license tests that need to run serially
-    if ! pytest -v -c config/api.cfg \
-        --junit-xml=reports/junit/results-license.xml \
-        --ansible-host-pattern="${TOWER_HOST}" \
-        --ansible-inventory="${INVENTORY}" \
-        --api-credentials="${CREDS}" \
-        --github-cfg="${CREDS}" \
-        --base-url="https://${TOWER_HOST}" \
-        -k "(${TESTEXPR})"
-        tests/license
-    then
-        sleep 300
-        pytest --cache-show "cache/lastfailed"
-    fi
 
 # Let's run tests in parallel
     if ! pytest -v -c config/api.cfg \
