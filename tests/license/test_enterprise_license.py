@@ -52,8 +52,9 @@ class TestEnterpriseLicense(LicenseTest):
         assert conf.license_info['features'] == default_features, \
             "Unexpected features returned for enterprise license: %s." % conf.license_info
 
-    def test_job_launch(self, job_template):
+    def test_job_launch(self, factories):
         """Verify that job templates can be launched."""
+        job_template = factories.job_template()
         job_template.launch().wait_until_completed()
 
     def test_instance_counts(self, request, api_config_pg, api_hosts_pg, inventory, group):
