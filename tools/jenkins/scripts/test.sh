@@ -15,7 +15,7 @@ setup_python3_env
 pip install -Ur scripts/requirements.install
 pip install -Ur requirements.txt
 
-pip uninstall pytest-mp || true
+echo "y" | pip uninstall pytest-mp || true
 
 INVENTORY=$(retrieve_inventory_file)
 TOWER_HOST=$(retrieve_tower_server_from_inventory "${INVENTORY}")
