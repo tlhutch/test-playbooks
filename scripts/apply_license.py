@@ -50,17 +50,18 @@ def run():
     opener = urllib.request.build_opener(https_handler)
     urllib.request.install_opener(opener)
 
-    # encode credentials
-    encoded_credentials = base64.b64encode('%s:%s' % (args.username, args.password))
+    # create credentials
+    creds = f'{args.username}:{args.password}'
+    creds = base64.b64encode(creds.encode()).decode('ascii')
 
     # make POST request to add the license
     headers = {
-        'Authorization': 'Basic %s' % encoded_credentials,
+        'Authorization': 'Basic %s' % creds,
         'Content-type': 'application/json'
     }
     request = urllib.request.Request(
         args.base_url + '/api/v2/config/',
-        json.dumps(LICENSE),
+        json.dumps(LICENSE).encode('ascii'),
         headers
     )
 
