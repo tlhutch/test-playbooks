@@ -101,10 +101,10 @@ pytest -v -c config/api.cfg \
 if [[ -f reports/junit/results-parallel.xml ]]; then
     ./scripts/merge_junit \
        reports/junit/results-parallel.xml \
-       reports/junit/results{,-rerun,-final,-license}.xml
+       reports/junit/results{,-rerun,-license}.xml
 else
     ./scripts/merge_junit \
-        reports/junit/results{,-rerun,-final,-license}.xml
+        reports/junit/results{,-rerun,-license}.xml
 fi
 
 set -e
