@@ -99,18 +99,12 @@ pytest -v -c config/api.cfg \
     --base-url="https://${TOWER_HOST}"
 
 if [[ -f reports/junit/results-parallel.xml ]]; then
-    if [[ -f reports/junit/results-license.xml ]]; then
-        ./scripts/merge_junit \
-            reports/junit/results-parallel.xml \
-            reports/junit/results-license.xml \
-            reports/junit/results{,-rerun,-final}.xml
-    else
-        ./scripts/merge_junit \
-            reports/junit/results-parallel.xml \
-            reports/junit/results{,-rerun,-final}.xml
+    ./scripts/merge_junit \
+       reports/junit/results-parallel.xml \
+       reports/junit/results{,-rerun,-final,-license}.xml
 else
     ./scripts/merge_junit \
-        reports/junit/results{,-rerun,-final}.xml
+        reports/junit/results{,-rerun,-final,-license}.xml
 fi
 
 set -e
