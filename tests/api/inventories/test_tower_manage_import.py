@@ -134,21 +134,6 @@ class TestTowerManageInventoryImport(APITest):
         assert inventory.get_related('groups').count == 13
         assert inventory.get_related('hosts').count == 10
 
-    @pytest.mark.serial
-    def test_import_license_exceeded(self, api_config_pg, ansible_runner, inventory):
-        """Verify import fails if the number of imported hosts exceeds licensed host allowance."""
-        api_config_pg.install_license(1000)
-        dest = upload_inventory(ansible_runner, nhosts=2000)
-
-        contacted = ansible_runner.shell('awx-manage inventory_import --inventory-id {0} --source {1}'.format(inventory.id, dest))
-        for result in contacted.values():
-            assert result['rc'] == 1, "Unexpected awx-manage inventory_import success." \
-                "\n[stdout]\n%s\n[stderr]\n%s" % (result['stdout'], result['stderr'])
-        "Number of licensed instances exceeded" in result['stderr']
-
-        assert inventory.get_related('groups').count == 0
-        assert inventory.get_related('hosts').count == 0
-
     def test_import_instance_id_constraint(self, ansible_runner, inventory):
         """Verify that successive inventory imports containing a host with the same name
         and different instance IDs succeed.

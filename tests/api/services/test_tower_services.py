@@ -68,7 +68,7 @@ class TestTowerServices(APITest):
         assert not plugin_inactive, f"sosreport --list-plugins showed that {plugin} plugin was installed but inactive.\n stdout: {pformat(stdout)}\n stderr: {pformat(stderr)}"
         assert not plugin_off, f"sosreport --list-plugins showed that {plugin} plugin was installed but not enabled (off). \n stdout: {pformat(stdout)}\n stderr: {pformat(stderr)}"
 
-    def test_tower_restart(self, install_enterprise_license_unlimited, factories, v2, ansible_runner):
+    def test_tower_restart(self, factories, v2, ansible_runner):
         jt = factories.job_template(playbook='sleep.yml',
                                        extra_vars=dict(sleep_interval=60))
         jt.ds.inventory.add_host()
@@ -102,8 +102,7 @@ class TestTowerServices(APITest):
         job = jt.launch().wait_until_completed()
         job.assert_successful(msg='Newly launched job was not successful after ansible-tower-service restart!')
 
-    def test_rabbitmq_unavailable(self, install_enterprise_license_unlimited,
-                                  factories, v2, ansible_runner, ansible_os_family):
+    def test_rabbitmq_unavailable(self, factories, v2, ansible_runner, ansible_os_family):
         jt = factories.job_template(playbook='sleep.yml',
                                        extra_vars=dict(sleep_interval=60))
         jt.ds.inventory.add_host()
@@ -149,8 +148,7 @@ class TestTowerServices(APITest):
         new_job = new_jt.launch().wait_until_completed()
         new_job.assert_successful(msg='Job launched from newly created JT after rabbitmq restart failed!')
 
-    def test_database_unavailable(self, install_enterprise_license_unlimited,
-                                  factories, v2, ansible_adhoc, ansible_os_family,
+    def test_database_unavailable(self, factories, v2, ansible_adhoc, ansible_os_family,
                                   ansible_distribution_major_version):
         if ansible_os_family == 'Debian' or ansible_distribution_major_version == '8':
             pg_service = 'postgresql'

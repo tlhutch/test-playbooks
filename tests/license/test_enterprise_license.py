@@ -1,8 +1,10 @@
 import json
 
-from towerkit.tower import license
 import fauxfactory
 import pytest
+
+from towerkit.tower import license
+from towerkit.tower.inventory import upload_inventory
 
 from tests.license.license import LicenseTest
 
@@ -87,6 +89,28 @@ class TestEnterpriseLicense(LicenseTest):
         expected_license_key = basic_license_json['license_key']
         assert after_license_key == expected_license_key, \
             "Unexpected license_key. Expected %s, found %s" % (expected_license_key, after_license_key)
+
+    def test_import_license_exceeded(self, api_config_pg, ansible_runner, inventory):
+        """Verify import fails if the number of imported hosts exceeds licensed host allowance."""
+        api_config_pg.install_license(1000)
+        dest = upload_inventory(ansible_runner, nhosts=2000)
+
+        contacted = ansible_runner.shell('awx-manage inventory_import --inventory-id {0} --source {1}'.format(inventory.id, dest))
+        for result in contacted.values():
+            assert result['rc'] == 1, "Unexpected awx-manage inventory_import success." \
+                "\n[stdout]\n%s\n[stderr]\n%s" % (result['stdout'], result['stderr'])
+        "Number of licensed instances exceeded" in result['stderr']
+
+        assert inventory.get_related('groups').count == 0
+        assert inventory.get_related('hosts').count == 0
+
+    def test_unable_to_change_system_license(self, v2):
+        system_settings = v2.settings.get().get_endpoint('system')
+        license = system_settings.LICENSE
+
+        system_settings.LICENSE = {}
+        system_settings.delete()
+        assert system_settings.get().LICENSE == license
 
     def test_delete_license(self, api_config_pg):
         """Verify the license_info field is empty after deleting the license"""

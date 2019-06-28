@@ -1,9 +1,7 @@
 import logging
-import sys
 import re
 import json
 
-from towerkit.tower.license import generate_license
 from towerkit import exceptions as exc
 from towerkit.utils import poll_until
 import fauxfactory
@@ -570,35 +568,6 @@ class TestGeneralSettings(APITest):
             assert matching_non_org_users.count == 0, \
                 "An org_admin is able to see users (%s) outside the organization, despite the setting " \
                 "ORG_ADMINS_CAN_SEE_ALL_USERS:False" % matching_non_org_users.count
-
-    def test_displayed_system_license(self, api_config_pg, api_settings_system_pg):
-        """Verifies that our exact license contents gets displayed under /api/v2/settings/system/.
-
-        Note: the towerkit license generator auto-appends a 'eula_accepted' field which is not
-        actually part of the license so we remove that manually below.
-        """
-        # install test license
-        log.debug("Installing enterprise license for test_system_license.")
-        license_info = generate_license(
-            days=365,
-            instance_count=sys.maxsize,
-            license_type='enterprise')
-        api_config_pg.post(license_info)
-        del license_info['eula_accepted']
-
-        # check /api/v2/settings/system/ 'LICENSE' field
-        returned_license = api_settings_system_pg.get().json['LICENSE']
-        assert license_info == returned_license, \
-            "Discrepancy between license and license displayed under /api/v2/settings/system/." \
-            "\n\nLicense:\n{0}\n\nAPI returned:\n{1}\n".format(json.dumps(license_info), json.dumps(returned_license))
-
-    def test_unable_to_change_system_license(self, v2):
-        system_settings = v2.settings.get().get_endpoint('system')
-        license = system_settings.LICENSE
-
-        system_settings.LICENSE = {}
-        system_settings.delete()
-        assert system_settings.get().LICENSE == license
 
     def test_changed_settings(self, modify_settings, api_settings_changed_pg):
         """Verifies that changed entries show under /api/v2/settings/changed/.

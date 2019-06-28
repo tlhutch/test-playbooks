@@ -366,7 +366,7 @@ class Test_Projects(APITest):
         update.wait_until_completed().assert_successful()
         project.get().assert_successful()
 
-    def test_delete_related_fields(self, install_enterprise_license_unlimited, project_ansible_playbooks_git):
+    def test_delete_related_fields(self, project_ansible_playbooks_git):
         """Verify that related fields on a deleted resource respond as expected"""
         # delete all the projects
         project_ansible_playbooks_git.delete()

@@ -20,10 +20,10 @@ class Test_License_RBAC(APITest):
             with pytest.raises(towerkit.exceptions.Forbidden):
                 v2.config.post()
 
-    def test_key_visability_as_superuser(self, v2, install_enterprise_license):
+    def test_key_visability_as_superuser(self, v2):
         assert 'license_key' in v2.config.get().license_info
 
-    def test_key_visability_as_nonsuperuser(self, v2, install_enterprise_license, non_superusers):
+    def test_key_visability_as_nonsuperuser(self, v2, non_superusers):
         for user in non_superusers:
             config = v2.config.get()
             if user.is_system_auditor:

@@ -1,9 +1,12 @@
+import sys
 import json
 
-import towerkit.exceptions as exc
-from towerkit.utils import poll_until
 import fauxfactory
 import pytest
+
+import towerkit.exceptions as exc
+from towerkit.tower.license import generate_license
+from towerkit.utils import poll_until
 
 from tests.license.license import LicenseTest
 
@@ -103,3 +106,24 @@ class TestNoLicense(LicenseTest):
         job_template = factories.job_template()
         with pytest.raises(exc.LicenseExceeded):
             job_template.launch()
+
+    def test_displayed_system_license(self, api_config_pg, api_settings_system_pg):
+        """Verifies that our exact license contents gets displayed under /api/v2/settings/system/.
+
+        Note: the towerkit license generator auto-appends a 'eula_accepted' field which is not
+        actually part of the license so we remove that manually below.
+        """
+        # Installing enterprise license for test_system_license.
+        # Put this here because it assumes starting with no license
+        license_info = generate_license(
+            days=365,
+            instance_count=sys.maxsize,
+            license_type='enterprise')
+        api_config_pg.post(license_info)
+        del license_info['eula_accepted']
+
+        # check /api/v2/settings/system/ 'LICENSE' field
+        returned_license = api_settings_system_pg.get().json['LICENSE']
+        assert license_info == returned_license, \
+            "Discrepancy between license and license displayed under /api/v2/settings/system/." \
+            "\n\nLicense:\n{0}\n\nAPI returned:\n{1}\n".format(json.dumps(license_info), json.dumps(returned_license))

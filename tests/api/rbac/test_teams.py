@@ -60,8 +60,7 @@ class Test_Teams(APITest):
             with pytest.raises(exc.Forbidden):
                 api_teams_pg.post(team_payload(organization=organization.id))
 
-    def test_non_superuser_cannot_create_team_in_another_organization(self, api_teams_pg, non_superuser, user_password, organization,
-                                                                      install_enterprise_license_unlimited, another_organization):
+    def test_non_superuser_cannot_create_team_in_another_organization(self, api_teams_pg, non_superuser, user_password, organization, another_organization):
         """Verify that only an organization admin can only create teams within
         their organization.
         """
