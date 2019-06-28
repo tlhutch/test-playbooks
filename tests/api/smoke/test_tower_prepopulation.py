@@ -7,7 +7,7 @@ class Test_Tower_Prepopulation(APITest):
     pytestmark = pytest.mark.usefixtures('authtoken')
 
     @pytest.mark.yolo
-    def test_success(self, default_organization):
+    def test_success(self, skip_docker, default_organization):
         """Tests Tower demo objects."""
         # check demo organization
         assert default_organization.custom_virtualenv is None

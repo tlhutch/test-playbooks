@@ -1,6 +1,5 @@
 import json
 
-from towerkit.api.resources import resources
 from towerkit.tower import license
 import fauxfactory
 import pytest

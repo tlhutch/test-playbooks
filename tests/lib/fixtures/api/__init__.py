@@ -75,6 +75,7 @@ def authtoken(v2_class):
     v2_class.connection.login(token=token)
     return token
 
+
 @pytest.fixture(scope="session")
 def session_authtoken(v2_session):
     """Logs in to the application with default credentials"""
@@ -84,6 +85,7 @@ def session_authtoken(v2_session):
     token = v2_session.get_authtoken()
     v2_session.connection.login(token=token)
     return token
+
 
 @pytest.fixture(scope="module")
 def module_authtoken(v2_module):
