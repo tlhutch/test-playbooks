@@ -3,6 +3,7 @@
 set -euxo pipefail
 
 TESTEXPR=${TESTEXPR:-''}
+INVENTORY=${INVENTORY:-''}
 VARS_FILE=${VARS_FILE:-playbooks/vars.yml}
 
 # -- Start
@@ -17,7 +18,9 @@ pip install -Ur requirements.txt
 
 echo "y" | pip uninstall pytest-mp || true
 
-INVENTORY=$(retrieve_inventory_file)
+if [[ -z "${INVENTORY}" ]]; then
+    INVENTORY=$(retrieve_inventory_file)
+fi
 TOWER_HOST=$(retrieve_tower_server_from_inventory "${INVENTORY}")
 CREDS=$(retrieve_credential_file "${INVENTORY}")
 
