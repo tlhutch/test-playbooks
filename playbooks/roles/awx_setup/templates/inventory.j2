@@ -7,7 +7,7 @@ localhost ansible_connection=local ansible_python_interpreter="{{ hostvars[inven
 {% if 'database' in groups %}
 [database]
 {% for host in groups['database'] %}
-{{ host }} ansible_user={{ hostvars[host]['ansible_user'] }} ansible_host={{ hostvars[host]['ansible_host'] }} ansible_python_interpreter="{{ hostvars[host]['ansible_python_interpreter'] | default('/usr/bin/python env') }}"
+{{ host }} ansible_user={{ hostvars[host]['ansible_user'] }} ansible_host={{ hostvars[host]['ansible_host'] }} ansible_python_interpreter="{{ hostvars[host]['ansible_python_interpreter'] | default('/usr/bin/env python') }}"
 {% endfor %}
 {% endif %}
 
