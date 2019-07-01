@@ -34,7 +34,7 @@ if ! pytest -v -c config/api.cfg \
     --api-credentials="${CREDS}" \
     --github-cfg="${CREDS}" \
     --base-url="https://${TOWER_HOST}" \
-    -k "(${TESTEXPR})" \
+    -k "${TESTEXPR}" \
     tests/license
 then
     sleep 30
@@ -42,8 +42,11 @@ then
 fi
 
 if ! is_tower_cluster "${INVENTORY}"; then
+    if [[ -n "${TESTEXPR}" ]]; then
+        TESTEXPR=" and (${TESTEXPR})"
+    fi
 
-# Let's run tests in parallel
+    # Let's run tests in parallel
     if ! pytest -v -c config/api.cfg \
         --junit-xml=reports/junit/results-parallel.xml \
         --ansible-host-pattern="${TOWER_HOST}" \
@@ -100,13 +103,10 @@ pytest -v -c config/api.cfg \
 
 if [[ -f reports/junit/results-parallel.xml ]]; then
     ./scripts/merge_junit \
-       reports/junit/results-parallel.xml \
-       reports/junit/results{,-rerun,-license}.xml \
-       reports/junit/results-final.xml
+        reports/junit/results{-license,-parallel,,-rerun,-final}.xml
 else
     ./scripts/merge_junit \
-        reports/junit/results{,-rerun,-license}.xml \
-       reports/junit/results-final.xml
+        reports/junit/results{-license,,-rerun,-final}.xml
 fi
 
 set -e
