@@ -94,7 +94,7 @@ Platform under test: ${params.PLATFORM}"""
                         }
 
                         script {
-                            if (!(params.PLATFORM.contains('rhel-8') && params.TOWER_VERSION ==~ /3.5.[0-9]*/)) {
+                            if (!(params.PLATFORM.contains('rhel-8') && params.TOWER_VERSION ==~ /3.5.[0-9]*/) && !(params.TOWER_VERSION ==~ /3.3.[0-9]*/)) {
                                 stage('Plain-Standalone Major Upgrade') {
                                     retry(2) {
                                         build(
@@ -180,7 +180,7 @@ Platform under test: ${params.PLATFORM}"""
                         }
 
                         script {
-                            if (!(params.PLATFORM.contains('rhel-8') && params.TOWER_VERSION ==~ /3.5.[0-9]*/)) {
+                            if (!(params.PLATFORM.contains('rhel-8') && params.TOWER_VERSION ==~ /3.5.[0-9]*/) && !(params.TOWER_VERSION ==~ /3.3.[0-9]*/)) {
                                 stage('Plain-Cluster Major Upgrade') {
                                     retry(2) {
                                         build(
@@ -271,7 +271,7 @@ Platform under test: ${params.PLATFORM}"""
                         }
 
                         script {
-                            if (!(params.PLATFORM.contains('rhel-8') && params.TOWER_VERSION ==~ /3.5.[0-9]*/)) {
+                            if (!(params.PLATFORM.contains('rhel-8') && params.TOWER_VERSION ==~ /3.5.[0-9]*/) && !(params.TOWER_VERSION ==~ /3.3.[0-9]*/)) {
                                 stage('Bundle-Standalone Major Upgrade') {
                                     retry(2) {
                                         build(
@@ -362,7 +362,7 @@ Platform under test: ${params.PLATFORM}"""
                         }
 
                         script {
-                            if (!(params.PLATFORM.contains('rhel-8') && params.TOWER_VERSION ==~ /3.5.[0-9]*/)) {
+                            if (!(params.PLATFORM.contains('rhel-8') && params.TOWER_VERSION ==~ /3.5.[0-9]*/) && !(params.TOWER_VERSION ==~ /3.3.[0-9]*/)) {
                                 stage('Bundle-Cluster Major Upgrade') {
                                     retry(2) {
                                         build(
