@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -euxo pipefail
 
+PYTEST_ARGS=${PYTEST_ARGS:-''}
+
 # shellcheck source=lib/common
 source "$(dirname "${0}")"/lib/common
 setup_python3_env
