@@ -567,7 +567,7 @@ class TestTokenAuthentication(TestTokenAuthenticationBase):
     def test_authenticate_with_invalid_access_token(self, v2, factories):
         with pytest.raises(exc.Unauthorized) as e:
             self.me(str(uuid4()))
-            assert 'Authentication credentials were not provided. To establish a login session, visit /api/login/.' in str(e)
+            assert 'Authentication credentials were not provided. To establish a login session, visit /api/login/.' in str(e.value)
 
     def test_authenticate_with_access_token(self, v2, factories):
         org = factories.organization()
@@ -601,7 +601,7 @@ class TestTokenAuthentication(TestTokenAuthenticationBase):
         token.delete()
         with pytest.raises(exc.Unauthorized) as e:
             res = self.me(token.token)
-            assert 'Authentication credentials were not provided. To establish a login session, visit /api/login/.' in str(e)
+            assert 'Authentication credentials were not provided. To establish a login session, visit /api/login/.' in str(e.value)
 
     def test_access_token_expiration(self, v2, update_setting_pg, factories):
         auth_settings = v2.settings.get().get_endpoint('authentication')
@@ -622,7 +622,7 @@ class TestTokenAuthentication(TestTokenAuthenticationBase):
 
         with pytest.raises(exc.Unauthorized) as e:
             self.me(token.token)
-            assert 'Authentication credentials were not provided. To establish a login session, visit /api/login/.' in str(e)
+            assert 'Authentication credentials were not provided. To establish a login session, visit /api/login/.' in str(e.value)
 
     @pytest.mark.parametrize('scope, forbidden', [
         ('read', True),
@@ -847,7 +847,7 @@ class TestDjangoOAuthToolkitTokenManagement(TestTokenAuthenticationBase):
         # Assert that the token no longer works
         with pytest.raises(exc.Unauthorized) as e:
             self.me(token)
-            assert 'Authentication credentials were not provided. To establish a login session, visit /api/login/.' in str(e)
+            assert 'Authentication credentials were not provided. To establish a login session, visit /api/login/.' in str(e.value)
 
         # Revoke the refresh token
         resp = conn.post(
@@ -904,7 +904,7 @@ class TestDjangoOAuthToolkitTokenManagement(TestTokenAuthenticationBase):
         # assert that the old token no longer works
         with pytest.raises(exc.Unauthorized) as e:
             self.me(old_token)
-            assert 'Authentication credentials were not provided. To establish a login session, visit /api/login/.' in str(e)
+            assert 'Authentication credentials were not provided. To establish a login session, visit /api/login/.' in str(e.value)
 
         # assert that the _new_ token _does_ work
         res = self.me(new_token)

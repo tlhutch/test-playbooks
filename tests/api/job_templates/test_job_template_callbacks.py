@@ -143,7 +143,7 @@ class TestJobTemplateCallbacks(APITest):
         job_template.host_config_key = host_config_key
         with pytest.raises(exc.BadRequest) as e:
             job_template.inventory = None
-        assert 'Cannot enable provisioning callback without an inventory set.' in str(e)
+        assert 'Cannot enable provisioning callback without an inventory set.' in str(e.value)
 
     @pytest.fixture(scope="function")
     def hosts_with_actual_ipv4_for_name_and_random_ssh_host(self, request, factories, group, callback_host):

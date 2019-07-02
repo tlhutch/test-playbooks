@@ -312,7 +312,7 @@ class TestHostFilter(APITest):
         for host_filter in host_filters:
             with pytest.raises(towerkit.exceptions.BadRequest) as e:
                 v2.hosts.get(host_filter=host_filter, page_size=200)
-            assert "Filtering on password is not allowed." in str(e)
+            assert "Filtering on password is not allowed." in str(e.value)
 
     @pytest.mark.yolo
     def test_unicode_search(self, v2, factories):

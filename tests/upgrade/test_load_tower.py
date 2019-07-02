@@ -248,7 +248,7 @@ class TestLoadResources():
                 else:
                     assert job.is_successful
             except Exception as e:
-                pytest.warn(str(e))
+                pytest.warn(str(e.value))
 
     def test_create_instance_group_mapping(self, v2_class):
         igs = v2_class.instance_groups.get().results
