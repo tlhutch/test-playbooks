@@ -105,6 +105,11 @@ pipeline {
             description: 'Should tear the Tower instance down on pipeline success? This will only happen when RUN_TESTS and/or RUN_E2E are selected and the pipeline succeeds.',
             defaultValue: true
         )
+        string(
+            name: 'COMMENTS',
+            description: 'Custom message summarizing the purpose of this yolo job for the Slack Message',
+            defaultValue: 'yolo'
+        )
     }
 
     options {
@@ -388,7 +393,8 @@ pipeline {
     Tower-Packaging - ${params.TOWER_PACKAGING_FORK}/${params.TOWER_PACKAGING_BRANCH}
     Tower-QA - ${params.TOWER_QA_FORK}/${params.TOWER_QA_BRANCH}
     Ansible Version - ${params.ANSIBLE_NIGHTLY_BRANCH}
-    Test Expression - ${params.TESTEXPR}"""
+    Test Expression - ${params.TESTEXPR}
+    Comments - ${params.COMMENTS}"""
             )
 
             script {
@@ -411,7 +417,8 @@ pipeline {
     Tower-Packaging - ${params.TOWER_PACKAGING_FORK}/${params.TOWER_PACKAGING_BRANCH}
     Tower-QA - ${params.TOWER_QA_FORK}/${params.TOWER_QA_BRANCH}
     Ansible Version - ${params.ANSIBLE_NIGHTLY_BRANCH}
-    Test Expression - ${params.TESTEXPR}"""
+    Test Expression - ${params.TESTEXPR}
+    Comments - ${params.COMMENTS}"""
             )
         }
         cleanup {
