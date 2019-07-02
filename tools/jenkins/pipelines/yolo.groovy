@@ -102,7 +102,9 @@ pipeline {
         )
         booleanParam(
             name: 'TEARDOWN_INSTANCE_ON_SUCCESS',
-            description: 'Should tear the Tower instance down on pipeline success? This will only happen when RUN_TESTS and/or RUN_E2E are selected and the pipeline succeeds.',
+            description: '''Will teardown the Tower instance if the pipeline succeeds. 
+            This will only happen when RUN_TESTS and/or RUN_E2E are selected.  
+            Note: the EC2 instance that runs pytest is cleaned up immediately after yolo completes.'''.stripIndent(),
             defaultValue: true
         )
         string(
@@ -388,13 +390,13 @@ pipeline {
                 teamDomain: "ansible",
                 channel: "${SLACK_USERNAME}",
                 message: """<${env.RUN_DISPLAY_URL}|yolo #${env.BUILD_ID}> is :party_parrot:
-    Platform - ${params.PLATFORM}
-    Product - ${params.PRODUCT} - ${params.TOWER_FORK}/${params.TOWER_BRANCH}
-    Tower-Packaging - ${params.TOWER_PACKAGING_FORK}/${params.TOWER_PACKAGING_BRANCH}
-    Tower-QA - ${params.TOWER_QA_FORK}/${params.TOWER_QA_BRANCH}
-    Ansible Version - ${params.ANSIBLE_NIGHTLY_BRANCH}
-    Test Expression - ${params.TESTEXPR}
-    Comments - ${params.COMMENTS}"""
+                Platform - ${params.PLATFORM}
+                Product - ${params.PRODUCT} - ${params.TOWER_FORK}/${params.TOWER_BRANCH}
+                Tower-Packaging - ${params.TOWER_PACKAGING_FORK}/${params.TOWER_PACKAGING_BRANCH}
+                Tower-QA - ${params.TOWER_QA_FORK}/${params.TOWER_QA_BRANCH}
+                Ansible Version - ${params.ANSIBLE_NIGHTLY_BRANCH}
+                Test Expression - ${params.TESTEXPR}
+                Comments - ${params.COMMENTS}""".stripIndent()
             )
 
             script {
@@ -412,13 +414,13 @@ pipeline {
                 teamDomain: "ansible",
                 channel: "${SLACK_USERNAME}",
                 message: """<${env.RUN_DISPLAY_URL}|yolo #${env.BUILD_ID}> is :sad_parrot:
-    Platform - ${params.PLATFORM}
-    Product - ${params.PRODUCT} - ${params.TOWER_FORK}/${params.TOWER_BRANCH}
-    Tower-Packaging - ${params.TOWER_PACKAGING_FORK}/${params.TOWER_PACKAGING_BRANCH}
-    Tower-QA - ${params.TOWER_QA_FORK}/${params.TOWER_QA_BRANCH}
-    Ansible Version - ${params.ANSIBLE_NIGHTLY_BRANCH}
-    Test Expression - ${params.TESTEXPR}
-    Comments - ${params.COMMENTS}"""
+                Platform - ${params.PLATFORM}
+                Product - ${params.PRODUCT} - ${params.TOWER_FORK}/${params.TOWER_BRANCH}
+                Tower-Packaging - ${params.TOWER_PACKAGING_FORK}/${params.TOWER_PACKAGING_BRANCH}
+                Tower-QA - ${params.TOWER_QA_FORK}/${params.TOWER_QA_BRANCH}
+                Ansible Version - ${params.ANSIBLE_NIGHTLY_BRANCH}
+                Test Expression - ${params.TESTEXPR}
+                Comments - ${params.COMMENTS}""".stripIndent()
             )
         }
         cleanup {
