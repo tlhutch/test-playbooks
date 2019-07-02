@@ -102,9 +102,9 @@ pipeline {
         )
         booleanParam(
             name: 'TEARDOWN_INSTANCE_ON_SUCCESS',
-            description: '''Will teardown the Tower instance if the pipeline succeeds. 
+            description: """Will teardown the Tower instance if the pipeline succeeds. 
             This will only happen when RUN_TESTS and/or RUN_E2E are selected.  
-            Note: the EC2 instance that runs pytest is cleaned up immediately after yolo completes.'''.stripIndent(),
+            Note: the EC2 instance that runs pytest is cleaned up immediately after yolo completes.""",
             defaultValue: true
         )
         string(
