@@ -338,13 +338,13 @@ class TestSCMInventorySource(APITest):
         assert inv_source.related.inventory_updates.get().count == 2
 
     def test_cancel_shared_parent_project_update_after_source_change(self, factories, write_access_git_credential):
-        project = factories.project(scm_url='https://github.com/rmfitzpatrick/ansible-playbooks.git',
-                                       scm_branch='inventory_additions')
+        project = factories.project(scm_branch='inventory_additions')
         inv_sources = [factories.inventory_source(source='scm', project=project,
                                                      source_path='inventories/inventory.ini') for _ in range(3)]
         inv_source_ids = set([source.id for source in inv_sources])
         project_inv_source_ids = set([source.id for source in project.related.scm_inventory_sources.get().results])
         assert inv_source_ids == project_inv_source_ids
+        inv_sources[0].update().wait_until_completed()  # populate host ungrouped_host_01
 
         for inv_source in inv_sources:
             inv_source.update_on_project_update = True
@@ -355,16 +355,29 @@ class TestSCMInventorySource(APITest):
         jt.launch().wait_until_completed().assert_successful()
 
         update = project.update().wait_until_status('running')
+        # wait until update spawns the inventory updates
+        utils.poll_until(lambda: update.get_related('scm_inventory_updates').count, interval=0.5, timeout=30)
 
         assert update.related.cancel.get()['can_cancel']
         update.related.cancel.post()
+        # project update will still probably be successful, because this cancel is
+        # done after the project_upate.yml playbook is finished, in post_run_hook
+        update.wait_until_completed()
 
-        for inv_source in inv_sources:
-            updates = inv_source.related.inventory_updates.get().results
-            if updates:
-                assert updates[0].status == 'canceled'
+        for inv_update in update.get_related('scm_inventory_updates').results:
+            inv_update.assert_status('canceled')
 
-        utils.poll_until(lambda: project.get().status == 'canceled', interval=.5, timeout=30)
+        # although the last update may have been successful status, this would
+        # still leave the inventory source with a mis-matched version
+        update2 = project.update().wait_until_completed()
+        assert update2.get_related('scm_inventory_updates').count == 3
+
+        # subsequent updates should not update the inventory sources
+        # because they are now up-to-date
+        # NOTE: there is concern this may be flaky if another test happens to
+        # update the inventory_additions branch since the last assertion
+        update3 = project.update().wait_until_completed()
+        assert update3.get_related('scm_inventory_updates').count == 0
 
     @pytest.mark.github('https://github.com/ansible/tower-qa/issues/2432', skip=True)
     @pytest.mark.ansible_integration
