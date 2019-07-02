@@ -8,16 +8,39 @@ will be the first result found. The result will be updated only if the first
 result is failed, errored or skipped and a success result is found later.
 """
 import argparse
+import enum
 import textwrap
 
-from junitparser import JUnitXml, TestSuite
+from junitparser import Error, Failure, JUnitXml, Skipped, TestSuite
 
 
 _CACHE = {}
 
 
+class ResultType(enum.IntEnum):
+    passed = 1
+    skipped = 2
+    failed = 3
+    errored = 4
+
+
+def _result_type(result):
+    if result is None:
+        return ResultType.passed
+    if isinstance(result, Skipped):
+        return ResultType.skipped
+    if isinstance(result, Error):
+        return ResultType.errored
+    if isinstance(result, Failure):
+        return ResultType.failed
+
+
 def _format_result(result, indent=4 * ' '):
-    output = result.replace('\\n', '\n')
+    result_type = _result_type(result)
+    output = f'{result_type.name}'
+    if result is not None and result.message:
+        message = result.message.replace('\\n', '\n')
+        output += f': {message}'
     return textwrap.indent(output, indent)
 
 
@@ -26,28 +49,30 @@ def _merge_junit(junit, output):
         if case.name not in _CACHE:
             output.add_testcase(case)
             _CACHE[case.name] = case
-        elif _CACHE[case.name].result is not None:
-            if case.result is None:
-                previous_result = _format_result(
-                    _CACHE[case.name].result.message)
-                print(
-                    f'{case.name} with the following previous result is '
-                    f'being updated to success:\n\n'
-                    f'{previous_result}\n'
-                )
-                output.remove_testcase(_CACHE[case.name])
-                output.add_testcase(case)
-                _CACHE[case.name] = case
-            elif _CACHE[case.name].result != case.result:
-                previous_result = _format_result(
-                    _CACHE[case.name].result.message)
-                current_result = _format_result(case.result.message)
-                print(
-                    f'{case.name} was initially stored with result:\n\n'
-                    f'{previous_result}\n\n'
-                    f'But a different result was found:\n\n'
-                    f'{current_result}\n'
-                )
+
+        previous_result = _format_result(
+            _CACHE[case.name].result)
+        previous_type = _result_type(_CACHE[case.name].result)
+        current_result = _format_result(case.result)
+        current_type = _result_type(case.result)
+
+        if previous_type > current_type:
+            print(
+                f'{case.name} with the following previous result:\n\n'
+                f'{previous_result}\n'
+                f'is being updated to:\n\n'
+                f'{current_result}\n'
+            )
+            output.remove_testcase(_CACHE[case.name])
+            output.add_testcase(case)
+            _CACHE[case.name] = case
+        elif previous_type != current_type:
+            print(
+                f'{case.name} is already stored with result:\n\n'
+                f'{previous_result}\n\n'
+                f'And will not be update with the following result:\n\n'
+                f'{current_result}\n'
+            )
 
 
 if __name__ == '__main__':
