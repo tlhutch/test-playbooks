@@ -201,6 +201,7 @@ Bundle?: ${params.BUNDLE}"""
                 sh 'ansible-playbook -v -i playbooks/inventory.test_runner playbooks/test_runner/run_fetch_artifacts.yml'
             }
             archiveArtifacts artifacts: 'artifacts/*'
+            logstashSend failBuild: false, maxLines: 0
         }
 
         cleanup {
