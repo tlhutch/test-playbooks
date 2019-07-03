@@ -14,9 +14,12 @@ pip install -Ur requirements.txt
 ANSIBLE_INVENTORY=playbooks/inventory.log
 INVENTORY_GROUP="${PLATFORM}:&${CLOUD_PROVIDER}"
 INVENTORY_HOST=$(ansible -i ${ANSIBLE_INVENTORY} --list-hosts ${INVENTORY_GROUP} | tail -n 1 | awk 'NR==1{print $1}')
+TOWER_HOST=$(retrieve_tower_server_from_inventory "${ANSIBLE_INVENTORY}")
+CREDS=$(retrieve_credential_file "${ANSIBLE_INVENTORY}")
 
 # decrypt credentials
 ansible-vault decrypt --vault-password-file="${VAULT_FILE}" config/credentials.vault --output=config/credentials.yml
+ansible-vault decrypt --vault-password-file="${VAULT_FILE}" config/credentials-pkcs8.vault --output=config/credentials-pkcs8.yml
 
 # determine if any ansible issues are still unresolved
 py.test -c config/api.cfg --ansible-host-pattern="${INVENTORY_HOST}" --ansible-inventory="${ANSIBLE_INVENTORY}" -k "${TESTEXPR}" --base-url="https://${INVENTORY_HOST}" --github-summary tests/api > github_issues.txt
@@ -34,6 +37,8 @@ run_tests_and_generate_html(){
     --ansible-host-pattern="${INVENTORY_HOST}" \
     --ansible-inventory="${ANSIBLE_INVENTORY}" \
     -k "${TESTEXPR}" \
+    --api-credentials="${CREDS}" \
+    --github-cfg="${CREDS}" \
     --base-url="https://${INVENTORY_HOST}" \
     tests/api
 
