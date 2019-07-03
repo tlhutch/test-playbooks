@@ -1,0 +1,56 @@
+import fauxfactory
+import pytest
+
+
+@pytest.mark.usefixtures('authtoken')
+class TestObjectCreation(object):
+
+    def test_missing_required_arguments(self, cli):
+        result = cli(['awx', 'users', 'create'], auth=True)
+        assert result.returncode == 2
+        assert b'arguments are required: --username' in result.stdout
+        for arg in (
+            b'--username TEXT', b'--first_name TEXT',
+            b'--last_name TEXT', b'--email TEXT', b'--is_superuser BOOLEAN',
+        ):
+            assert arg in result.stdout
+
+    def test_creation(self, cli, v2):
+        username = fauxfactory.gen_alphanumeric()
+        result = cli([
+            'awx', 'users', 'create',
+            '--username', username,
+            '--password', 'secret'
+        ], auth=True)
+        assert result.returncode == 0
+        created = v2.users.get(username=username).results[0]
+        assert result.json['id'] == created.id
+        assert result.json['username'] == username
+        created.delete()
+
+    def test_creation_with_extra_args(self, cli, v2):
+        username = fauxfactory.gen_alphanumeric()
+        result = cli([
+            'awx', 'users', 'create',
+            '--username', username,
+            '--password', 'secret',
+            '--first_name', 'Jane',
+            '--last_name', 'Doe',
+        ], auth=True)
+        assert result.returncode == 0
+        created = v2.users.get(username=username).results[0]
+        assert created.first_name == 'Jane'
+        assert created.last_name == 'Doe'
+        created.delete()
+
+    def test_creation_with_invalid_arguments(self, cli):
+        username = 'x' * 1024
+        result = cli([
+            'awx', 'users', 'create',
+            '--username', username,
+            '--password', 'secret'
+        ], auth=True)
+        assert result.returncode == 1
+        assert result.json == {
+            'username': ['Ensure this field has no more than 150 characters.']
+        }
