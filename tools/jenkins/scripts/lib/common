@@ -20,8 +20,8 @@ function retrieve_boolean_value {
 function retrieve_credential_file {
 
     inventory=$1
-    tower_host=$(retrieve_tower_server_from_inventory "${INVENTORY}")
-    tower_user=$(retrieve_system_user_from_inventory "${INVENTORY}")
+    tower_host=$(retrieve_tower_server_from_inventory "${inventory}")
+    tower_user=$(retrieve_system_user_from_inventory "${inventory}")
 
     is_fips_enabled=$(ssh -ostricthostkeychecking=no "${tower_user}"@"${tower_host}" cat /proc/sys/crypto/fips_enabled)
     if [[ "${is_fips_enabled}" == 1 ]]; then
