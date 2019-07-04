@@ -11,6 +11,11 @@ For any feedback/comment please email <ansible-tower-qe@redhat.com>.
   * [Overview of QE Jenkins](overview_of_qe_jenkins_jobs.md)
 
 
+## Red Hat Cross Projects QE Initiative
+
+  * [Continuous Verification Pipeline](cvp.md)
+
+
 ## How Tos
 
   * [How to lookup official AMIs](how_to_look_up_official_amis.md)

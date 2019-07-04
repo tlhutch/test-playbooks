@@ -1,46 +1,59 @@
-pipelineJob('cvp-ansible-tower-container-testing-functional-trigger') {
+// Example of an event:
+// https://datagrepper.engineering.redhat.com/id?id=ID:jenkins0-9-dxgbt-40434-1562733886163-633:1:1:1:1&is_raw=true&size=extra-large
+//
+
+pipelineJob('CVP Listener') {
+
   definition {
 
-    parameters {
-      stringParam("CI_MESSAGE", "", "Contents of the CI message received from UMB.")
-    }
+      parameters {
+          stringParam("CI_MESSAGE", "", "Contents of the CI message received from UMB.")
+      }
 
-    triggers {
-      ciBuildTrigger {
-        providerData {
-          activeMQSubscriberProviderData {
-            name("Red Hat UMB")
-            overrides {
-              topic("Consumer.rh-jenkins-ci-plugin.85dd57c6-9e86-11e9-8de4-c85b7686606c.VirtualTopic.eng.ci.redhat-container-image.pipeline.running")
-            }
-            checks {
-              msgCheck {
-                field('$.artifact.type')
-                expectedValue("cvp")
+      triggers {
+
+          ciBuildTrigger {
+              providerData {
+                  activeMQSubscriberProviderData {
+                      name("Red Hat UMB")
+
+                      overrides {
+                          topic("Consumer.rh-jenkins-ci-plugin.85dd57c6-9e86-11e9-8de4-c85b7686606c.VirtualTopic.eng.ci.redhat-container-group.test.queued")
+                      }
+
+                      checks {
+                          msgCheck {
+                              field('$.artifact.component')
+                              expectedValue("Ansible Tower")
+                          }
+                          msgCheck {
+                              field('$.artifact.type')
+                              expectedValue("redhat-container-group")
+                          }
+                      }
+                  }
               }
-              // msgCheck {
-              //   field('$.artifact.nvr')
-              //   expectedValue("^ansible-tower.*")
-              // }
-            }
+              noSquash(true)
           }
-        }
-        noSquash(true)
-      }
-    }
 
-    cpsScm {
-      scm {
-        git {
-          remote {
-            url('git@github.com:ansible/tower-qa.git')
-            credentials('d2d4d16b-dc9a-461b-bceb-601f9515c98a')
-          }
-          branch('*/devel')
-        }
       }
-      scriptPath('tools/jenkins/pipelines/cvp-validator.groovy')
-      lightweight(false)
-    }
+
+      cpsScm {
+
+          scm {
+              git {
+                  remote {
+                      url('git@github.com:ansible/tower-qa.git')
+                      credentials('d2d4d16b-dc9a-461b-bceb-601f9515c98a')
+                  }
+                  branch('*/devel')
+              }
+          }
+
+          scriptPath('tools/jenkins/pipelines/cvp-validator.groovy')
+          lightweight(false)
+      }
+
   }
+
 }
