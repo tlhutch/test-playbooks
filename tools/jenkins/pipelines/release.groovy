@@ -88,17 +88,6 @@ Scope selected: ${params.SCOPE}"""
                         )
                     }
                 }
-                stage('OpenShift') {
-                    steps {
-                        build(
-                            job: 'openshift',
-                            parameters: [
-                                string(name: 'TOWER_VERSION', value: _TOWER_VERSION),
-                                string(name: 'TRIGGER_BREW_PIPELINE', value: 'yes'),
-                            ]
-                        )
-                    }
-                }
                 stage('Artifacts') {
                     steps {
                         build(
