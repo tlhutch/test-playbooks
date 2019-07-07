@@ -12,15 +12,6 @@
         my_inventory_file: '{{inventory_dir}}/inventory.cluster'
       when: not awx_upgrade | default(false) | bool
 
-- name: Retrieve Public IPs of all instances
-  hosts: all
-  tasks:
-    - ipify_facts:
-      retries: 2 # allow retries due to previously observed flakiness of ipify_facts module reaching out to external service
-      delay: 3
-      register: result
-      until: result is success
-
 - name: Enable FIPS for isolated nodes
   hosts: 'tower:isolated_group*:instance_group*'
   tasks:
