@@ -8,6 +8,11 @@ pipeline {
             description: 'RHEL Compose Id to test',
         )
         string(
+            name: 'RHEL_IMAGE_NAME',
+            description: 'RHEL Image Name on OpenStack (if diffent than RHEL_COMPOSE_ID)',
+            defaultValue: '${RHEL_COMPOSE_ID}'
+        )
+        string(
             name: 'TOWER_VERSION',
             description: 'Tower version to deploy',
             defaultValue: 'devel'
@@ -57,7 +62,7 @@ Tower Version: ${params.TOWER_VERSION}"""
                              "OS_REGION_NAME=regionOne",
                              "OS_ENDPOINT_TYPE=publicURL",
                              "OS_IDENTITY_API_VERSION=3"]) {
-                        sh "ansible-playbook playbooks/lptesting.yml -e rhel_compose_id=${params.RHEL_COMPOSE_ID} -e tower_version=${params.TOWER_VERSION} --tags deploy"
+                        sh "ansible-playbook playbooks/lptesting.yml -e rhel_compose_id=${params.RHEL_COMPOSE_ID} -e tower_version=${params.TOWER_VERSION} -e rhel_image_name=${RHEL_IMAGE_NAME} --tags deploy"
                     }
                 }
                 archiveArtifacts artifacts: 'playbooks/inventory.lptesting'

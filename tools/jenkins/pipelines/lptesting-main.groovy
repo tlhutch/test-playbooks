@@ -7,6 +7,11 @@ pipeline {
             name: 'RHEL_COMPOSE_ID',
             description: 'RHEL Compose Id to test',
         )
+        string(
+            name: 'RHEL_IMAGE_NAME',
+            description: 'RHEL Image Name on OpenStack (if diffent than RHEL_COMPOSE_ID)',
+            defaultValue: '${RHEL_COMPOSE_ID}'
+        )
     }
 
     options {
@@ -36,6 +41,7 @@ pipeline {
                             job: 'lptesting-pipeline',
                             parameters: [
                                 string(name: 'RHEL_COMPOSE_ID', value: params.RHEL_COMPOSE_ID),
+                                string(name: 'RHEL_IMAGE_NAME', value: RHEL_IMAGE_NAME),
                                 string(name: 'TOWER_VERSION', value: '3.3.5'),
                             ]
                         )
@@ -53,6 +59,7 @@ pipeline {
                             job: 'lptesting-pipeline',
                             parameters: [
                                 string(name: 'RHEL_COMPOSE_ID', value: params.RHEL_COMPOSE_ID),
+                                string(name: 'RHEL_IMAGE_NAME', value: RHEL_IMAGE_NAME),
                                 string(name: 'TOWER_VERSION', value: '3.4.3'),
                             ]
                         )
@@ -64,6 +71,7 @@ pipeline {
                             job: 'lptesting-pipeline',
                             parameters: [
                                 string(name: 'RHEL_COMPOSE_ID', value: params.RHEL_COMPOSE_ID),
+                                string(name: 'RHEL_IMAGE_NAME', value: RHEL_IMAGE_NAME),
                                 string(name: 'TOWER_VERSION', value: '3.5.0'),
                             ]
                         )
