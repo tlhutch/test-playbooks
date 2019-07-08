@@ -8,7 +8,7 @@ from towerkit.api.pages.credentials import credential_type_name_to_config_kind_m
 from towerkit import config as qe_config
 
 
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+@pytest.mark.usefixtures('authtoken')
 class TestResourcesPresent():
     @pytest.fixture(autouse=True)
     def ctid_to_kind(self, v2):

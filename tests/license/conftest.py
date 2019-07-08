@@ -117,3 +117,13 @@ def install_enterprise_license(module_authtoken, apply_license, module_subreques
 def install_enterprise_license_unlimited(module_authtoken, apply_license, module_subrequest):
     with apply_license('enterprise', request=module_subrequest):
         yield
+
+
+@pytest.fixture(scope='session', autouse=False)
+def session_install_enterprise_license_unlimited(session_authtoken, v2_session):
+    """Override the session_install_enterprise_license_unlimited from the parent's directory conftest.
+
+    Make the session_install_enterprise_license_unlimited no-op so it does not affect tests on this
+    package. Be aware that you may get unexpected behavior if you don't run these tests separate from
+    the other tests.
+    """

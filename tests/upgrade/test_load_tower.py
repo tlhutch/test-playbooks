@@ -6,7 +6,7 @@ import pytest
 from towerkit import config, exceptions, utils
 
 
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited')
+@pytest.mark.usefixtures('authtoken')
 class TestLoadResources():
     @pytest.fixture(scope='class')
     def rbac_structure(self, v2_class):
