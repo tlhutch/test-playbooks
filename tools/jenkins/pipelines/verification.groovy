@@ -134,7 +134,7 @@ Platform under test: ${params.PLATFORM}"""
 
                         script {
                             stage('Plain-Standalone Integration') {
-                                build(
+                                ps_integration = build(
                                     job: 'integration-pipeline',
                                     propagate: false,
                                     parameters: [
@@ -146,7 +146,11 @@ Platform under test: ${params.PLATFORM}"""
                                         string(name: 'TESTEXPR', value: testexpr),
                                         string(name: 'DEPLOYMENT_NAME', value: 'evergreen-jenkins-tower-plain-standalone-integration')
                                     ]
-                                )
+                                ).result
+
+                                if (currentBuild.currentResult != 'FAILURE' && ps_integration != 'SUCCESS') {
+                                    currentBuild.result = ps_integration
+                                }
                             }
                         }
                     }
@@ -216,7 +220,7 @@ Platform under test: ${params.PLATFORM}"""
 
                         script {
                             stage('Plain-Cluster Integration') {
-                                build(
+                                pc_integration = build(
                                     job: 'integration-pipeline',
                                     propagate: false,
                                     parameters: [
@@ -228,7 +232,11 @@ Platform under test: ${params.PLATFORM}"""
                                         string(name: 'TESTEXPR', value: testexpr),
                                         string(name: 'DEPLOYMENT_NAME', value: 'evergreen-jenkins-tower-plain-cluster-integration')
                                     ]
-                                )
+                                ).result
+
+                                if (currentBuild.currentResult != 'FAILURE' && pc_integration != 'SUCCESS') {
+                                    currentBuild.result = pc_integration
+                                }
                             }
                         }
                     }
@@ -303,7 +311,7 @@ Platform under test: ${params.PLATFORM}"""
 
                         script {
                             stage('Bundle-Standalone Integration') {
-                                build(
+                                bs_integration = build(
                                     job: 'integration-pipeline',
                                     propagate: false,
                                     parameters: [
@@ -315,7 +323,11 @@ Platform under test: ${params.PLATFORM}"""
                                         string(name: 'TESTEXPR', value: testexpr),
                                         string(name: 'DEPLOYMENT_NAME', value: 'evergreen-jenkins-tower-bundle-standalone-integration')
                                     ]
-                                )
+                                ).result
+
+                                if (currentBuild.currentResult != 'FAILURE' && bs_integration != 'SUCCESS') {
+                                    currentBuild.result = bs_integration
+                                }
                             }
                         }
                     }
@@ -390,7 +402,7 @@ Platform under test: ${params.PLATFORM}"""
 
                         script {
                             stage('Bundle-Cluster Integration') {
-                                build(
+                                bc_integration = build(
                                     job: 'integration-pipeline',
                                     propagate: false,
                                     parameters: [
@@ -402,7 +414,11 @@ Platform under test: ${params.PLATFORM}"""
                                         string(name: 'TESTEXPR', value: testexpr),
                                         string(name: 'DEPLOYMENT_NAME', value: 'evergreen-jenkins-tower-bundle-cluster-integration')
                                     ]
-                                )
+                                ).result
+
+                                if (currentBuild.currentResult != 'FAILURE' && bc_integration != 'SUCCESS') {
+                                    currentBuild.result = bc_integration
+                                }
                             }
                         }
                     }
