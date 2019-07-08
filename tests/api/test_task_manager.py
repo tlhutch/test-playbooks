@@ -1,4 +1,5 @@
 import json
+import time
 
 from towerkit import utils
 from dateutil.parser import parse as du_parse
@@ -530,43 +531,62 @@ class Test_Autospawned_Jobs(APITest):
         sorted_unified_jobs = [initial_project_update, spawned_check_update, [job_pg, spawned_run_update]]
         confirm_unified_jobs(sorted_unified_jobs)
 
-    def test_project_cache_timeout(self, project_ansible_playbooks_git, job_template_ansible_playbooks_git):
-        """Verify that one project update is triggered by a job launch when we enable
-        project update_on_launch and launch a job within the timeout window. Job ordering
-        should be as follows:
-        * Our initial project-post should launch a project update of job_type 'check.'
-        * Our JT launch should spawn an additional project update of job_type 'run.' Our
-        run update should run simultaneously with our job.
+    def test_project_cache_timeout(self, factories):
+        """Verify that dependent project update is NOT triggered by a job launch when we enable
+        project update_on_launch and launch a job within the timeout window.
+        Verify that when a job is launched AFTER the timeout window, that the dependent
+        update is ran.
         """
         # set scm_update_on_launch for the project
-        cache_timeout = 60 * 5
-        project_ansible_playbooks_git.patch(scm_update_on_launch=True,
-                                            scm_update_cache_timeout=cache_timeout)
-        assert project_ansible_playbooks_git.scm_update_on_launch
-        assert project_ansible_playbooks_git.scm_update_cache_timeout == cache_timeout
-        assert project_ansible_playbooks_git.last_updated is not None
+        cache_timeout = 30
+        before_update = time.time()
+        project = factories.project(scm_update_on_launch=True, scm_update_cache_timeout=cache_timeout)
+        window_start = time.time()
+        job_template = factories.job_template(project=project)
+        assert project.scm_update_on_launch is True  # sanity
+        assert project.scm_update_cache_timeout == cache_timeout  # sanity
+        assert project.last_updated is not None
 
         # check the autospawned project update
-        initial_project_updates = project_ansible_playbooks_git.related.project_updates.get()
+        initial_project_updates = project.related.project_updates.get()
         assert initial_project_updates.count == 1, "Unexpected number of initial project updates."
         initial_project_update = initial_project_updates.results.pop()
         assert initial_project_update.job_type == "check", \
             "Unexpected job_type for our initial project update: {0}.".format(initial_project_update.job_type)
 
         # launch job_template and assert successful
-        job_pg = job_template_ansible_playbooks_git.launch().wait_until_completed(timeout=600)
-        job_pg.assert_successful()
+        job1 = job_template.launch().wait_until_completed()
+        job1.assert_successful()
+        assert time.time() - before_update < cache_timeout  # sanity, job was ran well inside cache window
 
         # check that our new project update completes successfully and is of the right type
-        spawned_project_updates = project_ansible_playbooks_git.related.project_updates.get(not__id=initial_project_update.id)
-        assert spawned_project_updates.count == 1, "Unexpected number of final updates."
-        spawned_project_update = spawned_project_updates.results.pop()
-        spawned_project_update.assert_successful()
-        assert spawned_project_update.job_type == 'run', "Expected one new project update of job_type 'run.'"
+        spawned_project_updates = project.related.project_updates.get(
+            not__id=initial_project_update.id,
+            not__launch_type='sync'  # exclude local project syncs
+        )
+        assert spawned_project_updates.count == 0, "Project not supposed to be updated during cache window."
 
         # check that jobs ran sequentially and in the right order
-        sorted_unified_jobs = [initial_project_update, [job_pg, spawned_project_update]]
+        sorted_unified_jobs = [initial_project_update, job1]
         confirm_unified_jobs(sorted_unified_jobs)
+
+        # assure that the cache timeout has passed, but give credit for the
+        # time that has already passed without an update happening, to keep test fast
+        utils.logged_sleep(cache_timeout - (time.time() - window_start))
+
+        # launch job_template while the project cache is now stale
+        job2 = job_template.launch().wait_until_completed()
+        job2.assert_successful()
+
+        spawned_project_updates = project.related.project_updates.get(
+            not__id=initial_project_update.id,
+            not__launch_type='sync'  # exclude local project syncs
+        )
+        assert spawned_project_updates.count == 1, "Project passed cache window, needed to update once."
+        spawned_project_update = spawned_project_updates.results.pop()
+        spawned_project_update.assert_successful()
+        assert spawned_project_update.job_type == 'check'
+        confirm_unified_jobs([initial_project_update, job1, spawned_project_update, job2])
 
     # Skip for openshift because of Github Issue: https://github.com/ansible/tower-qa/issues/2591
     def test_inventory_and_project(self, skip_if_openshift, factories, custom_inventory_source):
