@@ -52,6 +52,7 @@ class TestGovcsim(APITest):
         return factories.inventory_source(name=f'vmware-inventory-source{fauxfactory.gen_utf8()}',
                                           source='vmware', credential=vmware_credential)
 
+    @pytest.mark.github('https://github.com/ansible/ansible/issues/46727', skip=True)
     def test_vmware_inventory_source(self, vmware_inventory_source):
         update = vmware_inventory_source.update()
         update.wait_until_completed().assert_successful()
