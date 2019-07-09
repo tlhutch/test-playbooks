@@ -356,12 +356,3 @@ def job_template_with_random_attributes(v2, factories, api_job_templates_options
                                      become_enabled=fauxfactory.gen_boolean(),
                                      diff_mode=fauxfactory.gen_boolean(),
                                      allow_simultaneous=fauxfactory.gen_boolean())
-
-
-@pytest.fixture(scope="function")
-def job_template_that_writes_to_source(factories, write_access_git_credential):
-    project = factories.project(scm_url='https://github.com/ansible/test-playbooks.git')
-    jt = factories.job_template(inventory=factories.host().ds.inventory, project=project,
-                                   playbook='utils/trigger_update.yml')
-    jt.add_extra_credential(write_access_git_credential)
-    return jt

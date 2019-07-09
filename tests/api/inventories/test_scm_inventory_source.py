@@ -502,25 +502,19 @@ class TestSCMInventorySource(APITest):
         hostnames = set([summary.summary_fields.host.name for summary in job_host_summaries])
         assert hostnames == self.inventory_hostnames
 
-    def test_scm_inv_source_with_update_on_project_update_synced_within_parent_project_update(self, factories,
-                                                                                              job_template_that_writes_to_source):
-        job_template_that_writes_to_source.launch().wait_until_completed().assert_successful()
-
-        project = job_template_that_writes_to_source.ds.project
+    def test_scm_inv_source_with_update_on_project_update_synced_within_parent_project_update(self, factories):
+        project = factories.project()
         scm_inv_source = factories.inventory_source(source='scm', source_path='inventories/inventory.ini',
                                                        project=project)
         scm_inv_source.update_on_project_update = True
 
-        project.update().wait_until_completed().assert_successful()
+        parent_update = project.update().wait_until_completed()
+        parent_update.assert_successful()
         scm_inv_source.get().assert_successful()
 
         inv_updates = scm_inv_source.related.inventory_updates.get().results
         assert len(inv_updates) == 1
         inv_update = inv_updates[0]
-
-        project_updates = project.related.project_updates.get(launch_type='manual', order_by='id').results
-        assert len(project_updates) == 2
-        parent_update = project_updates[1]
 
         assert parent_update.started < inv_update.started
         assert parent_update.finished > inv_update.finished
@@ -534,28 +528,23 @@ class TestSCMInventorySource(APITest):
         assert project.update().wait_until_completed().status == 'failed'
         assert inv_source.related.inventory_updates.get().count == 0
 
-    def test_project_update_for_scm_inv_source_with_running_update_on_project_update(self, factories,
-                                                                                     job_template_that_writes_to_source):
-        job_template_that_writes_to_source.launch().wait_until_completed().assert_successful()
-        project = job_template_that_writes_to_source.ds.project
+    def test_project_update_for_scm_inv_source_with_running_update_on_project_update(self, factories):
+        project = factories.project()
         scm_inv_source = factories.inventory_source(source='scm', source_path='inventories/inventory.ini',
                                                        project=project)
         scm_inv_source.update_on_project_update = True
 
         #  update the project and immediately schedule another update
-        project.update().wait_until_status('running')
-        project.update()
+        parent_update = project.update().wait_until_status('running')
+        subsequent_update = project.update()
         scm_inv_source.wait_until_completed().assert_successful()
 
         inv_updates = scm_inv_source.related.inventory_updates.get().results
         assert len(inv_updates) == 1
         inv_update = inv_updates[0]
 
-        project_updates = project.related.project_updates.get(launch_type='manual', order_by='id').results
-        assert len(project_updates) == 3
-        parent_update = project_updates[1]
-        subsequent_update = project_updates[2]
         subsequent_update.wait_until_completed()
+        parent_update.get()
 
         assert parent_update.started < inv_update.started
         assert parent_update.finished > inv_update.finished
@@ -609,9 +598,8 @@ class TestSCMInventorySource(APITest):
         hostnames = set([summary.summary_fields.host.name for summary in job_host_summaries])
         assert hostnames == self.inventory_hostnames
 
-    def test_canceled_inventory_update_during_project_update(self, factories, job_template_that_writes_to_source):
-        job_template_that_writes_to_source.launch().wait_until_completed().assert_successful()
-        project = job_template_that_writes_to_source.ds.project
+    def test_canceled_inventory_update_during_project_update(self, factories):
+        project = factories.project()
         inv_source = factories.inventory_source(source='scm', source_path='inventories/inventory.ini',
                                                    project=project)
         inv_source.update_on_project_update = True
