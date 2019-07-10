@@ -334,7 +334,7 @@ pipeline {
             }
 
             steps {
-                withEnv(["TESTEXPR=${TESTEXPR}"]) {
+                withEnv(["TESTEXPR=${params.TESTEXPR}"]) {
                     sshagent(credentials : ['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
                         sh "ssh ${SSH_OPTS} ec2-user@${TEST_RUNNER_HOST} 'cd tower-qa && TESTEXPR=\"${TESTEXPR}\" ./tools/jenkins/scripts/test.sh'"
                         sh 'ansible-playbook -v -i playbooks/inventory.test_runner playbooks/test_runner/run_fetch_artifacts_test.yml'
