@@ -382,10 +382,6 @@ pipeline {
     post {
         always {
             archiveArtifacts allowEmptyArchive: true, artifacts: 'artifacts/*'
-
-            sh "env"
-
-            echo "${env}"
         }
         success {
             slackSend(
