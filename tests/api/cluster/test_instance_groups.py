@@ -192,3 +192,45 @@ class TestInstanceGroups(APITest):
         for field in ('capacity', 'committed_capacity', 'consumed_capacity', 'percent_capacity_remaining',
                       'jobs_running', 'instances', 'controller'):
             assert getattr(ig, field) == original_json[field]
+
+
+@pytest.mark.serial
+@pytest.mark.usefixtures('authtoken', 'skip_if_not_cluster')
+class TestInstanceGroupOrderOnObjects(APITest):
+
+    def test_instance_group_order_respected(self, v2, factories):
+        """A list of instance groups on an object should be ordered, and that order should be respected when launching
+        jobs.
+        """
+        instance_groups = v2.instance_groups.get().results
+        instance_group_ids = [ig.id for ig in instance_groups]
+        instance_group_ids_to_instances_map = {ig.id: ig.policy_instance_list for ig in instance_groups}
+        org = factories.organization()
+        inv = factories.inventory(organization=org)
+        jt_with_igs = factories.job_template(inventory=inv, organization=org)
+        jt = factories.job_template(inventory=inv, organization=org)
+        org_igs = instance_group_ids[1::2]
+        jt_igs = org_igs[1::2]
+        jt_igs.reverse()
+        assert jt_igs[0] != org_igs[0]
+        for ig in org_igs:
+            with pytest.raises(exc.NoContent):
+                org.related.instance_groups.post(dict(id=ig, associate=True))
+        actual_org_igs = org.related.instance_groups.get().results
+        actual_org_igs = [ig.id for ig in actual_org_igs]
+        assert actual_org_igs == org_igs
+
+        for ig in jt_igs:
+            with pytest.raises(exc.NoContent):
+                jt_with_igs.related.instance_groups.post(dict(id=ig, associate=True))
+        actual_jt_igs = jt_with_igs.related.instance_groups.get().results
+        actual_jt_igs = [ig.id for ig in actual_jt_igs]
+        assert actual_jt_igs == jt_igs
+
+        job_default_org_ig = jt.launch().wait_until_completed()
+        job_default_org_ig.assert_successful()
+        job_from_jt_with_ig = jt_with_igs.launch().wait_until_completed()
+        job_from_jt_with_ig.assert_successful()
+        # Assert job used appropriate execution node
+        assert job_default_org_ig.execution_node in instance_group_ids_to_instances_map[org_igs[0]]
+        assert job_from_jt_with_ig.execution_node in instance_group_ids_to_instances_map[jt_igs[0]]
