@@ -195,7 +195,7 @@ class TestInstanceGroups(APITest):
 
 
 @pytest.mark.serial
-@pytest.mark.usefixtures('authtoken', 'install_enterprise_license_unlimited', 'skip_if_not_cluster')
+@pytest.mark.usefixtures('authtoken', 'skip_if_not_cluster')
 class TestInstanceGroupOrderOnObjects(APITest):
 
     def test_instance_group_order_respected(self, v2, factories):
