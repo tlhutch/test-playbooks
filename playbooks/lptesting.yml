@@ -35,7 +35,6 @@
 
 
 - hosts: tower
-  gather_facts: no
   become: true
   tags:
     - prepare
@@ -46,7 +45,6 @@
 
 
 - hosts: tower
-  gather_facts: no
   become: true
   tags:
     - install
