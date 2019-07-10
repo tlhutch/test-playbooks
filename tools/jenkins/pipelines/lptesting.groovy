@@ -39,7 +39,7 @@ Tower Version: ${params.TOWER_VERSION}"""
                                  file(credentialsId: 'abcd0260-fb83-404e-860f-f9697911a0bc', variable: 'VAULT_FILE'),
                                  string(credentialsId: 'awx_admin_password', variable: 'AWX_ADMIN_PASSWORD')]) {
                     withEnv(["OUT_OF_BOX=yes", "AWS_SECRET_KEY=DUMMY", "AWS_ACCESS_KEY=DUMMY",
-                             "ANSIBLE_INSTALL_METHOD=stable",
+                             "ANSIBLE_INSTALL_METHOD=none",
                              "AWX_ADMIN_PASSWORD=${AWX_ADMIN_PASSWORD}", "TOWER_VERSION=${params.TOWER_VERSION}"]) {
                         sh 'pip install -U openstackclient'
                         sh 'mkdir -p ~/.ssh && cp ${PUBLIC_KEY} ~/.ssh/id_rsa.pub'
