@@ -62,7 +62,8 @@ Tower Version: ${params.TOWER_VERSION}"""
                              "OS_USERNAME=yguenane",
                              "OS_REGION_NAME=regionOne",
                              "OS_ENDPOINT_TYPE=publicURL",
-                             "OS_IDENTITY_API_VERSION=3"]) {
+                             "OS_IDENTITY_API_VERSION=3",
+                             "ANSIBLE_FORCE_COLOR=true"]) {
                         sh "ansible-playbook playbooks/lptesting.yml -e rhel_compose_id=${params.RHEL_COMPOSE_ID} -e tower_version=${params.TOWER_VERSION} -e rhel_image_name=${RHEL_IMAGE_NAME} --tags deploy"
                     }
                 }
@@ -73,8 +74,10 @@ Tower Version: ${params.TOWER_VERSION}"""
         stage ('Prepare RHEL Tower node') {
             steps {
                 withCredentials([string(credentialsId: '59bf4b91-d28d-4ca1-a21d-cc26112e8725', variable: 'ACCESS_PASSWORD')]) {
-                    sshagent(credentials : ['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
-                        sh "ansible-playbook -i playbooks/inventory.lptesting playbooks/lptesting.yml -e tower_version=${params.TOWER_VERSION} -e red_hat_username='yguenane@redhat.com' -e rhel_compose_id=${params.RHEL_COMPOSE_ID} -e red_hat_password='${ACCESS_PASSWORD}' --tags prepare"
+                    withEnv(["ANSIBLE_FORCE_COLOR=true"]) {
+                        sshagent(credentials : ['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
+                            sh "ansible-playbook -i playbooks/inventory.lptesting playbooks/lptesting.yml -e tower_version=${params.TOWER_VERSION} -e red_hat_username='yguenane@redhat.com' -e rhel_compose_id=${params.RHEL_COMPOSE_ID} -e red_hat_password='${ACCESS_PASSWORD}' --tags prepare"
+                        }
                     }
                 }
             }
@@ -82,8 +85,10 @@ Tower Version: ${params.TOWER_VERSION}"""
 
         stage ('Install Tower') {
             steps {
-                sshagent(credentials : ['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
-                    sh 'ansible-playbook -i playbooks/inventory.lptesting playbooks/lptesting.yml -e @playbooks/vars.yml --tags install'
+                withEnv(["ANSIBLE_FORCE_COLOR=true"]) {
+                    sshagent(credentials : ['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
+                        sh 'ansible-playbook -i playbooks/inventory.lptesting playbooks/lptesting.yml -e @playbooks/vars.yml --tags install'
+                    }
                 }
             }
         }
