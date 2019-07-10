@@ -11,6 +11,7 @@ from towerkit.utils import poll_until
 from tests.license.license import LicenseTest
 
 
+@pytest.mark.first
 @pytest.mark.serial
 @pytest.mark.usefixtures('authtoken', 'no_license')
 class TestNoLicense(LicenseTest):
