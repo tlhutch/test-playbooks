@@ -10,16 +10,6 @@ import pytest
 
 from tests.api import APITest
 
-# this will get us to whatever python3 is on the box,
-# regarless of what distro it is
-CUSTOM_VENVS = [
-                {
-                'name': 'python3_ansible_devel',
-                'packages': 'psutil git+https://github.com/ansible/ansible@devel#egg=ansible_devel openstacksdk boto botocore requests>=2.18.4 google-auth>=1.3.0 openstacksdk azure>=2.0.0',
-                'python_interpreter': 'python3'
-                },
-                ]
-
 
 def assert_expected_hostvars(inv_source,
     inv_update,
@@ -165,31 +155,17 @@ def assert_expected_hostnames(inv_source, cloud_hostvars_that_create_host_names)
 @pytest.mark.usefixtures(
     'authtoken',
     'skip_if_openshift',
-    'shared_custom_venvs'
 )
-@pytest.mark.serial
-@pytest.mark.fixture_args(venvs=CUSTOM_VENVS)
 class TestInventoryUpdateWithVenvs(APITest):
     """Test inventory updates in the default as well as other venvs.
 
     This provides ability to test different versions of anisble side by side on
     the same Tower as well as test different versions of python.
     """
-    ALL_VENVS = [{'name': 'default'}]
-    ALL_VENVS.extend(CUSTOM_VENVS)
-    @pytest.fixture(params=ALL_VENVS, ids=[venv.get('name', 'default') for venv in ALL_VENVS])
-    def custom_venv_path(self, request, venv_path):
-        if request.param['name'] != 'default':
-            return venv_path(request.param['name'])
-        else:
-            return None
-
-    @pytest.mark.github('https://github.com/ansible/tower/issues/3605', skip=True, ids=['gce-python3_ansible_devel'])
     @pytest.mark.ansible_integration
     def test_update_cloud_inventory_source(self,
             ansible_version_cmp,
             cloud_inventory,
-            custom_venv_path,
             cloud_inventory_hostvars,
             cloud_inventory_hostgroups,
             cloud_hostvars_that_create_groups,
@@ -199,28 +175,13 @@ class TestInventoryUpdateWithVenvs(APITest):
         inv_source = cloud_inventory.related.inventory_sources.get().results.pop()
         # Test that we don't regress on https://github.com/ansible/awx/issues/4059
         assert inv_source.credential == inv_source.summary_fields.credential.id
-        # Set venv to use
-        # Will use venvs defined in CUSTOM_VENVS as well as the default venv
-        inv_source.custom_virtualenv = custom_venv_path
         kind = inv_source.source
-        if kind == 'azure_rm':
-            inv_source.source_vars = json.dumps({
-                'group_by_location': True,
-                'group_by_os_family': True,
-                'group_by_resource_group': True,
-                'group_by_security_group': True,
-                'group_by_tag': True
-                })
-        inv_update = inv_source.update().wait_until_completed()
+        inv_update = inv_source.related.last_update.get()
         inv_update.assert_successful()
-        # Assert we used the right venv for the update
-        if custom_venv_path:
-            assert inv_update.custom_virtualenv == custom_venv_path
-            assert custom_venv_path in inv_update.job_args
         # There is a bug with old imports https://github.com/ansible/awx/issues/3448
         # we have chosen to ignore it
-        # TODO: when Azure_rm plugin is enabled, add this back in
-        # azure_bug = True if ansible_version_cmp('2.8.0') < 1 else False
+        # In fact, have chosed to keep behavior in plugin
+        # https://github.com/ansible/ansible/pull/54060
         azure_bug = True
         constructed_groups = assert_expected_hostvars(inv_source, inv_update, cloud_inventory_hostvars, cloud_hostvars_that_create_groups, azure_bug)
         assert_expected_hostgroups(inv_source, inv_update, cloud_inventory_hostgroups, constructed_groups)
@@ -749,7 +710,54 @@ print(json.dumps({
 
             # TODO: Assert specific cloud instance is now listed in group
 
-    def test_cloud_update_with_populated_source_region(self, cloud_inventory_source_supporting_source_regions):
+    def _parallel_run_updates(self, inventory_sources):
+        updates = []
+        for inv_source in inventory_sources:
+            updates.append(inv_source.update())
+
+        threads = [threading.Thread(target=update.wait_until_completed, args=()) for update in updates]
+        [t.start() for t in threads]
+        [t.join() for t in threads]
+
+    @pytest.fixture(scope='class')
+    def _parallel_update_cloud_inventory_with_unpopulated_source_region(request):
+        source_to_region = {
+            'aws': 'sa-east-1',
+            'azure': 'japanwest',
+            'gce': 'asia-east1-c',
+            }
+        source_to_inv_source = {}
+        for source, region in source_to_region.items():
+            source_to_inv_source[source] = request.getfixturevalue(source + '_inventory_source')
+            source_to_inv_source[source].patch(source_regions=region)
+
+        self._parallel_run_updates(source_to_inv_source.values())
+        return source_to_inv_source
+
+    @pytest.fixture(scope='class', params=['ec2', 'azure', 'gce'], ids=['aws', 'azure', 'gce'])
+    def cloud_inventory_source_unpopulated_region(self, request, factories, _parallel_update_cloud_inventory_with_unpopulated_region):
+        return _parallel_run_all_cloud_inventory_updates[request.param]
+
+    @pytest.fixture(scope='class')
+    def _parallel_update_cloud_inventory_with_populated_source_region(request):
+        source_to_region = {
+            'aws': 'us-east-1',
+            'azure': 'eastus',
+            'gce': 'all',
+            }
+        source_to_inv_source = {}
+        for source, region in source_to_region.items():
+            source_to_inv_source[source] = request.getfixturevalue(source + '_inventory_source')
+            source_to_inv_source[source].patch(source_regions=region)
+
+        self._parallel_run_updates(source_to_inv_source.values())
+        return source_to_inv_source
+
+    @pytest.fixture(scope='class', params=['ec2', 'azure', 'gce'], ids=['aws', 'azure', 'gce'])
+    def cloud_inventory_source_populated_region(self, request, factories, _parallel_update_cloud_inventory_with_populated_region):
+        return _parallel_run_all_cloud_inventory_updates[request.param]
+
+    def test_cloud_update_with_populated_source_region(self, cloud_inventory_source_populated_region):
         """Tests that hosts are imported when applying source regions containing hosts.
 
         NOTE: test may fail if our expected test hosts are down.
@@ -757,34 +765,20 @@ print(json.dumps({
         # TODO: Once we populate all regions with an instance, don't think we'll need a test
         # tailored to a subset of regions with instances.
 
-        inv_source_pg = cloud_inventory_source_supporting_source_regions
-
-        # provide test source_region given each provider
-        cloud_provider = inv_source_pg.source
-        if cloud_provider == 'ec2':
-            source_region = "us-east-1"
-        elif cloud_provider == 'azure_rm':
-            source_region = "eastus"
-        elif cloud_provider == 'gce':
-            source_region = "all"
-        else:
-            raise NotImplementedError("Unexpected cloud_provider: %s." % cloud_provider)
-
-        inv_source_pg.patch(source_regions=source_region)
-        assert inv_source_pg.source_regions.lower() == source_region.lower(), \
-            "Unexpected value for inv_source_pg.source_regions after patching the inv_source_pg with %s." % source_region
+        inv_source = cloud_inventory_source_populated_region.related.inventory_sources.get().results.pop()
+        inv_update = inv_source.related.last_update.get()
 
         # assert that the update was successful
-        update_pg = inv_source_pg.update().wait_until_completed()
-        update_pg.assert_successful()
-        inv_source_pg.get().assert_successful()
+        inv_update.assert_successful()
+        inv_source.get().assert_successful()
 
         # assert that hosts were imported
         hosts_imported = inv_source_pg.related.inventory.get().total_hosts
         assert hosts_imported > 0, f"Expected there to be hosts in this region! Found {hosts_imported} instead."
 
+
     @pytest.mark.ansible_integration
-    def test_cloud_update_with_unpopulated_source_region(self, cloud_inventory_source_supporting_source_regions):
+    def test_cloud_update_with_unpopulated_source_region(self, cloud_inventory_source_unpopulated_region):
         """Tests that hosts are not imported when applying source regions not containing hosts.
 
         NOTE: test may fail if someone spins up an instance in one of these regions. Regions correspond as follow:
@@ -793,33 +787,12 @@ print(json.dumps({
         * West_Japan   => Japan West
         * asia-east1-c => Asia East (C)
         """
-        # TODO: Once we populate all regions with an instance, don't think we'll need a test
-        # geared towards empty regions.
-        # patch inv_source_pg
-        inv_source_pg = cloud_inventory_source_supporting_source_regions
-
-        # provide test source_region given each provider
-        cloud_provider = inv_source_pg.source
-        if cloud_provider == 'ec2':
-            source_region = "sa-east-1"
-        elif cloud_provider == 'azure_rm':
-            source_region = "japanwest"
-        elif cloud_provider == 'gce':
-            source_region = "asia-east1-c"
-        else:
-            raise NotImplementedError("Unexpected cloud_provider: %s." % cloud_provider)
-
-        inv_source_pg.patch(source_regions=source_region)
-        assert inv_source_pg.source_regions.lower() == source_region.lower(), \
-            "Unexpected value for inv_source_pg.source_regions after patching the inv_source_pg with %s." % source_region
-
-        # assert that the update was successful
-        update_pg = inv_source_pg.update().wait_until_completed()
-        update_pg.assert_successful()
-        inv_source_pg.get().assert_successful()
+        inv_source = cloud_inventory_source_unpopulated_region.related.inventory_sources.get().results.pop()
+        inv_update = inv_source.related.last_update.get()
+        inv_update.assert_successful()
 
         # assert that no hosts were imported
-        hosts_imported = inv_source_pg.related.inventory.get().total_hosts
+        hosts_imported = inv_source.related.inventory.get().total_hosts
         assert hosts_imported == 0, f"Unexpected number of hosts returned ({hosts_imported} != 0)."
 
     @pytest.mark.parametrize("instance_filter", ["tag-key=Name", "key-name=jenkins", "tag:Name=*"])

@@ -1,5 +1,6 @@
 import logging
 import json
+import threading
 import uuid
 
 from towerkit.utils import not_provided
@@ -462,20 +463,37 @@ def cloud_inventory_source(request):
     return request.getfixturevalue(request.param + '_inventory_source')
 
 
-@pytest.fixture(scope="function", params=[('ec2', 'aws_credential'),
-                                          ('azure_rm', 'azure_credential'),
-                                          ('gce', 'gce_credential'),
-                                          ('vmware', 'vmware_credential'),
-                                          ('openstack', 'openstack_v3_credential')
-    ], ids=['aws', 'azure', 'gce', 'vmware', 'openstack'])
-def cloud_inventory(request, factories):
-    inv_source, cred_fixture = request.param
-    if inv_source == 'vmware':
-        pytest.skip('Currently without publicly-facing VMware')
+@pytest.fixture
+def _parallel_run_all_cloud_inventory_updates(request, factories):
+    source_and_cred = {'ec2':'aws_credential', 'azure_rm': 'azure_credential', 'gce': 'gce_credential',
+                                          'openstack': 'openstack_v3_credential'}
+    inv_sources = {}
+    for source, cred_fixture in source_and_cred.items():
+        cred = request.getfixturevalue(cred_fixture)
+        inv_sources[source] = factories.inventory_source(source=source, credential=cred)
+        if source == 'azure_rm':
+            inv_sources[source].source_vars = json.dumps({
+                'group_by_location': True,
+                'group_by_os_family': True,
+                'group_by_resource_group': True,
+                'group_by_security_group': True,
+                'group_by_tag': True
+                })
 
-    cred = request.getfixturevalue(cred_fixture)
-    inv_source = factories.inventory_source(source=inv_source, credential=cred)
-    return inv_source.ds.inventory
+    updates = []
+    for inv_source in inv_sources.values():
+        updates.append(inv_source.update())
+
+    threads = [threading.Thread(target=update.wait_until_completed, args=()) for update in updates]
+    [t.start() for t in threads]
+    [t.join() for t in threads]
+    inventories = { key : inv_source.related.inventory.get() for key,inv_source in inv_sources.items() }
+    return inventories
+
+
+@pytest.fixture(scope="function", params=['ec2', 'azure_rm', 'gce', 'openstack'], ids=['aws', 'azure', 'gce', 'openstack'])
+def cloud_inventory(request, factories, _parallel_run_all_cloud_inventory_updates):
+    return _parallel_run_all_cloud_inventory_updates[request.param]
 
 
 # Convenience fixture that iterates through cloud_groups that support source_regions
