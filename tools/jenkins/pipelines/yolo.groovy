@@ -97,7 +97,7 @@ pipeline {
         )
         string(
             name: 'SLACK_USERNAME',
-            description: 'Send yourself a slack message when done. Use @slackaccount name (not your slack username)',
+            description: 'Send slack DM on completion. Use space separate list to sent to multiple people. ex @johill @elyezer',
             defaultValue: '#jenkins'
         )
         booleanParam(
