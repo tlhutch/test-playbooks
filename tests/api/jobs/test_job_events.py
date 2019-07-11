@@ -433,7 +433,7 @@ class Test_Job_Events(APITest):
         assert on_ok.count == 1
         task = on_ok.results.pop()['task']
         assert len(task) == 1024
-        assert task.endswith('...')
+        assert task.endswith('…')
 
     def test_playbook_on_stats_events_are_accurate(self, factories, ansible_version_cmp):
         if ansible_version_cmp("2.8") < 0:
