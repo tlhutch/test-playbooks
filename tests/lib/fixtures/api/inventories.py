@@ -465,7 +465,7 @@ def cloud_inventory_source(request):
 
 @pytest.fixture
 def _parallel_run_all_cloud_inventory_updates(request, factories):
-    source_and_cred = {'ec2':'aws_credential', 'azure_rm': 'azure_credential', 'gce': 'gce_credential',
+    source_and_cred = {'ec2': 'aws_credential', 'azure_rm': 'azure_credential', 'gce': 'gce_credential',
                                           'openstack': 'openstack_v3_credential'}
     inv_sources = {}
     for source, cred_fixture in source_and_cred.items():
@@ -487,7 +487,7 @@ def _parallel_run_all_cloud_inventory_updates(request, factories):
     threads = [threading.Thread(target=update.wait_until_completed, args=()) for update in updates]
     [t.start() for t in threads]
     [t.join() for t in threads]
-    inventories = { key : inv_source.related.inventory.get() for key,inv_source in inv_sources.items() }
+    inventories = {key: inv_source.related.inventory.get() for key, inv_source in inv_sources.items()}
     return inventories
 
 
