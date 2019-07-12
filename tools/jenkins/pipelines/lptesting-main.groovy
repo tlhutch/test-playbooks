@@ -29,7 +29,7 @@ pipeline {
 
         stage ('Run Layered Product Testing pipelines') {
             parallel {
-                stage ('Tower 3.3.5') {
+                stage ('Tower 3.3.6') {
                     when {
                         expression {
                             return ! params.RHEL_COMPOSE_ID.contains('RHEL-8');
@@ -42,12 +42,12 @@ pipeline {
                             parameters: [
                                 string(name: 'RHEL_COMPOSE_ID', value: params.RHEL_COMPOSE_ID),
                                 string(name: 'RHEL_IMAGE_NAME', value: RHEL_IMAGE_NAME),
-                                string(name: 'TOWER_VERSION', value: '3.3.5'),
+                                string(name: 'TOWER_VERSION', value: '3.3.6'),
                             ]
                         )
                     }
                 }
-                stage ('Tower 3.4.3') {
+                stage ('Tower 3.4.4') {
                     when {
                         expression {
                             return ! params.RHEL_COMPOSE_ID.contains('RHEL-8');
@@ -60,19 +60,19 @@ pipeline {
                             parameters: [
                                 string(name: 'RHEL_COMPOSE_ID', value: params.RHEL_COMPOSE_ID),
                                 string(name: 'RHEL_IMAGE_NAME', value: RHEL_IMAGE_NAME),
-                                string(name: 'TOWER_VERSION', value: '3.4.3'),
+                                string(name: 'TOWER_VERSION', value: '3.4.4'),
                             ]
                         )
                     }
                 }
-                stage ('Tower 3.5.0') {
+                stage ('Tower 3.5.1') {
                     steps {
                         build(
                             job: 'lptesting-pipeline',
                             parameters: [
                                 string(name: 'RHEL_COMPOSE_ID', value: params.RHEL_COMPOSE_ID),
                                 string(name: 'RHEL_IMAGE_NAME', value: RHEL_IMAGE_NAME),
-                                string(name: 'TOWER_VERSION', value: '3.5.0'),
+                                string(name: 'TOWER_VERSION', value: '3.5.1'),
                             ]
                         )
                     }

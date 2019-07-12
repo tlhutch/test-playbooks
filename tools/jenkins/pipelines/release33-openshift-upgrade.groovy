@@ -113,5 +113,19 @@ pipeline {
                 )
             }
         }
+
+        stage('From 3.3.6') {
+            steps {
+                build(
+                    job: 'Test_Tower_OpenShift_Upgrade',
+                    parameters: [
+                        string(name: 'INSTALL_AWX_SETUP_PATH', value: '/setup_openshift/ansible-tower-openshift-setup-3.3.6.tar.gz'),
+                        string(name: 'TOWER_BRANCH', value: "origin/${branch_name}"),
+                        string(name: 'INSTALL_REGISTRY_NAMESPACE', value: 'ansible-tower-33'),
+                        booleanParam(name: 'TRIGGER', value: false)
+                    ]
+                )
+            }
+        }
     }
 }

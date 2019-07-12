@@ -6,7 +6,7 @@ pipeline {
         choice(
             name: 'TOWER_VERSION',
             description: 'Tower version to deploy',
-            choices: ['devel', '3.5.1', '3.4.4', '3.3.6']
+            choices: ['devel', '3.5.2', '3.4.5', '3.3.7']
         )
         choice(
             name: 'SCOPE',
@@ -40,7 +40,7 @@ pipeline {
                     ]
                 )
                 script {
-                    if (params.TOWER_VERSION == '3.3.5') {
+                    if (params.TOWER_VERSION ==~ /3\.[0-3]*\.[0-9]*/) {
                         build(
                             job: 'Build_Tower_DEB',
                             parameters: [
