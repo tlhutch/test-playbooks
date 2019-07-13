@@ -146,6 +146,12 @@ Bundle?: ${params.BUNDLE}"""
                             sh './tools/jenkins/scripts/generate_vars.sh'
 
                             sh 'ansible-playbook -v -i playbooks/inventory -e @playbooks/test_runner_vars.yml playbooks/deploy-test-runner.yml'
+
+                            // Archive test runner inventory file and show it to user so they can optionally shell in
+                            sh 'mkdir -p artifacts'
+                            sh 'cat playbooks/inventory.test_runner | tee artifacts/inventory.test_runner'
+                            sh 'grep -A 1 test-runner playbooks/inventory.test_runner | tail -n 1 | cut -d" " -f1 > artifacts/test_runner_host'
+
                             sh "ansible test-runner -i playbooks/inventory.test_runner -m git -a 'repo=git@github.com:ansible/tower-qa version=release_${params.TOWER_VERSION_TO_UPGRADE_FROM} dest=tower-qa ssh_opts=\"-o StrictHostKeyChecking=no\" force=yes'"
                         }
                     }
