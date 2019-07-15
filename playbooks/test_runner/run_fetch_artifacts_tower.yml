@@ -1,0 +1,17 @@
+---
+- hosts: test-runner
+  tasks:
+    - name: Ensure the artifacts directory exist
+      file:
+        path: '{{ lookup("env", "PWD") }}/artifacts'
+        state: directory
+      delegate_to: localhost
+
+    - name: Retrieve artifacts from test runner
+      fetch:
+        src: '{{ item.src }}'
+        dest: '{{ item.dest }}'
+        flat: yes
+      ignore_errors: yes
+      with_items:
+        - {src: '~/tower-qa/tower_url', dest: '{{ lookup("env", "PWD") }}/artifacts/all_tower_logs.tar.gz'}

@@ -162,6 +162,7 @@ Bundle?: ${params.BUNDLE}"""
         stage ('Install') {
             steps {
                sshagent(credentials : ['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
+                   // Use SSH this way so we can get live feed of output on jenkins
                    sh "ssh ${SSH_OPTS} ec2-user@${TEST_RUNNER_HOST} 'cd tower-qa && ./tools/jenkins/scripts/install.sh'"
                 }
             }
@@ -184,6 +185,14 @@ Bundle?: ${params.BUNDLE}"""
                         sh 'ansible-playbook -v -i playbooks/inventory.test_runner playbooks/test_runner/run_fetch_artifacts_test.yml'
                         junit 'artifacts/results.xml'
                     }
+                }
+            }
+        }
+        stage('Collect Tower logs') {
+            steps {
+                sshagent(credentials : ['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
+                    sh "ssh ${SSH_OPTS} ec2-user@${TEST_RUNNER_HOST} 'cd tower-qa && ./tools/jenkins/scripts/collect.sh'"
+                    sh 'ansible-playbook -v -i playbooks/inventory.test_runner playbooks/test_runner/run_fetch_artifacts_tower.yml'
                 }
             }
         }

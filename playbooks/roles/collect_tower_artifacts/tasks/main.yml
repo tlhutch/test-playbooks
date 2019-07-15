@@ -1,0 +1,31 @@
+# Tasks to collect remote artifacts on tower server
+
+- name: Create a tmp directory for sosreport
+  tempfile:
+    prefix: sosreport_
+    state: directory
+  register: sosreport_tmpdir
+
+- name: Collect tower artifacts via sosreport
+  command: 'sosreport --batch -e tower -o tower --name {{ ansible_host }} --tmp-dir {{ sosreport_tmpdir.path }}' # noqa 301
+  become: yes
+
+- name: collect the name of sosreport files
+  find:
+    paths: '{{ sosreport_tmpdir.path }}'
+    recurse: no
+  become: yes
+  register: sos_files_to_copy
+
+- name: fetch sosreport files
+  fetch:
+    src: '{{ item.path }}'
+    dest: '{{ local_tower_artifacts_dir }}/'
+  become: yes
+  with_items: '{{ sos_files_to_copy.files }}'
+
+- name: 'archive local results to ease attaching to jenkins job'
+  archive:
+    path: '{{ local_tower_artifacts_dir }}'
+    dest: 'all_tower_logs.tar.gz'
+  delegate_to: localhost
