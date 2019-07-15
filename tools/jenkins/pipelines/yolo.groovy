@@ -97,7 +97,10 @@ pipeline {
         )
         string(
             name: 'SLACK_USERNAME',
-            description: 'Send slack DM on completion. Use space separate list to sent to multiple people. ex @johill @elyezer',
+            description: """\
+            Send slack DM on completion. Use space separate list to sent to multiple people, for example: @johill @elyezer.
+            The message sent will follow the parrot code: party_parrot (green, pipeline succeed and if tests were run everthing is passing), confusedparrot (yellow, tests were run and had failures) and sad_parrot (red, something went wrong with the pipeline).
+            """,
             defaultValue: '#jenkins'
         )
         booleanParam(
