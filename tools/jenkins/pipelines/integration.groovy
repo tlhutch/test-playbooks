@@ -162,7 +162,7 @@ Bundle?: ${params.BUNDLE}"""
         stage ('Install') {
             steps {
                sshagent(credentials : ['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
-                   sh 'ansible-playbook -v -i playbooks/inventory.test_runner playbooks/test_runner/run_install.yml'
+                   sh "ssh ${SSH_OPTS} ec2-user@${TEST_RUNNER_HOST} 'cd tower-qa && ./tools/jenkins/scripts/install.sh'"
                 }
             }
         }
@@ -180,7 +180,8 @@ Bundle?: ${params.BUNDLE}"""
             steps {
                 withEnv(["TESTEXPR=${TESTEXPR}"]) {
                     sshagent(credentials : ['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
-                        sh 'ansible-playbook -v -i playbooks/inventory.test_runner playbooks/test_runner/run_integration_test.yml'
+                        sh "ssh ${SSH_OPTS} ec2-user@${TEST_RUNNER_HOST} 'cd tower-qa && TESTEXPR=\"${params.TESTEXPR}\" ./tools/jenkins/scripts/test.sh'"
+                        sh 'ansible-playbook -v -i playbooks/inventory.test_runner playbooks/test_runner/run_fetch_artifacts_test.yml'
                         junit 'artifacts/results.xml'
                     }
                 }
@@ -199,7 +200,7 @@ Bundle?: ${params.BUNDLE}"""
 
         cleanup {
             sshagent(credentials : ['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
-                sh 'ansible-playbook -v -i playbooks/inventory.test_runner playbooks/test_runner/run_cleanup.yml'
+                sh "ssh ${SSH_OPTS} ec2-user@${TEST_RUNNER_HOST} 'cd tower-qa && ./tools/jenkins/scripts/cleanup.sh'"
                 sh 'ansible-playbook -v -i playbooks/inventory -e @playbooks/test_runner_vars.yml playbooks/reap-tower-ec2.yml'
             }
         }

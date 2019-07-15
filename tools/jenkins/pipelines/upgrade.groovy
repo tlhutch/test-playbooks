@@ -152,7 +152,7 @@ Bundle?: ${params.BUNDLE}"""
         stage ('Install') {
             steps {
                sshagent(credentials : ['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
-                   sh 'ansible-playbook -v -i playbooks/inventory.test_runner playbooks/test_runner/run_install.yml'
+                   sh "ssh ${SSH_OPTS} ec2-user@${TEST_RUNNER_HOST} 'cd tower-qa && ./tools/jenkins/scripts/install.sh'"
                 }
             }
         }
@@ -160,7 +160,7 @@ Bundle?: ${params.BUNDLE}"""
         stage ('Load data') {
             steps {
                sshagent(credentials : ['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
-                   sh 'ansible-playbook -v -i playbooks/inventory.test_runner playbooks/test_runner/run_load.yml'
+                   sh "ssh ${SSH_OPTS} ec2-user@${TEST_RUNNER_HOST} 'cd tower-qa && ./tools/jenkins/scripts/load.sh'"
                 }
             }
         }
@@ -188,7 +188,7 @@ Bundle?: ${params.BUNDLE}"""
                              "AWX_UPGRADE=true",
                              "CLEAN_DEPLOYMENT_BEFORE_JOB_RUN=no"]) {
                         sshagent(credentials : ['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
-                            sh 'ansible-playbook -v -i playbooks/inventory.test_runner playbooks/test_runner/run_clean_cache.yml'
+                            sh "ssh ${SSH_OPTS} ec2-user@${TEST_RUNNER_HOST} 'cd tower-qa && ./tools/jenkins/scripts/clean_cache.sh'"
                             sh './tools/jenkins/scripts/generate_vars.sh'
                             sh "ansible test-runner -i playbooks/inventory.test_runner -m copy -a 'src=playbooks/vars.yml dest=/home/ec2-user/tower-qa/playbooks/vars.yml'"
                             sh "ansible test-runner -i playbooks/inventory.test_runner -m git -a 'repo=git@github.com:ansible/tower-qa version=${branch_name} dest=tower-qa ssh_opts=\"-o StrictHostKeyChecking=no\" force=yes'"
@@ -201,7 +201,7 @@ Bundle?: ${params.BUNDLE}"""
         stage ('Upgrade') {
             steps {
                sshagent(credentials : ['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
-                   sh 'ansible-playbook -v -i playbooks/inventory.test_runner playbooks/test_runner/run_install.yml'
+                   sh "ssh ${SSH_OPTS} ec2-user@${TEST_RUNNER_HOST} 'cd tower-qa && ./tools/jenkins/scripts/install.sh'"
 
                    // NOTE(spredzy): To change cleanly
                    sh "ansible test-runner -i playbooks/inventory.test_runner -a 'sed -i \"s/delete_on_start: .*/delete_on_start: true/g\" /home/ec2-user/tower-qa/playbooks/vars.yml'"
@@ -212,7 +212,7 @@ Bundle?: ${params.BUNDLE}"""
         stage ('Verify data integrity') {
             steps {
                sshagent(credentials : ['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
-                   sh 'ansible-playbook -v -i playbooks/inventory.test_runner playbooks/test_runner/run_verify.yml'
+                   sh "ssh ${SSH_OPTS} ec2-user@${TEST_RUNNER_HOST} 'cd tower-qa && ./tools/jenkins/scripts/verify.sh'"
                 }
             }
         }
@@ -229,7 +229,7 @@ Bundle?: ${params.BUNDLE}"""
 
         cleanup {
             sshagent(credentials : ['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
-                sh 'ansible-playbook -v -i playbooks/inventory.test_runner playbooks/test_runner/run_cleanup.yml'
+                sh "ssh ${SSH_OPTS} ec2-user@${TEST_RUNNER_HOST} 'cd tower-qa && ./tools/jenkins/scripts/cleanup.sh'"
                 sh 'ansible-playbook -v -i playbooks/inventory -e @playbooks/test_runner_vars.yml playbooks/reap-tower-ec2.yml'
             }
         }
