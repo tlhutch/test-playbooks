@@ -49,11 +49,6 @@ pipeline {
             defaultValue: ''
         )
         string(
-            name: 'TOWERQA_PIPELINE_UTILS_BRANCH',
-            description: 'ansible/tower-qa branch to use for pipelines definition and pipelines used scripts',
-            defaultValue: 'devel'
-        )
-        string(
             name: 'DEPLOYMENT_NAME',
             description: 'Deployment name. Will match VM name being spawned in the cloud',
             defaultValue: 'evergreen-jenkins-tower-integration'
@@ -128,7 +123,7 @@ Bundle?: ${params.BUNDLE}"""
                 }
                 checkout([
                     $class: 'GitSCM',
-                    branches: [[name: "*/${params.TOWERQA_PIPELINE_UTILS_BRANCH}" ]],
+                    branches: [[name: "*/${params.TOWERQA_BRANCH}" ]],
                     userRemoteConfigs: [
                         [
                             credentialsId: 'd2d4d16b-dc9a-461b-bceb-601f9515c98a',
