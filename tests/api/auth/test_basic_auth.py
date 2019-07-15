@@ -11,7 +11,6 @@ from towerkit import utils
 from tests.api import APITest
 
 
-@pytest.mark.serial
 @pytest.mark.usefixtures('authtoken')
 class TestBasicAuth(APITest):
 
@@ -61,6 +60,8 @@ class TestBasicAuth(APITest):
         assert 'csrftoken' not in resp.headers.get('Set-Cookie', '')
 
     @pytest.mark.yolo
+    # change system wide settings, run in serial
+    @pytest.mark.serial
     def test_basic_auth_disabled(self, factories, v2, update_setting_pg):
         auth_settings = v2.settings.get().get_endpoint('authentication')
         update_setting_pg(auth_settings, {'AUTH_BASIC_ENABLED': False})
@@ -83,6 +84,8 @@ class TestBasicAuth(APITest):
         session.login(username=user.username, password=user.password, next='/')
         return session
 
+    # change system wide settings, run in serial
+    @pytest.mark.serial
     @pytest.mark.parametrize('max_logins', range(1, 4))
     def test_authtoken_maximum_concurrent_sessions(self, factories, v2, update_setting_pg, max_logins):
         total = 3
@@ -125,6 +128,8 @@ class TestBasicAuth(APITest):
             assert replies[0].get('user') == user.id, replies
             assert replies[0].get('accept') is True, replies
 
+    # change system wide settings, run in serial
+    @pytest.mark.serial
     def test_authtoken_maximum_concurrent_sessions_does_not_kick_other_users(self, factories, v2, update_setting_pg):
         update_setting_pg(v2.settings.get().get_endpoint(
             'authentication'), {'SESSIONS_PER_USER': 1})
@@ -150,6 +155,8 @@ class TestBasicAuth(APITest):
         assert len(cookies) == 1
         return cookies[0].expires
 
+    # change system wide settings, run in serial
+    @pytest.mark.serial
     def test_session_cookie_age_is_applied(self, factories, v2, update_setting_pg):
         user = factories.user()
         update_setting_pg(v2.settings.get().get_endpoint(
@@ -159,6 +166,8 @@ class TestBasicAuth(APITest):
         assert 995 < self.get_cookie_expiry(
             session.session.cookies) - time.time() < 1000
 
+    # change system wide settings, run in serial
+    @pytest.mark.serial
     def test_session_cookie_age_change_affects_active_sessions(self, factories, v2, update_setting_pg):
         user = factories.user()
         session = self.spawn_session(user)
