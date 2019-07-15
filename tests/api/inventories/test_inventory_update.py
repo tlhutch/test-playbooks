@@ -926,12 +926,9 @@ print(json.dumps({
             assert actual_group_names == set(['azure', 'linux'])  # assuming no windows servers running
         elif only_group_by == 'resource_group':
             # potentially flaky if Azure resources are modified
-            assert actual_group_names == set(['azure', 'demo-dj', 'mperz', 'qe'])  # Azure users could change
+            assert set(['azure', 'demo-dj', 'mperz', 'qe']).issubset(actual_group_names)  # Azure users could change
         elif only_group_by == 'security_group':
-            actual_group_names.remove('azure')
-            actual_group_names.remove('demo-dj')
-            for group_name in actual_group_names:
-                assert group_name.startswith('mperz') or group_name.startswith('towerqe')  # assuming no one else sets these up
+            assert 'towerqe-nsg' in actual_group_names
         else:
             assert actual_group_names == set(['azure'])
 
