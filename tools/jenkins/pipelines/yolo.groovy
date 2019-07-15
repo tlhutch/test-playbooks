@@ -281,24 +281,7 @@ pipeline {
                                      "DEPLOYMENT_NAME=yolo-build-${env.BUILD_ID}",
                                      "AW_REPO_URL=http://nightlies.testing.ansible.com/ansible-tower_nightlies_m8u16fz56qr6q7/${NIGHTLY_REPO_DIR}"]) {
                                 sshagent(credentials : ['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
-                                    sh 'mkdir -p ~/.ssh && cp ${PUBLIC_KEY} ~/.ssh/id_rsa.pub'
-                                    sh 'cp ${JSON_KEY_FILE} json_key_file'
-                                    sh 'ansible-vault decrypt --vault-password-file="${VAULT_FILE}" config/credentials.vault --output=config/credentials.yml'
-                                    sh 'ansible-vault decrypt --vault-password-file="${VAULT_FILE}" config/credentials-pkcs8.vault --output=config/credentials-pkcs8.yml || true'
-
-                                    // Generate variable file for test runner
-                                    sh 'SCENARIO=test_runner ./tools/jenkins/scripts/generate_vars.sh'
-
-                                    // Generate variable file for tower deployment
-                                    sh './tools/jenkins/scripts/generate_vars.sh'
-
-                                    sh 'ansible-playbook -v -i playbooks/inventory -e @playbooks/test_runner_vars.yml playbooks/deploy-test-runner.yml'
-
-                                    // Archive test runner inventory file and show it to user so they can optionally shell in
-                                    sh 'mkdir -p artifacts'
-                                    sh 'cat playbooks/inventory.test_runner | tee artifacts/inventory.test_runner'
-                                    sh 'grep -A 1 test-runner playbooks/inventory.test_runner | tail -n 1 | cut -d" " -f1 > artifacts/test_runner_host'
-
+                                    sh './tools/jenkins/scripts/prep_test_runner.sh'
                                     sh "ansible test-runner -i playbooks/inventory.test_runner -m git -a 'repo=git@github.com:${params.TOWER_QA_FORK}/tower-qa version=${params.TOWER_QA_BRANCH} dest=tower-qa ssh_opts=\"-o StrictHostKeyChecking=no\" force=yes'"
                                 }
                             }
