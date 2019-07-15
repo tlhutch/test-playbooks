@@ -100,7 +100,7 @@ python3.6 -m venv ~/venvs/tower-qa
 source ~/venvs/tower-qa/bin/activate
 pip install -r requirements.txt
 ansible-vault decrypt config/credentials.vault --output=config/credentials.yml    # you will need the vault password
-py.test -c config/docker.cfg --base-url='https://localhost:8013'
+py.test -c config/docker.cfg
 ```
 
 > Note: if running tests against a production instance, use:
