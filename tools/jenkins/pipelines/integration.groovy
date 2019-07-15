@@ -123,7 +123,7 @@ Bundle?: ${params.BUNDLE}"""
                 }
                 checkout([
                     $class: 'GitSCM',
-                    branches: [[name: "*/${params.TOWERQA_BRANCH}" ]],
+                    branches: [[name: "*/${towerqa_branch_name}" ]],
                     userRemoteConfigs: [
                         [
                             credentialsId: 'd2d4d16b-dc9a-461b-bceb-601f9515c98a',
