@@ -145,6 +145,7 @@ Bundle?: ${params.BUNDLE}"""
                 script {
                     TEST_RUNNER_HOST = readFile('artifacts/test_runner_host').trim()
                     SSH_OPTS = '-o ForwardAgent=yes -o StrictHostKeyChecking=no'
+                    ORIGINAL_INSTANCE_NAME_PREFIX = sh(script: 'grep instance_name_prefix playbooks/vars.yml', returnStdout: true).trim()
                 }
             }
         }
@@ -202,6 +203,7 @@ Bundle?: ${params.BUNDLE}"""
             steps {
                sshagent(credentials : ['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
                    sh "ssh ${SSH_OPTS} ec2-user@${TEST_RUNNER_HOST} 'cd tower-qa && ./tools/jenkins/scripts/install.sh'"
+                   sh "ssh ${SSH_OPTS} ec2-user@${TEST_RUNNER_HOST} 'cd tower-qa && sed -i 's/instance_name_prefix.*/${ORIGINAL_INSTANCE_NAME_PREFIX}/g' playbooks/vars.yml'"
 
                    // NOTE(spredzy): To change cleanly
                    sh "ansible test-runner -i playbooks/inventory.test_runner -a 'sed -i \"s/delete_on_start: .*/delete_on_start: true/g\" /home/ec2-user/tower-qa/playbooks/vars.yml'"
