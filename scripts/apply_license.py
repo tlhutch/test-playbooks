@@ -60,7 +60,7 @@ def run():
         'Content-type': 'application/json'
     }
     request = urllib.request.Request(
-        args.base_url + '/api/v2/config/',
+        args.base_url.rstrip('/') + '/api/v2/config/',
         json.dumps(LICENSE).encode('ascii'),
         headers
     )
