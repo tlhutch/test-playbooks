@@ -390,6 +390,18 @@ class Test_Workflow_Convergence(APITest):
             with pytest.raises(NoContent):
                 ancestor_1.related.always_nodes.post((dict(id=parent_node.id)))
 
+            # This tests disallowing multiple connections from same parent
+            # https://github.com/ansible/tower-qa/issues/2528
+            with pytest.raises(BadRequest) as exception_obj:
+                ancestor_1.related.success_nodes.post(dict(id=parent_node.id))
+
+            assert "Relationship not allowed." in str(exception_obj.value[1]['Error'])
+
+            with pytest.raises(BadRequest) as exception_obj:
+                ancestor_1.related.failure_nodes.post(dict(id=parent_node.id))
+
+            assert "Relationship not allowed." in str(exception_obj.value[1]['Error'])
+
         parent_nodes_2 = []
         for i in range(2):
             parent_node = factories.workflow_job_template_node(
