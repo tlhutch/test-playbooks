@@ -80,7 +80,11 @@ pipeline {
         )
         string(
             name: 'TESTEXPR',
-            description: 'Specify the TESTEXPR to pass to pytest if necessary',
+            description: """\
+            Test expression to pass to pytest to select which tests will be run.
+            Use "yolo or ansible_integration" (default) to run YOLO.
+            Use "test" to run SLOWYO (note that this will use a bigger EC2 instance to run tests quickly if SCENARIO is standalone and RUN_TESTS is checked. Because of that, the deployed instance will always be torn down).
+            """,
             defaultValue: 'yolo or ansible_integration'
         )
         choice(
@@ -420,7 +424,7 @@ pipeline {
             )
 
             script {
-                if (params.TEARDOWN_INSTANCE_ON_SUCCESS && (params.RUN_TESTS || params.RUN_E2E)) {
+                if (params.TEARDOWN_INSTANCE_ON_SUCCESS && (params.RUN_TESTS || params.RUN_E2E) && params.TESTEXPR != 'test') {
                     sshagent(credentials : ['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
                         sh "ssh ${SSH_OPTS} ec2-user@${TEST_RUNNER_HOST} 'cd tower-qa && ./tools/jenkins/scripts/cleanup.sh'"
                     }
@@ -466,6 +470,14 @@ pipeline {
             )
         }
         cleanup {
+            script {
+                if (params.TESTEXPR == 'test' && params.SCENARIO == 'standalone'  && params.RUN_TESTS) {
+                    sshagent(credentials : ['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
+                        sh "ssh ${SSH_OPTS} ec2-user@${TEST_RUNNER_HOST} 'cd tower-qa && ./tools/jenkins/scripts/cleanup.sh'"
+                    }
+                }
+            }
+
             sshagent(credentials : ['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
                 sh 'ansible-playbook -v -i playbooks/inventory -e @playbooks/test_runner_vars.yml playbooks/reap-tower-ec2.yml'
             }

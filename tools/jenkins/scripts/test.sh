@@ -5,6 +5,7 @@ set -euxo pipefail
 TESTEXPR=${TESTEXPR:-''}
 INVENTORY=${INVENTORY:-''}
 VARS_FILE=${VARS_FILE:-playbooks/vars.yml}
+PYTEST_NUMPROCESSES="4"
 
 # -- Start
 #
@@ -42,6 +43,12 @@ then
 fi
 
 if ! is_tower_cluster "${INVENTORY}"; then
+    if [[ "${TESTEXPR}" == "test" ]]; then
+        # A bigger instance is expected when running SLOWYO, because of that, bump
+        # the pytest numprocesses to 16
+        PYTEST_NUMPROCESSES="16"
+    fi
+
     if [[ -n "${TESTEXPR}" ]]; then
         TESTEXPR=" and (${TESTEXPR})"
     fi
@@ -55,7 +62,7 @@ if ! is_tower_cluster "${INVENTORY}"; then
         --github-cfg="${CREDS}" \
         --base-url="https://${TOWER_HOST}" \
         -k "not serial${TESTEXPR}" \
-        -n 4 --dist=loadfile
+        -n "${PYTEST_NUMPROCESSES}" --dist=loadfile
     then
         sleep 300
         pytest --cache-show "cache/lastfailed"

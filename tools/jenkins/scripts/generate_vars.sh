@@ -9,6 +9,8 @@ TOWER_VERSION=${TOWER_VERSION:-devel}
 ANSIBLE_VERSION=${ANSIBLE_VERSION:-stable-2.7}
 PLATFORM=${PLATFORM:-rhel-7.6-x86_64}
 BUNDLE=${BUNDLE:-no}
+RUN_TESTS=${RUN_TESTS:-'false'}
+TESTEXPR=${TESTEXPR:-''}
 
 
 # Env variables - need to be exported
@@ -65,3 +67,19 @@ export AWX_INVENTORY="${INVENTORY}"
 python scripts/cloud_vars_from_env.py \
     --cloud-provider "${CLOUD_PROVIDER}" --platform "${PLATFORM}" --image-vars "${IMAGE_VARS}" \
     > "${VARS_FILE}"
+
+# Use a bigger instance size when running slowyo (TESTEXPR == test)
+if [[ "${TESTEXPR}" == "test" && "${RUN_TESTS}" == "true" ]]; then
+    echo "Running SLOWYO, update to a bigger instance size."
+    case "${SCENARIO}" in
+       standalone)
+           sed -i "s/m5.large/m5.4xlarge/" "${VARS_FILE}"
+           ;;
+       test_runner)
+           sed -i "s/m5.large/m5.2xlarge/" "${VARS_FILE}"
+           ;;
+       *)
+           echo "${SCENARIO} is not a supported scenario to use a bigger instance size. Supported scenarios: standalone and test_runner."
+           ;;
+    esac
+fi

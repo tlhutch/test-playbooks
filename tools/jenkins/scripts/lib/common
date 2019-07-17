@@ -88,7 +88,7 @@ function setup_env_based_on_deployment_scenario {
            AWX_IPV6_DEPLOYMENT=no
            ;;
        *)
-           (>&2 echo "\"${scenario}\" is not a supported scenario. Supported scenarios: standalone, cluster, openshift.")
+           (>&2 echo "\"${scenario}\" is not a supported scenario. Supported scenarios: standalone, cluster, openshift and test_runner.")
            exit 1
            ;;
     esac
