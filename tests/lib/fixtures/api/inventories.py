@@ -465,8 +465,12 @@ def cloud_inventory_source(request):
 
 @pytest.fixture
 def _parallel_run_all_cloud_inventory_updates(request, factories):
-    source_and_cred = {'ec2': 'aws_credential', 'azure_rm': 'azure_credential', 'gce': 'gce_credential',
-                                          'openstack': 'openstack_v3_credential'}
+    source_and_cred = {
+        'ec2': 'aws_credential',
+        'azure_rm': 'azure_credential',
+        'gce': 'gce_credential',
+        'openstack': 'openstack_v3_credential'
+    }
     inv_sources = {}
     for source, cred_fixture in source_and_cred.items():
         cred = request.getfixturevalue(cred_fixture)

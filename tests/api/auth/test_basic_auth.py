@@ -59,8 +59,8 @@ class TestBasicAuth(APITest):
         assert 'sessionid' not in resp.headers.get('Set-Cookie', '')
         assert 'csrftoken' not in resp.headers.get('Set-Cookie', '')
 
-    @pytest.mark.yolo
     # change system wide settings, run in serial
+    @pytest.mark.yolo
     @pytest.mark.serial
     def test_basic_auth_disabled(self, factories, v2, update_setting_pg):
         auth_settings = v2.settings.get().get_endpoint('authentication')
