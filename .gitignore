@@ -24,4 +24,4 @@ reports
 tools/docker/.build
 .DS_Store
 prof/*
-*all_tower_logs*
+*all_tower_sos*

@@ -18,7 +18,7 @@ fi
 set +e
 
 # Grab logs from tower instances
-# By default will end up in playbooks/all_tower_logs.tar.gz
-ansible-playbook -i ${INVENTORY} playbooks/grab_tower_logs.yml
+# By default will end up in playbooks/all_tower_sos_reports.tar.gz
+ansible-playbook -i ${INVENTORY} playbooks/grab_tower_sos_reports.yml
 
 set -e

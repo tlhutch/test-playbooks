@@ -188,7 +188,7 @@ Bundle?: ${params.BUNDLE}"""
                 }
             }
         }
-        stage('Collect Tower logs') {
+        stage('Collect SOS reports from Tower instances') {
             steps {
                 sshagent(credentials : ['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
                     sh "ssh ${SSH_OPTS} ec2-user@${TEST_RUNNER_HOST} 'cd tower-qa && ./tools/jenkins/scripts/collect.sh'"

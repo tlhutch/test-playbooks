@@ -381,7 +381,7 @@ pipeline {
                 }
             }
         }
-        stage('Collect Tower logs') {
+        stage('Collect SOS reports from Tower instances') {
             when {
                 expression {
                     return (params.RUN_INSTALLER || params.RUN_TESTS || params.RUN_E2E)
