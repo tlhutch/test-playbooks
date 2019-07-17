@@ -20,6 +20,5 @@ set +e
 # Grab logs from tower instances
 # By default will end up in playbooks/all_tower_logs.tar.gz
 ansible-playbook -i ${INVENTORY} playbooks/grab_tower_logs.yml
-cp playbooks/all_tower_logs.tar.gz artifacts
 
 set -e

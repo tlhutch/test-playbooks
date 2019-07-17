@@ -9,9 +9,6 @@
 
     - name: Retrieve artifacts from test runner
       fetch:
-        src: '{{ item.src }}'
-        dest: '{{ item.dest }}'
+        src: '~/tower-qa/playbooks/all_tower_logs.tar.gz'
+        dest: '{{ lookup("env", "PWD") }}/artifacts/all_tower_logs.tar.gz'
         flat: yes
-      ignore_errors: yes
-      with_items:
-        - {src: '~/tower-qa/tower_url', dest: '{{ lookup("env", "PWD") }}/artifacts/all_tower_logs.tar.gz'}
