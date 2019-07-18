@@ -319,8 +319,7 @@ class TestSCMInventorySource(APITest):
         assert inv_source.related.inventory_updates.get().count == 1
 
     @pytest.mark.yolo
-    def test_inventory_update_using_update_on_project_update_without_scm_change(self, factories, v2,
-                                                                                write_access_git_credential):
+    def test_inventory_update_using_update_on_project_update_without_scm_change(self, factories, v2):
         """Verifies that an scm inventory sync runs even without changes to scm"""
         inv_source = factories.inventory_source(source='scm', source_path='inventories/inventory.ini',
                                                    update_on_project_update=True)
@@ -337,8 +336,9 @@ class TestSCMInventorySource(APITest):
         assert project.related.project_updates.get(launch_type='sync').count == 2
         assert inv_source.related.inventory_updates.get().count == 2
 
-    def test_cancel_shared_parent_project_update_after_source_change(self, factories, write_access_git_credential):
-        project = factories.project(scm_branch='inventory_additions')
+    def test_cancel_shared_parent_project_update_after_source_change(self, factories, git_file_path,
+                                                                     source_change_add_and_remove):
+        project = factories.project(scm_url=git_file_path)
         inv_sources = [factories.inventory_source(source='scm', project=project,
                                                      source_path='inventories/inventory.ini') for _ in range(3)]
         inv_source_ids = set([source.id for source in inv_sources])
@@ -349,10 +349,7 @@ class TestSCMInventorySource(APITest):
         for inv_source in inv_sources:
             inv_source.update_on_project_update = True
 
-        jt = factories.job_template(inventory=inv_sources[0].ds.inventory, project=project,
-                                       playbook='utils/trigger_update.yml', limit='ungrouped_host_01')
-        jt.add_extra_credential(write_access_git_credential)
-        jt.launch().wait_until_completed().assert_successful()
+        source_change_add_and_remove()
 
         update = project.update().wait_until_status('running')
         # wait until update spawns the inventory updates
@@ -374,8 +371,6 @@ class TestSCMInventorySource(APITest):
 
         # subsequent updates should not update the inventory sources
         # because they are now up-to-date
-        # NOTE: there is concern this may be flaky if another test happens to
-        # update the inventory_additions branch since the last assertion
         update3 = project.update().wait_until_completed()
         assert update3.get_related('scm_inventory_updates').count == 0
 
