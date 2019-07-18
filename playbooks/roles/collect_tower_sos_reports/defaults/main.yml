@@ -1,0 +1,3 @@
+---
+local_tower_artifacts_dir: all_tower_sos_reports
+local_tower_artifacts_tarball: all_tower_sos_reports.tar.gz
