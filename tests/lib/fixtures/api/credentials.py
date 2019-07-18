@@ -388,15 +388,3 @@ def satellite6_credential(admin_user, factories):
 @pytest.fixture(scope="function", params=['aws', 'azure', 'gce', 'vmware', 'openstack_v3', 'cloudforms', 'satellite6'])
 def cloud_credential(request):
     return request.getfixturevalue(request.param + '_credential')
-
-
-@pytest.fixture(scope='function')
-def write_access_git_credential(class_factories):
-    inputs = dict(fields=[dict(id='git_key', label='Git Key', format='ssh_private_key', secret=True)])
-    injectors = dict(file=dict(template="{{ git_key }}"),
-                     env=dict(GIT_AUTHOR_NAME='Tower Testing', GIT_AUTHOR_EMAIL='tower@qe.com',
-                              GIT_COMMITTER_NAME='Tower Testing', GIT_COMMITTER_EMAIL='tower@qe.com',
-                              GIT_KEY="{{tower.filename}}"))
-    cred_type = class_factories.credential_type(inputs=inputs, injectors=injectors)
-    pk = config.credentials.scm.test_playbooks.ssh_key_data
-    return class_factories.credential(credential_type=cred_type, inputs=dict(git_key=pk))
