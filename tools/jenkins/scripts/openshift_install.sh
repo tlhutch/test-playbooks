@@ -93,8 +93,10 @@ else
     fi
 fi
 
+if [[ "${AWX_UPGRADE}" == true ]]; then
+    rm -rf setup
+fi
 
-rm -rf setup
 curl -s "${AW_REPO_URL}" | tar -xzf - --transform "s|^[^/]*|setup|"
 cd setup
 cat << EOF > vars.yml
@@ -141,7 +143,7 @@ cat << EOF > ../playbooks/inventory.log
 127.0.0.1 ansible_connection=local ansible_python_interpreter="/usr/bin/env python"
 
 [tower]
-${OPENSHIFT_ROUTE:8}
+${OPENSHIFT_ROUTE:8} ansible_connection=docker ansible_user=awx
 EOF
 
 cp tower_url ../artifacts/tower_url
