@@ -186,13 +186,6 @@ class Test_Workflow_Nodes(APITest):
             api_workflow_job_template_nodes_pg.post(dict(unified_job_template=jt.id))
         assert exception.value.msg == {'workflow_job_template': ['This field is required.']}
 
-    def test_workflow_job_template_node_cannot_be_created_without_job_template(self, factories, api_workflow_job_template_nodes_pg):
-        wfjt = factories.workflow_job_template()
-        with pytest.raises(BadRequest) as exception:
-            api_workflow_job_template_nodes_pg.post(dict(workflow_job_template=wfjt.id))
-        assert 'unified_job_template' in str(exception.value)
-        assert 'This field cannot be blank.' in str(exception.value)
-
     def test_workflow_node_creation_rejected_when_source_jt_has_ask_disabled(self, factories):
         inventory = factories.inventory()
         credential = factories.credential()
