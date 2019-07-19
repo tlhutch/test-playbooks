@@ -344,7 +344,7 @@ pipeline {
 
             steps {
                 sshagent(credentials : ['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
-                    sh "ssh ${SSH_OPTS} ec2-user@${TEST_RUNNER_HOST} 'cd tower-qa && TESTEXPR=\"${params.TESTEXPR}\" ./tools/jenkins/scripts/test.sh'"
+                    sh "ssh ${SSH_OPTS} ec2-user@${TEST_RUNNER_HOST} 'cd tower-qa && TESTEXPR=\"${params.TESTEXPR}\" TOWERKIT_BRANCH=\"${params.TOWERKIT_BRANCH}\" ./tools/jenkins/scripts/test.sh'"
                     sh 'ansible-playbook -v -i playbooks/inventory.test_runner playbooks/test_runner/run_fetch_artifacts_test.yml'
                     junit 'artifacts/results.xml'
                 }

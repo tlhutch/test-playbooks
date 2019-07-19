@@ -25,3 +25,4 @@ tools/docker/.build
 .DS_Store
 prof/*
 *all_tower_sos*
+/towerkit/

@@ -7,6 +7,7 @@
         chdir: ~/tower-qa
       environment:
         TESTEXPR: '{{ lookup("env", "TESTEXPR") }}'
+        TOWERKIT_BRANCH: '{{ lookup("env", "TOWERKIT_BRANCH") }}'
 
     - name: Ensure the artifacts directory exist
       file:
