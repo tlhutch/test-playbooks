@@ -7,7 +7,7 @@
   register: sosreport_tmpdir
 
 - name: Collect tower artifacts via sosreport
-  command: 'sosreport --batch -e tower -o tower --name {{ ansible_host }} --tmp-dir {{ sosreport_tmpdir.path }}' # noqa 301
+  command: 'sosreport --batch --name {{ ansible_host }} --tmp-dir {{ sosreport_tmpdir.path }}' # noqa 301
   become: yes
 
 - name: collect the name of sosreport files
