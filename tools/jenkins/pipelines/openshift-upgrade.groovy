@@ -138,11 +138,7 @@ Tower Memcached Container Image: ${params.MEMCACHED_CONTAINER_IMAGE}"""
             steps {
                 script {
                     if (params.TOWERQA_BRANCH == '') {
-                        if (params.TOWER_VERSION == 'devel') {
-                            branch_name = 'devel'
-                        } else {
-                            branch_name = "release_${params.TOWER_VERSION_TO_UPGRADE_TO}"
-                        }
+                        branch_name = params.TOWER_VERSION_TO_UPGRADE_TO == 'devel' ? 'devel' : "release_${params.TOWER_VERSION_TO_UPGRADE_TO}"
                     } else {
                         branch_name = params.TOWERQA_BRANCH
                     }
