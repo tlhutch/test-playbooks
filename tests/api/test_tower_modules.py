@@ -8,6 +8,31 @@ import os
 
 from tests.api import APITest
 
+TOWER_MODULES = [
+    'common',
+    'credential',
+    'credential_type',
+    'group',
+    'host',
+    'inventory',
+    'inventory_source',
+    'job_cancel',
+    'job_launch',
+    'job_list',
+    'job_template',
+    'job_wait',
+    'label',
+    'notification',
+    'project',
+    'receive',
+    'role',
+    'send',
+    'settings',
+    'team',
+    'user',
+    'workflow_template',
+]
+
 
 '''
 Note: We include ansible + psutil in both environments so that the streams aren't crossed.
@@ -17,17 +42,39 @@ virtualenv, the ansible virtualenv is the fallback virtualenv. This is problemat
 the python lib found doesn't support both versions of python.
 '''
 CUSTOM_VENVS = [
-   {
-   'name': 'python2_tower_modules',
-   'packages': 'ansible-tower-cli psutil ansible',
-   'python_interpreter': 'python2'
-   },
-   {
-   'name': 'python3_tower_modules',
-   'packages': 'ansible-tower-cli psutil ansible',
-   'python_interpreter': 'python36'
-   },
+    {
+        'name': 'python2_tower_modules',
+        'packages': 'ansible-tower-cli psutil ansible',
+        'python_interpreter': 'python2'
+    },
+    {
+        'name': 'python3_tower_modules',
+        'packages': 'ansible-tower-cli psutil ansible',
+        'python_interpreter': 'python36'
+    },
 ]
+
+
+CUSTOM_VENVS_NAMES = [venv['name'] for venv in CUSTOM_VENVS]
+
+
+@pytest.fixture(scope='module')
+def os_python_version(session_ansible_python):
+    """Return the Tower base OS Python version."""
+    return session_ansible_python['version']['major']
+
+
+@pytest.fixture(autouse=True)
+def skip_if_wrong_python(request, os_python_version):
+    """Skip when the venv python version does not match the OS base Python
+    version.
+
+    This is to avoid getting the test failed because Python 3 on RHEL7 doens't
+    have libsexlinux-python available.
+    """
+    python_venv_name = request.getfixturevalue('python_venv_name')
+    if not python_venv_name.startswith(f'python{os_python_version}'):
+        pytest.skip(f'OS Python version is {os_python_version} but')
 
 
 @pytest.fixture
@@ -36,24 +83,11 @@ def tower_credential(factories, admin_user):
                                 password=admin_user.password, host=config.base_url)
 
 
-@pytest.mark.fixture_args(venvs=[CUSTOM_VENVS[0]], cluster=True)
+@pytest.mark.fixture_args(venvs=CUSTOM_VENVS, cluster=True)
 @pytest.mark.usefixtures('authtoken', 'tower_modules_collection', 'shared_custom_venvs')
-@pytest.mark.parametrize('python_venv_name', ['python2_tower_modules'])
+@pytest.mark.parametrize('python_venv_name', CUSTOM_VENVS_NAMES)
 class Test_Ansible_Tower_Modules_via_Playbooks(APITest):
-    @pytest.mark.parametrize('tower_module',
-                             ['common',
-                              'credential', 'credential_type',
-                              'group', 'host', 'inventory', 'inventory_source',
-                              'job_cancel', 'job_launch', 'job_list', 'job_template', 'job_wait',
-                              'label',
-                              'notification',
-                              'project',
-                              'receive', 'send',
-                              'role',
-                              'settings',
-                              'team', 'user',
-                              'workflow_template',
-                             ])
+    @pytest.mark.parametrize('tower_module', TOWER_MODULES)
     def test_ansible_tower_module(self, v2, factories, tower_module, project, tower_credential, venv_path, python_venv_name):
         """
         Ansible modules that interact with Tower live in an Ansible Collection.
@@ -76,14 +110,9 @@ class Test_Ansible_Tower_Modules_via_Playbooks(APITest):
         job.assert_successful()
 
 
-'''
-Note: We should add python3_tower_modules to the python_venv_name list also in order to
-test tower_modules under python3. The challenge is that python3 on RHEL7 doens't have
-libsexlinux-python available.
-'''
 @pytest.mark.fixture_args(venvs=CUSTOM_VENVS, cluster=True)
 @pytest.mark.usefixtures('authtoken', 'tower_modules_collection', 'shared_custom_venvs')
-@pytest.mark.parametrize('python_venv_name', ['python2_tower_modules'])
+@pytest.mark.parametrize('python_venv_name', CUSTOM_VENVS_NAMES)
 class Test_Ansible_Tower_Modules(APITest):
     def test_ansible_tower_module_organization_create(self, request, v2, factories, project, tower_credential, venv_path, python_venv_name):
         org_name = utils.random_title()

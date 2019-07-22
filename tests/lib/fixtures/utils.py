@@ -32,6 +32,18 @@ def session_ansible_facts(session_ansible_module):
 
 
 @pytest.fixture(scope='session')
+def session_ansible_python(session_hosts_in_group, session_hostvars_for_host, session_ansible_facts):
+    """Return the ansible_python for the first tower host on the inventory.
+
+    :raises: IndexError in case there is no host on the tower group or was not
+        able to fetch the ansible_python fact for the first tower host.
+    """
+    tower_host = session_hosts_in_group('tower').pop()
+    tower_host = session_hostvars_for_host(tower_host)['inventory_hostname']
+    return session_ansible_facts.contacted[tower_host]['ansible_facts']['ansible_python']
+
+
+@pytest.fixture(scope='session')
 def session_hostvars_for_host(session_ansible_adhoc):
     """Returns a generator that takes a host name in the inventory file
     and returns variables for that host
