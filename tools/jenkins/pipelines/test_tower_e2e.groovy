@@ -7,9 +7,10 @@ pipeline {
             name: 'E2E_URL',
             description: 'E2E test target URL. Include https:// as applicable.',
         )
-        choice(
+        string(
             name: 'DEPLOYMENT_TYPE',
-            choices: ['awx', 'tower'],
+            description: 'awx or tower',
+            defaultValue: 'awx'
         )
         string(
             name: 'E2E_FORK',
@@ -103,7 +104,6 @@ pipeline {
     }
     post {
         always {
-            sh "ls -la tower"
             xunit reduceLog: false, 
                   testTimeMargin: '15000',
                   thresholds: [failed(failureThreshold: '1'), skipped(failureThreshold: '1')], 

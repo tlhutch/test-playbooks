@@ -87,6 +87,11 @@ pipeline {
             """,
             defaultValue: 'yolo or ansible_integration'
         )
+        string(
+            name: 'E2E_TESTEXPR',
+            description: 'Specify the --filter flag for UI E2E tests if necessary',
+            defaultValue: '*'
+            )
         choice(
             name: 'PLATFORM',
             description: 'The OS to install the Tower instance on',
@@ -368,16 +373,24 @@ pipeline {
                             job: 'Test_Tower_E2E',
                             parameters: [
                                 string(
-                                    name: 'AWX_E2E_URL',
+                                    name: 'E2E_URL',
                                     value: AWX_E2E_URL
                                 ),
                                 string(
-                                    name: 'TOWER_REPO',
-                                    value: "git@github.com:${params.TOWER_FORK}/${params.PRODUCT}.git"
+                                    name: 'DEPLOYMENT_TYPE',
+                                    value: "${params.PRODUCT}"
                                 ),
                                 string(
-                                    name: 'TOWER_BRANCH_NAME',
-                                    value: params.TOWER_BRANCH
+                                    name: 'E2E_FORK',
+                                    value: "${params.TOWER_FORK}"
+                                ),
+                                string(
+                                    name: 'E2E_BRANCH',
+                                    value: "${params.TOWER_BRANCH}"
+                                ),
+                                string(
+                                    name: 'E2E_TEST_SELECTION',
+                                    value: "${params.E2E_TESTEXPR}"
                                 )
                             ]
                         )
