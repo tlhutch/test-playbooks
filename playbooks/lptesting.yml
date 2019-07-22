@@ -6,14 +6,22 @@
     - name: Set ansible_python_interpreter (RHEL-7)
       set_fact:
         remote_ansible_python_interpreter: /usr/bin/env python
-        image_name: '{{ rhel_image_name }}-Server-x86_64'
       when: "'RHEL-7' in rhel_compose_id"
 
     - name: Set ansible_python_interpreter (RHEL-8)
       set_fact:
         remote_ansible_python_interpreter: /usr/libexec/platform-python
-        image_name: '{{ rhel_image_name }}-x86_64'
       when: "'RHEL-8' in rhel_compose_id"
+
+    - name: Set image name (if needed) (RHEL-7)
+      set_fact:
+        image_name: '{{ rhel_image_name }}-Server-x86_64'
+      when: "'RHEL-7' in rhel_compose_id and rhel_image_name == rhel_compose_id"
+
+    - name: Set image name (if needed) (RHEL-8)
+      set_fact:
+        image_name: '{{ rhel_image_name }}-x86_64'
+      when: "'RHEL-8' in rhel_compose_id and rhel_image_name == rhel_compose_id"
 
     - name: Deploy OpenStack node(s)
       include_role:
