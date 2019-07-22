@@ -27,12 +27,9 @@ pipeline {
                 echo "Tower version under test: ${params.TOWER_VERSION}"
 
                 script {
-                    if (params.TOWER_VERSION == 'devel') {
-                        branch_name = 'devel'
-                    } else {
-                        branch_name = "release_${params.TOWER_VERSION}"
-                    }
-
+                    branch_name = params.TOWER_VERSION == 'devel' ? 'devel' : "release_${params.TOWER_VERSION}"
+                    // NOTE: there are no images for the devel dependencies, so use the latest release.
+                    // Update this after every release
                     upgrade_registry_namespace = 'ansible-tower-35'
                     install_registry_namespace = upgrade_registry_namespace
 
@@ -78,8 +75,7 @@ pipeline {
                 build(
                     job: 'brew-pipeline',
                     parameters: [
-                        string(name: 'TOWER_BRANCH', value: branch_name),
-                        string(name: 'TOWER_PACKAGING_BRANCH', value: branch_name)
+                        string(name: 'TOWER_VERSION', value: branch_name),
                     ]
                 )
             }
@@ -92,13 +88,10 @@ pipeline {
                     if (params.TOWER_VERSION != 'devel' && !(params.TOWER_VERSION ==~ /[0-9]*.[0-9]*.0/) ) {
                         stage('OpenShift Minor Upgrade') {
                             build(
-                                job: 'Test_Tower_OpenShift_Upgrade',
+                                job: 'Pipelines/openshift-upgrade-pipeline',
                                 parameters: [
-                                    string(name: 'TOWER_BRANCH', value: "origin/${branch_name}"),
-                                    string(name: 'INSTALL_AWX_SETUP_PATH', value: "/setup_openshift/ansible-tower-openshift-setup-${prev_min_version}.tar.gz"),
-                                    string(name: 'INSTALL_REGISTRY_NAMESPACE', value: upgrade_registry_namespace),
-                                    string(name: 'UPGRADE_REGISTRY_NAMESPACE', value: upgrade_registry_namespace),
-                                    booleanParam(name: 'TRIGGER', value: false)
+                                    string(name: 'TOWER_VERSION_TO_UPGRADE_FROM', value: prev_min_version),
+                                    string(name: 'TOWER_VERSION_TO_UPGRADE_TO', value: params.TOWER_VERSION)
                                 ]
                             )
                         }
@@ -107,16 +100,13 @@ pipeline {
                 script {
                     if (!(params.TOWER_VERSION ==~ /3.3.[0-9]*/)) {
                         stage('OpenShift Major Upgrade') {
-                           build(
-                               job: 'Test_Tower_OpenShift_Upgrade',
-                               parameters: [
-                                   string(name: 'TOWER_BRANCH', value: "origin/${branch_name}"),
-                                   string(name: 'INSTALL_AWX_SETUP_PATH', value: "/setup_openshift/ansible-tower-openshift-setup-${prev_maj_version}.tar.gz"),
-                                   string(name: 'INSTALL_REGISTRY_NAMESPACE', value: install_registry_namespace),
-                                   string(name: 'UPGRADE_REGISTRY_NAMESPACE', value: upgrade_registry_namespace),
-                                   booleanParam(name: 'TRIGGER', value: false)
-                               ]
-                           )
+                            build(
+                                job: 'Pipelines/openshift-upgrade-pipeline',
+                                parameters: [
+                                    string(name: 'TOWER_VERSION_TO_UPGRADE_FROM', value: prev_maj_version),
+                                    string(name: 'TOWER_VERSION_TO_UPGRADE_TO', value: params.TOWER_VERSION)
+                                ]
+                            )
                         }
                     }
                 }
@@ -126,37 +116,20 @@ pipeline {
         stage('OpenShift Backup and Restore') {
             steps {
                 build(
-                    job: 'Test_Tower_OpenShift_Backup_And_Restore',
+                    job: 'Pipelines/openshift-backup-and-restore-pipeline',
                     parameters: [
-                        string(name: 'GIT_BRANCH', value: "origin/${branch_name}"),
-                        string(name: 'RABBITMQ_CONTAINER_IMAGE', value: "registry.access.redhat.com/${upgrade_registry_namespace}/ansible-tower-messaging"),
-                        string(name: 'MEMCACHED_CONTAINER_IMAGE', value: "registry.access.redhat.com/${upgrade_registry_namespace}/ansible-tower-memcached"),
-                        booleanParam(name: 'TRIGGER', value: false)
+                        string(name: 'TOWER_VERSION', value: params.TOWER_VERSION)
                     ]
                 )
             }
         }
 
-        stage('OpenShift Deploy') {
+        stage('OpenShift Install and Integration') {
             steps {
                 build(
-                    job: 'Test_Tower_OpenShift_Deploy',
+                    job: 'Pipelines/openshift-integration-pipeline',
                     parameters: [
-                        string(name: 'GIT_BRANCH', value: "origin/${branch_name}"),
-                        string(name: 'RABBITMQ_CONTAINER_IMAGE', value: "registry.access.redhat.com/${upgrade_registry_namespace}/ansible-tower-messaging"),
-                        string(name: 'MEMCACHED_CONTAINER_IMAGE', value: "registry.access.redhat.com/${upgrade_registry_namespace}/ansible-tower-memcached"),
-                        booleanParam(name: 'TRIGGER', value: false)
-                    ]
-                )
-            }
-        }
-
-        stage('OpenShift Integration') {
-            steps {
-                build(
-                    job: 'Test_Tower_OpenShift_Integration',
-                    parameters: [
-                        string(name: 'GIT_BRANCH', value: "origin/${branch_name}"),
+                        string(name: 'TOWER_VERSION', value: params.TOWER_VERSION)
                     ]
                 )
             }
