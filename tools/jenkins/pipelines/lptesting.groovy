@@ -12,10 +12,10 @@ pipeline {
             description: 'RHEL Image Name on OpenStack (if diffent than RHEL_COMPOSE_ID)',
             defaultValue: '${RHEL_COMPOSE_ID}'
         )
-        string(
+        choice(
             name: 'TOWER_VERSION',
             description: 'Tower version to deploy',
-            defaultValue: 'devel'
+            choices: ['devel', '3.5', '3.4', '3.3']
         )
     }
 
@@ -28,8 +28,20 @@ pipeline {
 
         stage ('Pipeline Information') {
             steps {
+                script {
+                    if (params.TOWER_VERSION == '3.3') {
+                        _TOWER_VERSION = '3.3.6'
+                    } else if (params.TOWER_VERSION == '3.4') {
+                        _TOWER_VERSION = '3.4.4'
+                    } else if (params.TOWER_VERSION == '3.5') {
+                        _TOWER_VERSION = '3.5.1'
+                    } else {
+                        _TOWER_VERSION = 'devel'
+                    }
+                }
+
                 echo """Compose ID: ${params.RHEL_COMPOSE_ID}
-Tower Version: ${params.TOWER_VERSION}"""
+Tower Version: ${_TOWER_VERSION}"""
             }
         }
 
@@ -40,7 +52,7 @@ Tower Version: ${params.TOWER_VERSION}"""
                                  string(credentialsId: 'awx_admin_password', variable: 'AWX_ADMIN_PASSWORD')]) {
                     withEnv(["OUT_OF_BOX=yes", "AWS_SECRET_KEY=DUMMY", "AWS_ACCESS_KEY=DUMMY",
                              "ANSIBLE_INSTALL_METHOD=none",
-                             "AWX_ADMIN_PASSWORD=${AWX_ADMIN_PASSWORD}", "TOWER_VERSION=${params.TOWER_VERSION}"]) {
+                             "AWX_ADMIN_PASSWORD=${AWX_ADMIN_PASSWORD}", "TOWER_VERSION=${_TOWER_VERSION}"]) {
                         sh 'pip install -U openstackclient'
                         sh 'mkdir -p ~/.ssh && cp ${PUBLIC_KEY} ~/.ssh/id_rsa.pub'
                         sh 'ansible-vault decrypt --vault-password-file="${VAULT_FILE}" config/credentials.vault --output=config/credentials.yml'
@@ -64,7 +76,7 @@ Tower Version: ${params.TOWER_VERSION}"""
                              "OS_ENDPOINT_TYPE=publicURL",
                              "OS_IDENTITY_API_VERSION=3",
                              "ANSIBLE_FORCE_COLOR=true"]) {
-                        sh "ansible-playbook playbooks/lptesting.yml -e rhel_compose_id=${params.RHEL_COMPOSE_ID} -e tower_version=${params.TOWER_VERSION} -e rhel_image_name=${RHEL_IMAGE_NAME} --tags deploy"
+                        sh "ansible-playbook playbooks/lptesting.yml -e rhel_compose_id=${params.RHEL_COMPOSE_ID} -e tower_version=${_TOWER_VERSION} -e rhel_image_name=${RHEL_IMAGE_NAME} --tags deploy"
                     }
                 }
                 archiveArtifacts artifacts: 'playbooks/inventory.lptesting'
@@ -76,7 +88,7 @@ Tower Version: ${params.TOWER_VERSION}"""
                 withCredentials([string(credentialsId: '59bf4b91-d28d-4ca1-a21d-cc26112e8725', variable: 'ACCESS_PASSWORD')]) {
                     withEnv(["ANSIBLE_FORCE_COLOR=true"]) {
                         sshagent(credentials : ['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
-                            sh "ansible-playbook -i playbooks/inventory.lptesting playbooks/lptesting.yml -e tower_version=${params.TOWER_VERSION} -e red_hat_username='yguenane@redhat.com' -e rhel_compose_id=${params.RHEL_COMPOSE_ID} -e red_hat_password='${ACCESS_PASSWORD}' --tags prepare"
+                            sh "ansible-playbook -i playbooks/inventory.lptesting playbooks/lptesting.yml -e tower_version=${_TOWER_VERSION} -e red_hat_username='yguenane@redhat.com' -e rhel_compose_id=${params.RHEL_COMPOSE_ID} -e red_hat_password='${ACCESS_PASSWORD}' --tags prepare"
                         }
                     }
                 }
@@ -96,11 +108,7 @@ Tower Version: ${params.TOWER_VERSION}"""
         stage('Checkout tower-qa') {
             steps {
                 script {
-                    if (params.TOWER_VERSION == 'devel') {
-                        branch_name = 'devel'
-                    } else {
-                        branch_name = "release_${params.TOWER_VERSION}"
-                    }
+                    branch_name = _TOWER_VERSION == 'devel' ? 'devel' : "release_${_TOWER_VERSION}"
                 }
                 checkout([
                     $class: 'GitSCM',
