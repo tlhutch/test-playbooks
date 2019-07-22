@@ -32,14 +32,6 @@
 
 set -euxo pipefail
 
-function cleanup {
-    rc=$? # preserve return code before cleanup
-    cp e2e_repo/awx/ui/test/e2e/reports/*.xml e2e_results/reports
-    rm -rf e2e_repo
-    echo "return code before cleanup: $rc"
-}
-trap cleanup EXIT
-
 VARS_FILE=${VARS_FILE:-playbooks/vars.yml}
 JSON_KEY_FILE_PATH=${JSON_KEY_FILE_PATH:-json_key_file}
 
@@ -78,36 +70,31 @@ E2E_FORK=${E2E_FORK:-"ansible"}
 E2E_BRANCH=${E2E_BRANCH:-"devel"}
 E2E_TEST_SELECTION=${E2E_TEST_SELECTION:-"*"}
 
-# Since E2E tests could be any arbitrary branch, we clone into a custom-named folder e2e_repo
-# to minimize space usage, we only fetch the specific branch.
-git clone -b "${E2E_BRANCH}" git@github.com:"${E2E_FORK}"/"${DEPLOYMENT_TYPE}".git --single-branch e2e_repo
+git clone -b "${E2E_BRANCH}" git@github.com:"${E2E_FORK}"/"${DEPLOYMENT_TYPE}".git --depth 1 ${DEPLOYMENT_TYPE}
 
 if [[ "$DEPLOYMENT_TYPE" == "tower" ]]; then
-    curl -o add_license.py https://gist.githubusercontent.com/jakemcdermott/0aac520c7bb631ee46517dfab94bd6dd/raw/fd85fdad7395f90ac4acab1b6c2edf10df0bb3d7/apply_license.py
-    python add_license.py -u admin -p "${E2E_PASSWORD}" "${E2E_URL}"
+    python "$(dirname "${0}")"/apply_license_py2.py -u admin -p "${AWX_ADMIN_PASSWORD}" "${E2E_URL}"
     CONTAINER_IMAGE_NAME=tower_e2e
 else
     CONTAINER_IMAGE_NAME=awx_e2e
 fi
 
-mkdir -p e2e_results/screenshots
-mkdir -p e2e_results/reports
-curl -o e2e_results/nightwatchxsl.xsl https://gist.githubusercontent.com/unlikelyzero/164f03df3bf4ee2b01ee8c263979051b/raw/8b3356e2a1e059bef6ec64ac7e9a16566f5f550e/nightwatchxsl.xsl
-
 # Only skip login if explicitly set to true
 if ! [[ $SKIP_DOCKER_LOGIN == "true" ]]; then
+    set +x
     docker login -u _json_key -p "$(cat "${JSON_KEY_FILE_PATH}")" https://gcr.io
+    set -x
 else
     echo "SKIP_DOCKER_LOGIN is set to true, skipping and going to the docker pull step"
 fi
 docker pull gcr.io/ansible-tower-engineering/"${CONTAINER_IMAGE_NAME}":latest
 docker tag gcr.io/ansible-tower-engineering/"${CONTAINER_IMAGE_NAME}":latest ${CONTAINER_IMAGE_NAME}:latest
 docker-compose \
-    -f e2e_repo/awx/ui/test/e2e/cluster/docker-compose.yml \
+    -f ${DEPLOYMENT_TYPE}/awx/ui/test/e2e/cluster/docker-compose.yml \
     run \
     -e AWX_E2E_URL="${E2E_URL}" \
     -e AWX_E2E_USERNAME="${E2E_USERNAME}" \
     -e AWX_E2E_PASSWORD="${E2E_PASSWORD}" \
     -e AWX_E2E_SCREENSHOTS_ENABLED=true \
-    -e AWX_E2E_SCREENSHOTS_PATH="e2e_results/screenshots" \
+    -e AWX_E2E_SCREENSHOTS_PATH="awx/ui/test/e2e/screenshots" \
     e2e --filter="${E2E_TEST_SELECTION}"
