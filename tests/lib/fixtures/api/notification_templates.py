@@ -1,4 +1,5 @@
 import pytest
+import requests
 
 
 @pytest.fixture(scope="function", params=[
@@ -53,3 +54,9 @@ def webhook_notification_template(factories):
 def mattermost_notification_template(factories):
     """Mattermost notification template"""
     return factories.notification_template(notification_type="mattermost")
+
+
+@pytest.fixture
+def webhook_binId():
+    # Rely on https://postb.in to really test our webhooks
+    return requests.post('https://postb.in/api/bin').json()['binId']
