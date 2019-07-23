@@ -1,7 +1,9 @@
 import os
 
 from towerkit.config import config
+from towerkit import utils
 import fauxfactory
+import requests
 import pytest
 
 
@@ -388,3 +390,107 @@ def satellite6_credential(admin_user, factories):
 @pytest.fixture(scope="function", params=['aws', 'azure', 'gce', 'vmware', 'openstack_v3', 'cloudforms', 'satellite6'])
 def cloud_credential(request):
     return request.getfixturevalue(request.param + '_credential')
+
+
+# Kubernetes
+#
+@pytest.fixture(scope='class')
+def k8s_vault(gke_client_cscope, request):
+    K8sClient = gke_client_cscope(config.credentials)
+    prefix = 'vault'
+    deployment_name = K8sClient.random_deployment_name(prefix)
+    cluster_domain = 'services.k8s.tower-qe.testing.ansible.com'
+    containerspec = [{'name': 'vault',
+                        'image': 'vault',
+                        'ports': [{'containerPort': 1234, 'protocol': 'TCP'}],
+                        'env': [{'name': 'VAULT_DEV_LISTEN_ADDRESS',
+                                'value': '0.0.0.0:1234'},
+                                {'name': 'VAULT_DEV_ROOT_TOKEN_ID',
+                                 'value': config.credentials.hashivault.token}],
+                        'securityContext': {'capabilities': {'add': ['IPC_LOCK']}}}]
+    portspec = [{'name': 'vault',
+                     'port': 1234,
+                     'protocol': 'TCP',
+                     'targetPort': 1234}]
+    vault_deployment = K8sClient.generate_deployment(deployment_name, containerspec)
+    vault_service = K8sClient.generate_service(deployment_name, portspec)
+    K8sClient.apps.create_namespaced_deployment(body=vault_deployment, namespace='default')
+    K8sClient.core.create_namespaced_service(body=vault_service, namespace='default')
+    vault_url = "https://http-{}-port-1234.{}".format(deployment_name, cluster_domain)
+    request.addfinalizer(lambda: K8sClient.destroy(deployment_name))
+    utils.poll_until(lambda: requests.get(vault_url).status_code == 200, timeout=120)
+
+    sess = requests.Session()
+    sess.headers['Authorization'] = 'Bearer {}'.format(config.credentials.hashivault.token)
+
+    # if a secret engine mount exists at /kv, delete it
+    sess.delete('{}/v1/sys/mounts/kv'.format(vault_url))
+    # enable a v1 secret engine at path /kv
+    sess.post('{}/v1/sys/mounts/kv'.format(vault_url), json={
+        "type": "kv",
+        "options": {"version": 1},
+    })
+
+    # if a secret engine mount exists at /versioned, delete it
+    sess.delete('{}/v1/sys/mounts/versioned'.format(vault_url))
+    # enable a v2 secret engine at path /versioned
+    sess.post('{}/v1/sys/mounts/versioned'.format(vault_url), json={
+        "type": "kv",
+        "options": {"version": 2},
+    })
+
+    # add a v1 secret
+    sess.post('{}/v1/kv/example-user'.format(vault_url), json={
+        "username": "unversioned-username"
+    })
+
+    # add a few v2 secrets (an old and a new version)
+    sess.post('{}/v1/versioned/data/example-user'.format(vault_url), json={
+        "data": {
+            "username": "old-username"
+        }
+    })
+    sess.post('{}/v1/versioned/data/example-user'.format(vault_url), json={
+        "data": {
+            "username": "latest-username"
+        }
+    })
+    sess.delete('{}/v1/sys/mounts/my-signer'.format(vault_url))
+    # enable a secret engine at path /my-signer
+    sess.post('{}/v1/sys/mounts/my-signer'.format(vault_url), json={
+        "type": "ssh",
+    })
+    # generate a signing key
+    sess.post('{}/v1/my-signer/config/ca'.format(vault_url), json={
+        "generate_signing_key": True,
+    })
+    # generate a role
+    sess.post('{}/v1/my-signer/roles/my-role'.format(vault_url), json={
+        "allow_user_certificates": True,
+        "allowed_users": "ec2-user",
+        "default_extensions": [
+            {"permit-pty": ""}
+        ],
+        "key_type": "ca",
+        "default_user": "ec2-user",
+        "ttl": "0m30s"
+    })
+    # read the generated public key
+    resp = sess.get('{}/v1/my-signer/config/ca'.format(vault_url))
+
+    # add ansible vault secrets
+    secrets = [('vault_1', 'secret1'), ('vault_2', 'secret2')]
+    for s in secrets:
+        sess.post('{}/v1/kv/{}'.format(vault_url, s[0]), json={
+            "password": s[1]
+        })
+
+    #
+    # On a _managed host_ that we intend to SSH into, add the public_key
+    # /etc/ssh/sshd_config
+    # ...
+    # TrustedUserCAKeys /etc/ssh/trusted-user-ca-keys.pem
+
+    # ...and restart the SSH service.
+    public_key = resp.json()['data']['public_key']  # noqa
+    return vault_url

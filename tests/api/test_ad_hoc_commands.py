@@ -190,6 +190,63 @@ class Test_Ad_Hoc_Commands_Main(APITest):
         assert command_pg.module_name == "command"
         assert command_pg.module_args == "true"
 
+    @pytest.mark.ansible_integration
+    def test_launch_with_credential_plugin(self, v2, k8s_vault, host,
+                                           api_ad_hoc_commands_pg, factories,
+                                           token=config.credentials.hashivault.token):
+        # Hashi Vault Secret Lookup
+        cred_type = v2.credential_types.get(
+            managed_by_tower=True,
+            name='HashiCorp Vault Secret Lookup'
+        ).results.pop()
+        inputs = {
+            'url': k8s_vault,
+            'token': token,
+            'api_version': 'v1'
+        }
+        payload = factories.credential.payload(
+            name=fauxfactory.gen_utf8(),
+            description=fauxfactory.gen_utf8(),
+            credential_type=cred_type,
+            inputs=inputs
+        )
+        hashi_credential = v2.credentials.post(payload)
+        metadata = {
+            'secret_path': '/kv/example-user/',
+            'secret_key': 'username',
+        }
+
+        # Machine Credential Type
+        cred_type = v2.credential_types.get(managed_by_tower=True, namespace='ssh').results.pop()
+        payload = factories.credential.payload(
+            name=fauxfactory.gen_utf8(),
+            description=fauxfactory.gen_utf8(),
+            credential_type=cred_type
+        )
+        credential = v2.credentials.post(payload)
+
+        # Associating Hashi credential to Machine credential
+        credential.related.input_sources.post(dict(
+            input_field_name='username',
+            source_credential=hashi_credential.id,
+            metadata=metadata
+        ))
+
+        # create payload
+        payload = dict(inventory=host.inventory,
+                       credential=credential.id,
+                       module_args="true")
+
+        # post the command
+        command_pg = api_ad_hoc_commands_pg.post(payload)
+
+        # assert command successful
+        command_pg.wait_until_completed()
+        command_pg.assert_successful()
+
+        # unversionned-username is coming from k8s_vault fixture (/v1/kv/example-user)
+        assert 'ansible -u unversioned-username' in command_pg.job_args[-1]
+
     def test_launch_with_invalid_module_name(self, inventory, ssh_credential, api_ad_hoc_commands_pg):
         """Verifies that if you post with an invalid module_name that a BadRequest exception is raised."""
         invalid_module_names = [-1, 0, 1, True, False, (), {}]
