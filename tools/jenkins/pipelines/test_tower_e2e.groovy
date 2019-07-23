@@ -30,7 +30,7 @@ pipeline {
         string(
             name: 'SELENIUM_DOCKER_TAG',
             description: 'Docker tag for selenium/node-chrome and selenium/node-firefox. Only change this if there is an unstable docker release.',
-            defaultValue: 'latest'
+            defaultValue: '3.141.59-oxygen'
         )
         string(
             name: 'E2E_USERNAME',
