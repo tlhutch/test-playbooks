@@ -407,23 +407,36 @@ class Test_Workflow_Job_Templates(APITest):
     # tests for WFJT-level prompts
     # trying to use inventory that is pending deletion has some coverage in unit tests
     @pytest.mark.parametrize('source', (
-        'workflow',  # test that inventory set on WFJT takes effects in spawned jobs
-        'prompt',    # test that inventory provided on launch takes effect
-        'rejected'   # test that if JT does not prompt for inventory, does not take effect
+        'workflow',  # test that params set on WFJT takes effects in spawned jobs
+        'prompt',    # test that params provided on launch takes effect
+        'rejected'   # test that if JT does not prompt for param, does not take effect
     ))
-    def test_launch_with_workflow_inventory(self, factories, source):
+    def test_launch_with_workflow_prompts(self, factories, source):
         inventory = factories.inventory()
         if source == 'prompt':
-            wfjt = factories.workflow_job_template(ask_inventory_on_launch=True)
+            wfjt = factories.workflow_job_template(
+                ask_inventory_on_launch=True,
+                ask_limit_on_launch=True
+            )
+            assert wfjt.ask_limit_on_launch is True  # sanity
         else:
-            wfjt = factories.workflow_job_template(inventory=inventory)
+            wfjt = factories.workflow_job_template(
+                inventory=inventory,
+                limit='is_target'
+            )
             assert wfjt.inventory is not None
+            assert wfjt.limit is None  # no prompt given
 
         if source == 'rejected':
             jt = factories.job_template()
         else:
-            jt = factories.job_template(ask_inventory_on_launch=True)
+            jt = factories.job_template(
+                ask_inventory_on_launch=True,
+                ask_limit_on_launch=True
+            )
+
         assert jt.inventory != wfjt.inventory
+        assert jt.limit == ''  # sanity
 
         factories.workflow_job_template_node(
             workflow_job_template=wfjt,
@@ -431,18 +444,21 @@ class Test_Workflow_Job_Templates(APITest):
         )
 
         if source == 'prompt':
-            wfj = wfjt.launch(payload={'inventory': inventory.id})
+            wfj = wfjt.launch(payload={'inventory': inventory.id, 'limit': 'is_target'})
         else:
             wfj = wfjt.launch()
         assert wfj.inventory == inventory.id
+        assert wfj.limit == wfjt.limit
         node = wfj.get_related('workflow_nodes').results.pop()
         node.wait_for_job()
 
         job = node.get_related('job')
         if source == 'rejected':
             assert job.inventory == jt.inventory
+            assert job.limit == ''
         else:
             assert job.inventory == inventory.id
+            assert job.limit == 'is_target'
 
     def test_deleted_workflow_inventory_has_no_effect(self, factories):
         inventory = factories.inventory()
