@@ -72,7 +72,8 @@ E2E_TEST_SELECTION=${E2E_TEST_SELECTION:-"*"}
 
 git clone -b "${E2E_BRANCH}" git@github.com:"${E2E_FORK}"/"${DEPLOYMENT_TYPE}".git --depth 1 ${DEPLOYMENT_TYPE}
 
-if [[ "$DEPLOYMENT_TYPE" == "tower" ]]; then
+# if [[ "$DEPLOYMENT_TYPE" == "tower" ]]; then
+  if [[ 1 ]]; then
     python "$(dirname "${0}")"/apply_license_py2.py -u admin -p "${AWX_ADMIN_PASSWORD}" "${E2E_URL}"
     CONTAINER_IMAGE_NAME=tower_e2e
 else
