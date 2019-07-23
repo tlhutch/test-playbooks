@@ -94,7 +94,7 @@ Scope selected: ${params.SCOPE}"""
                             job: 'openshift',
                             parameters: [
                                 string(name: 'TOWER_VERSION', value: _TOWER_VERSION),
-                                string(name: 'TRIGGER_BREW_PIPELINE', value:_'yes'),
+                                string(name: 'TRIGGER_BREW_PIPELINE', value: 'yes'),
                             ]
                         )
                     }
