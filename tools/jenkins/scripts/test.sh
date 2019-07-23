@@ -19,7 +19,7 @@ pip install -Ur scripts/requirements.install
 pip install -Ur requirements.txt
 
 if [[ -n "${TOWERKIT_BRANCH}" ]]; then
-    pip install -U git+ssh://git@github.com/ansible/towerkit.git@${TOWERKIT_BRANCH}
+    pip install -U "git+ssh://git@github.com/ansible/towerkit.git@${TOWERKIT_BRANCH}"
 fi
 
 echo "y" | pip uninstall pytest-mp || true
@@ -33,7 +33,7 @@ CREDS=$(retrieve_credential_file "${INVENTORY}")
 set +e
 
 # Run license tests that need to run serially
-if ! pytest -v -c config/api.cfg \
+pytest -v -c config/api.cfg \
     --junit-xml=reports/junit/results-license.xml \
     --ansible-host-pattern="${TOWER_HOST}" \
     --ansible-inventory="${INVENTORY}" \
@@ -42,7 +42,10 @@ if ! pytest -v -c config/api.cfg \
     --base-url="https://${TOWER_HOST}" \
     -k "${TESTEXPR}" \
     tests/license
-then
+
+# pytest exits with 1 when tests were collected and run but some of the
+# them failed. This is when we want to give Tower some time.
+if [[ $? == 1 ]]; then
     sleep 30
     pytest --cache-show "cache/lastfailed"
 fi
@@ -59,7 +62,7 @@ if ! is_tower_cluster "${INVENTORY}"; then
     fi
 
     # Let's run tests in parallel
-    if ! pytest -v -c config/api.cfg \
+    pytest -v -c config/api.cfg \
         --junit-xml=reports/junit/results-parallel.xml \
         --ansible-host-pattern="${TOWER_HOST}" \
         --ansible-inventory="${INVENTORY}" \
@@ -68,21 +71,27 @@ if ! is_tower_cluster "${INVENTORY}"; then
         --base-url="https://${TOWER_HOST}" \
         -k "not serial${TESTEXPR}" \
         -n "${PYTEST_NUMPROCESSES}" --dist=loadfile
-    then
-        sleep 300
+
+    # pytest exits with 1 when tests were collected and run but some of the
+    # them failed. This is when we want to give Tower some time.
+    if [[ $? == 1 ]]; then
+        sleep 120
         pytest --cache-show "cache/lastfailed"
     fi
 
     # Run tests that need to run serially
-    if ! pytest -v -c config/api.cfg \
+    pytest -v -c config/api.cfg \
         --ansible-host-pattern="${TOWER_HOST}" \
         --ansible-inventory="${INVENTORY}" \
         --api-credentials="${CREDS}" \
         --github-cfg="${CREDS}" \
         --base-url="https://${TOWER_HOST}" \
         -k "serial${TESTEXPR}"
-    then
-        sleep 300
+
+    # pytest exits with 1 when tests were collected and run but some of the
+    # them failed. This is when we want to give Tower some time.
+    if [[ $? == 1 ]]; then
+        sleep 120
         pytest --cache-show "cache/lastfailed"
     fi
 
@@ -90,18 +99,20 @@ if ! is_tower_cluster "${INVENTORY}"; then
     ./scripts/prefix_lastfailed "$(find .pytest_cache -name lastfailed)"
     pytest --cache-show "cache/lastfailed"
 else
-    if ! pytest -v -c config/api.cfg \
+    pytest -v -c config/api.cfg \
         --ansible-host-pattern="${TOWER_HOST}" \
         --ansible-inventory="${INVENTORY}" \
         --api-credentials="${CREDS}" \
         --github-cfg="${CREDS}" \
         --base-url="https://${TOWER_HOST}" \
         -k "${TESTEXPR}"
-    then
-        sleep 300
+
+    # pytest exits with 1 when tests were collected and run but some of the
+    # them failed. This is when we want to give Tower some time.
+    if [[ $? == 1 ]]; then
+        sleep 120
         pytest --cache-show "cache/lastfailed"
     fi
-
 fi
 
 pytest -v -c config/api.cfg \
