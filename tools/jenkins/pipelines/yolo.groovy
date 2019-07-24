@@ -366,7 +366,7 @@ pipeline {
 
             steps {
                 script {
-                    AWX_E2E_URL = readFile 'artifacts/tower_url'
+                    AWX_E2E_URL = readFile('artifacts/tower_url').trim()
 
                     retry(2) {
                         build(
@@ -374,7 +374,7 @@ pipeline {
                             parameters: [
                                 string(
                                     name: 'E2E_URL',
-                                    value: AWX_E2E_URL
+                                    value: "${AWX_E2E_URL}"
                                 ),
                                 string(
                                     name: 'DEPLOYMENT_TYPE',
