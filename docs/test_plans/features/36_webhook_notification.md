@@ -4,6 +4,7 @@
 
 Primary: Yanis Guenane (@Spredzy)
 Secondary: Mathew Wilson (@one-t)
+UI: John Hill (@johill)
 
 ## Summary
 
