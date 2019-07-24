@@ -98,7 +98,7 @@ def check_read_access(tower_object, expected_forbidden=[], unprivileged=False):
 
 def get_resource_roles(resource):
     """Helper function that returns a list containing a Tower resource's role names."""
-    return [role.replace("_role", "").replace("_", " ").replace("adhoc", "ad hoc") for role in list(resource.summary_fields.object_roles.keys())]
+    return [role.replace("_role", "").replace("_", " ").replace("adhoc", "ad hoc") for role in [role.name.lower() for role in resource.summary_fields.object_roles.values()]]
 
 
 def get_nt_endpoints(notifiable_resource):
