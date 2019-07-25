@@ -38,9 +38,14 @@ def session_ansible_python(session_hosts_in_group, session_hostvars_for_host, se
     :raises: IndexError in case there is no host on the tower group or was not
         able to fetch the ansible_python fact for the first tower host.
     """
-    tower_host = session_hosts_in_group('tower').pop()
-    tower_host = session_hostvars_for_host(tower_host)['inventory_hostname']
-    return session_ansible_facts.contacted[tower_host]['ansible_facts']['ansible_python']
+    tower_hosts = [
+        session_hostvars_for_host(host)['inventory_hostname']
+        for host in session_hosts_in_group('tower')
+    ]
+    for host, facts in session_ansible_facts.items():
+        if host in tower_hosts:
+            break
+    return facts['ansible_facts']['ansible_python']
 
 
 @pytest.fixture(scope='session')
