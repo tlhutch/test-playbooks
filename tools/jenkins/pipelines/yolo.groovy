@@ -423,17 +423,7 @@ pipeline {
                 color: "good",
                 teamDomain: "ansible",
                 channel: "${SLACK_USERNAME}",
-                message: """\
-                    <${env.RUN_DISPLAY_URL}|yolo #${env.BUILD_ID}> took ${currentBuild.durationString.replace(' and counting', '')} and is :party_parrot:
-                    Instance URL - ${readFile('artifacts/tower_url').trim()}
-                    Platform - ${params.PLATFORM}
-                    Product - ${params.PRODUCT} - ${params.TOWER_FORK}/${params.TOWER_BRANCH}
-                    Tower-Packaging - ${params.TOWER_PACKAGING_FORK}/${params.TOWER_PACKAGING_BRANCH}
-                    Tower-QA - ${params.TOWER_QA_FORK}/${params.TOWER_QA_BRANCH}
-                    Ansible Version - ${params.ANSIBLE_NIGHTLY_BRANCH}
-                    Test Expression - ${params.TESTEXPR}
-                    Comments - ${params.COMMENTS}
-                """.stripIndent()
+                message: genSlackMessage('party_parrot')
             )
 
             script {
@@ -450,17 +440,7 @@ pipeline {
                 color: "danger",
                 teamDomain: "ansible",
                 channel: "${SLACK_USERNAME}",
-                message: """\
-                    <${env.RUN_DISPLAY_URL}|yolo #${env.BUILD_ID}> took ${currentBuild.durationString.replace(' and counting', '')} and is :sad_parrot:
-                    Instance URL - ${readFile('artifacts/tower_url').trim()}
-                    Platform - ${params.PLATFORM}
-                    Product - ${params.PRODUCT} - ${params.TOWER_FORK}/${params.TOWER_BRANCH}
-                    Tower-Packaging - ${params.TOWER_PACKAGING_FORK}/${params.TOWER_PACKAGING_BRANCH}
-                    Tower-QA - ${params.TOWER_QA_FORK}/${params.TOWER_QA_BRANCH}
-                    Ansible Version - ${params.ANSIBLE_NIGHTLY_BRANCH}
-                    Test Expression - ${params.TESTEXPR}
-                    Comments - ${params.COMMENTS}
-                """.stripIndent()
+                message: genSlackMessage('sad_parrot')
             )
         }
         unstable {
@@ -469,17 +449,7 @@ pipeline {
                 color: "warning",
                 teamDomain: "ansible",
                 channel: "${SLACK_USERNAME}",
-                message: """\
-                    <${env.RUN_DISPLAY_URL}|yolo #${env.BUILD_ID}> took ${currentBuild.durationString.replace(' and counting', '')} and is :confusedparrot:
-                    Instance URL - ${readFile('artifacts/tower_url').trim()}
-                    Platform - ${params.PLATFORM}
-                    Product - ${params.PRODUCT} - ${params.TOWER_FORK}/${params.TOWER_BRANCH}
-                    Tower-Packaging - ${params.TOWER_PACKAGING_FORK}/${params.TOWER_PACKAGING_BRANCH}
-                    Tower-QA - ${params.TOWER_QA_FORK}/${params.TOWER_QA_BRANCH}
-                    Ansible Version - ${params.ANSIBLE_NIGHTLY_BRANCH}
-                    Test Expression - ${params.TESTEXPR}
-                    Comments - ${params.COMMENTS}
-                """.stripIndent()
+                message: genSlackMessage('confusedparrot')
             )
         }
         cleanup {
@@ -496,4 +466,33 @@ pipeline {
             }
         }
     }
+}
+
+def genSlackMessage (parrot) {
+    message = "<${env.RUN_DISPLAY_URL}|yolo #${env.BUILD_ID}> took ${currentBuild.durationString.replace(' and counting', '')} and is :${parrot}:\n"
+
+    if (fileExists('artifacts/tower_url')) {
+        message += "Instance URL - ${readFile('artifacts/tower_url').trim()}\n"
+    } else {
+        message += 'Instance URL - N/A\n'
+    }
+
+    message += """\
+        Platform - ${params.PLATFORM}
+        Product - ${params.PRODUCT} - ${params.TOWER_FORK}/${params.TOWER_BRANCH}
+        Scenario - ${params.SCENARIO}
+        Tower-Packaging - ${params.TOWER_PACKAGING_FORK}/${params.TOWER_PACKAGING_BRANCH}
+        Tower-QA - ${params.TOWER_QA_FORK}/${params.TOWER_QA_BRANCH}
+        Ansible Version - ${params.ANSIBLE_NIGHTLY_BRANCH}
+    """.stripIndent()
+
+    if (params.RUN_TESTS) {
+        message += "Test Expression - ${params.TESTEXPR}\n"
+    }
+    if (params.RUN_E2E) {
+        message += "E2E Test Expression - ${params.E2E_TESTEXPR}\n"
+    }
+
+    message += "Comments - ${params.COMMENTS}\n"
+    return message
 }
