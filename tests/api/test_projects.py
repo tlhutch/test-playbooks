@@ -100,7 +100,8 @@ class Test_Projects(APITest):
         project = factories.project(
             name='Commit checkout {} project {}'.format(scm_type, random_title()),
             scm_type=scm_type, scm_branch=before, organization=org)
-
+        poll_until(lambda: hasattr(project.get().related, 'last_update'), timeout=30)
+        project.related.last_update.get().wait_until_completed().assert_successful()
         assert project.scm_type == scm_type
         # the saved version of the commit follows some reliable syntax pattern
         assert project.scm_revision == expect_method(before)
