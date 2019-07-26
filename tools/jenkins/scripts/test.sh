@@ -4,6 +4,7 @@ set -euxo pipefail
 
 TESTEXPR=${TESTEXPR:-''}
 INVENTORY=${INVENTORY:-''}
+TOWERKIT_FORK=${TOWERKIT_FORK:-'ansible'}
 TOWERKIT_BRANCH=${TOWERKIT_BRANCH:-''}
 VARS_FILE=${VARS_FILE:-playbooks/vars.yml}
 PYTEST_NUMPROCESSES="4"
@@ -19,7 +20,7 @@ pip install -Ur scripts/requirements.install
 pip install -Ur requirements.txt
 
 if [[ -n "${TOWERKIT_BRANCH}" ]]; then
-    pip install -U "git+ssh://git@github.com/ansible/towerkit.git@${TOWERKIT_BRANCH}"
+    pip install -U "git+ssh://git@github.com/${TOWERKIT_FORK}/towerkit.git@${TOWERKIT_BRANCH}"
 fi
 
 echo "y" | pip uninstall pytest-mp || true
