@@ -103,7 +103,8 @@ class TestInstanceGroups(APITest):
 
     def test_that_instance_groups_not_duplicated(self, v2, factories):
         """Test that when a user is the admin of two organizations that both use the same instance group,
-        instance groups are not duplicated in API responses."""
+        instance groups are not duplicated in API responses.
+        Added while testing the issue: https://github.com/ansible/tower/issues/3547 """
         # Create test objects
         ig = factories.instance_group()
         user = factories.user()
@@ -120,13 +121,12 @@ class TestInstanceGroups(APITest):
         with pytest.raises(exc.NoContent):
             org2.related.instance_groups.post(dict(id=ig.id))
 
-    # Login as the test user and gather instance groups
+        # Login as the test user and gather instance groups
         with self.current_user(user.username, user.password):
             instance_names = [instance.name for instance in v2.instance_groups.get().results]
 
-    # Assert that the instance group we added is present, and is not duplicated
-        assert len(instance_names) == 1, f"Unexpected number of instance groups! Found {instance_names}"
-        assert instance_names == [ig.name], f"Unexpected name of instance groups! Found {instance_names}"
+        # Assert that the instance group we added is present, and is not duplicated
+        assert instance_names == [ig.name]
 
     def test_conflict_exception_when_attempting_to_delete_ig_with_running_job(self, factories, active_instances):
         instance = random.sample(active_instances.results, 1).pop()
