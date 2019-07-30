@@ -78,8 +78,8 @@ class Test_Projects(APITest):
         (
             'hg',
             'utf-8.yml',
-            'e025df47a1d000c98a1f71932708ddaedf929452',  # short: e025df4
-            '5139fc9da4f3f79f689b6b56fd5b658d9e5c2eeb',
+            '556ca0073e538e6279636aba7654040e437c69e2',  # short: 556ca00
+            'ca1c89aa22583dd471332312ed44ac0f73d4126e',
             lambda x: x[:12]  # not consistent
         ),
         (
