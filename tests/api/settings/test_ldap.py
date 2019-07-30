@@ -56,19 +56,20 @@ class TestLDAP(APITest):
         assert bob.related.organizations.get().count == 0
         assert bob.related.teams.get().count == 0
 
-    def test_ldap_superuser_permissions(self, v2, update_setting_pg, clean_user_orgs_and_teams):
+    @pytest.mark.parametrize('flag', ['is_superuser', 'is_system_auditor'])
+    def test_ldap_user_flag_permissions(self, v2, update_setting_pg, clean_user_orgs_and_teams, flag):
         ldap_settings = deepcopy(self.base_ldap_settings)
-        ldap_settings['AUTH_LDAP_USER_FLAGS_BY_GROUP'] = {'is_superuser': [
+        ldap_settings['AUTH_LDAP_USER_FLAGS_BY_GROUP'] = {flag: [
             'cn=bobsburgers_admins,cn=groups,cn=accounts,dc=testing,dc=ansible,dc=com',
             'cn=planetexpress_admins,cn=groups,cn=accounts,dc=testing,dc=ansible,dc=com']}
         update_setting_pg(v2.settings.get().get_endpoint(
             'ldap'), ldap_settings)
-        superusers = ['hfarnsworth', 'libelcher']
-        for u in superusers:
+        matching_users = ['hfarnsworth', 'libelcher']
+        for u in matching_users:
             with self.current_user(u, self.ldap_password):
                 superuser = v2.me.get().results.pop()
-                assert superuser.is_superuser
-        [clean_user_orgs_and_teams(v2.users.get(username=u).results.pop()) for u in superusers]
+                assert getattr(superuser, flag) is True
+        [clean_user_orgs_and_teams(v2.users.get(username=u).results.pop()) for u in matching_users]
 
     def test_ldap_organization_creation_and_user_sourcing(self, v2, update_setting_pg, clean_user_orgs_and_teams):
         org_name = 'LDAP_Organization_{}'.format(random_title())
