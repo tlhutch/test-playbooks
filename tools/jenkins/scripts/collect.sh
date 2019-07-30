@@ -9,7 +9,7 @@ source "$(dirname "${0}")"/lib/common
 
 setup_python3_env
 
-pip install -Ur scripts/requirements.install
+pip install -U ansible
 
 if [[ -z "${INVENTORY}" ]]; then
     INVENTORY=$(retrieve_inventory_file)
