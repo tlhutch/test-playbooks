@@ -454,6 +454,7 @@ class TestHashiCorpVaultCredentials(APITest):
         ['v1', None, '/kv/example-user/', 'unversioned-username'],
         ['v2', None, '/versioned/example-user', 'latest-username'],
         ['v2', '1', '/versioned/example-user', 'old-username'],
+        ['v2', None, '/versioned/subfolder/example-user', 'sub-username'],
     ])
     def test_hashicorp_vault_kv_lookup(self, factories, v2, hashicorp_api_version,
                                        secret_version, path, expected, k8s_vault):

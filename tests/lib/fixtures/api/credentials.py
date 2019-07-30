@@ -455,6 +455,11 @@ def k8s_vault(gke_client_cscope, request):
             "username": "latest-username"
         }
     })
+    sess.post('{}/v1/versioned/data/subfolder/example-user'.format(vault_url), json={
+        "data": {
+            "username": "sub-username"
+        }
+    })
     sess.delete('{}/v1/sys/mounts/my-signer'.format(vault_url))
     # enable a secret engine at path /my-signer
     sess.post('{}/v1/sys/mounts/my-signer'.format(vault_url), json={
