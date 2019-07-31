@@ -163,13 +163,14 @@ Bundle?: ${params.BUNDLE}"""
             }
         }
 
-        stage ('E2E Tests') {
-            steps {
-                sshagent(credentials : ['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
-                    sh "ssh ${SSH_OPTS} ec2-user@${TEST_RUNNER_HOST} 'cd tower-qa && ./tools/jenkins/scripts/e2e.sh'"
-                }
-            }
-        }
+        // NOTE: https://github.com/ansible/tower-qa/issues/3216:w
+        // stage ('E2E Tests') {
+        //     steps {
+        //        sshagent(credentials : ['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
+        //            sh 'ansible-playbook -v -i playbooks/inventory.test_runner playbooks/test_runner/run_e2e_test.yml'
+        //         }
+        //     }
+        // }
 
         stage ('Integration Tests') {
             steps {
