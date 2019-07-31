@@ -17,7 +17,7 @@ library identifier: "contra-int-lib@master",
 
 pipeline {
 
-    agent none
+    agent { label 'jenkins-jnlp-agent' }
 
     stages {
 
