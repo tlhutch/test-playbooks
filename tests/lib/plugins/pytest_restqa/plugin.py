@@ -1,5 +1,6 @@
 import http.client
 import logging
+import os
 import sys
 
 import requests
@@ -46,6 +47,13 @@ def pytest_addoption(parser):
                     dest='resource_file',
                     metavar='path',
                     help='YAML file that specifies resources expected on the Tower instance.')
+
+    group = parser.getgroup('openshift-namespace', 'openshift-namespace')
+    group.addoption('--openshift-namespace',
+                    action='store',
+                    dest='openshift_namespace',
+                    default=os.getenv('OPENSHIFT_PROJECT', 'tower-qe'),
+                    help='OpenShift namespace to run test against')
 
 
 connections = {}
@@ -103,6 +111,8 @@ def pytest_configure(config):
                     logger = logging.getLogger(mod)
                     logger.setLevel('DEBUG')
                     logger.addHandler(config._debug_rest_hdlr)
+
+    qe_config.openshift_namespace = config.option.openshift_namespace
 
 
 @pytest.fixture(scope='session')

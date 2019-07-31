@@ -11,13 +11,13 @@ def prep_environment():
         config.credentials.openshift.url), shell=True)
     assert ret == 0
 
-    ret = subprocess.call('oc project tower-qe', shell=True)
+    ret = subprocess.call('oc project {}'.format(config.openshift_namespace), shell=True)
     assert ret == 0
 
 
 def get_pods():
     client = OpenShiftObjectHelper(api_version='v1', kind='pod_list')
-    ret = client.get_object(namespace='tower-qe')
+    ret = client.get_object(namespace=config.openshift_namespace)
     return [i.metadata.name for i in ret.items]
 
 
