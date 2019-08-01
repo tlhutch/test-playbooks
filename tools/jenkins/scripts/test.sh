@@ -55,70 +55,58 @@ if [[ $? == 1 ]]; then
     pytest --cache-show "cache/lastfailed"
 fi
 
-if ! is_tower_cluster "${INVENTORY}"; then
-    if [[ "${TESTEXPR}" == "test" ]]; then
-        # A bigger instance is expected when running SLOWYO, because of that, bump
-        # the pytest numprocesses to 16
-        PYTEST_NUMPROCESSES="16"
-    fi
-
-    if [[ -n "${TESTEXPR}" ]]; then
-        TESTEXPR=" and (${TESTEXPR})"
-    fi
-
-    # Let's run tests in parallel
-    pytest -v -c config/api.cfg \
-        --junit-xml=reports/junit/results-parallel.xml \
-        --ansible-host-pattern="${TOWER_HOST}" \
-        --ansible-inventory="${INVENTORY}" \
-        --api-credentials="${CREDS}" \
-        --github-cfg="${CREDS}" \
-        --base-url="https://${TOWER_HOST}" \
-        -k "not serial${TESTEXPR}" \
-        -n "${PYTEST_NUMPROCESSES}" --dist=loadfile
-
-    # pytest exits with 1 when tests were collected and run but some of the
-    # them failed. This is when we want to give Tower some time.
-    if [[ $? == 1 ]]; then
-        sleep 120
-        pytest --cache-show "cache/lastfailed"
-    fi
-
-    # Run tests that need to run serially
-    pytest -v -c config/api.cfg \
-        --ansible-host-pattern="${TOWER_HOST}" \
-        --ansible-inventory="${INVENTORY}" \
-        --api-credentials="${CREDS}" \
-        --github-cfg="${CREDS}" \
-        --base-url="https://${TOWER_HOST}" \
-        -k "serial${TESTEXPR}"
-
-    # pytest exits with 1 when tests were collected and run but some of the
-    # them failed. This is when we want to give Tower some time.
-    if [[ $? == 1 ]]; then
-        sleep 120
-        pytest --cache-show "cache/lastfailed"
-    fi
-
-    # Workaround https://github.com/pytest-dev/pytest-xdist/issues/445<Paste>
-    ./scripts/prefix_lastfailed "$(find .pytest_cache -name lastfailed)"
-    pytest --cache-show "cache/lastfailed"
-else
-    pytest -v -c config/api.cfg \
-        --ansible-host-pattern="${TOWER_HOST}" \
-        --ansible-inventory="${INVENTORY}" \
-        --api-credentials="${CREDS}" \
-        --github-cfg="${CREDS}" \
-        --base-url="https://${TOWER_HOST}" \
-        -k "${TESTEXPR}"
-
-    # pytest exits with 1 when tests were collected and run but some of the
-    # them failed. This is when we want to give Tower some time.
-    if [[ $? == 1 ]]; then
-        sleep 120
-        pytest --cache-show "cache/lastfailed"
-    fi
+if [[ "${TESTEXPR}" == "test" ]]; then
+    # A bigger instance is expected when running SLOWYO, because of that, bump
+    # the pytest numprocesses to 16
+    PYTEST_NUMPROCESSES="16"
 fi
+
+if is_tower_cluster "${INVENTORY}"; then
+    # For cluster no matter the TESTEXPR we can run some more pytest executors
+    PYTEST_NUMPROCESSES="8"
+fi
+
+if [[ -n "${TESTEXPR}" ]]; then
+    TESTEXPR=" and (${TESTEXPR})"
+fi
+
+# Let's run tests in parallel
+pytest -v -c config/api.cfg \
+    --junit-xml=reports/junit/results-parallel.xml \
+    --ansible-host-pattern="${TOWER_HOST}" \
+    --ansible-inventory="${INVENTORY}" \
+    --api-credentials="${CREDS}" \
+    --github-cfg="${CREDS}" \
+    --base-url="https://${TOWER_HOST}" \
+    -k "not serial${TESTEXPR}" \
+    -n "${PYTEST_NUMPROCESSES}" --dist=loadfile
+
+# pytest exits with 1 when tests were collected and run but some of the
+# them failed. This is when we want to give Tower some time.
+if [[ $? == 1 ]]; then
+    sleep 120
+    pytest --cache-show "cache/lastfailed"
+fi
+
+# Run tests that need to run serially
+pytest -v -c config/api.cfg \
+    --ansible-host-pattern="${TOWER_HOST}" \
+    --ansible-inventory="${INVENTORY}" \
+    --api-credentials="${CREDS}" \
+    --github-cfg="${CREDS}" \
+    --base-url="https://${TOWER_HOST}" \
+    -k "serial${TESTEXPR}"
+
+# pytest exits with 1 when tests were collected and run but some of the
+# them failed. This is when we want to give Tower some time.
+if [[ $? == 1 ]]; then
+    sleep 120
+    pytest --cache-show "cache/lastfailed"
+fi
+
+# Workaround https://github.com/pytest-dev/pytest-xdist/issues/445<Paste>
+./scripts/prefix_lastfailed "$(find .pytest_cache -name lastfailed)"
+pytest --cache-show "cache/lastfailed"
 
 pytest -v -c config/api.cfg \
     --last-failed --last-failed-no-failures none \
@@ -129,12 +117,7 @@ pytest -v -c config/api.cfg \
     --github-cfg="${CREDS}" \
     --base-url="https://${TOWER_HOST}"
 
-if [[ -f reports/junit/results-parallel.xml ]]; then
-    ./scripts/merge_junit \
-        reports/junit/results{-license,-parallel,,-rerun,-final}.xml
-else
-    ./scripts/merge_junit \
-        reports/junit/results{-license,,-rerun,-final}.xml
-fi
+./scripts/merge_junit \
+    reports/junit/results{-license,-parallel,,-rerun,-final}.xml
 
 set -e
