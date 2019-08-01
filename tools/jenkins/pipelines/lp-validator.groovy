@@ -28,13 +28,20 @@ pipeline {
 
                     def ciData = readJSON text: ciMessage
 
-                    taskID = ciData?.artifact?.id
-                    composeID = ciData?.artifact?.products[0].distro
-                    composeIDImage = ciData?.artifact?.products[0].image
-                    composeVersion = ciData?.artifact?.products[0].version
-                    milestone = ciData?.artifact?.products[0].milestone
-                    towerVersion = ciData?.artifact?.products[1].version
+                    for (product in ciData['artifact']['products']) {
+                        if (product['name'].toLowerCase() == "rhel") {
+                            openstackImage = product['image']
+                            composeID = product?.id
+                            composeIDImage = product?.image
+                            composeVersion = product?.version
+                            milestone = product?.milestone
+                        }
+                        if (product['name'].toLowerCase() == "ansible_tower") {
+                            towerVersion = product?.version
+                        }
+                    }
 
+                    taskID = ciData?.artifact?.id
 
                     echo "${composeID} | ${composeIDImage} | ${towerVersion}"
                 }
@@ -68,6 +75,13 @@ The <http://jenkins.ansible.eng.rdu2.redhat.com/view/Tower/job/Pipelines/job/lpt
                             string(name: 'TOWER_VERSION', value: towerVersion),
                         ]
                     )
+
+                    copyArtifacts filter: 'reports/junit/results-final.xml', fingerprintArtifacts: true, flatten: true, projectName: 'qe-sandbox/elyezer/elyezer-lptesting-pipeline', selector: specific("${finalStatus.number}")
+                    sh 'yum install -y fpaste'
+                    fpaste_url = sh(script: 'fpaste results-final.xml 2>/dev/null', returnStdout: true)
+                    fpaste_url = fpaste_url.split(' ')[-1].trim()
+                    echo "fpaste URL: ${fpaste_url}"
+
                     if (finalStatus.result == 'SUCCESS') {
                         status = 'passed'
                         color = 'good'
@@ -136,7 +150,7 @@ Sending message to UMB to topic `VirtualTopic.qe.ci.product-scenario.test.comple
                                 "namespace": "interop",
                                 "type": "product-scenario",
                                 "result": "${status}",
-                                "xunit_urls": ["${finalStatus.absoluteUrl}/artifact/reports/junit/results-final.xml"]
+                                "xunit_urls": ["${fpaste_url}raw"]
                             }
                           }"""
 

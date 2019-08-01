@@ -19,12 +19,12 @@ pipelineJob('Layered Product Testing Listener') {
 
                         checks {
                             msgCheck {
-                                field('$.artifact.type')
-                                expectedValue("product-scenario")
+                                field('$..products.*.name')
+                                expectedValue('ansible_tower')
                             }
                             msgCheck {
-                                field('$.artifact.products[1].name')
-                                expectedValue("ansible-tower")
+                                field('$..products.*.name')
+                                expectedValue('rhel')
                             }
                         }
 
