@@ -1,7 +1,7 @@
 from contextlib import contextmanager
 import logging
 
-from awxkit.tower import license
+from tests.lib.tower import license
 import awxkit.exceptions as exc
 import fauxfactory
 import pytest

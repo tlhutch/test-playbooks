@@ -5,7 +5,7 @@ import fauxfactory
 import pytest
 
 import awxkit.exceptions as exc
-from awxkit.tower.license import generate_license
+from tests.lib.tower.license import generate_license
 from awxkit.utils import poll_until
 
 from tests.license.license import LicenseTest

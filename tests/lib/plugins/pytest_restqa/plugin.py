@@ -6,7 +6,7 @@ import sys
 import requests
 import pytest
 
-from awxkit.tower.utils import uses_sessions
+from awxkit.awx.utils import uses_sessions
 from awxkit.utils import load_credentials
 from awxkit.utils import PseudoNamespace
 from awxkit.api.client import Connection

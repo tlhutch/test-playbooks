@@ -5,7 +5,7 @@ import threading
 import time
 
 from awxkit import config, utils
-import awxkit.tower.inventory
+import awxkit.awx.inventory
 import awxkit.exceptions
 import pytest
 

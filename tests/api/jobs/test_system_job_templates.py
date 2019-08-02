@@ -1,6 +1,6 @@
 import json
 
-import awxkit.tower.inventory
+import awxkit.awx.inventory
 import awxkit.exceptions
 import pytest
 

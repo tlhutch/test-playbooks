@@ -2,7 +2,7 @@ from io import StringIO
 import logging
 
 from awxkit.config import config
-from awxkit.tower import utils
+from awxkit.awx import utils
 import contextlib
 import pytest
 

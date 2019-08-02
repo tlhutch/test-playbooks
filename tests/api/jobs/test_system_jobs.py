@@ -1,5 +1,5 @@
 import pytest
-import awxkit.tower.inventory
+import awxkit.awx.inventory
 import awxkit.exceptions
 from tests.api import APITest
 

@@ -3,7 +3,7 @@ import json
 import yaml
 
 from awxkit import utils
-import awxkit.tower.inventory
+import awxkit.awx.inventory
 import awxkit.exceptions
 import pytest
 
