@@ -115,7 +115,7 @@ Tower Memcached Container Image: ${params.MEMCACHED_CONTAINER_IMAGE}"""
 
         stage ('Integration Tests') {
             steps {
-                withEnv(["TESTEXPR=${TESTEXPR}"]) {
+                withEnv(["TESTEXPR=${TESTEXPR}", "OPENSHIFT_PROJECT=${OPENSHIFT_PROJECT}"]) {
                     sshagent(credentials : ['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
                         sh './tools/jenkins/scripts/test.sh'
                         sh 'cp reports/junit/results-final.xml artifacts/results.xml'
