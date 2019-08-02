@@ -126,7 +126,7 @@ Tower Version: ${_TOWER_VERSION}"""
         stage ('Test Tower') {
             steps {
                 withEnv(['INVENTORY=playbooks/inventory.lptesting',
-                         'TESTEXPR=test_utf8']) {
+                         'TESTEXPR=yolo or ansible_integration']) {
                     sshagent(credentials : ['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
                         sh './tools/jenkins/scripts/test.sh'
                         junit 'reports/junit/results-final.xml'
