@@ -157,3 +157,7 @@ flake8
 # Setting Environment Variables (add before the invocation of pytest on the same command)
 TOWERKIT_PREVENT_TEARDOWN=1  # bypass teardown
 ```
+
+# Jupyter
+
+There are some example jupyter notebooks of interacting with tower via towerkit/awxkit in docs/jupyter.

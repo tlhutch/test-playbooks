@@ -3,9 +3,9 @@
 Here are additional resources in `tower-qa` and `towerkit` that may be helpful to other Ansible Tower engineering teams members.
 * Use our tests to see how the Tower API is supposed to work. For instance, how to create an [Insights inventory](https://github.com/ansible/tower-qa/blob/master/tests/api/test_insights.py#L20) or how Tower is supposed to behave interacting with Insights under [various scenarios](https://github.com/ansible/tower-qa/blob/master/tests/api/test_insights.py#L78) (see "test_access_insights_with" tests).
 * Credentials for the [majority](https://github.com/ansible/tower-qa/blob/master/config/credentials.vault) of our cloud integrations and additional authentication services.
-* Using Towerkit to instantiate resources using `tkit`:
+* Using Towerkit to instantiate resources using `akit`:
 ```
-tkit -l -c config/credentials.yml -t http://127.0.0.1:8013
+akit -l -c config/credentials.yml -t http://127.0.0.1:8013
 
 In [1]: for i in range(10): v2.teams.create()
 DEBUG:towerkit.api.pages.page:Retrieved <class 'towerkit.api.pages.teams.V2Teams'> by url: /api/v2/teams/
