@@ -1,6 +1,5 @@
 import logging
 import json
-import threading
 import uuid
 
 from towerkit.utils import not_provided
@@ -463,8 +462,8 @@ def cloud_inventory_source(request):
     return request.getfixturevalue(request.param + '_inventory_source')
 
 
-@pytest.fixture
-def _parallel_run_all_cloud_inventory_updates(request, factories):
+@pytest.fixture(scope="class")
+def _parallel_run_all_cloud_inventory_updates(request, class_factories):
     source_and_cred = {
         'ec2': 'aws_credential',
         'azure_rm': 'azure_credential',
@@ -474,7 +473,7 @@ def _parallel_run_all_cloud_inventory_updates(request, factories):
     inv_sources = {}
     for source, cred_fixture in source_and_cred.items():
         cred = request.getfixturevalue(cred_fixture)
-        inv_sources[source] = factories.inventory_source(source=source, credential=cred)
+        inv_sources[source] = class_factories.inventory_source(source=source, credential=cred)
         if source == 'azure_rm':
             inv_sources[source].source_vars = json.dumps({
                 'group_by_location': True,
@@ -485,18 +484,20 @@ def _parallel_run_all_cloud_inventory_updates(request, factories):
                 })
 
     updates = []
+    # Start all requests
     for inv_source in inv_sources.values():
         updates.append(inv_source.update())
 
-    threads = [threading.Thread(target=update.wait_until_completed, args=()) for update in updates]
-    [t.start() for t in threads]
-    [t.join() for t in threads]
+    # Wait for requests to finish
+    for update in updates:
+        update.wait_until_completed()
+
     inventories = {key: inv_source.related.inventory.get() for key, inv_source in inv_sources.items()}
     return inventories
 
 
-@pytest.fixture(scope="function", params=['ec2', 'azure_rm', 'gce', 'openstack'], ids=['aws', 'azure', 'gce', 'openstack'])
-def cloud_inventory(request, factories, _parallel_run_all_cloud_inventory_updates):
+@pytest.fixture(scope="class", params=['ec2', 'azure_rm', 'gce', 'openstack'], ids=['aws', 'azure', 'gce', 'openstack'])
+def cloud_inventory(request, class_factories, _parallel_run_all_cloud_inventory_updates):
     return _parallel_run_all_cloud_inventory_updates[request.param]
 
 

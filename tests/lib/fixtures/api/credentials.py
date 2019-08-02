@@ -319,41 +319,41 @@ def encrypted_scm_credential(admin_user, factories):
 
 
 # Cloud credentials
-@pytest.fixture(scope="function")
-def aws_credential(admin_user, factories):
-    cred = factories.credential(name="awx-credential-%s" % fauxfactory.gen_utf8(),
+@pytest.fixture(scope="class")
+def aws_credential(admin_user, class_factories):
+    cred = class_factories.credential(name="awx-credential-%s" % fauxfactory.gen_utf8(),
                                 description="AWS credential %s" % fauxfactory.gen_utf8(),
                                 kind='aws', user=admin_user)
     return cred
 
 
-@pytest.fixture(scope="function")
-def azure_credential(admin_user, factories):
-    cred = factories.credential(name="azure-credential-%s" % fauxfactory.gen_utf8(),
+@pytest.fixture(scope="class")
+def azure_credential(admin_user, class_factories):
+    cred = class_factories.credential(name="azure-credential-%s" % fauxfactory.gen_utf8(),
                                 description="Microsoft Azure credential %s" % fauxfactory.gen_utf8(),
                                 kind='azure_rm', user=admin_user)
     return cred
 
 
-@pytest.fixture(scope="function")
-def gce_credential(admin_user, factories):
-    cred = factories.credential(name="gce-credential-%s" % fauxfactory.gen_utf8(),
+@pytest.fixture(scope="class")
+def gce_credential(admin_user, class_factories):
+    cred = class_factories.credential(name="gce-credential-%s" % fauxfactory.gen_utf8(),
                                 description="Google Compute Engine credential %s" % fauxfactory.gen_utf8(),
                                 kind='gce', user=admin_user)
     return cred
 
 
-@pytest.fixture(scope="function")
-def vmware_credential(admin_user, factories):
-    cred = factories.credential(name="vmware-credential-%s" % fauxfactory.gen_utf8(),
+@pytest.fixture(scope="class")
+def vmware_credential(admin_user, class_factories):
+    cred = class_factories.credential(name="vmware-credential-%s" % fauxfactory.gen_utf8(),
                                 description="VMware vCenter credential %s" % fauxfactory.gen_utf8(),
                                 kind='vmware', user=admin_user)
     return cred
 
 
-@pytest.fixture
-def openstack_v3_credential(admin_user, factories):
-    cred = factories.credential(name="openstack-v3-credential-%s" % fauxfactory.gen_utf8(),
+@pytest.fixture(scope="class")
+def openstack_v3_credential(admin_user, class_factories):
+    cred = class_factories.credential(name="openstack-v3-credential-%s" % fauxfactory.gen_utf8(),
                                 description="OpenStack credential %s" % fauxfactory.gen_utf8(),
                                 kind='openstack', user=admin_user,
                                 inputs=dict(host=config.credentials.cloud.openstack_v3.host,
