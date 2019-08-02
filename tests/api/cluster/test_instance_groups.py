@@ -101,6 +101,33 @@ class TestInstanceGroups(APITest):
         instance.enabled = True
         utils.poll_until(lambda: ig.get().capacity == initial_capacity, interval=1, timeout=30)
 
+    def test_that_instance_groups_not_duplicated(self, v2, factories):
+        """Test that when a user is the admin of two organizations that both use the same instance group,
+        instance groups are not duplicated in API responses.
+        Added while testing the issue: https://github.com/ansible/tower/issues/3547 """
+        # Create test objects
+        ig = factories.instance_group()
+        user = factories.user()
+        org1 = factories.organization()
+        org2 = factories.organization()
+
+        # Assign the user as admin to both the organizations
+        org1.set_object_roles(user, 'admin')
+        org2.set_object_roles(user, 'admin')
+
+        # Add the same instance group to both the organizations
+        with pytest.raises(exc.NoContent):
+            org1.related.instance_groups.post(dict(id=ig.id))
+        with pytest.raises(exc.NoContent):
+            org2.related.instance_groups.post(dict(id=ig.id))
+
+        # Login as the test user and gather instance groups
+        with self.current_user(user.username, user.password):
+            instance_names = [instance.name for instance in v2.instance_groups.get().results]
+
+        # Assert that the instance group we added is present, and is not duplicated
+        assert instance_names == [ig.name]
+
     def test_conflict_exception_when_attempting_to_delete_ig_with_running_job(self, factories, active_instances):
         instance = random.sample(active_instances.results, 1).pop()
         ig = factories.instance_group()
