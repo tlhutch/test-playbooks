@@ -75,7 +75,8 @@ pipeline {
                 build(
                     job: 'brew-pipeline',
                     parameters: [
-                        string(name: 'TOWER_VERSION', value: branch_name),
+                        string(name: 'TOWER_BRANCH', value: branch_name),
+                        string(name: 'TOWER_PACKAGING_BRANCH', value: branch_name),
                     ]
                 )
             }
