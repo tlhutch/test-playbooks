@@ -1,7 +1,7 @@
 import copy
 
-from towerkit import utils
-from towerkit import exceptions as exc
+from awxkit import utils
+from awxkit import exceptions as exc
 import pytest
 
 from tests.api import APITest

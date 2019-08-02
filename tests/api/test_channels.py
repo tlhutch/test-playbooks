@@ -3,8 +3,8 @@ import json
 from pprint import pformat
 
 
-from towerkit.config import config as qe_config
-from towerkit import utils, WSClient
+from awxkit.config import config as qe_config
+from awxkit import utils, WSClient
 import pytest
 
 from tests.lib.helpers.workflow_utils import WorkflowTree, WorkflowTreeMapper

@@ -1,10 +1,10 @@
 from tests.api import APITest
 import pytest
-from towerkit import utils
-from towerkit.config import config
+from awxkit import utils
+from awxkit.config import config
 from urllib.parse import urlparse
 import requests
-import towerkit.exceptions as exc
+import awxkit.exceptions as exc
 import jinja2
 
 

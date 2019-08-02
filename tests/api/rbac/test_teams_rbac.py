@@ -1,7 +1,7 @@
 import pytest
 import http.client
 
-import towerkit.exceptions
+import awxkit.exceptions
 from tests.lib.helpers.rbac_utils import (
     assert_response_raised,
     check_read_access,
@@ -153,5 +153,5 @@ class Test_Team_RBAC(APITest):
         admin_role = roles.results[0]
 
         for role in [auditor_role, admin_role]:
-            with pytest.raises(towerkit.exceptions.BadRequest):
+            with pytest.raises(awxkit.exceptions.BadRequest):
                 team.related.roles.post(dict(id=role.id))

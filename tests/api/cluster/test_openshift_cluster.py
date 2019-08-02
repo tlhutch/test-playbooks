@@ -1,4 +1,4 @@
-from towerkit import utils
+from awxkit import utils
 import pytest
 
 from tests.lib.helpers import openshift_utils

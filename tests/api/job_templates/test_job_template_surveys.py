@@ -1,8 +1,8 @@
 import logging
 import json
 
-import towerkit.exceptions as exc
-from towerkit import utils
+import awxkit.exceptions as exc
+from awxkit import utils
 import fauxfactory
 import pytest
 

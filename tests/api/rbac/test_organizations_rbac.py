@@ -3,7 +3,7 @@ from collections import namedtuple
 import pytest
 import http.client
 
-import towerkit.exceptions
+import awxkit.exceptions
 from tests.lib.helpers.rbac_utils import (
     assert_response_raised,
     check_read_access,
@@ -206,7 +206,7 @@ class Test_Organization_RBAC(APITest):
 
         with self.current_user(username=org_admin.username, password=org_admin.password):
             job1.delete()
-            with pytest.raises(towerkit.exceptions.Forbidden):
+            with pytest.raises(awxkit.exceptions.Forbidden):
                 job2.delete()
 
     def test_org_admin_command_deletion(self, factories):
@@ -224,7 +224,7 @@ class Test_Organization_RBAC(APITest):
 
         with self.current_user(username=org_admin.username, password=org_admin.password):
             ahc1.delete()
-            with pytest.raises(towerkit.exceptions.Forbidden):
+            with pytest.raises(awxkit.exceptions.Forbidden):
                 ahc2.delete()
 
     def test_org_admin_project_update_deletion(self, factories):
@@ -241,7 +241,7 @@ class Test_Organization_RBAC(APITest):
 
         with self.current_user(username=org_admin.username, password=org_admin.password):
             update1.delete()
-            with pytest.raises(towerkit.exceptions.Forbidden):
+            with pytest.raises(awxkit.exceptions.Forbidden):
                 update2.delete()
 
     def test_org_admin_inventory_update_deletion(self, factories):
@@ -265,7 +265,7 @@ class Test_Organization_RBAC(APITest):
 
         with self.current_user(username=org_admin.username, password=org_admin.password):
             inv_update1.delete()
-            with pytest.raises(towerkit.exceptions.Forbidden):
+            with pytest.raises(awxkit.exceptions.Forbidden):
                 inv_update2.delete()
 
     def test_member_role_association(self, factories):
@@ -313,7 +313,7 @@ class Test_Organization_RBAC(APITest):
         team = factories.team()
         organization = factories.organization()
 
-        with pytest.raises(towerkit.exceptions.BadRequest):
+        with pytest.raises(awxkit.exceptions.BadRequest):
             organization.set_object_roles(team, role)
 
     @staticmethod
@@ -322,7 +322,7 @@ class Test_Organization_RBAC(APITest):
             kwargs['source_script'] = factories.inventory_script(organization=org)
         if res_type == 'job_template':
             # Would like to specify kwargs like 'project': (Project, {Organization: org})
-            # but something about the towerkit dependency store does not work for that
+            # but something about the awxkit dependency store does not work for that
             if not kwargs.get('project'):
                 kwargs['project'] = factories.project(organization=org)
             if not kwargs.get('inventory'):
@@ -337,7 +337,7 @@ class Test_Organization_RBAC(APITest):
     def test_non_authorized_user_cannot_create_resources(self, factories, resource_type, non_superuser):
         org = factories.organization()
         with self.current_user(non_superuser):
-            with pytest.raises(towerkit.exceptions.Forbidden):
+            with pytest.raises(awxkit.exceptions.Forbidden):
                 self.create_resource(factories, resource_type, org)
 
     @pytest.mark.parametrize('resource_type', [item.resource_type for item in org_resource_admin_mappings])
@@ -377,7 +377,7 @@ class Test_Organization_RBAC(APITest):
             if sub_resource_mapping.field == 'credential':
                 creation_kwargs['source_script'] = factories.inventory_script(organization=orgB)
         with self.current_user(user):
-            with pytest.raises(towerkit.exceptions.Forbidden):
+            with pytest.raises(awxkit.exceptions.Forbidden):
                 self.create_resource(factories, sub_resource_mapping.resource_type, orgB, **creation_kwargs)
         orgA.add_admin(user)
         with self.current_user(user):
@@ -402,7 +402,7 @@ class Test_Organization_RBAC(APITest):
         else:
             creation_kwargs = {sub_resource_mapping.field: sub_resource}
         with self.current_user(user):
-            with pytest.raises(towerkit.exceptions.Forbidden):
+            with pytest.raises(awxkit.exceptions.Forbidden):
                 self.create_resource(factories, sub_resource_mapping.resource_type, orgB, **creation_kwargs)
         orgA.add_admin(user)
         with self.current_user(user):
@@ -469,10 +469,10 @@ class Test_Organization_RBAC(APITest):
         with self.current_user(resource_admin):
             if resource_mapping.resource_type == 'credential':
                 # Credentials use a different exception
-                with pytest.raises(towerkit.exceptions.BadRequest):
+                with pytest.raises(awxkit.exceptions.BadRequest):
                     resource.set_object_roles(user, 'admin')
             else:
-                with pytest.raises(towerkit.exceptions.Forbidden):
+                with pytest.raises(awxkit.exceptions.Forbidden):
                     resource.set_object_roles(user, 'admin')
 
     @pytest.mark.parametrize('resource_mapping', org_resource_admin_mappings, ids=mapping_id)
@@ -489,7 +489,7 @@ class Test_Organization_RBAC(APITest):
         with self.current_user(resource_admin):
             if resource_mapping.resource_type != 'notification_template':
                 # Skip notification_templates because they do not have object-level permissions
-                with pytest.raises(towerkit.exceptions.Forbidden):
+                with pytest.raises(awxkit.exceptions.Forbidden):
                     resource.set_object_roles(user, 'admin')
             assert_response_raised(resource, http.client.FORBIDDEN)
 
@@ -511,7 +511,7 @@ class Test_Organization_RBAC(APITest):
         with self.current_user(resource_admin):
             if resource_mapping.resource_type != 'notification_template':
                 # Skip notification_templates because they do not have object-level permissions
-                with pytest.raises(towerkit.exceptions.Forbidden):
+                with pytest.raises(awxkit.exceptions.Forbidden):
                     resource.set_object_roles(user, 'admin')
             assert_response_raised(resource, http.client.FORBIDDEN)
 
@@ -525,7 +525,7 @@ class Test_Organization_RBAC(APITest):
 
         with self.current_user(workflow_admin):
             wfjt = factories.workflow_job_template(organization=org)
-            with pytest.raises(towerkit.exceptions.Forbidden):
+            with pytest.raises(awxkit.exceptions.Forbidden):
                 factories.workflow_job_template_node(
                     workflow_job_template=wfjt, unified_job_template=jt)
 
@@ -544,7 +544,7 @@ class Test_Organization_RBAC(APITest):
         # Verify that the workflow admin can't modify extra vars on templates they don't
         # have access to
         with self.current_user(workflow_admin):
-            with pytest.raises(towerkit.exceptions.Forbidden):
+            with pytest.raises(awxkit.exceptions.Forbidden):
                 wfnode.extra_data = dict(var1='ansibull')
             assert wfnode.extra_data != dict(var1='ansibull')
 
@@ -559,7 +559,7 @@ class Test_Organization_RBAC(APITest):
         org = factories.organization()
         user1, user2 = [factories.user(organization=o) for o in (org, org)]
         with self.current_user(user1):
-            with pytest.raises(towerkit.exceptions.Forbidden):
+            with pytest.raises(awxkit.exceptions.Forbidden):
                 org.set_object_roles(user2, resource_mapping.resource_role)
 
     @pytest.mark.parametrize('resource_mapping',
@@ -575,7 +575,7 @@ class Test_Organization_RBAC(APITest):
             organization=o) for o in (org, None)]
         set_test_roles(resource_admin, org, agent, resource_mapping.resource_role)
         with self.current_user(resource_admin):
-            with pytest.raises(towerkit.exceptions.Forbidden):
+            with pytest.raises(awxkit.exceptions.Forbidden):
                 resource.set_object_roles(user, 'admin')
 
 

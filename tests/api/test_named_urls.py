@@ -2,8 +2,8 @@ import logging
 
 import pytest
 
-import towerkit
-from towerkit.api.resources import resources
+import awxkit
+from awxkit.api.resources import resources
 from tests.api import APITest
 
 
@@ -75,7 +75,7 @@ class TestNamedURLs(APITest):
         settings = v2.settings.get().get_endpoint('named-url')
         assert settings['NAMED_URL_FORMATS'] == expected
 
-        with pytest.raises(towerkit.exceptions.MethodNotAllowed):
+        with pytest.raises(awxkit.exceptions.MethodNotAllowed):
             settings.post(dict(NAMED_URL_FORMATS={}))
 
         # implicit patch, this returns 200 but should do nothing
@@ -208,5 +208,5 @@ class TestNamedURLs(APITest):
         username = "912345"
         user = factories.user(username=username)
         user_url = make_api_url('users', '{1}', username)
-        with pytest.raises(towerkit.exceptions.NotFound):
+        with pytest.raises(awxkit.exceptions.NotFound):
             user.walk(user_url)

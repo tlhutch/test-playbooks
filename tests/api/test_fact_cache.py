@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import json
 
-from towerkit.utils import random_title
+from awxkit.utils import random_title
 import fauxfactory
 import pytest
 

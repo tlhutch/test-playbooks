@@ -1,6 +1,6 @@
 import pytest
 
-import towerkit.exceptions
+import awxkit.exceptions
 from tests.api import APITest
 
 
@@ -13,7 +13,7 @@ class Test_Label_RBAC(APITest):
         organization = factories.organization()
 
         with self.current_user(username=user.username, password=user.password):
-            with pytest.raises(towerkit.exceptions.Forbidden):
+            with pytest.raises(awxkit.exceptions.Forbidden):
                 factories.label(organization=organization)
 
     @pytest.mark.parametrize('role', ['admin', 'auditor', 'read', 'member'])
@@ -34,7 +34,7 @@ class Test_Label_RBAC(APITest):
             if role in ALLOWED_ROLES:
                 factories.label(organization=organization)
             elif role in REJECTED_ROLES:
-                with pytest.raises(towerkit.exceptions.Forbidden):
+                with pytest.raises(awxkit.exceptions.Forbidden):
                     factories.label(organization=organization)
             else:
                 raise ValueError("Received unhandled organization role.")
@@ -59,7 +59,7 @@ class Test_Label_RBAC(APITest):
             if role in ALLOWED_ROLES:
                 job_template.add_label(label)
             elif role in REJECTED_ROLES:
-                with pytest.raises(towerkit.exceptions.Forbidden):
+                with pytest.raises(awxkit.exceptions.Forbidden):
                     job_template.add_label(label)
             else:
                 raise ValueError("Received unhandled JT role.")

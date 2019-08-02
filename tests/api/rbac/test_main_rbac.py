@@ -1,6 +1,6 @@
 import pytest
 
-import towerkit.exceptions
+import awxkit.exceptions
 from tests.lib.helpers.rbac_utils import (
     check_role_association,
     check_role_disassociation,
@@ -90,7 +90,7 @@ class Test_Main_RBAC(APITest):
         role_names = get_resource_roles(resource)
         with self.current_user(username=nonadmin_user.username, password=nonadmin_user.password):
             for role in role_names:
-                with pytest.raises(towerkit.exceptions.Forbidden):
+                with pytest.raises(awxkit.exceptions.Forbidden):
                     resource.set_object_roles(user, role)
 
         # verify that our resource nonadmin may not revoke all resource roles
@@ -98,7 +98,7 @@ class Test_Main_RBAC(APITest):
             resource.set_object_roles(user, rn)
         with self.current_user(username=nonadmin_user.username, password=nonadmin_user.password):
             for role in role_names:
-                with pytest.raises(towerkit.exceptions.Forbidden):
+                with pytest.raises(awxkit.exceptions.Forbidden):
                     resource.set_object_roles(user, role, disassociate=True)
 
     @pytest.mark.parametrize('endpoint', ['related_users', 'related_roles'])
@@ -131,7 +131,7 @@ class Test_Main_RBAC(APITest):
         # make a test user and associate it with the initial role
         resource.set_object_roles(user, initial_role)
         with self.current_user(username=user.username, password=user.password):
-            with pytest.raises(towerkit.exceptions.Forbidden):
+            with pytest.raises(awxkit.exceptions.Forbidden):
                 resource.set_object_roles(user, unauthorized_target_role, endpoint=endpoint)
 
     @pytest.mark.parametrize(
@@ -152,7 +152,7 @@ class Test_Main_RBAC(APITest):
         for role in role_names:
             org1.set_object_roles(user, role)
             with self.current_user(username=user.username, password=user.password):
-                with pytest.raises(towerkit.exceptions.Forbidden):
+                with pytest.raises(awxkit.exceptions.Forbidden):
                     resource.organization = org2.id
             org1.set_object_roles(user, role, disassociate=True)
 
@@ -174,7 +174,7 @@ class Test_Main_RBAC(APITest):
         for role in role_names:
             resource.set_object_roles(user, role)
             with self.current_user(username=user.username, password=user.password):
-                with pytest.raises(towerkit.exceptions.Forbidden):
+                with pytest.raises(awxkit.exceptions.Forbidden):
                     resource.organization = org2.id
             resource.set_object_roles(user, role, disassociate=True)
 
@@ -194,14 +194,14 @@ class Test_Main_RBAC(APITest):
         org1.add_admin(user)
 
         with self.current_user(username=user.username, password=user.password):
-            with pytest.raises(towerkit.exceptions.Forbidden):
+            with pytest.raises(awxkit.exceptions.Forbidden):
                 resource.organization = org2.id
 
         org2.add_admin(user)
         with self.current_user(username=user.username, password=user.password):
             # team organization change is specifically disallowed
             if resource.type == "team":
-                with pytest.raises(towerkit.exceptions.Forbidden):
+                with pytest.raises(awxkit.exceptions.Forbidden):
                     resource.organization = org2.id
             else:
                 resource.organization = org2.id

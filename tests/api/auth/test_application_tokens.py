@@ -3,11 +3,11 @@ from uuid import uuid4
 import time
 
 import dateutil
-from towerkit.api.client import Connection
-from towerkit.api import get_registered_page
-from towerkit.config import config as qe_config
-from towerkit.utils import random_title
-from towerkit import exceptions as exc
+from awxkit.api.client import Connection
+from awxkit.api import get_registered_page
+from awxkit.config import config as qe_config
+from awxkit.utils import random_title
+from awxkit import exceptions as exc
 import pytest
 
 from tests.api import APITest

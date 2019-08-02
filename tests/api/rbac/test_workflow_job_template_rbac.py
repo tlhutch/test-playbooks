@@ -4,7 +4,7 @@ import logging
 from tests.lib.helpers.rbac_utils import check_user_capabilities
 from tests.api import APITest
 
-from towerkit.exceptions import Forbidden
+from awxkit.exceptions import Forbidden
 
 log = logging.getLogger(__name__)
 

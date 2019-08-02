@@ -6,8 +6,8 @@
 import os
 import logging
 
-import towerkit.exceptions as exc
-from towerkit.utils import poll_until, random_title
+import awxkit.exceptions as exc
+from awxkit.utils import poll_until, random_title
 
 import pytest
 import fauxfactory

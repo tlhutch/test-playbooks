@@ -4,8 +4,8 @@ import json
 import boto3
 import csv
 
-from towerkit import config
-import towerkit.exceptions as exc
+from awxkit import config
+import awxkit.exceptions as exc
 import pytest
 
 from tests.api import APITest

@@ -3,7 +3,7 @@ import pytest
 import datetime
 import yaml
 
-from towerkit import utils
+from awxkit import utils
 
 
 @pytest.fixture(scope="function")

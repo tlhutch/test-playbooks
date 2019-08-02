@@ -2,7 +2,7 @@ import pytest
 import logging
 import json
 
-from towerkit.exceptions import BadRequest, NotFound, NoContent
+from awxkit.exceptions import BadRequest, NotFound, NoContent
 
 from tests.api import APITest
 from tests.lib.helpers.workflow_utils import WorkflowTree

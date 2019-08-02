@@ -1,8 +1,8 @@
 import json
 import copy
 
-from towerkit import utils
-from towerkit.exceptions import NoContent, BadRequest
+from awxkit import utils
+from awxkit.exceptions import NoContent, BadRequest
 import pytest
 
 from tests.api import APITest

@@ -9,8 +9,8 @@ from urllib.parse import urljoin
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
-from towerkit.config import config
-from towerkit import utils, exceptions
+from awxkit.config import config
+from awxkit import utils, exceptions
 from kubernetes.stream import stream
 
 from tests.api import APITest

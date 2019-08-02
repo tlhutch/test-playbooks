@@ -1,6 +1,6 @@
 import re
 
-from towerkit import exceptions as exc
+from awxkit import exceptions as exc
 import fauxfactory
 import pytest
 

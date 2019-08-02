@@ -1,8 +1,8 @@
 from contextlib import contextmanager
 import logging
 
-from towerkit.tower import license
-import towerkit.exceptions as exc
+from awxkit.tower import license
+import awxkit.exceptions as exc
 import fauxfactory
 import pytest
 

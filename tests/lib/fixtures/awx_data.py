@@ -1,5 +1,5 @@
 import pytest
-from towerkit.yaml_file import load_file
+from awxkit.yaml_file import load_file
 
 
 def pytest_addoption(parser):

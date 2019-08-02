@@ -4,7 +4,7 @@ from pprint import pformat
 
 import pytest
 
-from towerkit.config import config
+from awxkit.config import config
 
 from tests.api import APITest
 

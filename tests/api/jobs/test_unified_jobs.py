@@ -1,8 +1,8 @@
 import json
 
-from towerkit import exceptions as exc
+from awxkit import exceptions as exc
 import fauxfactory
-from towerkit.api import Connection
+from awxkit.api import Connection
 import pytest
 
 from tests.api import APITest

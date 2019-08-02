@@ -1,6 +1,6 @@
 import pytest
-import towerkit.tower.inventory
-import towerkit.exceptions
+import awxkit.tower.inventory
+import awxkit.exceptions
 from tests.api import APITest
 
 
@@ -52,13 +52,13 @@ class Test_System_Jobs(APITest):
     @pytest.mark.fixture_args(days=1000, granularity='1y', older_than='1y')
     def test_method_not_allowed(self, system_job):
         """Verify that PUT, POST and PATCH are unsupported request methods"""
-        with pytest.raises(towerkit.exceptions.MethodNotAllowed):
+        with pytest.raises(awxkit.exceptions.MethodNotAllowed):
             system_job.post()
 
-        with pytest.raises(towerkit.exceptions.MethodNotAllowed):
+        with pytest.raises(awxkit.exceptions.MethodNotAllowed):
             system_job.put()
 
-        with pytest.raises(towerkit.exceptions.MethodNotAllowed):
+        with pytest.raises(awxkit.exceptions.MethodNotAllowed):
             system_job.patch()
 
     @pytest.mark.serial
@@ -74,7 +74,7 @@ class Test_System_Jobs(APITest):
 
         # assert provided job has been deleted if not project/inventory update
         if unified_job_with_status_completed.type not in ['inventory_update', 'project_update']:
-            with pytest.raises(towerkit.exceptions.NotFound):
+            with pytest.raises(awxkit.exceptions.NotFound):
                 unified_job_with_status_completed.get()
         else:
             unified_job_with_status_completed.get()

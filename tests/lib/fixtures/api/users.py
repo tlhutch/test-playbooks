@@ -1,4 +1,4 @@
-from towerkit.config import config
+from awxkit.config import config
 import fauxfactory
 import pytest
 

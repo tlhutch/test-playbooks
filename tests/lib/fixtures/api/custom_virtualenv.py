@@ -4,8 +4,8 @@ import functools
 from contextlib import contextmanager
 import subprocess
 
-from towerkit.utils import random_title
-from towerkit import config
+from awxkit.utils import random_title
+from awxkit import config
 import pytest
 
 

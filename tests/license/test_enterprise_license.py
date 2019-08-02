@@ -3,8 +3,8 @@ import json
 import fauxfactory
 import pytest
 
-from towerkit.tower import license
-from towerkit.tower.inventory import upload_inventory
+from awxkit.tower import license
+from awxkit.tower.inventory import upload_inventory
 
 from tests.license.license import LicenseTest
 

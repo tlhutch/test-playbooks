@@ -1,7 +1,7 @@
 from dateutil.parser import parse
-from towerkit.utils import load_json_or_yaml, poll_until
-from towerkit.config import config
-from towerkit import exceptions as exc
+from awxkit.utils import load_json_or_yaml, poll_until
+from awxkit.config import config
+from awxkit import exceptions as exc
 import pytest
 
 from tests.api import APITest

@@ -1,7 +1,7 @@
 import logging
 import json
 
-from towerkit.exceptions import BadRequest
+from awxkit.exceptions import BadRequest
 import pytest
 
 from tests.api import APITest

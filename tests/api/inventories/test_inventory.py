@@ -1,4 +1,4 @@
-from towerkit import exceptions as exc, utils
+from awxkit import exceptions as exc, utils
 import fauxfactory
 import pytest
 import six

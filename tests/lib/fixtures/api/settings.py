@@ -1,4 +1,4 @@
-from towerkit.utils import logged_sleep
+from awxkit.utils import logged_sleep
 import fauxfactory
 import pytest
 

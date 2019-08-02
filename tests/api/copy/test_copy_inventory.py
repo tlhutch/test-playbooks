@@ -1,5 +1,5 @@
 from fauxfactory import gen_boolean, gen_alpha
-from towerkit.utils import poll_until
+from awxkit.utils import poll_until
 import pytest
 
 from tests.api import APITest

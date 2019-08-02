@@ -6,7 +6,7 @@ from collections import namedtuple
 from copy import deepcopy
 
 import pytest
-from towerkit.exceptions import BadRequest, NoContent
+from awxkit.exceptions import BadRequest, NoContent
 
 from tests.api import APITest
 from tests.api.workflows.utils import (
@@ -132,7 +132,7 @@ class Test_Workflow_Convergence(APITest):
         if 'n2_success' in test_case.parent_nodes:
             parent_nodes.append((n2, 'success parent'))
             with pytest.raises(NoContent):
-                # this returns a 204, which raises an exception in towerkit
+                # this returns a 204, which raises an exception in awxkit
                 # because it is not 200 but we are OK with it in this context
                 n2.related.success_nodes.post(dict(id=convergence_node.id))
         if 'n3_dnr' in test_case.parent_nodes:
@@ -229,7 +229,7 @@ class Test_Workflow_Convergence(APITest):
         convergence_node = factories.workflow_job_template_node(
             workflow_job_template=wfjt, unified_job_template=jt)
         with pytest.raises(NoContent):
-            # this returns a 204, which raises an exception in towerkit
+            # this returns a 204, which raises an exception in awxkit
             # because it is not 200 but we are OK with it in this context
             n2.related.success_nodes.post(dict(id=convergence_node.id))
         with pytest.raises(NoContent):
@@ -780,7 +780,7 @@ class Test_Workflow_Convergence(APITest):
             dict(unified_job_template=jt.id))
 
         with pytest.raises(NoContent):
-            # this returns a 204, which raises an exception in towerkit
+            # this returns a 204, which raises an exception in awxkit
             # because it is not 200 but we are OK with it in this context
             l2n3.related.always_nodes.post(dict(id=l3n2.id))
 
@@ -884,7 +884,7 @@ class Test_Workflow_Convergence(APITest):
         nodes = []
         for i in range(NUM_NODES):
             # HACK create node with temporary regular job template so it does not create one. Then replace
-            # with workflow job template, because towerkit won't let us pass
+            # with workflow job template, because awxkit won't let us pass
             # one directly
             node = factories.workflow_job_template_node(
                 workflow_job_template=wfjt, unified_job_template=temp_jt)

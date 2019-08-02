@@ -1,8 +1,8 @@
 from io import StringIO
 import logging
 
-from towerkit.config import config
-from towerkit.tower import utils
+from awxkit.config import config
+from awxkit.tower import utils
 import contextlib
 import pytest
 
@@ -22,7 +22,7 @@ class APITest(object):
 
         # This is not xdist friendly to say the least
         # TODO: implement per-test suite logging system
-        log = logging.getLogger('towerkit.api.pages.page')
+        log = logging.getLogger('awxkit.api.pages.page')
         log.addHandler(handler)
 
     @property
@@ -69,7 +69,7 @@ class APITest(object):
         Context manager to allow running tests against alternative tower instance.
 
         Set connection object (sets connection for factories):
-        >>> from towerkit.api.client import Connection
+        >>> from awxkit.api.client import Connection
         >>> connection = Connection('https://' + hostname)
         >>> connection.login(user.username, user.password)
         >>> with self.current_instance(connection):
@@ -77,7 +77,7 @@ class APITest(object):
 
         Set connection object and provide version object
         (sets connection for factories and version object):
-        >>> from towerkit.api.client import Connection
+        >>> from awxkit.api.client import Connection
         >>> connection = Connection('https://' + hostname)
         >>> connection.login(user.username, user.password)
         >>> with self.current_instance(connection, v2):
@@ -89,7 +89,7 @@ class APITest(object):
 
         Set connection object and provide page objects
         (sets connection for factories and page objects):
-        >>> from towerkit.api.client import Connection
+        >>> from awxkit.api.client import Connection
         >>> connection = Connection('https://' + hostname)
         >>> connection.login(user.username, user.password)
         >>> jt1 = factories.job_template()

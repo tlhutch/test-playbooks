@@ -1,7 +1,7 @@
 import http.client
 
-from towerkit.api.client import Connection
-from towerkit.config import config
+from awxkit.api.client import Connection
+from awxkit.config import config
 import pytest
 
 

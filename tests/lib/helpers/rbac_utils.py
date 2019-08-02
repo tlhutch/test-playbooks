@@ -2,8 +2,8 @@ import logging
 import http.client
 import os
 
-import towerkit.exceptions
-from towerkit.yaml_file import load_file
+import awxkit.exceptions
+from awxkit.yaml_file import load_file
 import pytest
 
 
@@ -58,8 +58,8 @@ def assert_response_raised(tower_object, response=http.client.OK, methods=('put'
     """Check PUT, PATCH, and DELETE against a Tower resource."""
     exc_dict = {
         http.client.OK: None,
-        http.client.NOT_FOUND: towerkit.exceptions.NotFound,
-        http.client.FORBIDDEN: towerkit.exceptions.Forbidden,
+        http.client.NOT_FOUND: awxkit.exceptions.NotFound,
+        http.client.FORBIDDEN: awxkit.exceptions.Forbidden,
     }
     exc = exc_dict[response]
     for method in methods:
@@ -79,14 +79,14 @@ def check_read_access(tower_object, expected_forbidden=[], unprivileged=False):
     """Check GET against a Tower resource."""
     # for test scenarios involving unprivileged users
     if unprivileged:
-        with pytest.raises(towerkit.exceptions.Forbidden):
+        with pytest.raises(awxkit.exceptions.Forbidden):
             tower_object.get()
     # for test scenarios involving privileged users
     else:
         tower_object.get()
         for related in tower_object.related:
             if related in expected_forbidden:
-                with pytest.raises(towerkit.exceptions.Forbidden):
+                with pytest.raises(awxkit.exceptions.Forbidden):
                     tower_object.get_related(related)
             else:
                 tower_object.get_related(related)

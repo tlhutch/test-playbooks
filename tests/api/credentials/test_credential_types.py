@@ -1,5 +1,5 @@
-from towerkit.utils import credential_type_kinds, PseudoNamespace
-from towerkit import exceptions as exc
+from awxkit.utils import credential_type_kinds, PseudoNamespace
+from awxkit import exceptions as exc
 import fauxfactory
 import pytest
 

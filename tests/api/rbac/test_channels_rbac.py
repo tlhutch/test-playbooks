@@ -1,6 +1,6 @@
-from towerkit.config import config as qe_config
-from towerkit import utils, WSClient
-from towerkit.api import Api
+from awxkit.config import config as qe_config
+from awxkit import utils, WSClient
+from awxkit.api import Api
 import pytest
 
 from tests.lib.helpers.workflow_utils import WorkflowTree, WorkflowTreeMapper

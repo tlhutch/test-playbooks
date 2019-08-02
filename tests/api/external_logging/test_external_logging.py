@@ -6,8 +6,8 @@ import xml.etree.ElementTree as ET
 import xml
 from requests.auth import HTTPBasicAuth
 
-from towerkit.config import config
-from towerkit import utils
+from awxkit.config import config
+from awxkit import utils
 
 from tests.api import APITest
 

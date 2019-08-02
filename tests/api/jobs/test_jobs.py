@@ -4,8 +4,8 @@ import types
 import json
 import re
 
-from towerkit.config import config
-from towerkit import exceptions as exc
+from awxkit.config import config
+from awxkit import exceptions as exc
 import fauxfactory
 import pytest
 

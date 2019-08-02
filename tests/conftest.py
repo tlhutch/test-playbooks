@@ -4,7 +4,7 @@ import sys
 import pkgutil
 import pytest
 
-from towerkit.tower.license import generate_license
+from awxkit.tower.license import generate_license
 from tests.lib.license import apply_license_until_effective
 
 # Add tests/lib directory to path

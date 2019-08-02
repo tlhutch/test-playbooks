@@ -2,10 +2,10 @@ import logging
 import re
 
 import pytest
-import towerkit
-from towerkit.config import config
-from towerkit.exceptions import NoContent
-from towerkit.utils import poll_until
+import awxkit
+from awxkit.config import config
+from awxkit.exceptions import NoContent
+from awxkit.utils import poll_until
 
 from tests.api import APITest
 from tests.api.workflows.utils import get_job_node
@@ -123,7 +123,7 @@ class Test_Workflow_Jobs(APITest):
         job.assert_successful()
 
         # Confirm WFJ correctly references job
-        assert re.match(towerkit.resources.job, wfjn.related.job)
+        assert re.match(awxkit.resources.job, wfjn.related.job)
         assert wfjn.get_related('job').endpoint == jt.get().get_related('last_job').endpoint
 
     @pytest.mark.ansible_integration
@@ -267,7 +267,7 @@ class Test_Workflow_Jobs(APITest):
         factories.workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=project)
         wfj = wfjt.launch().wait_until_completed()
         wfjn = wfj.related.workflow_nodes.get().results.pop()
-        assert re.match(towerkit.resources.project_update, wfjn.related.job)
+        assert re.match(awxkit.resources.project_update, wfjn.related.job)
         assert wfjn.get_related('job').endpoint == project.get().get_related('last_job').endpoint
 
     # Canceling jobs

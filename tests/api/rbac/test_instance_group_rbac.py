@@ -1,8 +1,8 @@
 import http.client
 import random
 
-from towerkit import utils
-import towerkit.exceptions as exc
+from awxkit import utils
+import awxkit.exceptions as exc
 import pytest
 
 from tests.lib.helpers.rbac_utils import assert_response_raised, check_read_access

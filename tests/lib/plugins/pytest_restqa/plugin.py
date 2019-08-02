@@ -6,12 +6,12 @@ import sys
 import requests
 import pytest
 
-from towerkit.tower.utils import uses_sessions
-from towerkit.utils import load_credentials
-from towerkit.utils import PseudoNamespace
-from towerkit.api.client import Connection
-from towerkit import config as qe_config
-from towerkit import yaml_file
+from awxkit.tower.utils import uses_sessions
+from awxkit.utils import load_credentials
+from awxkit.utils import PseudoNamespace
+from awxkit.api.client import Connection
+from awxkit import config as qe_config
+from awxkit import yaml_file
 
 
 __version__ = '1.0'
@@ -107,7 +107,7 @@ def pytest_configure(config):
         if config.option.base_url:
             set_connection(config.option.base_url, config)
             if config.option.debug_rest and hasattr(config, '_debug_rest_hdlr'):
-                for mod in ('towerkit.api.client', 'towerkit.ws'):
+                for mod in ('awxkit.api.client', 'awxkit.ws'):
                     logger = logging.getLogger(mod)
                     logger.setLevel('DEBUG')
                     logger.addHandler(config._debug_rest_hdlr)

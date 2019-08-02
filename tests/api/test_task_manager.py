@@ -1,7 +1,7 @@
 import json
 import time
 
-from towerkit import utils
+from awxkit import utils
 from dateutil.parser import parse as du_parse
 import pytest
 

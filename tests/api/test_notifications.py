@@ -1,9 +1,9 @@
 
 import logging
 
-from towerkit.notification_services import (confirm_notification, can_confirm_notification)
-from towerkit.config import config
-import towerkit.exceptions as exc
+from awxkit.notification_services import (confirm_notification, can_confirm_notification)
+from awxkit.config import config
+import awxkit.exceptions as exc
 import pytest
 
 from tests.api import APITest

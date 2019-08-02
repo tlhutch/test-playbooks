@@ -1,7 +1,7 @@
 import subprocess
 
 from openshift.helper.openshift import OpenShiftObjectHelper
-from towerkit.config import config
+from awxkit.config import config
 
 
 def prep_environment():

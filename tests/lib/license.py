@@ -1,7 +1,7 @@
 import logging
 
-from towerkit.utils import poll_until
-from towerkit.exceptions import BadRequest
+from awxkit.utils import poll_until
+from awxkit.exceptions import BadRequest
 
 
 log = logging.getLogger(__name__)
