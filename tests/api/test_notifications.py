@@ -1,7 +1,7 @@
 
 import logging
 
-from awxkit.notification_services import (confirm_notification, can_confirm_notification)
+from tests.lib.notification_services import (confirm_notification, can_confirm_notification)
 from awxkit.config import config
 import awxkit.exceptions as exc
 import pytest
