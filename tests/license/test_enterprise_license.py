@@ -92,7 +92,8 @@ class TestEnterpriseLicense(LicenseTest):
 
     def test_import_license_exceeded(self, api_config_pg, ansible_runner, inventory):
         """Verify import fails if the number of imported hosts exceeds licensed host allowance."""
-        api_config_pg.install_license(1000)
+        enterprise_license_1000 = license.generate_license(license_type='enterprise', instance_count=1000, days=365)
+        api_config_pg.post(enterprise_license_1000)
         dest = upload_inventory(ansible_runner, nhosts=2000)
 
         contacted = ansible_runner.shell('awx-manage inventory_import --inventory-id {0} --source {1}'.format(inventory.id, dest))
