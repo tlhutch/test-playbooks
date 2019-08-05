@@ -2,12 +2,14 @@ import http.client
 import logging
 import os
 import sys
+import os
 
 import requests
 import pytest
 
 from awxkit.awx.utils import uses_sessions
 from awxkit.utils import load_credentials
+from awxkit.utils import load_projects
 from awxkit.utils import PseudoNamespace
 from awxkit.api.client import Connection
 from awxkit import config as qe_config
@@ -40,6 +42,13 @@ def pytest_addoption(parser):
                     dest='credentials_file',
                     metavar='path',
                     help='location of yaml file containing user credentials.')
+
+    group.addoption('--project-file',
+                    action='store',
+                    dest='project_file',
+                    default=os.getenv('AWXKIT_PROJECT_FILE', 'config/projects.yml'),
+                    metavar='path',
+                    help='location of yaml file containing SCM projects for test to use by default when creating projects in Tower/AWX.')
 
     group = parser.getgroup('resource-loading', 'resource-loading')
     group.addoption('--resource-file',
@@ -78,6 +87,10 @@ def set_connection(base_url, config):
     # Load credentials.yaml
     if config.option.credentials_file:
         qe_config.credentials = load_credentials(config.option.credentials_file)
+
+    # Load projects.yaml
+    if config.option.project_file:
+        qe_config.project_urls = load_projects(config.option.project_file)
 
     qe_config.assume_untrusted = config.getvalue('assume_untrusted')
 
