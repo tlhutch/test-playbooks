@@ -2,7 +2,6 @@ import http.client
 import logging
 import os
 import sys
-import os
 
 import requests
 import pytest
