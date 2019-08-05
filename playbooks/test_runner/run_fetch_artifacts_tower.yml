@@ -9,6 +9,10 @@
 
     - name: Retrieve artifacts from test runner
       fetch:
-        src: '~/tower-qa/playbooks/all_tower_sos_reports.tar.gz'
-        dest: '{{ lookup("env", "PWD") }}/artifacts/all_tower_sos_reports.tar.gz'
+        src: '{{ item.src }}'
+        dest: '{{ item.dest }}'
         flat: yes
+      with_items:
+        - {src: '~/tower-qa/playbooks/all_tower_sos_reports.tar.gz', dest: '{{ lookup("env", "PWD") }}/artifacts/all_tower_sos_reports.tar.gz'}
+        - {src: '~/tower-qa/venv_awx_pip_freeze', dest: '{{ lookup("env", "PWD") }}/artifacts/venv_awx_pip_freeze'}
+        - {src: '~/tower-qa/venv_ansible_pip_freeze', dest: '{{ lookup("env", "PWD") }}/artifacts/venv_ansible_pip_freeze'}

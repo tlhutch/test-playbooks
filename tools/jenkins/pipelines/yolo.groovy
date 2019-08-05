@@ -426,7 +426,7 @@ pipeline {
                 }
             }
         }
-        stage('Collect SOS reports from Tower instances') {
+        stage('Collect artifacts (SOS Reports, pip freeze) from Tower instances') {
             when {
                 expression {
                     return (params.RUN_INSTALLER || params.RUN_TESTS || params.RUN_E2E)

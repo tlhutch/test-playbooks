@@ -1,5 +1,0 @@
-- name: 'Generate and grab sos reports from all tower instances'
-  hosts: 'tower'
-  roles:
-    - role: collect_tower_sos_reports
-
