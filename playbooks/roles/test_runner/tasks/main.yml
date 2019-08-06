@@ -14,7 +14,24 @@
   become: true
   command: yum-config-manager --enable rhui-REGION-rhel-server-extras
 
-- name: Install required packages
+- name: Install required packages (1/3)
+  become: true
+  yum:
+    name:
+      - redhat-rpm-config
+
+- name: Install required packages (2/3)
+  become: true
+  yum:
+    name:
+      - python36
+      - python36-libs
+      - python36-devel
+      - python36-pip
+    enablerepo: "epel"
+    disablerepo: "*"
+
+- name: Install required packages (3/3)
   become: true
   package:
     name:
@@ -22,10 +39,6 @@
       - gcc
       - python-devel
       - python-pip
-      - python36
-      - python36-libs
-      - python36-devel
-      - python36-pip
       - ansible
       - docker
       - docker-compose
