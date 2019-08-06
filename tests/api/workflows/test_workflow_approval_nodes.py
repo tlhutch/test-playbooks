@@ -12,17 +12,22 @@ class TestWorkflowApprovalNodes(APITest):
     """
 
     @pytest.mark.parametrize('approve', [True, False], ids=['approve', 'deny'])
-    @pytest.mark.parametrize('user', ['sysadmin', 'org_admin', 'approver'])
+    @pytest.mark.parametrize('user', ['sysadmin', 'org_admin', 'org_approver', 'wf_approver'])
     def test_approval_node_happy_path(self, v2, factories, org_admin, approve, user):
         """Create a workflow with an approval node and approve it."""
         org = org_admin.related.organizations.get().results.pop()
-        if user == 'approver':
+        if user == 'org_approver':
             user = factories.user(organization=org)
-            org.set_object_roles(user, 'approve')
+            with self.current_user(org_admin):
+                org.set_object_roles(user, 'approve')
         if user == 'org_admin':
             user = org_admin
         inner_wfjt = factories.workflow_job_template(organization=org)
         wfjt = factories.workflow_job_template(organization=org)
+        if user == 'wf_approver':
+            user = factories.user(organization=org)
+            with self.current_user(org_admin):
+                wfjt.set_object_roles(user, 'approve')
         timeout = 100
         description = 'Mark my words'
         name = 'hellow world'
@@ -79,6 +84,11 @@ class TestWorkflowApprovalNodes(APITest):
         # TODO need to make an approval job type in towerkit
         # approval_job.get().assert_successful()
         wf_job.wait_until_completed().assert_successful()
+
+    @pytest.mark.parametrize('approve', [True, False], ids=['approve', 'deny'])
+    @pytest.mark.parametrize('user', ['system_auditor', 'random_user', 'user_in_org'])
+    def test_users_without_role_cannot_approve(self, v2, factories, user):
+        assert False, 'Not Implemented'
 
     def test_update_existing_node_to_approval_node(self, v2, factories, org_admin):
         """Create a workflow with an approval node and approve it."""
