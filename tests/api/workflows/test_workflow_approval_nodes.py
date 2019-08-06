@@ -87,7 +87,7 @@ class TestWorkflowApprovalNodes(APITest):
 
     @pytest.mark.parametrize('approve', [True, False], ids=['approve', 'deny'])
     @pytest.mark.parametrize('user', ['system_auditor', 'random_user', 'user_in_org'])
-    def test_users_without_role_cannot_approve(self, v2, factories, user):
+    def test_users_without_role_cannot_approve(self, v2, factories, user, approve):
         assert False, 'Not Implemented'
 
     def test_update_existing_node_to_approval_node(self, v2, factories, org_admin):
@@ -153,9 +153,7 @@ class TestWorkflowApprovalNodes(APITest):
         approval_job_node = wf_job.related.workflow_nodes.get(unified_job_template=approval_jt.id).results.pop()
         poll_until(lambda: hasattr(approval_job_node.get().related, 'job'), interval=1, timeout=60)
         wf_approval = approval_job_node.related.job.get()
-        # Sleep for longer than timeout to be generous since it is so short
-        time.sleep(timeout * 5)
-        wf_approval = approval_job_node.related.job.get()
+        wf_approval.wait_until_status('failed')
         assert wf_approval.status == f'failed', 'Workflow Approval did not fail after timeout passed! \n' \
                                      f'Workflow Approval: {wf_approval}\n' \
                                      f'Approval JT: {approval_jt}\n' \
