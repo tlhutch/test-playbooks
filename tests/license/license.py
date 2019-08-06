@@ -1,7 +1,7 @@
 from contextlib import contextmanager
 import logging
 
-from tests.lib.tower import license
+from tests.lib.tower.license import generate_license
 import awxkit.exceptions as exc
 import fauxfactory
 import pytest
@@ -45,19 +45,19 @@ class LicenseTest(APITest):
 
     @pytest.fixture
     def legacy_license_json(self):
-        return license.generate_license(license_type='legacy', instance_count=self.license_instance_count, days=31,
+        return generate_license(license_type='legacy', instance_count=self.license_instance_count, days=31,
                                         company_name=fauxfactory.gen_utf8(), contact_name=fauxfactory.gen_utf8(),
                                         contact_email=fauxfactory.gen_email())
 
     @pytest.fixture
     def enterprise_license_json(self):
-        return license.generate_license(license_type='enterprise', instance_count=self.license_instance_count, days=31,
+        return generate_license(license_type='enterprise', instance_count=self.license_instance_count, days=31,
                                         company_name=fauxfactory.gen_utf8(), contact_name=fauxfactory.gen_utf8(),
                                         contact_email=fauxfactory.gen_email())
 
     @pytest.fixture
     def trial_legacy_license_json(self):
-        return license.generate_license(license_type='legacy', instance_count=self.license_instance_count, days=31,
+        return generate_license(license_type='legacy', instance_count=self.license_instance_count, days=31,
                                         company_name=fauxfactory.gen_utf8(), contact_name=fauxfactory.gen_utf8(),
                                         contact_email=fauxfactory.gen_email(), trial=True)
 
@@ -122,7 +122,7 @@ class LicenseTest(APITest):
             hosts_pg.post(payload)
 
         # Install a license with instance_count=3
-        license_pl = license.generate_license(instance_count=3,
+        license_pl = generate_license(instance_count=3,
                                               days=-1,
                                               trial=False,
                                               company_name=fauxfactory.gen_utf8(),
