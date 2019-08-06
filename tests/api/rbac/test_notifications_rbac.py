@@ -1,6 +1,6 @@
 import pytest
 
-import towerkit.exceptions
+import awxkit.exceptions
 from tests.api import APITest
 
 
@@ -12,7 +12,7 @@ class Test_Notifications_RBAC(APITest):
         notification_pg = email_notification_template.test()
 
         with self.current_user(username=unprivileged_user.username, password=unprivileged_user.password):
-            with pytest.raises(towerkit.exceptions.Forbidden):
+            with pytest.raises(awxkit.exceptions.Forbidden):
                 notification_pg.get()
 
     def test_notification_read_as_org_admin(self, factories, org_admin):
@@ -27,11 +27,11 @@ class Test_Notifications_RBAC(APITest):
     def test_notification_test_as_unprivileged_user(self, email_notification_template, unprivileged_user):
         """Confirms that unprivileged users cannot test notifications."""
         with self.current_user(username=unprivileged_user.username, password=unprivileged_user.password):
-            with pytest.raises(towerkit.exceptions.Forbidden):
+            with pytest.raises(awxkit.exceptions.Forbidden):
                 email_notification_template.test().wait_until_completed()
 
     def test_notification_test_as_another_org_admin(self, email_notification_template, another_org_admin):
         """Confirms that admins of other orgs cannot test notifications outside their organization"""
         with self.current_user(username=another_org_admin.username, password=another_org_admin.password):
-            with pytest.raises(towerkit.exceptions.Forbidden):
+            with pytest.raises(awxkit.exceptions.Forbidden):
                 email_notification_template.test().wait_until_completed()

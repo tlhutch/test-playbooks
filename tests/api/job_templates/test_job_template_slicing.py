@@ -8,9 +8,9 @@ from dateutil.relativedelta import relativedelta
 
 from tests.api import APITest
 
-from towerkit.rrule import RRule
-from towerkit.utils import poll_until
-from towerkit.exceptions import BadRequest, NotFound, Forbidden
+from awxkit.rrule import RRule
+from awxkit.utils import poll_until
+from awxkit.exceptions import BadRequest, NotFound, Forbidden
 
 
 log = logging.getLogger(__name__)
@@ -136,7 +136,7 @@ class TestJobTemplateSlicing(APITest):
         """
         jt = sliced_jt_factory(2)
 
-        workflow_job = jt.launch().get()  # .get() due to towerkit using list view
+        workflow_job = jt.launch().get()  # .get() due to awxkit using list view
 
         # Relaunch overall job
         relaunched_wj = workflow_job.relaunch()
@@ -169,7 +169,7 @@ class TestJobTemplateSlicing(APITest):
         """
         jt = sliced_jt_factory(2)
 
-        workflow_job = jt.launch().get()  # .get() due to towerkit using list view
+        workflow_job = jt.launch().get()  # .get() due to awxkit using list view
 
         node = workflow_job.get_related('workflow_nodes').results.pop()
         poll_until(lambda: node.get().job, interval=1, timeout=30)
@@ -193,7 +193,7 @@ class TestJobTemplateSlicing(APITest):
     def test_job_template_slice_relaunch_orphans(self, factories, v2, sliced_jt_factory):
         jt = sliced_jt_factory(2)
 
-        workflow_job = jt.launch().get()  # .get() due to towerkit using list view
+        workflow_job = jt.launch().get()  # .get() due to awxkit using list view
         workflow_job.wait_until_completed()
         node = workflow_job.get_related('workflow_nodes').results.pop()
         job = node.get_related('job')

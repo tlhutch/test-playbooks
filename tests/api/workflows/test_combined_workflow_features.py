@@ -1,7 +1,7 @@
 import json
 
 import pytest
-from towerkit.exceptions import NoContent
+from awxkit.exceptions import NoContent
 
 from tests.api import APITest
 from tests.api.workflows.utils import get_job_node

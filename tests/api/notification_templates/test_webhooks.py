@@ -3,7 +3,7 @@
 import base64
 import pytest
 import requests
-import towerkit.exceptions
+import awxkit.exceptions
 
 from tests.api import APITest
 
@@ -24,7 +24,7 @@ class Test_Webhook_NotificationTemplate(APITest):
         }
 
         if expect_exception:
-            with pytest.raises(towerkit.exceptions.BadRequest):
+            with pytest.raises(awxkit.exceptions.BadRequest):
                 factories.notification_template(
                     notification_type="webhook",
                     notification_configuration=notification_configuration
@@ -52,7 +52,7 @@ class Test_Webhook_NotificationTemplate(APITest):
             'url': 'https://ansible-tower-engineering.appspot.com',
             'http_method': 'ANYOTHERTHING'
         }
-        with pytest.raises(towerkit.exceptions.BadRequest):
+        with pytest.raises(awxkit.exceptions.BadRequest):
             nt.patch(notification_configuration=notification_configuration_patch)
 
     @pytest.mark.parametrize('method', ['POST', 'PUT'])

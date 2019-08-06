@@ -4,9 +4,9 @@ import re
 import threading
 import time
 
-from towerkit import config, utils
-import towerkit.tower.inventory
-import towerkit.exceptions
+from awxkit import config, utils
+import awxkit.awx.inventory
+import awxkit.exceptions
 import pytest
 
 from tests.api import APITest
@@ -277,7 +277,7 @@ class TestJobTemplates(APITest):
         assert not launch_pg.credential_needed_to_start
 
         # assert launch failure
-        with pytest.raises(towerkit.exceptions.BadRequest):
+        with pytest.raises(awxkit.exceptions.BadRequest):
             launch_pg.post()
 
     @pytest.mark.ansible_integration
@@ -422,7 +422,7 @@ print(json.dumps(inv, indent=2))
 
         # delete target object and assert 409 raised
         for tower_resource in [job_template_sleep, inventory, project]:
-            with pytest.raises(towerkit.exceptions.Conflict):
+            with pytest.raises(awxkit.exceptions.Conflict):
                 tower_resource.delete()
 
         job.wait_until_completed().assert_successful()
@@ -445,7 +445,7 @@ print(json.dumps(inv, indent=2))
             for i in range(loops):
                 try:
                     v2.unified_jobs.get(page_size=num_jobs, order_by='-finished', not__launch_type='sync')
-                except towerkit.exceptions.InternalServerError:
+                except awxkit.exceptions.InternalServerError:
                     failed[index] = True
                     break
 

@@ -1,6 +1,6 @@
 import pytest
 
-import towerkit.exceptions
+import awxkit.exceptions
 from tests.lib.helpers.rbac_utils import (
     check_user_capabilities,
     get_nt_endpoints
@@ -24,7 +24,7 @@ class Test_Notification_Template_RBAC(APITest):
         organization.set_object_roles(unprivileged_user, "read")
 
         with self.current_user(username=unprivileged_user.username, password=unprivileged_user.password):
-            with pytest.raises(towerkit.exceptions.Forbidden):
+            with pytest.raises(awxkit.exceptions.Forbidden):
                 factories.notification_template(organization=organization)
 
     def test_notification_template_create_as_org_admin(self, factories, organization, org_admin):
@@ -41,7 +41,7 @@ class Test_Notification_Template_RBAC(APITest):
         # test notification template associate as unprivileged user
         with self.current_user(username=unprivileged_user.username, password=unprivileged_user.password):
             for endpoint in endpoints:
-                with pytest.raises(towerkit.exceptions.Forbidden):
+                with pytest.raises(awxkit.exceptions.Forbidden):
                     notifiable_resource.add_notification_template(email_notification_template, endpoint)
 
     def test_notification_template_associate_as_org_admin(self, factories, notifiable_resource, organization, org_admin):
@@ -57,7 +57,7 @@ class Test_Notification_Template_RBAC(APITest):
     def test_notification_template_read_as_unprivileged_user(self, email_notification_template, unprivileged_user):
         """Tests that unprivileged users cannot read NT endpoints."""
         with self.current_user(username=unprivileged_user.username, password=unprivileged_user.password):
-            with pytest.raises(towerkit.exceptions.Forbidden):
+            with pytest.raises(awxkit.exceptions.Forbidden):
                 email_notification_template.get()
 
     def test_notification_template_read_as_org_admin(self, factories, organization, org_admin):
@@ -70,9 +70,9 @@ class Test_Notification_Template_RBAC(APITest):
     def test_notification_template_edit_as_unprivileged_user(self, email_notification_template, unprivileged_user):
         """Tests that unprivileged users cannot edit NTs."""
         with self.current_user(username=unprivileged_user.username, password=unprivileged_user.password):
-            with pytest.raises(towerkit.exceptions.Forbidden):
+            with pytest.raises(awxkit.exceptions.Forbidden):
                 email_notification_template.put()
-            with pytest.raises(towerkit.exceptions.Forbidden):
+            with pytest.raises(awxkit.exceptions.Forbidden):
                 email_notification_template.patch()
 
     def test_notification_template_edit_as_org_admin(self, factories, organization, org_admin):
@@ -86,7 +86,7 @@ class Test_Notification_Template_RBAC(APITest):
     def test_notification_template_delete_as_unprivileged_user(self, email_notification_template, unprivileged_user):
         """Tests that unprivileged_users cannot delete NTs."""
         with self.current_user(username=unprivileged_user.username, password=unprivileged_user.password):
-            with pytest.raises(towerkit.exceptions.Forbidden):
+            with pytest.raises(awxkit.exceptions.Forbidden):
                 email_notification_template.delete()
 
     def test_notification_template_delete_as_org_admin(self, factories, organization, org_admin):

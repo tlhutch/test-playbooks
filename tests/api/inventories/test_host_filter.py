@@ -1,5 +1,5 @@
-from towerkit.utils import random_title, PseudoNamespace
-import towerkit.exceptions
+from awxkit.utils import random_title, PseudoNamespace
+import awxkit.exceptions
 import fauxfactory
 import pytest
 
@@ -310,7 +310,7 @@ class TestHostFilter(APITest):
                         'search=foo or created_by__password__icontains=pas3w3rd',
                         'created_by__password__icontains=passw3rd or search=foo']
         for host_filter in host_filters:
-            with pytest.raises(towerkit.exceptions.BadRequest) as e:
+            with pytest.raises(awxkit.exceptions.BadRequest) as e:
                 v2.hosts.get(host_filter=host_filter, page_size=200)
             assert "Filtering on password is not allowed." in str(e.value)
 
@@ -331,5 +331,5 @@ class TestHostFilter(APITest):
     @pytest.mark.parametrize("invalid_search", ["string", 1, 1.0, (0, 0), [0], {"k": "v"}, True],
         ids=["string", "integer", "float", "tuple", "list", "dict", "bool"])
     def test_invalid_search(self, v2, invalid_search):
-        with pytest.raises(towerkit.exceptions.BadRequest):
+        with pytest.raises(awxkit.exceptions.BadRequest):
             v2.hosts.get(host_filter=invalid_search)

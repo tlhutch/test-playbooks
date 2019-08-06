@@ -2,8 +2,8 @@ import logging
 import re
 import json
 
-from towerkit import exceptions as exc
-from towerkit.utils import poll_until
+from awxkit import exceptions as exc
+from awxkit.utils import poll_until
 import fauxfactory
 import pytest
 
@@ -648,7 +648,7 @@ class TestGeneralSettings(APITest):
         assert debug_event.event_data.res.ansible_env.SOME_TEST_ENV_VAR == desired_val
 
         project_update = jt.ds.project.related.project_updates.get().results[0]
-        # NOTE: fields like job_env are only present on detail view, and towerkit
+        # NOTE: fields like job_env are only present on detail view, and awxkit
         # is not yet designed to auto-fetch these
         project_update = project_update.get()
         assert project_update.job_env.SOME_TEST_ENV_VAR == desired_val

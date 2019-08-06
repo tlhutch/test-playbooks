@@ -2,7 +2,7 @@ import pytest
 import http.client
 import json
 
-import towerkit.exceptions
+import awxkit.exceptions
 from tests.lib.helpers.rbac_utils import (
     assert_response_raised,
     check_read_access,
@@ -32,7 +32,7 @@ class Test_Job_Template_RBAC(APITest):
             check_read_access(job_template, unprivileged=True)
 
             # check JT launch
-            with pytest.raises(towerkit.exceptions.Forbidden):
+            with pytest.raises(awxkit.exceptions.Forbidden):
                 job_template.related.launch.post()
 
             # check put/patch/delete
@@ -205,7 +205,7 @@ class Test_Job_Template_RBAC(APITest):
                 job = job_template.launch().wait_until_completed()
                 job.assert_successful()
             elif role in REJECTED_ROLES:
-                with pytest.raises(towerkit.exceptions.Forbidden):
+                with pytest.raises(awxkit.exceptions.Forbidden):
                     job_template.launch()
             else:
                 raise ValueError("Received unhandled job_template role.")
@@ -216,7 +216,7 @@ class Test_Job_Template_RBAC(APITest):
         user = factories.user()
         user.is_system_auditor = True
         with self.current_user(user.username, user.password):
-            with pytest.raises(towerkit.exceptions.Forbidden):
+            with pytest.raises(awxkit.exceptions.Forbidden):
                 jt.launch().wait_until_completed()
 
     @pytest.mark.parametrize('role', ['admin', 'execute', 'read'])
@@ -239,14 +239,14 @@ class Test_Job_Template_RBAC(APITest):
                 relaunched_job = job.relaunch().wait_until_completed()
                 relaunched_job.assert_successful()
             elif role in REJECTED_ROLES:
-                with pytest.raises(towerkit.exceptions.Forbidden):
+                with pytest.raises(awxkit.exceptions.Forbidden):
                     job.relaunch()
             else:
                 raise ValueError("Received unhandled job_template role.")
 
     def test_relaunch_with_ask_inventory(self, factories, job_template):
         """Tests relaunch RBAC when ask_inventory_on_launch is true."""
-        # FIXME: update for factories when towerkit-210 gets resolved
+        # FIXME: update for factories when awxkit-210 gets resolved
         job_template.ds.inventory.delete()
         job_template.patch(ask_inventory_on_launch=True)
 
@@ -267,7 +267,7 @@ class Test_Job_Template_RBAC(APITest):
 
         # relaunch as user2 should raise 403
         with self.current_user(username=user2.username, password=user2.password):
-            with pytest.raises(towerkit.exceptions.Forbidden):
+            with pytest.raises(awxkit.exceptions.Forbidden):
                 job.relaunch()
 
     @pytest.mark.parametrize('role', ['admin', 'execute', 'read'])
@@ -286,7 +286,7 @@ class Test_Job_Template_RBAC(APITest):
                 schedule = job_template.add_schedule()
                 assert_response_raised(schedule, methods=('get', 'put', 'patch', 'delete'))
             elif role in REJECTED_ROLES:
-                with pytest.raises(towerkit.exceptions.Forbidden):
+                with pytest.raises(awxkit.exceptions.Forbidden):
                     job_template.add_schedule()
             else:
                 raise ValueError("Received unhandled job_template role.")
@@ -312,7 +312,7 @@ class Test_Job_Template_RBAC(APITest):
             if role in ALLOWED_ROLES:
                 job.cancel()
             elif role in REJECTED_ROLES:
-                with pytest.raises(towerkit.exceptions.Forbidden):
+                with pytest.raises(awxkit.exceptions.Forbidden):
                     job.cancel()
                 # wait for job to finish to ensure clean teardown
                 job.wait_until_completed()
@@ -338,10 +338,10 @@ class Test_Job_Template_RBAC(APITest):
 
         # assert that each org_admin cannot delete other organization's job
         with self.current_user(username=org_admin1.username, password=org_admin1.password):
-            with pytest.raises(towerkit.exceptions.Forbidden):
+            with pytest.raises(awxkit.exceptions.Forbidden):
                 job2.delete()
         with self.current_user(username=org_admin2.username, password=org_admin2.password):
-            with pytest.raises(towerkit.exceptions.Forbidden):
+            with pytest.raises(awxkit.exceptions.Forbidden):
                 job1.delete()
 
         # assert that each org_admin can delete his own organization's job
@@ -362,7 +362,7 @@ class Test_Job_Template_RBAC(APITest):
         job = job_template.launch().wait_until_completed()
 
         with self.current_user(username=user.username, password=user.password):
-            with pytest.raises(towerkit.exceptions.Forbidden):
+            with pytest.raises(awxkit.exceptions.Forbidden):
                 job.delete()
 
     @pytest.mark.parametrize('role', ['admin', 'execute', 'read'])

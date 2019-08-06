@@ -1,6 +1,6 @@
 import pytest
 from tests.api import APITest
-from towerkit.config import config
+from awxkit.config import config
 
 
 @pytest.mark.benchmark

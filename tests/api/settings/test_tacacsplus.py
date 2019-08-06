@@ -1,8 +1,8 @@
 from datetime import datetime
 
-from towerkit import exceptions as exc
-from towerkit.config import config
-from towerkit import utils
+from awxkit import exceptions as exc
+from awxkit.config import config
+from awxkit import utils
 import pytest
 
 from tests.api import APITest

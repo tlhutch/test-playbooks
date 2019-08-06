@@ -1,6 +1,6 @@
-from towerkit.api import get_registered_page
-from towerkit.config import config as qe_config
-import towerkit.tower
+from awxkit.awx import version_cmp
+from awxkit.api import get_registered_page
+from awxkit.config import config as qe_config
 import pytest
 
 
@@ -139,7 +139,7 @@ def tower_version(api_config_pg):
 @pytest.fixture(scope="class")
 def tower_version_cmp(request, tower_version):
     def func(x):
-        return towerkit.tower.version_cmp(tower_version, x)
+        return version_cmp(tower_version, x)
     return func
 
 
@@ -153,7 +153,7 @@ def ansible_version(api_config_pg):
 def ansible_version_cmp(request, v2_session):
     def func(x):
         ansible_version = v2_session.config.get().ansible_version
-        return towerkit.tower.version_cmp(ansible_version, x)
+        return version_cmp(ansible_version, x)
     return func
 
 

@@ -3,9 +3,9 @@ from dateutil import rrule
 from dateutil.relativedelta import relativedelta
 
 import pytest
-from towerkit.exceptions import BadRequest
-from towerkit.rrule import RRule
-from towerkit.utils import (poll_until, random_title)
+from awxkit.exceptions import BadRequest
+from awxkit.rrule import RRule
+from awxkit.utils import (poll_until, random_title)
 
 from tests.api import APITest
 from tests.lib.helpers.workflow_utils import (WorkflowTree, WorkflowTreeMapper)

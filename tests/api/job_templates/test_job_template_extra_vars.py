@@ -2,9 +2,9 @@ import logging
 import json
 import yaml
 
-from towerkit import utils
-import towerkit.tower.inventory
-import towerkit.exceptions
+from awxkit import utils
+import awxkit.awx.inventory
+import awxkit.exceptions
 import pytest
 
 from tests.api import APITest
@@ -55,7 +55,7 @@ class TestJobTemplateExtraVars(APITest):
                 ([1, 2, 3], 'Input type `list` is not a dictionary'),
                 (['a', 'b', 'c'], 'Input type `list` is not a dictionary'),
                 ('["a", "b", "c"]', 'Input type `list` is not a dictionary')):
-            with pytest.raises(towerkit.exceptions.BadRequest) as e:
+            with pytest.raises(awxkit.exceptions.BadRequest) as e:
                 print(invalid)
                 jt.extra_vars = str(invalid)
             assert 'extra_vars' in e.value.msg
@@ -63,7 +63,7 @@ class TestJobTemplateExtraVars(APITest):
 
     def test_confirm_recursive_extra_vars_rejected(self, factories):
         jt = factories.job_template()
-        with pytest.raises(towerkit.exceptions.BadRequest) as e:
+        with pytest.raises(awxkit.exceptions.BadRequest) as e:
             jt.extra_vars = "&id001\nfoo: *id001\n"
             assert 'Variables not compatible with JSON standard (error: Circular reference detected)' in e.msg
 
@@ -213,7 +213,7 @@ class TestJobTemplateExtraVars(APITest):
                 "Missing required variable: %s" % variable
 
         # launch the job without provided required variables
-        exc_info = pytest.raises(towerkit.exceptions.BadRequest, launch_pg.post)
+        exc_info = pytest.raises(awxkit.exceptions.BadRequest, launch_pg.post)
         result = exc_info.value[1]
 
         # assert response includes field: passwords_needed_to_start
@@ -367,7 +367,7 @@ class TestJobTemplateExtraVars(APITest):
             assert json.loads(job.extra_vars) == dict(
                 var1='survey', var2='$encrypted$')
         if required:
-            with pytest.raises(towerkit.exceptions.BadRequest) as e:
+            with pytest.raises(awxkit.exceptions.BadRequest) as e:
                 j = jt.launch(dict(extra_vars=dict())).wait_until_completed()
             assert "variables_needed_to_start" in e.value.msg
 

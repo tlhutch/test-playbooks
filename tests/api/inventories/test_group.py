@@ -1,7 +1,7 @@
 import json
 
-from towerkit import exceptions as exc
-from towerkit import utils
+from awxkit import exceptions as exc
+from awxkit import utils
 import fauxfactory
 import pytest
 

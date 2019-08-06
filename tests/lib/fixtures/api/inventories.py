@@ -2,7 +2,7 @@ import logging
 import json
 import uuid
 
-from towerkit.utils import not_provided
+from awxkit.utils import not_provided
 import fauxfactory
 import pytest
 

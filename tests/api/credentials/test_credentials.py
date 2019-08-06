@@ -1,7 +1,7 @@
 import re
 
-from towerkit.config import config
-import towerkit.exceptions as exc
+from awxkit.config import config
+import awxkit.exceptions as exc
 import fauxfactory
 import pytest
 

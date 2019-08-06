@@ -1,6 +1,6 @@
 import pytest
-import towerkit.exceptions
-from towerkit import utils
+import awxkit.exceptions
+from awxkit import utils
 from tests.api import APITest
 import fauxfactory
 
@@ -23,7 +23,7 @@ class Test_Organizations(APITest):
 
     def test_duplicate_organizations_disallowed(self, factories):
         org = factories.organization()
-        with pytest.raises(towerkit.exceptions.Duplicate) as e:
+        with pytest.raises(awxkit.exceptions.Duplicate) as e:
             factories.organization(name=org.name)
         assert e.value[1]['name'] == ['Organization with this Name already exists.']
 
@@ -75,7 +75,7 @@ class Test_Organizations(APITest):
         org.max_hosts = 2
         inv = factories.inventory(organization=org)
         [inv.add_host() for _ in range(2)]
-        with pytest.raises(towerkit.exceptions.Forbidden) as e:
+        with pytest.raises(awxkit.exceptions.Forbidden) as e:
             inv.add_host()
         assert e.value.msg['detail'] == 'You have already reached the maximum number of 2 hosts allowed for your organization. Contact your System Administrator for assistance.'
 
@@ -85,7 +85,7 @@ class Test_Organizations(APITest):
         inv = factories.inventory(organization=org)
         [inv.add_host() for _ in range(2)]
         inv2 = factories.inventory(organization=org)
-        with pytest.raises(towerkit.exceptions.Forbidden) as e:
+        with pytest.raises(awxkit.exceptions.Forbidden) as e:
             inv2.add_host()
         assert e.value.msg['detail'] == 'You have already reached the maximum number of 2 hosts allowed for your organization. Contact your System Administrator for assistance.'
 
@@ -132,7 +132,7 @@ class Test_Organizations(APITest):
         user = factories.user()
         org.set_object_roles(user, 'admin')
         with self.current_user(username=user.username, password=user.password):
-            with pytest.raises(towerkit.exceptions.BadRequest) as e:
+            with pytest.raises(awxkit.exceptions.BadRequest) as e:
                 org.max_hosts = 5
         assert e.value.msg['__all__'] == ['Cannot change max_hosts.']
 
@@ -155,7 +155,7 @@ class Test_Organizations(APITest):
         org.max_hosts = 1
         jt = factories.job_template(inventory=inv)
         utils.logged_sleep(5)
-        with pytest.raises(towerkit.exceptions.Forbidden) as e:
+        with pytest.raises(awxkit.exceptions.Forbidden) as e:
             jt.launch()
         assert e.value.msg['detail'] == 'You have already reached the maximum number of 1 hosts allowed for your organization. Contact your System Administrator for assistance.'
 

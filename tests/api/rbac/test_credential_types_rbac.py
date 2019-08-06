@@ -1,5 +1,5 @@
-from towerkit.utils import credential_type_kinds
-from towerkit import exceptions as exc
+from awxkit.utils import credential_type_kinds
+from awxkit import exceptions as exc
 import pytest
 
 from tests.api import APITest

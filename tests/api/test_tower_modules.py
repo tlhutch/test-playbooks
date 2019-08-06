@@ -1,6 +1,6 @@
 
-from towerkit.config import config
-from towerkit import utils
+from awxkit.config import config
+from awxkit import utils
 
 import pytest
 import json

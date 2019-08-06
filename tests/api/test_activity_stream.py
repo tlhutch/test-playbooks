@@ -1,8 +1,8 @@
 import logging
 
 import fauxfactory
-from towerkit import utils
-import towerkit.exceptions
+from awxkit import utils
+import awxkit.exceptions
 import pytest
 import six
 import json
@@ -117,9 +117,9 @@ class TestActivityStream(APITest):
         host = factories.host(inventory=inventory)
 
         group.name = "UpdatedGroupName"
-        with pytest.raises(towerkit.exceptions.NoContent):
+        with pytest.raises(awxkit.exceptions.NoContent):
             group.get_related('hosts').post(dict(associate=True, id=host.id))
-        with pytest.raises(towerkit.exceptions.NoContent):
+        with pytest.raises(awxkit.exceptions.NoContent):
             group.get_related('hosts').post(dict(disassociate=True, id=host.id))
 
         operations = ['create', 'update', 'associate', 'disassociate']

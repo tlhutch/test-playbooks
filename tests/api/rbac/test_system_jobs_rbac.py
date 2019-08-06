@@ -1,4 +1,4 @@
-from towerkit import exceptions as exc
+from awxkit import exceptions as exc
 import pytest
 
 from tests.lib.helpers.rbac_utils import check_user_capabilities

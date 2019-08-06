@@ -1,8 +1,8 @@
 import pytest
 
-import towerkit
-from towerkit.config import config
-import towerkit.exceptions as exc
+import awxkit
+from awxkit.config import config
+import awxkit.exceptions as exc
 
 from tests.api import APITest
 
@@ -39,7 +39,7 @@ class TestRelaunchAskRBAC(APITest):
             '''
             self.give_user_relaunch_access(relaunch_user, job)
             with self.current_user(relaunch_user):
-                with pytest.raises(towerkit.exceptions.Forbidden) as exc:
+                with pytest.raises(awxkit.exceptions.Forbidden) as exc:
                     job.relaunch()
             assert 'Job was launched with secret prompts provided by another user.' == exc.value.msg['detail'], \
                 "Failed while checking relaunch Permissions"
@@ -121,7 +121,7 @@ class TestRelaunchAskRBAC(APITest):
             # Sanity check that credentials were actually used
             assert job.related.extra_credentials.get().count == 2
 
-            with pytest.raises(towerkit.exceptions.Forbidden) as exc:
+            with pytest.raises(awxkit.exceptions.Forbidden) as exc:
                 job.relaunch()
         assert 'Job was launched with unknown prompted fields.' in exc.value.msg['detail'], \
             "Failed while checking relaunch Permissions"

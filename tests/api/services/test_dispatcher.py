@@ -2,7 +2,7 @@ import logging
 import re
 
 import pytest
-from towerkit.utils import poll_until
+from awxkit.utils import poll_until
 
 from tests.api import APITest
 

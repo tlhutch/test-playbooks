@@ -1,4 +1,4 @@
-import towerkit.exceptions as exc
+import awxkit.exceptions as exc
 import pytest
 
 from tests.api import APITest

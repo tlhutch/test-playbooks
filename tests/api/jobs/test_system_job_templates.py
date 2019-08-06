@@ -1,7 +1,7 @@
 import json
 
-import towerkit.tower.inventory
-import towerkit.exceptions
+import awxkit.awx.inventory
+import awxkit.exceptions
 import pytest
 
 from tests.api import APITest
@@ -37,19 +37,19 @@ class Test_System_Job_Template(APITest):
                 if non_superuser.is_system_auditor:
                     api_system_job_templates_pg.get()
                 else:
-                    with pytest.raises(towerkit.exceptions.Forbidden):
+                    with pytest.raises(awxkit.exceptions.Forbidden):
                         api_system_job_templates_pg.get()
 
     def test_method_not_allowed(self, api_system_job_templates_pg):
         """Verify that PUT, POST and PATCH are unsupported request methods"""
-        with pytest.raises(towerkit.exceptions.MethodNotAllowed):
+        with pytest.raises(awxkit.exceptions.MethodNotAllowed):
             api_system_job_templates_pg.post()
 
         system_job_template = api_system_job_templates_pg.get(id=1)
-        with pytest.raises(towerkit.exceptions.MethodNotAllowed):
+        with pytest.raises(awxkit.exceptions.MethodNotAllowed):
             system_job_template.put()
 
-        with pytest.raises(towerkit.exceptions.MethodNotAllowed):
+        with pytest.raises(awxkit.exceptions.MethodNotAllowed):
             system_job_template.patch()
 
     def test_launch_as_superuser(self, system_job_template):
@@ -66,7 +66,7 @@ class Test_System_Job_Template(APITest):
         launch_pg = system_job_template.get_related('launch')
         for non_superuser in non_superusers:
             with self.current_user(non_superuser.username, user_password):
-                with pytest.raises(towerkit.exceptions.Forbidden):
+                with pytest.raises(awxkit.exceptions.Forbidden):
                     launch_pg.post()
 
     @pytest.mark.yolo
@@ -97,6 +97,6 @@ class Test_System_Job_Template(APITest):
     def test_cannot_be_scheduled_with_negative_values_in_extra_data(self, cleanup_jobs_template,
                                                                     cleanup_activitystream_template):
         for template in (cleanup_jobs_template, cleanup_activitystream_template):
-            with pytest.raises(towerkit.exceptions.BadRequest) as e:
+            with pytest.raises(awxkit.exceptions.BadRequest) as e:
                 template.add_schedule(extra_data=dict(days='-100'))
             assert e.value.msg == {'extra_data': ['days must be a positive integer.']}

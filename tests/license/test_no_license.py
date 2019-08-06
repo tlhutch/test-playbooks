@@ -4,9 +4,9 @@ import json
 import fauxfactory
 import pytest
 
-import towerkit.exceptions as exc
-from towerkit.tower.license import generate_license
-from towerkit.utils import poll_until
+import awxkit.exceptions as exc
+from tests.lib.tower.license import generate_license
+from awxkit.utils import poll_until
 
 from tests.license.license import LicenseTest
 
@@ -111,7 +111,7 @@ class TestNoLicense(LicenseTest):
     def test_displayed_system_license(self, api_config_pg, api_settings_system_pg):
         """Verifies that our exact license contents gets displayed under /api/v2/settings/system/.
 
-        Note: the towerkit license generator auto-appends a 'eula_accepted' field which is not
+        Note: the awxkit license generator auto-appends a 'eula_accepted' field which is not
         actually part of the license so we remove that manually below.
         """
         # Installing enterprise license for test_system_license.

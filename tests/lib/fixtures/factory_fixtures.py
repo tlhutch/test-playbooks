@@ -1,5 +1,5 @@
-from towerkit.utils import PseudoNamespace
-from towerkit.api import mixins, pages
+from awxkit.utils import PseudoNamespace
+from awxkit.api import mixins, pages
 import pytest
 
 import logging

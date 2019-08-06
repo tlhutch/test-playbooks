@@ -1,6 +1,6 @@
 import json
 
-from towerkit.exceptions import BadRequest
+from awxkit.exceptions import BadRequest
 import fauxfactory
 import pytest
 

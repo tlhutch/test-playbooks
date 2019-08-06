@@ -8,8 +8,8 @@ import fcntl
 import struct
 import array
 
-from towerkit.config import config
-from towerkit import utils, exceptions as exc
+from awxkit.config import config
+from awxkit import utils, exceptions as exc
 import pytest
 
 from tests.api import APITest

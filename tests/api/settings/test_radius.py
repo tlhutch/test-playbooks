@@ -1,5 +1,5 @@
-from towerkit import exceptions as exc
-from towerkit import config, utils
+from awxkit import exceptions as exc
+from awxkit import config, utils
 import pytest
 
 from tests.api import APITest

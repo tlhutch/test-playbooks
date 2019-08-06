@@ -6,12 +6,13 @@ import sys
 import requests
 import pytest
 
-from towerkit.tower.utils import uses_sessions
-from towerkit.utils import load_credentials
-from towerkit.utils import PseudoNamespace
-from towerkit.api.client import Connection
-from towerkit import config as qe_config
-from towerkit import yaml_file
+from awxkit.awx.utils import uses_sessions
+from awxkit.utils import load_credentials
+from awxkit.utils import load_projects
+from awxkit.utils import PseudoNamespace
+from awxkit.api.client import Connection
+from awxkit import config as qe_config
+from awxkit import yaml_file
 
 
 __version__ = '1.0'
@@ -40,6 +41,13 @@ def pytest_addoption(parser):
                     dest='credentials_file',
                     metavar='path',
                     help='location of yaml file containing user credentials.')
+
+    group.addoption('--project-file',
+                    action='store',
+                    dest='project_file',
+                    default=os.getenv('AWXKIT_PROJECT_FILE', 'config/projects.yml'),
+                    metavar='path',
+                    help='location of yaml file containing SCM projects for test to use by default when creating projects in Tower/AWX.')
 
     group = parser.getgroup('resource-loading', 'resource-loading')
     group.addoption('--resource-file',
@@ -79,6 +87,10 @@ def set_connection(base_url, config):
     if config.option.credentials_file:
         qe_config.credentials = load_credentials(config.option.credentials_file)
 
+    # Load projects.yaml
+    if config.option.project_file:
+        qe_config.project_urls = load_projects(config.option.project_file)
+
     qe_config.assume_untrusted = config.getvalue('assume_untrusted')
 
     # Making requests with the shared connection is destructive to multiprocessed page fixtures
@@ -107,7 +119,7 @@ def pytest_configure(config):
         if config.option.base_url:
             set_connection(config.option.base_url, config)
             if config.option.debug_rest and hasattr(config, '_debug_rest_hdlr'):
-                for mod in ('towerkit.api.client', 'towerkit.ws'):
+                for mod in ('awxkit.api.client', 'awxkit.ws'):
                     logger = logging.getLogger(mod)
                     logger.setLevel('DEBUG')
                     logger.addHandler(config._debug_rest_hdlr)

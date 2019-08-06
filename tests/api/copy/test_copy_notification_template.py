@@ -1,5 +1,5 @@
 from fauxfactory import gen_utf8
-from towerkit.api.pages.notification_templates import notification_types
+from awxkit.api.pages.notification_templates import notification_types
 import pytest
 
 from tests.api import APITest

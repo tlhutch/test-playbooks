@@ -10,10 +10,10 @@ import time
 import traceback
 
 import pytest
-from towerkit import utils
-from towerkit.api import Connection
-import towerkit.exceptions as exc
-from towerkit.utils import random_title
+from awxkit import utils
+from awxkit.api import Connection
+import awxkit.exceptions as exc
+from awxkit.utils import random_title
 
 from tests.api import APITest
 

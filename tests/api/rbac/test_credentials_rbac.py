@@ -1,7 +1,7 @@
 import pytest
 import http.client
 
-import towerkit.exceptions
+import awxkit.exceptions
 from tests.lib.helpers.rbac_utils import (
     assert_response_raised,
     check_read_access,
@@ -149,15 +149,15 @@ class Test_Credential_RBAC(APITest):
                     credential.set_object_roles(another_user, role_name)
                 # regular users may not assign credential roles to another user
                 else:
-                    with pytest.raises(towerkit.exceptions.Forbidden):
+                    with pytest.raises(awxkit.exceptions.Forbidden):
                         credential.set_object_roles(another_user, role_name)
                 # superusers should receive 400
                 if agent_name == "admin_user":
-                    with pytest.raises(towerkit.exceptions.BadRequest):
+                    with pytest.raises(awxkit.exceptions.BadRequest):
                         credential.set_object_roles(team, role_name)
                 # regular users should receive 403
                 else:
-                    with pytest.raises(towerkit.exceptions.Forbidden):
+                    with pytest.raises(awxkit.exceptions.Forbidden):
                         credential.set_object_roles(team, role_name)
 
     def test_invalid_organization_credential_role_assignment(self, factories):
@@ -171,12 +171,12 @@ class Test_Credential_RBAC(APITest):
         user = factories.user(organization=another_organization)
         role_names = get_resource_roles(credential)
         for role_name in role_names:
-            with pytest.raises(towerkit.exceptions.BadRequest):
+            with pytest.raises(awxkit.exceptions.BadRequest):
                 credential.set_object_roles(user, role_name)
         # team from another organization may not be assigned any of our credential roles
         team = factories.team(organization=another_organization)
         for role_name in role_names:
-            with pytest.raises(towerkit.exceptions.BadRequest):
+            with pytest.raises(awxkit.exceptions.BadRequest):
                 credential.set_object_roles(team, role_name)
 
     def test_valid_organization_credential_role_assignment(self, factories):

@@ -1,5 +1,5 @@
-import towerkit.exceptions as exc
-from towerkit.utils import random_title
+import awxkit.exceptions as exc
+from awxkit.utils import random_title
 import pytest
 
 from tests.api import APITest

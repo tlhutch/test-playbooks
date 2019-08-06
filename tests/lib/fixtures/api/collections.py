@@ -1,7 +1,7 @@
 import functools
 import os
 
-from towerkit import config
+from awxkit import config
 import pytest
 
 

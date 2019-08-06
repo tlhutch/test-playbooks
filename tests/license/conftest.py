@@ -4,7 +4,7 @@ from contextlib import contextmanager
 
 import pytest
 
-from towerkit.tower.license import generate_license
+from tests.lib.tower.license import generate_license
 
 from tests.lib.license import (
     apply_license_until_effective,

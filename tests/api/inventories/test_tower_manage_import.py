@@ -1,7 +1,7 @@
 import json
 
-from towerkit.tower.inventory import upload_inventory
-from towerkit import utils
+from awxkit.awx.inventory import upload_inventory
+from awxkit import utils
 import fauxfactory
 import pytest
 

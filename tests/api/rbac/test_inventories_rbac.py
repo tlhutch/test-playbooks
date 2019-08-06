@@ -1,7 +1,7 @@
 import pytest
 import http.client
 
-import towerkit.exceptions
+import awxkit.exceptions
 from tests.lib.helpers.rbac_utils import (
     assert_response_raised,
     check_read_access,
@@ -34,21 +34,21 @@ class TestInventoryRBAC(APITest):
             check_read_access(inventory, unprivileged=True)
 
             # update inventory sources
-            with pytest.raises(towerkit.exceptions.Forbidden):
+            with pytest.raises(awxkit.exceptions.Forbidden):
                 aws_inv_source.related['update'].post()
-            with pytest.raises(towerkit.exceptions.Forbidden):
+            with pytest.raises(awxkit.exceptions.Forbidden):
                 custom_inv_source.related['update'].post()
 
             # post command
-            with pytest.raises(towerkit.exceptions.Forbidden):
+            with pytest.raises(awxkit.exceptions.Forbidden):
                 inventory.related.ad_hoc_commands.post()
 
             # check ability to create inventory resources
-            with pytest.raises(towerkit.exceptions.Forbidden):
+            with pytest.raises(awxkit.exceptions.Forbidden):
                 inventory.related.groups.post()
-            with pytest.raises(towerkit.exceptions.Forbidden):
+            with pytest.raises(awxkit.exceptions.Forbidden):
                 inventory.related.hosts.post()
-            with pytest.raises(towerkit.exceptions.Forbidden):
+            with pytest.raises(awxkit.exceptions.Forbidden):
                 inventory.related.inventory_sources.post()
 
             # check put/patch/delete on inventory and inventory resources
@@ -108,11 +108,11 @@ class TestInventoryRBAC(APITest):
             check_read_access(inventory, ["organization"])
 
             # check ability to create group and host
-            with pytest.raises(towerkit.exceptions.Forbidden):
+            with pytest.raises(awxkit.exceptions.Forbidden):
                 factories.group(inventory=inventory)
-            with pytest.raises(towerkit.exceptions.Forbidden):
+            with pytest.raises(awxkit.exceptions.Forbidden):
                 factories.host(inventory=inventory)
-            with pytest.raises(towerkit.exceptions.Forbidden):
+            with pytest.raises(awxkit.exceptions.Forbidden):
                 factories.inventory_source(inventory=inventory, source_script=inv_script)
 
             # check put/patch/delete on inventory and inventory resoures
@@ -143,11 +143,11 @@ class TestInventoryRBAC(APITest):
             check_read_access(inventory, ["organization"])
 
             # check ability to create group and host
-            with pytest.raises(towerkit.exceptions.Forbidden):
+            with pytest.raises(awxkit.exceptions.Forbidden):
                 factories.group(inventory=inventory)
-            with pytest.raises(towerkit.exceptions.Forbidden):
+            with pytest.raises(awxkit.exceptions.Forbidden):
                 factories.host(inventory=inventory)
-            with pytest.raises(towerkit.exceptions.Forbidden):
+            with pytest.raises(awxkit.exceptions.Forbidden):
                 factories.inventory_source(inventory=inventory, source_script=inv_script)
 
             # check put/patch/delete on inventory and inventory resources
@@ -178,11 +178,11 @@ class TestInventoryRBAC(APITest):
             check_read_access(inventory, ["organization"])
 
             # check ability to create group and host
-            with pytest.raises(towerkit.exceptions.Forbidden):
+            with pytest.raises(awxkit.exceptions.Forbidden):
                 factories.group(inventory=inventory)
-            with pytest.raises(towerkit.exceptions.Forbidden):
+            with pytest.raises(awxkit.exceptions.Forbidden):
                 factories.host(inventory=inventory)
-            with pytest.raises(towerkit.exceptions.Forbidden):
+            with pytest.raises(awxkit.exceptions.Forbidden):
                 factories.inventory_source(inventory=inventory, source_script=inv_script)
 
             # check put/patch/delete on inventory, group, and host
@@ -213,11 +213,11 @@ class TestInventoryRBAC(APITest):
             check_read_access(inventory, ["organization"])
 
             # check ability to create group and host
-            with pytest.raises(towerkit.exceptions.Forbidden):
+            with pytest.raises(awxkit.exceptions.Forbidden):
                 factories.group(inventory=inventory)
-            with pytest.raises(towerkit.exceptions.Forbidden):
+            with pytest.raises(awxkit.exceptions.Forbidden):
                 factories.host(inventory=inventory)
-            with pytest.raises(towerkit.exceptions.Forbidden):
+            with pytest.raises(awxkit.exceptions.Forbidden):
                 factories.inventory_source(inventory=inventory, source_script=inv_script)
 
             # check put/patch/delete on inventory, group, and host
@@ -260,7 +260,7 @@ class TestInventoryRBAC(APITest):
                 update = inv_source.update().wait_until_completed()
                 update.assert_successful()
             elif role in REJECTED_ROLES:
-                with pytest.raises(towerkit.exceptions.Forbidden):
+                with pytest.raises(awxkit.exceptions.Forbidden):
                     inv_source.update()
             else:
                 raise ValueError("Received unhandled inventory role.")
@@ -285,7 +285,7 @@ class TestInventoryRBAC(APITest):
                 update = inv_source.update().wait_until_completed()
                 update.assert_successful()
             elif role in REJECTED_ROLES:
-                with pytest.raises(towerkit.exceptions.Forbidden):
+                with pytest.raises(awxkit.exceptions.Forbidden):
                     inv_source.update()
             else:
                 raise ValueError("Received unhandled inventory role.")
@@ -313,7 +313,7 @@ class TestInventoryRBAC(APITest):
                     update.assert_successful()
                 gce_source.get().is_successful and ec2_source.get().assert_successful()
             elif role in REJECTED_ROLES:
-                with pytest.raises(towerkit.exceptions.Forbidden):
+                with pytest.raises(awxkit.exceptions.Forbidden):
                     inventory.update_inventory_sources()
             else:
                 raise ValueError("Received unhandled inventory role.")
@@ -334,7 +334,7 @@ class TestInventoryRBAC(APITest):
                 schedule = inv_source.add_schedule()
                 assert_response_raised(schedule, methods=('get', 'put', 'patch', 'delete'))
             elif role in REJECTED_ROLES:
-                with pytest.raises(towerkit.exceptions.Forbidden):
+                with pytest.raises(awxkit.exceptions.Forbidden):
                     inv_source.add_schedule()
             else:
                 raise ValueError("Received unhandled inventory role.")
@@ -357,7 +357,7 @@ class TestInventoryRBAC(APITest):
             if role in ALLOWED_ROLES:
                 update.cancel()
             elif role in REJECTED_ROLES:
-                with pytest.raises(towerkit.exceptions.Forbidden):
+                with pytest.raises(awxkit.exceptions.Forbidden):
                     update.cancel()
                 # wait for inventory update to finish to ensure clean teardown
                 update.wait_until_completed()
@@ -381,7 +381,7 @@ class TestInventoryRBAC(APITest):
             if role in ALLOWED_ROLES:
                 update.delete()
             elif role in REJECTED_ROLES:
-                with pytest.raises(towerkit.exceptions.Forbidden):
+                with pytest.raises(awxkit.exceptions.Forbidden):
                     update.delete()
             else:
                 raise ValueError("Received unhandled inventory role.")
@@ -422,7 +422,7 @@ class TestInventoryRBAC(APITest):
                                                   module_name="ping").wait_until_completed()
                 ahc.assert_successful()
             elif role in REJECTED_ROLES:
-                with pytest.raises(towerkit.exceptions.Forbidden):
+                with pytest.raises(awxkit.exceptions.Forbidden):
                     factories.ad_hoc_command(inventory=inventory,
                                                 credential=credential,
                                                 module_name="ping")
@@ -451,7 +451,7 @@ class TestInventoryRBAC(APITest):
                 relaunched_ahc = ahc.relaunch().wait_until_completed()
                 relaunched_ahc.assert_successful()
             elif role in REJECTED_ROLES:
-                with pytest.raises(towerkit.exceptions.Forbidden):
+                with pytest.raises(awxkit.exceptions.Forbidden):
                     ahc.relaunch()
             else:
                 raise ValueError("Received unhandled inventory role.")
@@ -471,7 +471,7 @@ class TestInventoryRBAC(APITest):
             if role in ALLOWED_ROLES:
                 ahc.cancel()
             elif role in REJECTED_ROLES:
-                with pytest.raises(towerkit.exceptions.Forbidden):
+                with pytest.raises(awxkit.exceptions.Forbidden):
                     ahc.cancel()
             else:
                 raise ValueError("Received unhandled inventory role.")
@@ -492,10 +492,10 @@ class TestInventoryRBAC(APITest):
 
         # assert that each org_admin cannot delete other organization's command
         with self.current_user(username=org_admin1.username, password=org_admin1.password):
-            with pytest.raises(towerkit.exceptions.Forbidden):
+            with pytest.raises(awxkit.exceptions.Forbidden):
                 ahc2.delete()
         with self.current_user(username=org_admin2.username, password=org_admin2.password):
-            with pytest.raises(towerkit.exceptions.Forbidden):
+            with pytest.raises(awxkit.exceptions.Forbidden):
                 ahc1.delete()
 
         # assert that each org_admin can delete his own organization's command
@@ -512,7 +512,7 @@ class TestInventoryRBAC(APITest):
         ahc.ds.inventory.set_object_roles(user, "admin")
 
         with self.current_user(username=user.username, password=user.password):
-            with pytest.raises(towerkit.exceptions.Forbidden):
+            with pytest.raises(awxkit.exceptions.Forbidden):
                 ahc.delete()
 
     @pytest.mark.parametrize('role', ['admin', 'use', 'ad hoc', 'update', 'read'])
@@ -544,5 +544,5 @@ class TestInventoryRBAC(APITest):
                                            user=user,
                                            organization=None)
             os_inv_source = factories.inventory_source(source='openstack', inventory=inventory, credential=os_cred)
-            with pytest.raises(towerkit.exceptions.Forbidden):
+            with pytest.raises(awxkit.exceptions.Forbidden):
                 os_inv_source.patch(credential=openstack_credential.id)

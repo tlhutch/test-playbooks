@@ -7,9 +7,9 @@ import traceback
 import io
 
 import pytest
-from towerkit import exceptions as exc, config
-from towerkit.rrule import RRule
-from towerkit.utils import poll_until, random_title
+from awxkit import exceptions as exc, config
+from awxkit.rrule import RRule
+from awxkit.utils import poll_until, random_title
 import pytz
 
 from tests.api.schedules import SchedulesTest
@@ -279,7 +279,7 @@ class TestSchedules(SchedulesTest):
 
         dt = datetime(2035, month, 1, 0, 0, 1)
 
-        from towerkit.utils import UTC
+        from awxkit.utils import UTC
         utc = UTC()
 
         offsets = ['+0000', '+0100', '+0200', '+0300', '+0330', '+0400', '+0430', '+0500', '+0530', '+0545', '+0600', '+0630',

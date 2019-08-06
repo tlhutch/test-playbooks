@@ -1,5 +1,5 @@
-from towerkit import exceptions as exc
-from towerkit.utils import poll_until, logged_sleep
+from awxkit import exceptions as exc
+from awxkit.utils import poll_until, logged_sleep
 import fauxfactory
 import pytest
 

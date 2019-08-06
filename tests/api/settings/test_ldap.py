@@ -1,7 +1,7 @@
 from copy import deepcopy
 
-from towerkit.utils import random_title
-from towerkit import config, exceptions
+from awxkit.utils import random_title
+from awxkit import config, exceptions
 import pytest
 
 from tests.api import APITest

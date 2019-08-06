@@ -3,9 +3,9 @@ import logging
 import os.path
 import json
 
-from towerkit.rrule import RRule
-from towerkit.utils import random_title
-from towerkit.config import config
+from awxkit.rrule import RRule
+from awxkit.utils import random_title
+from awxkit.config import config
 
 import fauxfactory
 import pytest

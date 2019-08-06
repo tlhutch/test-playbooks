@@ -1,7 +1,7 @@
 import pytest
 import http.client
 
-import towerkit.exceptions
+import awxkit.exceptions
 from tests.lib.helpers.rbac_utils import (
     assert_response_raised,
     check_read_access,
@@ -30,7 +30,7 @@ class Test_Project_RBAC(APITest):
             check_read_access(project, unprivileged=True)
 
             # check project update
-            with pytest.raises(towerkit.exceptions.Forbidden):
+            with pytest.raises(awxkit.exceptions.Forbidden):
                 update.post()
 
             # check put/patch/delete
@@ -151,7 +151,7 @@ class Test_Project_RBAC(APITest):
                 update = project.update().wait_until_completed()
                 update.assert_successful()
             elif role in REJECTED_ROLES:
-                with pytest.raises(towerkit.exceptions.Forbidden):
+                with pytest.raises(awxkit.exceptions.Forbidden):
                     project.update()
             else:
                 raise ValueError("Received unhandled project role.")
@@ -172,7 +172,7 @@ class Test_Project_RBAC(APITest):
                 schedule = project.add_schedule()
                 assert_response_raised(schedule, methods=('get', 'put', 'patch', 'delete'))
             elif role in REJECTED_ROLES:
-                with pytest.raises(towerkit.exceptions.Forbidden):
+                with pytest.raises(awxkit.exceptions.Forbidden):
                     project.related.schedules.post()
             else:
                 raise ValueError("Received unhandled project role.")
@@ -192,7 +192,7 @@ class Test_Project_RBAC(APITest):
             if role in ALLOWED_ROLES:
                 update.cancel()
             elif role in REJECTED_ROLES:
-                with pytest.raises(towerkit.exceptions.Forbidden):
+                with pytest.raises(awxkit.exceptions.Forbidden):
                     update.cancel()
             else:
                 raise ValueError("Received unhandled project role.")
@@ -217,7 +217,7 @@ class Test_Project_RBAC(APITest):
             if role in ALLOWED_ROLES:
                 update.delete()
             elif role in REJECTED_ROLES:
-                with pytest.raises(towerkit.exceptions.Forbidden):
+                with pytest.raises(awxkit.exceptions.Forbidden):
                     update.delete()
             else:
                 raise ValueError("Received unhandled project role.")

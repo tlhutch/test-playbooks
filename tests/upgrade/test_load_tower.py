@@ -3,7 +3,7 @@ import json
 
 import pytest
 
-from towerkit import config, exceptions, utils
+from awxkit import config, exceptions, utils
 
 
 @pytest.mark.usefixtures('authtoken')

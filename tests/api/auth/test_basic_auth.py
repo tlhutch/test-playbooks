@@ -3,10 +3,10 @@ import time
 
 import fauxfactory
 
-from towerkit.api.client import Connection
-from towerkit.ws import WSClient
-from towerkit.config import config as qe_config
-from towerkit import utils
+from awxkit.api.client import Connection
+from awxkit.ws import WSClient
+from awxkit.config import config as qe_config
+from awxkit import utils
 
 from tests.api import APITest
 

@@ -5,7 +5,7 @@ import time
 from pprint import pformat
 
 import pytest
-from towerkit import utils
+from awxkit import utils
 
 from tests.api import APITest
 
