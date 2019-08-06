@@ -42,10 +42,6 @@ class TestWorkflowApprovalNodes(APITest):
         assert approval_jt.description == description
         assert approval_jt.name == name
 
-        # TODO: should approval job template have an organization if the wfjt has one?
-        # NO SHOULD NOT
-        # assert approval_jt.related.organization.get().id == org.id
-
         if not approve:
             # add error handling node so workflow does not fail
             approval_node.add_failure_node(unified_job_template=inner_wfjt)
@@ -81,14 +77,12 @@ class TestWorkflowApprovalNodes(APITest):
             all_denied_approvals = v2.workflow_approvals.get(status='failed').results
             assert wf_approval.id in [approval.id for approval in all_denied_approvals]
 
-        # TODO need to make an approval job type in towerkit
-        # approval_job.get().assert_successful()
         wf_job.wait_until_completed().assert_successful()
 
     @pytest.mark.parametrize('approve', [True, False], ids=['approve', 'deny'])
     @pytest.mark.parametrize('user', ['system_auditor', 'random_user', 'user_in_org'])
     def test_users_without_role_cannot_approve(self, v2, factories, user, approve):
-        assert False, 'Not Implemented'
+        pytest.skip('Not Implemented')
 
     def test_update_existing_node_to_approval_node(self, v2, factories, org_admin):
         """Create a workflow with an approval node and approve it."""
@@ -124,6 +118,7 @@ class TestWorkflowApprovalNodes(APITest):
 
         # Assert the workflow approval that was associated with the approval job node is in list of
         # approvals pending (this is what user will get notification about)
+        poll_until(lambda: wf_approval.get().status == 'pending', interval=1, timeout=60)
         all_pending_approvals = v2.workflow_approvals.get(status='pending').results
         assert wf_approval.id in [approval.id for approval in all_pending_approvals]
 
@@ -131,8 +126,6 @@ class TestWorkflowApprovalNodes(APITest):
         all_successful_approvals = v2.workflow_approvals.get(status='successful').results
         assert wf_approval.id in [approval.id for approval in all_successful_approvals]
 
-        # TODO need to make an approval job type in towerkit
-        # approval_job.get().assert_successful()
         wf_job.wait_until_completed().assert_successful()
 
     def test_approval_node_timeout(self, v2, factories):
@@ -161,8 +154,6 @@ class TestWorkflowApprovalNodes(APITest):
         all_failed_approvals = v2.workflow_approvals.get(status='failed').results
         assert wf_approval.id in [approval.id for approval in all_failed_approvals]
 
-        # TODO need to make an approval job type in towerkit
-        # approval_job.get().assert_status('failed')
         wf_job.wait_until_completed().assert_status('failed')
 
     def test_workflow_approval_visibility(self, v2, factories, org_admin):
@@ -189,25 +180,27 @@ class TestWorkflowApprovalNodes(APITest):
         poll_until(lambda: hasattr(approval_job_node.get().related, 'job'), interval=1, timeout=60)
         wf_approval = approval_job_node.related.job.get()
 
+        # Can't hope for users to see it until the admin can, takes time to change state
+        poll_until(lambda: wf_approval.get().status == 'pending', interval=1, timeout=60)
+        poll_until(lambda: v2.workflow_approvals.get(status='pending').count == 1, interval=1, timeout=60)
+
         with self.current_user(wf_approve_user):
-            assert v2.workflow_approvals.get(status='failed').count == 1, 'Not seeing proper number of approvals'
-            approvals = v2.workflow_approvals.get(status='failed').results
+            assert v2.workflow_approvals.get(status='pending').count == 1, 'Not seeing proper number of approvals'
+            approvals = v2.workflow_approvals.get(status='pending').results
             assert wf_approval.id in [approval.id for approval in approvals]
 
         with self.current_user(org_approve_user):
-            approvals = v2.workflow_approvals.get(status='failed').results
+            approvals = v2.workflow_approvals.get(status='pending').results
             assert wf_approval.id in [approval.id for approval in approvals]
 
         with self.current_user(org_approve_user):
-            approvals = v2.workflow_approvals.get(status='failed').results
+            approvals = v2.workflow_approvals.get(status='pending').results
             assert wf_approval.id in [approval.id for approval in approvals]
 
         with self.current_user(underpriv_user):
-            assert v2.workflow_approvals.get(status='failed').count == 1, 'Not seeing proper number of approvals'
-            approvals = v2.workflow_approvals.get(status='failed').results
-            assert wf_approval.id in [approval.id for approval in approvals]
+            assert v2.workflow_approvals.get(status='pending').count == 0, 'Not seeing proper number of approvals'
+            approvals = v2.workflow_approvals.get(status='pending').results
+            assert wf_approval.id not in [approval.id for approval in approvals]
 
         wf_approval.approve()
-        # TODO need to make an approval job type in towerkit
-        # approval_job.get().assert_status('failed')
         wf_job.wait_until_completed().assert_status('success')
