@@ -53,24 +53,25 @@ class TestWorkflowApprovalNodes(APITest):
 
         # Assert the workflow approval that was associated with the approval job node is in list of
         # approvals pending (this is what user will get notification about)
+        poll_until(lambda: wf_approval.get().status == 'pending', interval=1, timeout=60)
         all_pending_approvals = v2.workflow_approvals.get(status='pending').results
         assert wf_approval.id in [approval.id for approval in all_pending_approvals]
 
         if approve:
             if user != 'sysadmin':
                 with self.current_user(user.username, user.password):
-                    wf_approval.related.approve.post()
+                    wf_approval.approve()
             else:
-                wf_approval.related.approve.post()
+                wf_approval.approve()
             all_successful_approvals = v2.workflow_approvals.get(status='successful').results
             assert wf_approval.id in [approval.id for approval in all_successful_approvals]
         # we will deny
         else:
             if user != 'sysadmin':
                 with self.current_user(user.username, user.password):
-                    wf_approval.related.deny.post()
+                    wf_approval.deny()
             else:
-                wf_approval.related.deny.post()
+                wf_approval.deny()
 
             all_denied_approvals = v2.workflow_approvals.get(status='failed').results
             assert wf_approval.id in [approval.id for approval in all_denied_approvals]
@@ -116,7 +117,7 @@ class TestWorkflowApprovalNodes(APITest):
         all_pending_approvals = v2.workflow_approvals.get(status='pending').results
         assert wf_approval.id in [approval.id for approval in all_pending_approvals]
 
-        wf_approval.related.approve.post()
+        wf_approval.approve()
         all_successful_approvals = v2.workflow_approvals.get(status='successful').results
         assert wf_approval.id in [approval.id for approval in all_successful_approvals]
 
@@ -198,7 +199,7 @@ class TestWorkflowApprovalNodes(APITest):
             approvals = v2.workflow_approvals.get(status='failed').results
             assert wf_approval.id in [approval.id for approval in approvals]
 
-        wf_approval.related.approve.post()
+        wf_approval.approve()
         # TODO need to make an approval job type in towerkit
         # approval_job.get().assert_status('failed')
         wf_job.wait_until_completed().assert_status('success')
