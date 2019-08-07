@@ -3,19 +3,19 @@
 This document is about writing integration tests in `tower-qa`. Before we dive in, there are a few things that I will point out so that you can get a lay of the land.
 
 First, we use `factories` to instantiate Tower resources. [Here](https://github.com/ansible/tower-qa/blob/master/tests/lib/fixtures/factory_fixtures.py#L230) are the resources that you can create.
-* You can use kwargs to update the payload sent for resource instantiation. You can see which kwargs we support by looking at the `create` and `payload` methods under each of our page objects. For an example of this, see [here](https://github.com/ansible/towerkit/blob/master/towerkit/api/pages/job_templates.py#L104).
+* You can use kwargs to update the payload sent for resource instantiation. You can see which kwargs we support by looking at the `create` and `payload` methods under each of our page objects. For an example of this, see [here](https://github.com/ansible/towerkit/blob/master/awxkit/api/pages/job_templates.py#L104).
 * For an example of resource instantiation using factories, see [here](https://github.com/ansible/tower-qa/blob/master/tests/api/test_insights.py#L99).
 * When you create resources with `factories`, we will [delete](https://github.com/ansible/tower-qa/blob/master/tests/lib/fixtures/factory_fixtures.py#L27) them upon test completion. We do this to prevent tests from interfering with other tests.
 
 More about our page objects:
-* Our page objects map to specific API endpoints and we manually register a selection of API endpoints with these page objects. You can see an example of page registration [here](https://github.com/ansible/towerkit/blob/master/towerkit/api/pages/inventory.py#L344). We register each of our page objects.
-* The master API resource list that we use is [here](https://github.com/ansible/towerkit/blob/master/towerkit/api/resources.py). When we add new endpoints to the API, we have to update this list.
+* Our page objects map to specific API endpoints and we manually register a selection of API endpoints with these page objects. You can see an example of page registration [here](https://github.com/ansible/towerkit/blob/master/awxkit/api/pages/inventory.py#L344). We register each of our page objects.
+* The master API resource list that we use is [here](https://github.com/ansible/towerkit/blob/master/awxkit/api/resources.py). When we add new endpoints to the API, we have to update this list.
 * Our page objects help us because they have an assortment of helper methods. The idea is to abstract out as many repeatable chunks of code into helper methods as possible.
-* For instance, one thing that we do all of the time in our tests is to launch a job template. Instead of submitting a POST to `/api/v2/job_templates/N/launch/` over and over, we simply call the following handy [helper method](https://github.com/ansible/towerkit/blob/master/towerkit/api/pages/job_templates.py#L41):
+* For instance, one thing that we do all of the time in our tests is to launch a job template. Instead of submitting a POST to `/api/v2/job_templates/N/launch/` over and over, we simply call the following handy [helper method](https://github.com/ansible/towerkit/blob/master/awxkit/api/pages/job_templates.py#L41):
 ```
 jt.launch()
 ```
-* Our page object helper methods are one of the huge advantages that Towerkit brings.
+* Our page object helper methods are one of the huge advantages that awxkit brings.
 
 About dependency stores:
 * Most of our page objects have dependency stores, which are an easy way to access resource dependencies.
@@ -28,6 +28,10 @@ About dependency stores:
 >>> credential.endpoint
 u'/api/v2/credentials/137/'
 ```
+
+The dependency story does not however get updated, it is merely an internal record of what dependencies were created by awxkit for the resource.
+For most accurate data, GET the resource using related links such as `job_template.related.credentials.get().results`
+
 
 Tips for writing good tests:
 * Be iterative. Write a chunk of code, then throw in `pdb` break, inspect output to ensure code quality, and move on.
@@ -44,7 +48,7 @@ Tips for writing good tests:
 * Fixtures belong in test [classes](https://github.com/ansible/tower-qa/blob/master/tests/api/cluster/test_execution_node_assignment.py#L33) _if_ you don't see them ever being used for tests outside of the class. We do this to preserve the global fixtures namespace.
 * If you forsee tests outside of a specific class needing a fixture, add it to `tests.lib.fixtures.api`.
 * If you are trying to assert that Tower is raising a specific error message, use this [construction](https://github.com/ansible/tower-qa/blob/master/tests/api/credentials/test_credentials.py#L193).
-* We have a library of helpful utilities [here](https://github.com/ansible/towerkit/blob/master/towerkit/utils.py#L185). For instance, we have utilities for job polling here. Before creating your own, consider whether your utility belongs in Towerkit.
+* We have a library of helpful utilities [here](https://github.com/ansible/towerkit/blob/master/awxkit/utils.py#L185). For instance, we have utilities for job polling here. Before creating your own, consider whether your utility belongs in awxkit.
 * We adhere to PEP8. Please run `flake8` locally before submitting a PR to `tower-qa` or `towerkit`.
 
 Learn by imitation. Examples of great tests and test writing include:
