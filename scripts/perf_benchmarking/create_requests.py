@@ -7,8 +7,8 @@ import types
 import json
 import sys
 
-from towerkit import api, utils
-from towerkit import exceptions as exc
+from awxkit import api, utils
+from awxkit import exceptions as exc
 
 from .benchmarking import (delete_all_created, no_op, write_results, get_all,  # noqa
                           determine_execution_node_counts, determine_job_event_count)  # noqa
@@ -20,9 +20,8 @@ handler = logging.StreamHandler(sys.stdout)
 handler.setLevel('DEBUG')
 log.addHandler(handler)
 
-
+# NOTE: Tower is assumed to be licensed before this script runs
 v2 = api.ApiV2().load_default_authtoken().get()
-v2.config.get().install_license()
 
 
 org = v2.organizations.create('org')

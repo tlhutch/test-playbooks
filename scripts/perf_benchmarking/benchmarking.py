@@ -3,7 +3,7 @@ import logging
 import csv
 import os
 
-from towerkit import config, utils
+from awxkit import config, utils
 
 
 log = logging.getLogger()
@@ -21,9 +21,12 @@ parser.add_argument('--results', dest='results', help=_results_help,
 _cred_help = 'Credential file to be loaded (default: config/credentials.yml).  Use "false" for none.'
 parser.add_argument('--credentials', dest='credentials', help=_cred_help,
                     default=os.path.join(cwd, '..', '..', 'config/credentials.yml'))
+_proj_help = 'Project file to be loaded (default: config/projects.yml).  Use "false" for none.'
+parser.add_argument('--projects', action="store", dest='projects',
+                  default=os.path.join(cwd, '..', '..', 'config/projects.yml'), help=_proj_help)
 args = parser.parse_args()
 
-results_file = open(args.results, mode='wb', encoding='utf-8')
+results_file = open(args.results, mode='w', encoding='utf-8')
 fieldnames = ['operation', 'user', 'endpoint', 'method', 'elapsed']
 result_writer = csv.DictWriter(results_file, fieldnames=fieldnames)
 result_writer.writeheader()
@@ -32,6 +35,8 @@ result_writer.writeheader()
 config.base_url = "https://{0}".format(args.instance)
 if utils.to_bool(args.credentials):
     config.credentials = utils.load_credentials(args.credentials)
+if utils.to_bool(args.projects):
+    config.project_urls = utils.load_projects(args.projects)
 
 
 def get_all(endpoint):
