@@ -84,7 +84,7 @@ def tower_credential(factories, admin_user):
 
 
 @pytest.mark.fixture_args(venvs=CUSTOM_VENVS, cluster=True)
-@pytest.mark.usefixtures('authtoken', 'tower_modules_collection', 'shared_custom_venvs')
+@pytest.mark.usefixtures('skip_if_openshift', 'authtoken', 'tower_modules_collection', 'shared_custom_venvs')
 @pytest.mark.parametrize('python_venv_name', CUSTOM_VENVS_NAMES)
 class Test_Ansible_Tower_Modules_via_Playbooks(APITest):
     @pytest.mark.parametrize('tower_module', TOWER_MODULES)
@@ -111,7 +111,7 @@ class Test_Ansible_Tower_Modules_via_Playbooks(APITest):
 
 
 @pytest.mark.fixture_args(venvs=CUSTOM_VENVS, cluster=True)
-@pytest.mark.usefixtures('authtoken', 'tower_modules_collection', 'shared_custom_venvs')
+@pytest.mark.usefixtures('skip_if_openshift', 'authtoken', 'tower_modules_collection', 'shared_custom_venvs')
 @pytest.mark.parametrize('python_venv_name', CUSTOM_VENVS_NAMES)
 class Test_Ansible_Tower_Modules(APITest):
     def test_ansible_tower_module_organization_create(self, request, v2, factories, project, tower_credential, venv_path, python_venv_name):
