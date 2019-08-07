@@ -1,4 +1,5 @@
 import functools
+import tempfile
 
 
 from contextlib import contextmanager
@@ -15,6 +16,33 @@ def format_ev(extra_vars):
     return ' '.join(
         '-e {3}{0}={2}{1}{2}{3}'.format(k, v, "'", '"') for k, v in extra_vars.items()
     )
+
+
+def _call_command(cmd):
+    """Call the command ``cmd`` and raise an AssertionError if its return code
+    isn't 0.
+    """
+    with tempfile.TemporaryFile('w+') as stdout, tempfile.TemporaryFile('w+') as stderr:
+        rc = subprocess.call(cmd, stdout=stdout, stderr=stderr, shell=True)
+
+        if rc != 0:
+            message = [f'Received non-zero response code from "{cmd}"']
+
+            stdout.seek(0)
+            output = stdout.read()
+            if output:
+                message.append(f'stdout:\n\n{output}')
+            else:
+                message.append(f'stdout: <empty>')
+
+            stderr.seek(0)
+            error = stderr.read()
+            if error:
+                message.append(f'stderr:\n\n{error}')
+            else:
+                message.append(f'stderr: <empty>')
+
+            raise AssertionError('\n\n'.join(message))
 
 
 def _run_create_venv_playbook(folder_name=None, limit='tower', packages='psutil', use_python=None, docker=False, inv_path='', custom_venv_base=None):
@@ -35,8 +63,7 @@ def _run_create_venv_playbook(folder_name=None, limit='tower', packages='psutil'
             extra_vars['remote_python'] = 'python36'
     cmd = ("""ansible-playbook -vv -i {} -l {} {} playbooks/create_custom_virtualenv.yml"""
            .format(inv_path, limit, format_ev(extra_vars)))
-    rc = subprocess.call(cmd, shell=True)
-    assert rc == 0, "Received non-zero response code from '{}'".format(cmd)
+    _call_command(cmd)
 
 
 def _run_teardown_venv_playbook(folder_name=None, limit='tower', use_python=None, docker=False, inv_path='', custom_venv_base=None):
@@ -59,8 +86,7 @@ def _run_teardown_venv_playbook(folder_name=None, limit='tower', use_python=None
         cmd = ("ansible-playbook -i {} -l {} {} "
                "playbooks/create_custom_virtualenv.yml"
                .format(inv_path, limit, format_ev(extra_vars)))
-        rc = subprocess.call(cmd, shell=True)
-        assert rc == 0, "Received non-zero response code from '{}'".format(cmd)
+        _call_command(cmd)
 
 
 @pytest.fixture(scope='class')
@@ -171,7 +197,7 @@ def shared_custom_venvs(request, venv_path, is_docker, is_traditional_cluster_cl
                     venv_paths.append(venv_path(venv_name))
                 except AssertionError as e:
                     pytest.fail(
-                        'Failed to create {} with packages {} using python interpreter {}:\n{}'.format(
+                        'Failed to create {} with packages {} using python interpreter {}:\n\n{}'.format(
                             venv_name, packages, use_python, e
                             )
                         )
