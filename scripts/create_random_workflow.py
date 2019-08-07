@@ -8,8 +8,8 @@ import os
 import random
 import fauxfactory
 
-from towerkit import api, config, utils
-from towerkit.exceptions import NoContent, BadRequest
+from awxkit import api, config, utils
+from awxkit.exceptions import NoContent, BadRequest
 
 LOG_FORMAT = '%(asctime)-15s  %(message)s'  # NOQA
 logging.basicConfig(level='INFO', format=LOG_FORMAT)
@@ -45,6 +45,7 @@ def parse_args():
 
     cwd = os.path.dirname(__file__)
     _cred_help = 'Credential file to be loaded (default: config/credentials.yml).  Use "false" for none.'
+    _proj_help = 'Project file to be loaded (default: config/projects.yml).  Use "false" for none.'
     parser.add_option(
         '--credentials',
         action="store",
@@ -54,6 +55,15 @@ def parse_args():
             '..',
             'config/credentials.yml'),
         help=_cred_help)
+    parser.add_option(
+        '--projects',
+        action="store",
+        dest='projects',
+        default=os.path.join(
+            cwd,
+            '..',
+            'config/projects.yml'),
+        help=_proj_help)
     parser.add_option("--nodes", action="store", dest="num_nodes",
                       default=os.getenv("RAND_WORKFLOW_NUM_NODES", 5),
                       help="Number of nodes in workflow")
@@ -85,6 +95,7 @@ if __name__ == '__main__':  # noqa C901
 
     config.base_url = args[0]
     config.credentials = utils.load_credentials(opts.credentials)
+    config.project_urls = utils.load_projects(opts.projects)
     root = api.Api()
     config.use_sessions = True
     root.load_session().get()
