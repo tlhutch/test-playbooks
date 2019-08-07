@@ -93,7 +93,7 @@ class TestWorkflowApprovalNodes(APITest):
         description = 'Mark my words'
 
         # Create regular node
-        # HACK passing WFJT as the unified_job_template does not work with towerkit "create" method
+        # HACK passing WFJT as the unified_job_template does not work with awxkit "create" method
         wfjt_node = wfjt.get_related('workflow_nodes').post(dict(
             workflow_job_template=wfjt.id,
             unified_job_template=inner_wfjt.id
