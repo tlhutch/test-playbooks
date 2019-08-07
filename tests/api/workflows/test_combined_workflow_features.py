@@ -1,6 +1,7 @@
 import json
 
 import pytest
+from awxkit.utils import poll_until
 from awxkit.exceptions import NoContent
 
 from tests.api import APITest
@@ -128,7 +129,16 @@ class TestCombinedWorkflowFeatures(APITest):
         parent = abuelo.add_success_node(
             unified_job_template=factories.project()
         )
-        run_and_succeed = parent.add_always_node(unified_job_template=self.jt_regular)
+        # Make sure set stats flow through approval node.
+        approval_node = factories.workflow_job_template_node(
+            workflow_job_template=wfjt,
+            unified_job_template=None
+            ).make_approval_node()
+        with pytest.raises(NoContent):
+            parent.related.always_nodes.post(dict(id=approval_node.id))
+
+        approval_jt = approval_node.related.unified_job_template.get()
+        run_and_succeed = approval_node.add_always_node(unified_job_template=self.jt_regular)
         run_and_fail = run_and_succeed.add_success_node(unified_job_template=self.jt_failure)
         convergenece_node = parent.add_always_node(unified_job_template=self.jt_regular)
         with pytest.raises(NoContent):
@@ -147,8 +157,17 @@ class TestCombinedWorkflowFeatures(APITest):
             unified_job_template=self.sliced_jt_ask_inventory_on_launch,
         )
 
-        wfj = wfjt.launch().wait_until_completed()
+        wfj = wfjt.launch().wait_until_status('running')
+        approval_job_node = wfj.related.workflow_nodes.get(unified_job_template=approval_jt.id).results.pop()
+        poll_until(lambda: hasattr(approval_job_node.get().related, 'job'), interval=1, timeout=60)
+        wf_approval = approval_job_node.related.job.get()
+        poll_until(lambda: wf_approval.get().status == 'pending', interval=1, timeout=60)
+
+        # Approve so the workflow will proceed
+        wf_approval.approve()
+
         # Unhandled failed nodes will cause WF to be marked failed
+        wfj = wfj.wait_until_completed()
         assert wfj.status == 'successful'
         tree = WorkflowTree(wfjt)
         job_tree = WorkflowTree(wfj)
