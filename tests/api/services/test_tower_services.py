@@ -68,20 +68,57 @@ class TestTowerServices(APITest):
         assert not plugin_inactive, f"sosreport --list-plugins showed that {plugin} plugin was installed but inactive.\n stdout: {pformat(stdout)}\n stderr: {pformat(stderr)}"
         assert not plugin_off, f"sosreport --list-plugins showed that {plugin} plugin was installed but not enabled (off). \n stdout: {pformat(stdout)}\n stderr: {pformat(stderr)}"
 
-    def test_tower_restart(self, factories, v2, ansible_runner):
+    def test_tower_restart(self, factories, v2, ansible_adhoc):
         jt = factories.job_template(playbook='sleep.yml',
                                        extra_vars=dict(sleep_interval=60))
         jt.ds.inventory.add_host()
+        project = jt.related.project.get()
         self.ensure_jt_runs_on_primary_instance(jt, v2)
         job = jt.launch().wait_until_status('running')
 
+        # Make a workflow job template to assert on behavior of running approvals when tower shuts down and comes back up
+        wfjt = factories.workflow_job_template()
+        good_approval_node = factories.workflow_job_template_node(
+            workflow_job_template=wfjt,
+            unified_job_template=None
+            ).make_approval_node(name='good approval node')
+        good_approval_node.add_success_node(unified_job_template=factories.job_template(project=project))
+        TIMEOUT = 10
+        timeout_approval_node = factories.workflow_job_template_node(
+            workflow_job_template=wfjt,
+            unified_job_template=None
+            ).make_approval_node(name='timeout approval node', timeout=TIMEOUT)
+        timeout_approval_node.add_failure_node(unified_job_template=factories.job_template(project=project))
+        deny_approval_node = factories.workflow_job_template_node(
+            workflow_job_template=wfjt,
+            unified_job_template=None
+            ).make_approval_node(name='deny approval node')
+        deny_approval_node.add_failure_node(unified_job_template=factories.job_template(project=project))
+        wf_job = wfjt.launch().wait_until_status('running')
+
+        # Wait until approval nodes are all going and get approval jobs
+        good_approval_job_node = wf_job.related.workflow_nodes.get(unified_job_template=good_approval_node.summary_fields.unified_job_template.id).results.pop()
+        good_wf_approval = good_approval_job_node.wait_for_job().related.job.get()
+        utils.poll_until(lambda: good_wf_approval.get().status == 'pending', interval=1, timeout=60)
+
+        timeout_approval_jt = timeout_approval_node.related.unified_job_template.get()
+        assert timeout_approval_jt.timeout == TIMEOUT, 'Sanity check timeout is set on UJT for approval'
+        timeout_approval_job_node = wf_job.related.workflow_nodes.get(unified_job_template=timeout_approval_node.summary_fields.unified_job_template.id).results.pop()
+        timeout_wf_approval = timeout_approval_job_node.wait_for_job().related.job.get()
+        assert timeout_wf_approval.related.workflow_approval_template.get().timeout == TIMEOUT, 'Sanity check timeout is set correct'
+        utils.poll_until(lambda: timeout_wf_approval.get().status == 'pending', interval=1, timeout=60)
+
+        deny_approval_job_node = wf_job.related.workflow_nodes.get(unified_job_template=deny_approval_node.summary_fields.unified_job_template.id).results.pop()
+        deny_wf_approval = deny_approval_job_node.wait_for_job().related.job.get()
+        utils.poll_until(lambda: timeout_wf_approval.get().status == 'pending', interval=1, timeout=60)
+
         try:
-            contacted = ansible_runner.command('ansible-tower-service stop')
+            contacted = ansible_adhoc()['tower'].command('ansible-tower-service stop')
             result = list(contacted.values())[0]
             assert result['rc'] == 0, "ansible-tower-service stop failed. Command stderr: \n{0}".format(result['stderr'])
             time.sleep(30)
         finally:
-            contacted = ansible_runner.command('ansible-tower-service start')
+            contacted = ansible_adhoc()['tower'].command('ansible-tower-service start')
             result = list(contacted.values())[0]
             assert result['rc'] == 0, "ansible-tower-service start failed. Command stderr: \n{0}".format(result['stderr'])
 
@@ -95,8 +132,23 @@ class TestTowerServices(APITest):
                 return False
             return True
         utils.poll_until(online, interval=5, timeout=120)
+
+        # Job should be killed and fail with shutdown
         job.wait_until_status('failed', since_job_created=False)
         assert job.job_explanation == 'Task was marked as running in Tower but was not present in the job queue, so it has been marked as failed.'
+
+        # Workflow should be running and approvals still pending unless they have timed out
+        assert good_wf_approval.get().status == 'pending', 'Workflow approvals that are pending when tower shuts down should still be pending when tower comes back up.'
+        assert deny_wf_approval.get().status == 'pending', 'Workflow approvals that are pending when tower shuts down should still be pending when tower comes back up.'
+        assert wf_job.get().status == 'running', 'Workflow jobs that were running with only a pending workflow approval should be running when tower comes back up'
+
+        good_wf_approval.approve()
+        deny_wf_approval.deny()
+        assert timeout_wf_approval.get().related.workflow_approval_template.get().timeout == TIMEOUT, 'Sanity check timeout is set correct'
+        timeout_wf_approval.wait_until_status('failed')
+        deny_wf_approval.wait_until_status('failed')
+        good_wf_approval.wait_until_status('successful')
+        wf_job.wait_until_completed().assert_successful()
 
         jt.extra_vars = '{"sleep_interval": 1}'
         job = jt.launch().wait_until_completed()
