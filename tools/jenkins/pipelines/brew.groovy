@@ -120,6 +120,16 @@ pipeline {
                     withEnv(["OPENSHIFT_PASSWORD=${OPENSHIFT_PASSWORD}",
                              "BREW_CONTAINER_IMAGE=${BREW_CONTAINER_IMAGE}"]) {
                         sshagent(credentials : ['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
+                            checkout([
+                                $class: 'GitSCM',
+                                branches: [[name: "*/${params.TOWER_PACKAGING_BRANCH}" ]],
+                                userRemoteConfigs: [
+                                    [
+                                        credentialsId: 'd2d4d16b-dc9a-461b-bceb-601f9515c98a',
+                                        url: "git@github.com:${params.TOWER_PACKAGING_FORK}/tower-packaging.git"
+                                    ]
+                                ]
+                            ])
                             sh './tools/jenkins/scripts/push_brew_container.sh'
                         }
                     }
