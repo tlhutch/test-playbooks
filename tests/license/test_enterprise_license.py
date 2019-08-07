@@ -90,7 +90,7 @@ class TestEnterpriseLicense(LicenseTest):
         assert after_license_key == expected_license_key, \
             "Unexpected license_key. Expected %s, found %s" % (expected_license_key, after_license_key)
 
-    def test_import_license_exceeded(self, api_config_pg, ansible_runner, inventory):
+    def test_import_license_exceeded(self, skip_if_openshift, api_config_pg, ansible_runner, inventory):
         """Verify import fails if the number of imported hosts exceeds licensed host allowance."""
         enterprise_license_1000 = generate_license(license_type='enterprise', instance_count=1000, days=365)
         api_config_pg.post(enterprise_license_1000)
