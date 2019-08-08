@@ -78,51 +78,6 @@ class TestWorkflowApprovalNodes(APITest):
 
         wf_job.wait_until_completed().assert_successful()
 
-    @pytest.mark.parametrize('role', ['wf_executor', 'wf_read', 'org_executor', 'org_read', 'system_auditor', 'user_in_org', 'random_user'])
-    def test_users_without_role_cannot_approve(self, v2, factories, org_admin, role):
-        """Verify that Users with no permission cannot approve a node"""
-        org = org_admin.related.organizations.get().results.pop()
-        wfjt = factories.workflow_job_template(organization=org)
-
-        if role == 'wf_executor':
-            user = factories.user()
-            wfjt.set_object_roles(user, 'execute')
-        if role == 'wf_read':
-            user = factories.user()
-            wfjt.set_object_roles(user, 'read')
-        if role == 'org_executor':
-            user = factories.user()
-            org.set_object_roles(user, 'execute')
-        if role == 'org_read':
-            user = factories.user()
-            org.set_object_roles(user, 'read')
-        if role == 'system_auditor':
-            user = factories.user(is_system_auditor=True)
-        elif role == 'user_in_org':
-            user = factories.user(organization=org)
-        else:
-            random_org = factories.organization()
-            user = factories.user(organization=random_org)
-        timeout = 100
-        description = 'Mark my words'
-        name = 'hellow world'
-        approval_node = factories.workflow_job_template_node(
-            workflow_job_template=wfjt,
-            unified_job_template=None
-        ).make_approval_node(timeout=timeout, description=description, name=name)
-
-        wf_job = wfjt.launch()
-        wf_job.wait_until_status('running')
-        approval_jt = approval_node.related.unified_job_template.get()
-        approval_job_node = wf_job.related.workflow_nodes.get(unified_job_template=approval_jt.id).results.pop()
-        poll_until(lambda: hasattr(approval_job_node.get().related, 'job'), interval=1, timeout=60)
-        wf_approval = approval_job_node.related.job.get()
-        poll_until(lambda: wf_approval.get().status == 'pending', interval=1, timeout=60)
-
-        with self.current_user(user.username, user.password):
-            with pytest.raises(awxkit.exceptions.Forbidden):
-                wf_approval.approve()
-
     def test_update_existing_node_to_approval_node(self, v2, factories, org_admin):
         """Create a workflow with an approval node and approve it."""
         org = org_admin.related.organizations.get().results.pop()
@@ -175,14 +130,14 @@ class TestWorkflowApprovalNodes(APITest):
             unified_job_template=None
             ).make_approval_node()
 
-        # Confirm that approval JT created for us is what we expect
+        # Verify that the timeout is set 0 by default
         approval_jt = approval_node.related.unified_job_template.get()
         assert approval_jt.timeout == 0
 
+        # Verify that we can edit the timeout
         approval_jt.timeout = 1
         approval_jt = approval_node.related.unified_job_template.get()
         assert approval_jt.timeout == 1
-
 
         wf_job = wfjt.launch()
         wf_job.wait_until_status('running')
@@ -190,110 +145,16 @@ class TestWorkflowApprovalNodes(APITest):
         poll_until(lambda: hasattr(approval_job_node.get().related, 'job'), interval=1, timeout=60)
         wf_approval = approval_job_node.related.job.get()
         wf_approval.wait_until_status('failed')
+        # Verify that the workflow approval is failed since the node timed out
         assert wf_approval.status == f'failed', 'Workflow Approval did not fail after timeout passed! \n' \
                                      f'Workflow Approval: {wf_approval}\n' \
                                      f'Approval JT: {approval_jt}\n' \
                                      f'Workflow Job: {wf_job.get()}\n'
-        with pytest.raises(awxkit.exceptions.BadRequest):
-            wf_approval.approve()
+        assert wf_approval.job_explanation == 'This approval node has timed out.'
+        # also assert timeout variable whenever it is implemented
         all_failed_approvals = v2.workflow_approvals.get(status='failed').results
         assert wf_approval.id in [approval.id for approval in all_failed_approvals]
-        # also assert reason of failure and timeout variables in workflow approvals
+        # Verify that you can not approve/deny after the timeout
+        with pytest.raises(awxkit.exceptions.BadRequest):
+            wf_approval.approve()
         wf_job.wait_until_completed().assert_status('failed')
-        import pdb
-        pdb.set_trace()
-
-
-    @pytest.fixture(params=[
-        'sysadmin',
-        'org_admin',
-        'wf_admin',
-        'org_wf_admin',
-        'org_approve',
-        'wf_approve',
-        'org_executor',
-        'wf_executor',
-        'org_read',
-        'wf_read',
-        'system_auditor',
-        'user_in_org',
-        'random_user'
-        ])
-    def user_with_role_and_workflow(self, request, factories):
-        role = request.param
-
-        fixture_args = request.node.get_closest_marker('fixture_args')
-        if fixture_args and 'roles' in fixture_args.kwargs:
-            only_create = fixture_args.kwargs['roles']
-            if role not in only_create:
-                pytest.skip()
-
-        org = factories.organization()
-        user = factories.user(organization=org)
-        wfjt = factories.workflow_job_template(organization=org)
-        assert org.id == user.related.organizations.get().results.pop().id
-        if role == 'wf_executor':
-            wfjt.set_object_roles(user, 'execute')
-        if role == 'wf_read':
-            wfjt.set_object_roles(user, 'read')
-        if role == 'wf_approve':
-            wfjt.set_object_roles(user, 'approve')
-        if role == 'wf_admin':
-            wfjt.set_object_roles(user, 'admin')
-        if role == 'org_executor':
-            org.set_object_roles(user, 'execute')
-        if role == 'org_read':
-            org.set_object_roles(user, 'read')
-        if role == 'org_approve':
-            org.set_object_roles(user, 'approve')
-        if role == 'org_wf_admin':
-            org.set_object_roles(user, 'workflow admin')
-        if role == 'system_auditor':
-            user.is_system_auditor=True
-        if role == 'org_admin':
-            org.set_object_roles(user, 'admin')
-        elif role == 'user_in_org':
-            # no further changes needed
-            pass
-        elif role == 'random_user':
-            with pytest.raises(awxkit.exceptions.NoContent):
-                org.related.users.post(dict(id=user.id, disassociate=True))
-            random_org = factories.organization()
-            with pytest.raises(awxkit.exceptions.NoContent):
-                random_org.related.users.post(dict(id=user.id, associate=True))
-        return user, wfjt, role
-
-    @pytest.mark.fixture_args(roles=['org_admin', 'random_user'])
-    def test_workflow_approval_visibility(self, v2, factories, user_with_role_and_workflow):
-        """Verify that Users with no permission cannot view an approval"""
-        user, wfjt, role = user_with_role_and_workflow
-        org = user.related.organizations.get().results.pop()
-        timeout = 100
-        description = 'Mark my words'
-        name = 'hellow world'
-        approval_node = factories.workflow_job_template_node(
-            workflow_job_template=wfjt,
-            unified_job_template=None
-        ).make_approval_node(timeout=timeout, description=description, name=name)
-
-        wf_job = wfjt.launch()
-        wf_job.wait_until_status('running')
-        approval_jt = approval_node.related.unified_job_template.get()
-        approval_job_node = wf_job.related.workflow_nodes.get(unified_job_template=approval_jt.id).results.pop()
-        poll_until(lambda: hasattr(approval_job_node.get().related, 'job'), interval=1, timeout=60)
-        wf_approval = approval_job_node.related.job.get()
-        poll_until(lambda: wf_approval.get().status == 'pending', interval=1, timeout=60)
-        if role == 'user_in_org' or role == 'random_user':
-            with self.current_user(user.username, user.password):
-                all_pending_approvals = v2.workflow_approvals.get(status='pending').results
-                assert wf_approval.id not in [approval.id for approval in all_pending_approvals]
-        elif role == 'sysadmin':
-            all_pending_approvals = v2.workflow_approvals.get(status='pending').results
-            assert wf_approval.id in [approval.id for approval in all_pending_approvals]
-        else:
-            with self.current_user(user.username, user.password):
-                all_pending_approvals = v2.workflow_approvals.get(status='pending').results
-                assert wf_approval.id in [approval.id for approval in all_pending_approvals]
-
-        wf_approval.approve()
-        wf_job.wait_until_completed().assert_status('successful')
