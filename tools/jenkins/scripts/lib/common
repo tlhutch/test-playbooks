@@ -84,7 +84,7 @@ function setup_env_based_on_deployment_scenario {
            VARS_FILE=playbooks/test_runner_vars.yml
            IMAGE_VARS=playbooks/images-test-runner.yml
            INSTANCE_NAME_PREFIX=test-runner-${PLATFORM}-${INSTANCE_NAME_PREFIX}
-           PLATFORM=rhel-7.6-x86_64
+           PLATFORM=rhel-7.7-x86_64
            AWX_IPV6_DEPLOYMENT=no
            ;;
        *)
