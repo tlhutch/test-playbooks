@@ -51,7 +51,7 @@ Any user with right permissions can approve to proceed or deny to fail the node 
     - [ ] Create an approval node
     - [ ] Approve or deny
     - [ ] Grant approval permissions to other users
-- [ ] Confirm that all invalid users without the permission cannot according to the table below cannot
+- [ ] Confirm that all invalid users without the permission according to the table below cannot
     - [ ] See the workflow approval node
     - [ ] See the activity stream entry for the job
     - [ ] Create an approval node
