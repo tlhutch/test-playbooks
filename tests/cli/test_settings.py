@@ -1,5 +1,7 @@
 import pytest
 
+from tests.cli.utils import format_error
+
 
 @pytest.mark.usefixtures('authtoken')
 class TestSettingsCLI(object):
@@ -23,19 +25,19 @@ class TestSettingsCLI(object):
         result = cli([
             'awx', 'settings', 'list', '--slug', 'bob'
         ], auth=True)
-        assert result.returncode == 1
+        assert result.returncode == 1, format_error(result)
         assert result.json['detail'] == 'Not found.'
 
     def test_settings_update_missing_args(self, cli):
         result = cli(['awx', 'settings', 'modify'], auth=True)
-        assert result.returncode == 2
+        assert result.returncode == 2, format_error(result)
         assert b'arguments are required: key, value' in result.stdout
 
     def test_invalid_key(self, cli, v2):
         result = cli([
             'awx', 'settings', 'modify', 'THINGAMAJIG', '1',
         ], auth=True)
-        assert result.returncode == 2
+        assert result.returncode == 2, format_error(result)
         assert b"key: invalid choice: 'THINGAMAJIG' (choose from" in result.stdout
 
     @pytest.mark.parametrize('state', [True, False])

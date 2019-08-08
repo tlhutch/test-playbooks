@@ -1,13 +1,15 @@
 import fauxfactory
 import pytest
 
+from tests.cli.utils import format_error
+
 
 @pytest.mark.usefixtures('authtoken')
 class TestObjectCreation(object):
 
     def test_missing_required_arguments(self, cli):
         result = cli(['awx', 'users', 'create'], auth=True)
-        assert result.returncode == 2
+        assert result.returncode == 2, format_error(result)
         assert b'arguments are required: --username' in result.stdout
         for arg in (
             b'--username TEXT', b'--first_name TEXT',
@@ -22,7 +24,7 @@ class TestObjectCreation(object):
             '--username', username,
             '--password', 'secret'
         ], auth=True)
-        assert result.returncode == 0
+        assert result.returncode == 0, format_error(result)
         created = v2.users.get(username=username).results[0]
         assert result.json['id'] == created.id
         assert result.json['username'] == username
@@ -37,7 +39,7 @@ class TestObjectCreation(object):
             '--first_name', 'Jane',
             '--last_name', 'Doe',
         ], auth=True)
-        assert result.returncode == 0
+        assert result.returncode == 0, format_error(result)
         created = v2.users.get(username=username).results[0]
         assert created.first_name == 'Jane'
         assert created.last_name == 'Doe'
@@ -50,7 +52,7 @@ class TestObjectCreation(object):
             '--username', username,
             '--password', 'secret'
         ], auth=True)
-        assert result.returncode == 1
+        assert result.returncode == 1, format_error(result)
         assert result.json == {
             'username': ['Ensure this field has no more than 150 characters.']
         }

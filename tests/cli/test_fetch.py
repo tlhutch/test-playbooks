@@ -3,28 +3,30 @@ import pytest
 
 from awxkit import config
 
+from tests.cli.utils import format_error
+
 
 class TestDetailView(object):
 
     def test_404(self, cli):
         result = cli(['awx', 'users', 'get', '10000'], auth=True)
-        assert result.returncode == 1
+        assert result.returncode == 1, format_error(result)
         assert result.json == {'detail': 'Not found.'}
 
     def test_404_yaml(self, cli):
         result = cli(['awx', 'users', 'get', '10000', '-f', 'yaml'], auth=True)
-        assert result.returncode == 1
+        assert result.returncode == 1, format_error(result)
         assert result.yaml == {'detail': 'Not found.'}
 
     def test_404_verbose(self, cli):
         result = cli(['awx', 'users', 'get', '10000', '-v'], auth=True)
-        assert result.returncode == 1
+        assert result.returncode == 1, format_error(result)
         assert b'"GET /api/v2/users/10000/ HTTP/1.1" 404' in result.stdout
 
     @pytest.mark.parametrize('resource', ['users', 'organizations'])
     def test_get(self, cli, resource):
         result = cli(['awx', resource, 'get', '1'], auth=True)
-        assert result.returncode == 0
+        assert result.returncode == 0, format_error(result)
         for col in ('id', 'url', 'created'):
             assert col in result.json.keys()
 
@@ -34,7 +36,7 @@ class TestListView(object):
     @pytest.mark.parametrize('resource', ['users', 'organizations'])
     def test_list_actions(self, cli, resource):
         result = cli(['awx', resource], auth=True)
-        assert result.returncode == 2
+        assert result.returncode == 2, format_error(result)
         assert bytes(
             'usage: awx {} [-h] action'.format(resource),
             encoding='utf-8'

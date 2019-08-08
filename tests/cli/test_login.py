@@ -3,6 +3,7 @@ import os
 import fauxfactory
 from awxkit import config
 
+from tests.cli.utils import format_error
 
 class TestLogin(object):
 
@@ -43,5 +44,5 @@ class TestLogin(object):
             'TOWER_HOST': config.base_url,
             'TOWER_TOKEN': token
         })
-        assert result.returncode == 2
+        assert result.returncode == 2, format_error(result)
         assert b"invalid choice: 'create'" in result.stdout

@@ -1,11 +1,13 @@
 import os
 
+from tests.cli.utils import format_error
+
 
 class TestCLIConfig(object):
 
     def test_default_config(self, cli):
         result = cli(['awx', 'config'])
-        assert result.returncode == 0
+        assert result.returncode == 0, format_error(result)
         assert result.json['base_url'] == 'https://127.0.0.1:443'
         assert result.json['token'] == ''
         assert result.json['credentials']['default']['username'] == 'admin'
@@ -18,7 +20,7 @@ class TestCLIConfig(object):
             '--conf.username', 'test',
             '--conf.password', '123'
         ])
-        assert result.returncode == 0
+        assert result.returncode == 0, format_error(result)
         assert result.json['base_url'] == 'https://awx.example.org'
         assert result.json['credentials']['default']['username'] == 'test'
         assert result.json['credentials']['default']['password'] == '123'
@@ -30,7 +32,7 @@ class TestCLIConfig(object):
             'TOWER_USERNAME': 'test',
             'TOWER_PASSWORD': '123',
         })
-        assert result.returncode == 0
+        assert result.returncode == 0, format_error(result)
         assert result.json['base_url'] == 'https://awx.example.org'
         assert result.json['credentials']['default']['username'] == 'test'
         assert result.json['credentials']['default']['password'] == '123'
