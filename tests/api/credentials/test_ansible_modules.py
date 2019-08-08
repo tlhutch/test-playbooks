@@ -1,3 +1,5 @@
+import os
+
 from awxkit import exceptions as exc
 from awxkit.utils import suppress
 import pytest
@@ -8,13 +10,13 @@ from tests.api import APITest
 @pytest.mark.usefixtures('authtoken')
 class TestGCECredentials(APITest):
 
-    def test_gce_playbook_module(self, factories, gce_credential, venv_path):
+    def test_gce_playbook_module(self, factories, gce_credential, ansible_venv_path):
         host = factories.host()
         jt = factories.job_template(
             inventory=host.ds.inventory,
             playbook='cloud_modules/gce.yml',
             verbosity=2,
-            extra_vars={'state': 'absent', 'ansible_python_interpreter': '{}/bin/python'.format(venv_path())}
+            extra_vars={'state': 'absent', 'ansible_python_interpreter': os.path.join(ansible_venv_path, 'bin/python')}
         )
         with suppress(exc.NoContent):
             jt.related.credentials.post(
