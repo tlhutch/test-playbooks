@@ -204,45 +204,70 @@ class TestWorkflowApprovalNodes(APITest):
         pdb.set_trace()
 
 
-    @pytest.mark.parametrize('role', ['sysadmin', 'org_admin', 'wf_admin', 'org_wf_admin', 'org_approve', 'wf_approve', 'org_executor', 'wf_executor', 'org_read', 'wf_read','system_auditor', 'user_in_org', 'random_user'])
-    def test_workflow_approval_visibility(self, v2, factories, org_admin, role):
-        """Verify that Users with no permission cannot view an approval"""
-        org = org_admin.related.organizations.get().results.pop()
-        wfjt = factories.workflow_job_template(organization=org)
+    @pytest.fixture(params=[
+        'sysadmin',
+        'org_admin',
+        'wf_admin',
+        'org_wf_admin',
+        'org_approve',
+        'wf_approve',
+        'org_executor',
+        'wf_executor',
+        'org_read',
+        'wf_read',
+        'system_auditor',
+        'user_in_org',
+        'random_user'
+        ])
+    def user_with_role_and_workflow(self, request, factories):
+        role = request.param
 
+        fixture_args = request.node.get_closest_marker('fixture_args')
+        if fixture_args and 'roles' in fixture_args.kwargs:
+            only_create = fixture_args.kwargs['roles']
+            if role not in only_create:
+                pytest.skip()
+
+        org = factories.organization()
+        user = factories.user(organization=org)
+        wfjt = factories.workflow_job_template(organization=org)
+        assert org.id == user.related.organizations.get().results.pop().id
         if role == 'wf_executor':
-            user = factories.user()
             wfjt.set_object_roles(user, 'execute')
         if role == 'wf_read':
-            user = factories.user()
             wfjt.set_object_roles(user, 'read')
         if role == 'wf_approve':
-            user = factories.user()
             wfjt.set_object_roles(user, 'approve')
         if role == 'wf_admin':
-            user = factories.user()
             wfjt.set_object_roles(user, 'admin')
         if role == 'org_executor':
-            user = factories.user()
             org.set_object_roles(user, 'execute')
         if role == 'org_read':
-            user = factories.user()
             org.set_object_roles(user, 'read')
         if role == 'org_approve':
-            user = factories.user()
             org.set_object_roles(user, 'approve')
         if role == 'org_wf_admin':
-            user = factories.user()
             org.set_object_roles(user, 'workflow admin')
         if role == 'system_auditor':
-            user = factories.user(is_system_auditor=True)
+            user.is_system_auditor=True
         if role == 'org_admin':
-            user = org_admin
+            org.set_object_roles(user, 'admin')
         elif role == 'user_in_org':
-            user = factories.user(organization=org)
+            # no further changes needed
+            pass
         elif role == 'random_user':
+            with pytest.raises(awxkit.exceptions.NoContent):
+                org.related.users.post(dict(id=user.id, disassociate=True))
             random_org = factories.organization()
-            user = factories.user(organization=random_org)
+            with pytest.raises(awxkit.exceptions.NoContent):
+                random_org.related.users.post(dict(id=user.id, associate=True))
+        return user, wfjt, role
+
+    @pytest.mark.fixture_args(roles=['org_admin', 'random_user'])
+    def test_workflow_approval_visibility(self, v2, factories, user_with_role_and_workflow):
+        """Verify that Users with no permission cannot view an approval"""
+        user, wfjt, role = user_with_role_and_workflow
+        org = user.related.organizations.get().results.pop()
         timeout = 100
         description = 'Mark my words'
         name = 'hellow world'
