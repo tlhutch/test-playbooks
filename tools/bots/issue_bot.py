@@ -17,7 +17,6 @@ API_GITHUB = 'https://api.github.com'
 
 
 def github_request(url):
-    """Generic Github request handler."""
 
     res = requests.get(
         url,
@@ -30,8 +29,7 @@ def github_request(url):
     return res
 
 
-def get_project_id_and_number(version):
-    """Return the project id associated with a Tower version."""
+def get_project_id_and_number_for_a_tower_version(version):
 
     url = '{}/orgs/ansible/projects'.format(API_GITHUB)
     projects = github_request(url).json()
@@ -39,8 +37,18 @@ def get_project_id_and_number(version):
     return [(project['id'], project['number']) for project in projects if project['name'] == 'Ansible Tower {}'.format(version)][0]
 
 
-def get_issues_from_project(project_id):
-    """Return all the issues in a project."""
+def get_issues_content_from_column(url, index=1, issues=[]):
+    """Recursive method to iterate over pages to retrieve all issues from columns"""
+
+    _issues = [github_request(_issue['content_url']).json() for _issue in github_request('%s?page=%s' % (url, index)).json()]
+    issues = issues + _issues
+    if len(_issues) == 30:
+        return get_issues_content_from_column(url, index + 1, issues)
+
+    return issues
+
+
+def get_open_issues_from_project(project_id):
 
     _issues = []
     # Retrieve list of cards_url
@@ -49,12 +57,8 @@ def get_issues_from_project(project_id):
     _columns = github_request(url).json()
     cards_url = [column['cards_url'] for column in _columns if 'QE' not in column['name']]
 
-    page_1, page_2 = [], []
     for url in cards_url:
-        page_1 = [github_request(_issue['content_url']).json() for _issue in github_request(url).json()]
-        if len(page_1) == 30:
-            page_2 = [github_request(_issue['content_url']).json() for _issue in github_request('%s?page=2' % url).json()]
-        _issues += page_1 + page_2
+        _issues += get_issues_content_from_column(url)
 
     return [issue for issue in _issues if issue['state'] == 'open']
 
@@ -71,7 +75,8 @@ def is_issue_in_need_test(issue):
 def is_issue_assigned(issue):
 
     team_members = ['elyezer', 'Spredzy', 'kdelee',
-                    'one-t', 'dsesami', 'unlikelyzero']
+                    'one-t', 'dsesami', 'unlikelyzero',
+                    'appuk', 'squidboylan']
 
     assignees = [mate['login'] for mate in issue['assignees']]
 
@@ -87,8 +92,8 @@ def post_slack_msg(text):
 
 def create_issue_update():
 
-    project_id, project_number = get_project_id_and_number(tower_version)
-    issues = get_issues_from_project(project_id)
+    project_id, project_number = get_project_id_and_number_for_a_tower_version(tower_version)
+    issues = get_open_issues_from_project(project_id)
 
     needs_test = []
     for issue in issues:
