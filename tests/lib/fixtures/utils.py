@@ -120,6 +120,19 @@ def is_docker(session_hosts_in_group, session_hostvars_for_host):
 
 
 @pytest.fixture(scope='session')
+def ansible_venv_path(v2_session):
+    venvs = v2_session.config.get().custom_virtualenvs
+    for v in venvs:
+        if 'venv/ansible/' in v:
+            return v
+
+
+@pytest.fixture(scope='session')
+def is_dev_container(is_docker, ansible_venv_path):
+    return is_docker and '/venv/ansible/' == ansible_venv_path
+
+
+@pytest.fixture(scope='session')
 def is_fips_enabled(is_docker, session_ansible_facts):
     if is_docker:
         return False

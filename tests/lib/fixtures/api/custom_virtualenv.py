@@ -90,11 +90,11 @@ def _run_teardown_venv_playbook(folder_name=None, limit='tower', use_python=None
 
 
 @pytest.fixture(scope='class')
-def venv_path(is_docker):
+def venv_path(is_dev_container):
     def _venv_path(folder_name='ansible', custom_venv_base=None):
         if custom_venv_base:
             return f'{custom_venv_base}/{folder_name}/'
-        if is_docker:
+        if is_dev_container:
             base = '/venv/{}/'
         else:
             base = '/var/lib/awx/venv/{}/'
