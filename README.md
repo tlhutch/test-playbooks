@@ -161,3 +161,188 @@ AWXKIT_PREVENT_TEARDOWN=1  # bypass teardown
 # Jupyter
 
 There are some example jupyter notebooks of interacting with tower via awxkit in docs/jupyter.
+
+awxkit
+======
+
+awxkit is a library for interacting with [AWX's](https://github.com/ansible/awx) REST API.  It is used by the integration tests at [tower-qa](https://github.com/ansible/tower-qa), drives upgrade and migration testing, and also comes in handy as a scriptable AWX client.
+
+
+# Cost of Entry
+1. AWX instance.
+2. Python 3.6 virtual environment (it probably work on Python 3.6+)
+3. Recommended: Valid [tower-qa credential file](https://github.com/ansible/tower-qa/blob/master/scripts/create_credentials.py).
+4. Recommended: [IPython](https://pypi.python.org/pypi/ipython/5.5.0)
+
+
+# Installation
+
+If you want to just use awxkit, use the following installation procedure:
+
+```
+python3.6 -m venv venv
+source venv/bin/activate
+pip install -U "git+ssh://git@github.com/ansible/awx.git#egg=awxkit[websockets]&subdirectory=awxkit"
+```
+
+If you planning to contribute to awxkit, use the below installation
+procedure:
+
+```
+$ git clone https://github.com/ansible/awx.git
+$ cd awx/awxkit
+$ python3.6 -m venv ~/venv
+$ source ~/venv/bin/activate
+$ pip install -e .
+``````
+
+The above commands will clone the repository and install awxkit in editable
+mode, which is good for development.
+
+# Basic Usage
+awxkit's interface was designed to blend web crawling and AWX API usage.  It is accessible as a standard python package, but will likely be most helpful in a python repl via `akit`:
+
+```bash
+whoiam$ AWXKIT_USER=username AWXKIT_USER_PASSWORD=password AWXKIT_BASE_URL=https://${AWX_HOST} akit
+```
+This will load a basic user session as the specified user on the target system.  Immediately accessible are two page objects `root` and `v2`:
+
+```python
+In [1]: root
+Out[1]:
+{
+    "available_versions": {
+        "v2": "/api/v2/"
+    },
+    "oauth2": "/api/o/",
+    "description": "AWX REST API",
+    "custom_login_info": "",
+    "current_version": "/api/v2/",
+    "custom_logo": ""
+}
+
+In [3]: v2
+Out[3]:
+{
+    "job_templates": "/api/v2/job_templates/",
+    "job_events": "/api/v2/job_events/",
+    "inventory_scripts": "/api/v2/inventory_scripts/",
+    "labels": "/api/v2/labels/",
+    "schedules": "/api/v2/schedules/",
+    "workflow_job_nodes": "/api/v2/workflow_job_nodes/",
+    "instances": "/api/v2/instances/",
+    "instance_groups": "/api/v2/instance_groups/",
+    "credential_types": "/api/v2/credential_types/",
+    "teams": "/api/v2/teams/",
+    "inventory_updates": "/api/v2/inventory_updates/",
+    "system_jobs": "/api/v2/system_jobs/",
+    "workflow_jobs": "/api/v2/workflow_jobs/",
+    "ad_hoc_commands": "/api/v2/ad_hoc_commands/",
+    "project_updates": "/api/v2/project_updates/",
+    "ping": "/api/v2/ping/",
+    "inventory": "/api/v2/inventories/",
+    "config": "/api/v2/config/",
+    "inventory_sources": "/api/v2/inventory_sources/",
+    "jobs": "/api/v2/jobs/",
+    "users": "/api/v2/users/",
+    "organizations": "/api/v2/organizations/",
+    "notification_templates": "/api/v2/notification_templates/",
+    "tokens": "/api/v2/tokens/",
+    "unified_jobs": "/api/v2/unified_jobs/",
+    "applications": "/api/v2/applications/",
+    "groups": "/api/v2/groups/",
+    "unified_job_templates": "/api/v2/unified_job_templates/",
+    "credentials": "/api/v2/credentials/",
+    "workflow_job_template_nodes": "/api/v2/workflow_job_template_nodes/",
+    "projects": "/api/v2/projects/",
+    "me": "/api/v2/me/",
+    "workflow_job_templates": "/api/v2/workflow_job_templates/",
+    "roles": "/api/v2/roles/",
+    "notifications": "/api/v2/notifications/",
+    "settings": "/api/v2/settings/",
+    "system_job_templates": "/api/v2/system_job_templates/",
+    "hosts": "/api/v2/hosts/",
+    "dashboard": "/api/v2/dashboard/",
+    "activity_stream": "/api/v2/activity_stream/"
+}
+```
+
+All page views in awxkit operate with the same fluent REST interface:
+
+```python
+In [4]: me_list = v2.me.get()
+Out[4]:
+{
+    "count": 1,
+    "next": null,
+    "results": [
+        {
+            "username": "admin",
+            "first_name": "",
+            "last_name": "",
+            "created": "2018-03-05T14:30:00.985980Z",
+            "url": "/api/v2/users/1/",
+            "summary_fields": {
+                "user_capabilities": {
+                    "edit": true,
+                    "delete": false
+                }
+            },
+            "ldap_dn": "",
+            "external_account": null,
+            "related": {
+                "admin_of_organizations": "/api/v2/users/1/admin_of_organizations/",
+                "authorized_tokens": "/api/v2/users/1/authorized_tokens/",
+                "roles": "/api/v2/users/1/roles/",
+                "organizations": "/api/v2/users/1/organizations/",
+                "access_list": "/api/v2/users/1/access_list/",
+                "teams": "/api/v2/users/1/teams/",
+                "tokens": "/api/v2/users/1/tokens/",
+                "applications": "/api/v2/users/1/applications/",
+                "personal_tokens": "/api/v2/users/1/personal_tokens/",
+                "credentials": "/api/v2/users/1/credentials/",
+                "activity_stream": "/api/v2/users/1/activity_stream/",
+                "projects": "/api/v2/users/1/projects/"
+            },
+            "id": 1,
+            "is_superuser": true,
+            "auth": [],
+            "is_system_auditor": false,
+            "type": "user",
+            "email": "admin@example.com"
+        }
+    ],
+    "previous": null
+}
+In [5]: me = me_list.results.pop().get()
+
+In [6]: me.username
+Out[6]: u'admin
+In [7]: me.first_name = "MyNewFirstName"  # This is a PATCH.  POST/PUT/OPTIONS/HEAD/DELETE are all provided as well
+
+In [8]: me.get().first_name
+Out[8]: u'MyNewFirstName'
+```
+
+`akit` can also run scripts for easy system configuration:
+
+```bash
+whoiam$ cat some_script
+print v2.me.get().results.pop().username
+whoiam$ akit -f some_script -x // -x causes akit to exit when finished
+admin
+whoiam$
+```
+
+## Debugging
+
+If you want to see each call logged, set in your environment `AWXKIT_DEBUG=1` or `AWXKIT_DEBUG=true`.
+Then you will see things like:
+```
+DEBUG:urllib3.connectionpool:http://127.0.0.1:8013 "GET /api/ HTTP/1.1" 200 157
+DEBUG:awxkit.api.client:"GET http://127.0.0.1:8013/api/" elapsed: 0:00:00.034390
+DEBUG:awxkit.api.registry:Retrieved <class 'awxkit.api.pages.api.ApiV2'> by url: /api/v2/
+DEBUG:urllib3.connectionpool:http://127.0.0.1:8013 "GET /api/v2/ HTTP/1.1" 200 1637
+DEBUG:awxkit.api.client:"GET http://127.0.0.1:8013/api/v2/" elapsed: 0:00:00.037606
+```
+When you run a command line interactive session.
