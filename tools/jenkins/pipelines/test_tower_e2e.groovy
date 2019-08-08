@@ -46,6 +46,11 @@ pipeline {
             description: 'Value of the nightwatchJS --filter option.',
             defaultValue: '*'
         )
+        string(
+            name: 'E2E_RETRIES',
+            description: 'Retry testsuites multiple times.', 
+            defaultValue: '2'
+        )
     }
     options {
         timeout(time: 2, unit: 'HOURS')
@@ -90,6 +95,7 @@ pipeline {
                             DEPLOYMENT_TYPE=${DEPLOYMENT_TYPE} \
                             E2E_FORK=${E2E_FORK} \
                             E2E_BRANCH=${E2E_BRANCH} \
+                            E2E_RETRIES=${E2E_RETRIES} \
                             SELENIUM_DOCKER_TAG=${SELENIUM_DOCKER_TAG} \
                             E2E_USERNAME=${E2E_USERNAME} \
                             E2E_PASSWORD=${E2E_PASSWORD} \

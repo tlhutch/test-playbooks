@@ -78,6 +78,11 @@ pipeline {
             description: 'Should the e2e test suite be run as part of this pipeline ?',
             defaultValue: true
         )
+        booleanParam(
+            name: 'RETRY_FAILED_TESTS',
+            description: 'Should e2e tests be retried on failure ?',
+            defaultValue: true
+        )
         string(
             name: 'TESTEXPR',
             description: """\
@@ -367,8 +372,17 @@ pipeline {
             steps {
                 script {
                     AWX_E2E_URL = readFile('artifacts/tower_url').trim()
+                    
+                    if  (params.RETRY_FAILED_TESTS) {
+                        env.RETRY_E2E_STAGE_COUNT = "2"
+                        env.E2E_RETRIES = "2"
+                    }
+                    else { 
+                        env.RETRY_E2E_COUNT = "0"
+                        env.E2E_RETRIES = "0"
+                    }                
 
-                    retry(2) {
+                    retry(env.RETRY_E2E_STAGE_COUNT) {
                         build(
                             job: 'Test_Tower_E2E',
                             parameters: [
@@ -391,6 +405,10 @@ pipeline {
                                 string(
                                     name: 'E2E_TEST_SELECTION',
                                     value: "${params.E2E_TESTEXPR}"
+                                ),
+                                string(
+                                    name: 'E2E_RETRIES',
+                                    value: "${env.E2E_RETRIES}"
                                 )
                             ]
                         )

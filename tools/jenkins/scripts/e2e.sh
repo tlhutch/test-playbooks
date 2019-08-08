@@ -29,6 +29,7 @@
 # - E2E_FORK: Fork of repo to draw tests from. Defaults to "ansible".
 # - E2E_BRANCH: Branch of repo to draw tests from. Defaults to "devel".
 # - E2E_TEST_SELECTION: Test filter for nightwatch tests. Defaults to "*".
+# - E2E_RETRIES: Number of times to retry a testsuite. Defaults to "2".
 
 set -euxo pipefail
 
@@ -69,6 +70,7 @@ E2E_PASSWORD=${E2E_PASSWORD:-"$AWX_ADMIN_PASSWORD"}
 E2E_FORK=${E2E_FORK:-"ansible"}
 E2E_BRANCH=${E2E_BRANCH:-"devel"}
 E2E_TEST_SELECTION=${E2E_TEST_SELECTION:-"*"}
+E2E_RETRIES=${E2E_RETRIES:-"2"}
 
 git clone -b "${E2E_BRANCH}" git@github.com:"${E2E_FORK}"/"${DEPLOYMENT_TYPE}".git --depth 1 ${DEPLOYMENT_TYPE}
 
@@ -98,4 +100,5 @@ docker-compose \
     -e AWX_E2E_PASSWORD="${E2E_PASSWORD}" \
     -e AWX_E2E_SCREENSHOTS_ENABLED=true \
     -e AWX_E2E_SCREENSHOTS_PATH="awx/ui/test/e2e/screenshots" \
-    e2e --filter="${E2E_TEST_SELECTION}"
+    e2e --filter="${E2E_TEST_SELECTION}" \
+    --suiteRetries="${E2E_RETRIES}"
