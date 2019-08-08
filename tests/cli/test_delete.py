@@ -1,5 +1,5 @@
 import pytest
-from towerkit import exceptions
+from awxkit import exceptions
 
 
 @pytest.mark.usefixtures('authtoken')

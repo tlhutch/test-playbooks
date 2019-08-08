@@ -1,7 +1,7 @@
 import os
 
 import fauxfactory
-from towerkit import config
+from awxkit import config
 
 
 class TestLogin(object):
@@ -15,7 +15,7 @@ class TestLogin(object):
             'awx', 'login', '-k',
             '--conf.host', config.base_url
             ])
-        assert b"Error retrieving an OAuth2.0 token (<class 'towerkit.exceptions.Unauthorized'>" in result.stdout  # noqa
+        assert b"Error retrieving an OAuth2.0 token (<class 'awxkit.exceptions.Unauthorized'>" in result.stdout  # noqa
 
     def test_personal_token(self, cli):
         # login *always* prints a shell export that you can source i.e.,

@@ -1,7 +1,7 @@
 import fauxfactory
 import pytest
 
-from towerkit import config
+from awxkit import config
 
 
 class TestDetailView(object):

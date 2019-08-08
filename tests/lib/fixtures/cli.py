@@ -5,7 +5,7 @@ import yaml
 
 import pytest
 
-from towerkit import config
+from awxkit import config
 
 
 class CompletedProcessProxy(object):

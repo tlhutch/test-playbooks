@@ -1,7 +1,7 @@
 import os
 
 import pytest
-from towerkit import config
+from awxkit import config
 
 
 class TestCLIBasics(object):
@@ -12,7 +12,7 @@ class TestCLIBasics(object):
         ['awx', '--help'],
     ])
     def test_no_credentials(self, cli, args):
-        # by default, towerkit will use localhost:8043,
+        # by default, awxkit will use localhost:8043,
         # which shouldn't be reachable in our CI environments
         result = cli(args)
         assert result.returncode == 1
