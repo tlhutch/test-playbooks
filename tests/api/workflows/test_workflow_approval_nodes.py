@@ -58,6 +58,7 @@ class TestWorkflowApprovalNodes(APITest):
         poll_until(lambda: wf_approval.get().status == 'pending', interval=1, timeout=60)
         all_pending_approvals = v2.workflow_approvals.get(status='pending').results
         assert wf_approval.id in [approval.id for approval in all_pending_approvals]
+        assert wf_job.status == 'running'
         if approve:
             if user != 'sysadmin':
                 with self.current_user(user.username, user.password):
@@ -161,3 +162,62 @@ class TestWorkflowApprovalNodes(APITest):
         with pytest.raises(awxkit.exceptions.BadRequest):
             wf_approval.approve()
         wf_job.wait_until_completed().assert_status('failed')
+
+    @pytest.mark.yolo
+    def test_workflow_job_template_deletion_scenarios(self, v2, factories, org_admin):
+        org = org_admin.related.organizations.get().results.pop()
+        wfjt = factories.workflow_job_template(organization=org)
+        approval_node = factories.workflow_job_template_node(
+            workflow_job_template=wfjt,
+            unified_job_template=None
+        ).make_approval_node()
+
+        approval_jt = approval_node.related.unified_job_template.get()
+        wf_job = wfjt.launch()
+        wf_job.wait_until_status('running')
+        approval_job_node = wf_job.related.workflow_nodes.get(unified_job_template=approval_jt.id).results.pop()
+        poll_until(lambda: hasattr(approval_job_node.get().related, 'job'), interval=1, timeout=60)
+        wf_approval = approval_job_node.related.job.get()
+        poll_until(lambda: wf_approval.get().status == 'pending', interval=1, timeout=60)
+        wf_approval.approve()
+        all_successful_approvals = v2.workflow_approvals.get(status='successful').results
+        assert wf_approval.id in [approval.id for approval in all_successful_approvals]
+        # make sure you cannot approve again
+        with pytest.raises(awxkit.exceptions.BadRequest):
+            wf_approval.approve()
+
+        wfjt.delete()
+        assert v2.workflow_job_templates.get(id=wfjt.id).count == 0
+        with pytest.raises(awxkit.exceptions.NotFound):
+            wfjt.launch()
+        with pytest.raises(awxkit.exceptions.NotFound):
+            approval_node.related.unified_job_template.get()
+        assert v2.workflow_approvals.get(id=wf_approval.id).results.count !=0
+
+    @pytest.mark.yolo
+    def test_workflow_approval_node_deletion_scenarios(self, v2, factories, org_admin):
+        org = org_admin.related.organizations.get().results.pop()
+        wfjt = factories.workflow_job_template(organization=org)
+        approval_node = factories.workflow_job_template_node(
+            workflow_job_template=wfjt,
+            unified_job_template=None
+        ).make_approval_node()
+
+        approval_jt = approval_node.related.unified_job_template.get()
+        wf_job = wfjt.launch()
+        wf_job.wait_until_status('running')
+        approval_job_node = wf_job.related.workflow_nodes.get(unified_job_template=approval_jt.id).results.pop()
+        poll_until(lambda: hasattr(approval_job_node.get().related, 'job'), interval=1, timeout=60)
+        wf_approval = approval_job_node.related.job.get()
+        poll_until(lambda: wf_approval.get().status == 'pending', interval=1, timeout=60)
+        wf_approval.deny()
+        all_failed_approvals = v2.workflow_approvals.get(status='failed').results
+        assert wf_approval.id in [approval.id for approval in all_failed_approvals]
+        # make sure you cannot approve again
+        with pytest.raises(awxkit.exceptions.BadRequest):
+            wf_approval.approve()
+
+        approval_node.delete()
+        with pytest.raises(awxkit.exceptions.NotFound):
+            approval_node.related.unified_job_template.get()
+        assert v2.workflow_approvals.get(id=wf_approval.id).results.count !=0
