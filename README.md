@@ -113,10 +113,10 @@ If you intend to make modifications to towerkit as well, you should pip install 
 so that you changes are picked up automatically.
 ```
 cd ~/
-git clone git@github.com:ansible/towerkit.git
+git clone git@github.com:ansible/awx.git
 # make sure you are in the tower-qa venv, then install tkit
 source ~/venv/tower-qa/bin/activate
-pip install -e ~/towerkit/
+pip install -e ~/awx/awxkit/
 ```
 
 ### Rebuilding Fresh Images
