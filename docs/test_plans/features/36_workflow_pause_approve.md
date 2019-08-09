@@ -35,9 +35,9 @@ Any user with right permissions can approve to proceed or deny to fail the node 
 
 ### Workflow and Workflow Approval node state Verification
 
-- [ ] Confirm that in the beginning of the workflow job run, the state of the workflow job is “running” and the state of the approval node is “never updated”
-- [ ] Confirm that when the workflow approval node is waiting for approval, the state of the node is “pending” and the state of the workflow job is still “running”
-- [ ] Confirm that the state of the node is “successful” if approved and “failed” if denied
+- [x] Confirm that in the beginning of the workflow job run, the state of the workflow job is “running” and the state of the approval node is “never updated”
+- [x] Confirm that when the workflow approval node is waiting for approval, the state of the node is “pending” and the state of the workflow job is still “running”
+- [x] Confirm that the state of the node is “successful” if approved and “failed” if denied
 
 ### Activity Stream Scenarios
 
@@ -77,7 +77,7 @@ Any user with right permissions can approve to proceed or deny to fail the node 
 
 ### Random Scenarios
 
-- [ ] Confirm that if a workflow job template is deleted, previously run workflow approvals are not deleted but the template itself is deleted
-- [ ] Confirm that if a workflow approval node is deleted, its approvals are not deleted
-- [ ] Confirm that if an approval node is acted upon (approve/deny) it cannot be approved/denied again
+- [x] Confirm that if a workflow job template is deleted, previously run workflow approvals are not deleted but the template itself is deleted
+- [x] Confirm that if a workflow approval node is deleted, its approvals are not deleted
+- [x] Confirm that if an approval node is acted upon (approve/deny) it cannot be approved/denied again
 - [ ] Confirm that if the tower restarts, once it is up again, the approval nodes previously in pending state are still pending and they can be approved and the workflow job finishes and succeeds
