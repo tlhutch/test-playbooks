@@ -5,7 +5,7 @@ elasticsearch
 fauxfactory
 gcloud
 git+ssh://git@github.com/ansible/pytest-ansible.git
-git+ssh://git@github.com/ansible/towerkit.git
+git+ssh://git@github.com/ansible/awx.git#egg=awxkit&subdirectory=awxkit
 git+ssh://git@github.com/jlaska/pytest-github.git
 google-api-python-client
 junit-xml
