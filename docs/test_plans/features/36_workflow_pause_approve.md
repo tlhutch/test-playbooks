@@ -14,8 +14,8 @@ Any user with right permissions can approve to proceed or deny to fail the node 
 
 ### Basic Flow
 
-- [ ] Confirm that superuser can add workflow pause node and give various permissions to users
-- [ ] Confirm that a user can convert any workflow node into a workflow pause approval node
+- [x] Confirm that superuser can add workflow pause node and give various permissions to users
+- [x] Confirm that a user can convert any workflow node into a workflow pause approval node
 - [ ] Confirm indirectly in tests that an approval node can be added and approved in the following places in a workflow job template
     - [ ] In the beginning of the workflow
     - [ ] In between two workflow nodes
@@ -28,9 +28,9 @@ Any user with right permissions can approve to proceed or deny to fail the node 
 
 ### Timeout Feature Verification
 
-- [ ] Confirm that a user can specify timeout during creation of the approval node
-- [ ] Confirm that if a timeout is not specified, it is set to 0(unlimited) by default
-- [ ] Confirm that any user cannot approve/deny after the timeout period
+- [x] Confirm that a user can specify timeout during creation of the approval node
+- [x] Confirm that if a timeout is not specified, it is set to 0(unlimited) by default
+- [x] Confirm that any user cannot approve/deny after the timeout period
 - [ ] Confirm that after the timeout, the approval node fails with a reason of failure and the attribute timeout is true
 
 ### Workflow and Workflow Approval node state Verification
@@ -45,18 +45,18 @@ Any user with right permissions can approve to proceed or deny to fail the node 
 
 ### RBAC
 
-- [ ] Confirm that all valid users with permission according to the table below can
-    - [ ] See the workflow approval node
-    - [ ] See the activity stream entry for the job
-    - [ ] Create an approval node
-    - [ ] Approve or deny
-    - [ ] Grant approval permissions to other users
-- [ ] Confirm that all invalid users without the permission according to the table below cannot
-    - [ ] See the workflow approval node
-    - [ ] See the activity stream entry for the job
-    - [ ] Create an approval node
-    - [ ] Approve or deny
-    - [ ] Grant approval permissions to other users
+- [x] Confirm that all valid users with permission according to the table below can
+    - [x] See the workflow approval node
+    - [x] See the activity stream entry for the job
+    - [x] Create an approval node
+    - [x] Approve or deny
+    - [x] Grant approval permissions to other users
+- [x] Confirm that all invalid users without the permission according to the table below cannot
+    - [x] See the workflow approval node
+    - [x] See the activity stream entry for the job
+    - [x] Create an approval node
+    - [x] Approve or deny
+    - [x] Grant approval permissions to other users
 
 
 | Scope  | Role Type | Can view workflow approval  | Can view activity stream entry | Can create  | Approve/Deny |Grant approval  |
