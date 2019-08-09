@@ -45,13 +45,18 @@ pipeline {
         )
         string(
             name: 'TOWERKIT_FORK',
-            description: 'Fork to use for towerkit',
-            defaultValue: 'ansible'
+            description: 'Fork to use for awxkit, or towerkit on older versions (depends on test.sh in you branch). Blank will default to TOWER_FORK',
+            defaultValue: ''
         )
         string(
             name: 'TOWERKIT_BRANCH',
-            description: 'Branch to use for towerkit',
-            defaultValue: 'devel'
+            description: 'Branch to use for awxkit, or  towerkit on older versions (depends on test.sh in your branch). Blank will default to TOWER_BRANCH',
+            defaultValue: ''
+        )
+        string(
+            name: 'AWXKIT_REPO',
+            description: 'Repo to use for awxkit, when left blank, defaults to PRODUCT. No-op for versions prior to 3.6.0 where there was no awxkit.',
+            defaultValue: ''
         )
         string(
             name: 'RUNNER_FORK',
@@ -359,7 +364,7 @@ pipeline {
 
             steps {
                 sshagent(credentials : ['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
-                    sh "ssh ${SSH_OPTS} ec2-user@${TEST_RUNNER_HOST} 'cd tower-qa && TESTEXPR=\"${params.TESTEXPR}\" TOWERKIT_FORK=\"${params.TOWERKIT_FORK}\" TOWERKIT_BRANCH=\"${params.TOWERKIT_BRANCH}\" ./tools/jenkins/scripts/test.sh'"
+                    sh "ssh ${SSH_OPTS} ec2-user@${TEST_RUNNER_HOST} 'cd tower-qa && TESTEXPR=\"${params.TESTEXPR}\" TOWERKIT_FORK=\"${params.TOWERKIT_FORK}\" TOWERKIT_BRANCH=\"${params.TOWERKIT_BRANCH}\" PRODUCT=\"${params.PRODUCT}\" AWXKIT_REPO=\"${params.AWXKIT_REPO}\" TOWER_FORK=\"${params.TOWER_FORK}\" TOWER_BRANCH=\"${params.TOWER_BRANCH}\" ./tools/jenkins/scripts/test.sh'"
                     sh 'ansible-playbook -v -i playbooks/inventory.test_runner playbooks/test_runner/run_fetch_artifacts_test.yml'
                     junit 'artifacts/results.xml'
                 }

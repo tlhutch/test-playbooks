@@ -13,11 +13,11 @@ Jupyter, in short, provides interactive notebooks where you can run code that is
 ## How do I set up my environment to use the Jupyter notebooks here?
 
 1. Create / activate a virtual environment
-1. `pip install git+ssh://git@github.com/ansible/towerkit.git`
+1. `pip install git+ssh://git@github.com/ansible/awx.git#egg=awxkit&subdirectory=awxkit`
 1. `pip install jupyter`
 
 Finally, make sure you have a copy of the awxkit notebooks:
-`git clone git@github.com:ansible/towerkit.git`
+`git clone git@github.com:ansible/tower-qa.git`
 
 
 ## Referencing a running AWX instance

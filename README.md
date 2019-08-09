@@ -107,9 +107,9 @@ py.test -c config/docker.cfg
 py.test -c config/api.cfg --base-url='https://<tower-host\>'
 
 
-### Using with local Towerkit
+### Using with local awxkit
 
-If you intend to make modifications to towerkit as well, you should pip install tkit with the `-e`
+If you intend to make modifications to awxkit as well, you should pip install awxkit with the `-e`
 so that you changes are picked up automatically.
 ```
 cd ~/
@@ -155,9 +155,9 @@ py.test -c config/api.cfg --base-url='https://ec2-tower.com' -k "test_something"
 flake8
 
 # Setting Environment Variables (add before the invocation of pytest on the same command)
-TOWERKIT_PREVENT_TEARDOWN=1  # bypass teardown
+AWXKIT_PREVENT_TEARDOWN=1  # bypass teardown
 ```
 
 # Jupyter
 
-There are some example jupyter notebooks of interacting with tower via towerkit/awxkit in docs/jupyter.
+There are some example jupyter notebooks of interacting with tower via awxkit in docs/jupyter.
