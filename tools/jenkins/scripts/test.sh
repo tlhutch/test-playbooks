@@ -4,8 +4,12 @@ set -euxo pipefail
 
 TESTEXPR=${TESTEXPR:-''}
 INVENTORY=${INVENTORY:-''}
-TOWERKIT_FORK=${TOWERKIT_FORK:-'ansible'}
-TOWERKIT_BRANCH=${TOWERKIT_BRANCH:-''}
+TOWER_FORK=${TOWER_FORK:-'ansible'}
+TOWER_BRANCH=${TOWER_BRANCH:-'devel'}
+PRODUCT=${PRODUCT:-'awx'}
+AWXKIT_FORK=${TOWERKIT_FORK:-${TOWER_FORK}}
+AWXKIT_BRANCH=${TOWERKIT_BRANCH:-${TOWER_BRANCH}}
+AWXKIT_REPO=${AWXKIT_REPO:-${PRODUCT}}
 VARS_FILE=${VARS_FILE:-playbooks/vars.yml}
 PYTEST_NUMPROCESSES="4"
 
@@ -19,8 +23,8 @@ setup_python3_env
 pip install -Ur scripts/requirements.install
 pip install -Ur requirements.txt
 
-if [[ -n "${TOWERKIT_BRANCH}" ]]; then
-    pip install -U "git+ssh://git@github.com/${TOWERKIT_FORK}/towerkit.git@${TOWERKIT_BRANCH}"
+if [[ -n "${AWXKIT_BRANCH}" ]]; then
+    pip install -U "git+ssh://git@github.com/${AWXKIT_FORK}/${AWXKIT_REPO}.git@${AWXKIT_BRANCH}#egg=awxkit&subdirectory=awxkit"
 fi
 
 echo "y" | pip uninstall pytest-mp || true
