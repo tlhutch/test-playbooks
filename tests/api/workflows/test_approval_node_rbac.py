@@ -71,6 +71,7 @@ class TestApprovalNodeRBAC(APITest):
                 random_org.related.users.post(dict(id=user.id, associate=True))
         return user, wfjt, role
 
+    @pytest.mark.yolo
     @pytest.mark.fixture_args()
     def test_workflow_approval_and_activity_stream_visibility(self, v2, factories, user_with_role_and_workflow):
         """Verify that Users with no permission cannot view an approval"""
@@ -104,6 +105,7 @@ class TestApprovalNodeRBAC(APITest):
                 assert wf_approval.id in [approval.id for approval in all_pending_approvals]
                 assert wf_job.related.activity_stream.get().count == 1
 
+    @pytest.mark.yolo
     @pytest.mark.fixture_args()
     def test_workflow_approval_node_creation(self, v2, factories,
                                                                    user_with_role_and_workflow):
@@ -132,6 +134,7 @@ class TestApprovalNodeRBAC(APITest):
                         unified_job_template=None
                     ).make_approval_node(timeout=100, description='Mark my words', name='hellow world')
 
+    @pytest.mark.yolo
     @pytest.mark.fixture_args()
     def test_workflow_approval_node_approve(self, v2, factories,
                                                                    user_with_role_and_workflow):
@@ -165,6 +168,7 @@ class TestApprovalNodeRBAC(APITest):
                 with pytest.raises(awxkit.exceptions.Forbidden):
                     wf_approval.approve()
 
+    @pytest.mark.yolo
     @pytest.mark.fixture_args()
     def test_workflow_approval_node_grant_approval(self, v2, factories,
                                                                    user_with_role_and_workflow):

@@ -10,6 +10,7 @@ class TestWorkflowApprovalNodes(APITest):
     """Test approval nodes that enable users to require manual approval as a part of a workflow.
     """
 
+    @pytest.mark.yolo
     @pytest.mark.parametrize('approve', [True, False], ids=['approve', 'deny'])
     @pytest.mark.parametrize('user', ['sysadmin', 'org_admin', 'org_approver', 'wf_approver'])
     def test_approval_node_happy_path(self, v2, factories, org_admin, approve, user):
@@ -78,6 +79,7 @@ class TestWorkflowApprovalNodes(APITest):
 
         wf_job.wait_until_completed().assert_successful()
 
+    @pytest.mark.yolo
     def test_update_existing_node_to_approval_node(self, v2, factories, org_admin):
         """Create a workflow with an approval node and approve it."""
         org = org_admin.related.organizations.get().results.pop()
@@ -122,6 +124,7 @@ class TestWorkflowApprovalNodes(APITest):
 
         wf_job.wait_until_completed().assert_successful()
 
+    @pytest.mark.yolo
     def test_approval_node_timeout(self, v2, factories):
         """Create a workflow with an approval node and approve it."""
         wfjt = factories.workflow_job_template()
