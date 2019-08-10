@@ -1,0 +1,77 @@
+#!/usr/bin/env python
+import logging
+from urllib.parse import urljoin
+
+import click
+import requests
+
+
+logging.captureWarnings(True)
+
+
+@click.command()
+@click.argument(
+    'importer',
+    type=click.Choice(('testcase', 'xunit', 'requirement')),
+)
+@click.argument(
+    'xml',
+    type=click.Path(exists=True, dir_okay=False),
+)
+@click.option(
+    '--url',
+    help='Polarion URL. Defaults to stage.',
+    default='https://polarion.stage.engineering.redhat.com',
+)
+@click.option(
+    '--username',
+    help='Polarion username',
+)
+@click.option(
+    '--password',
+    help='Polarion password',
+)
+def polarion_import(importer, xml, url, username, password):
+    """Import XML file using a Polarion IMPORTER.
+
+    IMPORTER which Polarion importer to use.
+
+    XML path to the file to be imported.
+    """
+    url = urljoin(url, f'/polarion/import/{importer}')
+    with open(xml, 'rb') as handler:
+        response = requests.post(
+            url,
+            auth=(username, password),
+            files={'file': handler},
+            verify=False,
+        )
+        try:
+            response.raise_for_status()
+        except requests.HTTPError as err:
+            click.echo(err.message, err=True)
+    response = response.json()
+    job_ids = [
+        str(job_id)
+        for item in response['files'].values()
+        for job_id in item['job-ids']
+    ]
+
+    queue_url = urljoin(url, f'/polarion/import/{importer}-queue')
+    job_ids_str = ', '.join(job_ids)
+    click.echo(
+        f'Jobs with the following IDs are started: {job_ids_str}. '
+        'Check the status on the queue:\n\n'
+        f'{queue_url}\n'
+    )
+
+    click.echo(
+        'Once the jobs are completed, check the logs on the following URLs:\n')
+    for job_id in job_ids:
+        click.echo(
+            urljoin(url, f'/polarion/import/{importer}-log?jobId={job_id}')
+        )
+
+
+if __name__ == "__main__":
+    polarion_import(auto_envvar_prefix='POLARION')

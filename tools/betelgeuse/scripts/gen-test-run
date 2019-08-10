@@ -1,0 +1,46 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# shellcheck source=lib/common
+source "$(dirname "${0}")/lib/common"
+
+JUNIT_PATH="${JUNIT_PATH:-${OUTPUT_PATH}/../junit/results.xml}"
+TEST_RUN_TOWERVERSION="${TEST_RUN_TOWERVERSION:-}"
+TEST_RUN_ANSIBLEVERSION="${TEST_RUN_ANSIBLEVERSION:-}"
+TEST_RUN_BUNDLE="${TEST_RUN_BUNDLE:-false}"
+TEST_RUN_CLUSTER="${TEST_RUN_CLUSTER:-false}"
+TEST_RUN_ISAUTOMATED="${TEST_RUN_ISAUTOMATED:-true}"
+TEST_RUN_OS="${TEST_RUN_OS:-}"
+
+if [[ "${TEST_RUN_CLUSTER}" = "true" ]]; then
+    DEPLOYMENT_TYPE="Cluster"
+else
+    DEPLOYMENT_TYPE="Standalone"
+fi
+
+if [[ "${TEST_RUN_BUNDLE}" = "true" ]]; then
+    INSTALL_TYPE="Bundle"
+else
+    INSTALL_TYPE="Plain"
+fi
+
+# The following variables are following the convention on Polarion. That is why
+# we are not allowing customizing them.
+TEST_RUN_ID="Ansible Tower ${TEST_RUN_TOWERVERSION} - ${DEPLOYMENT_TYPE} - ${INSTALL_TYPE} - Ansible ${TEST_RUN_ANSIBLEVERSION} - ${TEST_RUN_OS}"
+TEST_RUN_PLANNEDIN="Ansible_Tower_${TEST_RUN_TOWERVERSION//\./_}"
+
+PYTHONPATH="${BETELGEUSE_PATH}:${PYTHONPATH:-}" \
+    betelgeuse \
+    --config-module betelgeuse_config \
+    test-run \
+    --custom-fields ansibleversion="${TEST_RUN_ANSIBLEVERSION}" \
+    --custom-fields bundle="${TEST_RUN_BUNDLE}" \
+    --custom-fields cluster="${TEST_RUN_CLUSTER}" \
+    --custom-fields isautomated="${TEST_RUN_ISAUTOMATED}" \
+    --custom-fields os="${TEST_RUN_OS}" \
+    --custom-fields plannedin="${TEST_RUN_PLANNEDIN}" \
+    --no-include-skipped \
+    --test-run-id "${TEST_RUN_ID}" \
+    "${JUNIT_PATH}" \
+    tests "${POLARION_ASSIGNEE}" "${POLARION_PROJECT}" \
+    "${OUTPUT_PATH}/test-run.xml"

@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<requirements project-id="AnsibleTower">
+    <properties>
+        <property name="lookup-method" value="name"/>
+    </properties>
+
+    <requirement approver-ids="ansible_machine:approved" assignee-id="ansible_machine" priority-id="high" severity-id="should_have" status-id="approved">
+        <title>License</title>
+        <custom-fields><custom-field id="reqtype" content="functional"/></custom-fields>
+    </requirement>
+
+    <requirement approver-ids="ansible_machine:approved" assignee-id="ansible_machine" priority-id="high" severity-id="should_have" status-id="approved">
+        <title>Auth</title>
+        <custom-fields><custom-field id="reqtype" content="functional"/></custom-fields>
+    </requirement>
+
+    <requirement approver-ids="ansible_machine:approved" assignee-id="ansible_machine" priority-id="high" severity-id="should_have" status-id="approved">
+        <title>CLI</title>
+        <custom-fields><custom-field id="reqtype" content="functional"/></custom-fields>
+    </requirement>
+
+    <requirement approver-ids="ansible_machine:approved" assignee-id="ansible_machine" priority-id="high" severity-id="should_have" status-id="approved">
+        <title>Cluster</title>
+        <custom-fields><custom-field id="reqtype" content="functional"/></custom-fields>
+    </requirement>
+
+    <requirement approver-ids="ansible_machine:approved" assignee-id="ansible_machine" priority-id="high" severity-id="should_have" status-id="approved">
+        <title>Copy</title>
+        <custom-fields><custom-field id="reqtype" content="functional"/></custom-fields>
+    </requirement>
+
+    <requirement approver-ids="ansible_machine:approved" assignee-id="ansible_machine" priority-id="high" severity-id="should_have" status-id="approved">
+        <title>Credentials</title>
+        <custom-fields><custom-field id="reqtype" content="functional"/></custom-fields>
+    </requirement>
+
+    <requirement approver-ids="ansible_machine:approved" assignee-id="ansible_machine" priority-id="high" severity-id="should_have" status-id="approved">
+        <title>External Data</title>
+        <custom-fields><custom-field id="reqtype" content="functional"/></custom-fields>
+    </requirement>
+
+    <requirement approver-ids="ansible_machine:approved" assignee-id="ansible_machine" priority-id="high" severity-id="should_have" status-id="approved">
+        <title>External Logging</title>
+        <custom-fields><custom-field id="reqtype" content="functional"/></custom-fields>
+    </requirement>
+
+    <requirement approver-ids="ansible_machine:approved" assignee-id="ansible_machine" priority-id="high" severity-id="should_have" status-id="approved">
+        <title>Inventories</title>
+        <custom-fields><custom-field id="reqtype" content="functional"/></custom-fields>
+    </requirement>
+
+    <requirement approver-ids="ansible_machine:approved" assignee-id="ansible_machine" priority-id="high" severity-id="should_have" status-id="approved">
+        <title>Jobs</title>
+        <custom-fields><custom-field id="reqtype" content="functional"/></custom-fields>
+    </requirement>
+
+    <requirement approver-ids="ansible_machine:approved" assignee-id="ansible_machine" priority-id="high" severity-id="should_have" status-id="approved">
+        <title>Job Templates</title>
+        <custom-fields><custom-field id="reqtype" content="functional"/></custom-fields>
+    </requirement>
+
+    <requirement approver-ids="ansible_machine:approved" assignee-id="ansible_machine" priority-id="high" severity-id="should_have" status-id="approved">
+        <title>Notification Templates</title>
+        <custom-fields><custom-field id="reqtype" content="functional"/></custom-fields>
+    </requirement>
+
+    <requirement approver-ids="ansible_machine:approved" assignee-id="ansible_machine" priority-id="high" severity-id="should_have" status-id="approved">
+        <title>RBAC</title>
+        <custom-fields><custom-field id="reqtype" content="functional"/></custom-fields>
+    </requirement>
+
+    <requirement approver-ids="ansible_machine:approved" assignee-id="ansible_machine" priority-id="high" severity-id="should_have" status-id="approved">
+        <title>Schedules</title>
+        <custom-fields><custom-field id="reqtype" content="functional"/></custom-fields>
+    </requirement>
+
+    <requirement approver-ids="ansible_machine:approved" assignee-id="ansible_machine" priority-id="high" severity-id="should_have" status-id="approved">
+        <title>Security</title>
+        <custom-fields><custom-field id="reqtype" content="functional"/></custom-fields>
+    </requirement>
+
+    <requirement approver-ids="ansible_machine:approved" assignee-id="ansible_machine" priority-id="high" severity-id="should_have" status-id="approved">
+        <title>Services</title>
+        <custom-fields><custom-field id="reqtype" content="functional"/></custom-fields>
+    </requirement>
+
+    <requirement approver-ids="ansible_machine:approved" assignee-id="ansible_machine" priority-id="high" severity-id="should_have" status-id="approved">
+        <title>Settings</title>
+        <custom-fields><custom-field id="reqtype" content="functional"/></custom-fields>
+    </requirement>
+
+    <requirement approver-ids="ansible_machine:approved" assignee-id="ansible_machine" priority-id="high" severity-id="should_have" status-id="approved">
+        <title>Activity Stream</title>
+        <custom-fields><custom-field id="reqtype" content="functional"/></custom-fields>
+    </requirement>
+
+    <requirement approver-ids="ansible_machine:approved" assignee-id="ansible_machine" priority-id="high" severity-id="should_have" status-id="approved">
+        <title>Ad hoc Commands</title>
+        <custom-fields><custom-field id="reqtype" content="functional"/></custom-fields>
+    </requirement>
+
+    <requirement approver-ids="ansible_machine:approved" assignee-id="ansible_machine" priority-id="high" severity-id="should_have" status-id="approved">
+        <title>Channels</title>
+        <custom-fields><custom-field id="reqtype" content="functional"/></custom-fields>
+    </requirement>
+
+    <requirement approver-ids="ansible_machine:approved" assignee-id="ansible_machine" priority-id="high" severity-id="should_have" status-id="approved">
+        <title>Custom Virtualenv</title>
+        <custom-fields><custom-field id="reqtype" content="functional"/></custom-fields>
+    </requirement>
+
+    <requirement approver-ids="ansible_machine:approved" assignee-id="ansible_machine" priority-id="high" severity-id="should_have" status-id="approved">
+        <title>Fact Cache</title>
+        <custom-fields><custom-field id="reqtype" content="functional"/></custom-fields>
+    </requirement>
+
+    <requirement approver-ids="ansible_machine:approved" assignee-id="ansible_machine" priority-id="high" severity-id="should_have" status-id="approved">
+        <title>Labels</title>
+        <custom-fields><custom-field id="reqtype" content="functional"/></custom-fields>
+    </requirement>
+
+    <requirement approver-ids="ansible_machine:approved" assignee-id="ansible_machine" priority-id="high" severity-id="should_have" status-id="approved">
+        <title>Named URLs</title>
+        <custom-fields><custom-field id="reqtype" content="functional"/></custom-fields>
+    </requirement>
+
+    <requirement approver-ids="ansible_machine:approved" assignee-id="ansible_machine" priority-id="high" severity-id="should_have" status-id="approved">
+        <title>Notifications</title>
+        <custom-fields><custom-field id="reqtype" content="functional"/></custom-fields>
+    </requirement>
+
+    <requirement approver-ids="ansible_machine:approved" assignee-id="ansible_machine" priority-id="high" severity-id="should_have" status-id="approved">
+        <title>Pagination</title>
+        <custom-fields><custom-field id="reqtype" content="functional"/></custom-fields>
+    </requirement>
+
+    <requirement approver-ids="ansible_machine:approved" assignee-id="ansible_machine" priority-id="high" severity-id="should_have" status-id="approved">
+        <title>Projects</title>
+        <custom-fields><custom-field id="reqtype" content="functional"/></custom-fields>
+    </requirement>
+
+    <requirement approver-ids="ansible_machine:approved" assignee-id="ansible_machine" priority-id="high" severity-id="should_have" status-id="approved">
+        <title>Prompts</title>
+        <custom-fields><custom-field id="reqtype" content="functional"/></custom-fields>
+    </requirement>
+
+    <requirement approver-ids="ansible_machine:approved" assignee-id="ansible_machine" priority-id="high" severity-id="should_have" status-id="approved">
+        <title>Task Manager</title>
+        <custom-fields><custom-field id="reqtype" content="functional"/></custom-fields>
+    </requirement>
+
+    <requirement approver-ids="ansible_machine:approved" assignee-id="ansible_machine" priority-id="high" severity-id="should_have" status-id="approved">
+        <title>Tower Modules</title>
+        <custom-fields><custom-field id="reqtype" content="functional"/></custom-fields>
+    </requirement>
+
+    <requirement approver-ids="ansible_machine:approved" assignee-id="ansible_machine" priority-id="high" severity-id="should_have" status-id="approved">
+        <title>Workflows</title>
+        <custom-fields><custom-field id="reqtype" content="functional"/></custom-fields>
+    </requirement>
+
+    <requirement approver-ids="ansible_machine:approved" assignee-id="ansible_machine" priority-id="high" severity-id="should_have" status-id="approved">
+        <title>Miscellaneous</title>
+        <custom-fields><custom-field id="reqtype" content="functional"/></custom-fields>
+    </requirement>
+
+    <requirement approver-ids="ansible_machine:approved" assignee-id="ansible_machine" priority-id="high" severity-id="should_have" status-id="approved">
+        <title>Upgrade</title>
+        <custom-fields><custom-field id="reqtype" content="functional"/></custom-fields>
+    </requirement>
+</requirements>

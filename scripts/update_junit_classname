@@ -1,0 +1,86 @@
+#!/usr/bin/env python
+"""
+Update the classname for a test case if it is not providing the path starting
+from the repository root.
+"""
+import argparse
+import glob
+import pathlib
+
+from junitparser import JUnitXml, TestSuite
+
+
+_CACHE = {}
+
+
+def _get_prefix(classname, file_path):
+    if file_path not in _CACHE:
+        new_path = glob.glob(f'tests/**/{file_path}', recursive=True)
+        if len(new_path) != 1:
+            return (None, new_path)
+        new_path = new_path[0]
+        classname_prefix = []
+        for part in pathlib.Path(new_path).parts:
+            if part.endswith('.py'):
+                part = part[:-3]
+            if classname.startswith(part):
+                break
+            classname_prefix.append(part)
+        classname_prefix = '.'.join(classname_prefix)
+        classname_prefix = f'{classname_prefix}.'
+        _CACHE[file_path] = (classname_prefix, new_path)
+    return _CACHE[file_path]
+
+
+def _update_classname(junit, output):
+    # pytest is now wrapping the testsuite element into a testsuites element
+    # since pytest 5.1.0 was released. Find the testsuite to parse the cases.
+    if isinstance(junit, JUnitXml):
+        # junitparser uses a JUnitXml object when it parses a XML file where
+        # the root element is testsuites, so we need to use the testsuite child
+        # element
+        junit = junit.child(TestSuite)
+
+    for case in junit:
+        if not case.classname.startswith('tests.'):
+            file_path = case._elem.attrib['file']
+            classname_prefix, new_path = _get_prefix(
+                case.classname,
+                file_path
+            )
+            if classname_prefix is None:
+                message = f'Can not update {case.classname}.{case.name}, module '
+                if len(new_path) > 0:
+                    message += f'{file_path} was found multiple times: ' + ', '.join(new_path)
+                else:
+                    message += f'{file_path} was not found in the tests directory'
+                message += '. Skipping...'
+                print(message)
+                continue
+            case._elem.attrib['file'] = new_path
+            case.classname = f'{classname_prefix}{case.classname}'
+        output.add_testcase(case)
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        'junit_path',
+        help='Path to a jUnit XML to be updated.',
+        metavar='JUNIT_PATH',
+    )
+    parser.add_argument(
+        'output_path',
+        help='Updated jUnit XML Path.',
+        metavar='OUTPUT_PATH',
+    )
+    args = parser.parse_args()
+
+    output_suite = TestSuite('pytest')
+    junit = JUnitXml.fromfile(args.junit_path)
+    _update_classname(junit, output_suite)
+    output_suite.update_statistics()
+
+    output = JUnitXml()
+    output.add_testsuite(output_suite)
+    output.write(args.output_path)

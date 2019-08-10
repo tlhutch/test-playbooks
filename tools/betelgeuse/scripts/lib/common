@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+BETELGEUSE_PATH="$(realpath "$(dirname "${0}")/..")"
+OUTPUT_PATH="$(realpath "${BETELGEUSE_PATH}/../../reports/betelgeuse")"
+POLARION_ASSIGNEE="${POLARION_ASSIGNEE:-importer}"
+POLARION_PASSWORD="${POLARION_PASSWORD:-polarion}"
+POLARION_PROJECT="${POLARION_PROJECT:-AnsibleTower}"
+POLARION_USERNAME="${POLARION_USERNAME:-ansible_machine}"
+
+mkdir -p "${OUTPUT_PATH}"
+
+export BETELGEUSE_PATH
+export OUTPUT_PATH
+export POLARION_ASSIGNEE
+export POLARION_PASSWORD
+export POLARION_PROJECT
+export POLARION_USERNAME

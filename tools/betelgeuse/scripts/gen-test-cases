@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# shellcheck source=lib/common
+source "$(dirname "${0}")/lib/common"
+
+TEST_CASE_COLLECT_IGNORE_PATH="${TEST_CASE_COLLECT_IGNORE_PATH:-tests/lib/test}"
+TEST_CASE_TESTS_PATH="${TEST_CASE_TESTS_PATH:-tests}"
+
+PYTHONPATH="${BETELGEUSE_PATH}:${PYTHONPATH:-}" \
+    betelgeuse \
+    --config-module betelgeuse_config \
+    test-case \
+    --collect-ignore-path "${TEST_CASE_COLLECT_IGNORE_PATH}" \
+    "${TEST_CASE_TESTS_PATH}" \
+    "${POLARION_PROJECT}" \
+    "${OUTPUT_PATH}/test-cases.xml"
