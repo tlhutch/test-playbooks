@@ -225,7 +225,7 @@ function setup_python3_env {
         mkdir -p "${HOME}/venvs"
         venv_path="${HOME}/venvs/${1:-venv}"
         if [ ! -d "${venv_path}" ]; then
-            python3 -m venv "${venv_path}"
+            python3.6 -m venv "${venv_path}"
         fi
         # shellcheck disable=SC1090
         source "${venv_path}/bin/activate"
