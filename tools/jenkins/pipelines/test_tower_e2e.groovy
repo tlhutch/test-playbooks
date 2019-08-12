@@ -112,7 +112,7 @@ pipeline {
         always {
             xunit reduceLog: false, 
                   testTimeMargin: '15000',
-                  thresholds: [failed(failureThreshold: '1'), skipped(failureThreshold: '1')], 
+                  thresholds: [failed(failureThreshold: '50', unstableThreshold: '1'), skipped(failureThreshold: '50', unstableThreshold: '1')], 
                   tools: [
                       Custom(customXSL: '${DEPLOYMENT_TYPE}/awx/ui/test/e2e/nightwatchxsl.xsl', 
                           deleteOutputFiles: false, 

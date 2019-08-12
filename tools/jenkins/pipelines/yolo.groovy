@@ -420,8 +420,9 @@ pipeline {
                                     name: 'E2E_RETRIES',
                                     value: "${env.E2E_RETRIES}"
                                 )
-                            ]
-                        )
+                            ],
+                            propagate: true
+                        )    
                     }
                 }
             }
