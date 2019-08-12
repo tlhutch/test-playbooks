@@ -94,6 +94,11 @@ pipeline {
             defaultValue: true
         )
         booleanParam(
+            name: 'RUN_CLI',
+            description: 'Should the CLI test suite be run as part of this pipeline ?',
+            defaultValue: true
+        )
+        booleanParam(
             name: 'RETRY_FAILED_TESTS',
             description: 'Should e2e tests be retried on failure ?',
             defaultValue: true
@@ -384,6 +389,21 @@ pipeline {
                 }
             }
 
+        }
+        stage('Run CLI Tests') {
+            when {
+                expression {
+                    return params.RUN_CLI
+                }
+            }
+
+            steps {
+                sshagent(credentials : ['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
+                    sh "ssh ${SSH_OPTS} ec2-user@${TEST_RUNNER_HOST} 'cd tower-qa && TESTEXPR=\"${params.TESTEXPR}\" TOWERKIT_FORK=\"${params.TOWERKIT_FORK}\" TOWERKIT_BRANCH=\"${params.TOWERKIT_BRANCH}\" PRODUCT=\"${params.PRODUCT}\" AWXKIT_REPO=\"${params.AWXKIT_REPO}\" TOWER_FORK=\"${params.TOWER_FORK}\" TOWER_BRANCH=\"${params.TOWER_BRANCH}\" ./tools/jenkins/scripts/test-cli.sh'"
+                    sh 'ansible-playbook -v -i playbooks/inventory.test_runner playbooks/test_runner/run_fetch_artifacts_test_cli.yml'
+                    junit 'artifacts/results-cli.xml'
+                }
+            }
         }
 
         stage('Run E2E Tests') {
