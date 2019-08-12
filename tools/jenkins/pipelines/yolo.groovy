@@ -106,7 +106,12 @@ pipeline {
             name: 'E2E_TESTEXPR',
             description: 'Specify the --filter flag for UI E2E tests if necessary',
             defaultValue: '*'
-            )
+        )
+        booleanParam(
+            name: 'E2E_RUN_EXTERNAL_GRID',
+            description: 'Select to run e2e tests against an external selenium grid',
+            defaultValue: false
+        )
         choice(
             name: 'PLATFORM',
             description: 'The OS to install the Tower instance on',
@@ -390,7 +395,7 @@ pipeline {
                     else { 
                         env.RETRY_E2E_COUNT = "0"
                         env.E2E_RETRIES = "0"
-                    }                
+                    }       
 
                     retry(env.RETRY_E2E_STAGE_COUNT) {
                         build(
@@ -419,6 +424,10 @@ pipeline {
                                 string(
                                     name: 'E2E_RETRIES',
                                     value: "${env.E2E_RETRIES}"
+                                ),
+                                booleanParam(
+                                    name: 'E2E_RUN_EXTERNAL_GRID',
+                                    value: "${params.E2E_RUN_EXTERNAL_GRID}"
                                 )
                             ],
                             propagate: true

@@ -51,6 +51,21 @@ pipeline {
             description: 'Retry testsuites multiple times.', 
             defaultValue: '2'
         )
+        booleanParam(
+            name: 'E2E_RUN_EXTERNAL_GRID',
+            description: 'Run tests on an External Selenium Grid', 
+            defaultValue: 'false'
+        )
+        string(
+            name: 'E2E_EXTERNAL_GRID_HOSTNAME',
+            description: 'External Selenium Grid option', 
+            defaultValue: 'localhost'
+        )
+        string(
+            name: 'E2E_EXTERNAL_GRID_PORT',
+            description: 'External Selenium Grid option', 
+            defaultValue: '4444'
+        )
     }
     options {
         timeout(time: 2, unit: 'HOURS')
@@ -86,6 +101,12 @@ pipeline {
         }
         stage('Call e2e.sh') {
             steps{
+                script {
+                    if  (params.E2E_RUN_EXTERNAL_GRID) {
+                        env.E2E_EXTERNAL_GRID_HOSTNAME = "zalenium-zalenium2.cloud.paas.psi.redhat.com"
+                        env.E2E_EXTERNAL_GRID_PORT = "80"
+                    }  
+                }
                 withCredentials([string(credentialsId: 'awx_admin_password', variable: 'AWX_ADMIN_PASSWORD'),
                                 file(credentialsId: '86ed99e9-dad9-49e9-b0db-9257fb563bad', variable: 'JSON_KEY_FILE_PATH')]) {
                     sshagent(['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
@@ -101,6 +122,8 @@ pipeline {
                             E2E_PASSWORD=${E2E_PASSWORD} \
                             E2E_TEST_SELECTION=${E2E_TEST_SELECTION} \
                             JSON_KEY_FILE_PATH=${JSON_KEY_FILE_PATH} \
+                            E2E_EXTERNAL_GRID_HOSTNAME=${E2E_EXTERNAL_GRID_HOSTNAME} \
+                            E2E_EXTERNAL_GRID_PORT=${E2E_EXTERNAL_GRID_PORT} \
                             ./tools/jenkins/scripts/e2e.sh
                         '''
                     }
