@@ -1,14 +1,13 @@
 #!/usr/bin/env bash
 set -euxo pipefail
 
-if [ "$(grep -s "python3" tox.ini)" ]; then
-python3 -m venv $PWD/venv
-source $PWD/venv/bin/activate
-fi
+source "$(dirname "${0}")"/lib/common
+
+setup_python3_env
+
 which python
 python --version
 
-pip install -Ur scripts/requirements.lint
-pip install -Ur requirements.txt
+pip install -U tox
 
 tox
