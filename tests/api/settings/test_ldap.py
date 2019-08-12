@@ -71,6 +71,19 @@ class TestLDAP(APITest):
                 assert getattr(superuser, flag) is True
         [clean_user_orgs_and_teams(v2.users.get(username=u).results.pop()) for u in matching_users]
 
+    def test_ldap_is_superuser_supercedes_is_auditor(self, v2, update_setting_pg, clean_user_orgs_and_teams, resource_with_schedule):
+        ldap_settings = deepcopy(self.base_ldap_settings)
+        ldap_settings['AUTH_LDAP_USER_FLAGS_BY_GROUP'] = {'is_superuser': ['cn=planetexpress_admins,cn=groups,cn=accounts,dc=testing,dc=ansible,dc=com'],
+                                                          'is_auditor': ['cn=planetexpress_admins,cn=groups,cn=accounts,dc=testing,dc=ansible,dc=com']}
+        update_setting_pg(v2.settings.get().get_endpoint(
+            'ldap'), ldap_settings)
+        with self.current_user('hfarnsworth', self.ldap_password):
+            schedule = resource_with_schedule.related.schedules.get(not__name='Cleanup Job Schedule').results.pop()
+            schedule.put()
+            schedule.patch()
+            schedule.delete()
+        clean_user_orgs_and_teams('hfarnsworth')
+
     def test_ldap_organization_creation_and_user_sourcing(self, v2, update_setting_pg, clean_user_orgs_and_teams):
         org_name = 'LDAP_Organization_{}'.format(random_title())
         ldap_settings = deepcopy(self.base_ldap_settings)
