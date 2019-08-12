@@ -1,4 +1,2 @@
 pylama
 pylama_pylint
-pytest
-tox
