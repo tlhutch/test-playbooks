@@ -1,10 +1,13 @@
 import os
 
 import fauxfactory
+import pytest
+
 from awxkit import config
 
 from tests.cli.utils import format_error
 
+@pytest.mark.yolo
 class TestLogin(object):
 
     def test_network_error(self, cli):

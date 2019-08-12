@@ -6,6 +6,7 @@ from awxkit import config
 from tests.cli.utils import format_error
 
 
+@pytest.mark.yolo
 class TestDetailView(object):
 
     def test_404(self, cli):

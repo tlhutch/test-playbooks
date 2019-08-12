@@ -4,6 +4,7 @@ from awxkit import exceptions
 from tests.cli.utils import format_error
 
 
+@pytest.mark.yolo
 @pytest.mark.usefixtures('authtoken')
 class TestObjectDeletion(object):
 

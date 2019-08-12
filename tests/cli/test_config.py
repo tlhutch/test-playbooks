@@ -1,8 +1,11 @@
 import os
 
+import pytest
+
 from tests.cli.utils import format_error
 
 
+@pytest.mark.yolo
 class TestCLIConfig(object):
 
     def test_default_config(self, cli):

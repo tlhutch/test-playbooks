@@ -1,6 +1,7 @@
 import pytest
 
 
+@pytest.mark.yolo
 @pytest.mark.usefixtures('authtoken')
 class TestStdoutDownload(object):
 
