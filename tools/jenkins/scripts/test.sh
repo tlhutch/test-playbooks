@@ -24,7 +24,7 @@ pip install -Ur scripts/requirements.install
 pip install -Ur requirements.txt
 
 if [[ -n "${AWXKIT_BRANCH}" ]]; then
-    pip install -U "git+ssh://git@github.com/${AWXKIT_FORK}/${AWXKIT_REPO}.git@${AWXKIT_BRANCH}#egg=awxkit&subdirectory=awxkit"
+    pip install -U "git+ssh://git@github.com/${AWXKIT_FORK}/${AWXKIT_REPO}.git@${AWXKIT_BRANCH}#egg=awxkit[websockets]&subdirectory=awxkit"
 fi
 
 echo "y" | pip uninstall pytest-mp || true
