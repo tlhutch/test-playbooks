@@ -76,8 +76,9 @@ class TestLDAP(APITest):
         ldap_settings = deepcopy(self.base_ldap_settings)
         ldap_settings['AUTH_LDAP_ORGANIZATION_MAP'] = {
             org_name: dict(admins='cn=bobsburgers_admins,cn=groups,cn=accounts,dc=testing,dc=ansible,dc=com',
+                           auditors='cn=bobsburgers_admins,cn=groups,cn=accounts,dc=testing,dc=ansible,dc=com',
                            users=['cn=bobsburgers,cn=groups,cn=accounts,dc=testing,dc=ansible,dc=com'],
-                           remove_admins=False, remove_users=True)
+                           remove_admins=False, remove_auditors=False, remove_users=True)
         }
 
         update_setting_pg(v2.settings.get().get_endpoint('ldap'), ldap_settings)
@@ -92,6 +93,10 @@ class TestLDAP(APITest):
         admins = org.related.admins.get()
         assert admins.count == 1
         assert admins.results.pop().id == linda.id
+        auditor_role = org.get_object_role('Auditor', True)
+        auditors = auditor_role.related.users.get()
+        assert auditors.count == 1
+        assert auditors.results.pop().id == linda.id
 
     def test_ldap_team_creation_and_user_sourcing(self, v2, update_setting_pg, clean_user_orgs_and_teams):
         org_name = 'Bobs Burgers {}'.format(random_title())
