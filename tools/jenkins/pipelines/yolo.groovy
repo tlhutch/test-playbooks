@@ -436,23 +436,18 @@ pipeline {
                 }
             }
         }
-        stage('Collect artifacts (SOS Reports, pip freeze) from Tower instances') {
-            when {
-                expression {
-                    return (params.RUN_INSTALLER || params.RUN_TESTS || params.RUN_E2E)
-                }
-            }
-
-            steps {
-                sshagent(credentials : ['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
-                    sh "ssh ${SSH_OPTS} ec2-user@${TEST_RUNNER_HOST} 'cd tower-qa && ./tools/jenkins/scripts/collect.sh'"
-                    sh 'ansible-playbook -v -i playbooks/inventory.test_runner playbooks/test_runner/run_fetch_artifacts_tower.yml'
-                }
-            }
-        }
     }
     post {
         always {
+            script {
+                if (params.RUN_INSTALLER || params.RUN_TESTS || params.RUN_E2E) {
+                    sshagent(credentials : ['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
+                        sh "ssh ${SSH_OPTS} ec2-user@${TEST_RUNNER_HOST} 'cd tower-qa && ./tools/jenkins/scripts/collect.sh' || true" // Continue on even if this fails so we can archive anything available
+                        sh 'ansible-playbook -v -i playbooks/inventory.test_runner playbooks/test_runner/run_fetch_artifacts_tower.yml || true' // Continue on even if this fails so we can archive anything available
+                    }
+                }
+            }
+
             archiveArtifacts allowEmptyArchive: true, artifacts: 'artifacts/*'
         }
         success {
