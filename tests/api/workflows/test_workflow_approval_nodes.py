@@ -159,7 +159,7 @@ class TestWorkflowApprovalNodes(APITest):
         all_failed_approvals = v2.workflow_approvals.get(status='failed').results
         assert wf_approval.id in [approval.id for approval in all_failed_approvals]
         # Verify that you can not approve/deny after the timeout
-        with pytest.raises(awxkit.exceptions.BadRequest):
+        with pytest.raises(awxkit.exceptions.Forbidden):
             wf_approval.approve()
         wf_job.wait_until_completed().assert_status('failed')
 
@@ -183,7 +183,7 @@ class TestWorkflowApprovalNodes(APITest):
         all_successful_approvals = v2.workflow_approvals.get(status='successful').results
         assert wf_approval.id in [approval.id for approval in all_successful_approvals]
         # make sure you cannot approve again
-        with pytest.raises(awxkit.exceptions.BadRequest):
+        with pytest.raises(awxkit.exceptions.Forbidden):
             wf_approval.approve()
 
         wfjt.delete()
@@ -214,7 +214,7 @@ class TestWorkflowApprovalNodes(APITest):
         all_failed_approvals = v2.workflow_approvals.get(status='failed').results
         assert wf_approval.id in [approval.id for approval in all_failed_approvals]
         # make sure you cannot approve again
-        with pytest.raises(awxkit.exceptions.BadRequest):
+        with pytest.raises(awxkit.exceptions.Forbidden):
             wf_approval.approve()
 
         approval_node.delete()
