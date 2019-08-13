@@ -78,7 +78,7 @@ Any user with right permissions can approve to proceed or deny to fail the node 
 | Org | Org Admin | ✔️ | ✔️ | ✔️ | ✔️ | ✔️ |
 | System | System Admin | ✔️ | ✔️ | ✔️ | ✔️ | ✔️ |
 | Org <br> WFJT | Approver | ✔️ | ✔️ | ❌️ | ✔️ | ❌ |
-| Org <br> WFJT | Read on WF | ✔️ | ✔️ | ❌ | ❌ | ❌ |
+| Org <br> WFJT | Read on WF | Org ❌ <br> WFJT ✔️ | Org ❌ <br> WFJT ✔️ | ❌ | ❌ | ❌ |
 | System | System Auditor | ✔️ | ✔️ | ❌ | ❌ | ❌ |
 | Random user in org | No Permission | ❌ | ❌ | ❌ | ❌ | ❌ |
 | Random user outside org | No Permission | ❌ | ❌ | ❌ | ❌ | ❌ |

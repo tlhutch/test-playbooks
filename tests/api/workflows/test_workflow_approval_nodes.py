@@ -1,5 +1,4 @@
 import pytest
-from awxkit.utils import poll_until
 import awxkit.exceptions
 
 from tests.api import APITest
@@ -50,12 +49,10 @@ class TestWorkflowApprovalNodes(APITest):
         wf_job = wfjt.launch()
         wf_job.wait_until_status('running')
         approval_job_node = wf_job.related.workflow_nodes.get(unified_job_template=approval_jt.id).results.pop()
-        poll_until(lambda: hasattr(approval_job_node.get().related, 'job'), interval=1, timeout=60)
-        wf_approval = approval_job_node.related.job.get()
+        wf_approval = approval_job_node.wait_for_job().related.job.get().wait_until_status('pending')
 
         # Assert the workflow approval that was associated with the approval job node is in list of
         # approvals pending (this is what user will get notification about)
-        poll_until(lambda: wf_approval.get().status == 'pending', interval=1, timeout=60)
         all_pending_approvals = v2.workflow_approvals.get(status='pending').results
         assert wf_approval.id in [approval.id for approval in all_pending_approvals]
         assert wf_job.status == 'running'
@@ -80,7 +77,6 @@ class TestWorkflowApprovalNodes(APITest):
 
         wf_job.wait_until_completed().assert_successful()
 
-    @pytest.mark.yolo
     def test_update_existing_node_to_approval_node(self, v2, factories, org_admin):
         """Create a workflow with an approval node and approve it."""
         org = org_admin.related.organizations.get().results.pop()
@@ -110,12 +106,10 @@ class TestWorkflowApprovalNodes(APITest):
         wf_job.wait_until_status('running')
 
         approval_job_node = wf_job.related.workflow_nodes.get(unified_job_template=approval_jt.id).results.pop()
-        poll_until(lambda: hasattr(approval_job_node.get().related, 'job'), interval=1, timeout=60)
-        wf_approval = approval_job_node.related.job.get()
+        wf_approval = approval_job_node.wait_for_job().related.job.get().wait_until_status('pending')
 
         # Assert the workflow approval that was associated with the approval job node is in list of
         # approvals pending (this is what user will get notification about)
-        poll_until(lambda: wf_approval.get().status == 'pending', interval=1, timeout=60)
         all_pending_approvals = v2.workflow_approvals.get(status='pending').results
         assert wf_approval.id in [approval.id for approval in all_pending_approvals]
 
@@ -125,7 +119,6 @@ class TestWorkflowApprovalNodes(APITest):
 
         wf_job.wait_until_completed().assert_successful()
 
-    @pytest.mark.yolo
     def test_approval_node_timeout(self, v2, factories):
         """Create a workflow with an approval node and approve it."""
         wfjt = factories.workflow_job_template()
@@ -146,9 +139,7 @@ class TestWorkflowApprovalNodes(APITest):
         wf_job = wfjt.launch()
         wf_job.wait_until_status('running')
         approval_job_node = wf_job.related.workflow_nodes.get(unified_job_template=approval_jt.id).results.pop()
-        poll_until(lambda: hasattr(approval_job_node.get().related, 'job'), interval=1, timeout=60)
-        wf_approval = approval_job_node.related.job.get()
-        wf_approval.wait_until_status('failed')
+        wf_approval = approval_job_node.wait_for_job().related.job.get().wait_until_status('failed')
         # Verify that the workflow approval is failed since the node timed out
         assert wf_approval.status == f'failed', 'Workflow Approval did not fail after timeout passed! \n' \
                                      f'Workflow Approval: {wf_approval}\n' \
@@ -163,7 +154,6 @@ class TestWorkflowApprovalNodes(APITest):
             wf_approval.approve()
         wf_job.wait_until_completed().assert_status('failed')
 
-    @pytest.mark.yolo
     def test_workflow_job_template_deletion_scenarios(self, v2, factories, org_admin):
         org = org_admin.related.organizations.get().results.pop()
         wfjt = factories.workflow_job_template(organization=org)
@@ -176,9 +166,7 @@ class TestWorkflowApprovalNodes(APITest):
         wf_job = wfjt.launch()
         wf_job.wait_until_status('running')
         approval_job_node = wf_job.related.workflow_nodes.get(unified_job_template=approval_jt.id).results.pop()
-        poll_until(lambda: hasattr(approval_job_node.get().related, 'job'), interval=1, timeout=60)
-        wf_approval = approval_job_node.related.job.get()
-        poll_until(lambda: wf_approval.get().status == 'pending', interval=1, timeout=60)
+        wf_approval = approval_job_node.wait_for_job().related.job.get().wait_until_status('pending')
         wf_approval.approve()
         all_successful_approvals = v2.workflow_approvals.get(status='successful').results
         assert wf_approval.id in [approval.id for approval in all_successful_approvals]
@@ -192,9 +180,8 @@ class TestWorkflowApprovalNodes(APITest):
             wfjt.launch()
         with pytest.raises(awxkit.exceptions.NotFound):
             approval_node.related.unified_job_template.get()
-        assert v2.workflow_approvals.get(id=wf_approval.id).results.count !=0
+        assert v2.workflow_approvals.get(id=wf_approval.id).results.count != 0
 
-    @pytest.mark.yolo
     def test_workflow_approval_node_deletion_scenarios(self, v2, factories, org_admin):
         org = org_admin.related.organizations.get().results.pop()
         wfjt = factories.workflow_job_template(organization=org)
@@ -207,9 +194,7 @@ class TestWorkflowApprovalNodes(APITest):
         wf_job = wfjt.launch()
         wf_job.wait_until_status('running')
         approval_job_node = wf_job.related.workflow_nodes.get(unified_job_template=approval_jt.id).results.pop()
-        poll_until(lambda: hasattr(approval_job_node.get().related, 'job'), interval=1, timeout=60)
-        wf_approval = approval_job_node.related.job.get()
-        poll_until(lambda: wf_approval.get().status == 'pending', interval=1, timeout=60)
+        wf_approval = approval_job_node.wait_for_job().related.job.get().wait_until_status('pending')
         wf_approval.deny()
         all_failed_approvals = v2.workflow_approvals.get(status='failed').results
         assert wf_approval.id in [approval.id for approval in all_failed_approvals]
@@ -220,4 +205,50 @@ class TestWorkflowApprovalNodes(APITest):
         approval_node.delete()
         with pytest.raises(awxkit.exceptions.NotFound):
             approval_node.related.unified_job_template.get()
-        assert v2.workflow_approvals.get(id=wf_approval.id).results.count !=0
+        assert v2.workflow_approvals.get(id=wf_approval.id).results.count != 0
+
+    def test_various_workflow_branch_scenarios(self, v2, factories, org_admin):
+        """Create a workflow with an approval node and approve it."""
+        org = org_admin.related.organizations.get().results.pop()
+        wfjt = factories.workflow_job_template(organization=org)
+        jt1 = factories.job_template(organization=org)
+        jt2 = factories.job_template(organization=org)
+        job_template_node1 = factories.workflow_job_template_node(
+            workflow_job_template=wfjt, unified_job_template=jt1)
+        approval_node = factories.workflow_job_template_node(
+            workflow_job_template=wfjt, unified_job_template=jt2).make_approval_node()
+
+        # verify that the approval node does not impact the running of the job template node in a parallel branch
+        wf_job = wfjt.launch()
+        wf_job.wait_until_status('running')
+        approval_jt = approval_node.related.unified_job_template.get()
+        job_template_jt = job_template_node1.related.unified_job_template.get()
+        approval_job_node = wf_job.related.workflow_nodes.get(unified_job_template=approval_jt.id).results.pop()
+        job_template_job_node = wf_job.related.workflow_nodes.get(unified_job_template=job_template_jt.id).results.pop()
+        wf_approval = approval_job_node.wait_for_job().related.job.get().wait_until_status('pending')
+
+        job_template_job_node.related.job.get().wait_until_status('successful')
+        assert wf_job.status == 'running'
+
+        # verify that if the approval node got denied and it was the last node in that branch,
+        # the job will still get failed irrespective of status of other parallel branches
+        wf_approval.deny()
+        all_denied_approvals = v2.workflow_approvals.get(status='failed').results
+        assert wf_approval.id in [approval.id for approval in all_denied_approvals]
+        wf_job.wait_until_completed()
+        assert wf_job.status == 'failed'
+
+        # verify that if there is a path to take after the approval node is denied, and if the path succeeds,
+        # the job will still be successful
+        job_template_node2 = factories.workflow_job_template_node(
+            workflow_job_template=wfjt, unified_job_template=jt2)
+        with pytest.raises(awxkit.exceptions.NoContent):
+            approval_node.related.always_nodes.post(dict(id=job_template_node2.id))
+        wf_job = wfjt.launch()
+        wf_job.wait_until_status('running')
+        approval_job_node = wf_job.related.workflow_nodes.get(unified_job_template=approval_jt.id).results.pop()
+        wf_approval = approval_job_node.wait_for_job().related.job.get().wait_until_status('pending')
+        wf_approval.deny()
+        all_denied_approvals = v2.workflow_approvals.get(status='failed').results
+        assert wf_approval.id in [approval.id for approval in all_denied_approvals]
+        wf_job.wait_until_completed().assert_successful()
