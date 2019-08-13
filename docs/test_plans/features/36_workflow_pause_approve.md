@@ -41,7 +41,17 @@ Any user with right permissions can approve to proceed or deny to fail the node 
 
 ### Activity Stream Scenarios
 
-- [ ] Confirm the details such as name of the node, person who approved/denied it, reason of failure if any, person who launched the job are present in the activity stream. Verify this in all scenarios of: approval, denial, timeout.
+- [ ] Given that a workflow approval node has been DENIED, confirm that the:
+    - [ ] approver is identified
+    - [ ] workflow job that it ran is is identified
+    - [ ] reason for approval is shown (Check on this)
+    - [x] Confirm this is visible to anyone with read access to WF approval
+- [ ] Given that a workflow approval node has been DENIED, confirm that the:
+    - [ ] approver is identified
+    - [ ] workflow job that it ran is is identified
+    - [ ] reason for approval is shown (Check on this)
+    - [x] Confirm this is visible to anyone with read access to WF approval
+- NOTE: Ask @notting if we want an activity stream entry for timeout, currently not implemented
 
 ### RBAC
 
@@ -73,11 +83,11 @@ Any user with right permissions can approve to proceed or deny to fail the node 
 
 ### Interaction with other workflow features:
 
-- [ ] Confirm that the set_stats artifacts in nodes before the approval node can pass through the approval node and the nodes after the approval node have access to the artifacts
+- [x] Confirm that the set_stats artifacts in nodes before the approval node can pass through the approval node and the nodes after the approval node have access to the artifacts
 
 ### Random Scenarios
 
 - [x] Confirm that if a workflow job template is deleted, previously run workflow approvals are not deleted but the template itself is deleted
 - [x] Confirm that if a workflow approval node is deleted, its approvals are not deleted
 - [x] Confirm that if an approval node is acted upon (approve/deny) it cannot be approved/denied again
-- [ ] Confirm that if the tower restarts, once it is up again, the approval nodes previously in pending state are still pending and they can be approved and the workflow job finishes and succeeds
+- [x] Confirm that if the tower restarts, once it is up again, the approval nodes previously in pending state are still pending and they can be approved and the workflow job finishes and succeeds
