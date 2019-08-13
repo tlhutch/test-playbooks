@@ -16,15 +16,17 @@ Any user with right permissions can approve to proceed or deny to fail the node 
 
 - [x] Confirm that superuser can add workflow pause node and give various permissions to users
 - [x] Confirm that a user can convert any workflow node into a workflow pause approval node
-- [ ] Confirm indirectly in tests that an approval node can be added and approved in the following places in a workflow job template
-    - [ ] In the beginning of the workflow
-    - [ ] In between two workflow nodes
-    - [ ] At the end
-    - [ ] As an only node in the template
-- [ ] Confirm that an approval node waiting for a user to approve or deny does not impact the running of a node in another parallel path in the workflow template
-- [ ] Confirm that an approval node that has been denied does not impact the running of a node in another parallel path in the workflow template
-- [ ] Confirm that a workflow job can be successful if an approval node has been denied but there is an alternate path to take
-- [ ] Confirm that a workflow job will be failed if the approval node that has been denied is the last node
+- [x] Confirm indirectly in tests that an approval node can be added and approved in the following places in a workflow job template
+    - [x] In the beginning of the workflow
+    - [x] In between two workflow nodes
+    - [x] At the end
+        - [x] Confirm that a workflow job will be failed if the approval node at the end of the branch is denied
+    - [x] As an only node in the template
+        - [x] Confirm that the approval/ denial of the approval node will directly impact the job status
+- [x] Confirm that an approval node does not impact the running of a node in another parallel branch in the workflow template
+    - [x] When the approval node is pending approval
+    - [x] When the approval node is denied
+- [x] Confirm that a workflow job can be successful if an approval node has been denied but there is an alternate path to take
 
 ### Timeout Feature Verification
 
@@ -89,5 +91,6 @@ Any user with right permissions can approve to proceed or deny to fail the node 
 
 - [x] Confirm that if a workflow job template is deleted, previously run workflow approvals are not deleted but the template itself is deleted
 - [x] Confirm that if a workflow approval node is deleted, its approvals are not deleted
+- [ ] Confirm that if a workflow job template is copied, the template is copied along with it's nodes
 - [x] Confirm that if an approval node is acted upon (approve/deny) it cannot be approved/denied again
 - [x] Confirm that if the tower restarts, once it is up again, the approval nodes previously in pending state are still pending and they can be approved and the workflow job finishes and succeeds
