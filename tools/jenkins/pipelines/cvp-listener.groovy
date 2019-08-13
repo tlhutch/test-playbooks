@@ -30,6 +30,10 @@ pipelineJob('CVP Listener') {
                               field('$.artifact.type')
                               expectedValue("redhat-container-group")
                           }
+                          msgCheck {
+                              field('$.artifact.images[0].issuer')
+                              expectedValue("freshmaker")
+                          }
                       }
                   }
               }
