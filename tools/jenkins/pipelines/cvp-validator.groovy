@@ -8,6 +8,7 @@ def Component = ''
 def status = ''
 def TOWER_NAMESPACE = ''
 def TOWER_VERSION = ''
+def _TOWER_VERSION = ''
 def TOWER_CONTAINER_IMAGE = ''
 def MESSAGING_CONTAINER_IMAGE = ''
 def MEMCACHED_CONTAINER_IMAGE = ''
@@ -35,13 +36,21 @@ pipeline {
                         // Retrieve the Tower Version impacted via the synopsis on the Errata advisory
                         //
                         TOWER_VERSION = sh (
-                            script: "curl -k --netrc-file ${NETRC} https://errata.devel.redhat.com/api/v1/erratum/${ErrataId} 2>/dev/null | python -c 'import json,sys; print(json.loads(sys.stdin.read())[\"errata\"][\"rhba\"][\"synopsis\"])' | awk '{ print \$5 }' | awk -F'-' '{ print \$1 }'",
+                            script: "curl -k --netrc-file ${NETRC} https://errata.devel.redhat.com/api/v1/erratum/${ErrataId} 2>/dev/null | python -c 'import json,sys; print(json.loads(sys.stdin.read())[\"content\"][\"content\"][\"topic\"])' | sed 's/.*\\(3\\.[0-9]\\).*/\\1/g'",
                             returnStdout: true
                         ).trim()
 
+                        if (TOWER_VERSION == '3.3') {
+                            _TOWER_VERSION = '3.3.6'
+                        } else if (TOWER_VERSION == '3.4') {
+                            _TOWER_VERSION = '3.4.4'
+                        } else {
+                            _TOWER_VERSION = '3.5.1'
+                        }
+
                         // Deduce the Toewr Namespace (ie. 35 for 3.5.x) for later consumption
                         TOWER_NAMESPACE = sh (
-                            script: "echo ${TOWER_VERSION} | sed 's/\\.//g' | sed s'/.\$//'",
+                            script: "echo ${_TOWER_VERSION} | sed 's/\\.//g' | sed s'/.\$//'",
                             returnStdout: true
                         ).trim()
 
@@ -68,13 +77,13 @@ pipeline {
                         botUser: false,
                         teamDomain: "ansible",
                         channel: "#umb-events",
-                        message: """*[CVP Event]*: A new Errata has been automatically created for ${Component} *${TOWER_VERSION}* (https://errata.engineering.redhat.com/advisory/${ErrataId}) following a CVE fixed in one of our dependencies.
+                        message: """*[CVP Event]*: A new Errata has been automatically created for ${Component} *${_TOWER_VERSION}* (https://errata.engineering.redhat.com/advisory/${ErrataId}) following a CVE fixed in one of our dependencies.
 
 List of emitted events for ${Component} are available on the <https://datagrepper.engineering.redhat.com/raw?topic=/topic/VirtualTopic.eng.ci.redhat-container-group.test.queued&delta=864000&contains=ansible-tower | UMB>
 
 The <http://jenkins.ansible.eng.rdu2.redhat.com/blue/organizations/jenkins/Pipelines%2Fopenshift-install-pipeline/activity | OpenShift Install> job will be triggered with the following parameters:
 
-• `TOWER_VERSION` = ${TOWER_VERSION?: '*Something is wrong this should always be set - please check the UMB message using the above link*'}
+• `TOWER_VERSION` = ${_TOWER_VERSION?: '*Something is wrong this should always be set - please check the UMB message using the above link*'}
 • `TOWER_CONTAINER_IMAGE` = ${TOWER_CONTAINER_IMAGE?: '`empty` - this container is not impacted by the CVE'}
 • `MESSAGING_CONTAINER_IMAGE` = ${MESSAGING_CONTAINER_IMAGE?: '`empty` - this container is not impacted by the CVE'}
 • `MEMCACHED_CONTAINER_IMAGE` = ${MEMCACHED_CONTAINER_IMAGE?: '`empty` - this container is not impacted by the CVE'}
@@ -85,7 +94,7 @@ The <http://jenkins.ansible.eng.rdu2.redhat.com/blue/organizations/jenkins/Pipel
                       job: 'Pipelines/openshift-install-pipeline',
                       propagate: false,
                       parameters: [
-                          string(name: 'TOWER_VERSION', value: TOWER_VERSION),
+                          string(name: 'TOWER_VERSION', value: _TOWER_VERSION),
                           string(name: 'TOWER_CONTAINER_IMAGE', value: TOWER_CONTAINER_IMAGE),
                           string(name: 'MESSAGING_CONTAINER_IMAGE', value: MESSAGING_CONTAINER_IMAGE),
                           string(name: 'MEMCACHED_CONTAINER_IMAGE', value: MEMCACHED_CONTAINER_IMAGE),
