@@ -14,7 +14,7 @@ VARS_FILE=${VARS_FILE:-playbooks/vars.yml}
 PYTEST_NUMPROCESSES="4"
 
 # Dependencies for installing jq via pip
-sudo yum install autoconf automake libtool
+sudo yum install -y autoconf automake libtool
 
 # -- Start
 #
