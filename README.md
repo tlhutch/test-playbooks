@@ -107,6 +107,19 @@ py.test -c config/docker.cfg
 py.test -c config/api.cfg --base-url='https://<tower-host\>'
 
 
+### Infrastructure dependencies
+
+Some infrastructure is spawned by tests by provisioning services on a kubernetes cluster we have in GCE. Other tests rely on static infrastructure.
+
+This includes, but is not limited to:
+  - Azure login + hosts
+  - Openstack login + hosts ([docs](https://github.com/ansible/tower-qa/blob/devel/docs/knowledge_base/openstack_config.md)
+  - GCE login + hosts
+  - EC2 login + hosts
+
+
+More documentation is needed in this area.
+
 ### Using with local awxkit
 
 If you intend to make modifications to awxkit as well, you should pip install awxkit with the `-e`
