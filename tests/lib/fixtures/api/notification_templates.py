@@ -2,12 +2,19 @@ import pytest
 import requests
 
 
+@pytest.fixture
+def webhook_binId():
+    # Rely on https://postb.in to really test our webhooks
+    return requests.post('https://postb.in/api/bin').json()['binId']
+
+
 @pytest.fixture(scope="function", params=[
     "email",
     "irc",
     "mattermost",
     "pagerduty",
     "slack",
+    "webhook",
     ])
 def notification_template(request):
     """All notification templates."""
@@ -45,18 +52,14 @@ def twilio_notification_template(factories):
 
 
 @pytest.fixture(scope="function")
-def webhook_notification_template(factories):
+def webhook_notification_template(factories, webhook_binId):
     """Webhook notification template"""
-    raise NotImplementedError("We don't have GCE creds setup right now see https://github.com/ansible/tower-qa/issues/2839")
+    return factories.notification_template(
+        notification_type="webhook", url='https://postb.in/%s' % webhook_binId, headers={}
+    )
 
 
 @pytest.fixture(scope="function")
 def mattermost_notification_template(factories):
     """Mattermost notification template"""
     return factories.notification_template(notification_type="mattermost")
-
-
-@pytest.fixture
-def webhook_binId():
-    # Rely on https://postb.in to really test our webhooks
-    return requests.post('https://postb.in/api/bin').json()['binId']
