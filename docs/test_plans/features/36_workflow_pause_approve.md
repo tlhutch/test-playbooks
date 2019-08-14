@@ -33,7 +33,7 @@ Any user with right permissions can approve to proceed or deny to fail the node 
 - [x] Confirm that a user can specify timeout during creation of the approval node
 - [x] Confirm that if a timeout is not specified, it is set to 0(unlimited) by default
 - [x] Confirm that any user cannot approve/deny after the timeout period
-- [ ] Confirm that after the timeout, the approval node fails with a reason of failure and the attribute timeout is true
+- [x] Confirm that after the timeout, the approval node fails with a reason of failure and the attribute timeout is true
 
 ### Workflow and Workflow Approval node state Verification
 
@@ -41,16 +41,24 @@ Any user with right permissions can approve to proceed or deny to fail the node 
 - [x] Confirm that when the workflow approval node is waiting for approval, the state of the node is “pending” and the state of the workflow job is still “running”
 - [x] Confirm that the state of the node is “successful” if approved and “failed” if denied
 
+### Copy a Workflow Job template having an approval node Verification
+
+- [ ] Given that a workflow job template is copied, confirm that following objects are copied too:
+    - [ ] attributes such as 'type', 'extra_data', 'job_type', 'job_tags', 'skip_tags', 'limit', 'diff_mode', 'verbosity'
+    - [ ] the labels
+    - [ ] the survey spec
+    - [ ] approval nodes
+
 ### Activity Stream Scenarios
 
 - [ ] Given that a workflow approval node has been DENIED, confirm that the:
-    - [ ] approver is identified
-    - [ ] workflow job that it ran is is identified
+    - [x] approver is identified
+    - [x] workflow job that it ran is is identified
     - [ ] reason for approval is shown (Check on this)
     - [x] Confirm this is visible to anyone with read access to WF approval
 - [ ] Given that a workflow approval node has been DENIED, confirm that the:
-    - [ ] approver is identified
-    - [ ] workflow job that it ran is is identified
+    - [x] approver is identified
+    - [x] workflow job that it ran is is identified
     - [ ] reason for approval is shown (Check on this)
     - [x] Confirm this is visible to anyone with read access to WF approval
 - NOTE: Ask @notting if we want an activity stream entry for timeout, currently not implemented
