@@ -43,21 +43,21 @@ Any user with right permissions can approve to proceed or deny to fail the node 
 
 ### Copy a Workflow Job template having an approval node Verification
 
-- [ ] Given that a workflow job template is copied, confirm that following objects are copied too:
-    - [ ] attributes such as 'type', 'extra_data', 'job_type', 'job_tags', 'skip_tags', 'limit', 'diff_mode', 'verbosity'
-    - [ ] the labels
-    - [ ] the survey spec
-    - [ ] approval nodes
+- [x] Given that a workflow job template is copied, confirm that following objects are copied too:
+    - [x] attributes such as 'type', 'extra_data', 'job_type', 'job_tags', 'skip_tags', 'limit', 'diff_mode', 'verbosity'
+    - [x] the labels
+    - [x] the survey spec
+    - [x] approval nodes
 
 ### Activity Stream Scenarios
 
 - [ ] Given that a workflow approval node has been DENIED, confirm that the:
-    - [x] approver is identified
+    - [ ] approver is identified
     - [x] workflow job that it ran is is identified
     - [ ] reason for approval is shown (Check on this)
     - [x] Confirm this is visible to anyone with read access to WF approval
 - [ ] Given that a workflow approval node has been DENIED, confirm that the:
-    - [x] approver is identified
+    - [ ] approver is identified
     - [x] workflow job that it ran is is identified
     - [ ] reason for approval is shown (Check on this)
     - [x] Confirm this is visible to anyone with read access to WF approval
