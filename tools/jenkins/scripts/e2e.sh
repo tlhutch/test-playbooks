@@ -101,8 +101,6 @@ docker tag gcr.io/ansible-tower-engineering/"${CONTAINER_IMAGE_NAME}":latest ${C
 docker-compose \
     -f ${DEPLOYMENT_TYPE}/awx/ui/test/e2e/cluster/docker-compose.yml \
     run \
-    -e AWX_E2E_CLUSTER_HOST="${E2E_EXTERNAL_GRID_HOSTNAME}" \
-    -e AWX_E2E_CLUSTER_PORT="${E2E_EXTERNAL_GRID_PORT}" \
     -e AWX_E2E_URL="${E2E_URL}" \
     -e AWX_E2E_USERNAME="${E2E_USERNAME}" \
     -e AWX_E2E_PASSWORD="${E2E_PASSWORD}" \
