@@ -47,7 +47,11 @@ class Test_Proot(APITest):
          - /etc/awx/settings.py - No such file or directory
          - /var/log/supervisor/* - Permission Denied
         """
-        project = factories.project()
+        # TODO: remove when test-playbooks change is merged
+        project = factories.project(
+            scm_url='https://github.com/AlanCoding/test-playbooks.git',
+            scm_branch='clean_copy'
+        )
         host = factories.host()
         proot_1, proot_2 = [factories.job_template(inventory=host.ds.inventory,
                                                       project=project, playbook='test_proot.yml',

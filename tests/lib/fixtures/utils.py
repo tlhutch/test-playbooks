@@ -202,6 +202,12 @@ def skip_if_pre_ansible28(ansible_version_cmp):
         pytest.skip('Cannot run with version of Ansible pre 2.8.0')
 
 
+@pytest.fixture(scope='session')
+def skip_if_pre_ansible29(ansible_version_cmp):
+    if ansible_version_cmp('2.9.0') < 0:
+        pytest.skip('Cannot run with version of Ansible pre 2.9.0')
+
+
 # Class scoped fixtures
 #
 

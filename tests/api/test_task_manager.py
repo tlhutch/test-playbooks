@@ -515,8 +515,11 @@ class Test_Autospawned_Jobs(APITest):
         job_pg.assert_successful()
 
         # check that our new project updates are successful
-        spawned_project_updates = project.related.project_updates.get(not__id=initial_project_update.id)
-        assert spawned_project_updates.count == 2, "Unexpected number of job-spawned project updates."
+        spawned_project_updates = project.related.project_updates.get(
+            not__id=initial_project_update.id,
+            not__launch_type='sync'  # exclude local syncs
+        )
+        assert spawned_project_updates.count == 1, "Unexpected number of job-spawned project updates."
         for update in spawned_project_updates.results:
             update.assert_successful()
 
@@ -524,12 +527,15 @@ class Test_Autospawned_Jobs(APITest):
         spawned_check_updates = project.related.project_updates.get(not__id=initial_project_update.id, job_type='check')
         spawned_run_updates = project.related.project_updates.get(not__id=initial_project_update.id, job_type='run')
         assert spawned_check_updates.count == 1, "Unexpected number of spawned check project updates."
-        assert spawned_run_updates.count == 1, "Unexpected number of spawned run project updates."
-        spawned_check_update, spawned_run_update = spawned_check_updates.results.pop(), spawned_run_updates.results.pop()
+        # the local project sync may not be necessary for git
+        assert spawned_run_updates.count <= 1, "Unexpected number of spawned run project updates."
+        spawned_check_update = spawned_check_updates.results.pop()
 
-        # check that jobs ran sequentially and in the right order
-        sorted_unified_jobs = [initial_project_update, spawned_check_update, [job_pg, spawned_run_update]]
-        confirm_unified_jobs(sorted_unified_jobs)
+        if spawned_run_updates.count:
+            spawned_run_update = spawned_run_updates.results.pop()
+            # check that jobs ran sequentially and in the right order
+            sorted_unified_jobs = [initial_project_update, spawned_check_update, [job_pg, spawned_run_update]]
+            confirm_unified_jobs(sorted_unified_jobs)
 
     def test_project_cache_timeout(self, factories):
         """Verify that dependent project update is NOT triggered by a job launch when we enable
@@ -620,17 +626,18 @@ class Test_Autospawned_Jobs(APITest):
         job_pg.assert_successful()
 
         # check our new project updates are successful
-        spawned_project_updates = project.related.project_updates.get(not__id=initial_project_update.id)
-        assert spawned_project_updates.count == 2, "Unexpected number of final updates ({0}).".format(spawned_project_updates.count)
+        spawned_project_updates = project.related.project_updates.get(
+            not__id=initial_project_update.id,
+            not__launch_type='sync'  # exclude local sync
+        )
+        assert spawned_project_updates.count == 1, "Unexpected number of final updates ({0}).".format(spawned_project_updates.count)
         for update in spawned_project_updates.results:
             update.assert_successful()
 
         # check that our new project updates are of the right type
         spawned_check_updates = project.related.project_updates.get(not__id=initial_project_update.id, job_type='check')
-        spawned_run_updates = project.related.project_updates.get(not__id=initial_project_update.id, job_type='run')
         assert spawned_check_updates.count == 1, "Expected one new project update of job_type 'check.'"
-        assert spawned_run_updates.count == 1, "Expected one new project update of job_type 'run.'"
-        spawned_check_update, spawned_run_update = spawned_check_updates.results.pop(), spawned_run_updates.results.pop()
+        spawned_check_update = spawned_check_updates.results.pop()
 
         # check that inventory update was triggered and is successful
         custom_inventory_source.get()
@@ -641,7 +648,7 @@ class Test_Autospawned_Jobs(APITest):
         custom_inventory_source.assert_successful()
 
         # check that jobs ran sequentially and in the right order
-        sorted_unified_jobs = [initial_project_update, [spawned_check_update, inv_update_pg], [job_pg, spawned_run_update]]
+        sorted_unified_jobs = [initial_project_update, [spawned_check_update, inv_update_pg], job_pg]
         confirm_unified_jobs(sorted_unified_jobs)
 
 

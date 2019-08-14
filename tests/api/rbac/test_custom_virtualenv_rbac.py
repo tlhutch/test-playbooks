@@ -31,17 +31,17 @@ class TestCustomVirtualenvRBAC(APITest):
         with create_venv(folder_name):
             with self.current_user(org_admin):
                 resource.custom_virtualenv = venv_path(folder_name)
-                json = resource.json
-                json.custom_virtualenv = venv_path()
-                resource.put(json)
+                json_data = resource.json
+                json_data.custom_virtualenv = venv_path()
+                resource.put(json_data)
 
                 original_venv = other_resource.custom_virtualenv
                 with pytest.raises(exc.Forbidden):
                     other_resource.custom_virtualenv = venv_path(folder_name)
-                json = other_resource.json
-                json.custom_virtualenv == venv_path(folder_name)
+                json_data = other_resource.json
+                json_data.custom_virtualenv == venv_path(folder_name)
                 with pytest.raises(exc.Forbidden):
-                    other_resource.put(json)
+                    other_resource.put(json_data)
             assert other_resource.get().custom_virtualenv == original_venv
 
     @pytest.mark.parametrize('agent,resource_name', [(a, r) for a in ('user', 'team') for r in RESOURCES_WITH_VENV
@@ -54,11 +54,11 @@ class TestCustomVirtualenvRBAC(APITest):
 
         folder_name = random_title(non_ascii=False)
         with create_venv(folder_name):
-            json = resource.json
-            json.custom_virtualenv = venv_path()
+            json_data = resource.json
+            json_data.custom_virtualenv = venv_path()
             with self.current_user(user):
                 resource.custom_virtualenv = venv_path(folder_name)
-                resource.put(json)
+                resource.put(json_data)
 
     @pytest.mark.parametrize('agent,resource_name', [(a, r) for a in ('user', 'team') for r in RESOURCES_WITH_VENV
                                                      if not (a == 'team' and 'organization' in r)])
@@ -76,13 +76,13 @@ class TestCustomVirtualenvRBAC(APITest):
                 set_test_roles(user, resource, agent, role)
 
                 original_venv = resource.custom_virtualenv
-                json = resource.json
-                json.custom_virtualenv = venv_path(folder_name)
+                json_data = resource.json
+                json_data.custom_virtualenv = venv_path(folder_name)
                 with self.current_user(user):
                     with pytest.raises(exc.Forbidden):
                         resource.custom_virtualenv = venv_path(folder_name)
                     with pytest.raises(exc.Forbidden):
-                        resource.put(json)
+                        resource.put(json_data)
                 assert resource.get().custom_virtualenv == original_venv
                 set_test_roles(user, resource, agent, role, disassociate=True)
 
@@ -104,11 +104,11 @@ class TestCustomVirtualenvRBAC(APITest):
         folder_name = random_title(non_ascii=False)
         with create_venv(folder_name):
             original_venv = resource.custom_virtualenv
-            json = resource.json
-            json.custom_virtualenv = venv_path(folder_name)
+            json_data = resource.json
+            json_data.custom_virtualenv = venv_path(folder_name)
             with self.current_user(user):
                 with pytest.raises(exc.Forbidden):
                     resource.custom_virtualenv = venv_path(folder_name)
                 with pytest.raises(exc.Forbidden):
-                    resource.put(json)
+                    resource.put(json_data)
             assert resource.get().custom_virtualenv == original_venv

@@ -88,10 +88,13 @@ def job_template_multi_ask(instance_group, factories, organization, project, ssh
 
 @pytest.fixture
 def ask_everything_jt(factories):
-    return factories.job_template(playbook='debug_extra_vars.yml', ask_inventory_on_launch=True,
+    project = factories.project(allow_override=True)
+    return factories.job_template(playbook='debug_extra_vars.yml', project=project,
+                                     ask_inventory_on_launch=True,
                                      ask_credential_on_launch=True, ask_job_type_on_launch=True, ask_tags_on_launch=True,
                                      ask_skip_tags_on_launch=True, ask_variables_on_launch=True,
-                                     ask_diff_mode_on_launch=True, ask_limit_on_launch=True, ask_verbosity_on_launch=True)
+                                     ask_diff_mode_on_launch=True, ask_limit_on_launch=True, ask_verbosity_on_launch=True,
+                                     ask_scm_branch_on_launch=True)
 
 
 @pytest.fixture(scope="function")

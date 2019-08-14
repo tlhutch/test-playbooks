@@ -60,9 +60,9 @@ class TestUnifiedJobImpact(APITest):
         self.assert_instance_reflects_zero_running_jobs(instance.get())
         self.assert_instance_group_reflects_zero_running_jobs(ig_with_single_instance.get())
 
-        jt.launch()
-        utils.poll_until(lambda: jt.ds.project.related.project_updates.get(status='successful',
-                         launch_type='sync').count == 1, interval=1, timeout=60)
+        job = jt.launch()
+        # wait until the job is really "running" running
+        utils.poll_until(lambda: job.get_related('job_events').count, interval=1, timeout=30)
 
         utils.poll_until(lambda: instance.get().jobs_running == 1, interval=1, timeout=60)
         assert instance.get().consumed_capacity == self.unified_job_impact('job', num_hosts=num_hosts)
@@ -107,9 +107,8 @@ class TestUnifiedJobImpact(APITest):
         self.assert_instance_reflects_zero_running_jobs(instance.get())
         self.assert_instance_group_reflects_zero_running_jobs(ig_with_single_instance.get())
 
-        jt.launch()
-        utils.poll_until(lambda: jt.ds.project.related.project_updates.get(status='successful',
-                         launch_type='sync').count == 1, interval=1, timeout=60)
+        job = jt.launch()
+        utils.poll_until(lambda: job.get_related('job_events').count, interval=1, timeout=30)
 
         utils.poll_until(lambda: instance.get().jobs_running == 1, interval=1, timeout=60)
         assert instance.get().consumed_capacity == self.unified_job_impact('job', forks=forks, num_hosts=5)
@@ -155,10 +154,11 @@ class TestUnifiedJobImpact(APITest):
         self.assert_instance_reflects_zero_running_jobs(instance.get())
         self.assert_instance_group_reflects_zero_running_jobs(ig_with_single_instance.get())
 
+        jobs = []
         for _ in range(2):
-            jt.launch()
-        utils.poll_until(lambda: jt.ds.project.related.project_updates.get(status='successful',
-                         launch_type='sync').count == 2, interval=5, timeout=60)
+            jobs.append(jt.launch())
+        for job in jobs:
+            utils.poll_until(lambda: job.get_related('job_events').count, interval=1, timeout=30)
 
         utils.poll_until(lambda: instance.get().jobs_running == 2, interval=1, timeout=60)
         assert instance.get().consumed_capacity == 2 * self.unified_job_impact('job', num_hosts=1)
@@ -221,9 +221,8 @@ class TestUnifiedJobImpact(APITest):
         self.assert_instance_reflects_zero_running_jobs(instance.get())
         self.assert_instance_group_reflects_zero_running_jobs(igs[0].get())
 
-        jt.launch()
-        utils.poll_until(lambda: jt.ds.project.related.project_updates.get(status='successful',
-                         launch_type='sync').count == 1, interval=5, timeout=60)
+        job = jt.launch()
+        utils.poll_until(lambda: job.get_related('job_events').count, interval=1, timeout=30)
 
         utils.poll_until(lambda: instance.get().jobs_running == 1, interval=1, timeout=60)
         assert instance.get().consumed_capacity == self.unified_job_impact('job', num_hosts=1)
@@ -318,8 +317,10 @@ class TestUnifiedJobImpact(APITest):
 
         wfj = wfjt.launch()
 
-        utils.poll_until(lambda: jt.ds.project.related.project_updates.get(status='successful',
-                         launch_type='sync').count == 1, interval=5, timeout=60)
+        wfjn = wfj.get_related('workflow_nodes').results.pop()
+        wfjn.wait_for_job()
+        job = wfjn.get_related('job')
+        utils.poll_until(lambda: job.get_related('job_events').count, interval=1, timeout=30)
 
         instance = v2.instances.get(hostname=jt.related.jobs.get().results.pop().execution_node).results.pop()
         utils.poll_until(lambda: instance.get().jobs_running == 1, interval=1, timeout=60)

@@ -37,6 +37,18 @@ def project_with_galaxy_requirements(factories):
     )
 
 
+@pytest.fixture()
+def project_with_galaxy_collection_requirements(factories):
+    p = factories.project(
+        name='project-with-galaxy-collection-requirements - %s' % fauxfactory.gen_utf8(),
+        scm_type='git',
+        scm_url='http://github.com/ansible/test-playbooks',
+        scm_branch='with_collection_requirements'
+    )
+    p.assert_successful()
+    return p
+
+
 @pytest.mark.usefixtures('authtoken')
 class Test_Projects(APITest):
 
@@ -52,10 +64,10 @@ class Test_Projects(APITest):
 
         _res = [result for result in res['results'] if result['event'] != 'runner_on_start']
 
-        assert 2 == len(_res), \
+        assert 1 == len(_res), \
                 "Expected to find 2 job events matching task={},event__startswith={} for project update {}".format(
                         task_icontains, 'runner_on_', project.related.last_update)
-        return (_res)
+        return _res[0]
 
     @pytest.mark.parametrize('scm_type', ['git', 'hg', 'svn'])
     def test_project_update_basics(self, factories, scm_type):
@@ -377,14 +389,49 @@ class Test_Projects(APITest):
             with pytest.raises(exc.NotFound):
                 assert project_ansible_playbooks_git.get_related(related)
 
+    def test_job_folder_is_shallow_copy(self, factories, ansible_adhoc):
+        project = factories.project(scm_branch='teensy_tiny_branch')
+        jt = factories.job_template(project=project, playbook='sleep.yml')
+        jt.ds.inventory.add_host()
+        job = jt.launch()
+        job.wait_until_status('running')
+        poll_until(lambda: job.get_related('job_events').count, timeout=20, interval=1)
+        job.get()
+
+        ansible_module = ansible_adhoc()['tower']
+        contacted = ansible_module.stat(path=job.job_cwd)
+        job_instance = None
+        for host, result in contacted.items():
+            if result.get('stat', {}).get('exists'):
+                if job_instance:
+                    raise Exception('Expected folder on 1 host, found on {} and {}'.format(
+                        job_instance, str(host)))
+                job_instance = host
+                break
+        else:
+            raise Exception('Ansible module did not find {} in cluster, expected at {}'.format(
+                job.job_cwd, job.execution_node))
+
+        contacted = ansible_adhoc()[host].shell('du -bs .', chdir=job.job_cwd)
+        assert len(contacted) == 1
+        result = contacted.values().pop()
+
+        assert result.get('stdout'), result
+        size = result['stdout'].split('\t')[0]
+        # repo with single commit is about 85k
+        # playbook plus additional metadata brings it to about 101k
+        # differs by file system, so allow for some buffer
+        # full repo is about 450k, but can change daily
+        assert int(size) < 150000  # folder is smaller than entire repo
+
     @pytest.mark.ansible_integration
-    def test_project_with_galaxy_requirements(self, skip_if_cluster, factories, ansible_runner, project_with_galaxy_requirements):
+    def test_project_with_galaxy_requirements(self, request, skip_if_cluster, factories, ansible_runner, project_with_galaxy_requirements):
         """Verify that project requirements are downloaded when specified in a requirements file."""
         # create a JT with our project and launch a job with this JT
         job_template_pg = factories.job_template(
             project=project_with_galaxy_requirements,
             playbook="sleep.yml",
-            extra_vars=dict(sleep_interval=60*3)
+            extra_vars=dict(sleep_interval=60 * 3)
         )
         job_template_pg.ds.inventory.add_host()
         # keep job running so files will be in place while we shell in
@@ -397,11 +444,24 @@ class Test_Projects(APITest):
 
         # assert that expected galaxy requirements were downloaded
         # wherever the job runs, that is where the roles should be
-        expected_role_path = os.path.join(job_pg.job_cwd, "roles/yatesr.timezone")
+        expected_role_path = os.path.abspath(os.path.join(job_pg.job_cwd, '..', "requirements_roles", "yatesr.timezone"))
         contacted = ansible_runner.stat(path=expected_role_path)
         for result in contacted.values():
             assert result['stat']['exists'], "The expected galaxy role requirement was not found (%s)." % \
                 expected_role_path
+
+    @pytest.mark.ansible_integration
+    def test_employment_of_galaxy_requirements(self, skip_if_cluster, factories, ansible_runner, project_with_galaxy_requirements):
+        """This runs a playbook that fails if requirement is not available."""
+        job_template_pg = factories.job_template(project=project_with_galaxy_requirements, playbook="use_debug_role.yml")
+        # add a host, because if no host, it passes due to "no hosts matched"
+        job_template_pg.ds.inventory.add_host()
+
+        job = job_template_pg.launch().wait_until_completed()
+        job.assert_successful()
+        # verify that the verification task in the playbook ran
+        # otherwise we did not really verify anything
+        assert job.get_related('job_events', event_data__icontains='verify_vars_dumped')
 
     def test_project_with_galaxy_requirements_processed_on_scm_change(self, factories):
         project_with_requirements = factories.project(scm_url='https://github.com/ansible/test-playbooks.git',
@@ -415,9 +475,9 @@ class Test_Projects(APITest):
         project_with_requirements.update().wait_until_completed().assert_successful(msg="Project update that pulls down newly written SCM commits failed.")
 
         jt_with_requirements.launch().wait_until_completed().assert_successful(msg="Job Template that triggers SCM update that processes requirements.yml failed")
-        (event_unforced, event_forced) = self.get_project_update_galaxy_update_task(project_with_requirements)
+        galaxy_event = self.get_project_update_galaxy_update_task(project_with_requirements)
 
-        assert 'runner_on_ok' in [event_unforced.event, event_forced.event]
+        assert 'runner_on_ok' == galaxy_event.event
 
     @pytest.mark.parametrize("scm_url, use_credential",
                              [('https://github.com/ansible/tower.git', True),
@@ -445,3 +505,48 @@ class Test_Projects(APITest):
         project = factories.project(scm_url=git_file_path)
         project.assert_successful()
         assert project.scm_revision
+
+    def test_project_with_galaxy_collection_requirements(self, request, skip_if_cluster, factories, ansible_runner,
+                                                         project_with_galaxy_collection_requirements,
+                                                         skip_if_pre_ansible29):
+        """Verify that project requirements are downloaded when specified in a requirements file."""
+        # create a JT with our project and launch a job with this JT
+        job_template_pg = factories.job_template(
+            project=project_with_galaxy_collection_requirements,
+            playbook="sleep.yml",
+            extra_vars=dict(sleep_interval=60 * 3)
+        )
+        job_template_pg.ds.inventory.add_host()
+        # keep job running so files will be in place while we shell in
+        job_pg = job_template_pg.launch()
+
+        # The job cwd is not populated until prep is finished, which happens after
+        # it is changed to running status, but before events come in...
+        poll_until(lambda: job_pg.get_related('job_events').count, timeout=30)
+        job_pg = job_pg.get()  # job_cwd is only in detail view
+
+        # assert that expected galaxy collection requirements were downloaded
+        # wherever the job runs, that is where the roles should be
+        expected_collection_path = os.path.join(job_pg.job_cwd, "../requirements_collections/ansible_collections/chrismeyersfsu/test_things")
+        expected_collection_path = os.path.abspath(expected_collection_path)
+        contacted = ansible_runner.stat(path=expected_collection_path)
+        for result in contacted.values():
+            assert result['stat']['exists'], "The expected galaxy collection requirement was not found (%s)." % \
+                expected_collection_path
+
+    def test_project_with_galaxy_collection_requirements_call_collection_module(self, request, skip_if_cluster, factories, ansible_runner,
+                                                                                project_with_galaxy_collection_requirements,
+                                                                                ansible_version_cmp):
+        """Verify that the downloaded collections are mapped into the job template playbook"""
+        job_template_pg = factories.job_template(
+            project=project_with_galaxy_collection_requirements,
+            playbook="use_debug_collection_role.yml"
+        )
+        job_template_pg.ds.inventory.add_host()
+        job_pg = job_template_pg.launch()
+        job_pg.wait_until_completed()
+
+        if ansible_version_cmp('2.9') >= 0:
+            job_pg.assert_successful()
+        else:
+            job_pg.assert_status('failed')

@@ -15,21 +15,29 @@ log = logging.getLogger(__name__)
 
 
 @pytest.fixture
-def git_file_path(skip_if_openshift, request, ansible_adhoc):
+def git_file_path(skip_if_openshift, request, ansible_adhoc, is_docker):
     """Makes a git repo on the file system"""
-    path = '/home/at_{}_test/'.format(random_title(non_ascii=False))
+    if is_docker:
+        root = '/awx_devel'
+    else:
+        root = '/home'
+    path = '{}/at_{}_test/'.format(root, random_title(non_ascii=False))
     ansible_module = ansible_adhoc().tower
     if not config.prevent_teardown:
         request.addfinalizer(lambda: ansible_module.file(path=path, state='absent'))
     sync = ansible_module.git(repo='git://github.com/ansible/test-playbooks.git', dest=path)
-    rev = list(sync.values()).pop()['after']
-    assert rev
+    assert len(sync), 'No hosts in tower group to target'
+    for result in sync.values():
+        assert result.get('after'), result
     return 'file://{0}'.format(path)
 
 
 @pytest.fixture
 def source_change_add_and_remove(git_file_path, ansible_adhoc):
     def rf():
+        '''This fixture makes commits to the master branch of the repo on the
+        Tower server at the location given by git_file_path
+        '''
         ansible_module = ansible_adhoc().tower
         local_path = git_file_path[len('file://'):]
         tmp_filename = random_title(non_ascii=False)
@@ -48,6 +56,7 @@ def source_change_add_and_remove(git_file_path, ansible_adhoc):
             for result in contacted.values():
                 assert 'rc' in result, result
                 assert result['rc'] == 0, result
+        return tmp_filename
     return rf
 
 

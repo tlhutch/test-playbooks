@@ -6,6 +6,8 @@ import re
 
 from awxkit.config import config
 from awxkit import exceptions as exc
+from awxkit.utils import random_title
+
 import fauxfactory
 import pytest
 
@@ -553,6 +555,34 @@ class Test_Job(APITest):
                 summary_dict[host['host_name']][status] = host[status]
         assert summary_dict == desired_state
 
+    def test_job_directory_isolation(self, factories, v2):
+        """If a job lays something down on the file system, then it should
+        not be there the next time that same job runs
+        """
+        # make sure the job runs consistency on the same instance
+        ig = factories.instance_group()
+        instance = v2.instances.get(rampart_groups__controller__isnull=True, capacity__gt=0).results.pop()
+        ig.add_instance(instance)
+        # Create the resources to run the job
+        project = factories.project(
+            scm_url="https://github.com/AlanCoding/utility-playbooks.git"
+        )
+        jt = factories.job_template(
+            name="Either writes file or checks file existence depending on job tags {}".format(random_title()),
+            project=project,
+            playbook='job_make_file.yml',
+            ask_tags_on_launch=True
+        )
+        # make a host so it actually runs the tasks
+        jt.ds.inventory.add_host()
+        jt.add_instance_group(ig)
+        # this job will both write the file and verify that it has been written
+        write_job = jt.launch().wait_until_completed()
+        write_job.assert_successful()
+        read_job = jt.launch(payload={'job_tags': 'test_file'}).wait_until_completed()
+        read_job.assert_status('failed')
+        assert 'The expected file does not Exist!!1' in read_job.result_stdout
+
     def test_password_survey_launched_with_empty_extra_vars(self, factories):
         """Confirms that password surveys with defaults are displayed (and encrypted) when
         job template is launched with empty extra_vars, and those without defaults are not.
@@ -676,9 +706,7 @@ class Test_Job(APITest):
         # wait for job to complete
         job_with_status_pending = job_with_status_pending.wait_until_completed()
 
-        assert job_with_status_pending.status == 'canceled', \
-            "Unexpected job status after cancelling (expected 'canceled') - " \
-            "%s" % job_with_status_pending
+        job_with_status_pending.assert_status('canceled')
 
         # Make sure the ansible-playbook did not start
 
@@ -705,9 +733,7 @@ class Test_Job(APITest):
         # wait for job to complete
         job_with_status_running = job_with_status_running.wait_until_completed()
 
-        assert job_with_status_running.status == 'canceled', \
-            "Unexpected job status after cancelling job (expected status: canceled) - %s" % \
-            job_with_status_running
+        job_with_status_running.assert_status('canceled')
 
         # Make sure the ansible-playbook did not complete
 
