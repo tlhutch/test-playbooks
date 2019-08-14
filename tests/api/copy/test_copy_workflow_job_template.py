@@ -1,5 +1,6 @@
 from fauxfactory import gen_boolean, gen_alpha, gen_choice
 from awxkit.utils import poll_until
+import awxkit.exceptions
 import pytest
 
 from tests.api import APITest
@@ -144,3 +145,54 @@ class Test_Copy_Workflow_Job_Template(APITest):
             old_frontier.extend(sorted(self.get_node_children(old_node, old_nodes), key=lambda n: n.unified_job_template))
             new_frontier.extend(sorted(self.get_node_children(new_node, new_nodes), key=lambda n: n.unified_job_template))
         assert not new_frontier
+
+    def test_copy_wfjt_with_approval_node(self, v2, factories, org_admin, copy_with_teardown):
+        """Create a workflow with an approval node and copy it."""
+        org = org_admin.related.organizations.get().results.pop()
+        wfjt = factories.workflow_job_template(extra_vars='{"foo": "bar"}', survey_enabled=gen_boolean(),
+                                                  allow_simultaneous=gen_boolean(),
+                                                  ask_variables_on_launch=gen_boolean(), organization=org)
+        label = factories.label()
+        wfjt.add_label(label)
+        survey = [dict(required=False,
+                       question_name='Test-1',
+                       variable='var1',
+                       type='password',
+                       default='var1_default')]
+        wfjt.add_survey(spec=survey)
+        post_options = v2.workflow_job_template_nodes.options().actions.POST
+        jt = factories.job_template(ask_variables_on_launch=True, ask_job_type_on_launch=True,
+                                    ask_tags_on_launch=True, ask_skip_tags_on_launch=True,
+                                    ask_limit_on_launch=True, ask_verbosity_on_launch=True,
+                                    ask_diff_mode_on_launch=True)
+        node1 = factories.workflow_job_template_node(
+            workflow_job_template=wfjt,
+            unified_job_template=jt, extra_data='{"foo": "bar"}',
+            job_type=gen_choice(list(dict(post_options.job_type.choices).keys())),
+            job_tags=gen_alpha(),
+            skip_tags=gen_alpha(),
+            limit=gen_alpha(),
+            verbosity=gen_choice(list(dict(post_options.verbosity.choices).keys())),
+            diff_mode=gen_boolean()
+            )
+        approval_node = factories.workflow_job_template_node(
+            workflow_job_template=wfjt,
+            unified_job_template=None
+            ).make_approval_node()
+        with pytest.raises(awxkit.exceptions.NoContent):
+            approval_node.related.always_nodes.post(dict(id=node1.id))
+        wfjt_copy = copy_with_teardown(wfjt)
+        # 'extra_data' 'job_type'
+
+        identical_fields = ['type', 'description', 'extra_vars', 'organization', 'survey_enabled', 'allow_simultaneous',
+                            'ask_variables_on_launch']
+        unequal_fields = ['id', 'created', 'modified']
+        check_fields(wfjt, wfjt_copy, identical_fields, unequal_fields)
+        assert wfjt.related.survey_spec.get().json == wfjt_copy.related.survey_spec.get().json
+        original_label = wfjt.related.labels.get().results[0]
+        copy_label = wfjt_copy.related.labels.get().results[0]
+        assert original_label == copy_label
+        # Traverse & compare the two graphs
+        old_nodes = dict([(n.id, n) for n in wfjt.related.workflow_nodes.get().results])
+        new_nodes = dict([(n.id, n) for n in wfjt_copy.related.workflow_nodes.get().results])
+        assert len(old_nodes) == len(new_nodes)
