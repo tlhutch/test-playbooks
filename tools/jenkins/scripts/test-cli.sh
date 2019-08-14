@@ -11,7 +11,7 @@ AWXKIT_FORK=${TOWERKIT_FORK:-${TOWER_FORK}}
 AWXKIT_BRANCH=${TOWERKIT_BRANCH:-${TOWER_BRANCH}}
 AWXKIT_REPO=${AWXKIT_REPO:-${PRODUCT}}
 VARS_FILE=${VARS_FILE:-playbooks/vars.yml}
-PYTEST_NUMPROCESSES="4"
+PYTEST_NUMPROCESSES="16"
 
 # Dependencies for installing jq via pip
 sudo yum install -y autoconf automake libtool
@@ -48,6 +48,7 @@ pytest -v -c config/api.cfg \
     --api-credentials="${CREDS}" \
     --github-cfg="${CREDS}" \
     --base-url="https://${TOWER_HOST}" \
+    -n "${PYTEST_NUMPROCESSES}" \
     -k "${TESTEXPR}" \
     tests/cli
 
