@@ -167,13 +167,22 @@ class TestApprovalNodeRBAC(APITest):
         ).make_approval_node(timeout=100, description='Mark my words', name='hellow world')
 
         # Verify that only users with permission can grant approval
-        temp_user = factories.user()
+        if role == 'wf_admin':
+            # wf_admin can't see temp_user if they are not in the same org
+            temp_user = factories.user(organization=user.related.organizations.get().results.pop())
+        else:
+            temp_user = factories.user()
+
         if role in ['org_admin', 'sysadmin', 'wf_admin']:
             with self.current_user(user.username, user.password):
                 wfjt.set_object_roles(temp_user, 'approve')
-            assert len(temp_user.related.roles.get().results) == 1
+            approve_roles = [role for role in temp_user.related.roles.get().results if role.name == 'Approve']
+            assert len(approve_roles) == 1
+            approve_role = approve_roles.pop()
+            assert approve_role.related.workflow_job_template.get().id == wfjt.id
         else:
             with self.current_user(user.username, user.password):
                 with pytest.raises(awxkit.exceptions.Forbidden):
                     wfjt.set_object_roles(temp_user, 'approve')
-            assert len(temp_user.related.roles.get().results) == 0
+            approve_roles = [role for role in temp_user.related.roles.get().results if role.name == 'Approve']
+            assert len(approve_roles) == 0
