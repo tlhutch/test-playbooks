@@ -41,11 +41,11 @@ pipeline {
                         ).trim()
 
                         if (TOWER_VERSION == '3.3') {
-                            _TOWER_VERSION = '3.3.6'
+                            _TOWER_VERSION = '3.3.7'
                         } else if (TOWER_VERSION == '3.4') {
-                            _TOWER_VERSION = '3.4.4'
+                            _TOWER_VERSION = '3.4.5'
                         } else {
-                            _TOWER_VERSION = '3.5.1'
+                            _TOWER_VERSION = '3.5.2'
                         }
 
                         // Deduce the Toewr Namespace (ie. 35 for 3.5.x) for later consumption
