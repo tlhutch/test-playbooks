@@ -54,10 +54,10 @@ def cli(connection, request):
 
         if teardown:
             if not hasattr(ret, 'json'):
-                raise ProgrammingError('No JSON in response, cannot teardown! Is this a deletable object?')
+                raise AttributeError('No JSON in response, cannot teardown! Is this a deletable object?')
 
-            if not 'url' in ret.json:
-                raise ProgrammingError('Unable to get the created object as it has no "url" attribute. We cannot perform teardown')
+            if 'url' not in ret.json:
+                raise AttributeError('Unable to get the created object as it has no "url" attribute. We cannot perform teardown')
 
             page = api.page.TentativePage(ret.json['url'], connection).get()
             request.addfinalizer(page.silent_delete)
