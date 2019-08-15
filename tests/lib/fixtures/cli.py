@@ -6,6 +6,7 @@ import yaml
 import pytest
 
 from awxkit import config
+from awxkit import api
 
 
 class CompletedProcessProxy(object):
@@ -26,12 +27,16 @@ class CompletedProcessProxy(object):
 
 
 @pytest.fixture(scope='function')
-def cli():
+def cli(connection, request):
     def run(args, *a, **kw):
         if 'stdout' not in kw:
             kw['stdout'] = subprocess.PIPE
         if 'stderr' not in kw:
             kw['stderr'] = subprocess.STDOUT
+        if 'teardown' in kw:
+            teardown = kw.pop('teardown')
+        else:
+            teardown = False
         if kw.pop('auth', None) is True:
             args = [
                 'awx',
@@ -44,5 +49,18 @@ def cli():
                 'TOWER_USERNAME': config.credentials.users.admin.username,
                 'TOWER_PASSWORD': config.credentials.users.admin.password,
             })
-        return CompletedProcessProxy(subprocess.run(args, *a, **kw))
+
+        ret = CompletedProcessProxy(subprocess.run(args, *a, **kw))
+
+        if teardown:
+            if not hasattr(ret, 'json'):
+                raise ProgrammingError('No JSON in response, cannot teardown! Is this a deletable object?')
+
+            if not 'url' in ret.json:
+                raise ProgrammingError('Unable to get the created object as it has no "url" attribute. We cannot perform teardown')
+
+            page = api.page.TentativePage(ret.json['url'], connection).get()
+            request.addfinalizer(page.silent_delete)
+
+        return ret
     return run

@@ -24,12 +24,11 @@ class TestObjectCreation(object):
             'awx', 'users', 'create',
             '--username', username,
             '--password', 'secret'
-        ], auth=True)
+        ], auth=True, teardown=True)
         assert result.returncode == 0, format_error(result)
         created = v2.users.get(username=username).results[0]
         assert result.json['id'] == created.id
         assert result.json['username'] == username
-        created.delete()
 
     def test_creation_with_extra_args(self, cli, v2):
         username = fauxfactory.gen_alphanumeric()
@@ -39,12 +38,11 @@ class TestObjectCreation(object):
             '--password', 'secret',
             '--first_name', 'Jane',
             '--last_name', 'Doe',
-        ], auth=True)
+        ], auth=True, teardown=True)
         assert result.returncode == 0, format_error(result)
         created = v2.users.get(username=username).results[0]
         assert created.first_name == 'Jane'
         assert created.last_name == 'Doe'
-        created.delete()
 
     def test_creation_with_invalid_arguments(self, cli):
         username = 'x' * 1024
