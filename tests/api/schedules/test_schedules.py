@@ -8,7 +8,7 @@ import io
 
 import pytest
 from awxkit import exceptions as exc, config
-from awxkit.rrule import RRule
+from tests.lib.rrule import RRule
 from awxkit.utils import poll_until, random_title
 import pytz
 

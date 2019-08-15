@@ -3,7 +3,7 @@ import logging
 import os.path
 import json
 
-from awxkit.rrule import RRule
+from tests.lib.rrule import RRule
 from awxkit.utils import random_title
 from awxkit.config import config
 

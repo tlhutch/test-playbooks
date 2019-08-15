@@ -4,7 +4,7 @@ from dateutil.relativedelta import relativedelta
 
 import pytest
 from awxkit.exceptions import BadRequest
-from awxkit.rrule import RRule
+from tests.lib.rrule import RRule
 from awxkit.utils import (poll_until, random_title)
 
 from tests.api import APITest

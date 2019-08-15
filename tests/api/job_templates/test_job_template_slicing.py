@@ -8,7 +8,7 @@ from dateutil.relativedelta import relativedelta
 
 from tests.api import APITest
 
-from awxkit.rrule import RRule
+from tests.lib.rrule import RRule
 from awxkit.utils import poll_until
 from awxkit.exceptions import BadRequest, NotFound, Forbidden
 

@@ -2,7 +2,7 @@ from dateutil.relativedelta import relativedelta
 from datetime import datetime
 from dateutil import rrule
 
-from awxkit.rrule import RRule
+from tests.lib.rrule import RRule
 import pytest
 
 from tests.api import APITest
