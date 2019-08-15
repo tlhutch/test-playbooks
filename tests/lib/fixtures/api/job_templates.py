@@ -1,6 +1,6 @@
 import dateutil.rrule
 
-from awxkit import rrule
+from tests.lib import rrule
 import fauxfactory
 import pytest
 
