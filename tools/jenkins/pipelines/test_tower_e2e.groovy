@@ -59,7 +59,7 @@ pipeline {
         string(
             name: 'E2E_EXTERNAL_GRID_HOSTNAME',
             description: 'External Selenium Grid option', 
-            defaultValue: 'localhost'
+            defaultValue: 'hub'
         )
         string(
             name: 'E2E_EXTERNAL_GRID_PORT',

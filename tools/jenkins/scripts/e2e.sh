@@ -75,8 +75,8 @@ E2E_TEST_SELECTION=${E2E_TEST_SELECTION:-"*"}
 E2E_RETRIES=${E2E_RETRIES:-"2"}
 
 # Uses locally sourced chromedriver by default
-E2E_EXTERNAL_GRID_HOSTNAME=${E2E_EXTERNAL_GRID_HOSTNAME:-"localhost"}
-E2E_EXTERNAL_GRID_PORT=${E2E_EXTERNAL_GRID_PORT:-"4444"}
+E2E_EXTERNAL_GRID_HOSTNAME=${E2E_EXTERNAL_GRID_HOSTNAME:-$"hub"}
+E2E_EXTERNAL_GRID_PORT=${E2E_EXTERNAL_GRID_PORT:-$"4444"}
 
 git clone -b "${E2E_BRANCH}" git@github.com:"${E2E_FORK}"/"${DEPLOYMENT_TYPE}".git --depth 1 ${DEPLOYMENT_TYPE}
 
@@ -101,6 +101,8 @@ docker tag gcr.io/ansible-tower-engineering/"${CONTAINER_IMAGE_NAME}":latest ${C
 docker-compose \
     -f ${DEPLOYMENT_TYPE}/awx/ui/test/e2e/cluster/docker-compose.yml \
     run \
+    -e AWX_E2E_CLUSTER_HOST="${E2E_EXTERNAL_GRID_HOSTNAME}" \
+    -e AWX_E2E_CLUSTER_PORT="${E2E_EXTERNAL_GRID_PORT}" \
     -e AWX_E2E_URL="${E2E_URL}" \
     -e AWX_E2E_USERNAME="${E2E_USERNAME}" \
     -e AWX_E2E_PASSWORD="${E2E_PASSWORD}" \
