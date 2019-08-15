@@ -8,17 +8,23 @@ from tests.cli.utils import format_error
 @pytest.mark.yolo
 class TestCLIBasics(object):
 
+    def test_no_credentials(self, cli):
+        # by default, awxkit will use localhost:8043,
+        # which shouldn't be reachable in our CI environments
+        result = cli(['awx'])
+        assert result.returncode == 1, format_error(result)
+        assert b'usage: awx' in result.stdout
+
     @pytest.mark.parametrize('args', [
-        ['awx'],
         ['awx', '-h'],
         ['awx', '--help'],
     ])
-    def test_no_credentials(self, cli, args):
+    def test_plain_help_argument(self, cli, args):
         # by default, awxkit will use localhost:8043,
         # which shouldn't be reachable in our CI environments
         result = cli(args)
-        assert result.returncode == 1, format_error(result)
-        assert b'usage: awx' in result.stdout
+        assert result.returncode == 0, format_error(result)
+        assert b'authenticate and retrieve an OAuth2 token' in result.stdout
 
     def test_anonymous_user(self, cli):
         result = cli(['awx', '-k', '--conf.host', config.base_url])
