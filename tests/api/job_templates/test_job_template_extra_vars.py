@@ -379,8 +379,9 @@ class TestJobTemplateExtraVars(APITest):
         job.assert_successful()
 
         expected_data = dict(
-            vaulted_text = "people run into some space aliens and they end up fighting them",
-            unsafe_text = "{{ unsafe }}"
+            vaulted_text="people run into some space aliens and they end up fighting them",
+            unsafe_text="{{ unsafe }}",
+            datetime_text="2017-03-07T10:20:49"
         )
 
         # assure correct reporting of include task
@@ -391,7 +392,6 @@ class TestJobTemplateExtraVars(APITest):
         )
         assert include_events.count == 1
         include_event = include_events.results.pop()
-        include_data = include_event.event_data
         assert 'res' in include_event.event_data, include_event.event_data
         res = include_event.event_data['res']
         assert 'ansible_facts' in res, res
@@ -399,5 +399,9 @@ class TestJobTemplateExtraVars(APITest):
 
         # assure correct reporting of debug tasks
         stdout = job.result_stdout
-        for text in expected_data.values():
-            assert text in stdout
+        for var, text in expected_data.items():
+            if var == 'datetime_text':
+                # special case for datetime
+                assert text.replace('T', ' ') in stdout
+            else:
+                assert text in stdout
