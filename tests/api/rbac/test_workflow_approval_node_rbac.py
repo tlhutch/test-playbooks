@@ -9,7 +9,7 @@ class TestApprovalNodeRBAC(APITest):
     """Test permissions on Who can view, create, approve/deny, grant approval
     """
 
-    @pytest.fixture(params=[
+    @pytest.fixture(scope='class', params=[
         'sysadmin',
         'org_admin',
         'wf_admin',
@@ -24,18 +24,17 @@ class TestApprovalNodeRBAC(APITest):
         'user_in_org',
         'random_user'
     ])
-    def user_with_role_and_workflow(self, request, factories):
+    def user_with_role_and_workflow(self, request, class_factories):
         role = request.param
-
         fixture_args = request.node.get_closest_marker('fixture_args')
         if fixture_args and 'roles' in fixture_args.kwargs:
             only_create = fixture_args.kwargs['roles']
             if role not in only_create:
                 pytest.skip()
 
-        org = factories.organization()
-        user = factories.user(organization=org)
-        wfjt = factories.workflow_job_template(organization=org)
+        org = class_factories.organization()
+        user = class_factories.user(organization=org)
+        wfjt = class_factories.workflow_job_template(organization=org)
         assert org.id == user.related.organizations.get().results.pop().id
         if role == 'wf_executor':
             wfjt.set_object_roles(user, 'execute')
@@ -65,15 +64,17 @@ class TestApprovalNodeRBAC(APITest):
         elif role == 'random_user':
             with pytest.raises(awxkit.exceptions.NoContent):
                 org.related.users.post(dict(id=user.id, disassociate=True))
-            random_org = factories.organization()
+            random_org = class_factories.organization()
             with pytest.raises(awxkit.exceptions.NoContent):
                 random_org.related.users.post(dict(id=user.id, associate=True))
         return user, wfjt, role
 
-    def test_workflow_approval_and_activity_stream_visibility(self, v2, factories, user_with_role_and_workflow):
+    def test_workflow_approval_and_activity_stream_visibility(self, v2, factories, user_with_role_and_workflow, copy_with_teardown):
         """Verify that Users with no permission cannot view an approval"""
         # creation of users, workflow job template and workflow approval node
         user, wfjt, role = user_with_role_and_workflow
+        # Copy so we don't mess up the class fixture provided wfjt
+        wfjt = copy_with_teardown(wfjt)
         approval_node = factories.workflow_job_template_node(
             workflow_job_template=wfjt,
             unified_job_template=None
@@ -89,21 +90,23 @@ class TestApprovalNodeRBAC(APITest):
         # Verify that users with no permission cannot view the workflow approvals and access it's activity stream
         if role in ['user_in_org', 'random_user', 'org_read']:
             with self.current_user(user.username, user.password):
-                all_pending_approvals = v2.workflow_approvals.get(status='pending').results
+                all_pending_approvals = v2.workflow_approvals.get(status='pending', order_by='-created').results
                 assert wf_approval.id not in [approval.id for approval in all_pending_approvals]
                 with pytest.raises(awxkit.exceptions.Forbidden):
                     wf_job.related.activity_stream.get()
         # Verify that users with permissions can view the workflow approvals and access it's activity stream
         else:
             with self.current_user(user.username, user.password):
-                all_pending_approvals = v2.workflow_approvals.get(status='pending').results
+                all_pending_approvals = v2.workflow_approvals.get(status='pending', order_by='-created').results
                 assert wf_approval.id in [approval.id for approval in all_pending_approvals]
                 assert wf_job.related.activity_stream.get().count == 1
 
-    def test_workflow_approval_node_creation(self, v2, factories, user_with_role_and_workflow):
+    def test_workflow_approval_node_creation(self, v2, factories, user_with_role_and_workflow, copy_with_teardown):
         """Verify that Users with no permission cannot view an approval"""
         # creation of users, workflow job template and workflow approval node
         user, wfjt, role = user_with_role_and_workflow
+        # Copy so we don't mess up the class fixture provided wfjt
+        wfjt = copy_with_teardown(wfjt)
         approval_node = factories.workflow_job_template_node(
             workflow_job_template=wfjt,
             unified_job_template=None
@@ -127,11 +130,12 @@ class TestApprovalNodeRBAC(APITest):
                     ).make_approval_node(timeout=100, description='Mark my words', name='hellow world')
 
     @pytest.mark.yolo
-    def test_workflow_approval_node_approve(self, v2, factories,
-                                                                   user_with_role_and_workflow):
+    def test_workflow_approval_node_approve(self, v2, factories, user_with_role_and_workflow, copy_with_teardown):
         """Verify that Users with no permission cannot view an approval"""
         # creation of users, workflow job template and workflow approval node
         user, wfjt, role = user_with_role_and_workflow
+        # Copy so we don't mess up the class fixture provided wfjt
+        wfjt = copy_with_teardown(wfjt)
         approval_node = factories.workflow_job_template_node(
             workflow_job_template=wfjt,
             unified_job_template=None
@@ -147,7 +151,7 @@ class TestApprovalNodeRBAC(APITest):
         # Verify that users with permission can approve the workflow approval node
         if role in ['sysadmin', 'org_admin', 'wf_admin', 'org_wf_admin', 'org_approve', 'wf_approve']:
             wf_approval.approve()
-            all_successful_approvals = v2.workflow_approvals.get(status='successful').results
+            all_successful_approvals = v2.workflow_approvals.get(status='successful', order_by='-created').results
             assert wf_approval.id in [approval.id for approval in all_successful_approvals]
             wf_job.wait_until_completed().assert_successful()
 
@@ -157,10 +161,12 @@ class TestApprovalNodeRBAC(APITest):
                 with pytest.raises(awxkit.exceptions.Forbidden):
                     wf_approval.approve()
 
-    def test_workflow_approval_node_grant_approval(self, v2, factories, user_with_role_and_workflow):
+    def test_workflow_approval_node_grant_approval(self, v2, factories, user_with_role_and_workflow, copy_with_teardown):
         """Verify that Users with no permission cannot view an approval"""
         # creation of users, workflow job template and workflow approval node
         user, wfjt, role = user_with_role_and_workflow
+        # Copy so we don't mess up the class fixture provided wfjt
+        wfjt = copy_with_teardown(wfjt)
         factories.workflow_job_template_node(
             workflow_job_template=wfjt,
             unified_job_template=None

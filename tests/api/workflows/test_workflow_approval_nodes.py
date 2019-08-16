@@ -80,7 +80,7 @@ class TestWorkflowApprovalNodes(APITest):
                                         workflow_approval=wf_approval.id, order_by='-timestamp').results
         status = ["pending", "successful"] if approve else ["pending", "failed"]
         my_event = [event for event in events if event.changes.status == status]
-        assert len(my_event) == 1 , 'number of entries in the activity stream do not match'
+        assert len(my_event) == 1, 'number of entries in the activity stream do not match'
         my_event = my_event.pop()
         assert my_event.changes.status == status
         if user != 'sysadmin':
