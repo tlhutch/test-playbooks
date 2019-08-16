@@ -378,5 +378,26 @@ class TestJobTemplateExtraVars(APITest):
         job = jt.launch().wait_until_completed(interval=1, timeout=30)
         job.assert_successful()
 
-        assert "people run into some space aliens and they end up fighting them" in job.result_stdout
-        assert "{{ unsafe }}" in job.result_stdout
+        expected_data = dict(
+            vaulted_text = "people run into some space aliens and they end up fighting them",
+            unsafe_text = "{{ unsafe }}"
+        )
+
+        # assure correct reporting of include task
+        include_events = job.get_related(
+            'job_events',
+            event='runner_on_ok',
+            task='include extra vars with vault/unsafe tags'
+        )
+        assert include_events.count == 1
+        include_event = include_events.results.pop()
+        include_data = include_event.event_data
+        assert 'res' in include_event.event_data, include_event.event_data
+        res = include_event.event_data['res']
+        assert 'ansible_facts' in res, res
+        assert set(res['ansible_facts'].keys()) == set(expected_data.keys())
+
+        # assure correct reporting of debug tasks
+        stdout = job.result_stdout
+        for text in expected_data.values():
+            assert text in stdout
