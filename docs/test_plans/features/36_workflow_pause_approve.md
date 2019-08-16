@@ -8,15 +8,15 @@ Any user with right permissions can approve to proceed or deny to fail the node 
 * [Feature request](https://github.com/ansible/awx/issues/1206)
 * [Initial PR](https://github.com/ansible/awx/pull/2352)
 * [Main PR](https://github.com/ansible/awx/pull/3801)
-* [Integration Tests](https://github.com/ansible/tower-qa/blob/workflow_pause_approve/tests/api/workflows/test_workflow_approval_nodes.py)
+* [Integration Tests](https://github.com/ansible/tower-qa/pull/3801)
 
 ## Scenarios to test
 
 ### Basic Flow
 
-- [x] Confirm that superuser can add workflow pause node and give various permissions to users
+- [x] Confirm that an approval node can be added to a workflow job template
 - [x] Confirm that a user can convert any workflow node into a workflow pause approval node
-- [x] Confirm indirectly in tests that an approval node can be added and approved in the following places in a workflow job template
+- [x] Confirm that an approval node can be added and approved in the following places in a workflow job template
     - [x] In the beginning of the workflow
     - [x] In between two workflow nodes
     - [x] At the end
@@ -26,7 +26,7 @@ Any user with right permissions can approve to proceed or deny to fail the node 
 - [x] Confirm that an approval node does not impact the running of a node in another parallel branch in the workflow template
     - [x] When the approval node is pending approval
     - [x] When the approval node is denied
-- [x] Confirm that a workflow job can be successful if an approval node has been denied but there is an alternate path to take
+- [x] Confirm that a workflow job can be successful if an approval node has been denied but there is an error handling path to take
 
 ### Timeout Feature Verification
 
@@ -41,7 +41,7 @@ Any user with right permissions can approve to proceed or deny to fail the node 
 - [x] Confirm that when the workflow approval node is waiting for approval, the state of the node is “pending” and the state of the workflow job is still “running”
 - [x] Confirm that the state of the node is “successful” if approved and “failed” if denied
 
-### Copy a Workflow Job template having an approval node Verification
+### Able to copy a workflow job template with an approval node
 
 - [x] Given that a workflow job template is copied, confirm that following objects are copied too:
     - [x] attributes such as 'type', 'extra_data', 'job_type', 'job_tags', 'skip_tags', 'limit', 'diff_mode', 'verbosity'
@@ -51,17 +51,18 @@ Any user with right permissions can approve to proceed or deny to fail the node 
 
 ### Activity Stream Scenarios
 
-- [ ] Given that a workflow approval node has been DENIED, confirm that the:
+- [ ] Given that a workflow approval node has been APPROVE, confirm that the:
     - [ ] approver is identified
     - [x] workflow job that it ran is is identified
-    - [ ] reason for approval is shown (Check on this)
     - [x] Confirm this is visible to anyone with read access to WF approval
 - [ ] Given that a workflow approval node has been DENIED, confirm that the:
     - [ ] approver is identified
     - [x] workflow job that it ran is is identified
-    - [ ] reason for approval is shown (Check on this)
+    - [ ] ???? Reason for denial
     - [x] Confirm this is visible to anyone with read access to WF approval
-- NOTE: Ask @notting if we want an activity stream entry for timeout, currently not implemented
+- [ ] Given that a workflow approval node TIMED OUT, confirm that the:
+    - [ ] Timed Out is changed from False to True
+    - [ ] ???? Reason for failure
 
 ### RBAC
 
@@ -91,14 +92,11 @@ Any user with right permissions can approve to proceed or deny to fail the node 
 | Random user in org | No Permission | ❌ | ❌ | ❌ | ❌ | ❌ |
 | Random user outside org | No Permission | ❌ | ❌ | ❌ | ❌ | ❌ |
 
-### Interaction with other workflow features:
-
-- [x] Confirm that the set_stats artifacts in nodes before the approval node can pass through the approval node and the nodes after the approval node have access to the artifacts
-
-### Random Scenarios
+### Edge Cases
 
 - [x] Confirm that if a workflow job template is deleted, previously run workflow approvals are not deleted but the template itself is deleted
 - [x] Confirm that if a workflow approval node is deleted, its approvals are not deleted
-- [ ] Confirm that if a workflow job template is copied, the template is copied along with it's nodes
 - [x] Confirm that if an approval node is acted upon (approve/deny) it cannot be approved/denied again
 - [x] Confirm that if the tower restarts, once it is up again, the approval nodes previously in pending state are still pending and they can be approved and the workflow job finishes and succeeds
+- [x] Confirm that the set_stats artifacts in nodes before the approval node can pass through the approval node and the nodes after the approval node have access to the artifacts
+
