@@ -45,6 +45,14 @@ def _format_result(result, indent=4 * ' '):
 
 
 def _merge_junit(junit, output):
+    # pytest is now wrapping the testsuite element into a testsuites element
+    # since pytest 5.1.0 was released. Find the testsuite to parse the cases.
+    if isinstance(junit, JUnitXml):
+        # junitparser uses a JUnitXml object when it parses a XML file where
+        # the root element is testsuites, so we need to use the testsuite child
+        # element
+        junit = junit.child(TestSuite)
+
     for case in junit:
         if case.name not in _CACHE:
             output.add_testcase(case)
