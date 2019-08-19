@@ -15,7 +15,8 @@ import pytz
 from tests.api.schedules import SchedulesTest
 
 
-@pytest.mark.usefixtures('authtoken')
+# Skip for Openshift because of Github Issue: https://github.com/ansible/tower-qa/issues/2591
+@pytest.mark.usefixtures('authtoken', 'skip_if_openshift')
 class TestSchedules(SchedulesTest):
 
     def test_new_resources_are_without_schedules(self, unified_job_template):
