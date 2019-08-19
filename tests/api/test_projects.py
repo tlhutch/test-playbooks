@@ -389,7 +389,7 @@ class Test_Projects(APITest):
             with pytest.raises(exc.NotFound):
                 assert project_ansible_playbooks_git.get_related(related)
 
-    def test_job_folder_is_shallow_copy(self, factories, ansible_adhoc):
+    def test_job_folder_is_shallow_copy(self, skip_if_openshift, factories, ansible_adhoc):
         project = factories.project(scm_branch='teensy_tiny_branch')
         jt = factories.job_template(project=project, playbook='sleep.yml')
         jt.ds.inventory.add_host()
