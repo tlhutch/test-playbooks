@@ -45,6 +45,7 @@ class TestSettingsCLI(object):
         assert result.returncode == 2, format_error(result)
         assert b"key: invalid choice: 'THINGAMAJIG' (choose from" in result.stdout
 
+    @pytest.mark.serial
     @pytest.mark.parametrize('state', [True, False])
     def test_update_boolean(self, cli, v2, state):
         cli([
@@ -53,6 +54,7 @@ class TestSettingsCLI(object):
         settings = v2.settings.get().get_endpoint('system')
         assert settings['INSIGHTS_TRACKING_STATE'] is state
 
+    @pytest.mark.serial
     def test_update_integer(self, cli, v2):
         key = 'AWX_ISOLATED_VERBOSITY'
         v2.settings.get().get_endpoint('jobs').patch(key=0)
