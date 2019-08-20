@@ -29,6 +29,9 @@
       - ansible
       - docker
       - docker-compose
+      - autoconf
+      - automake
+      - libtool
 
 - name: Add user to dockerroot
   become: true

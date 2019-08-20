@@ -11,14 +11,8 @@ AWXKIT_FORK=${TOWERKIT_FORK:-${TOWER_FORK}}
 AWXKIT_BRANCH=${TOWERKIT_BRANCH:-${TOWER_BRANCH}}
 AWXKIT_REPO=${AWXKIT_REPO:-${PRODUCT}}
 VARS_FILE=${VARS_FILE:-playbooks/vars.yml}
-PYTEST_NUMPROCESSES="16"
+PYTEST_NUMPROCESSES="4"
 
-# Dependencies for installing jq via pip
-sudo yum install -y autoconf automake libtool
-
-# -- Start
-#
-# shellcheck source=lib/common
 source "$(dirname "${0}")"/lib/common
 
 setup_python3_env
@@ -26,11 +20,8 @@ setup_python3_env
 pip install -Ur scripts/requirements.install
 pip install -Ur requirements.txt
 
-if [[ -n "${AWXKIT_BRANCH}" ]]; then
-    pip install -U "git+ssh://git@github.com/${AWXKIT_FORK}/${AWXKIT_REPO}.git@${AWXKIT_BRANCH}#egg=awxkit[formatting,websockets]&subdirectory=awxkit"
-fi
-
-echo "y" | pip uninstall pytest-mp || true
+# In future use RPM install
+pip install -U "git+ssh://git@github.com/${AWXKIT_FORK}/${AWXKIT_REPO}.git@${AWXKIT_BRANCH}#egg=awxkit[formatting,websockets]&subdirectory=awxkit"
 
 if [[ -z "${INVENTORY}" ]]; then
     INVENTORY=$(retrieve_inventory_file)
@@ -40,7 +31,6 @@ CREDS=$(retrieve_credential_file "${INVENTORY}")
 
 set +e
 
-# Run license tests that need to run serially
 pytest -v -c config/api.cfg \
     --junit-xml=reports/junit/results-cli.xml \
     --ansible-host-pattern="${TOWER_HOST}" \

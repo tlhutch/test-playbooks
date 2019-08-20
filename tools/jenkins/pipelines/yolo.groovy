@@ -94,7 +94,7 @@ pipeline {
             defaultValue: true
         )
         booleanParam(
-            name: 'RUN_CLI',
+            name: 'RUN_CLI_TESTS',
             description: 'Should the CLI test suite be run as part of this pipeline ?',
             defaultValue: true
         )
@@ -393,7 +393,7 @@ pipeline {
         stage('Run CLI Tests') {
             when {
                 expression {
-                    return params.RUN_CLI
+                    return params.RUN_CLI_TESTS
                 }
             }
 
