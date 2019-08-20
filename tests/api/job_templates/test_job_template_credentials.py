@@ -139,7 +139,7 @@ class TestJobTemplateLaunchCredentials(APITest):
             playbook_error = "option --become-method: invalid choice: u'foobar'"
         else:
             playbook_error = "Invalid become method specified, could not find matching plugin: 'foobar'"
-        assert playbook_error in job.result_stdout
+        assert playbook_error in job.result_stdout, job.result_stdout
 
     @pytest.mark.ansible_integration
     def test_launch_with_no_become_plugin(self, factories, ansible_version_cmp):
@@ -149,7 +149,7 @@ class TestJobTemplateLaunchCredentials(APITest):
         jt = factories.job_template(credential=cred, playbook='become.yml')
         job = jt.launch().wait_until_completed()
         assert ' --become ' not in job.job_args[0]
-        assert 'sudo' in job.result_stdout
+        assert 'sudo' in job.result_stdout, job.result_stdout
 
     @pytest.mark.parametrize('become_plugin', ['doas', 'enable', 'ksu', 'pbrun', 'pmrun', 'runas', 'sesu', 'su', 'sudo'])
     @pytest.mark.ansible_integration
@@ -161,7 +161,7 @@ class TestJobTemplateLaunchCredentials(APITest):
         job = jt.launch().wait_until_completed()
         playbook_error = "Invalid become method specified, could not find matching plugin: '%s'" % become_plugin
 
-        assert playbook_error not in job.result_stdout
+        assert playbook_error not in job.result_stdout, job.result_stdout
 
     @pytest.mark.ansible_integration
     def test_launch_with_custom_become_plugin(self, skip_if_pre_ansible28, factories):
