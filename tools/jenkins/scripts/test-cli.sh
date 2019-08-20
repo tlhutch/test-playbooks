@@ -26,6 +26,9 @@ pip install -Ur requirements.txt
 # In future use RPM install
 pip install -U "git+ssh://git@github.com/${AWXKIT_FORK}/${AWXKIT_REPO}.git@${AWXKIT_BRANCH}#egg=awxkit[formatting,websockets]&subdirectory=awxkit"
 
+# Confirm what awx cli we are using
+head -n1 `which awx`
+
 if [[ -z "${INVENTORY}" ]]; then
     INVENTORY=$(retrieve_inventory_file)
 fi
