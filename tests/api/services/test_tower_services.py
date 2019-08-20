@@ -78,12 +78,12 @@ class TestTowerServices(APITest):
         try:
             contacted = ansible_runner.command('ansible-tower-service stop')
             result = list(contacted.values())[0]
-            assert result['rc'] == 0, "ansible-tower-service {0} failed. Command stderr: \n{1}".format(result['stderr'])
+            assert result['rc'] == 0, "ansible-tower-service stop failed. Command stderr: \n{0}".format(result['stderr'])
             time.sleep(30)
         finally:
             contacted = ansible_runner.command('ansible-tower-service start')
             result = list(contacted.values())[0]
-            assert result['rc'] == 0, "ansible-tower-service {0} failed. Command stderr: \n{1}".format(result['stderr'])
+            assert result['rc'] == 0, "ansible-tower-service start failed. Command stderr: \n{0}".format(result['stderr'])
 
         def online():
             try:
