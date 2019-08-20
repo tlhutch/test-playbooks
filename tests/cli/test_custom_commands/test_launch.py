@@ -1,5 +1,7 @@
 import pytest
 
+from tests.cli.utils import format_error
+
 
 JOB_STATUSES = ('new', 'pending', 'waiting', 'running')
 
@@ -10,7 +12,7 @@ class TestJobLaunch(object):
 
     def test_job_launch_missing_pk(self, cli):
         result = cli(['awx', 'job_templates', 'launch'], auth=True)
-        assert result.returncode == 2
+        assert result.returncode == 2, format_error(result)
         assert (
             # https://github.com/python/cpython/commit/f97c59aaba2d93e48cbc6d25f7
             b'too few arguments' in result.stdout or
@@ -19,13 +21,13 @@ class TestJobLaunch(object):
 
     def test_job_launch_incorrect_pk(self, cli):
         result = cli(['awx', 'job_templates', 'launch', '999999'], auth=True)
-        assert result.returncode == 1
+        assert result.returncode == 1, format_error(result)
         assert result.json['detail'] == 'Not found.'
 
     def test_successful_job_launch(self, cli, job_template_ping):
         before = job_template_ping.related.jobs.get().count
         result = cli(['awx', 'job_templates', 'launch', str(job_template_ping.id)], auth=True)
-        assert result.returncode == 0
+        assert result.returncode == 0, format_error(result)
         assert job_template_ping.related.jobs.get().count == before + 1
         related_jobs = job_template_ping.related.jobs.get().results
         assert [job.id for job in related_jobs] == [result.json['id']]
@@ -42,10 +44,10 @@ class TestJobLaunch(object):
         result = cli(args, auth=True)
 
         if timeout:
-            assert result.returncode == 0
+            assert result.returncode == 0, format_error(result)
             assert result.json['status'] in JOB_STATUSES
         else:
-            assert result.returncode == 0
+            assert result.returncode == 0, format_error(result)
             assert result.json['status'] == 'successful'
 
     def test_stdout_monitor(self, cli, job_template_ping):
@@ -72,7 +74,7 @@ class TestProjectUpdate(object):
 
     def test_project_update_missing_pk(self, cli):
         result = cli(['awx', 'projects', 'update'], auth=True)
-        assert result.returncode == 2
+        assert result.returncode == 2, format_error(result)
         assert (
             # https://github.com/python/cpython/commit/f97c59aaba2d93e48cbc6d25f7
             b'too few arguments' in result.stdout or
@@ -81,7 +83,7 @@ class TestProjectUpdate(object):
 
     def test_project_update_incorrect_pk(self, cli):
         result = cli(['awx', 'projects', 'update', '999999'], auth=True)
-        assert result.returncode == 1
+        assert result.returncode == 1, format_error(result)
         assert result.json['detail'] == 'Not found.'
 
     def test_successful_project_update(self, cli, project_ansible_playbooks_git):
@@ -90,7 +92,7 @@ class TestProjectUpdate(object):
             'awx', 'projects', 'update',
             str(project_ansible_playbooks_git.id)
         ], auth=True)
-        assert result.returncode == 0
+        assert result.returncode == 0, format_error(result)
         assert project_ansible_playbooks_git.related.project_updates.get().count == before + 1
         related = project_ansible_playbooks_git.related.project_updates.get().results
         assert result.json['id'] in [pu.id for pu in related]
@@ -120,7 +122,7 @@ class TestInventorySourceUpdate(object):
 
     def test_inventory_source_update_missing_pk(self, cli):
         result = cli(['awx', 'inventory_sources', 'update'], auth=True)
-        assert result.returncode == 2
+        assert result.returncode == 2, format_error(result)
         assert (
             # https://github.com/python/cpython/commit/f97c59aaba2d93e48cbc6d25f7
             b'too few arguments' in result.stdout or
@@ -129,7 +131,7 @@ class TestInventorySourceUpdate(object):
 
     def test_inventory_source_update_incorrect_pk(self, cli):
         result = cli(['awx', 'inventory_sources', 'update', '999999'], auth=True)
-        assert result.returncode == 1
+        assert result.returncode == 1, format_error(result)
         assert result.json['detail'] == 'Not found.'
 
     def test_successful_inventory_update(self, cli, inventory_source):
@@ -138,7 +140,7 @@ class TestInventorySourceUpdate(object):
             'awx', 'inventory_sources', 'update',
             str(inventory_source.id)
         ], auth=True)
-        assert result.returncode == 0
+        assert result.returncode == 0, format_error(result)
         assert inventory_source.related.inventory_updates.get().count == before + 1
         related = inventory_source.related.inventory_updates.get().results
         assert result.json['id'] in [iu.id for iu in related]
@@ -172,7 +174,7 @@ class TestAdhocLaunch(object):
             str(host.inventory), '--credential', str(ssh_credential.id),
             '--module_args', 'awx-manage --version'
         ], auth=True)
-        assert result.returncode == 0
+        assert result.returncode == 0, format_error(result)
         assert result.json['status'] in JOB_STATUSES
         assert v2.ad_hoc_commands.get(
             id=result.json['id']
@@ -213,7 +215,7 @@ class TestWorkflowLaunch(object):
         result = cli([
             'awx', 'workflow_job_templates', 'launch', str(wfjt.id),
         ], auth=True)
-        assert result.returncode == 0
+        assert result.returncode == 0, format_error(result)
         assert result.json['status'] in JOB_STATUSES
 
         wf_jobs = wfjt.related.workflow_jobs.get()
@@ -233,7 +235,7 @@ class TestWorkflowLaunch(object):
         if timeout:
             args.extend(['--timeout', str(timeout)])
         result = cli(args, auth=True)
-        assert result.returncode == 0
+        assert result.returncode == 0, format_error(result)
         if timeout:
             assert 'Monitoring aborted due to timeout.' in result.stdout.decode('utf-8')
             assert result.stdout.splitlines()[-1] != b'successful'
