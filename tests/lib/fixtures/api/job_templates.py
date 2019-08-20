@@ -328,7 +328,7 @@ def job_template_with_labels(factories, job_template):
 
 
 @pytest.fixture(scope="function")
-def job_template_with_random_attributes(v2, factories, api_job_templates_options_json):
+def job_template_with_random_attributes(v2, factories, api_job_templates_options_json, project):
     job_types = list(dict(api_job_templates_options_json.actions.POST.job_type.choices).keys())
     verbosities = list(dict(api_job_templates_options_json.actions.POST.verbosity.choices).keys())
     extra_vars = '{{"{}": "{}"}}'.format(fauxfactory.gen_alpha(), fauxfactory.gen_alpha())
@@ -336,6 +336,7 @@ def job_template_with_random_attributes(v2, factories, api_job_templates_options
 
     return factories.job_template(job_type=fauxfactory.gen_choice(job_types),
                                      limit=fauxfactory.gen_alpha(),
+                                     project=project,
                                      extra_vars=extra_vars,
                                      forks=fauxfactory.gen_integer(min_value=0, max_value=max_int32),
                                      verbosity=fauxfactory.gen_choice(verbosities),
