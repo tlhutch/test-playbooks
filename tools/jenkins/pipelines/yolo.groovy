@@ -387,15 +387,15 @@ pipeline {
             steps {
                 script {
                     AWX_E2E_URL = readFile('artifacts/tower_url').trim()
-                    
+
                     if  (params.RETRY_FAILED_TESTS) {
                         env.RETRY_E2E_STAGE_COUNT = "2"
                         env.E2E_RETRIES = "2"
                     }
-                    else { 
+                    else {
                         env.RETRY_E2E_COUNT = "0"
                         env.E2E_RETRIES = "0"
-                    }       
+                    }
 
                     retry(env.RETRY_E2E_STAGE_COUNT) {
                         build(
@@ -429,9 +429,13 @@ pipeline {
                                     name: 'E2E_RUN_EXTERNAL_GRID',
                                     value: "${params.E2E_RUN_EXTERNAL_GRID}"
                                 )
+                                string(
+                                    name: 'TOWER_QA_BRANCH',
+                                    value: "${params.TOWER_QA_BRANCH}"
+                                ),
                             ],
                             propagate: true
-                        )    
+                        )
                     }
                 }
             }

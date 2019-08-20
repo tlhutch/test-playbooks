@@ -98,8 +98,11 @@ else
 fi
 docker pull gcr.io/ansible-tower-engineering/"${CONTAINER_IMAGE_NAME}":latest
 docker tag gcr.io/ansible-tower-engineering/"${CONTAINER_IMAGE_NAME}":latest ${CONTAINER_IMAGE_NAME}:latest
+
+mkdir -p "${DEPLOYMENT_TYPE}/awx/ui/test/e2e/screenshots"
+
 docker-compose \
-    -f ${DEPLOYMENT_TYPE}/awx/ui/test/e2e/cluster/docker-compose.yml \
+    -f "${DEPLOYMENT_TYPE}/awx/ui/test/e2e/cluster/docker-compose.yml" \
     run \
     -e AWX_E2E_CLUSTER_HOST="${E2E_EXTERNAL_GRID_HOSTNAME}" \
     -e AWX_E2E_CLUSTER_PORT="${E2E_EXTERNAL_GRID_PORT}" \
@@ -107,6 +110,6 @@ docker-compose \
     -e AWX_E2E_USERNAME="${E2E_USERNAME}" \
     -e AWX_E2E_PASSWORD="${E2E_PASSWORD}" \
     -e AWX_E2E_SCREENSHOTS_ENABLED=true \
-    -e AWX_E2E_SCREENSHOTS_PATH="awx/ui/test/e2e/screenshots" \
+    -e AWX_E2E_SCREENSHOTS_PATH="/awx/awx/ui/test/e2e/screenshots" \
     e2e --filter="${E2E_TEST_SELECTION}" \
     --suiteRetries="${E2E_RETRIES}"
