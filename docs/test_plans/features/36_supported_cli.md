@@ -24,14 +24,18 @@ Provide a supported CLI that offers feature parity with previously upstream [tow
 - [ ] If insufficient arguments are provided to the CLI return help text.
 - [ ] Catalog the required args for each creatable object and verify it is
       indicated as required in the help text
+      - [ ] Specifically check that job templates require project, name, playbook, and inventory
+- [ ] verify that all commands have aliases that conform to old CLI (download old CLI and run --help)
 
 ### Basic API interaction
 
 - [x] Verify can launch a job from a JT
 - [x] Verify can launch a project update
 - [ ] Verify can check on a job status given we know a job ID
-- [ ] Verify that booleans are cast correctly and handle reasonable input (case insensitive and cast 0 and 1 to false and true)
-- [ ] Verify that `inventory_scripts` and `extra_vars` text can come from subshell output
+- [ ] Verify that booleans are cast correctly and handle reasonable input (case insensitive and cast 0 and 1 to false and true)`
+- [ ] Verify that `inventory_scripts` and `extra_vars` text can come from subshell output e.g. `--extra_vars=$(cat extra_vars.yaml)`
+   - [ ] Need to investigate what tower-cli does
+- [ ] Verify that we do not have a `ad_hoc_commands modify`
 
 
 ### Custom CLI Features
@@ -40,14 +44,14 @@ Provide a supported CLI that offers feature parity with previously upstream [tow
   - could consider trying to re-use some of the upgrade testing
   - could consider adding a new job on release verification pipeline? Consult @Spredzy about this
 - [ ] Verify that the following can trail STDOUT from a launchable resource with `--monitor`
-  - Project update on create
+  - [x] Project update on create
   - [x] Project update
   - [x] Job launch
   - [x] inventory update
   - [x] ad hoc command
   - [x] workflow job templates
 - [ ] Verify that the following can wait for job completion from a launchable resource with `--wait`
-  - Project update on create
+  - [ ] Project update on create
   - [ ] Project update
   - [x] Job launch
   - [ ] inventory update
@@ -58,19 +62,34 @@ Provide a supported CLI that offers feature parity with previously upstream [tow
 - [x] Manually confirm that human readable output provided by tabulate looks good and is sane. Intentionally not going to automate this other than ability to call it.
 - [x] Confirm can use jq to filter output
 - [x] Confirm can request yaml output
+- [ ] associate + dissociate notifications to
+   - [ ] job templates
+   - [ ] projects
+   - [ ] inventory updates    
+   - [ ] organizations
+   - [ ] workflow job templates
+- [ ] associate + dissociate credentials to
+   - [ ] job templates
+- [ ] API makes you pass "inputs" dictionary, so we should something nicer
+- [ ] Ensure that providing a private ssh key is a seamless and well documented experience. Should not require 12 fingers
 
-
-### API Verification Criteria
+### Pain points to check
+- [ ] hide `--id` on `list` so users dont get confused
+- [ ] for things like `--project` or `--inventory` etc we need to show in the help text `PROJECT ID` not `PROJECT` because what does that mean anyway
 
 ### Packaging verification criteria
 
-- [ ] awxkit has same version as awx
+- [x] awxkit has same version as awx (is symlink to awx version)
+- [ ] awxkit tarball will be release artifact on awx github
 - [ ] ansible-tower-cli will have same version as tower: related https://github.com/ansible/awx/pull/4459
 - [ ] ansible-tower-cli has RPM built for rhel7
 - [ ] ansible-tower-cli has RPM built for rhel8
-- [ ] confirm that job that tests rhel8 uses a rhel8 test-runner such that we can verify the CLI runs on python3 when it is the system python. Consult @Spredzy about this
-- [ ] confirm that job that tests rhel7.6 uses a rhel7.6 test-runner such that we can verify the CLI runs on python2 when it is the system python. Consult @Spredzy about this
-- [ ] confirm that job that tests rhel7.7 uses a rhel7.7 test-runner such that we can verify the CLI runs on python3 when it is the system python. Consult @Spredzy about this
+- [ ] confirm that job that tests rhel8 uses a rhel8 test-runner such that we can verify the CLI runs on python3 when it is the system python.
+- [ ] confirm that job that tests rhel7.6 uses a rhel7.6 test-runner such that we can verify the CLI runs on python2 when it is the system python.
+- [ ] confirm that job that tests rhel7.7 uses a rhel7.7 test-runner such that we can verify the CLI runs on python3 when it is the system python.
+- [ ] confirm that tests delete the `awx` binary available in the tower-qa venv
+- [ ] confirm that we install the rpm for the `ansible-tower-cli` from the right repo (how are we going to pass that info TBD)
+- [ ] Confirm we resolve the dependency issue
 - [ ] anisble-tower-cli has source tarball built for pip install on other distro (hosted at ansible.releases.com)
 
 
@@ -90,17 +109,26 @@ Provide a supported CLI that offers feature parity with previously upstream [tow
       should not be in square brackets, see `job_templates` arguments `project` and
       `playbook`
 
-## Open questions
+## Answered questions
 
 - Do we care that extra arguments are ignored silently?
   - This is probably an API issue as the CLI doesn't know what arguments are
     valid.
-  - Why was `scm_type` and `organization` not required to make a project
-- Why is ad_hoc_commands only plural
-- Want to clarify that creating a ad_hoc command launches it???????
-- Should we be able to modify an ad_hoc command if it cant be re-launched? (no apparent way to do this)
-- relaunch? does not seem to be implemented
-- Way to sort by required/optional args for help text?
-- Can human output for metrics endpoint get output in text/plain instead of weird empty list?
-- Help text documents we cannot filter json or yaml outputs, caleb wants to know why
-- way to help dumb users figure out when need --id and when is bare argument (smart users might notice that list takes --id but modify, launch, delete, and get take an action on a specifc one that they take as a positional argument)
+  - Stuck with this
+- Why was `scm_type` and `organization` not required to make a project
+  - just the way the api works
+
+# candidates for RFE's
+- alias "ad_hoc_commands create" -> "ad_hoc launch"
+- Relaunch implementation across board
+- Sort by required/optional args for help text
+- Add support for human output for settings and metrics
+- Add support for filtering yaml
+- Sane interface for providing launch time parameters (prompt on launch)
+- Add support for callback endpoint for job_templates so the hosts can reach back and launch job templates
+- _DONOTFILE_ draw crazy workflow graph on command line
+- _DONOTFILE_ export/import workflow graphs via yaml
+- Support totally wiping your tower install instead of truncating database
+
+## Open questions
+  - what are we doing about jq and tabulate -- are there python packages available to yum for this? Need to consult shane/bill about this
