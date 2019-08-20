@@ -29,7 +29,6 @@ class TestCLIBasics(object):
 
     def test_anonymous_user(self, cli):
         result = cli(['awx', '-k', '--conf.host', config.base_url])
-        assert result.returncode == 0, format_error(result)
 
         # you can *see* endpoints without logging in
         for endpoint in (b'login', b'config', b'ping', b'organizations'):

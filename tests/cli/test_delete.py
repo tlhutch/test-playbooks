@@ -11,7 +11,11 @@ class TestObjectDeletion(object):
     def test_missing_primary_key(self, cli):
         result = cli(['awx', 'users', 'delete'], auth=True)
         assert result.returncode == 2, format_error(result)
-        assert b'the following arguments are required: id' in result.stdout
+        assert (
+            # https://github.com/python/cpython/commit/f97c59aaba2d93e48cbc6d25f7
+            b'too few arguments' in result.stdout or
+            b'the following arguments are required: id' in result.stdout
+        )
 
     def test_invalid_primary_key(self, cli):
         result = cli(['awx', 'users', 'delete', '99999999'], auth=True)

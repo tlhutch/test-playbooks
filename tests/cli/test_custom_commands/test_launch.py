@@ -8,7 +8,11 @@ class TestJobLaunch(object):
     def test_job_launch_missing_pk(self, cli):
         result = cli(['awx', 'job_templates', 'launch'], auth=True)
         assert result.returncode == 2
-        assert b'the following arguments are required: id' in result.stdout
+        assert (
+            # https://github.com/python/cpython/commit/f97c59aaba2d93e48cbc6d25f7
+            b'too few arguments' in result.stdout or
+            b'the following arguments are required: id' in result.stdout
+        )
 
     def test_job_launch_incorrect_pk(self, cli):
         result = cli(['awx', 'job_templates', 'launch', '999999'], auth=True)
@@ -66,7 +70,11 @@ class TestProjectUpdate(object):
     def test_project_update_missing_pk(self, cli):
         result = cli(['awx', 'projects', 'update'], auth=True)
         assert result.returncode == 2
-        assert b'the following arguments are required: id' in result.stdout
+        assert (
+            # https://github.com/python/cpython/commit/f97c59aaba2d93e48cbc6d25f7
+            b'too few arguments' in result.stdout or
+            b'the following arguments are required: id' in result.stdout
+        )
 
     def test_project_update_incorrect_pk(self, cli):
         result = cli(['awx', 'projects', 'update', '999999'], auth=True)
@@ -110,7 +118,11 @@ class TestInventorySourceUpdate(object):
     def test_inventory_source_update_missing_pk(self, cli):
         result = cli(['awx', 'inventory_sources', 'update'], auth=True)
         assert result.returncode == 2
-        assert b'the following arguments are required: id' in result.stdout
+        assert (
+            # https://github.com/python/cpython/commit/f97c59aaba2d93e48cbc6d25f7
+            b'too few arguments' in result.stdout or
+            b'the following arguments are required: id' in result.stdout
+        )
 
     def test_inventory_source_update_incorrect_pk(self, cli):
         result = cli(['awx', 'inventory_sources', 'update', '999999'], auth=True)

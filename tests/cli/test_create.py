@@ -11,7 +11,13 @@ class TestObjectCreation(object):
     def test_missing_required_arguments(self, cli):
         result = cli(['awx', 'users', 'create'], auth=True)
         assert result.returncode == 2, format_error(result)
-        assert b'arguments are required: --username' in result.stdout
+
+        assert (
+            # https://github.com/python/cpython/commit/f97c59aaba2d93e48cbc6d25f7
+            b'argument --username is required' in result.stdout or
+            b'arguments are required: --username' in result.stdout
+        )
+
         for arg in (
             b'--username TEXT', b'--first_name TEXT',
             b'--last_name TEXT', b'--email TEXT', b'--is_superuser BOOLEAN',

@@ -32,7 +32,11 @@ class TestSettingsCLI(object):
     def test_settings_update_missing_args(self, cli):
         result = cli(['awx', 'settings', 'modify'], auth=True)
         assert result.returncode == 2, format_error(result)
-        assert b'arguments are required: key, value' in result.stdout
+        assert (
+            # https://github.com/python/cpython/commit/f97c59aaba2d93e48cbc6d25f7
+            b'too few arguments' in result.stdout or
+            b'arguments are required: key, value' in result.stdout
+        )
 
     def test_invalid_key(self, cli, v2):
         result = cli([
