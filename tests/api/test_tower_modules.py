@@ -8,7 +8,7 @@ import os
 
 from tests.api import APITest
 
-TOWER_MODULES = [
+TOWER_MODULES_PARAMS = [
     'common',
     'credential',
     'credential_type',
@@ -24,7 +24,7 @@ TOWER_MODULES = [
     'label',
     'notification',
     'project',
-    'receive',
+    pytest.param('receive', marks=pytest.mark.serial),
     'role',
     'send',
     'settings',
@@ -87,7 +87,7 @@ def tower_credential(factories, admin_user):
 @pytest.mark.usefixtures('skip_if_openshift', 'authtoken', 'tower_modules_collection', 'shared_custom_venvs')
 @pytest.mark.parametrize('python_venv_name', CUSTOM_VENVS_NAMES)
 class Test_Ansible_Tower_Modules_via_Playbooks(APITest):
-    @pytest.mark.parametrize('tower_module', TOWER_MODULES)
+    @pytest.mark.parametrize('tower_module', TOWER_MODULES_PARAMS)
     def test_ansible_tower_module(self, v2, factories, tower_module, project, tower_credential, venv_path, python_venv_name):
         """
         Ansible modules that interact with Tower live in an Ansible Collection.
