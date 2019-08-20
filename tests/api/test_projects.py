@@ -75,9 +75,19 @@ class Test_Projects(APITest):
         assert project.status == 'successful'
         assert project.scm_revision
         assert project.summary_fields.last_update
+        assert project.credential is None
+        assert 'credential' not in project.summary_fields  # examples use public repos
         assert project.scm_type == scm_type
         assert str(project.id) in project.local_path
         assert project.last_updated == project.last_job_run
+
+        update = project.get_related('last_update')
+        assert update.status == 'successful'
+        assert update.name == project.name
+        assert update.scm_type == scm_type
+        assert update.scm_revision == project.scm_revision
+        assert update.credential is None
+        assert 'credential' not in update.summary_fields  # examples use public repos
 
     @pytest.mark.parametrize('scm_type, playbook, before, after, expect_method', [
         (

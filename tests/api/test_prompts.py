@@ -267,11 +267,12 @@ class TestPrompts(APITest):
 
         wfjt = factories.workflow_job_template()
         jt = factories.job_template(**self.ask_jt_attrs)
-        factories.workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt,
-                                                extra_data=dict(var1='wfjtn'), job_type='check', job_tags='wfjtn',
-                                                skip_tags='wfjtn', limit='wfjtn', diff_mode=True, verbosity=2,
-                                                inventory=inventory, credential=credential)
+        node = factories.workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt,
+                                                    extra_data=dict(var1='wfjtn'), job_type='check', job_tags='wfjtn',
+                                                    skip_tags='wfjtn', limit='wfjtn', diff_mode=True, verbosity=2,
+                                                    inventory=inventory)
 
+        node.add_credential(credential)
         wfj = wfjt.launch().wait_until_completed()
         job = jt.get().related.last_job.get()
         wfj.assert_successful()
@@ -397,8 +398,8 @@ class TestPrompts(APITest):
         jt = factories.job_template(vault_credential=jt_vault.id, ask_credential_on_launch=True)
         for cred in (jt_aws, jt_vmware):
             jt.add_extra_credential(cred)
-        wfjtn = factories.workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt,
-                                                        credential=launch_ssh)
+        wfjtn = factories.workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt)
+        wfjtn.add_credential(launch_ssh)
         for cred in (launch_aws, launch_vmware, launch_vault):
             with utils.suppress(exc.NoContent):
                 wfjtn.related.credentials.post(dict(id=cred.id))

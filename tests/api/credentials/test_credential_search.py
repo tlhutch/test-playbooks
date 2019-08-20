@@ -103,9 +103,9 @@ class TestCredentialSearch(APITest):
         jt = factories.job_template(ask_credential_on_launch=True)
         wfjt = factories.workflow_job_template()
         wfjtn = factories.workflow_job_template_node(workflow_job_template=wfjt,
-                                                        credential=cred,
                                                         unified_job_template=jt)
 
+        wfjtn.add_credential(cred)
         self.confirm_sole_credential_in_related_search(
             v2, cred, workflowjobtemplatenodes__workflow_job_template__search=wfjt.name
         )
