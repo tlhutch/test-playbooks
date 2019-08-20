@@ -1,6 +1,9 @@
 import pytest
 
 
+JOB_STATUSES = ('new', 'pending', 'waiting', 'running')
+
+
 @pytest.mark.yolo
 @pytest.mark.usefixtures('authtoken')
 class TestJobLaunch(object):
@@ -40,7 +43,7 @@ class TestJobLaunch(object):
 
         if timeout:
             assert result.returncode == 0
-            assert result.json['status'] in ('new', 'pending', 'running')
+            assert result.json['status'] in JOB_STATUSES
         else:
             assert result.returncode == 0
             assert result.json['status'] == 'successful'
@@ -170,7 +173,7 @@ class TestAdhocLaunch(object):
             '--module_args', 'awx-manage --version'
         ], auth=True)
         assert result.returncode == 0
-        assert result.json['status'] in ('new', 'pending', 'running')
+        assert result.json['status'] in JOB_STATUSES
         assert v2.ad_hoc_commands.get(
             id=result.json['id']
         ).results[0].module_args == 'awx-manage --version'
@@ -211,7 +214,7 @@ class TestWorkflowLaunch(object):
             'awx', 'workflow_job_templates', 'launch', str(wfjt.id),
         ], auth=True)
         assert result.returncode == 0
-        assert result.json['status'] in ('new', 'pending', 'running')
+        assert result.json['status'] in JOB_STATUSES
 
         wf_jobs = wfjt.related.workflow_jobs.get()
         assert wf_jobs.count == 1
