@@ -32,7 +32,7 @@ Provide a supported CLI that offers feature parity with previously upstream [tow
 - [x] Verify can launch a job from a JT
 - [x] Verify can launch a project update
 - [ ] Verify can check on a job status given we know a job ID
-- [ ] Verify that booleans are cast correctly and handle reasonable input (case insensitive and cast 0 and 1 to false and true)`
+- [x] Verify that booleans are cast correctly and handle reasonable input (case insensitive and cast 0 and 1 to false and true)`
 - [ ] Verify that `inventory_scripts` and `extra_vars` text can come from subshell output e.g. `--extra_vars=$(cat extra_vars.yaml)`
    - [ ] Need to investigate what tower-cli does
 - [ ] Verify that we do not have a `ad_hoc_commands modify`
