@@ -166,6 +166,7 @@ def clean_user_orgs_and_teams(request, user=None):
         request.addfinalizer(teardown)
     return func
 
+
 @pytest.fixture(params=[
         'sysadmin',
         'org_admin',
