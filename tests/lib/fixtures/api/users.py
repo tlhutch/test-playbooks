@@ -1,4 +1,5 @@
 from awxkit.config import config
+import awxkit.exceptions
 import fauxfactory
 import pytest
 
@@ -164,3 +165,67 @@ def clean_user_orgs_and_teams(request, user=None):
             user.delete()
         request.addfinalizer(teardown)
     return func
+
+@pytest.fixture(params=[
+        'sysadmin',
+        'org_admin',
+        'wf_admin',
+        'org_wf_admin',
+        'org_approve',
+        'wf_approve',
+        'org_executor',
+        'wf_executor',
+        'org_read',
+        'wf_read',
+        'system_auditor',
+        'user_in_org',
+        'random_user'
+    ])
+def user_with_role_and_workflow(request, class_factories):
+    role = request.param
+    fixture_args = request.node.get_closest_marker('fixture_args')
+    if fixture_args and 'roles' in fixture_args.kwargs:
+        only_create = fixture_args.kwargs['roles']
+        if role not in only_create:
+            pytest.skip()
+
+    org = class_factories.organization()
+    user = class_factories.user(organization=org)
+    wfjt = class_factories.workflow_job_template(organization=org)
+    assert org.id == user.related.organizations.get().results.pop().id
+    if role == 'wf_executor':
+        wfjt.set_object_roles(user, 'execute')
+    if role == 'wf_read':
+        wfjt.set_object_roles(user, 'read')
+    if role == 'wf_approve':
+        wfjt.set_object_roles(user, 'approve')
+    if role == 'wf_admin':
+        wfjt.set_object_roles(user, 'admin')
+    if role == 'org_executor':
+        org.set_object_roles(user, 'execute')
+    if role == 'org_read':
+        org.set_object_roles(user, 'read')
+    if role == 'org_approve':
+        org.set_object_roles(user, 'approve')
+    if role == 'org_wf_admin':
+        org.set_object_roles(user, 'workflow admin')
+    if role == 'system_auditor':
+        user.is_system_auditor = True
+    if role == 'sysadmin':
+        user.is_superuser = True
+    if role == 'org_admin':
+        org.set_object_roles(user, 'admin')
+    elif role == 'user_in_org':
+        # no further changes needed
+        pass
+    elif role == 'random_user':
+        with pytest.raises(awxkit.exceptions.NoContent):
+            org.related.users.post(dict(id=user.id, disassociate=True))
+        random_org = class_factories.organization()
+        with pytest.raises(awxkit.exceptions.NoContent):
+            random_org.related.users.post(dict(id=user.id, associate=True))
+    approval_node = class_factories.workflow_job_template_node(
+        workflow_job_template=wfjt,
+        unified_job_template=None
+    ).make_approval_node()
+    return user, wfjt, role, approval_node
