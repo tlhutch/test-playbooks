@@ -37,6 +37,10 @@ CREDS=$(retrieve_credential_file "${INVENTORY}")
 
 set +e
 
+# Try remove the virtualenv awx binary to guarantee we use the one installed by
+# the RPM
+rm ${VIRTUAL_ENV}/bin/awx
+
 # Run tests that need to run serially
 pytest -v -c config/api.cfg \
     --junit-xml=reports/junit/results-cli-serial.xml \

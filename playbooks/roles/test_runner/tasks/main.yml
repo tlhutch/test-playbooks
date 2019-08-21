@@ -4,15 +4,30 @@
     src: ~/.ssh/id_rsa.pub
     dest: ~/.ssh
 
-- name: Install required repositories
+- name: Install required repositories (RHEL7)
   become: true
   package:
     name:
       - https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+  when: ansible_distribution_major_version == '7'
+
+- name: Install required repositories (RHEL8)
+  become: true
+  package:
+    name:
+      - https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm
+  when: ansible_distribution_major_version == '8'
 
 - name: Enable extras repo
   become: true
   command: yum-config-manager --enable rhui-REGION-rhel-server-extras --enable rhui-REGION-rhel-server-optional
+  when: ansible_distribution_major_version == '7'
+
+- name: Enable ansible-tower nightlies repo
+  become: true
+  template:
+    src: ansible-tower_nightlies.repo.j2
+    dest: /etc/yum.repos.d/ansible-tower_nightlies.repo
 
 - name: Install required packages
   become: true
@@ -32,6 +47,31 @@
       - autoconf
       - automake
       - libtool
+      - ansible-tower-cli
+  when: ansible_distribution_major_version == '7'
+
+- name: Install required packages
+  become: true
+  package:
+    name:
+      - git
+      - gcc
+      - python3
+      - python3-devel
+      - python3-libs
+      - python3-pip
+      - docker
+      - autoconf
+      - automake
+      - make
+      - libtool
+      - ansible-tower-cli
+  when: ansible_distribution_major_version == '8'
+
+- name: Install jq python library for the CLI
+  become: true
+  pip:
+    name: jq
 
 - name: Add user to dockerroot
   become: true
@@ -39,12 +79,14 @@
     name: ec2-user
     append: yes
     groups: dockerroot
+  when: ansible_distribution_major_version == '7'
 
 - name: Copy docker configuration
   become: true
   copy:
     dest: /etc/docker/daemon.json
     content: '{ "live-restore": true, "group": "dockerroot" }'
+  when: ansible_distribution_major_version == '7'
 
 - name: Start docker service
   become: true
@@ -52,6 +94,7 @@
     name: docker
     state: started
     enabled: yes
+  when: ansible_distribution_major_version == '7'
 
 - name: Create python3 symlink
   become: true
@@ -59,6 +102,7 @@
     src: /usr/bin/python3.6
     dest: /usr/bin/python3
     state: link
+  when: ansible_distribution_major_version == '7'
 
 - name: Disable selinux
   become: True

@@ -84,7 +84,13 @@ function setup_env_based_on_deployment_scenario {
            VARS_FILE=playbooks/test_runner_vars.yml
            IMAGE_VARS=playbooks/images-test-runner.yml
            INSTANCE_NAME_PREFIX=test-runner-${PLATFORM}-${INSTANCE_NAME_PREFIX}
-           PLATFORM=rhel-7.7-x86_64
+           # If the tower platform is RHEL 8, deploy a RHEL 8 test-runner,
+           # otherwise just deploy a RHEL 7.7 test-runner
+           # We might want to make this better so that we dont have to change
+           # this every time there's a new RHEL 8 minor release
+           if [[ "$PLATFORM" != 'rhel-8.0-x86_64' ]] ; then
+               PLATFORM='rhel-7.7-x86_64'
+           fi
            AWX_IPV6_DEPLOYMENT=no
            ;;
        *)
@@ -216,9 +222,16 @@ function retrieve_deployment_type {
 
 function setup_python3_env {
 
-    INVENV=$(python -c 'import sys; print ("1" if hasattr(sys, "real_prefix") else "0")')
+    # If `python` exists, use it, otherwise use python3
+    if hash python 2>/dev/null ; then
+        INVENV=$(python -c 'import sys; print ("1" if hasattr(sys, "real_prefix") else "0")')
+        PY_VERSION="$(python --version 2>&1)"
+    else
+        INVENV=$(python3 -c 'import sys; print ("1" if hasattr(sys, "real_prefix") else "0")')
+        PY_VERSION="$(python3 --version 2>&1)"
+    fi
 
-    if [[ "$(python --version 2>&1)" =~ Python\ 3.\.* ]] && [[ "${INVENV}" == "1" ]]; then
+    if [[ "$PY_VERSION" =~ Python\ 3.\.* ]] && [[ "${INVENV}" == "1" ]]; then
         true
     elif [ "$(grep -s "python3" tox.ini)" ]; then
         [[ "${INVENV}" == "1" ]] && deactivate || true
