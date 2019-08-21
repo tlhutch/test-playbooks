@@ -3,6 +3,10 @@
   hosts: local
   tasks:
     - include_role:
+        name: terminate_ec2
+      when: delete_on_start | default(true) | bool
+
+    - include_role:
         name: create_ec2
       when: not awx_upgrade | default(false) | bool
 
@@ -76,3 +80,10 @@
           {{ hostvars[item]["ansible_default_ipv6"]["address"] }} {{ hostvars[item]["inventory_hostname"] }}
       with_items: '{{ groups["tower"] }}'
       when: awx_ipv6_deployment | default(false) | bool
+
+- name: Clean up cloud hosts
+  hosts: local
+  tasks:
+    - include_role:
+        name: terminate_ec2
+      when: reap_instances | default(true) | bool

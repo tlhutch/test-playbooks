@@ -3,6 +3,10 @@
   hosts: local
   tasks:
     - include_role:
+        name: terminate_ec2
+      when: delete_on_start | default(true) | bool
+
+    - include_role:
         name: create_ec2
       when: not awx_upgrade | default(false) | bool
 
@@ -161,3 +165,10 @@
       delay: 3
       register: result
       until: result is success
+
+- name: Clean up cloud hosts
+  hosts: local
+  tasks:
+    - include_role:
+        name: terminate_ec2
+      when: reap_instances | default(true) | bool
