@@ -10,42 +10,13 @@ class TestWorkflowApprovalNodes(APITest):
     """
 
     @pytest.mark.yolo
-    @pytest.mark.parametrize('approve', [True, False], ids=['approve', 'deny'])
-    @pytest.mark.parametrize('user', ['sysadmin', 'org_admin', 'org_approver', 'wf_approver'])
-    def test_approval_node_happy_path(self, v2, factories, org_admin, approve, user):
+    @pytest.mark.fixture_args(roles=['sysadmin', 'org_admin', 'org_approve', 'wf_approve'])
+    def test_approval_node_happy_path(self, v2, user_with_role_and_workflow):
         """Create a workflow with an approval node and approve it."""
-        org = org_admin.related.organizations.get().results.pop()
-        if user == 'org_approver':
-            user = factories.user(organization=org)
-            with self.current_user(org_admin):
-                org.set_object_roles(user, 'approve')
-        if user == 'org_admin':
-            user = org_admin
-        inner_wfjt = factories.workflow_job_template(organization=org)
-        wfjt = factories.workflow_job_template(organization=org)
-        if user == 'wf_approver':
-            user = factories.user(organization=org)
-            with self.current_user(org_admin):
-                wfjt.set_object_roles(user, 'approve')
+        # creation of users, workflow job template and workflow approval node
+        user, wfjt, role, approval_node = user_with_role_and_workflow
 
-        timeout = 100
-        description = 'Mark my words'
-        name = 'hellow world'
-        approval_node = factories.workflow_job_template_node(
-            workflow_job_template=wfjt,
-            unified_job_template=None
-            ).make_approval_node(timeout=timeout, description=description, name=name)
-
-        # Confirm that approval JT created for us is what we expect
         approval_jt = approval_node.related.unified_job_template.get()
-        assert approval_jt.timeout == timeout
-        assert approval_jt.description == description
-        assert approval_jt.name == name
-
-        if not approve:
-            # add error handling node so workflow does not fail
-            approval_node.add_failure_node(unified_job_template=inner_wfjt)
-
         wf_job = wfjt.launch()
         wf_job.wait_until_status('running')
         approval_job_node = wf_job.related.workflow_nodes.get(unified_job_template=approval_jt.id).results.pop()
@@ -56,38 +27,51 @@ class TestWorkflowApprovalNodes(APITest):
         all_pending_approvals = v2.workflow_approvals.get(status='pending', order_by='-created_by').results
         assert wf_approval.id in [approval.id for approval in all_pending_approvals]
         assert wf_job.status == 'running'
-        if approve:
-            if user != 'sysadmin':
-                with self.current_user(user.username, user.password):
-                    wf_approval.approve()
-            else:
-                wf_approval.approve()
-            all_successful_approvals = v2.workflow_approvals.get(status='successful', order_by='-created').results
-            assert wf_approval.id in [approval.id for approval in all_successful_approvals]
-        # we will deny
-        else:
-            if user != 'sysadmin':
-                with self.current_user(user.username, user.password):
-                    wf_approval.deny()
-            else:
-                wf_approval.deny()
-
-            all_denied_approvals = v2.workflow_approvals.get(status='failed', order_by='-created').results
-            assert wf_approval.id in [approval.id for approval in all_denied_approvals]
-
+        # Assert that the user can approve
+        with self.current_user(user.username, user.password):
+            wf_approval.approve()
+        # Assert that the associated workflow approval with the approval job node is in the list of successful approvals
+        all_successful_approvals = v2.workflow_approvals.get(status='successful', order_by='-created').results
+        assert wf_approval.id in [approval.id for approval in all_successful_approvals]
+        # Assert that the job is successful after approving the approval node
         wf_job.wait_until_completed().assert_successful()
+        # Assert that an entry is formed accordingly in the activity stream
         events = v2.activity_stream.get(operation='update', object1='workflow_approval',
                                         workflow_approval=wf_approval.id, order_by='-timestamp').results
-        status = ["pending", "successful"] if approve else ["pending", "failed"]
-        my_event = [event for event in events if event.changes.status == status]
+        my_event = [event for event in events if event.changes.status == ["pending", "successful"]]
         assert len(my_event) == 1, 'number of entries in the activity stream do not match'
         my_event = my_event.pop()
-        assert my_event.changes.status == status
-        if user != 'sysadmin':
-            assert my_event.summary_fields.actor.id == user.id
-        else:
-            assert my_event.summary_fields.actor.id == 1
+        assert my_event.changes.status == ["pending", "successful"]
+        assert my_event.summary_fields.actor.username == user.username
         assert my_event.summary_fields.workflow_job[0].id == wf_job.id
+
+        # deny scenario
+        wf_job_to_deny = wfjt.launch()
+        wf_job_to_deny.wait_until_status('running')
+        approval_job_node = wf_job_to_deny.related.workflow_nodes.get(unified_job_template=approval_jt.id).results.pop()
+        wf_approval = approval_job_node.wait_for_job().related.job.get().wait_until_status('pending')
+
+        # Assert the workflow approval that was associated with the approval job node is in list of
+        # approvals pending (this is what user will get notification about)
+        all_pending_approvals = v2.workflow_approvals.get(status='pending', order_by='-created_by').results
+        assert wf_approval.id in [approval.id for approval in all_pending_approvals]
+        # Assert that the user can deny an approval node
+        with self.current_user(user.username, user.password):
+            wf_approval.deny()
+        # Assert that the associated workflow approval with the approval job node is in the list of denied approvals
+        all_denied_approvals = v2.workflow_approvals.get(status='failed', order_by='-created').results
+        assert wf_approval.id in [approval.id for approval in all_denied_approvals]
+        # Assert that the job is failed after denying the approval node
+        assert wf_job_to_deny.wait_until_completed().status == "failed"
+        # Assert that an entry is formed accordingly in the activity stream
+        events = v2.activity_stream.get(operation='update', object1='workflow_approval',
+                                        workflow_approval=wf_approval.id, order_by='-timestamp').results
+        my_event = [event for event in events if event.changes.status == ["pending", "failed"]]
+        assert len(my_event) == 1, 'number of entries in the activity stream do not match'
+        my_event = my_event.pop()
+        assert my_event.changes.status == ["pending", "failed"]
+        assert my_event.summary_fields.actor.username == user.username
+        assert my_event.summary_fields.workflow_job[0].id == wf_job_to_deny.id
 
     def test_update_existing_node_to_approval_node(self, v2, factories, org_admin):
         """Create a workflow with an approval node and approve it."""
