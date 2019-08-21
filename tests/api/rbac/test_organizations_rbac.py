@@ -61,7 +61,7 @@ class Test_Organization_RBAC(APITest):
                            sub_resource=('credential', dict(kind='vault', inputs=dict(vault_password='foo')))),
         SubResourceMapping(resource_type='project', field='credential',
                            sub_resource=('credential', dict(kind='scm'))),
-        SubResourceMapping(resource_type='workflow_job_template_node', field='credential',
+        SubResourceMapping(resource_type='workflow_job_template_node', field='credentials',
                            sub_resource=('credential', dict(kind='ssh'))),
         SubResourceMapping(resource_type='workflow_job_template_node', field='inventory',
                            sub_resource=('inventory', {})),
@@ -317,7 +317,11 @@ class Test_Organization_RBAC(APITest):
             organization.set_object_roles(team, role)
 
     @staticmethod
-    def create_resource(factories, res_type, org, **kwargs):
+    def create_resource(factories, res_type, org, **kwargs_input):
+        kwargs = kwargs_input.copy()
+        m2m_cred = None
+        if 'credentials' in kwargs:
+            m2m_cred = kwargs.pop('credentials')
         if res_type == 'inventory_source':
             kwargs['source_script'] = factories.inventory_script(organization=org)
         if res_type == 'job_template':
@@ -331,7 +335,10 @@ class Test_Organization_RBAC(APITest):
                 kwargs['credential'] = factories.credential(organization=org)
         else:
             kwargs['organization'] = org
-        return getattr(factories, res_type)(**kwargs)
+        obj = getattr(factories, res_type)(**kwargs)
+        if m2m_cred:
+            obj.add_credential(m2m_cred)
+        return obj
 
     @pytest.mark.parametrize('resource_type', [item.resource_type for item in org_resource_admin_mappings])
     def test_non_authorized_user_cannot_create_resources(self, factories, resource_type, non_superuser):
@@ -366,7 +373,7 @@ class Test_Organization_RBAC(APITest):
             if sub_resource_mapping.field == 'inventory':
                 creation_kwargs['unified_job_template'] = self.create_resource(factories, 'job_template', orgB,
                                                                                ask_inventory_on_launch=True)
-            if sub_resource_mapping.field == 'credential':
+            if sub_resource_mapping.field == 'credentials':
                 creation_kwargs['unified_job_template'] = self.create_resource(factories, 'job_template', orgB,
                                                                                ask_credential_on_launch=True)
         if sub_resource_mapping.resource_type == 'inventory_source':

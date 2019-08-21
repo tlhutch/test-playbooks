@@ -127,9 +127,10 @@ class Test_Copy_RBAC(APITest):
         aws_cred = factories.credential(kind='aws', organization=orgA)
         project = factories.project(organization=orgB)
         inventory = factories.inventory(organization=orgB)
-        jt = factories.job_template(inventory=inventory, project=project, credential=machine_cred,
-                                       vault_credential=vault_cred.id)
+        jt = factories.job_template(inventory=inventory, project=project, credential=None)
         jt.add_credential(aws_cred)
+        jt.add_credential(machine_cred)
+        jt.add_credential(vault_cred)
         user = factories.user()
 
         cred_ids = [cred.id for cred in jt.related.credentials.get().results]
@@ -154,9 +155,10 @@ class Test_Copy_RBAC(APITest):
         aws_cred = factories.credential(kind='aws', organization=orgA)
         project = factories.project(organization=orgB)
         inventory = factories.inventory(organization=orgB)
-        jt = factories.job_template(inventory=inventory, project=project, credential=machine_cred,
-                                       vault_credential=vault_cred.id)
+        jt = factories.job_template(inventory=inventory, project=project, credential=None)
         jt.add_credential(aws_cred)
+        jt.add_credential(machine_cred)
+        jt.add_credential(vault_cred)
         user = factories.user()
 
         orgA.add_user(user)
@@ -171,11 +173,11 @@ class Test_Copy_RBAC(APITest):
         orgA, orgB = [factories.organization() for _ in range(2)]
         cred = factories.credential(kind='ssh', organization=orgA)
         inv = factories.inventory(organization=orgA)
-        jt = factories.job_template(ask_credential_on_launch=True, ask_inventory_on_launch=True,
-                                       credential=cred, inventory=inv)
+        jt = factories.job_template(ask_credential_on_launch=True, ask_inventory_on_launch=True, inventory=inv)
         wfjt = factories.workflow_job_template(organization=orgB)
         wfjtn = factories.workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt,
-                                                        credential=cred, inventory=inv)
+                                                        inventory=inv)
+        wfjtn.add_credential(cred)  # JT already has a machine credential, but this is a different one
         assert wfjtn.unified_job_template == jt.id
         assert wfjtn.inventory == inv.id
         wfjtn_creds = [c.id for c in wfjtn.related.credentials.get().results]
@@ -203,10 +205,11 @@ class Test_Copy_RBAC(APITest):
         cred = factories.credential(kind='ssh', organization=orgA)
         inv = factories.inventory(organization=orgA)
         jt = factories.job_template(ask_credential_on_launch=True, ask_inventory_on_launch=True,
-                                       credential=cred, inventory=inv)
+                                       inventory=inv)
         wfjt = factories.workflow_job_template(organization=orgB)
         wfjtn = factories.workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt,
-                                                        credential=cred, inventory=inv)
+                                                        inventory=inv)
+        wfjtn.add_credential(cred)  # JT already has a machine credential, but this is a different one
         assert wfjtn.unified_job_template == jt.id
         assert wfjtn.inventory == inv.id
         wfjtn_creds = [c.id for c in wfjtn.related.credentials.get().results]
@@ -224,4 +227,4 @@ class Test_Copy_RBAC(APITest):
             new_wfjtn = new_wfjt.related.workflow_nodes.get().results[0]
             assert not new_wfjtn.unified_job_template
             assert not new_wfjtn.inventory
-            assert not new_wfjtn.credential
+            assert not new_wfjtn.get_related('credentials').count

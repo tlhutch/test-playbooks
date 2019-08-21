@@ -71,11 +71,12 @@ class Test_Workflow_Nodes(APITest):
         host, credential = factories.host(), factories.credential()
         wfjt = factories.workflow_job_template()
         wf_node = factories.workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=ask_everything_jt,
-                                                          inventory=host.ds.inventory, credential=credential, job_type='check',
+                                                          inventory=host.ds.inventory, job_type='check',
                                                           job_tags='always', skip_tags='wf_skip_tag', verbosity=5,
                                                           diff_mode=True, limit=host.name,
                                                           extra_data={'var1': 'wf_var', 'var2': 'wf_var'})
 
+        wf_node.add_credential(credential)
         survey = [dict(required=True,
                        question_name='Q1',
                        variable='var1',
@@ -200,10 +201,11 @@ class Test_Workflow_Nodes(APITest):
         jt = factories.job_template()
 
         with pytest.raises(BadRequest) as e:
-            factories.workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt,
-                                                    extra_data=dict(var1='wfjtn'), job_type='check', job_tags='wfjtn',
-                                                    skip_tags='wfjtn', limit='wfjtn', diff_mode=True, verbosity=2,
-                                                    inventory=inventory, credential=credential)
+            wfjtn = factories.workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt,
+                                                         extra_data=dict(var1='wfjtn'), job_type='check', job_tags='wfjtn',
+                                                         skip_tags='wfjtn', limit='wfjtn', diff_mode=True, verbosity=2,
+                                                         inventory=inventory)
+            wfjtn.add_credential(credential)
         assert e.value[1] == {'job_tags': ['Field is not configured to prompt on launch.'],
                               'verbosity': ['Field is not configured to prompt on launch.'],
                               'job_type': ['Field is not configured to prompt on launch.'],
@@ -240,9 +242,9 @@ class Test_Workflow_Nodes(APITest):
         jt = factories.job_template()
 
         with pytest.raises(BadRequest) as e:
-            factories.workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt,
-                                                    credential=credential)
-        assert e.value[1] == {'credential': ['Related template is not configured to accept credentials on launch.']}
+            wfjtn = factories.workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt)
+            wfjtn.add_credential(credential)
+        assert e.value[1] == {'msg': 'Related template is not configured to accept credentials on launch.'}
 
     def test_workflow_node_creation_rejected_when_jt_has_ask_credential(self, factories):
         wfjt = factories.workflow_job_template()
