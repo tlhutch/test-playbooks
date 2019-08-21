@@ -6,8 +6,8 @@ Any user with right permissions can approve to proceed or deny to fail the node 
 
 ## Related Information
 * [Feature request](https://github.com/ansible/awx/issues/1206)
-* [Initial PR](https://github.com/ansible/awx/pull/2352)
-* [Main PR](https://github.com/ansible/awx/pull/3801)
+* [Issue](https://github.com/ansible/tower-qa/issues/3401)
+* [PR](https://github.com/ansible/awx/pull/4264)
 * [Integration Tests](https://github.com/ansible/tower-qa/pull/3801)
 
 ## Scenarios to test
@@ -52,16 +52,16 @@ Any user with right permissions can approve to proceed or deny to fail the node 
 ### Activity Stream Scenarios
 
 - [ ] Given that a workflow approval node has been APPROVE, confirm that the:
-    - [ ] approver is identified
+    - [x] approver is identified
     - [x] workflow job that it ran is is identified
     - [x] Confirm this is visible to anyone with read access to WF approval
 - [ ] Given that a workflow approval node has been DENIED, confirm that the:
-    - [ ] approver is identified
+    - [x] approver is identified
     - [x] workflow job that it ran is is identified
     - [ ] ???? Reason for denial
     - [x] Confirm this is visible to anyone with read access to WF approval
 - [ ] Given that a workflow approval node TIMED OUT, confirm that the:
-    - [ ] Timed Out is changed from False to True
+    - [x] Timed Out is changed from False to True
     - [ ] ???? Reason for failure
 
 ### RBAC
