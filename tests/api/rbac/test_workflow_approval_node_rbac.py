@@ -70,16 +70,15 @@ class TestApprovalNodeRBAC(APITest):
         # Verify users without permission cannot create an approval node
         if role in ['org_admin', 'sysadmin', 'wf_admin', 'org_wf_admin']:
             with self.current_user(user.username, user.password):
-                approval_node = factories.workflow_job_template_node(
+                factories.workflow_job_template_node(
                     workflow_job_template=wfjt,
                     unified_job_template=None
-                ).make_approval_node(timeout=100, description='Mark my words', name='hellow world')
-                approval_jt = approval_node.related.unified_job_template.get()
-                assert approval_jt.name == 'hellow world'
+                ).make_approval_node()
+                assert approval_jt.timeout == 0
         else:
             with self.current_user(user.username, user.password):
                 with pytest.raises(awxkit.exceptions.Forbidden):
                     factories.workflow_job_template_node(
                         workflow_job_template=wfjt,
                         unified_job_template=None
-                    ).make_approval_node(timeout=100, description='Mark my words', name='hellow world')
+                    ).make_approval_node()

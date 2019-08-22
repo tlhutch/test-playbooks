@@ -161,55 +161,54 @@ class TestWorkflowApprovalNodes(APITest):
     def test_workflow_job_template_deletion_scenarios(self, v2, factories, org_admin):
         org = org_admin.related.organizations.get().results.pop()
         wfjt = factories.workflow_job_template(organization=org)
-        approval_node = factories.workflow_job_template_node(
+        approval_node1 = factories.workflow_job_template_node(
             workflow_job_template=wfjt,
             unified_job_template=None
         ).make_approval_node()
 
-        approval_jt = approval_node.related.unified_job_template.get()
+        approval_node2 = factories.workflow_job_template_node(
+            workflow_job_template=wfjt,
+            unified_job_template=None
+        ).make_approval_node()
+
+        approval_jt1 = approval_node1.related.unified_job_template.get()
         wf_job = wfjt.launch()
         wf_job.wait_until_status('running')
-        approval_job_node = wf_job.related.workflow_nodes.get(unified_job_template=approval_jt.id).results.pop()
-        wf_approval = approval_job_node.wait_for_job().related.job.get().wait_until_status('pending')
-        wf_approval.approve()
-        all_successful_approvals = v2.workflow_approvals.get(status='successful', order_by='-created').results
-        assert wf_approval.id in [approval.id for approval in all_successful_approvals]
+        approval_job_node1 = wf_job.related.workflow_nodes.get(unified_job_template=approval_jt1.id).results.pop()
+        wf_approval1 = approval_job_node1.wait_for_job().related.job.get().wait_until_status('pending')
+        wf_approval1.deny()
+        all_failed_approvals = v2.workflow_approvals.get(status='failed', order_by='-created').results
+        assert wf_approval1.id in [approval.id for approval in all_failed_approvals]
         # make sure you cannot approve again
         with pytest.raises(awxkit.exceptions.Forbidden):
-            wf_approval.approve()
+            wf_approval1.approve()
 
+        # Assert that deletion of an approval node does not delete the respective workflow approval
+        approval_node1.delete()
+        with pytest.raises(awxkit.exceptions.NotFound):
+            approval_node1.related.unified_job_template.get()
+        assert v2.workflow_approvals.get(id=wf_approval1.id).results.count != 0
+
+        approval_jt2 = approval_node2.related.unified_job_template.get()
+        wf_job = wfjt.launch()
+        wf_job.wait_until_status('running')
+        approval_job_node2 = wf_job.related.workflow_nodes.get(unified_job_template=approval_jt2.id).results.pop()
+        wf_approval2 = approval_job_node2.wait_for_job().related.job.get().wait_until_status('pending')
+        wf_approval2.approve()
+        all_successful_approvals = v2.workflow_approvals.get(status='successful', order_by='-created').results
+        assert wf_approval2.id in [approval.id for approval in all_successful_approvals]
+        # make sure you cannot approve again
+        with pytest.raises(awxkit.exceptions.Forbidden):
+            wf_approval2.approve()
+
+        # Assert that deletion of the workflow deletes the approval node but does not delete workflow approvals
         wfjt.delete()
         assert v2.workflow_job_templates.get(id=wfjt.id).count == 0
         with pytest.raises(awxkit.exceptions.NotFound):
             wfjt.launch()
         with pytest.raises(awxkit.exceptions.NotFound):
-            approval_node.related.unified_job_template.get()
-        assert v2.workflow_approvals.get(id=wf_approval.id).results.count != 0
-
-    def test_workflow_approval_node_deletion_scenarios(self, v2, factories, org_admin):
-        org = org_admin.related.organizations.get().results.pop()
-        wfjt = factories.workflow_job_template(organization=org)
-        approval_node = factories.workflow_job_template_node(
-            workflow_job_template=wfjt,
-            unified_job_template=None
-        ).make_approval_node()
-
-        approval_jt = approval_node.related.unified_job_template.get()
-        wf_job = wfjt.launch()
-        wf_job.wait_until_status('running')
-        approval_job_node = wf_job.related.workflow_nodes.get(unified_job_template=approval_jt.id).results.pop()
-        wf_approval = approval_job_node.wait_for_job().related.job.get().wait_until_status('pending')
-        wf_approval.deny()
-        all_failed_approvals = v2.workflow_approvals.get(status='failed', order_by='-created').results
-        assert wf_approval.id in [approval.id for approval in all_failed_approvals]
-        # make sure you cannot approve again
-        with pytest.raises(awxkit.exceptions.Forbidden):
-            wf_approval.approve()
-
-        approval_node.delete()
-        with pytest.raises(awxkit.exceptions.NotFound):
-            approval_node.related.unified_job_template.get()
-        assert v2.workflow_approvals.get(id=wf_approval.id).results.count != 0
+            approval_node2.related.unified_job_template.get()
+        assert v2.workflow_approvals.get(id=wf_approval2.id).results.count != 0
 
     def test_various_workflow_branch_scenarios(self, v2, factories, org_admin):
         """Create a workflow with an approval node and approve it."""

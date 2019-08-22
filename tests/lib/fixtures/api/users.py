@@ -182,7 +182,7 @@ def clean_user_orgs_and_teams(request, user=None):
         'user_in_org',
         'random_user'
     ])
-def user_with_role_and_workflow(request, class_factories):
+def user_with_role_and_workflow(request, factories):
     role = request.param
     fixture_args = request.node.get_closest_marker('fixture_args')
     if fixture_args and 'roles' in fixture_args.kwargs:
@@ -190,9 +190,9 @@ def user_with_role_and_workflow(request, class_factories):
         if role not in only_create:
             pytest.skip()
 
-    org = class_factories.organization()
-    user = class_factories.user(organization=org)
-    wfjt = class_factories.workflow_job_template(organization=org)
+    org = factories.organization()
+    user = factories.user(organization=org)
+    wfjt = factories.workflow_job_template(organization=org)
     assert org.id == user.related.organizations.get().results.pop().id
     if role == 'wf_executor':
         wfjt.set_object_roles(user, 'execute')
@@ -222,10 +222,10 @@ def user_with_role_and_workflow(request, class_factories):
     elif role == 'random_user':
         with pytest.raises(awxkit.exceptions.NoContent):
             org.related.users.post(dict(id=user.id, disassociate=True))
-        random_org = class_factories.organization()
+        random_org = factories.organization()
         with pytest.raises(awxkit.exceptions.NoContent):
             random_org.related.users.post(dict(id=user.id, associate=True))
-    approval_node = class_factories.workflow_job_template_node(
+    approval_node = factories.workflow_job_template_node(
         workflow_job_template=wfjt,
         unified_job_template=None
     ).make_approval_node()

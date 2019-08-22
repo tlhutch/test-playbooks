@@ -1,7 +1,6 @@
 import json
 
 import pytest
-from awxkit.utils import poll_until
 from awxkit.exceptions import NoContent
 
 from tests.api import APITest
@@ -159,9 +158,7 @@ class TestCombinedWorkflowFeatures(APITest):
 
         wfj = wfjt.launch().wait_until_status('running')
         approval_job_node = wfj.related.workflow_nodes.get(unified_job_template=approval_jt.id).results.pop()
-        poll_until(lambda: hasattr(approval_job_node.get().related, 'job'), interval=1, timeout=60)
-        wf_approval = approval_job_node.related.job.get()
-        poll_until(lambda: wf_approval.get().status == 'pending', interval=1, timeout=60)
+        wf_approval = approval_job_node.wait_for_job().related.job.get().wait_until_status('pending')
 
         # Approve so the workflow will proceed
         wf_approval.approve()
