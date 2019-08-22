@@ -51,7 +51,7 @@ Any user with right permissions can approve to proceed or deny to fail the node 
 
 ### Activity Stream Scenarios
 
-- [ ] Given that a workflow approval node has been APPROVE, confirm that the:
+- [x] Given that a workflow approval node has been APPROVE, confirm that the:
     - [x] approver is identified
     - [x] workflow job that it ran is is identified
     - [x] Confirm this is visible to anyone with read access to WF approval
