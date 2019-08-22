@@ -114,23 +114,46 @@ Scope selected: ${params.SCOPE}"""
     }
 
     post {
-        success {
-            slackSend(
-                botUser: false,
-                color: "good",
-                teamDomain: "ansible",
-                channel: "#ship_it",
-                message: "*Tower version: ${_TOWER_VERSION}* | <${env.RUN_DISPLAY_URL}|Link>"
-            )
-        }
-        unsuccessful {
-            slackSend(
-                botUser: false,
-                color: "#FF9FA1",
-                teamDomain: "ansible",
-                channel: "#ship_it",
-                message: "*Tower version: ${_TOWER_VERSION}* | <${env.RUN_DISPLAY_URL}|Link>"
-            )
+        always {
+            script {
+                node('jenkins-jnlp-agent') {
+                    withCredentials([string(credentialsId: 'jenkins_username', variable: 'JENKINS_USERNAME'),
+                                     string(credentialsId: 'jenkins_token', variable: 'JENKINS_TOKEN')]) {
+                        withEnv(["JENKINS_URL=http://jenkins.ansible.eng.rdu2.redhat.com",
+                                 "JENKINS_USERNAME=${JENKINS_USERNAME}",
+                                 "JENKINS_TOKEN=${JENKINS_TOKEN}"]) {
+                            checkout([
+                                $class: 'GitSCM',
+                                branches: [[name: "*/${branch_name}" ]],
+                                userRemoteConfigs: [
+                                    [
+                                        credentialsId: 'd2d4d16b-dc9a-461b-bceb-601f9515c98a',
+                                        url: 'git@github.com:ansible/tower-qa.git'
+                                    ]
+                                ]
+                            ])
+                            sh 'pip install -Ur scripts/requirements.bots'
+                            if (currentBuild.result == 'SUCCESS') {
+                                color = 'good'
+                            } else {
+                                color = 'danger'
+                            }
+                            content = sh(
+                                script: "RELEASE_PIPELINE_BUILD_ID=${env.BUILD_ID} python tools/bots/release_pipeline_results.py",
+                                returnStdout: true
+                            )
+                            msg = "(#${env.BUILD_ID}) *Release Pipeline for Tower version:  ${_TOWER_VERSION}* | <${env.RUN_DISPLAY_URL}|Link>\n\n${content}"
+                            slackSend(
+                                botUser: false,
+                                color: color,
+                                teamDomain: "ansible",
+                                channel: "#ship_it",
+                                message: msg
+                            )
+                        }
+                    }
+                }
+            }
         }
     }
 }
