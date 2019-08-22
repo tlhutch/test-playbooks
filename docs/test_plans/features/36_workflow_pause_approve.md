@@ -15,7 +15,9 @@ Any user with right permissions can approve to proceed or deny to fail the node 
 ### Basic Flow
 
 - [x] Confirm that an approval node can be added to a workflow job template
+    - [x] UI verification
 - [x] Confirm that a user can convert any workflow node into a workflow pause approval node
+    - [x] UI verification
 - [x] Confirm that an approval node can be added and approved in the following places in a workflow job template
     - [x] In the beginning of the workflow
     - [x] In between two workflow nodes
@@ -23,10 +25,14 @@ Any user with right permissions can approve to proceed or deny to fail the node 
         - [x] Confirm that a workflow job will be failed if the approval node at the end of the branch is denied
     - [x] As an only node in the template
         - [x] Confirm that the approval/ denial of the approval node will directly impact the job status
+    - [x] UI verification of above
 - [x] Confirm that an approval node does not impact the running of a node in another parallel branch in the workflow template
     - [x] When the approval node is pending approval
     - [x] When the approval node is denied
+    - [x] UI verification
 - [x] Confirm that a workflow job can be successful if an approval node has been denied but there is an error handling path to take
+    - [x] UI verification
+
 
 ### Timeout Feature Verification
 
@@ -40,6 +46,7 @@ Any user with right permissions can approve to proceed or deny to fail the node 
 - [x] Confirm that in the beginning of the workflow job run, the state of the workflow job is “running” and the state of the approval node is “never updated”
 - [x] Confirm that when the workflow approval node is waiting for approval, the state of the node is “pending” and the state of the workflow job is still “running”
 - [x] Confirm that the state of the node is “successful” if approved and “failed” if denied
+    - [x] UI verification
 
 ### Able to copy a workflow job template with an approval node
 
@@ -48,6 +55,7 @@ Any user with right permissions can approve to proceed or deny to fail the node 
     - [x] the labels
     - [x] the survey spec
     - [x] approval nodes
+    - [x] UI verification
 
 ### Activity Stream Scenarios
 
@@ -63,6 +71,7 @@ Any user with right permissions can approve to proceed or deny to fail the node 
 - [ ] Given that a workflow approval node TIMED OUT, confirm that the:
     - [x] Timed Out is changed from False to True
     - [ ] ???? Reason for failure
+- [x] UI verification
 
 ### RBAC
 
@@ -72,12 +81,14 @@ Any user with right permissions can approve to proceed or deny to fail the node 
     - [x] Create an approval node
     - [x] Approve or deny
     - [x] Grant approval permissions to other users
+    - [ ] UI verification
 - [x] Confirm that all invalid users without the permission according to the table below cannot
     - [x] See the workflow approval node
     - [x] See the activity stream entry for the job
     - [x] Create an approval node
     - [x] Approve or deny
     - [x] Grant approval permissions to other users
+    - [ ] UI verification
 
 
 | Scope  | Role Type | Can view workflow approval  | Can view activity stream entry | Can create  | Approve/Deny |Grant approval  |
