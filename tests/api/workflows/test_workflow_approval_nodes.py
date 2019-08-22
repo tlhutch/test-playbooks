@@ -172,34 +172,28 @@ class TestWorkflowApprovalNodes(APITest):
         ).make_approval_node()
 
         approval_jt1 = approval_node1.related.unified_job_template.get()
+        approval_jt2 = approval_node2.related.unified_job_template.get()
         wf_job = wfjt.launch()
         wf_job.wait_until_status('running')
         approval_job_node1 = wf_job.related.workflow_nodes.get(unified_job_template=approval_jt1.id).results.pop()
         wf_approval1 = approval_job_node1.wait_for_job().related.job.get().wait_until_status('pending')
+        approval_job_node2 = wf_job.related.workflow_nodes.get(unified_job_template=approval_jt2.id).results.pop()
+        wf_approval2 = approval_job_node2.wait_for_job().related.job.get().wait_until_status('pending')
         wf_approval1.deny()
         all_failed_approvals = v2.workflow_approvals.get(status='failed', order_by='-created').results
         assert wf_approval1.id in [approval.id for approval in all_failed_approvals]
         # make sure you cannot approve again
         with pytest.raises(awxkit.exceptions.Forbidden):
             wf_approval1.approve()
+        wf_approval2.approve()
+        all_successful_approvals = v2.workflow_approvals.get(status='successful', order_by='-created').results
+        assert wf_approval2.id in [approval.id for approval in all_successful_approvals]
 
         # Assert that deletion of an approval node does not delete the respective workflow approval
         approval_node1.delete()
         with pytest.raises(awxkit.exceptions.NotFound):
             approval_node1.related.unified_job_template.get()
         assert v2.workflow_approvals.get(id=wf_approval1.id).results.count != 0
-
-        approval_jt2 = approval_node2.related.unified_job_template.get()
-        wf_job = wfjt.launch()
-        wf_job.wait_until_status('running')
-        approval_job_node2 = wf_job.related.workflow_nodes.get(unified_job_template=approval_jt2.id).results.pop()
-        wf_approval2 = approval_job_node2.wait_for_job().related.job.get().wait_until_status('pending')
-        wf_approval2.approve()
-        all_successful_approvals = v2.workflow_approvals.get(status='successful', order_by='-created').results
-        assert wf_approval2.id in [approval.id for approval in all_successful_approvals]
-        # make sure you cannot approve again
-        with pytest.raises(awxkit.exceptions.Forbidden):
-            wf_approval2.approve()
 
         # Assert that deletion of the workflow deletes the approval node but does not delete workflow approvals
         wfjt.delete()

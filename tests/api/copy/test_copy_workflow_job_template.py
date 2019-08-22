@@ -1,6 +1,5 @@
 from fauxfactory import gen_boolean, gen_alpha, gen_choice
 from awxkit.utils import poll_until
-import awxkit.exceptions
 import pytest
 
 from tests.api import APITest
