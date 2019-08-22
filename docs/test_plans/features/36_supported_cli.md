@@ -24,6 +24,12 @@ Provide a supported CLI that offers feature parity with previously upstream [tow
 - [ ] If insufficient arguments are provided to the CLI return help text.
 - [ ] Catalog the required args for each creatable object and verify it is
       indicated as required in the help text
+      - [ ] `awx login --help` should indicate that conf.username and conf.password
+      - [ ]  `awx users create --help` should indicate ['username', 'password']
+      - [ ]  `awx organizations create --help` should indicate ['name']
+      - [ ]  `awx projects create --help` should indicate ['name']
+      - [ ]  `awx teams create --help` should indicate ['name', 'organization']
+      - [ ]  `awx credentials create --help` should indicate ['name', 'credential_type', choice(['user', 'team', 'organization'])]
       - [ ] Specifically check that job templates require project, name, playbook, and inventory
 - [ ] verify that all commands have aliases that conform to old CLI (download old CLI and run --help)
 
@@ -32,7 +38,7 @@ Provide a supported CLI that offers feature parity with previously upstream [tow
 - [x] Verify can launch a job from a JT
 - [x] Verify can launch a project update
 - [ ] Verify can check on a job status given we know a job ID
-- [x] Verify that booleans are cast correctly and handle reasonable input (case insensitive and cast 0 and 1 to false and true)`
+- [x] Verify that booleans are cast correctly and handle reasonable input (case insensitive and cast 0 and 1 to false and true)
 - [ ] Verify that `inventory_scripts` and `extra_vars` text can come from subshell output e.g. `--extra_vars=$(cat extra_vars.yaml)`
    - [ ] Need to investigate what tower-cli does
 - [ ] Verify that we do not have a `ad_hoc_commands modify`
@@ -43,7 +49,7 @@ Provide a supported CLI that offers feature parity with previously upstream [tow
 - [ ] Verify we can move data from one tower to another with send/receive feature
   - could consider trying to re-use some of the upgrade testing
   - could consider adding a new job on release verification pipeline? Consult @Spredzy about this
-- [ ] Verify that the following can trail STDOUT from a launchable resource with `--monitor`
+- [x] Verify that the following can trail STDOUT from a launchable resource with `--monitor`
   - [x] Project update on create
   - [x] Project update
   - [x] Job launch
@@ -65,7 +71,7 @@ Provide a supported CLI that offers feature parity with previously upstream [tow
 - [ ] associate + dissociate notifications to
    - [ ] job templates
    - [ ] projects
-   - [ ] inventory updates    
+   - [ ] inventory updates
    - [ ] organizations
    - [ ] workflow job templates
 - [ ] associate + dissociate credentials to
@@ -88,6 +94,7 @@ Provide a supported CLI that offers feature parity with previously upstream [tow
 - [ ] confirm that job that tests rhel7.6 uses a rhel7.6 test-runner such that we can verify the CLI runs on python2 when it is the system python.
 - [ ] confirm that job that tests rhel7.7 uses a rhel7.7 test-runner such that we can verify the CLI runs on python3 when it is the system python.
 - [ ] confirm that tests delete the `awx` binary available in the tower-qa venv
+- [ ] confirm that tests are configurable to call the `ansible-tower-cli` or `awx`  binary available in PATH
 - [ ] confirm that we install the rpm for the `ansible-tower-cli` from the right repo (how are we going to pass that info TBD)
 - [ ] Confirm we resolve the dependency issue
 - [ ] anisble-tower-cli has source tarball built for pip install on other distro (hosted at ansible.releases.com)
@@ -117,12 +124,11 @@ Provide a supported CLI that offers feature parity with previously upstream [tow
   - Stuck with this
 - Why was `scm_type` and `organization` not required to make a project
   - just the way the api works
+- removed tabulate dependency
 
 # candidates for RFE's
-- alias "ad_hoc_commands create" -> "ad_hoc launch"
 - Relaunch implementation across board
-- Sort by required/optional args for help text
-- Add support for human output for settings and metrics
+- Sort by required/optional args for help text in initial list of args
 - Add support for filtering yaml
 - Sane interface for providing launch time parameters (prompt on launch)
 - Add support for callback endpoint for job_templates so the hosts can reach back and launch job templates
@@ -131,4 +137,5 @@ Provide a supported CLI that offers feature parity with previously upstream [tow
 - Support totally wiping your tower install instead of truncating database
 
 ## Open questions
-  - what are we doing about jq and tabulate -- are there python packages available to yum for this? Need to consult shane/bill about this
+  - what are we doing about jq -- are there python packages available to yum for this? Need to consult shane/bill about this
+  - how is one supposed to interact with instance groups, not sure how I am supposed to acheive modifying instances associated. This is probably part of general "How to deal with related items" problem
