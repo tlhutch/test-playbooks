@@ -22,15 +22,29 @@ Provide a supported CLI that offers feature parity with previously upstream [tow
 ### Basic CLI functionality
 
 - [ ] If insufficient arguments are provided to the CLI return help text.
-- [ ] Catalog the required args for each creatable object and verify it is
+- [x] Catalog the required args for each creatable object and verify it is
       indicated as required in the help text
-      - [ ] `awx login --help` should indicate that conf.username and conf.password
-      - [ ]  `awx users create --help` should indicate ['username', 'password']
-      - [ ]  `awx organizations create --help` should indicate ['name']
-      - [ ]  `awx projects create --help` should indicate ['name']
-      - [ ]  `awx teams create --help` should indicate ['name', 'organization']
-      - [ ]  `awx credentials create --help` should indicate ['name', 'credential_type', choice(['user', 'team', 'organization'])]
-      - [ ] Specifically check that job templates require project, name, playbook, and inventory
+      - [x]  `awx login --help` should indicate that conf.username and conf.password
+      - [x]  `awx users create --help` should indicate ['username', 'password']
+      - [x]  `awx organizations create --help` should indicate ['name']
+      - [x]  `awx projects create --help` should indicate ['name']
+      - [x]  `awx teams create --help` should indicate ['name', 'organization']
+      - [x]  `awx credentials create --help` should indicate ['name', 'credential_type', choice(['user', 'team', 'organization'])]
+      - [x]  `awx credential_types create --help` should indicate ['name', 'kind']
+      - [x]  `awx applications create --help` should indicate ['name', 'client_type', 'authorization_grant_type', 'organization']
+      - [x]  `awx tokens create --help` should indicate no required args
+      - [x]  `awx inventory create --help` should indicate ['name', 'organization']
+      - [x]  `awx inventory_scripts create --help` should indicate ['name', 'organization', 'script']
+      - [x]  `awx inventory_sources create --help` should indicate ['name', 'inventory']
+      - [x]  `awx groups create --help` should indicate ['name', 'inventory']
+      - [x]  `awx hosts create --help` should indicate ['name', 'inventory']
+      - [x]  `awx job_templates create --help` should indicate ['name', 'playbook', 'project']
+      - [x]  `awx ad_hoc_commands create --help` should indicate ['inventory', 'credential', 'module_args']
+      - [x]  `awx schedules create --help` should indicate ['rrule', 'unified_job_template', 'name']
+      - [x]  `awx notification_templates create --help` should indicate ['name', 'organization', 'notification_type']
+      - [x]  `awx labels create --help` should indicate ['name', 'organization']
+      - [x]  `awx workflow_job_templates create --help` should indicate ['name']
+      - [x]  `awx workflow_job_template_nodes create --help` should indicate ['workflow_job_template', 'unified_job_template'] MAY CHANGE when WORKFLOW APPROVAL NODE merges
 - [ ] verify that all commands have aliases that conform to old CLI (download old CLI and run --help)
 
 ### Basic API interaction
@@ -125,6 +139,8 @@ Provide a supported CLI that offers feature parity with previously upstream [tow
 - Why was `scm_type` and `organization` not required to make a project
   - just the way the api works
 - removed tabulate dependency
+- jq will remain optional dependency that is left as exercise for the reader to install because we don't want to build it
+
 
 # candidates for RFE's
 - Relaunch implementation across board
@@ -137,5 +153,4 @@ Provide a supported CLI that offers feature parity with previously upstream [tow
 - Support totally wiping your tower install instead of truncating database
 
 ## Open questions
-  - what are we doing about jq -- are there python packages available to yum for this? Need to consult shane/bill about this
   - how is one supposed to interact with instance groups, not sure how I am supposed to acheive modifying instances associated. This is probably part of general "How to deal with related items" problem

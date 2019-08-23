@@ -1,6 +1,5 @@
 import pytest
 
-from tests.cli.utils import format_error
 
 @pytest.mark.yolo
 @pytest.mark.usefixtures('authtoken')
