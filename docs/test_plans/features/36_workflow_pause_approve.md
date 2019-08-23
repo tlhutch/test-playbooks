@@ -88,7 +88,7 @@ Any user with right permissions can approve to proceed or deny to fail the node 
     - [x] Create an approval node
     - [x] Approve or deny
     - [x] Grant approval permissions to other users
-    - [ ] UI verification https://github.com/ansible/awx/pull/4264#issuecomment-524032701
+    - [x] UI verification ~https://github.com/ansible/awx/pull/4264#issuecomment-524032701~
 
 
 | Scope  | Role Type | Can view workflow approval  | Can view activity stream entry | Can create  | Approve/Deny |Grant approval  |
