@@ -129,7 +129,7 @@ class TestSplunkLogging(APITest):
 
             results.extend([f.text for f in found])
 
-            if len(results) == 0:
+            if len(results) < 2:
                 return False
 
             return True
