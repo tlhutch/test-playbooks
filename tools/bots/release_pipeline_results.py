@@ -122,9 +122,12 @@ def did_it_run(
 
         build_params = builds[build_id].get_params()
         if scenario == "openshift":
-            current_release_pipeline_id = (
-                builds[build_id].get_upstream_build().get_upstream_build().get_number()
-            )
+            try:
+                current_release_pipeline_id = (
+                    builds[build_id].get_upstream_build().get_upstream_build().get_number()
+                )
+            except Exception:
+                continue
             if (
                 build_params["TOWER_VERSION"] == tower_version
                 and current_release_pipeline_id < release_pipeline_build_id
