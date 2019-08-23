@@ -20,7 +20,7 @@ pipeline {
         )
         string(
             name: 'E2E_FORK', 
-            defaultValue: 'origin', 
+            defaultValue: 'ansible', 
             description: 'Git fork of E2E tests'
         )
         string(
