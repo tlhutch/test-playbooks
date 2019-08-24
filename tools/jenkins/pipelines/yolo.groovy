@@ -73,6 +73,11 @@ pipeline {
             description: 'Should the installer and the packages be built as part of this pipeline ?',
             defaultValue: true
         )
+	booleanParam(
+	    name: 'BUILD_OFFLINE',
+	    description: 'Simulate an internal (Brew) build.',
+	    defaultValue: false
+	)
         booleanParam(
             name: 'RUN_INSTALLER',
             description: 'Should the installer be run as part of this pipeline ?',
@@ -263,7 +268,11 @@ pipeline {
                                     booleanParam(
                                         name: 'TRIGGER',
                                         value: false
-                                    )
+                                    ),
+				    booleanParam(
+					name: 'BUILD_OFFLINE',
+					value: params.BUILD_OFFLINE
+				    )
                                 ]
                             )
                         }
