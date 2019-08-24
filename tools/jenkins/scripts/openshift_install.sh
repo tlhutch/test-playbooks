@@ -80,7 +80,7 @@ if [[ -z "${TOWER_CONTAINER_IMAGE}" ]]; then
         TOWER_CONTAINER_IMAGE="registry.access.redhat.com/${_TOWER_NAMESPACE}/ansible-tower"
         TOWER_CONTAINER_IMAGE_VERSION="${_TOWER_VERSION}"
     else
-        oc tag tower/ansible-tower:"${_TOWER_VERSION}" ansible-tower:"${_TOWER_VERSION}"
+        oc tag tower-qe/ansible-tower:"${_TOWER_VERSION}" ansible-tower:"${_TOWER_VERSION}"
         oc set image-lookup --all -n "${OPENSHIFT_PROJECT}"
         TOWER_CONTAINER_IMAGE='ansible-tower'
         TOWER_CONTAINER_IMAGE_VERSION="${_TOWER_VERSION}"
