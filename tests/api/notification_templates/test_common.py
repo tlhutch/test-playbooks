@@ -84,7 +84,7 @@ class Test_Common_NotificationTemplate(APITest):
         assert confirm_notification(nt, expected_msg.format(job=job))
 
     def test_notification_template_default_contains_no_message(self, notification_template):
-        assert 'messages' in notification_template and not notification_template['messages']
+        assert 'messages' in notification_template and notification_template['messages'] == {'started': None, 'success': None, 'error': None}
 
     def test_notification_template_contains_update_all_default_messages(self, notification_template):
 
