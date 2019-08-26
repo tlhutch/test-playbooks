@@ -1,7 +1,9 @@
-import time
+import json
 import logging
 import requests
+import time
 
+import pytest
 from slacker import Slacker
 
 from awxkit.config import config
@@ -51,10 +53,20 @@ def confirm_webhook_message(msg, notification_template_pg):
     This method takes `msg`, a tuple containing the headers and body expected
     from the webhook payload.
     """
-
     bin_id = notification_template_pg.notification_configuration.url.replace('https://postb.in/', '')
-    notification_result = requests.get('https://postb.in/api/bin/%s/req/shift' % bin_id).json()
-    return notification_result['body']['body'] == msg[1]['body']
+    notification_result = requests.get('https://postb.in/api/bin/%s/req/shift' % bin_id).json()  # returns dict
+
+    expected_body = msg[1]
+    body = notification_result['body']
+
+    # Both body and expected body should be dictionaries - convert to actual dictionaries
+    if not isinstance(expected_body, dict):
+        try:
+            expected_body = json.loads(expected_body)
+        except json.JSONDecodeError:
+            pytest.fail('Unable to convert webhook expected body to dictionary (must be in json dict format)')
+
+    return body == expected_body
 
 
 # TODO: Bit odd to be defining dictionary here

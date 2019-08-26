@@ -182,14 +182,9 @@ class Test_Common_NotificationTemplate(APITest):
 
     @pytest.mark.parametrize('event', ['started', 'success', 'error'])
     def test_job_template_launch_with_custom_notification_on_event(self, notification_template, factories, event):
-
-        notification_configuration_event = {
-            event: {
-                'message': 'message_%s' % event,
-                'body': 'body_%s' % event
-            }
-        }
-        notification_template.patch(messages=notification_configuration_event)
+        full_configuration_event = self.build_supported_messages(notification_template.notification_type)
+        messages_for_event_only = {event: full_configuration_event[event]}
+        notification_template.patch(messages=messages_for_event_only)
 
         playbook = 'fail.yml' if event == 'error' else 'ping.yml'
         jt = factories.job_template(playbook=playbook)
@@ -200,11 +195,11 @@ class Test_Common_NotificationTemplate(APITest):
         if notification_template.notification_type == 'webhook':
             key = 'body'
             headers = notification_template.notification_configuration['headers']
-            body = {"body": notification_configuration_event[event]['body']}
+            body = messages_for_event_only[event]['body']
             message = (headers, body)
         else:
             key = 'subject'
-            message = notification_configuration_event[event]['message']
+            message = messages_for_event_only[event]['message']
 
         assert event in notifications.results.pop()[key]
         if can_confirm_notification(notification_template):
