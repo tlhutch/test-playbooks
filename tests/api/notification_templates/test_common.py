@@ -13,6 +13,34 @@ from tests.lib.notification_services import confirm_notification, can_confirm_no
 @pytest.mark.usefixtures('authtoken')
 class Test_Common_NotificationTemplate(APITest):
 
+    def build_supported_messages(self, notification_type):
+        SupportedMessages = namedtuple('SupportedMessages', field_names=['has_message', 'has_body'])
+        SUPPORT_MESSAGES_MAP = {'email': SupportedMessages(True, True),
+                                'grafana': SupportedMessages(True, False),
+                                'irc': SupportedMessages(True, False),
+                                'mattermost': SupportedMessages(True, False),
+                                'pagerduty': SupportedMessages(True, True),
+                                'rocketchat': SupportedMessages(True, False),
+                                'slack': SupportedMessages(True, False),
+                                'twilio': SupportedMessages(True, False),
+                                'webhook': SupportedMessages(False, True)}
+        supported_messages = SUPPORT_MESSAGES_MAP[notification_type]
+
+        messages = {'started': {}, 'error': {}, 'success': {}}
+        for event in messages:
+            if supported_messages.has_message:
+                messages[event]['message'] = 'message_{}'.format(event)
+            if supported_messages.has_body:
+                if notification_type == 'webhook':
+                    # https://docs.python.org/3/library/string.html#formatstrings
+                    # "[For `format()`..] if you need to include a brace character in the literal text,
+                    # it can be escaped by doubling: {{ and }}."
+                    messages[event]['body'] = '{{"event": "{}"}}'.format(event)
+                else:
+                    messages[event]['body'] = 'body_{}'.format(event)
+        return messages
+
+
     def build_messages(self, content):
         return dict(
             started=dict(message=content, body=content),
@@ -89,31 +117,7 @@ class Test_Common_NotificationTemplate(APITest):
         assert 'messages' in notification_template and notification_template['messages'] == {'started': None, 'success': None, 'error': None}
 
     def test_notification_template_contains_update_all_default_messages(self, notification_template):
-        SupportedMessages = namedtuple('SupportedMessages', field_names=['has_message', 'has_body'])
-        SUPPORT_MESSAGES_MAP = {'email': SupportedMessages(True, True),
-                                'grafana': SupportedMessages(True, False),
-                                'irc': SupportedMessages(True, False),
-                                'mattermost': SupportedMessages(True, False),
-                                'pagerduty': SupportedMessages(True, True),
-                                'rocketchat': SupportedMessages(True, False),
-                                'slack': SupportedMessages(True, False),
-                                'twilio': SupportedMessages(True, False),
-                                'webhook': SupportedMessages(False, True)}
-        supported_messages = SUPPORT_MESSAGES_MAP[notification_template.notification_type]
-
-        notification_configuration_event = {'started': {}, 'error': {}, 'success': {}}
-        for event in notification_configuration_event:
-            if supported_messages.has_message:
-                notification_configuration_event[event]['message'] = 'message_{}'.format(event)
-            if supported_messages.has_body:
-                if notification_template.notification_type == 'webhook':
-                    # https://docs.python.org/3/library/string.html#formatstrings
-                    # "[For `format()`..] if you need to include a brace character in the literal text,
-                    # it can be escaped by doubling: {{ and }}."
-                    notification_configuration_event[event]['body'] = '{{"event": "{}"}}'.format(event)
-                else:
-                    notification_configuration_event[event]['body'] = 'body_{}'.format(event)
-
+        notification_configuration_event = self.build_supported_messages(notification_template.notification_type)
         notification_template.patch(messages=notification_configuration_event)
         notification_template.get()
         for event in ['started', 'success', 'error']:
@@ -121,16 +125,12 @@ class Test_Common_NotificationTemplate(APITest):
         assert sorted(['started', 'success', 'error']) == sorted(list(notification_template['messages'].keys()))
 
     def test_notification_template_contains_update_some_default_messages(self, notification_template):
+        full_configuration_event = self.build_supported_messages(notification_template.notification_type)
         for event in ['started', 'success', 'error']:
-            notification_configuration_event = {
-                event: {
-                    'message': 'message_%s' % event,
-                    'body': 'body_%s' % event
-                }
-            }
-            notification_template.patch(messages=notification_configuration_event)
-            assert notification_template['messages'][event] == \
-                {'message': 'message_%s' % event, 'body': 'body_%s' % event}
+            partial_configuration_event = {event: full_configuration_event[event]}
+            notification_template.patch(messages=partial_configuration_event)
+            notification_template.get()
+            assert notification_template['messages'][event] == partial_configuration_event[event]
             assert sorted(['started', 'success', 'error']) == sorted(list(notification_template['messages'].keys()))
 
     def test_notification_template_fails_when_providing_invalid_payload(self, notification_template):
