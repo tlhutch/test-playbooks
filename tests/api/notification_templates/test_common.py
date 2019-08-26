@@ -163,13 +163,9 @@ class Test_Common_NotificationTemplate(APITest):
             notification_template.patch(messages=notification_configuration_shouldfail)
 
     def test_job_template_launch_use_default_message_when_messages_is_missing(self, notification_template, factories):
-        notification_configuration_event = {
-            'error': {
-                'message': 'message_error',
-                'body': 'body_error'
-            }
-        }
-        notification_template.patch(messages=notification_configuration_event)
+        full_configuration_event = self.build_supported_messages(notification_template.notification_type)
+        messages_for_error_only = {'error': full_configuration_event['error']}
+        notification_template.patch(messages=messages_for_error_only)
 
         jt = factories.job_template()
         associate_notification_template(notification_template, jt, 'started')
@@ -178,7 +174,9 @@ class Test_Common_NotificationTemplate(APITest):
         notifications = job.get_related('notifications').wait_until_count(1)
 
         if notification_template.notification_type == 'webhook':
-            assert str(job.id) in str(notifications.results.pop()['body'])
+            body = notifications.results.pop()['body']
+            assert 'id' in body
+            assert str(job.id) == str(body['id'])
         else:
             assert "Job #%s '%s'" % (job.id, job.get_related('job_template').name) in notifications.results.pop()['subject']
 
