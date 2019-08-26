@@ -40,7 +40,6 @@ class Test_Common_NotificationTemplate(APITest):
                     messages[event]['body'] = 'body_{}'.format(event)
         return messages
 
-
     def build_messages(self, content):
         return dict(
             started=dict(message=content, body=content),
