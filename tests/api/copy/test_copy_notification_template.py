@@ -14,6 +14,8 @@ class Test_Copy_Notification_Template(APITest):
 
     @pytest.mark.parametrize('notification_type', notification_types)
     def test_copy_normal(self, factories, copy_with_teardown, notification_type):
+        if notification_type in ('grafana', 'rocketchat'):
+            pytest.skip('Do not currently have test support for {}'.format(notification_type))
         if notification_type == 'webhook':
             headers = {gen_utf8(): gen_utf8(), gen_utf8(): gen_utf8()}
             notification_template = factories.notification_template(notification_type=notification_type,
