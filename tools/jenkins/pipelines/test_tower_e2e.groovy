@@ -23,8 +23,8 @@ pipeline {
             defaultValue: 'devel'
         )
         string(
-            name: 'TOWER_QA_BRANCH',
-            description: 'Branch of tower-qa repository. This is for choosing a version of e2e.sh to run.',
+            name: 'E2E_SCRIPT_BRANCH',
+            description: 'This is actually a branch of tower-qa repository, but only for choosing a version of e2e.sh to run. Assumes the ansible fork of tower-qa.',
             defaultValue: 'devel'
         )
         string(
@@ -78,7 +78,7 @@ pipeline {
                 checkout([
                     $class: 'GitSCM',
                     branches: [
-                        [ name: '*/${TOWER_QA_BRANCH}' ]
+                        [ name: '*/${E2E_SCRIPT_BRANCH}' ]
                     ],
                     doGenerateSubmoduleConfigurations: false,
                     extensions: [
