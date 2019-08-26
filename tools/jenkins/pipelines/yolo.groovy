@@ -438,10 +438,6 @@ pipeline {
                                     name: 'E2E_RUN_EXTERNAL_GRID',
                                     value: "${params.E2E_RUN_EXTERNAL_GRID}"
                                 ),
-                                string(
-                                    name: 'TOWER_QA_BRANCH',
-                                    value: "${params.TOWER_QA_BRANCH}"
-                                )
                             ],
                             propagate: true
                         )
