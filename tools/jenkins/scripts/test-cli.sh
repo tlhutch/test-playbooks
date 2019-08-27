@@ -11,7 +11,7 @@ AWXKIT_FORK=${TOWERKIT_FORK:-${TOWER_FORK}}
 AWXKIT_BRANCH=${TOWERKIT_BRANCH:-${TOWER_BRANCH}}
 AWXKIT_REPO=${AWXKIT_REPO:-${PRODUCT}}
 VARS_FILE=${VARS_FILE:-playbooks/vars.yml}
-PYTEST_NUMPROCESSES="4"
+PYTEST_NUMPROCESSES="8"
 
 if [[ -n "${TESTEXPR}" ]]; then
     TESTEXPR=" and (${TESTEXPR})"
@@ -22,9 +22,11 @@ setup_python3_env
 
 pip install -Ur scripts/requirements.install
 pip install -Ur requirements.txt
-
-# In future use RPM install
 pip install -U "git+ssh://git@github.com/${AWXKIT_FORK}/${AWXKIT_REPO}.git@${AWXKIT_BRANCH}#egg=awxkit[formatting,websockets]&subdirectory=awxkit"
+
+# Try remove the virtualenv awx binary to guarantee we use the one installed by
+# the RPM
+rm -f ${VIRTUAL_ENV}/bin/awx
 
 # Confirm what awx cli we are using
 head -n1 `which awx`
@@ -37,10 +39,6 @@ CREDS=$(retrieve_credential_file "${INVENTORY}")
 
 set +e
 
-# Try remove the virtualenv awx binary to guarantee we use the one installed by
-# the RPM
-rm ${VIRTUAL_ENV}/bin/awx
-
 # Run tests that need to run serially
 pytest -v -c config/api.cfg \
     --junit-xml=reports/junit/results-cli-serial.xml \
@@ -50,7 +48,7 @@ pytest -v -c config/api.cfg \
     --github-cfg="${CREDS}" \
     --base-url="https://${TOWER_HOST}" \
     -k "serial${TESTEXPR}" \
-		tests/cli
+    tests/cli
 
 # Run parallel tests
 pytest -v -c config/api.cfg \
@@ -65,7 +63,7 @@ pytest -v -c config/api.cfg \
     -k "not serial${TESTEXPR}" \
     tests/cli
 
-# Workaround https://github.com/pytest-dev/pytest-xdist/issues/445<Paste>
+# Workaround https://github.com/pytest-dev/pytest-xdist/issues/445
 ./scripts/prefix_lastfailed "$(find .pytest_cache -name lastfailed)"
 pytest --cache-show "cache/lastfailed"
 
