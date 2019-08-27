@@ -75,7 +75,7 @@ resources_and_requirements = [
         ('notification_templates', ['--name', '--organization', '--notification_type']),
         ('labels', ['--name', '--organization']),
         ('workflow_job_templates', ['--name']),
-        ('workflow_job_template_nodes', ['--workflow_job_template', 'unified_job_template']), # MAY CHANGE when https://github.com/ansible/awx/pull/4264 merges
+        ('workflow_job_template_nodes', ['--workflow_job_template']),
         ]
 
 
