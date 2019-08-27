@@ -4,6 +4,7 @@ import json
 import boto3
 import csv
 from datetime import datetime
+from pathlib import Path
 
 from awxkit import config
 import awxkit.exceptions as exc
@@ -269,6 +270,23 @@ class TestInsights(APITest):
 @pytest.mark.usefixtures('authtoken')
 class TestInsightsAnalytics(APITest):
 
+    EXPECTED_FILES = {
+        'config.json',
+        'counts.json',
+        'cred_type_counts.json',
+        'events_table.csv',
+        'instance_info.json',
+        'inventory_counts.json',
+        'job_counts.json',
+        'job_instance_counts.json',
+        'manifest.json',
+        'org_counts.json',
+        'projects_by_scm_type.json',
+        'query_info.json',
+        'unified_job_template_table.csv',
+        'unified_jobs_table.csv',
+    }
+
     def toggle_analytics(self, update_setting_pg, v2, state=False):
         system_settings = v2.settings.get().get_endpoint('system')
         payload = {'INSIGHTS_TRACKING_STATE': state}
@@ -287,12 +305,12 @@ class TestInsightsAnalytics(APITest):
         files = [f['path'] for f in ansible_runner.find(paths=tempdir).values()[0]['files']]
         return tempdir, files
 
-    def read_json_file(self, file, ansible_runner):
-        content = ansible_runner.slurp(path=file).values()[0]['content']
+    def read_json_file(self, path, ansible_runner):
+        content = ansible_runner.slurp(path=path).values()[0]['content']
         return json.loads(base64.b64decode(content))
 
-    def read_csv(self, ansible_runner, tempdir, filename):
-        csv_file = ansible_runner.fetch(src=filename, dest='/tmp/fetched').values()[0]['dest']
+    def read_csv_file(self, path, ansible_runner):
+        csv_file = ansible_runner.fetch(src=path, dest='/tmp/fetched').values()[0]['dest']
         rows = []
         for row in csv.reader(open(csv_file, 'r', encoding='utf8'), delimiter=','):
             rows.append(row)
@@ -303,21 +321,104 @@ class TestInsightsAnalytics(APITest):
         stats = {}
         for k in keys:
             filename_split = k.split('.')
+            path = '{}/{}'.format(tempdir, k)
             if filename_split[1] == 'json':
-                stats[filename_split[0]] = self.read_json_file('{}/{}'.format(tempdir, k), ansible_runner)
+                stats[filename_split[0]] = self.read_json_file(path, ansible_runner)
             elif filename_split[1] == 'csv':
-                stats[filename_split[0]] = self.read_csv(ansible_runner, tempdir, '{}/{}'.format(tempdir, k))
+                stats[filename_split[0]] = self.read_csv_file(path, ansible_runner)
         return stats
 
     @pytest.mark.ansible(host_pattern='tower[0]')
     def test_awxmanage_gather_analytics_generates_valid_tar(self, ansible_runner, skip_if_openshift, analytics_enabled):
         tempdir, files = self.gather_analytics(ansible_runner)
-        expected_files = ['config.json', 'counts.json', 'projects_by_scm_type.json']
-        for f in expected_files:
-            filepath = '{}/{}'.format(tempdir, f)
-            assert filepath in files
-            content = self.read_json_file(filepath, ansible_runner)
-            assert isinstance(content, dict)
+        generated_files = {Path(f).name for f in files}
+        assert self.EXPECTED_FILES == generated_files, (
+            'gather_analytics did not generate the expected files.\n\n'
+            'Extra files: {}\n\n'
+            'Missing files: {}\n\n'
+            .format(
+                ', '.join(generated_files - self.EXPECTED_FILES) or 'none',
+                ', '.join(self.EXPECTED_FILES - generated_files) or 'none',
+            )
+        )
+
+        for f in files:
+            filepath = Path(f)
+            if filepath.suffix == '.json':
+                content = self.read_json_file(filepath.as_posix(), ansible_runner)
+                assert isinstance(content, dict)
+            elif filepath.suffix == '.csv':
+                content = self.read_csv_file(filepath.as_posix(), ansible_runner)
+                assert isinstance(content, list)
+
+    @pytest.mark.ansible(host_pattern='tower[0]')
+    def test_awxmanage_gather_analytics_manifest(self, ansible_runner, skip_if_openshift, analytics_enabled):
+        """Check if the manifest is providing the expected reports versions."""
+        manifest = self.collect_stats(['manifest.json'], ansible_runner).get('manifest', {})
+        expected_files = self.EXPECTED_FILES.copy()
+        # manifest.json don't have a version, it only provide the version
+        # information for the other report files
+        expected_files.remove('manifest.json')
+        generated_files = set(manifest.keys())
+        assert expected_files == generated_files, (
+            'manifest.json did not provide the version info for expected files.\n\n'
+            'Extra files: {}\n\n'
+            'Missing files: {}\n\n'
+            .format(
+                ', '.join(generated_files - expected_files) or 'none',
+                ', '.join(expected_files - generated_files) or 'none',
+            )
+        )
+
+        assert manifest == {
+            'config.json': '1.0',
+            'counts.json': '1.0',
+            'cred_type_counts.json': '1.0',
+            'events_table.csv': '1.0',
+            'instance_info.json': '1.0',
+            'inventory_counts.json': '1.0',
+            'job_counts.json': '1.0',
+            'job_instance_counts.json': '1.0',
+            'org_counts.json': '1.0',
+            'projects_by_scm_type.json': '1.0',
+            'query_info.json': '1.0',
+            'unified_job_template_table.csv': '1.0',
+            'unified_jobs_table.csv': '1.0',
+        }
+
+    @pytest.mark.ansible(host_pattern='tower[0]')
+    def test_awxmanage_gather_analytics_query_info(self, ansible_runner, skip_if_openshift, analytics_enabled):
+        previous = self.collect_stats(['query_info.json'], ansible_runner).get('query_info', {})
+        current = self.collect_stats(['query_info.json'], ansible_runner).get('query_info', {})
+
+        # Gather analytics was called manually and not by a recurring task
+        assert previous['collection_type'] == 'manual'
+        assert current['collection_type'] == 'manual'
+
+        expected_date_format = '%Y-%m-%d %H:%M:%S.%f%z'
+        for key in ('current_time', 'last_run'):
+            previous[key] = previous[key].replace('+00:00', '+0000')
+            previous[key] = datetime.strptime(previous[key], expected_date_format)
+
+            current[key] = current[key].replace('+00:00', '+0000')
+            current[key] = datetime.strptime(current[key], expected_date_format)
+
+        assert previous['current_time'] > previous['last_run']
+        assert current['current_time'] > current['last_run']
+
+        assert current['current_time'] > previous['current_time'], (
+            "The current run's current_time value must be greater than the current_time value of the previous run"
+        )
+
+        # last_run is updated only when we push the data to insights. On this
+        # test we are just running locally without pushing any data, so the
+        # last_run information must be the same.
+        assert current['last_run'] == previous['last_run'], (
+            'The last_run  should be the same since no data is being pushed '
+            'to insights. If this assertion fail, make sure that an async '
+            'task have not pushed data to insights in between the '
+            'gather_analytics calls.'
+        )
 
     @pytest.mark.ansible(host_pattern='tower[0]')
     def test_awxmanage_gather_analytics_project_count_incremented(self, ansible_runner, factories, skip_if_openshift, analytics_enabled):
