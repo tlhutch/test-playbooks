@@ -1,5 +1,7 @@
 import pytest
 
+from tests.cli.utils import format_error
+
 
 @pytest.mark.yolo
 @pytest.mark.usefixtures('authtoken')
@@ -12,7 +14,7 @@ class TestStdoutDownload(object):
             job.related.stdout,
             query_parameters=dict(format='txt_download')
         ).content.splitlines():
-            assert line in result.stdout
+            assert line in result.stdout, format_error(result)
 
     def test_project_update(self, cli, project_ansible_playbooks_git):
         pu = project_ansible_playbooks_git.update().wait_until_completed()
@@ -21,7 +23,7 @@ class TestStdoutDownload(object):
             pu.related.stdout,
             query_parameters=dict(format='txt_download')
         ).content.splitlines():
-            assert line in result.stdout
+            assert line in result.stdout, format_error(result)
 
     def test_inventory_update(self, cli, inventory_source):
         iu = inventory_source.update().wait_until_completed()
@@ -30,7 +32,7 @@ class TestStdoutDownload(object):
             iu.related.stdout,
             query_parameters=dict(format='txt_download')
         ).content.splitlines():
-            assert line in result.stdout
+            assert line in result.stdout, format_error(result)
 
     def test_adhoc_stdout(self, cli, ad_hoc_with_status_completed):
         ahc = ad_hoc_with_status_completed
@@ -39,4 +41,4 @@ class TestStdoutDownload(object):
             ahc.related.stdout,
             query_parameters=dict(format='txt_download')
         ).content.splitlines():
-            assert line in result.stdout
+            assert line in result.stdout, format_error(result)
