@@ -141,12 +141,12 @@ class TestWorkflowApprovalNodes(APITest):
                                      f'Workflow Approval: {wf_approval}\n' \
                                      f'Approval JT: {approval_jt}\n' \
                                      f'Workflow Job: {wf_job.get()}\n'
-        assert wf_approval.job_explanation == 'This approval node has timed out.'
+        assert wf_approval.job_explanation == 'The approval node ' + approval_jt.name + ' (' + str(wf_approval.id) + ') has expired after ' + str(approval_jt.timeout) + ' seconds.'
         assert wf_approval.timed_out
         all_failed_approvals = v2.workflow_approvals.get(status='failed', order_by='-created').results
         assert wf_approval.id in [approval.id for approval in all_failed_approvals]
         # Verify that you can not approve/deny after the timeout
-        with pytest.raises(awxkit.exceptions.Forbidden):
+        with pytest.raises(awxkit.exceptions.BadRequest):
             wf_approval.approve()
         wf_job.wait_until_completed().assert_status('failed')
         events = v2.activity_stream.get(operation='update', object1='workflow_approval',
@@ -179,11 +179,14 @@ class TestWorkflowApprovalNodes(APITest):
         wf_approval1 = approval_job_node1.wait_for_job().related.job.get().wait_until_status('pending')
         approval_job_node2 = wf_job.related.workflow_nodes.get(unified_job_template=approval_jt2.id).results.pop()
         wf_approval2 = approval_job_node2.wait_for_job().related.job.get().wait_until_status('pending')
+        # Verify that a workflow job template cannot be deleted when a job is already running
+        with pytest.raises(awxkit.exceptions.Conflict):
+            wfjt.delete()
         wf_approval1.deny()
         all_failed_approvals = v2.workflow_approvals.get(status='failed', order_by='-created').results
         assert wf_approval1.id in [approval.id for approval in all_failed_approvals]
         # make sure you cannot approve again
-        with pytest.raises(awxkit.exceptions.Forbidden):
+        with pytest.raises(awxkit.exceptions.BadRequest):
             wf_approval1.approve()
         wf_approval2.approve()
         all_successful_approvals = v2.workflow_approvals.get(status='successful', order_by='-created').results
@@ -198,10 +201,15 @@ class TestWorkflowApprovalNodes(APITest):
         # Assert that deletion of the workflow deletes the approval node but does not delete workflow approvals
         wfjt.delete()
         assert v2.workflow_job_templates.get(id=wfjt.id).count == 0
+        # verify that the deleted workflow job template cannot be launched
         with pytest.raises(awxkit.exceptions.NotFound):
             wfjt.launch()
+        # verify that the approval node is deleted along with the workflow job template
         with pytest.raises(awxkit.exceptions.NotFound):
             approval_node2.related.unified_job_template.get()
+        # verify that the deleted approval node cannot be approved
+        with pytest.raises(awxkit.exceptions.BadRequest):
+            wf_approval1.approve()
         assert v2.workflow_approvals.get(id=wf_approval2.id).results.count != 0
 
     def test_various_workflow_branch_scenarios(self, v2, factories, org_admin):
