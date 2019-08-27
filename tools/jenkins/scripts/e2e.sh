@@ -101,6 +101,7 @@ docker tag gcr.io/ansible-tower-engineering/"${CONTAINER_IMAGE_NAME}":latest ${C
 
 mkdir -p "${DEPLOYMENT_TYPE}/awx/ui/test/e2e/screenshots"
 
+set +e
 docker-compose \
     -f "${DEPLOYMENT_TYPE}/awx/ui/test/e2e/cluster/docker-compose.yml" \
     run \
@@ -113,3 +114,4 @@ docker-compose \
     -e AWX_E2E_SCREENSHOTS_PATH="/awx/awx/ui/test/e2e/screenshots" \
     e2e --filter="${E2E_TEST_SELECTION}" \
     --suiteRetries="${E2E_RETRIES}"
+set -e
