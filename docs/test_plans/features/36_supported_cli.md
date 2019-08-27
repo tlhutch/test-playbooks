@@ -21,7 +21,7 @@ Provide a supported CLI that offers feature parity with previously upstream [tow
 
 ### Basic CLI functionality
 
-- [ ] If insufficient arguments are provided to the CLI return help text.
+- [x] If insufficient arguments are provided to the CLI return help text.
 - [x] Catalog the required args for each creatable object and verify it is
       indicated as required in the help text
       - [x]  `awx login --help` should indicate that conf.username and conf.password
@@ -94,22 +94,21 @@ Provide a supported CLI that offers feature parity with previously upstream [tow
 - [ ] Ensure that providing a private ssh key is a seamless and well documented experience. Should not require 12 fingers
 
 ### Pain points to check
-- [ ] hide `--id` on `list` so users dont get confused
-- [ ] for things like `--project` or `--inventory` etc we need to show in the help text `PROJECT ID` not `PROJECT` because what does that mean anyway
+- [x] hide `--id` on `list` so users dont get confused
+- [x] for things like `--project` or `--inventory` etc we need to show in the help text `PROJECT ID` not `PROJECT` because what does that mean anyway
 
 ### Packaging verification criteria
 
 - [x] awxkit has same version as awx (is symlink to awx version)
 - [ ] awxkit tarball will be release artifact on awx github
 - [ ] ansible-tower-cli will have same version as tower: related https://github.com/ansible/awx/pull/4459
-- [ ] ansible-tower-cli has RPM built for rhel7
-- [ ] ansible-tower-cli has RPM built for rhel8
-- [ ] confirm that job that tests rhel8 uses a rhel8 test-runner such that we can verify the CLI runs on python3 when it is the system python.
-- [ ] confirm that job that tests rhel7.6 uses a rhel7.6 test-runner such that we can verify the CLI runs on python2 when it is the system python.
-- [ ] confirm that job that tests rhel7.7 uses a rhel7.7 test-runner such that we can verify the CLI runs on python3 when it is the system python.
-- [ ] confirm that tests delete the `awx` binary available in the tower-qa venv
-- [ ] confirm that tests are configurable to call the `ansible-tower-cli` or `awx`  binary available in PATH
-- [ ] confirm that we install the rpm for the `ansible-tower-cli` from the right repo (how are we going to pass that info TBD)
+- [x] ansible-tower-cli has RPM built for rhel7
+- [x] ansible-tower-cli has RPM built for rhel8
+- [x] confirm that job that tests rhel8 uses a rhel8 test-runner such that we can verify the CLI runs on python3 when it is the system python.
+- [x] confirm that job that tests rhel7.7 uses a rhel7.7 test-runner such that we can verify the CLI runs on python2 when it is the system python.
+- [x] confirm that tests delete the `awx` binary available in the tower-qa venv
+- [x] confirm that tests are configurable to call the `ansible-tower-cli` or `awx`  binary available in PATH
+- [x] confirm that we install the rpm for the `ansible-tower-cli` from the right repo
 - [ ] Confirm we resolve the dependency issue
 - [ ] anisble-tower-cli has source tarball built for pip install on other distro (hosted at ansible.releases.com)
 
