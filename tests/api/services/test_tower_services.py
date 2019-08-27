@@ -205,7 +205,7 @@ class TestTowerServices(APITest):
         if ansible_os_family == 'Debian' or ansible_distribution_major_version == '8':
             pg_service = 'postgresql'
         else:
-            pg_service = 'postgresql-9.6'
+            pg_service = 'rh-postgresql10-postgresql'
         jt = factories.job_template(playbook='sleep.yml',
                                        extra_vars=dict(sleep_interval=120))
         jt.ds.inventory.add_host()

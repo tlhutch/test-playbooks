@@ -366,9 +366,10 @@ def get_pg_dump(request, ansible_runner, skip_docker, hostvars_for_host):
 
         inv_path = os.environ.get('TQA_INVENTORY_FILE_PATH', '/tmp/setup/inventory')
         dump_filename = 'pg_{}.txt'.format(fauxfactory.gen_alphanumeric())
+
         contacted = ansible_runner.shell("""PGPASSWORD=`grep {} -e "pg_password=.*" """
                                          """| sed \'s/pg_password="//\' | sed \'s/"//\'` """
-                                         """pg_dump -U awx -d awx -f {} -w""".format(inv_path, dump_filename))
+                                         """scl enable rh-postgresql10 'pg_dump -U awx -d awx -f {} -w'""".format(inv_path, dump_filename))
         for res in contacted.values():
             assert res.get('changed') and not res.get('failed')
 
