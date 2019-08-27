@@ -75,7 +75,7 @@ class TestCLIBasics(object):
     def test_human_format(self, cli):
         result = cli(['awx', 'me', '-f', 'human', '--filter', 'username'], auth=True)
         assert result.returncode == 0, format_error(result)
-        assert result.stdout == b'==========\nusername\n==========\nadmin\n==========\n'
+        assert result.stdout == b'username \n======== \nadmin    \n'
 
     def test_jq_custom_formatting(self, cli):
         result = cli(
