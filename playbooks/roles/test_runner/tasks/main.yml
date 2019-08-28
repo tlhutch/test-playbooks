@@ -35,8 +35,6 @@
       - automake
       - make
       - libtool
-      - ansible
-      - ansible-tower-cli
 
 - name: RHEL 7 setup docker and python
   block:

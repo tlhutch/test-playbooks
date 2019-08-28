@@ -24,6 +24,10 @@ pip install -Ur scripts/requirements.install
 pip install -Ur requirements.txt
 pip install -U "git+ssh://git@github.com/${AWXKIT_FORK}/${AWXKIT_REPO}.git@${AWXKIT_BRANCH}#egg=awxkit[formatting,websockets]&subdirectory=awxkit"
 
+# We need to install the ansible-tower-cli package at this point as during
+# test-runner setup it may not be ready
+sudo yum install --enablerepo='ansible-tower_nightlies' -y ansible-tower-cli
+
 # Try remove the virtualenv awx binary to guarantee we use the one installed by
 # the RPM
 rm -f ${VIRTUAL_ENV}/bin/awx
