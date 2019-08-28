@@ -182,7 +182,7 @@ def clean_user_orgs_and_teams(request, user=None):
         'user_in_org',
         'random_user'
     ])
-def user_with_role_and_workflow(request, factories):
+def user_with_role_and_workflow_with_approval_node(request, factories):
     role = request.param
     fixture_args = request.node.get_closest_marker('fixture_args')
     if fixture_args and 'roles' in fixture_args.kwargs:

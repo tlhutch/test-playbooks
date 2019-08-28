@@ -160,7 +160,7 @@ class Test_Copy_Workflow_Job_Template(APITest):
         wfjt_copy = copy_with_teardown(wfjt)
         old_workflow_approval_template = wfjt.related.workflow_nodes.get().results.pop().related.unified_job_template.get()
         new_workflow_approval_template = wfjt_copy.related.workflow_nodes.get().results.pop().related.unified_job_template.get()
-        assert old_workflow_approval_template.name in new_workflow_approval_template.name
+        assert old_workflow_approval_template.id != new_workflow_approval_template.id
         assert new_workflow_approval_template.type == "workflow_approval_template"
         wfjt.delete()
         with self.current_user(org_auditor.username, org_auditor.password):

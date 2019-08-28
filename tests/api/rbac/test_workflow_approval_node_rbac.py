@@ -8,9 +8,9 @@ from tests.api import APITest
 class TestApprovalNodeRBAC(APITest):
     """Test permissions on who can view, create the approval node and it's activity stream, approve/deny, grant approval
     """
-    def test_workflow_approval_node_rbac(self, v2, factories, user_with_role_and_workflow):
+    def test_workflow_approval_node_rbac(self, v2, factories, user_with_role_and_workflow_with_approval_node):
         # creation of users, workflow job template and workflow approval node
-        user, wfjt, role, approval_node = user_with_role_and_workflow
+        user, wfjt, role, approval_node = user_with_role_and_workflow_with_approval_node
 
         # launch the job, fetch the workflow approval associated with the approval node
         wf_job = wfjt.launch()
@@ -21,7 +21,8 @@ class TestApprovalNodeRBAC(APITest):
 
         # Verify that users with permission can approve the workflow approval node
         if role in ['sysadmin', 'org_admin', 'wf_admin', 'org_wf_admin', 'org_approve', 'wf_approve']:
-            wf_approval.approve()
+            with self.current_user(user.username, user.password):
+                wf_approval.approve()
             all_successful_approvals = v2.workflow_approvals.get(status='successful', order_by='-created').results
             assert wf_approval.id in [approval.id for approval in all_successful_approvals]
             wf_job.wait_until_completed().assert_successful()
