@@ -43,3 +43,30 @@ Provide a new _optional_ interaction in the UI _at license application time_ whi
 - If a *non*-trial is provided (included via the new RH login mechanism)
   - [ ] the API **allows** you to create hosts *past* your managed node count, but warns you (loudly) in the Tower logs when you do so
   - [ ] the API does *not* limit functionality in any way when your license becomes expired
+
+### SKU Scenarios to Test
+- [ ] Multiple subscriptions to the same SKU with the same end date should have their quantities added together
+  - Unit test
+- [ ] Multiple subscriptions to different SKUs with the same end date should have their quantities added together
+  - Unit test
+- [x] Single active SKU
+- [x] No SKUs
+  - Unit test
+- [ ] Multiple SKUs that are active with different: use the one that ends first
+  - Unit test
+- [ ] An expired SKU
+  - [ ] Tower can still launch the following while displaying a warning about expired license
+    - [ ] Job
+    - [ ] Workflow Job
+    - [ ] Project Update
+    - [ ] Inventory Update
+  - [ ] Doesn't generate a license
+    - [x] unit test
+    - [ ] integration
+- [ ] Accounts with 100+ SKUs work as expected (paging doesnt break us somehow)
+- [ ] Accounts with old ansible engine only SKUs don't work with tower
+- [x] Account with only Trial license works as expected (start with SCR or SVC)
+- [ ] Test that trial license and real license in same account leads to using the real license
+- [ ] Verify we can import new hosts even when we exceed the host count
+- [ ] Verify we can import new hosts even when the license is expired
+- [ ] Verify we can import new hosts even when we exceed the host count and the license is expired
