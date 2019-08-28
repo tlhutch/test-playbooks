@@ -66,12 +66,12 @@ class TestChannelsRBAC(APITest):
         ahc.wait_until_completed()
 
         # keys where ws event doesn't match retrieved event for subtle reasons
-        not_of_interest = set(('created', 'event_name', 'modified'))
+        not_of_interest = {'created', 'event_name', 'modified'}
         received = [m for m in ws]
         filtered_received = [{k: message[k] for k in set(message) - not_of_interest} for message in received]
         expected_status_changes = []
         for status in ('waiting', 'running', 'successful'):
-            expected_msg = dict(status=status, group_name='jobs', unified_job_id=ahc.id)
+            expected_msg = dict(status=status, group_name='jobs', unified_job_id=ahc.id, type=ahc.type)
             if status == 'waiting':
                 expected_msg['instance_group_name'] = 'tower'
             expected_status_changes.append(expected_msg)
@@ -127,11 +127,11 @@ class TestChannelsRBAC(APITest):
         job.wait_until_completed()
 
         # keys where ws event doesn't match retrieved event for subtle reasons
-        not_of_interest = set(('created', 'event_name', 'modified', 'summary_fields', 'related'))
+        not_of_interest = {'created', 'event_name', 'modified', 'summary_fields', 'related'}
         received = [m for m in ws]
         filtered_received = [{k: message[k] for k in set(message) - not_of_interest} for message in received]
 
-        base_status_change = dict(group_name='jobs', unified_job_id=job.id)
+        base_status_change = dict(group_name='jobs', unified_job_id=job.id, type='job')
         expected_status_changes = []
         for status in ('waiting', 'running', 'successful'):
             expected_msg = dict(status=status, **base_status_change)
@@ -242,13 +242,13 @@ class TestChannelsRBAC(APITest):
         for workflow_node_id, job_id in zip((mapper[root.id], mapper[success.id]), success_job_ids):
             for status in ('waiting', 'running', 'successful'):
                 expected_msg = dict(status=status, workflow_node_id=workflow_node_id,
-                                    unified_job_id=job_id, **base_workflow_event)
+                                    unified_job_id=job_id, **base_workflow_event, type='job')
                 if status == 'waiting':
                     expected_msg['instance_group_name'] = 'tower'
                 expected.append(expected_msg)
         for status in ('waiting', 'running', 'failed'):
             expected_msg = dict(status=status, workflow_node_id=mapper[failure.id],
-                                unified_job_id=failure_job_id, **base_workflow_event)
+                                unified_job_id=failure_job_id, **base_workflow_event, type='job')
             if status == 'waiting':
                 expected_msg['instance_group_name'] = 'tower'
             expected.append(expected_msg)

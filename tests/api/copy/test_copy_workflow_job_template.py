@@ -144,3 +144,26 @@ class Test_Copy_Workflow_Job_Template(APITest):
             old_frontier.extend(sorted(self.get_node_children(old_node, old_nodes), key=lambda n: n.unified_job_template))
             new_frontier.extend(sorted(self.get_node_children(new_node, new_nodes), key=lambda n: n.unified_job_template))
         assert not new_frontier
+
+    def test_copy_wfjt_with_approval_node(self, v2, factories, org_admin, copy_with_teardown):
+        """Create a workflow with an approval node and copy it."""
+        org = org_admin.related.organizations.get().results.pop()
+        wfjt = factories.workflow_job_template(organization=org)
+        org_auditor = factories.user(organization=org)
+        wf_read_user = factories.user(organization=org)
+        org.set_object_roles(org_auditor, 'auditor')
+        wfjt.set_object_roles(wf_read_user, 'read')
+        factories.workflow_job_template_node(
+            workflow_job_template=wfjt,
+            unified_job_template=None
+        ).make_approval_node()
+        wfjt_copy = copy_with_teardown(wfjt)
+        old_workflow_approval_template = wfjt.related.workflow_nodes.get().results.pop().related.unified_job_template.get()
+        new_workflow_approval_template = wfjt_copy.related.workflow_nodes.get().results.pop().related.unified_job_template.get()
+        assert old_workflow_approval_template.id != new_workflow_approval_template.id
+        assert new_workflow_approval_template.type == "workflow_approval_template"
+        wfjt.delete()
+        with self.current_user(org_auditor.username, org_auditor.password):
+            assert v2.workflow_job_templates.get(id=wfjt_copy.id).count == 1
+        with self.current_user(wf_read_user.username, wf_read_user.password):
+            assert v2.workflow_job_templates.get(id=wfjt_copy.id).count == 0

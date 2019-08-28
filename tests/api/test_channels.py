@@ -107,7 +107,7 @@ class TestAdHocCommandChannels(ChannelsTest, APITest):
     @pytest.mark.parametrize('desired_status', ('pending', 'waiting', 'running', 'successful'))
     def test_ad_hoc_command_status_changes(self, ahc_and_ws_events, desired_status):
         ahc, events = ahc_and_ws_events
-        desired_msg = dict(group_name='jobs', status=desired_status, unified_job_id=ahc.id)
+        desired_msg = dict(group_name='jobs', status=desired_status, unified_job_id=ahc.id, type='ad_hoc_command')
         if desired_status == 'waiting':
             desired_msg['instance_group_name'] = 'tower'
         assert desired_msg in events
@@ -175,7 +175,7 @@ class TestJobChannels(ChannelsTest, APITest):
     @pytest.mark.parametrize('desired_status', ('pending', 'waiting', 'running', 'successful'))
     def test_job_command_status_changes(self, job_and_ws_events, desired_status):
         job, events = job_and_ws_events
-        desired_msg = dict(group_name='jobs', status=desired_status, unified_job_id=job.id)
+        desired_msg = dict(group_name='jobs', status=desired_status, unified_job_id=job.id, type='job')
         if desired_status == 'waiting':
             desired_msg['instance_group_name'] = 'tower'
         assert desired_msg in events
@@ -253,7 +253,7 @@ class TestWorkflowChannels(ChannelsTest, APITest):
         failure_job_id = fail_jt.related.jobs.get().results.pop().id
 
         messages = [m for m in ws if m.get('group_name') == 'workflow_events']
-        base_workflow_event = dict(group_name='workflow_events', workflow_job_id=wfj.id)
+        base_workflow_event = dict(group_name='workflow_events', workflow_job_id=wfj.id, type='job')
         expected = []
         for workflow_node_id, job_id in zip((mapper[root.id], mapper[success.id]), success_job_ids):
             for status in ('pending', 'waiting', 'running', 'successful'):
@@ -308,7 +308,9 @@ class TestInventoryChannels(ChannelsTest, APITest):
                            status=desired_status,
                            unified_job_id=inv_update.id,
                            inventory_source_id=inv_update.inventory_source,
-                           inventory_id=inv_update.related.inventory_source.get().inventory)
+                           inventory_id=inv_update.related.inventory_source.get().inventory,
+                           type='inventory_update'
+                           )
         if desired_status == 'waiting':
             desired_msg['instance_group_name'] = 'tower'
         assert desired_msg in events, f'{pformat(desired_msg)} not found in {pformat(events)}'
@@ -372,7 +374,7 @@ class TestProjectUpdateChannels(ChannelsTest, APITest):
     def test_project_update_status_changes(self, project_update_and_ws_events, desired_status):
         update, events = project_update_and_ws_events
         desired_msg = dict(group_name='jobs', project_id=update.project, unified_job_id=update.id,
-                           status=desired_status)
+                           status=desired_status, type='project_update')
         if desired_status == 'waiting':
             desired_msg['instance_group_name'] = 'tower'
         assert desired_msg in events
