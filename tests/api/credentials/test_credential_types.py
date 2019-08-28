@@ -23,13 +23,13 @@ class TestCredentialTypes(APITest):
         inputs = options.actions.POST.inputs
         assert inputs.default == {}
         assert inputs.required is False
-        assert inputs.type == 'field'
+        assert inputs.type == 'json'
         assert inputs.label == 'Inputs'
 
         injectors = options.actions.POST.injectors
         assert injectors.default == {}
         assert injectors.required is False
-        assert injectors.type == 'field'
+        assert injectors.type == 'json'
         assert injectors.label == 'Injectors'
 
         creating_help_text = options.description.split('Create a Credential Type')[1].lower()

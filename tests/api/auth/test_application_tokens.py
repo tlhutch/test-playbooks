@@ -51,7 +51,7 @@ class TestApplications(APITest):
 
         org = post.organization
         assert org.label == 'Organization'
-        assert org.type == 'field'
+        assert org.type == 'id'
         assert org.required is True
 
     @pytest.mark.parametrize('missing', ('authorization_grant_type', 'client_type', 'organization'))
@@ -310,7 +310,7 @@ class TestApplicationTokens(APITest):
 
         application = post.application
         assert application.label == 'Application'
-        assert application.type == 'field'
+        assert application.type == 'id'
         assert application.required is False
 
         scope = post.scope
