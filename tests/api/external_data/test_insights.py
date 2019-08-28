@@ -487,11 +487,15 @@ class TestInsightsAnalytics(APITest):
 
     @pytest.mark.ansible(host_pattern='tower[0]')
     def test_awxmanage_gather_analytics_unicode(self, ansible_runner, factories, skip_if_openshift, analytics_enabled):
-        project = factories.project(name='🖖')
+        org = factories.organization(name='🤬🥔')
+        project = factories.project(name='🖖', organization=org)
         project.update().wait_until_completed()
         inventory = factories.inventory(name='🤔')
-        org = factories.organization(name='🤬🥔')
-        jt = factories.job_template(playbook='utf-8-䉪ቒ칸ⱷꯔ噂폄蔆㪗輥.yml')
+        jt = factories.job_template(
+            name='😜',
+            playbook='utf-8-䉪ቒ칸ⱷꯔ噂폄蔆㪗輥.yml',
+            project=project,  # this will provide the org name on the report entry
+        )
         jt.launch().wait_until_completed()
         counts = self.collect_stats(['inventory_counts.json',
                                      'org_counts.json',
@@ -500,8 +504,26 @@ class TestInsightsAnalytics(APITest):
 
         assert counts['inventory_counts'][str(inventory.id)]['name'] == '🤔'
         assert counts['org_counts'][str(org.id)]['name'] == '🤬🥔'
-        assert len([x for x in counts['events_table'] if x[8] == 'utf-8-䉪ቒ칸ⱷꯔ噂폄蔆㪗輥.yml']) > 0
-        assert len([x for x in counts['unified_jobs_table'] if x[4] == '🖖']) > 0
+
+        assert 'playbook' in counts['events_table'][0], counts['events_table'][0]
+        playbook_col = counts['events_table'][0].index('playbook')
+        events_table_entries = [
+            row for row in counts['events_table']
+            if row[playbook_col] == 'utf-8-䉪ቒ칸ⱷꯔ噂폄蔆㪗輥.yml'
+        ]
+        assert len(events_table_entries) > 0, (
+            'At least one event for the playbook must exist on the events_table'
+        )
+
+        organization_name = counts['unified_jobs_table'][0].index('organization_name')
+        name = counts['unified_jobs_table'][0].index('name')
+        unified_jobs_table_entries = [
+            row for row in counts['unified_jobs_table']
+            if row[organization_name] == '🤬🥔' and row[name] == '😜'
+        ]
+        assert len(unified_jobs_table_entries) > 0, (
+            'At least one entry for the job template run must exist on the unified_jobs_table'
+        )
 
     # Commented out due to logistical concerns with contacting insights dev API from AWS
     # def test_ship_insights_succeeds(self, ansible_runner, register_rhn_and_insights):
