@@ -63,14 +63,12 @@ Any user with right permissions can approve to proceed or deny to fail the node 
     - [x] approver is identified
     - [x] workflow job that it ran is is identified
     - [x] Confirm this is visible to anyone with read access to WF approval
-- [ ] Given that a workflow approval node has been DENIED, confirm that the:
+- [x] Given that a workflow approval node has been DENIED, confirm that the:
     - [x] approver is identified
     - [x] workflow job that it ran is is identified
-    - [ ] ???? Reason for denial
     - [x] Confirm this is visible to anyone with read access to WF approval
-- [ ] Given that a workflow approval node TIMED OUT, confirm that the:
+- [x] Given that a workflow approval node TIMED OUT, confirm that the:
     - [x] Timed Out is changed from False to True
-    - [ ] ???? Reason for failure
 - [x] UI verification
 
 ### RBAC
@@ -81,7 +79,7 @@ Any user with right permissions can approve to proceed or deny to fail the node 
     - [x] Create an approval node
     - [x] Approve or deny
     - [x] Grant approval permissions to other users
-    - [ ] UI verification
+    - [x] UI verification
 - [x] Confirm that all invalid users without the permission according to the table below cannot
     - [x] See the workflow approval node
     - [x] See the activity stream entry for the job
