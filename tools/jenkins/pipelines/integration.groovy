@@ -183,6 +183,17 @@ Bundle?: ${params.BUNDLE}"""
                 }
             }
         }
+        stage('Run CLI Tests') {
+            steps {
+                withEnv(["TESTEXPR=${TESTEXPR}"]) {
+                    sshagent(credentials : ['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
+                        sh "ssh ${SSH_OPTS} ec2-user@${TEST_RUNNER_HOST} 'cd tower-qa && TESTEXPR=\"${params.TESTEXPR}\"TOWERKIT_BRANCH=\"${towerqa_branch_name}\" PRODUCT=\"tower\" ./tools/jenkins/scripts/test-cli.sh'"
+                        sh 'ansible-playbook -v -i playbooks/inventory.test_runner playbooks/test_runner/run_fetch_artifacts_test_cli.yml'
+                        junit 'artifacts/results-cli.xml'
+                    }
+                }
+            }
+        }
         stage('Collect artifacts (SOS Reports, pip freeze) from Tower instances') {
             steps {
                 sshagent(credentials : ['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
