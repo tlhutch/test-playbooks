@@ -30,7 +30,9 @@ Provide a new _optional_ interaction in the UI _at license application time_ whi
       - has a subscription name that matches the RH product name (i.e., Ansible Tower by Red Hat, Standard (100 Nodes))
       - has an expiration date that matches the *end* date of the RH subscription
       - has a total node count that is correct (based on the SKU and quantity provided by the Red Hat API)
-    -  [] If there are **multiple** active Tower subscriptions, we will generate a license based on the details of the subscription that ends **soonest**.
+    -  [ ] If there are **multiple** active Tower subscriptions, we will generate a license based on the details of the subscription that ends **soonest**.
+- [ ] When a license is applied using Red Hat credentials, the Red Hat credentials are persisted and available at /api/v2/settings/system/
+    - [ ] If a user returns to the license screen /#/license _after_ applying a license with Red Hat credentials, their previously entered details will be pre-filled in the username/password field so they can re-submit them (the password will show as an "encrypted" widget).
 
 ### Enforcement
 - If a *trial* license is provided:
