@@ -109,6 +109,12 @@ class TestCLIBasics(object):
         assert result.returncode == 2, format_error(result)
         assert b"argument action: invalid choice: 'bodyslam'" in result.stdout
 
+    def test_api_error(self, cli):
+        """Assert there is a newline at end of error returned by API."""
+        result = cli(['awx', 'settings', 'modify', 'MAX_UI_JOB_EVENTS', 'aardvark'], auth=True)
+        assert result.returncode == 1, format_error(result)
+        assert result.stdout == b'{"MAX_UI_JOB_EVENTS": ["A valid integer is required."]}\n'
+
     def test_ping(self, cli):
         result = cli(['awx', 'ping'], auth=True)
         assert 'instances' in result.json
