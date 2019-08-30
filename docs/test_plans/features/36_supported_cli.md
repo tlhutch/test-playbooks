@@ -90,8 +90,12 @@ Provide a supported CLI that offers feature parity with previously upstream [tow
    - [ ] workflow job templates
 - [ ] associate + dissociate credentials to
    - [ ] job templates
-- [ ] API makes you pass "inputs" dictionary, so we should something nicer
+- [x] JSON/YAML input for credential type inputs
 - [ ] Ensure that providing a private ssh key is a seamless and well documented experience. Should not require 12 fingers
+- [ ] Validate that users can be associated with an organization
+- [x] Validate that users can be granted roles to organization, project, inventory, inventory_script, team, credential, job_template, and workflow_job_template
+- [x] Validate that users can have roles revoked to organization, project, inventory, inventory_script, team, credential, job_template, and workflow_job_template
+
 
 ### Pain points to check
 - [x] hide `--id` on `list` so users dont get confused
@@ -123,11 +127,8 @@ Provide a supported CLI that offers feature parity with previously upstream [tow
       of how to pass data to it (object like string? Dict? etc)
 - [ ] Help text and error message should indicate if an ID is expected rather
       than a name
-- [ ] Have examples of using subshells to provide text for free entry args
+- [ ] Have examples of using files to provide text for free entry args
       (`inventory_scripts`, `extra_vars`)
-- [ ] Verify that required arguments are indicated as such in the help text,
-      should not be in square brackets, see `job_templates` arguments `project` and
-      `playbook`
 
 ## Answered questions
 
