@@ -21,7 +21,7 @@
     src: ansible-tower_nightlies.repo.j2
     dest: /etc/yum.repos.d/ansible-tower_nightlies.repo
 
-- name: Install required packages
+- name: Install required packages (common)
   become: true
   package:
     name:
@@ -42,6 +42,7 @@
       become: true
       package:
         name:
+          - ansible
           - python-devel
           - python-pip
           - docker
@@ -75,6 +76,12 @@
   become: true
   pip:
     name: jq
+
+- name: Install ansible for RHEL8
+  become: true
+  pip:
+    name: ansible
+  when: ansible_distribution_major_version == '8'
 
 - name: Disable selinux
   become: True
