@@ -569,6 +569,26 @@ class TestGeneralSettings(APITest):
                 "An org_admin is able to see users (%s) outside the organization, despite the setting " \
                 "ORG_ADMINS_CAN_SEE_ALL_USERS:False" % matching_non_org_users.count
 
+    def test_reset_setting(self, setting_pg, modify_settings):
+        """Verifies that settings get restored to factory defaults with a DELETE request."""
+        # store initial endpoint JSON
+        initial_json = setting_pg.get().json
+
+        # update settings and check for changes
+        payload = modify_settings()
+        updated_json = setting_pg.get().json
+        assert any([item in updated_json.items() for item in payload.items()]), \
+            "No changed entry found under {0}.".format(setting_pg.endpoint)
+        assert initial_json != updated_json, \
+            "Expected {0} to look different after changing Tower settings.\n\nJSON before:\n{1}\n\nJSON after:\n{2}\n".format(
+                setting_pg.endpoint, initial_json, updated_json)
+
+        # reset nested settings endpoint and check that defaults restored
+        setting_pg.delete()
+        assert initial_json == setting_pg.get().json, \
+            "Expected {0} to be reverted to initial state after submitting DELETE request.\n\nJSON before:\n{1}\n\nJSON after:\n{2}\n".format(
+                setting_pg.endpoint, initial_json, setting_pg.json)
+
     def test_changed_settings(self, modify_settings, api_settings_changed_pg):
         """Verifies that changed entries show under /api/v2/settings/changed/.
         Note: "TOWER_URL_BASE", "LICENSE" and "INSTALL_UUID" always show here regardless of
@@ -599,26 +619,6 @@ class TestGeneralSettings(APITest):
                     continue
                 assert endpoint.json[key] == "$encrypted$", \
                     "\"{0}\" not obfuscated in {1}.".format(key, endpoint.endpoint)
-
-    def test_reset_setting(self, setting_pg, modify_settings):
-        """Verifies that settings get restored to factory defaults with a DELETE request."""
-        # store initial endpoint JSON
-        initial_json = setting_pg.get().json
-
-        # update settings and check for changes
-        payload = modify_settings()
-        updated_json = setting_pg.get().json
-        assert any([item in updated_json.items() for item in payload.items()]), \
-            "No changed entry found under {0}.".format(setting_pg.endpoint)
-        assert initial_json != updated_json, \
-            "Expected {0} to look different after changing Tower settings.\n\nJSON before:\n{1}\n\nJSON after:\n{2}\n".format(
-                setting_pg.endpoint, initial_json, updated_json)
-
-        # reset nested settings endpoint and check that defaults restored
-        setting_pg.delete()
-        assert initial_json == setting_pg.get().json, \
-            "Expected {0} to be reverted to initial state after submitting DELETE request.\n\nJSON before:\n{1}\n\nJSON after:\n{2}\n".format(
-                setting_pg.endpoint, initial_json, setting_pg.json)
 
     def test_job_settings_awx_task_env_var_in_unified_job_env(self, request, api_settings_pg, factories):
         job_settings = api_settings_pg.get_endpoint('jobs')
