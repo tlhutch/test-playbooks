@@ -157,8 +157,7 @@ class Test_Notifications(APITest):
     def tower_baseurl(self, is_docker):
         base_url = urlparse(config.base_url)
         scheme = 'http' if base_url.scheme is None else base_url.scheme
-        host = 'towerhost' if is_docker else base_url.hostname
-        return '{0}://{1}'.format(scheme, host)
+        return '{0}://{1}'.format(scheme, base_url.hostname)
 
     def test_test_notification(self, request, notification_template, tower_baseurl):
         """Generate test notifications for each notification type"""
