@@ -50,6 +50,11 @@ def cli(connection, request):
             teardown = kw.pop('teardown')
         else:
             teardown = False
+        if 'return_page' in kw:
+            return_page = kw.pop('return_page')
+        else:
+            return_page = False
+
         if kw.pop('auth', None) is True:
             args = [
                 'awx',
@@ -74,6 +79,7 @@ def cli(connection, request):
 
             page = api.page.TentativePage(ret.json['url'], connection).get()
             request.addfinalizer(page.silent_delete)
-
+            if return_page:
+                return ret, page
         return ret
     return run
