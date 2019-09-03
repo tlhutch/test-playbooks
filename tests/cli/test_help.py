@@ -56,27 +56,60 @@ class HelpText(object):
 
 
 resources_and_requirements = [
-        ('users', ['--username', '--password']),
-        ('organizations', ['--name']),
-        ('projects', ['--name']),
-        ('teams', ['--name', '--organization']),
-        ('credentials', ['--name', '--credential_type']),
-        ('credential_types', ['--name', '--kind']),
-        ('applications', ['--name', '--client_type', '--authorization_grant_type', '--organization']),
-        ('tokens', []),
-        ('inventory', ['--name', '--organization']),
-        ('inventory_scripts', ['--name', '--organization', '--script']),
-        ('inventory_sources', ['--name', '--inventory']),
-        ('groups', ['--name', '--inventory']),
-        ('hosts', ['--name', '--inventory']),
-        ('job_templates', ['--name', '--project', '--playbook']),
-        ('ad_hoc_commands', ['--inventory', '--credential']),
-        ('schedules', ['--rrule', '--name', '--unified_job_template']),
-        ('notification_templates', ['--name', '--organization', '--notification_type']),
-        ('labels', ['--name', '--organization']),
-        ('workflow_job_templates', ['--name']),
-        ('workflow_job_template_nodes', ['--workflow_job_template']),
-        ]
+    # create
+    ('users', 'create', ['--username', '--password'], 'required'),
+    ('organizations', 'create', ['--name'], 'required'),
+    ('projects', 'create', ['--name'], 'required'),
+    ('teams', 'create', ['--name', '--organization'], 'required'),
+    ('credentials', 'create', ['--name', '--credential_type'], 'required'),
+    ('credential_types', 'create', ['--name', '--kind'], 'required'),
+    ('applications', 'create', ['--name', '--client_type',
+                                '--authorization_grant_type', '--organization'], 'required'),
+    ('tokens', 'create', [], 'required'),
+    ('inventory', 'create', ['--name', '--organization'], 'required'),
+    ('inventory_scripts', 'create', ['--name', '--organization', '--script'], 'required'),
+    ('inventory_sources', 'create', ['--name', '--inventory'], 'required'),
+    ('groups', 'create', ['--name', '--inventory'], 'required'),
+    ('hosts', 'create', ['--name', '--inventory'], 'required'),
+    ('job_templates', 'create', ['--name', '--project', '--playbook'], 'required'),
+    ('ad_hoc_commands', 'create', ['--inventory', '--credential'], 'required'),
+    ('schedules', 'create', ['--rrule', '--name', '--unified_job_template'], 'required'),
+    ('notification_templates', 'create', ['--name', '--organization', '--notification_type'], 'required'),
+    ('labels', 'create', ['--name', '--organization'], 'required'),
+    ('workflow_job_templates', 'create', ['--name'], 'required'),
+    ('workflow_job_template_nodes', 'create', ['--workflow_job_template'], 'required'),
+    # associate/disassociate
+    ('job_templates', 'associate', ['--credential', '--start_notification',
+                                    '--success_notification',
+                                    '--failure_notification'], 'optional'),
+    ('job_templates', 'disassociate', ['--credential', '--start_notification',
+                                       '--success_notification',
+                                       '--failure_notification'], 'optional'),
+    ('workflow_job_templates', 'associate', ['--start_notification',
+                                             '--success_notification',
+                                             '--failure_notification'], 'optional'),
+    ('workflow_job_templates', 'disassociate', ['--start_notification',
+                                                '--success_notification',
+                                                '--failure_notification'], 'optional'),
+    ('projects', 'associate', ['--start_notification',
+                               '--success_notification',
+                               '--failure_notification'], 'optional'),
+    ('projects', 'disassociate', ['--start_notification',
+                                  '--success_notification',
+                                  '--failure_notification'], 'optional'),
+    ('inventory_sources', 'associate', ['--start_notification',
+                                        '--success_notification',
+                                        '--failure_notification'], 'optional'),
+    ('inventory_sources', 'disassociate', ['--start_notification',
+                                           '--success_notification',
+                                           '--failure_notification'], 'optional'),
+    ('organizations', 'associate', ['--start_notification',
+                                    '--success_notification',
+                                    '--failure_notification'], 'optional'),
+    ('organizations', 'disassociate', ['--start_notification',
+                                       '--success_notification',
+                                       '--failure_notification'], 'optional'),
+]
 
 
 @pytest.mark.yolo
@@ -87,20 +120,20 @@ class TestCLIHelp(object):
         resources_and_requirements,
         ids=[resource[0] for resource in resources_and_requirements]
         )
-    def test_create_help(self, cli, resource_and_requirements):
+    def test_action_specific_help(self, cli, resource_and_requirements):
         # by default, awxkit will use localhost:8043,
         # which shouldn't be reachable in our CI environments
-        resource, requirements = resource_and_requirements
-        result = cli(f'awx {resource} create --help'.split(), auth=True)
+        resource, action, requirements, category = resource_and_requirements
+        result = cli(f'awx {resource} {action} create --help'.split(), auth=True)
         assert result.returncode in [0, 2], format_error(result)
         help = HelpText(result)
         if requirements:
             errors = []
-            if 'required' not in help.parsed:
+            if category not in help.parsed:
                 errors.append(f"{' '.join(requirements)}")
             else:
                 for arg in requirements:
-                    if arg not in help.parsed['required']:
+                    if arg not in help.parsed[category]:
                         errors.append(arg)
             if errors:
-                raise AssertionError(f'awx {resource} create --help is missing {" ".join(errors)} from required arguments')
+                raise AssertionError(f'awx {resource} {action} --help is missing {" ".join(errors)} from {category} arguments')
