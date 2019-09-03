@@ -94,11 +94,11 @@ class TestCLIUserRoles(object):
         if resource != 'organization':
             connected_resources['organization'].set_object_roles(user, 'member')
         for role in roles:
-            result = cli(f'awx user grant {user.id} --{resource} {connected_resources[resource].id} --type {role}'.split(), auth=True)
+            result = cli(f'awx user grant {user.id} --{resource} {connected_resources[resource].id} --role {role}'.split(), auth=True)
+            assert result.returncode == 0, format_error(result)
             user_roles = self.get_user_roles(user)
             assert role in [user_role['role'] for user_role in user_roles if user_role['resource'] == resource], f'User did not get {role} on {resource}: {user_roles}'
-            assert result.returncode == 0, format_error(result)
-            result = cli(f'awx user revoke {user.id} --{resource} {connected_resources[resource].id} --type {role}'.split(), auth=True)
+            result = cli(f'awx user revoke {user.id} --{resource} {connected_resources[resource].id} --role {role}'.split(), auth=True)
             assert result.returncode == 0, format_error(result)
             user_roles = self.get_user_roles(user)
             assert role not in [user_role['role'] for user_role in user_roles if user_role['resource'] == resource], f'User still has {role} on {resource}: {user_roles}'
