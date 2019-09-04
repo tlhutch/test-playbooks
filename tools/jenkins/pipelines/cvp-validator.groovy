@@ -27,6 +27,8 @@ pipeline {
             steps {
                 withCredentials([file(credentialsId: 'netrc_errata', variable: 'NETRC')]) {
                     script {
+                        echo "Raw message:\n${ciMessage}"
+
                         def ciData = readJSON text: ciMessage
                         def images = ciData?.artifact?.images
 
