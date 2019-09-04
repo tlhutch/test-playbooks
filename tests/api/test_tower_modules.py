@@ -24,6 +24,7 @@ TOWER_MODULES_PARAMS = [
     'label',
     'notification',
     'project',
+    'project_manual',
     pytest.param('receive', marks=pytest.mark.serial),
     'role',
     'send',
@@ -88,13 +89,18 @@ def tower_credential(factories, admin_user):
 @pytest.mark.parametrize('python_venv_name', CUSTOM_VENVS_NAMES)
 class Test_Ansible_Tower_Modules_via_Playbooks(APITest):
     @pytest.mark.parametrize('tower_module', TOWER_MODULES_PARAMS)
-    def test_ansible_tower_module(self, v2, factories, tower_module, project, tower_credential, venv_path, python_venv_name):
+    def test_ansible_tower_module(self, v2, factories, tower_module, project, tower_credential, venv_path, python_venv_name, is_cluster):
         """
         Ansible modules that interact with Tower live in an Ansible Collection.
         Along side those modules live playbooks that test the modules in the
         collection.
         This test invokes those test that live along side the collection.
         """
+        if is_cluster and tower_module == 'project_manual':
+            pytest.skip(
+                'Manual projects are discouraged in general, specially on cluster deployments.'
+            )
+
         virtual_env_path = venv_path(python_venv_name)
 
         extra_vars = {
