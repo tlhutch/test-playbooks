@@ -80,7 +80,7 @@ class TestCLIBasics(object):
         # test https://github.com/ansible/awx/issues/4567
         result = cli(['awx', 'me', '-f', 'human', '--filter', 'summary_fields'], auth=True)
         assert result.returncode == 0, format_error(result)
-        assert b"{'user_capabilities': {'edit': True, 'delete': False}}" in result.stdout
+        assert b'{"user_capabilities": {"edit": true, "delete": false}}' in result.stdout
 
     def test_jq_custom_formatting(self, cli):
         result = cli(
