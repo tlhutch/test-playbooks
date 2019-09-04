@@ -103,4 +103,3 @@ class TestApprovalNodeRBAC(APITest):
                     wfjt.set_object_roles(temp_user, 'approve')
             approve_roles = [role for role in temp_user.related.roles.get().results if role.name == 'Approve']
             assert len(approve_roles) == 0
-

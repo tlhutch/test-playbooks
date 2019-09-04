@@ -4,6 +4,7 @@ import awxkit.exceptions
 from tests.api import APITest
 
 
+@pytest.mark.serial
 @pytest.mark.usefixtures('authtoken')
 class TestWorkflowApprovalNodes(APITest):
     """Test approval nodes that enable users to require manual approval as a part of a workflow.
