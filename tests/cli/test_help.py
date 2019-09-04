@@ -118,13 +118,13 @@ class TestCLIHelp(object):
     @pytest.mark.parametrize(
         'resource_and_requirements',
         resources_and_requirements,
-        ids=[resource[0] for resource in resources_and_requirements]
+        ids=[f'{resource[0]}-{resource[1]}' for resource in resources_and_requirements]
         )
     def test_action_specific_help(self, cli, resource_and_requirements):
         # by default, awxkit will use localhost:8043,
         # which shouldn't be reachable in our CI environments
         resource, action, requirements, category = resource_and_requirements
-        result = cli(f'awx {resource} {action} create --help'.split(), auth=True)
+        result = cli(f'awx {resource} {action} --help'.split(), auth=True)
         assert result.returncode in [0, 2], format_error(result)
         help = HelpText(result)
         if requirements:
