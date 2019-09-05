@@ -9,7 +9,7 @@ class HelpTextError(AssertionError):
 
 class HelpText(object):
     def __init__(self, result):
-        self.stdout = result.stdout.decode(encoding='utf-8').split('\n')
+        self.stdout = result.stdout.split('\n')
         self.parsed = {'unknown': ''}
         key = 'unknown'
         for line in self.stdout:

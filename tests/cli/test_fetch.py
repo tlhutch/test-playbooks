@@ -22,7 +22,7 @@ class TestDetailView(object):
     def test_404_verbose(self, cli):
         result = cli(['awx', 'users', 'get', '10000', '-v'], auth=True)
         assert result.returncode == 1, format_error(result)
-        assert b'"GET /api/v2/users/10000/ HTTP/1.1" 404' in result.stdout
+        assert '"GET /api/v2/users/10000/ HTTP/1.1" 404' in result.stdout
 
     @pytest.mark.parametrize('resource', ['users', 'organizations'])
     def test_get(self, cli, resource):
@@ -38,11 +38,8 @@ class TestListView(object):
     def test_list_actions(self, cli, resource):
         result = cli(['awx', resource], auth=True)
         assert result.returncode == 2, format_error(result)
-        assert bytes(
-            'usage: awx {} [-h] action'.format(resource),
-            encoding='utf-8'
-        )in result.stdout
-        for action in (b'list', b'create', b'get', b'modify', b'delete'):
+        assert 'usage: awx {} [-h] action'.format(resource) in result.stdout
+        for action in ('list', 'create', 'get', 'modify', 'delete'):
             assert action in result.stdout
 
     def test_simple_list(self, cli):

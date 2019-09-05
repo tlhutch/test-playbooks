@@ -14,7 +14,7 @@ class TestCLIBasics(object):
         # which shouldn't be reachable in our CI environments
         result = cli(['awx'])
         assert result.returncode == 1, format_error(result)
-        assert b'usage: awx' in result.stdout
+        assert 'usage: awx' in result.stdout
 
     @pytest.mark.parametrize('args', [
         ['awx', '-h'],
@@ -25,20 +25,20 @@ class TestCLIBasics(object):
         # which shouldn't be reachable in our CI environments
         result = cli(args)
         assert result.returncode == 0, format_error(result)
-        assert b'authenticate and retrieve an OAuth2 token' in result.stdout
+        assert 'authenticate and retrieve an OAuth2 token' in result.stdout
 
     def test_anonymous_user(self, cli):
         result = cli(['awx', '-k', '--conf.host', config.base_url])
 
         # you can *see* endpoints without logging in
-        for endpoint in (b'login', b'config', b'ping', b'organizations'):
+        for endpoint in ('login', 'config', 'ping', 'organizations'):
             assert endpoint in result.stdout
 
     def test_credentials_required(self, cli):
         result = cli(['awx', 'me', '-k', '--conf.host', config.base_url])
         assert result.returncode == 1, format_error(result)
-        assert b'Valid credentials were not provided.' in result.stdout
-        assert b'$ awx login --help' in result.stdout
+        assert 'Valid credentials were not provided.' in result.stdout
+        assert '$ awx login --help' in result.stdout
 
     def test_valid_credentials_from_env_vars(self, cli):
         username = config.credentials.users.admin.username
@@ -75,12 +75,12 @@ class TestCLIBasics(object):
     def test_human_format(self, cli):
         result = cli(['awx', 'me', '-f', 'human', '--filter', 'username'], auth=True)
         assert result.returncode == 0, format_error(result)
-        assert result.stdout == b'username \n======== \nadmin    \n'
+        assert result.stdout == 'username \n======== \nadmin    \n'
 
         # test https://github.com/ansible/awx/issues/4567
         result = cli(['awx', 'me', '-f', 'human', '--filter', 'summary_fields'], auth=True)
         assert result.returncode == 0, format_error(result)
-        assert b'{"user_capabilities": {"edit": true, "delete": false}}' in result.stdout
+        assert '{"user_capabilities": {"edit": true, "delete": false}}' in result.stdout
 
     def test_jq_custom_formatting(self, cli):
         result = cli(
@@ -88,32 +88,29 @@ class TestCLIBasics(object):
             auth=True
         )
         assert result.returncode == 0, format_error(result)
-        assert result.stdout == bytes(
-            config.credentials.users.admin.username,
-            encoding='utf-8'
-        ) + b'\n'
+        assert result.stdout == config.credentials.users.admin.username + '\n'
 
     def test_verbose_requests(self, cli):
         # -v should print raw HTTP requests
         result = cli(['awx', 'users', 'list', '-v'], auth=True)
         assert result.returncode == 0, format_error(result)
-        assert b'"GET /api/v2/users/ HTTP/1.1" 200' in result.stdout
+        assert '"GET /api/v2/users/ HTTP/1.1" 200' in result.stdout
 
     def test_invalid_resource(self, cli):
         result = cli(['awx', 'taters'], auth=True)
         assert result.returncode == 2, format_error(result)
-        assert b"resource: invalid choice: 'taters'" in result.stdout
+        assert "resource: invalid choice: 'taters'" in result.stdout
 
     def test_invalid_action(self, cli):
         result = cli(['awx', 'users', 'bodyslam'], auth=True)
         assert result.returncode == 2, format_error(result)
-        assert b"argument action: invalid choice: 'bodyslam'" in result.stdout
+        assert "argument action: invalid choice: 'bodyslam'" in result.stdout
 
     def test_api_error(self, cli):
         """Assert there is a newline at end of error returned by API."""
         result = cli(['awx', 'settings', 'modify', 'MAX_UI_JOB_EVENTS', 'aardvark'], auth=True)
         assert result.returncode == 1, format_error(result)
-        assert result.stdout == b'{"MAX_UI_JOB_EVENTS": ["A valid integer is required."]}\n'
+        assert result.stdout == '{"MAX_UI_JOB_EVENTS": ["A valid integer is required."]}\n'
 
     def test_ping(self, cli):
         result = cli(['awx', 'ping'], auth=True)

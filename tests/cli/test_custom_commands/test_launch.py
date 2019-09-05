@@ -15,8 +15,8 @@ class TestJobLaunch(object):
         assert result.returncode == 2, format_error(result)
         assert (
             # https://github.com/python/cpython/commit/f97c59aaba2d93e48cbc6d25f7
-            b'too few arguments' in result.stdout or
-            b'the following arguments are required: id' in result.stdout
+            'too few arguments' in result.stdout or
+            'the following arguments are required: id' in result.stdout
         )
 
     def test_job_launch_incorrect_pk(self, cli):
@@ -56,8 +56,8 @@ class TestJobLaunch(object):
             '--monitor',
         ], auth=True)
         for marker in (
-            b'------Starting Standard Out Stream------\n',
-            b'------End of Standard Out Stream--------\n'
+            '------Starting Standard Out Stream------\n',
+            '------End of Standard Out Stream--------\n'
         ):
             assert marker in result.stdout
 
@@ -66,7 +66,7 @@ class TestJobLaunch(object):
             job_template_ping.related.jobs.get().results[-1].related.stdout,
             query_parameters=dict(format='ansi_download')
         ).content.splitlines():
-            assert line in result.stdout
+            assert line.decode('utf-8') in result.stdout
 
 
 @pytest.mark.usefixtures('authtoken')
@@ -77,8 +77,8 @@ class TestProjectUpdate(object):
         assert result.returncode == 2, format_error(result)
         assert (
             # https://github.com/python/cpython/commit/f97c59aaba2d93e48cbc6d25f7
-            b'too few arguments' in result.stdout or
-            b'the following arguments are required: id' in result.stdout
+            'too few arguments' in result.stdout or
+            'the following arguments are required: id' in result.stdout
         )
 
     def test_project_update_incorrect_pk(self, cli):
@@ -104,8 +104,8 @@ class TestProjectUpdate(object):
             '--monitor'
         ], auth=True)
         for marker in (
-            b'------Starting Standard Out Stream------\n',
-            b'------End of Standard Out Stream--------\n'
+            '------Starting Standard Out Stream------\n',
+            '------End of Standard Out Stream--------\n'
         ):
             assert marker in result.stdout
 
@@ -114,7 +114,7 @@ class TestProjectUpdate(object):
             project_ansible_playbooks_git.related.project_updates.get().results[-1].related.stdout,
             query_parameters=dict(format='ansi_download')
         ).content.splitlines():
-            assert line in result.stdout
+            assert line.decode('utf-8') in result.stdout
 
 
 @pytest.mark.usefixtures('authtoken')
@@ -125,8 +125,8 @@ class TestInventorySourceUpdate(object):
         assert result.returncode == 2, format_error(result)
         assert (
             # https://github.com/python/cpython/commit/f97c59aaba2d93e48cbc6d25f7
-            b'too few arguments' in result.stdout or
-            b'the following arguments are required: id' in result.stdout
+            'too few arguments' in result.stdout or
+            'the following arguments are required: id' in result.stdout
         )
 
     def test_inventory_source_update_incorrect_pk(self, cli):
@@ -152,8 +152,8 @@ class TestInventorySourceUpdate(object):
             '--monitor'
         ], auth=True)
         for marker in (
-            b'------Starting Standard Out Stream------\n',
-            b'------End of Standard Out Stream--------\n'
+            '------Starting Standard Out Stream------\n',
+            '------End of Standard Out Stream--------\n'
         ):
             assert marker in result.stdout
 
@@ -162,7 +162,7 @@ class TestInventorySourceUpdate(object):
             inventory_source.related.inventory_updates.get().results[-1].related.stdout,
             query_parameters=dict(format='ansi_download')
         ).content.splitlines():
-            assert line in result.stdout
+            assert line.decode('utf-8') in result.stdout
 
 
 @pytest.mark.usefixtures('authtoken')
@@ -188,8 +188,8 @@ class TestAdhocLaunch(object):
             '--monitor', '-f', 'jq', '--filter', '.id',
         ], auth=True)
         for marker in (
-            b'------Starting Standard Out Stream------\n',
-            b'------End of Standard Out Stream--------\n'
+            '------Starting Standard Out Stream------\n',
+            '------End of Standard Out Stream--------\n'
         ):
             assert marker in result.stdout
 
@@ -201,7 +201,7 @@ class TestAdhocLaunch(object):
             ahc.related.stdout,
             query_parameters=dict(format='ansi_download')
         ).content.splitlines():
-            assert line in result.stdout
+            assert line.decode('utf-8') in result.stdout
 
 
 @pytest.mark.usefixtures('authtoken')
@@ -237,9 +237,9 @@ class TestWorkflowLaunch(object):
         result = cli(args, auth=True)
         assert result.returncode == 0, format_error(result)
         if timeout:
-            assert 'Monitoring aborted due to timeout.' in result.stdout.decode('utf-8')
-            assert result.stdout.splitlines()[-1] != b'successful'
+            assert 'Monitoring aborted due to timeout.' in result.stdout
+            assert result.stdout.splitlines()[-1] != 'successful'
         else:
-            assert 'Launching'.format(wfjt.name) in result.stdout.decode('utf-8')
-            assert ' successful'.format(inv_source.name) in result.stdout.decode('utf-8')
-            assert result.stdout.splitlines()[-1] == b'successful'
+            assert 'Launching'.format(wfjt.name) in result.stdout
+            assert ' successful'.format(inv_source.name) in result.stdout
+            assert result.stdout.splitlines()[-1] == 'successful'

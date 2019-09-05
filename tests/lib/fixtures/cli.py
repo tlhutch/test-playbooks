@@ -29,6 +29,7 @@ class CompletedProcessProxy(object):
 @pytest.fixture(scope='function')
 def cli(connection, request):
     def run(args, *a, **kw):
+        kw['encoding'] = 'utf-8'
         if 'stdout' not in kw:
             kw['stdout'] = subprocess.PIPE
         if 'stderr' not in kw:

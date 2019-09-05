@@ -10,13 +10,13 @@ import yaml
 class TestJSONType(object):
 
     @pytest.mark.parametrize('resource, expected_doc', [
-        ['job_templates', b'--extra_vars JSON/YAML'],
-        ['workflow_job_templates', b'--extra_vars JSON/YAML'],
-        ['workflow_job_template_nodes', b'--extra_data JSON/YAML'],
-        ['inventory', b'--variables JSON/YAML'],
-        ['credentials', b'--inputs JSON/YAML'],
-        ['credential_types', b'--inputs JSON/YAML'],
-        ['credential_types', b'--injectors JSON/YAML'],
+        ['job_templates', '--extra_vars JSON/YAML'],
+        ['workflow_job_templates', '--extra_vars JSON/YAML'],
+        ['workflow_job_template_nodes', '--extra_data JSON/YAML'],
+        ['inventory', '--variables JSON/YAML'],
+        ['credentials', '--inputs JSON/YAML'],
+        ['credential_types', '--inputs JSON/YAML'],
+        ['credential_types', '--injectors JSON/YAML'],
     ])
     @pytest.mark.parametrize('action', ['create', 'list'])
     def test_extra_vars_help(self, cli, resource, action, expected_doc):
@@ -28,7 +28,7 @@ class TestJSONType(object):
         result = cli([
             'awx', 'job_templates', 'create', '--extra_vars', '{"not" valid}'
         ], auth=True)
-        assert b'--extra_vars: {"not" valid} is not valid JSON or YAML' in result.stdout
+        assert '--extra_vars: {"not" valid} is not valid JSON or YAML' in result.stdout
 
     def test_job_template_extra_vars(self, cli, inventory, project):
         value = {'foo': 'bar'}

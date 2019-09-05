@@ -14,13 +14,13 @@ class TestObjectCreation(object):
 
         assert (
             # https://github.com/python/cpython/commit/f97c59aaba2d93e48cbc6d25f7
-            b'argument --username is required' in result.stdout or
-            b'arguments are required: --username' in result.stdout
+            'argument --username is required' in result.stdout or
+            'arguments are required: --username' in result.stdout
         )
 
         for arg in (
-            b'--username TEXT', b'--first_name TEXT',
-            b'--last_name TEXT', b'--email TEXT', b'--is_superuser BOOLEAN',
+            '--username TEXT', '--first_name TEXT',
+            '--last_name TEXT', '--email TEXT', '--is_superuser BOOLEAN',
         ):
             assert arg in result.stdout
 
