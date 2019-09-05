@@ -34,6 +34,16 @@ pipeline {
             defaultValue: 'devel'
         )
         string(
+            name: 'TOWER_LICENSE_FORK',
+            description: 'Fork of tower-license to deploy',
+            defaultValue: 'ansible'
+        )
+        string(
+            name: 'TOWER_LICENSE_BRANCH',
+            description: 'Branch to use for tower-license',
+            defaultValue: 'master'
+        )
+        string(
             name: 'TOWER_QA_FORK',
             description: 'Fork of tower-qa. Useful for testing changes to this pipeline.',
             defaultValue: 'ansible'
@@ -274,10 +284,18 @@ pipeline {
                                         name: 'TRIGGER',
                                         value: false
                                     ),
-				    booleanParam(
-					name: 'BUILD_OFFLINE',
-					value: params.BUILD_OFFLINE
-				    )
+                                    booleanParam(
+                                        name: 'BUILD_OFFLINE',
+                                        value: params.BUILD_OFFLINE
+                                    ),
+                                    string(
+                                        name: 'TOWER_LICENSE_REPO',
+                                        value: "git@github.com:${params.TOWER_LICENSE_FORK}/tower-license.git"
+                                    ),
+                                    string(
+                                        name: 'TOWER_LICENSE_BRANCH',
+                                        value: params.TOWER_LICENSE_BRANCH
+                                    )
                                 ]
                             )
                         }
