@@ -4,6 +4,7 @@ import gc
 import logging
 import fauxfactory
 import pytest
+import socket
 
 
 # Session scoped fixtures
@@ -147,6 +148,21 @@ def is_cluster(is_traditional_cluster, is_openshift_cluster):
 @pytest.fixture(scope='session')
 def is_traditional_cluster(v2_session, is_docker):
     return v2_session.ping.get()['ha'] and not is_docker
+
+
+@pytest.fixture(scope='session')
+def is_vpn():
+    try:
+        socket.gethostbyname('subscription.rhsm.stage.redhat.com')
+        return True
+    except socket.error:
+        return False
+
+
+@pytest.fixture(scope='session')
+def skip_if_not_vpn(is_vpn):
+    if not is_vpn:
+        pytest.skip("Test must be run on the VPN")
 
 
 @pytest.fixture(scope='session')
