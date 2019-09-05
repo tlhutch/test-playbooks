@@ -11,7 +11,7 @@ class TestSettingsCLI(object):
         result = cli([
             'awx', 'settings', 'list', '-f', 'jq', '--filter', '.TOWER_URL_BASE'
         ], auth=True)
-        assert result.stdout.decode('utf-8').strip() == api_settings_system_pg[
+        assert result.stdout.strip() == api_settings_system_pg[
             'TOWER_URL_BASE'
         ]
 
@@ -19,8 +19,8 @@ class TestSettingsCLI(object):
         result = cli([
             'awx', 'settings', 'list', '--slug', 'system'
         ], auth=True)
-        assert b'TOWER_URL_BASE' in result.stdout
-        assert b'AWX_ISOLATED_VERBOSITY' not in result.stdout
+        assert 'TOWER_URL_BASE' in result.stdout
+        assert 'AWX_ISOLATED_VERBOSITY' not in result.stdout
 
     def test_settings_invalid_slug(self, cli):
         result = cli([
@@ -34,8 +34,8 @@ class TestSettingsCLI(object):
         assert result.returncode == 2, format_error(result)
         assert (
             # https://github.com/python/cpython/commit/f97c59aaba2d93e48cbc6d25f7
-            b'too few arguments' in result.stdout or
-            b'arguments are required: key, value' in result.stdout
+            'too few arguments' in result.stdout or
+            'arguments are required: key, value' in result.stdout
         )
 
     def test_invalid_key(self, cli, v2):
@@ -43,7 +43,7 @@ class TestSettingsCLI(object):
             'awx', 'settings', 'modify', 'THINGAMAJIG', '1',
         ], auth=True)
         assert result.returncode == 2, format_error(result)
-        assert b"key: invalid choice: 'THINGAMAJIG' (choose from" in result.stdout
+        assert "key: invalid choice: 'THINGAMAJIG' (choose from" in result.stdout
 
     @pytest.mark.serial
     @pytest.mark.parametrize('state', [True, False])
