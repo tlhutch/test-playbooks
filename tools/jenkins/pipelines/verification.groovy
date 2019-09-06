@@ -11,7 +11,7 @@ pipeline {
         choice(
             name: 'ANSIBLE_VERSION',
             description: 'Ansible version to deploy within Tower install',
-            choices: ['devel', 'stable-2.8', 'stable-2.7', 'stable-2.6', 'stable-2.5',
+            choices: ['devel', 'stable-2.9', 'stable-2.8', 'stable-2.7', 'stable-2.6', 'stable-2.5',
                       'stable-2.4', 'stable-2.3']
         )
         choice(
@@ -59,7 +59,7 @@ Platform under test: ${params.PLATFORM}"""
                         prev_min_version = '3.2.7'
                     }
 
-                    if (params.ANSIBLE_VERSION != 'stable-2.8') {
+                    if (params.ANSIBLE_VERSION != 'stable-2.9', 'stable-2.8') {
                         testexpr = 'yolo or ansible_integration'
                     } else {
                         testexpr = ''
