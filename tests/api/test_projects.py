@@ -516,6 +516,62 @@ class Test_Projects(APITest):
         project.assert_successful()
         assert project.scm_revision
 
+    def test_project_sync_does_not_update(self, factories, git_file_path, ansible_adhoc, api_config_pg):
+        """If a project is not set to update on launch, then
+        runs of a job template using this project should not pull a new revision
+
+        This test makes a breaking change to the project in a new commit
+        and verifies that subsequent job runs to not fail until
+        the project is manually updated
+        """
+        project = factories.project(
+            name='Local dir that will have debug.yml removed {}'.format(random_title()),
+            scm_url=git_file_path)
+
+        jt = factories.job_template(
+            name='Uses playbook that will be deleted in source control {}'.format(random_title()),
+            project=project,
+            playbook='debug.yml')
+
+        # totally normal run of the debug playbook
+        jt.launch().wait_until_completed().assert_successful()
+
+        # now shell in and break things in a new commit
+        ansible_module = ansible_adhoc().tower
+        local_path = git_file_path[len('file://'):]
+        run_these = [
+            'git config user.email jenkins@ansible.com',
+            'git config user.name DoneByTest',
+            'rm debug.yml',
+            'git add debug.yml',
+            'git commit -m "Remove the debug.yml file, this should break things"'
+        ]
+        for this_command in run_these:
+            contacted = ansible_module.shell(this_command, chdir=local_path)
+            for result in contacted.values():
+                assert 'rc' in result, result
+                assert result['rc'] == 0, result
+
+        # Project should NOT update in this process, so job is successful
+        jt.launch().wait_until_completed().assert_successful()
+
+        # Delete the project directory, should still work
+        internal_project_folder = os.path.join(api_config_pg.project_base_dir, project.local_path)
+        contacted = ansible_module.file(state="absent", path=internal_project_folder)
+        for result in contacted.values():
+            assert result.get('changed', False) is True, result
+
+        # It should still work the same on an instance without the project folder
+        jt.launch().wait_until_completed().assert_successful()
+
+        # update picks up the playbook deletion
+        project.update().wait_until_completed()
+
+        # okay now jobs should fail due to missing playbook
+        job = jt.launch()
+        job.wait_until_completed().assert_status('failed')
+        assert 'the playbook: debug.yml could not be found' in job.result_stdout, job.result_stdout
+
     def test_project_with_galaxy_collection_requirements(self, request, skip_if_cluster, factories, ansible_runner,
                                                          project_with_galaxy_collection_requirements,
                                                          skip_if_pre_ansible29):
