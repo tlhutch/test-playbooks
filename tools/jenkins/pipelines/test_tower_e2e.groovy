@@ -92,8 +92,8 @@ pipeline {
                     submoduleCfg: [],
                     userRemoteConfigs: [
                         [
-                            credentialsId: '55b638c7-3ef3-4679-9020-fa09e411a74d',
-                            url: 'https://github.com/ansible/tower-qa'
+                            credentialsId: 'd2d4d16b-dc9a-461b-bceb-601f9515c98a',
+                            url: 'git@github.com:ansible/tower-qa.git'
                         ]
                     ]
                 ])
