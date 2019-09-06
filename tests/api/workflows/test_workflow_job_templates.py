@@ -425,7 +425,7 @@ class Test_Workflow_Job_Templates(APITest):
                 limit='is_target'
             )
             assert wfjt.inventory is not None
-            assert wfjt.limit is None  # no prompt given
+            assert wfjt.limit == 'is_target'
 
         if source == 'rejected':
             jt = factories.job_template()
