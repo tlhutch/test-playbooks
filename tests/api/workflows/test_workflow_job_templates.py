@@ -448,7 +448,8 @@ class Test_Workflow_Job_Templates(APITest):
         else:
             wfj = wfjt.launch()
         assert wfj.inventory == inventory.id
-        assert wfj.limit == wfjt.limit
+        assert wfj.limit == 'is_target'
+
         node = wfj.get_related('workflow_nodes').results.pop()
         node.wait_for_job()
 
