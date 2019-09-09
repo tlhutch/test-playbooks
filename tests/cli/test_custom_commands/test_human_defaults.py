@@ -27,6 +27,7 @@ resources_action_and_keys = [
     ('settings', 'list', ['key', 'value']),
     ('metrics', '', ['key', 'value']),
     ('me', '', ['id', 'username']),
+    ('instances', 'list', ['id', 'hostname']),
 ]
 
 
