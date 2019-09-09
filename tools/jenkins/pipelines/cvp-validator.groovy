@@ -93,9 +93,10 @@ The <http://jenkins.ansible.eng.rdu2.redhat.com/blue/organizations/jenkins/Pipel
 """
                     )
                     finalStatus = build(
-                      job: 'Pipelines/openshift-install-pipeline',
+                      job: 'Pipelines/openshift-integration-pipeline',
                       propagate: false,
                       parameters: [
+                          string(name: 'TESTEXPR', value: 'yolo or ansible_integration'),
                           string(name: 'TOWER_VERSION', value: _TOWER_VERSION),
                           string(name: 'TOWER_CONTAINER_IMAGE', value: TOWER_CONTAINER_IMAGE),
                           string(name: 'MESSAGING_CONTAINER_IMAGE', value: MESSAGING_CONTAINER_IMAGE),
