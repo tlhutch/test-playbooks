@@ -14,8 +14,8 @@ Owner: Caleb Boylan (squidboylan)
     - [x] Test that a promptable WF doesn't pass the input down to a non-promptable JT
     - [x] Test that `limit` on a WF passes down to a promptable JT
     - [x] Test that `limit` on a WF doesn't pass down to a non-promptable JT
-    - [ ] Test that `ask_limit_on_launch` on a WF can be updated
-    - [ ] Test that `limit` on a WF can be updated
+    - [x] Test that `ask_limit_on_launch` on a WF can be updated
+    - [x] Test that `limit` on a WF can be updated
     - [ ] Test that an empty `limit` on a WF is not used
 - scm\_branch Prompt
     - [x] Test that a promptable WF passes the input down to a promptable JT

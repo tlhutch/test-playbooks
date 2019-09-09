@@ -462,6 +462,13 @@ class Test_Workflow_Job_Templates(APITest):
             assert job.inventory == inventory.id
             assert job.limit == 'is_target'
 
+        # Test scm_branch and ask_limit_on_launch updatability
+        wfjt.limit = 'foo'
+        assert wfjt.limit == 'foo', f'wfjt attr "limit" is not updatable'
+        wfjt.ask_limit_on_launch = False
+        assert wfjt.ask_limit_on_launch == False, f'wfjt attr "ask_limiton_launch" is not updatable'
+
+
     def test_deleted_workflow_inventory_has_no_effect(self, factories):
         inventory = factories.inventory()
         wfjt = factories.workflow_job_template(inventory=inventory)
