@@ -129,6 +129,24 @@ class TestJSONType(object):
             'username': 'bob', 'password': '$encrypted$'
         }
 
+    def test_file_inputs(self, cli, organization, tmp_file_maker):
+        value = "{'username': 'joe', 'password': 'secret'}"
+        input_file = tmp_file_maker(value)
+
+        # create it
+        result = cli([
+            'awx', 'credentials', 'create', '--organization',
+            str(organization.id), '--name', fauxfactory.gen_utf8(),
+            '--credential_type', '1', '--inputs', f'@{input_file}',
+        ], auth=True, teardown=True)
+        assert result.returncode == 0
+        assert 'id' in result.json
+
+        # confirm that password is filtered out
+        assert result.json['inputs'] == {
+            'username': 'joe', 'password': '$encrypted$'
+        }
+
     def test_credential_type_inputs_and_injectors(self, cli):
         inputs = {'fields': []}
         injectors = {'env': {'X_FOO': 'test'}}

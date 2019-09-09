@@ -3,10 +3,22 @@ import os
 import subprocess
 import yaml
 
+from tempfile import NamedTemporaryFile
+
 import pytest
 
 from awxkit import config
 from awxkit import api
+
+
+@pytest.fixture
+def tmp_file_maker():
+    """Fixture to return temporary file maker."""
+    def tmp_file(text):
+        with NamedTemporaryFile(delete=False) as tempf:
+            tempf.write(bytes(text, 'UTF-8'))
+        return tempf.name
+    return tmp_file
 
 
 class CompletedProcessProxy(object):
