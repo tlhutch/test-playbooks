@@ -51,16 +51,16 @@ Provide a supported CLI that offers feature parity with previously upstream [tow
 
 - [x] Verify can launch a job from a JT
 - [x] Verify can launch a project update
-- [ ] Verify can check on a job status given we know a job ID
+- [x] Verify can check on a job status given we know a job ID
 - [x] Verify that booleans are cast correctly and handle reasonable input (case insensitive and cast 0 and 1 to false and true)
-- [ ] Verify that `inventory_scripts` and `extra_vars` text can come from subshell output e.g. `--extra_vars=$(cat extra_vars.yaml)`
+- [x] Verify that `inventory_scripts` and `extra_vars` text can come from subshell output e.g. `--extra_vars=$(cat extra_vars.yaml)`
    - [ ] Need to investigate what tower-cli does
 - [ ] Verify that we do not have a `ad_hoc_commands modify`
 
 
 ### Custom CLI Features
 
-- [ ] Verify we can move data from one tower to another with send/receive feature
+- [ ] Verify we can move data from one tower to another with send/receive feature [PUNTED]
   - could consider trying to re-use some of the upgrade testing
   - could consider adding a new job on release verification pipeline? Consult @Spredzy about this
 - [x] Verify that the following can trail STDOUT from a launchable resource with `--monitor`
@@ -82,17 +82,17 @@ Provide a supported CLI that offers feature parity with previously upstream [tow
 - [x] Manually confirm that human readable output provided by tabulate looks good and is sane. Intentionally not going to automate this other than ability to call it.
 - [x] Confirm can use jq to filter output
 - [x] Confirm can request yaml output
-- [ ] associate + dissociate notifications to
-   - [ ] job templates
-   - [ ] projects
-   - [ ] inventory updates
-   - [ ] organizations
-   - [ ] workflow job templates
-- [ ] associate + dissociate credentials to
-   - [ ] job templates
+- [x] associate + dissociate notifications to
+   - [x] job templates
+   - [x] projects
+   - [x] inventory updates
+   - [x] organizations
+   - [x] workflow job templates
+- [x] associate + dissociate credentials to
+   - [x] job templates
 - [x] JSON/YAML input for credential type inputs
-- [ ] Ensure that providing a private ssh key is a seamless and well documented experience. Should not require 12 fingers
-- [ ] Validate that users can be associated with an organization
+- [x] Ensure that providing a private ssh key is a seamless and well documented experience. Should not require 12 fingers
+- [x] Validate that users can be associated with an organization
 - [x] Validate that users can be granted roles to organization, project, inventory, inventory_script, team, credential, job_template, and workflow_job_template
 - [x] Validate that users can have roles revoked to organization, project, inventory, inventory_script, team, credential, job_template, and workflow_job_template
 
