@@ -59,7 +59,7 @@ Platform under test: ${params.PLATFORM}"""
                         prev_min_version = '3.2.7'
                     }
 
-                    if (params.ANSIBLE_VERSION != 'stable-2.9', 'stable-2.8') {
+                    if (params.ANSIBLE_VERSION != 'stable-2.8') {
                         testexpr = 'yolo or ansible_integration'
                     } else {
                         testexpr = ''
