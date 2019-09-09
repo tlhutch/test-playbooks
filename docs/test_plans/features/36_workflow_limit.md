@@ -11,7 +11,7 @@ Owner: Caleb Boylan (squidboylan)
 
 - Limit Prompt
     - [x] Test that a promptable WF passes the input down to a promptable JT
-    - [ ] Test that a promptable WF doesn't pass the input down to a non-promptable JT
+    - [x] Test that a promptable WF doesn't pass the input down to a non-promptable JT
     - [x] Test that `limit` on a WF passes down to a promptable JT
     - [x] Test that `limit` on a WF doesn't pass down to a non-promptable JT
     - [ ] Test that `ask_limit_on_launch` on a WF can be updated

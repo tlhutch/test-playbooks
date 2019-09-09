@@ -409,11 +409,12 @@ class Test_Workflow_Job_Templates(APITest):
     @pytest.mark.parametrize('source', (
         'workflow',  # test that params set on WFJT takes effects in spawned jobs
         'prompt',    # test that params provided on launch takes effect
-        'rejected'   # test that if JT does not prompt for param, does not take effect
+        'prompt-rejected',    # test that params provided on launch do not effect a JT that does not prompt
+        'workflow-rejected'   # test that if JT does not prompt for param, does not take effect
     ))
     def test_launch_with_workflow_prompts(self, factories, source):
         inventory = factories.inventory()
-        if source == 'prompt':
+        if source == 'prompt' or source == 'prompt-rejected':
             wfjt = factories.workflow_job_template(
                 ask_inventory_on_launch=True,
                 ask_limit_on_launch=True
@@ -427,7 +428,7 @@ class Test_Workflow_Job_Templates(APITest):
             assert wfjt.inventory is not None
             assert wfjt.limit == 'is_target'
 
-        if source == 'rejected':
+        if source == 'workflow-rejected' or source == 'prompt-rejected':
             jt = factories.job_template()
         else:
             jt = factories.job_template(
@@ -443,7 +444,7 @@ class Test_Workflow_Job_Templates(APITest):
             unified_job_template=jt
         )
 
-        if source == 'prompt':
+        if source == 'prompt' or source == 'prompt-rejected':
             wfj = wfjt.launch(payload={'inventory': inventory.id, 'limit': 'is_target'})
         else:
             wfj = wfjt.launch()
@@ -454,7 +455,7 @@ class Test_Workflow_Job_Templates(APITest):
         node.wait_for_job()
 
         job = node.get_related('job')
-        if source == 'rejected':
+        if source == 'workflow-rejected' or source == 'prompt-rejected':
             assert job.inventory == jt.inventory
             assert job.limit == ''
         else:
