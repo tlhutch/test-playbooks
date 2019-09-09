@@ -132,7 +132,7 @@ pipeline {
         choice(
             name: 'ANSIBLE_NIGHTLY_BRANCH',
             description: 'The Ansible version to install the Tower instance with',
-            choices: ['devel', 'stable-2.8', 'stable-2.7', 'stable-2.6', 'stable-2.5', 'stable-2.4', 'stable-2.3']
+            choices: ['devel', 'stable-2.9', 'stable-2.8', 'stable-2.7', 'stable-2.6', 'stable-2.5', 'stable-2.4', 'stable-2.3']
         )
         string(
             name: 'SLACK_USERNAME',
