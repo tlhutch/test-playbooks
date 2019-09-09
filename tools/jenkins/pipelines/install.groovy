@@ -140,7 +140,8 @@ Bundle?: ${params.BUNDLE}"""
                     withEnv(["AWS_SECRET_KEY=${AWS_SECRET_KEY}",
                              "AWS_ACCESS_KEY=${AWS_ACCESS_KEY}",
                              "AWX_USE_TLS=${AWX_USE_TLS}",
-                             "AWX_ADMIN_PASSWORD=${AWX_ADMIN_PASSWORD}"]) {
+                             "AWX_ADMIN_PASSWORD=${AWX_ADMIN_PASSWORD}",
+                             "ANSIBLE_FORCE_COLOR=true"]) {
                         sshagent(credentials : ['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
                             sh './tools/jenkins/scripts/prep_test_runner.sh'
                             sh "ansible test-runner -i playbooks/inventory.test_runner -m git -a 'repo=git@github.com:ansible/tower-qa version=${branch_name} dest=tower-qa ssh_opts=\"-o StrictHostKeyChecking=no\" force=yes'"
@@ -157,8 +158,10 @@ Bundle?: ${params.BUNDLE}"""
 
         stage ('Install') {
             steps {
-               sshagent(credentials : ['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
-                   sh "ssh ${SSH_OPTS} ec2-user@${TEST_RUNNER_HOST} 'cd tower-qa && ./tools/jenkins/scripts/install.sh'"
+                withEnv(["ANSIBLE_FORCE_COLOR=true"]) {
+                    sshagent(credentials : ['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
+                        sh "ssh ${SSH_OPTS} ec2-user@${TEST_RUNNER_HOST} 'cd tower-qa && ./tools/jenkins/scripts/install.sh'"
+                    }
                 }
             }
         }

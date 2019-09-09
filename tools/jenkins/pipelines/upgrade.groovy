@@ -134,6 +134,7 @@ Bundle?: ${params.BUNDLE}"""
                              "AWS_ACCESS_KEY=${AWS_ACCESS_KEY}",
                              "AWX_ADMIN_PASSWORD=${AWX_ADMIN_PASSWORD}",
                              "TOWER_VERSION=${params.TOWER_VERSION_TO_UPGRADE_FROM}",
+                             "ANSIBLE_FORCE_COLOR=true",
                              "AWX_APPLY_ISOLATED_GROUPS_FW_RULES=false"]) {
                         sshagent(credentials : ['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
                             sh './tools/jenkins/scripts/prep_test_runner.sh'
@@ -152,8 +153,10 @@ Bundle?: ${params.BUNDLE}"""
 
         stage ('Install') {
             steps {
-               sshagent(credentials : ['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
-                   sh "ssh ${SSH_OPTS} ec2-user@${TEST_RUNNER_HOST} 'cd tower-qa && ./tools/jenkins/scripts/install.sh'"
+                withEnv(["ANSIBLE_FORCE_COLOR=true"]) {
+                    sshagent(credentials : ['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
+                        sh "ssh ${SSH_OPTS} ec2-user@${TEST_RUNNER_HOST} 'cd tower-qa && ./tools/jenkins/scripts/install.sh'"
+                    }
                 }
             }
         }
@@ -201,12 +204,14 @@ Bundle?: ${params.BUNDLE}"""
 
         stage ('Upgrade') {
             steps {
-               sshagent(credentials : ['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
-                   sh "ssh ${SSH_OPTS} ec2-user@${TEST_RUNNER_HOST} 'cd tower-qa && ./tools/jenkins/scripts/install.sh'"
-                   sh "ssh ${SSH_OPTS} ec2-user@${TEST_RUNNER_HOST} 'sed -i \"s/instance_name_prefix.*/instance_name_prefix: ${ORIGINAL_INSTANCE_NAME_PREFIX}/g\" tower-qa/playbooks/vars.yml'"
+                withEnv(["ANSIBLE_FORCE_COLOR=true"]) {
+                    sshagent(credentials : ['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
+                        sh "ssh ${SSH_OPTS} ec2-user@${TEST_RUNNER_HOST} 'cd tower-qa && ./tools/jenkins/scripts/install.sh'"
+                        sh "ssh ${SSH_OPTS} ec2-user@${TEST_RUNNER_HOST} 'sed -i \"s/instance_name_prefix.*/instance_name_prefix: ${ORIGINAL_INSTANCE_NAME_PREFIX}/g\" tower-qa/playbooks/vars.yml'"
 
-                   // NOTE(spredzy): To change cleanly
-                   sh "ansible test-runner -i playbooks/inventory.test_runner -a 'sed -i \"s/delete_on_start: .*/delete_on_start: true/g\" /home/ec2-user/tower-qa/playbooks/vars.yml'"
+                        // NOTE(spredzy): To change cleanly
+                        sh "ansible test-runner -i playbooks/inventory.test_runner -a 'sed -i \"s/delete_on_start: .*/delete_on_start: true/g\" /home/ec2-user/tower-qa/playbooks/vars.yml'"
+                    }
                 }
             }
         }
