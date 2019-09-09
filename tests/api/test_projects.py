@@ -616,3 +616,51 @@ class Test_Projects(APITest):
             job_pg.assert_successful()
         else:
             job_pg.assert_status('failed')
+
+    def test_project_with_disabled_collections_download(
+        self, skip_if_cluster, v2, factories, ansible_runner,
+        project_with_galaxy_collection_requirements, skip_if_pre_ansible29,
+        update_setting_pg
+    ):
+        """Verify that the automatic download of collections can be disabled."""
+        update_setting_pg(
+            v2.settings.get().get_endpoint('jobs'),
+            dict(AWX_COLLECTIONS_ENABLED=False)
+        )
+
+        # create a JT with our project and launch a job with this JT
+        job_template_pg = factories.job_template(
+            project=project_with_galaxy_collection_requirements,
+            playbook="sleep.yml",
+            extra_vars=dict(sleep_interval=60 * 3)
+        )
+        job_template_pg.ds.inventory.add_host()
+        # keep job running so files will be in place while we shell in
+        job_pg = job_template_pg.launch()
+
+        # The job cwd is not populated until prep is finished, which happens after
+        # it is changed to running status, but before events come in...
+        poll_until(lambda: job_pg.get_related('job_events').count, timeout=30)
+        job_pg = job_pg.get()  # job_cwd is only in detail view
+
+        # assert that expected galaxy collection requirements weren't
+        # downloaded as the automatic dowload setting is disabled.
+        expected_collection_path = os.path.join(job_pg.job_cwd, "../requirements_collections/ansible_collections/chrismeyersfsu/test_things")
+        expected_collection_path = os.path.abspath(expected_collection_path)
+        contacted = ansible_runner.stat(path=expected_collection_path)
+        for result in contacted.values():
+            assert not result['stat']['exists'], (
+                f'{expected_collection_path} was found even though the '
+                'automatic collections download was disabled.'
+            )
+
+        # run a playbook that requires a collection to be downloaded and ensure
+        # that it will fail
+        job_template_pg = factories.job_template(
+            project=project_with_galaxy_collection_requirements,
+            playbook="use_debug_collection_role.yml"
+        )
+        job_template_pg.ds.inventory.add_host()
+        job_pg = job_template_pg.launch()
+        job_pg.wait_until_completed()
+        job_pg.assert_status('failed')
