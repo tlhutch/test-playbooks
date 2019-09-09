@@ -129,8 +129,15 @@ class TestJSONType(object):
             'username': 'bob', 'password': '$encrypted$'
         }
 
-    def test_file_inputs(self, cli, organization, tmp_file_maker):
-        value = "{'username': 'joe', 'password': 'secret'}"
+    @pytest.mark.parametrize('input_type', ['json', 'yaml'])
+    def test_file_inputs(self, cli, organization, tmp_file_maker, input_type):
+        if input_type == 'json':
+            value = "{'username': 'joe', 'password': 'secret'}"
+        else:
+            value = """---
+            username: 'joe'
+            password: 'secret'
+            """
         input_file = tmp_file_maker(value)
 
         # create it
