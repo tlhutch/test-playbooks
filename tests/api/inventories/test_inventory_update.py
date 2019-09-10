@@ -595,6 +595,8 @@ print(json.dumps({
         with pytest.raises(exc.Conflict):
             host.delete()
 
+    # Ansible changes in 2.9 broke this for a while https://github.com/ansible/ansible/issues/61333
+    @pytest.mark.ansible_integration
     def test_tower_inventory_sync_success(self, factories):
         target_host = factories.host()
         target_inventory = target_host.ds.inventory
