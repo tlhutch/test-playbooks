@@ -1,5 +1,7 @@
 import pytest
 
+from awxkit import utils
+
 from tests.cli.utils import format_error
 
 
@@ -7,12 +9,16 @@ from tests.cli.utils import format_error
 class TestLookupByName(object):
 
     @pytest.fixture(scope='class')
-    def class_resources(self, class_factories):
+    def class_resources(self, class_factories, v2_class):
         resources = {}
         resources['users'] = class_factories.user()
         resources['hosts'] = class_factories.host()
         resources['job_templates'] = class_factories.job_template()
         resources['workflow_job_templates'] = class_factories.workflow_job_template()
+        resources['instances'] = instance = v2_class.instances.get(rampart_groups__controller__isnull=True).results.pop()
+        resources['instance_groups'] = ig = class_factories.instance_group()
+        ig.add_instance(instance)
+        utils.poll_until(lambda: ig.get().instances == 1, interval=5, timeout=30)
         resources['credentials'] = resources['job_templates'].related.credentials.get()['results'][0]
         resources['projects'] = resources['job_templates'].related.project.get()
         resources['inventory'] = resources['job_templates'].related.inventory.get()
@@ -20,12 +26,15 @@ class TestLookupByName(object):
 
     def test_basic_lookup_by_name(self, cli, class_resources):
         for resource, obj in class_resources.items():
-            if resource != 'users':
-                name = obj.name
-                filter = 'id,name'
-            else:
+            if resource == 'users':
                 name = obj.username
                 filter = 'id,username'
+            if resource == 'instances':
+                name = obj.hostname
+                filter = 'id,hostname'
+            elif resource not in ['users', 'instances']:
+                name = obj.name
+                filter = 'id,name'
             result = cli(
                 [
                 'awx', resource, 'get', str(name), '-f', 'human', '--filter', filter,
@@ -45,7 +54,7 @@ class TestLookupByName(object):
                 '--project', class_resources['projects'].name,
                 '--name', jt_name,
                 '--inventory', class_resources['inventory'].name,
-                '--credential', class_resources['credentials'].name,
+                '--instance_group', class_resources['inventory'].name,
                 '--playbook', 'ping.yml',
                 ],
                 auth=True,
@@ -56,7 +65,3 @@ class TestLookupByName(object):
         assert jt.name == jt_name
         assert jt.related.project.get().id == class_resources['projects'].id
         assert jt.related.inventory.get().id == class_resources['inventory'].id
-        creds = jt.related.credentials.get().results
-        assert len(creds) == 1, f'Did not find correct number of credentials, found only {creds}'
-        found_cred = creds[0]
-        assert found_cred.id == class_resources['credentials'].id
