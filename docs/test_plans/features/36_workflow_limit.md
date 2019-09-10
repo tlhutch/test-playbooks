@@ -23,3 +23,9 @@ Owner: Caleb Boylan (squidboylan)
     - [x] Test that `scm_branch` on a WF doesn't pass down to a non-promptable JT
     - [x] Test that `ask_scm_branch_on_launch` on a WF can be updated
     - [x] Test that `scm_branch` on a WF can be updated
+
+## UI
+    - [x] Test that the `scm_branch` field renders correctly. 
+    - [x] Test that the `limit` field renders properly.
+    - [x] Test that the correct resultant information shows on workflows and job detail pages. 
+    - [x] Test that the prompting fields show and persist correctly with different combinations of prompting.
