@@ -105,6 +105,7 @@ set +e
 docker-compose \
     -f "${DEPLOYMENT_TYPE}/awx/ui/test/e2e/cluster/docker-compose.yml" \
     run \
+    -e NPM_REGISTRY="${NPM_REGISTRY}"
     -e AWX_E2E_CLUSTER_HOST="${E2E_EXTERNAL_GRID_HOSTNAME}" \
     -e AWX_E2E_CLUSTER_PORT="${E2E_EXTERNAL_GRID_PORT}" \
     -e AWX_E2E_URL="${E2E_URL}" \
