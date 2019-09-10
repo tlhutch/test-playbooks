@@ -539,10 +539,12 @@ pipeline {
                         sh "ssh ${SSH_OPTS} ec2-user@${TEST_RUNNER_HOST} 'cd tower-qa && ./tools/jenkins/scripts/cleanup.sh'"
                     }
                 }
-            }
 
-            sshagent(credentials : ['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
-                sh 'ansible-playbook -v -i playbooks/inventory -e @playbooks/test_runner_vars.yml playbooks/reap-tower-ec2.yml'
+                if (params.RUN_INSTALLER) {
+                    sshagent(credentials : ['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
+                        sh 'ansible-playbook -v -i playbooks/inventory -e @playbooks/test_runner_vars.yml playbooks/reap-tower-ec2.yml'
+                    }
+                }
             }
         }
     }
