@@ -55,8 +55,10 @@ class TestListView(object):
         result = cli(['awx', 'users', 'list', '--username', 'XYZ'], auth=True)
         assert result.json['count'] == 0
 
+    @pytest.mark.serial
     @pytest.mark.usefixtures('authtoken')
     def test_fetch_all_pages(self, cli, v2, api_labels_pg, organization):
+        before = v2.labels.get().count
         for i in range(80):
             payload = dict(
                 name="label %s - %s" % (i, fauxfactory.gen_utf8()),
@@ -65,9 +67,9 @@ class TestListView(object):
             api_labels_pg.post(payload)
 
         result = cli(['awx', 'labels', 'list'], auth=True)
-        assert result.json['count'] == 80
+        assert result.json['count'] == 80 + before
         assert len(result.json['results']) == 25
 
         result = cli(['awx', 'labels', 'list', '--all'], auth=True)
-        assert result.json['count'] == 80
-        assert len(result.json['results']) == 80
+        assert result.json['count'] == 80 + before
+        assert len(result.json['results']) == 80 + before
