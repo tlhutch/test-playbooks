@@ -12,6 +12,14 @@
         my_inventory_file: '{{inventory_dir}}/inventory.cluster'
       when: not awx_upgrade | default(false) | bool
 
+- name: Generate TLS certificates when specified
+  hosts: cluster_installer
+  tasks:
+    - name: Run TLS certificates generation playbooks
+      include_role:
+        name: generate_tls_certificates
+      when: awx_use_tls | default(false) | bool
+
 - name: Enable FIPS for isolated nodes
   hosts: 'tower:isolated_group*:instance_group*'
   tasks:

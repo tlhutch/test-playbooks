@@ -1,0 +1,82 @@
+---
+- name: Ensure python-cryptography is installed
+  become: yes
+  package:
+    name: python-cryptography
+
+- set_fact:
+    deployment_type: cluster
+    certificates_to_generate:
+      - tower
+      - rabbitmq
+      - pgsql
+  when: "'database' in groups"
+
+- set_fact:
+    deployment_type: standalone
+    certificates_to_generate:
+      - tower
+      - pgsql
+  when: "'database' not in groups"
+
+- name: Generate private keys
+  openssl_privatekey:
+    path: '{{ tls_folder }}/{{ item }}.key'
+  loop: '{{ certificates_to_generate }}'
+
+- name: Generate CSRs standalone
+  openssl_csr:
+    path: '{{ tls_folder }}/{{ item }}.csr'
+    privatekey_path: '{{ tls_folder }}/{{ item }}.key'
+    common_name: localhost
+  loop: '{{ certificates_to_generate }}'
+  when: deployment_type == 'standalone'
+
+- name: Generate CSRs cluster
+  openssl_csr:
+    path: '{{ tls_folder }}/{{ item }}.csr'
+    privatekey_path: '{{ tls_folder }}/{{ item }}.key'
+    subject_alt_name: "{{ groups['tower'] | map('regex_replace', '^', 'DNS:') | list | join(',')}}"
+  loop: '{{ certificates_to_generate }}'
+  when: deployment_type == 'cluster'
+
+- name: Generate CA key
+  openssl_privatekey:
+    path: '{{ tls_folder }}/root.key'
+
+- name: Generate CA CSR
+  openssl_csr:
+    path: '{{ tls_folder }}/root.csr'
+    privatekey_path: '{{ tls_folder }}/root.key'
+    common_name: www.ansible.com
+    organization_name: Ansible By Red Hat
+    country_name: US
+    basic_constraints: 'CA:TRUE'
+
+- name: Generate CA certificate
+  openssl_certificate:
+    path: '{{ tls_folder }}/root.crt'
+    csr_path: '{{ tls_folder }}/root.csr'
+    privatekey_path: '{{ tls_folder }}/root.key'
+    provider: selfsigned
+
+- name: Generate certificates
+  openssl_certificate:
+    path: '{{ tls_folder }}/{{ item }}.crt'
+    csr_path: '{{ tls_folder }}/{{ item }}.csr'
+    privatekey_path: '{{ tls_folder }}/{{ item }}.key'
+    provider: ownca
+    ownca_path: '{{ tls_folder }}/root.crt'
+    ownca_privatekey_path: '{{ tls_folder }}/root.key'
+  loop: '{{ certificates_to_generate }}'
+
+- name: Cleanup CA CSR files
+  file:
+    path: '{{ tls_folder }}/root.csr'
+    state: absent
+
+- name: Cleanup CSR files
+  file:
+    path: '{{ tls_folder }}/{{ item }}.csr'
+    state: absent
+  loop: '{{ certificates_to_generate }}'

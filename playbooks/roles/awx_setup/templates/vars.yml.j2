@@ -21,8 +21,24 @@ nginx_disable_https: {{disable_ssl}}
 
 isolated_key_generation: {{isolated_key_generation}}
 
-{% if lookup('env', 'CLUSTER_SETUP') %}
+{% if cluster_install | default(false) | bool %}
 ansible_private_key_file: ~/.ssh/cluster_key
 {% endif %}
 ansible_host_key_checking: False
 ipv6_deployment: {{ awx_ipv6_deployment | default(false) }}
+
+{% if awx_use_tls | default(false) | bool %}
+web_server_ssl_cert: /tmp/tower.crt
+web_server_ssl_key: /tmp/tower.key
+postgres_use_ssl: True
+postgres_ssl_cert: /tmp/pgsql.crt
+postgres_ssl_key: /tmp/pgsql.key
+custom_ca_cert: /tmp/root.crt
+
+{% if cluster_install | default(false) | bool %}
+rabbitmq_use_ssl: True
+rabbitmq_ssl_cert: /tmp/rabbitmq.crt
+rabbitmq_ssl_key: /tmp/rabbitmq.key
+{% endif %}
+
+{% endif %}
