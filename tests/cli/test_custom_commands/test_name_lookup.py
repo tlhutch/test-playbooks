@@ -28,16 +28,13 @@ class TestLookupByName(object):
         for resource, obj in class_resources.items():
             if resource == 'users':
                 name = obj.username
-                filter = 'id,username'
             if resource == 'instances':
                 name = obj.hostname
-                filter = 'id,hostname'
             elif resource not in ['users', 'instances']:
                 name = obj.name
-                filter = 'id,name'
             result = cli(
                 [
-                'awx', resource, 'get', str(name), '-f', 'human', '--filter', filter,
+                'awx', resource, 'get', str(name), '-f', 'human'
                 ],
                 auth=True
                 )
