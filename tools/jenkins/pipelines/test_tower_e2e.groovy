@@ -112,7 +112,6 @@ pipeline {
                     sshagent(['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
                         sh '''#!/bin/bash
                         AWX_ADMIN_PASSWORD=${AWX_ADMIN_PASSWORD} \
-                            NPM_REGISTRY="https://repository.engineering.redhat.com/nexus/repository/registry.npmjs.org/" \
                             E2E_URL=${E2E_URL} \
                             DEPLOYMENT_TYPE=${DEPLOYMENT_TYPE} \
                             E2E_FORK=${E2E_FORK} \

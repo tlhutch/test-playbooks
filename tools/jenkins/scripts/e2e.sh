@@ -102,10 +102,10 @@ docker tag gcr.io/ansible-tower-engineering/"${CONTAINER_IMAGE_NAME}":latest ${C
 mkdir -p "${DEPLOYMENT_TYPE}/awx/ui/test/e2e/screenshots"
 
 set +e
+cp /root/.npmrc "${DEPLOYMENT_TYPE}/"
 docker-compose \
     -f "${DEPLOYMENT_TYPE}/awx/ui/test/e2e/cluster/docker-compose.yml" \
     run \
-    -e NPM_REGISTRY="${NPM_REGISTRY}" \
     -e AWX_E2E_CLUSTER_HOST="${E2E_EXTERNAL_GRID_HOSTNAME}" \
     -e AWX_E2E_CLUSTER_PORT="${E2E_EXTERNAL_GRID_PORT}" \
     -e AWX_E2E_URL="${E2E_URL}" \
@@ -113,6 +113,7 @@ docker-compose \
     -e AWX_E2E_PASSWORD="${E2E_PASSWORD}" \
     -e AWX_E2E_SCREENSHOTS_ENABLED=true \
     -e AWX_E2E_SCREENSHOTS_PATH="/awx/awx/ui/test/e2e/screenshots" \
+    -e NPMRC_FILE=.npmrc \
     e2e --filter="${E2E_TEST_SELECTION}" \
     --suiteRetries="${E2E_RETRIES}"
 set -e
