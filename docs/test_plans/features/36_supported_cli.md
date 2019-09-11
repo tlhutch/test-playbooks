@@ -53,16 +53,13 @@ Provide a supported CLI that offers feature parity with previously upstream [tow
 - [x] Verify can launch a project update
 - [x] Verify can check on a job status given we know a job ID
 - [x] Verify that booleans are cast correctly and handle reasonable input (case insensitive and cast 0 and 1 to false and true)
-- [x] Verify that `inventory_scripts` and `extra_vars` text can come from subshell output e.g. `--extra_vars=$(cat extra_vars.yaml)`
+- [x] Verify that `inventory_scripts` and `extra_vars` text can come from file input
    - [x] Need to investigate what tower-cli does
 - [x] Verify that we do not have a `ad_hoc_commands modify`
 
 
 ### Custom CLI Features
 
-- [ ] Verify we can move data from one tower to another with send/receive feature [PUNTED]
-  - could consider trying to re-use some of the upgrade testing
-  - could consider adding a new job on release verification pipeline? Consult @Spredzy about this
 - [x] Verify that the following can trail STDOUT from a launchable resource with `--monitor`
   - [x] Project update on create
   - [x] Project update
@@ -70,13 +67,12 @@ Provide a supported CLI that offers feature parity with previously upstream [tow
   - [x] inventory update
   - [x] ad hoc command
   - [x] workflow job templates
-- [ ] Verify that the following can wait for job completion from a launchable resource with `--wait`
-  - [ ] Project update on create
-  - [ ] Project update
+- [x] Verify that the following can wait for job completion from a launchable resource with `--wait`
+  - [x] Project update on create
+  - [x] Project update
   - [x] Job launch
-  - [ ] inventory update
-  - [ ] ad hoc command
-  - [ ] workflow job templates
+  - [x] inventory update
+  - [x] workflow job templates
 
 - [x] Confirm can request output in human readable format and comes out as a table
 - [x] Manually confirm that human readable output provided by tabulate looks good and is sane. Intentionally not going to automate this other than ability to call it.
@@ -119,7 +115,6 @@ Provide a supported CLI that offers feature parity with previously upstream [tow
 ## Docs Verification Criteria
 
 - [ ] Verify the CLI docs don't have any rendering issues
- - [ ] This would be a good candidate for zuul check in future, maybe need RFE for this
 - [x] Verify that the docs for passing related objects
       indicate what the data should be (id, name, etc)
 - [x] Verify that things like `extra_vars` has an example or clear instruction
@@ -153,6 +148,7 @@ Provide a supported CLI that offers feature parity with previously upstream [tow
 - associate/dissociate instance groups
 
 # TODO
+- deliver pip installable tarball for releases.ansible.com versioned with rpm
 - add approval node notification support
 - review if any other 3.6 stuff we want to support
 - point people to tower-cli for send/receive

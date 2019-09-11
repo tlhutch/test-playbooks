@@ -1,5 +1,7 @@
 import pytest
 
+import fauxfactory
+
 from tests.cli.utils import format_error
 
 
@@ -49,6 +51,56 @@ class TestJobLaunch(object):
         else:
             assert result.returncode == 0, format_error(result)
             assert result.json['status'] == 'successful'
+
+    @pytest.mark.parametrize('end_status_and_url', [
+        ('successful', 'https://github.com/ansible/test-playbooks'),
+        ('failed', 'example.broken.com'),
+        ], ids=['successful', 'failed'])
+    def test_project_create_and_wait(self, cli, end_status_and_url):
+        end_status, url = end_status_and_url
+        result, project = cli([
+            'awx', 'projects', 'create',
+            '--scm_type', 'git',
+            '--scm_url', url,
+            '--name', fauxfactory.gen_alphanumeric(),
+            '--wait',
+        ], auth=True, teardown=True, return_page=True)
+        assert result.returncode == 0, format_error(result)
+        # We expect that the --wait flag made the CLI wait until the first update was completed to return
+        assert project.status == end_status
+        assert project.scm_url == url
+
+    def test_inventory_update_and_wait(self, cli, custom_inventory_source):
+        updates = custom_inventory_source.related.inventory_updates.get()
+        assert updates.count == 0
+        result = cli([
+            'awx',
+            'inventory_source',
+            'update',
+            f'{custom_inventory_source.id}',
+            '--wait'
+            ], auth=True)
+        assert result.returncode == 0, format_error(result)
+        # We expect that the --wait flag made the CLI wait until update was completed to return
+        updates = custom_inventory_source.related.inventory_updates.get()
+        assert updates.count == 1
+        this_update = updates.results.pop()
+        assert this_update.status == 'successful'
+
+    def test_workflow_command_wait(self, cli, workflow_job_template):
+        assert workflow_job_template.related.workflow_jobs.get().count == 0
+        result = cli([
+            'awx',
+            'workflow_job_templates',
+            'launch',
+            f'{workflow_job_template.id}',
+            '--wait'
+            ], auth=True)
+        assert result.returncode == 0, format_error(result)
+        jobs = workflow_job_template.related.workflow_jobs.get()
+        assert jobs.count == 1
+        job = jobs.results.pop()
+        assert job.status == 'successful'
 
     def test_stdout_monitor(self, cli, job_template_ping):
         result = cli([
