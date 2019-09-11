@@ -24,28 +24,28 @@ Provide a supported CLI that offers feature parity with previously upstream [tow
 - [x] If insufficient arguments are provided to the CLI return help text.
 - [x] Catalog the required args for each creatable object and verify it is
       indicated as required in the help text
-      - [x]  `awx login --help` should indicate that conf.username and conf.password
-      - [x]  `awx users create --help` should indicate ['username', 'password']
-      - [x]  `awx organizations create --help` should indicate ['name']
-      - [x]  `awx projects create --help` should indicate ['name']
-      - [x]  `awx teams create --help` should indicate ['name', 'organization']
-      - [x]  `awx credentials create --help` should indicate ['name', 'credential_type', choice(['user', 'team', 'organization'])]
-      - [x]  `awx credential_types create --help` should indicate ['name', 'kind']
-      - [x]  `awx applications create --help` should indicate ['name', 'client_type', 'authorization_grant_type', 'organization']
-      - [x]  `awx tokens create --help` should indicate no required args
-      - [x]  `awx inventory create --help` should indicate ['name', 'organization']
-      - [x]  `awx inventory_scripts create --help` should indicate ['name', 'organization', 'script']
-      - [x]  `awx inventory_sources create --help` should indicate ['name', 'inventory']
-      - [x]  `awx groups create --help` should indicate ['name', 'inventory']
-      - [x]  `awx hosts create --help` should indicate ['name', 'inventory']
-      - [x]  `awx job_templates create --help` should indicate ['name', 'playbook', 'project']
-      - [x]  `awx ad_hoc_commands create --help` should indicate ['inventory', 'credential', 'module_args']
-      - [x]  `awx schedules create --help` should indicate ['rrule', 'unified_job_template', 'name']
-      - [x]  `awx notification_templates create --help` should indicate ['name', 'organization', 'notification_type']
-      - [x]  `awx labels create --help` should indicate ['name', 'organization']
-      - [x]  `awx workflow_job_templates create --help` should indicate ['name']
-      - [x]  `awx workflow_job_template_nodes create --help` should indicate ['workflow_job_template', 'unified_job_template'] MAY CHANGE when WORKFLOW APPROVAL NODE merges
-- [ ] verify that all commands have aliases that conform to old CLI (download old CLI and run --help)
+    - [x]  `awx login --help` should indicate that conf.username and conf.password
+    - [x]  `awx users create --help` should indicate ['username', 'password']
+    - [x]  `awx organizations create --help` should indicate ['name']
+    - [x]  `awx projects create --help` should indicate ['name']
+    - [x]  `awx teams create --help` should indicate ['name', 'organization']
+    - [x]  `awx credentials create --help` should indicate ['name', 'credential_type', choice(['user', 'team', 'organization'])]
+    - [x]  `awx credential_types create --help` should indicate ['name', 'kind']
+    - [x]  `awx applications create --help` should indicate ['name', 'client_type', 'authorization_grant_type', 'organization']
+    - [x]  `awx tokens create --help` should indicate no required args
+    - [x]  `awx inventory create --help` should indicate ['name', 'organization']
+    - [x]  `awx inventory_scripts create --help` should indicate ['name', 'organization', 'script']
+    - [x]  `awx inventory_sources create --help` should indicate ['name', 'inventory']
+    - [x]  `awx groups create --help` should indicate ['name', 'inventory']
+    - [x]  `awx hosts create --help` should indicate ['name', 'inventory']
+    - [x]  `awx job_templates create --help` should indicate ['name', 'playbook', 'project']
+    - [x]  `awx ad_hoc_commands create --help` should indicate ['inventory', 'credential', 'module_args']
+    - [x]  `awx schedules create --help` should indicate ['rrule', 'unified_job_template', 'name']
+    - [x]  `awx notification_templates create --help` should indicate ['name', 'organization', 'notification_type']
+    - [x]  `awx labels create --help` should indicate ['name', 'organization']
+    - [x]  `awx workflow_job_templates create --help` should indicate ['name']
+    - [x]  `awx workflow_job_template_nodes create --help` should indicate ['workflow_job_template', 'unified_job_template'] MAY CHANGE when WORKFLOW APPROVAL NODE merges
+- [x] verify that all commands have aliases that conform to old CLI (download old CLI and run --help)
 
 ### Basic API interaction
 
@@ -54,8 +54,8 @@ Provide a supported CLI that offers feature parity with previously upstream [tow
 - [x] Verify can check on a job status given we know a job ID
 - [x] Verify that booleans are cast correctly and handle reasonable input (case insensitive and cast 0 and 1 to false and true)
 - [x] Verify that `inventory_scripts` and `extra_vars` text can come from subshell output e.g. `--extra_vars=$(cat extra_vars.yaml)`
-   - [ ] Need to investigate what tower-cli does
-- [ ] Verify that we do not have a `ad_hoc_commands modify`
+   - [x] Need to investigate what tower-cli does
+- [x] Verify that we do not have a `ad_hoc_commands modify`
 
 
 ### Custom CLI Features
@@ -104,8 +104,8 @@ Provide a supported CLI that offers feature parity with previously upstream [tow
 ### Packaging verification criteria
 
 - [x] awxkit has same version as awx (is symlink to awx version)
-- [ ] awxkit tarball will be release artifact on awx github
-- [ ] ansible-tower-cli will have same version as tower: related https://github.com/ansible/awx/pull/4459
+- [x] awxkit tarball will be release artifact on awx github
+- [x] ansible-tower-cli will have same version as tower: related https://github.com/ansible/awx/pull/4459
 - [x] ansible-tower-cli has RPM built for rhel7
 - [x] ansible-tower-cli has RPM built for rhel8
 - [x] confirm that job that tests rhel8 uses a rhel8 test-runner such that we can verify the CLI runs on python3 when it is the system python.
@@ -113,7 +113,6 @@ Provide a supported CLI that offers feature parity with previously upstream [tow
 - [x] confirm that tests delete the `awx` binary available in the tower-qa venv
 - [x] confirm that tests are configurable to call the `ansible-tower-cli` or `awx`  binary available in PATH
 - [x] confirm that we install the rpm for the `ansible-tower-cli` from the right repo
-- [ ] Confirm we resolve the dependency issue
 - [ ] anisble-tower-cli has source tarball built for pip install on other distro (hosted at ansible.releases.com)
 
 
@@ -121,13 +120,13 @@ Provide a supported CLI that offers feature parity with previously upstream [tow
 
 - [ ] Verify the CLI docs don't have any rendering issues
  - [ ] This would be a good candidate for zuul check in future, maybe need RFE for this
-- [ ] Verify that the docs for passing related objects
+- [x] Verify that the docs for passing related objects
       indicate what the data should be (id, name, etc)
-- [ ] Verify that things like `extra_vars` has an example or clear instruction
+- [x] Verify that things like `extra_vars` has an example or clear instruction
       of how to pass data to it (object like string? Dict? etc)
-- [ ] Help text and error message should indicate if an ID is expected rather
+- [x] Help text and error message should indicate if an ID is expected rather
       than a name
-- [ ] Have examples of using files to provide text for free entry args
+- [x] Have examples of using files to provide text for free entry args
       (`inventory_scripts`, `extra_vars`)
 
 ## Answered questions
@@ -141,7 +140,6 @@ Provide a supported CLI that offers feature parity with previously upstream [tow
 - removed tabulate dependency
 - jq will remain optional dependency that is left as exercise for the reader to install because we don't want to build it
 
-
 # candidates for RFE's
 - Relaunch implementation across board
 - Sort by required/optional args for help text in initial list of args
@@ -151,6 +149,12 @@ Provide a supported CLI that offers feature parity with previously upstream [tow
 - _DONOTFILE_ draw crazy workflow graph on command line
 - _DONOTFILE_ export/import workflow graphs via yaml
 - Support totally wiping your tower install instead of truncating database
+- ablity to access related items
+- associate/dissociate instance groups
 
-## Open questions
-  - how is one supposed to interact with instance groups, not sure how I am supposed to acheive modifying instances associated. This is probably part of general "How to deal with related items" problem
+# TODO
+- add approval node notification support
+- review if any other 3.6 stuff we want to support
+- point people to tower-cli for send/receive
+- conditionally render docs to say "go RPM install"
+- build final docs with offcial template
