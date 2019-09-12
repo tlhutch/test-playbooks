@@ -353,7 +353,7 @@ def subrequest(request):
 
 
 @pytest.fixture
-def get_pg_dump(request, ansible_runner, skip_docker, hostvars_for_host):
+def get_pg_dump(request, ansible_runner, skip_docker, hostvars_for_host, ansible_os_family, ansible_distribution_major_version):
     """Returns the dump of Tower's Postgres DB as a string.
     It may consume a lot of memory if the db is big. Thus we should mark all tests using this fixture with:
     @pytest.mark.serial
@@ -366,9 +366,17 @@ def get_pg_dump(request, ansible_runner, skip_docker, hostvars_for_host):
 
         inv_path = os.environ.get('TQA_INVENTORY_FILE_PATH', '/tmp/setup/inventory')
         dump_filename = 'pg_{}.txt'.format(fauxfactory.gen_alphanumeric())
-        contacted = ansible_runner.shell("""PGPASSWORD=`grep {} -e "pg_password=.*" """
-                                         """| sed \'s/pg_password="//\' | sed \'s/"//\'` """
-                                         """pg_dump -U awx -d awx -f {} -w""".format(inv_path, dump_filename))
+
+        if ansible_os_family == 'RedHat' and ansible_distribution_major_version == "7":
+
+            contacted = ansible_runner.shell("""PGPASSWORD=`grep {} -e "pg_password=.*" """
+                                            """| sed \'s/pg_password="//\' | sed \'s/"//\'` """
+                                            """scl enable rh-postgresql10 'pg_dump -U awx -d awx -f {} -w'""".format(inv_path, dump_filename))
+
+        else:
+            contacted = ansible_runner.shell("""PGPASSWORD=`grep {} -e "pg_password=.*" """
+                                            """| sed \'s/pg_password="//\' | sed \'s/"//\'` """
+                                            """pg_dump -U awx -d awx -f {} -w""".format(inv_path, dump_filename))
         for res in contacted.values():
             assert res.get('changed') and not res.get('failed')
 

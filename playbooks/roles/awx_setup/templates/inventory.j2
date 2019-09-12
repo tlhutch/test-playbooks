@@ -23,7 +23,6 @@ pg_port="{{ hostvars['localhost']['tower_db']['pg_port'] }}"
 pg_database="{{ hostvars['localhost']['tower_db']['pg_database'] }}"
 pg_username="{{ hostvars['localhost']['tower_db']['pg_username'] }}"
 pg_password="{{ hostvars['localhost']['tower_db']['pg_password'] }}"
-pg_hashed_password="md5{{ (hostvars['localhost']['tower_db']['pg_password'] + "awx")|hash("md5") }}"
 {% else %}
 {% if 'database' in groups %}
 pg_host="{{ groups['database'][0] }}"
@@ -35,7 +34,6 @@ pg_port="{{ pg_port | default(5432) }}"
 pg_database="{{ pg_database }}"
 pg_username="{{ pg_username }}"
 pg_password="{{ pg_password }}"
-pg_hashed_password="md5{{ (pg_password + "awx")|hash("md5") }}"
 {% endif %}
 
 {% if 'tower' in groups %}
