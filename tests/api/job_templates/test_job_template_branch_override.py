@@ -464,7 +464,7 @@ class TestJobTemplateBranchOverride(APITest):
         wfjt.scm_branch = 'foo'
         assert wfjt.scm_branch == 'foo'
         wfjt.ask_scm_branch_on_launch = False
-        assert wfjt.ask_scm_branch_on_launch == False
+        assert wfjt.ask_scm_branch_on_launch is False
 
     def test_workflow_job_template_promptable_non_promptable_jt(self, factories):
         project = factories.project(allow_override=True)
@@ -481,7 +481,7 @@ class TestJobTemplateBranchOverride(APITest):
         assert wfjt.scm_branch == 'wfjt_branch'  # sanity
         assert wfjt.ask_scm_branch_on_launch is True  # sanity
 
-        node = factories.workflow_job_template_node(
+        factories.workflow_job_template_node(
             workflow_job_template=wfjt,
             unified_job_template=jt_prompt,
         )
