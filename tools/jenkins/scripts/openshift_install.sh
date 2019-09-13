@@ -30,6 +30,23 @@ openshift_login
 
 if [[ "${AWX_UPGRADE}" == false ]]; then
     openshift_bootstrap_project "${OPENSHIFT_PROJECT}"
+    cat << EOF > pvc.yml
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: postgresql-${OPENSHIFT_PROJECT}
+  annotations:
+    volume.beta.kubernetes.io/storage-class: "managed-nfs-storage"
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 2Gi
+EOF
+    oc create -f pvc.yml
+
 fi
 
 mkdir -p artifacts
@@ -111,7 +128,7 @@ pg_password: towerpass
 secret_key: 'towersecret'
 rabbitmq_password: 'password'
 rabbitmq_erlang_cookie: 'cookiemonster'
-openshift_pg_emptydir: yes
+openshift_pg_pvc_name: postgresql-${OPENSHIFT_PROJECT}
 web_cpu_request: 250  # we lower these to not hit our cluster capacity limit
 task_cpu_request: 500
 rabbitmq_cpu_request: 250
