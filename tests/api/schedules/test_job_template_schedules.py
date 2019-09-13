@@ -390,3 +390,28 @@ class TestJobTemplateSchedules(SchedulesTest):
 
         assert job.failed
         assert job.job_explanation == "Job could not start because it does not have a valid inventory."
+
+    @pytest.mark.serial
+    def test_awx_metavars_for_scheduled_workflow_jobs(self, v2, factories, update_setting_pg):
+        update_setting_pg(
+            v2.settings.get().get_endpoint('jobs'),
+            dict(ALLOW_JINJA_IN_EXTRA_VARS='always')
+        )
+        wfjt = factories.workflow_job_template()
+        schedule = wfjt.add_schedule(rrule=self.minutely_rrule())
+        jt = factories.job_template(playbook='debug_extra_vars.yml',
+                                       extra_vars='var1: "{{ awx_parent_job_schedule_id }}"\nvar2: "{{ awx_parent_job_schedule_name }}"\nvar3: "{{ tower_parent_job_schedule_id }}"\nvar4: "{{ tower_parent_job_schedule_name }}"')
+        factories.host(inventory=jt.ds.inventory)
+        factories.workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt)
+        utils.poll_until(lambda: wfjt.related.workflow_jobs.get().count == 1, interval=5, timeout=1.5 * 60)
+        wf_job = wfjt.related.workflow_jobs.get().results.pop()
+        wf_job.wait_until_completed().assert_successful()
+        # Get job in node
+        wfjns = wf_job.related.workflow_nodes.get().results
+        wfjn = wfjns.pop()
+        job = wfjn.get_related('job')
+        job.assert_successful()
+        assert '"var1": "{}"'.format(schedule.id) in job.result_stdout
+        assert '"var2": "{}"'.format(schedule.name) in job.result_stdout
+        assert '"var1": "{}"'.format(schedule.id) in job.result_stdout
+        assert '"var2": "{}"'.format(schedule.name) in job.result_stdout
