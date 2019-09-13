@@ -147,7 +147,12 @@ class Test_Ansible_Tower_Modules(APITest):
         job.assert_successful()
         return job
 
-    def test_ansible_tower_fully_qualified_collection_name(self, factories, venv_path, python_venv_name):
+    def test_ansible_tower_fully_qualified_collection_name(self, factories, venv_path, python_venv_name, ansible_collections_path, is_docker, request, update_setting_pg, v2):
+        if is_docker:
+            jobs_settings = v2.settings.get().get_endpoint('jobs')
+            prev_proot_show_paths = jobs_settings.AWX_PROOT_SHOW_PATHS
+            jobs_settings.AWX_PROOT_SHOW_PATHS = prev_proot_show_paths + [ansible_collections_path]
+            request.addfinalizer(lambda: jobs_settings.patch(AWX_PROOT_SHOW_PATHS=prev_proot_show_paths))
         org = factories.organization()
         # TODO: update module name to "awx.awx.tower_organization" when modules are fully migrated
         # or maybe "awx.awx.organization", still not fully decided
