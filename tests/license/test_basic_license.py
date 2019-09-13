@@ -9,7 +9,7 @@ from tests.license.license import LicenseTest
 @pytest.mark.usefixtures('authtoken', 'install_basic_license')
 class TestBasicLicense(LicenseTest):
 
-    def test_metadata(self, api_config_pg):
+    def test_basic_license_metadata(self, api_config_pg):
         conf = api_config_pg.get()
         print(json.dumps(conf.json, indent=4))
 
@@ -35,16 +35,18 @@ class TestBasicLicense(LicenseTest):
             "Incorrect license_type returned. Expected 'basic,' " \
             "returned %s." % conf.license_info['license_type']
 
-        # Since 3.5 we no longer limit features based on basic license https://github.com/ansible/tower/issues/3366
-        default_features = {'surveys': True,
-                            'multiple_organizations': True,
-                            'activity_streams': True,
-                            'ldap': True,
-                            'ha': True,
-                            'system_tracking': True,
-                            'enterprise_auth': True,
-                            'rebranding': True,
-                            'workflows': True}
+        # In 3.5 we no longer limit features based on basic license https://github.com/ansible/tower/issues/3366
+        # BUT.....because this becomes part of license hash, we cannot change these values or it breaks people's allready
+        # issued basic licenses: https://github.com/ansible/tower-license/pull/8
+        default_features = {'surveys': False,
+                            'multiple_organizations': False,
+                            'activity_streams': False,
+                            'ldap': False,
+                            'ha': False,
+                            'system_tracking': False,
+                            'enterprise_auth': False,
+                            'rebranding': False,
+                            'workflows': False}
 
         # assess default features
         assert conf.license_info['features'] == default_features, \

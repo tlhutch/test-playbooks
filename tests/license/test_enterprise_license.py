@@ -5,6 +5,7 @@ import pytest
 
 from tests.lib.tower.license import generate_license
 from awxkit.awx.inventory import upload_inventory
+from awxkit.exceptions import LicenseExceeded
 
 from tests.license.license import LicenseTest
 
@@ -90,21 +91,6 @@ class TestEnterpriseLicense(LicenseTest):
         assert after_license_key == expected_license_key, \
             "Unexpected license_key. Expected %s, found %s" % (expected_license_key, after_license_key)
 
-    def test_import_license_exceeded(self, skip_if_openshift, api_config_pg, ansible_runner, inventory):
-        """Verify import fails if the number of imported hosts exceeds licensed host allowance."""
-        enterprise_license_1000 = generate_license(license_type='enterprise', instance_count=1000, days=365)
-        api_config_pg.post(enterprise_license_1000)
-        dest = upload_inventory(ansible_runner, nhosts=2000)
-
-        contacted = ansible_runner.shell('awx-manage inventory_import --inventory-id {0} --source {1}'.format(inventory.id, dest))
-        for result in contacted.values():
-            assert result['rc'] == 1, "Unexpected awx-manage inventory_import success." \
-                "\n[stdout]\n%s\n[stderr]\n%s" % (result['stdout'], result['stderr'])
-        "Number of licensed instances exceeded" in result['stderr']
-
-        assert inventory.get_related('groups').count == 0
-        assert inventory.get_related('hosts').count == 0
-
     def test_unable_to_change_system_license(self, v2):
         system_settings = v2.settings.get().get_endpoint('system')
         license = system_settings.LICENSE
@@ -155,3 +141,193 @@ class TestEnterpriseLicenseExpired(LicenseTest):
     def test_system_job_launch(self, system_job_with_status_completed):
         """Verify that system jobs can be launched"""
         system_job_with_status_completed.assert_successful()
+
+    def test_import_license_exceeded(self, skip_if_openshift, api_config_pg, ansible_runner, inventory):
+        """Verify import succeeds with a non-trial license thats host count is exceeded."""
+        enterprise_license_1000 = generate_license(license_type='enterprise', instance_count=1000, days=365)
+        api_config_pg.post(enterprise_license_1000)
+        dest = upload_inventory(ansible_runner, nhosts=2000)
+
+        contacted = ansible_runner.shell('awx-manage inventory_import --inventory-id {0} --source {1}'.format(inventory.id, dest))
+        for result in contacted.values():
+            assert result['rc'] == 0, "Unexpected awx-manage inventory_import failure." \
+                "\n[stdout]\n%s\n[stderr]\n%s" % (result['stdout'], result['stderr'])
+            assert 'ERROR    Number of licensed instances exceeded, would bring available instances to 2001, system is licensed for 1000.' in result['stderr']
+
+        assert inventory.get_related('groups').count != 0
+        assert inventory.get_related('hosts').count == 2000
+
+    def test_import_license_expired(self, skip_if_openshift, api_config_pg, ansible_runner, inventory):
+        """Verify import succeeds with a non-trial license that is expired."""
+        trial_license_1000 = generate_license(license_type='enterprise', instance_count=1000, days=-1000)
+        api_config_pg.post(trial_license_1000)
+        dest = upload_inventory(ansible_runner, nhosts=100)
+
+        contacted = ansible_runner.shell('awx-manage inventory_import --inventory-id {0} --source {1}'.format(inventory.id, dest))
+        for result in contacted.values():
+            assert result['rc'] == 0, "Unexpected awx-manage inventory_import failure." \
+                "\n[stdout]\n%s\n[stderr]\n%s" % (result['stdout'], result['stderr'])
+            assert 'ERROR    License expired.' in result['stderr']
+
+        assert inventory.get_related('groups').count != 0
+        assert inventory.get_related('hosts').count == 100
+
+    def test_import_license_exceeded_and_expired(self, skip_if_openshift, api_config_pg, ansible_runner, inventory):
+        """Verify import succeeds with a non-trial license that is expired and thats host count is exceeded."""
+        enterprise_license_1000 = generate_license(license_type='enterprise', instance_count=1000, days=-1000)
+        api_config_pg.post(enterprise_license_1000)
+        dest = upload_inventory(ansible_runner, nhosts=2000)
+
+        contacted = ansible_runner.shell('awx-manage inventory_import --inventory-id {0} --source {1}'.format(inventory.id, dest))
+        for result in contacted.values():
+            assert result['rc'] == 0, "Unexpected awx-manage inventory_import failure." \
+                "\n[stdout]\n%s\n[stderr]\n%s" % (result['stdout'], result['stderr'])
+            assert 'ERROR    Number of licensed instances exceeded, would bring available instances to 2001, system is licensed for 1000.' in result['stderr']
+            assert 'ERROR    License expired.' in result['stderr']
+
+        assert inventory.get_related('groups').count != 0
+        assert inventory.get_related('hosts').count == 2000
+
+    def test_project_update_license_expired(self, api_config_pg, factories):
+        """Verify project update succeeds with a non-trial license that is expired."""
+        trial_license_1000 = generate_license(license_type='enterprise', instance_count=1000, days=-1000)
+        api_config_pg.post(trial_license_1000)
+        p1 = factories.project()
+        p1_update = p1.update().wait_until_completed()
+
+        assert p1_update.failed is False, 'project failed to update when it should have succeeded'
+
+    def test_workflow_launch_license_expired(self, api_config_pg, factories):
+        """Verify workflow launch succeeds with a non-trial license that is expired."""
+        trial_license_1000 = generate_license(license_type='enterprise', instance_count=1000, days=-1000)
+        api_config_pg.post(trial_license_1000)
+        wfjt = factories.workflow_job_template()
+        wfjt_launch = wfjt.launch().wait_until_completed()
+
+        assert wfjt_launch.failed is False, 'workflow failed to launch when it should have succeeded'
+
+    def test_job_launch_license_expired(self, api_config_pg, factories):
+        """Verify job launch succeeds with a non-trial license that is expired."""
+        trial_license_1000 = generate_license(license_type='enterprise', instance_count=1000, days=-1000)
+        api_config_pg.post(trial_license_1000)
+        jt = factories.job_template()
+        job = jt.launch().wait_until_completed()
+
+        assert job.failed is False, 'job failed to launch when it should have succeeded'
+
+    def test_inventory_update_license_expired(self, api_config_pg, factories):
+        """Verify inventory update succeeds with a non-trial license that is expired."""
+        trial_license_1000 = generate_license(license_type='enterprise', instance_count=1000, days=-1000)
+        api_config_pg.post(trial_license_1000)
+        org = factories.organization()
+        inv = factories.inventory(organization=org)
+        inv_script = factories.inventory_script(organization=org, script="""#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+import json
+print(json.dumps({
+    '_meta': {'hostvars': {'host_1': {}, 'host_2': {}}},
+    'ungrouped': {'hosts': ['will_remove_host']},
+    'child_group': {'hosts': ['host_of_child']},
+    'child_group2': {'hosts': ['host_of_child']},
+    'not_child': {'hosts': ['host_of_not_child']},
+    'switch1': {'hosts': ['host_switch1']},
+    'switch2': {'hosts': ['host_switch2']},
+    'parent_switch1': {'children': ['switch1']},
+    'parent_switch2': {'children': ['switch2']},
+    'will_remove_group': {'hosts': ['host_2']},
+    'parent_group': {'hosts': ['host_1', 'host_2'], 'children': ['child_group', 'child_group2']}
+}))""")
+        factories.inventory_source(
+            inventory=inv,
+            overwrite=True,
+            source_script=inv_script,
+            organization=org
+        )
+        inv_update = inv.update_inventory_sources()[0].wait_until_completed()
+        assert inv_update.failed is False, 'inventory failed to update when it should have succeeded'
+        assert 'ERROR    License expired.\nSee' in inv_update.result_stdout
+
+    def test_inventory_update_license_expired_trial(self, api_config_pg, factories):
+        """Verify job launch fails with a trial license that is expired."""
+        trial_license_1000 = generate_license(license_type='enterprise', instance_count=1000, days=-1000, trial=True)
+        api_config_pg.post(trial_license_1000)
+        org = factories.organization()
+        inv = factories.inventory(organization=org)
+        inv_script = factories.inventory_script(organization=org, script="""#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+import json
+print(json.dumps({
+    '_meta': {'hostvars': {'host_1': {}, 'host_2': {}}},
+    'ungrouped': {'hosts': ['will_remove_host']},
+    'child_group': {'hosts': ['host_of_child']},
+    'child_group2': {'hosts': ['host_of_child']},
+    'not_child': {'hosts': ['host_of_not_child']},
+    'switch1': {'hosts': ['host_switch1']},
+    'switch2': {'hosts': ['host_switch2']},
+    'parent_switch1': {'children': ['switch1']},
+    'parent_switch2': {'children': ['switch2']},
+    'will_remove_group': {'hosts': ['host_2']},
+    'parent_group': {'hosts': ['host_1', 'host_2'], 'children': ['child_group', 'child_group2']}
+}))""")
+        factories.inventory_source(
+            inventory=inv,
+            overwrite=True,
+            source_script=inv_script,
+            organization=org
+        )
+
+        iu = inv.update_inventory_sources()[0].wait_until_completed()
+        assert iu.status == 'failed'
+        assert 'License has expired!' in iu.result_stdout
+
+    def test_job_launch_license_expired_trial(self, api_config_pg, factories):
+        """Verify job launch fails with a trial license that is expired."""
+        trial_license_1000 = generate_license(license_type='enterprise', instance_count=1000, days=-1000, trial=True)
+        api_config_pg.post(trial_license_1000)
+        jt = factories.job_template()
+        with pytest.raises(LicenseExceeded) as e:
+            jt.launch()
+
+        assert 'detail' in e.value[1], f'Exception is missing expected "detail" key: {e.value[1]}'
+        assert e.value[1]['detail'] == 'License has expired.', f'Exception was not caused by expired license: {e.value[1]["detail"]}'
+
+    def test_workflow_launch_license_expired_trial(self, api_config_pg, factories):
+        """Verify workflow launch fails with a trial license that is expired."""
+        trial_license_1000 = generate_license(license_type='enterprise', instance_count=1000, days=-1000, trial=True)
+        api_config_pg.post(trial_license_1000)
+        wfjt = factories.workflow_job_template()
+        with pytest.raises(LicenseExceeded) as e:
+            wfjt.launch()
+
+        assert 'detail' in e.value[1], f'Exception is missing expected "detail" key: {e.value[1]}'
+        assert e.value[1]['detail'] == 'License has expired.', f'Exception was not caused by expired license: {e.value[1]["detail"]}'
+
+    def test_import_license_exceeded_trial(self, skip_if_openshift, api_config_pg, ansible_runner, inventory):
+        """Verify import fails if the number of imported hosts exceeds licensed host allowance and tower is using a trial license."""
+        trial_license_1000 = generate_license(license_type='enterprise', trial=True, instance_count=1000, days=365)
+        api_config_pg.post(trial_license_1000)
+        dest = upload_inventory(ansible_runner, nhosts=2000)
+
+        contacted = ansible_runner.shell('awx-manage inventory_import --inventory-id {0} --source {1}'.format(inventory.id, dest))
+        for result in contacted.values():
+            assert result['rc'] == 1, "Unexpected awx-manage inventory_import success." \
+                "\n[stdout]\n%s\n[stderr]\n%s" % (result['stdout'], result['stderr'])
+            assert "Number of licensed instances exceeded" in result['stderr']
+
+        assert inventory.get_related('groups').count == 0
+        assert inventory.get_related('hosts').count == 0
+
+    def test_import_license_expired_trial(self, skip_if_openshift, api_config_pg, ansible_runner, inventory):
+        """Verify import fails if a trial license is expired"""
+        trial_license_1000 = generate_license(license_type='enterprise', trial=True, instance_count=1000, days=-1000, )
+        api_config_pg.post(trial_license_1000)
+        dest = upload_inventory(ansible_runner, nhosts=100)
+
+        contacted = ansible_runner.shell('awx-manage inventory_import --inventory-id {0} --source {1}'.format(inventory.id, dest))
+        for result in contacted.values():
+            assert result['rc'] == 1, "Unexpected awx-manage inventory_import success." \
+                "\n[stdout]\n%s\n[stderr]\n%s" % (result['stdout'], result['stderr'])
+            assert "License expired" in result['stderr']
+
+        assert inventory.get_related('groups').count == 0
+        assert inventory.get_related('hosts').count == 0
