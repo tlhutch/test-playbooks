@@ -25,11 +25,11 @@ CYPRESS_AWX_E2E_USERNAME=foo npx cypress open # etc, etc,
 ```
 
 #### Usage
-To run the test suite in headless mode:
+To run the test suite in headless mode (assuming you are in the same directory as `cypress.json`):
 ```
 npx cypress run
 ```
-*NOTE:* The `--project` option needs to be added and pointed to the directory containing `cypress.json` if this command isn't executed in the same directory. Depending on configuration, if it does not find an existing project, Cypress will then generate an example `cypress.json` and `cypress/` directory with a demo test suite. For example:
+*NOTE:* The `--project` option needs to be added and pointed to the directory containing `cypress.json` if this command isn't executed in the same directory. Depending on configuration, if it does not find an existing project, Cypress will then otherwise generate an example `cypress.json` and `cypress/` directory with a demo test suite. For example:
 ```
 npx cypress run --project awx/something/directory-containing-cypress-json
 ```
