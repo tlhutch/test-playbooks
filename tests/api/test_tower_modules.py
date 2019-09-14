@@ -68,7 +68,7 @@ def os_python_version(session_ansible_python):
 
 
 @pytest.fixture(autouse=True)
-def skip_if_wrong_python(request, os_python_version):
+def skip_if_wrong_python(request, os_python_version, is_docker):
     """Skip when the venv python version does not match the OS base Python
     version.
 
@@ -76,7 +76,7 @@ def skip_if_wrong_python(request, os_python_version):
     have libsexlinux-python available.
     """
     python_venv_name = request.getfixturevalue('python_venv_name')
-    if not python_venv_name.startswith(f'python{os_python_version}'):
+    if not python_venv_name.startswith(f'python{os_python_version}') and not is_docker:
         pytest.skip(f'OS Python version is {os_python_version} which does not match venv')
 
 
