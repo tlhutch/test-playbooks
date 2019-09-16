@@ -269,3 +269,27 @@ class Test_Ansible_Tower_Modules(APITest):
         }, factories, venv_path(python_venv_name))
 
         assert 0 == len(v2.credential_types.get(name=cred.name).results)
+
+    def test_ansible_tower_module_group_create(self, request, v2, factories, venv_path, python_venv_name):
+        group_name = utils.random_title()
+        inv = factories.inventory()
+        request.addfinalizer(lambda *args: v2.groups.get(name=group_name).results[0].delete())
+        self.run_tower_module('tower_group', {
+            'name': group_name,
+            'description': 'hello world',
+            'inventory': inv.name
+        }, factories, venv_path(python_venv_name))
+
+        group = v2.groups.get(name=group_name).results[0]
+        assert group_name == group['name']
+        assert group['description'] == 'hello world'
+
+    def test_ansible_tower_module_group_delete(self, factories, v2, venv_path, python_venv_name):
+        group = factories.group()
+        self.run_tower_module('tower_group', {
+            'name': group.name,
+            'inventory': group.summary_fields.inventory.name,
+            'state': 'absent',
+        }, factories, venv_path(python_venv_name))
+
+        assert 0 == len(v2.groups.get(name=group.name).results)
