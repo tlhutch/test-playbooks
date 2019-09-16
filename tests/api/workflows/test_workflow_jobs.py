@@ -573,6 +573,7 @@ class Test_Workflow_Jobs(APITest):
         # assert error message include relavent info
         assert 'No error handling paths found, marking workflow as failed' in wfj.job_explanation
 
+    @pytest.mark.serial
     def test_awx_metavars_for_workflow_jobs(self, v2, factories, update_setting_pg):
         update_setting_pg(
             v2.settings.get().get_endpoint('jobs'),
