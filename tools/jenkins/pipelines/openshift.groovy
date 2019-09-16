@@ -88,26 +88,30 @@ pipeline {
                 script {
                     if (params.TOWER_VERSION != 'devel' && !(params.TOWER_VERSION ==~ /[0-9]*.[0-9]*.0/) ) {
                         stage('OpenShift Minor Upgrade') {
-                            build(
-                                job: 'Pipelines/openshift-upgrade-pipeline',
-                                parameters: [
-                                    string(name: 'TOWER_VERSION_TO_UPGRADE_FROM', value: prev_min_version),
-                                    string(name: 'TOWER_VERSION_TO_UPGRADE_TO', value: params.TOWER_VERSION)
-                                ]
-                            )
+                            retry(2) {
+                                build(
+                                    job: 'Pipelines/openshift-upgrade-pipeline',
+                                    parameters: [
+                                        string(name: 'TOWER_VERSION_TO_UPGRADE_FROM', value: prev_min_version),
+                                        string(name: 'TOWER_VERSION_TO_UPGRADE_TO', value: params.TOWER_VERSION)
+                                    ]
+                                )
+                            }
                         }
                     }
                 }
                 script {
                     if (!(params.TOWER_VERSION ==~ /3.3.[0-9]*/)) {
                         stage('OpenShift Major Upgrade') {
-                            build(
-                                job: 'Pipelines/openshift-upgrade-pipeline',
-                                parameters: [
-                                    string(name: 'TOWER_VERSION_TO_UPGRADE_FROM', value: prev_maj_version),
-                                    string(name: 'TOWER_VERSION_TO_UPGRADE_TO', value: params.TOWER_VERSION)
-                                ]
-                            )
+                            retry(2) {
+                                build(
+                                    job: 'Pipelines/openshift-upgrade-pipeline',
+                                    parameters: [
+                                        string(name: 'TOWER_VERSION_TO_UPGRADE_FROM', value: prev_maj_version),
+                                        string(name: 'TOWER_VERSION_TO_UPGRADE_TO', value: params.TOWER_VERSION)
+                                    ]
+                                )
+                            }
                         }
                     }
                 }
@@ -116,12 +120,14 @@ pipeline {
 
         stage('OpenShift Backup and Restore') {
             steps {
-                build(
-                    job: 'Pipelines/openshift-backup-and-restore-pipeline',
-                    parameters: [
-                        string(name: 'TOWER_VERSION', value: params.TOWER_VERSION)
-                    ]
-                )
+                retry(2) {
+                    build(
+                        job: 'Pipelines/openshift-backup-and-restore-pipeline',
+                        parameters: [
+                            string(name: 'TOWER_VERSION', value: params.TOWER_VERSION)
+                        ]
+                    )
+                }
             }
         }
 
