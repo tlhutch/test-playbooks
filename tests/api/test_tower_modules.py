@@ -183,6 +183,55 @@ class Test_Ansible_Tower_Modules(APITest):
 
         assert 0 == len(v2.organizations.get(name=org.name).results)
 
+    def test_ansible_tower_module_project_create(self, request, v2, factories, venv_path, python_venv_name, organization):
+        proj_name = utils.random_title()
+        request.addfinalizer(lambda *args: v2.projects.get(name=proj_name).results[0].delete())
+        self.run_tower_module('tower_project', {
+            'name': proj_name,
+            'description': 'hello world',
+            'scm_type': 'git',
+            'scm_url': 'git@github.com:ansible/test-playbooks.git',
+            'organization': organization.name,
+        }, factories, venv_path(python_venv_name))
+
+        proj = v2.projects.get(name=proj_name).results[0]
+        assert proj_name == proj['name']
+        assert proj['description'] == 'hello world'
+
+    def test_ansible_tower_module_project_delete(self, factories, v2, venv_path, python_venv_name):
+        proj = factories.project()
+        self.run_tower_module('tower_project', {
+            'name': proj.name,
+            'state': 'absent',
+        }, factories, venv_path(python_venv_name))
+
+        assert 0 == len(v2.projects.get(name=proj.name).results)
+
+    def test_ansible_tower_module_credential_create(self, request, v2, factories, venv_path, python_venv_name, organization):
+        cred_name = utils.random_title()
+        request.addfinalizer(lambda *args: v2.credentials.get(name=cred_name).results[0].delete())
+        self.run_tower_module('tower_credential', {
+            'name': cred_name,
+            'description': 'hello world',
+            'kind': 'ssh',
+            'organization': organization.name,
+        }, factories, venv_path(python_venv_name))
+
+        cred = v2.credentials.get(name=cred_name).results[0]
+        assert cred_name == cred['name']
+        assert cred['description'] == 'hello world'
+
+    def test_ansible_tower_module_credential_delete(self, factories, v2, venv_path, python_venv_name):
+        cred = factories.credential()
+        self.run_tower_module('tower_credential', {
+            'name': cred.name,
+            'state': 'absent',
+            'kind': cred.kind,
+            'organization': cred.summary_fields.organization.name
+        }, factories, venv_path(python_venv_name))
+
+        assert 0 == len(v2.credentials.get(name=cred.name).results)
+
     def test_ansible_tower_module_organization_check_mode(self, factories, tower_version, venv_path, python_venv_name):
         '''
         Ensure that orgnization check_mode: True returns the tower_version
