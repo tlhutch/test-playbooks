@@ -23,9 +23,16 @@ context('Organizations page', function () {
   })
 
   it('can delete an organization', function () {
-    // Searchbars aren't implemented yet
-    this.skip()
-  })
+    const org1 = cy.akit(`organizations.create_or_replace(name="delete-org-${this.testID}")`)
+    console.log(typeof(org))
+    cy
+        .visit(`/#/organizations/`)
+        .get('input[aria-label*="Search"]').type(`${org1.name}{enter}	`)
+        .get(`input[id="select-organization-${org1.id}"][type="checkbox"]`).click()
+        .get('button[aria-label="Delete"]').click()
+        .get('button[aria-label="confirm delete"]').click()
+        .get('.pf-c-empty-state .pf-c-empty-state__body').should('have.class', 'pf-c-empty-state__body')
+      })
 
   it('can edit an organization', function () {
     const org = cy.createOrReplace('organizations', `edit-org-${this.testID}`)
