@@ -13,25 +13,6 @@ import pytest
 from tests.api import APITest
 
 
-@pytest.fixture(scope="function")
-def register_rhn_and_insights(ansible_runner):
-    rhn_username = config.credentials.insights.username
-    rhn_password = config.credentials.insights.password
-    ansible_runner.redhat_subscription(state='present',
-                                             username=rhn_username,
-                                             password=rhn_password,
-                                             auto_attach=True)
-
-    ansible_runner.yum(state='installed', name='insights-client')
-    ansible_runner.shell('insights-client --register')
-    yield
-    ansible_runner.shell('insights-client --unregister')
-    ansible_runner.redhat_subscription(state='absent',
-                                             username=rhn_username,
-                                             password=rhn_password)
-    ansible_runner.yum(state='absent', name='insights-client')
-
-
 @pytest.mark.usefixtures('authtoken')
 class TestInsights(APITest):
 
@@ -626,14 +607,27 @@ class TestInsightsAnalytics(APITest):
             'At least one entry for the job template run must exist on the unified_jobs_table'
         )
 
-    # Commented out due to logistical concerns with contacting insights dev API from AWS
-    # def test_ship_insights_succeeds(self, ansible_runner, register_rhn_and_insights):
-    #     logfile = '/var/log/insights-client/insights-client.log'
-    #     ansible_runner.file(path=logfile, state='absent')
-    #     result = ansible_runner.shell('awx-manage gather_analytics --ship').values()[0]['stderr_lines']
-    #     assert [l for l in result if "Successfully uploaded report" in l]
-    #     log_content = base64.b64decode(ansible_runner.slurp(path=logfile).values()[0]['content']).splitlines()
-    #     assert [l for l in log_content if "insights.client.connection Upload status: 202 Accepted" in l]
+    @pytest.mark.ansible(become=True, become_user='awx')
+    def test_ship_insights_succeeds(self, v2, update_setting_pg, ansible_runner, analytics_enabled):
+        error_strings = ['Upload failed',
+                        'Automation Analytics TAR not found',
+                        'A valid license was not found:',
+                        'Invalid License provided, or No License Provided',
+                        'Could not generate metric',
+                        'Could not generate manifest.json',
+                        'Could not copy tables',
+                        'is not set',
+                        'Automation Analytics not enabled'
+                        ]
+        system_settings = v2.settings.get().get_endpoint('system')
+        payload = {'REDHAT_USERNAME': config.credentials.insights.username,
+                   'REDHAT_PASSWORD': config.credentials.insights.password,
+                   'AUTOMATION_ANALYTICS_URL': 'https://cloud.redhat.com/api/ingress/v1/upload'
+                  }
+        update_setting_pg(system_settings, payload)
+        result = ansible_runner.shell('awx-manage gather_analytics --ship', chdir='/').values()[0]['stderr_lines']
+        for e in error_strings:
+            assert not any(e.lower() in r.lower() for r in result), result
 
     # This "test" is temporary, it is being used by @bender to generate data for a summit demo
     # Please contact @bender if you want to remove it
