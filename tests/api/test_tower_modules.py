@@ -317,3 +317,27 @@ class Test_Ansible_Tower_Modules(APITest):
         }, factories, venv_path(python_venv_name))
 
         assert 0 == len(v2.hosts.get(name=host.name).results)
+
+    def test_ansible_tower_module_inventory_create(self, request, v2, factories, venv_path, python_venv_name):
+        inventory_name = utils.random_title()
+        org = factories.organization()
+        request.addfinalizer(lambda *args: v2.inventory.get(name=inventory_name).results[0].delete())
+        self.run_tower_module('tower_inventory', {
+            'name': inventory_name,
+            'description': 'hello world',
+            'organization': org.name
+        }, factories, venv_path(python_venv_name))
+
+        inventory = v2.inventory.get(name=inventory_name).results[0]
+        assert inventory_name == inventory['name']
+        assert inventory['description'] == 'hello world'
+
+    def test_ansible_tower_module_inventory_delete(self, factories, v2, venv_path, python_venv_name):
+        inventory = factories.inventory()
+        self.run_tower_module('tower_inventory', {
+            'name': inventory.name,
+            'organization': inventory.summary_fields.organization.name,
+            'state': 'absent',
+        }, factories, venv_path(python_venv_name))
+
+        assert 0 == len(v2.inventory.get(name=inventory.name).results)
