@@ -183,6 +183,21 @@ class Test_Ansible_Tower_Modules(APITest):
 
         assert 0 == len(v2.organizations.get(name=org.name).results)
 
+    def test_ansible_tower_module_organization_check_mode(self, factories, tower_version, venv_path, python_venv_name):
+        '''
+        Ensure that orgnization check_mode: True returns the tower_version
+        '''
+        org = factories.organization()
+        job = self.run_tower_module(
+            'tower_organization', {'name': org.name}, factories, venv_path(python_venv_name),
+            more_vars={'check_mode': True}
+        )
+
+        job_event = job.get_related('job_events').get(event='runner_on_ok', task='invoke_arbitrary_module').results[0]
+        module_tower_version = job_event['event_data']['res']['tower_version']
+
+        assert tower_version == module_tower_version
+
     def test_ansible_tower_module_project_create(self, request, v2, factories, venv_path, python_venv_name, organization):
         proj_name = utils.random_title()
         request.addfinalizer(lambda *args: v2.projects.get(name=proj_name).results[0].delete())
@@ -232,17 +247,25 @@ class Test_Ansible_Tower_Modules(APITest):
 
         assert 0 == len(v2.credentials.get(name=cred.name).results)
 
-    def test_ansible_tower_module_organization_check_mode(self, factories, tower_version, venv_path, python_venv_name):
-        '''
-        Ensure that orgnization check_mode: True returns the tower_version
-        '''
-        org = factories.organization()
-        job = self.run_tower_module(
-            'tower_organization', {'name': org.name}, factories, venv_path(python_venv_name),
-            more_vars={'check_mode': True}
-        )
+    def test_ansible_tower_module_credential_type_create(self, request, v2, factories, venv_path, python_venv_name, organization):
+        cred_name = utils.random_title()
+        request.addfinalizer(lambda *args: v2.credential_types.get(name=cred_name).results[0].delete())
+        self.run_tower_module('tower_credential_type', {
+            'name': cred_name,
+            'description': 'hello world',
+            'kind': 'cloud',
+        }, factories, venv_path(python_venv_name))
 
-        job_event = job.get_related('job_events').get(event='runner_on_ok', task='invoke_arbitrary_module').results[0]
-        module_tower_version = job_event['event_data']['res']['tower_version']
+        cred = v2.credential_types.get(name=cred_name).results[0]
+        assert cred_name == cred['name']
+        assert cred['description'] == 'hello world'
 
-        assert tower_version == module_tower_version
+    def test_ansible_tower_module_credential_type_delete(self, factories, v2, venv_path, python_venv_name):
+        cred = factories.credential_type()
+        self.run_tower_module('tower_credential_type', {
+            'name': cred.name,
+            'state': 'absent',
+            'kind': cred.kind,
+        }, factories, venv_path(python_venv_name))
+
+        assert 0 == len(v2.credential_types.get(name=cred.name).results)
