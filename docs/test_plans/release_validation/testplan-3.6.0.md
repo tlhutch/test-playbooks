@@ -15,84 +15,68 @@
 
 ## Resources
 
-* 7 full-time engineers (Caleb, Danny, Elijah, Elyezer, John,  Mat, Yanis)
+* Quality Engineers Danny, Elijah, Elyezer, John, Mat, Yanis, Apurva, Caleb
 * Initial planning document for whole engineering org (API + UI + QE) [here](https://docs.google.com/spreadsheets/d/1NNTN-SBM23UQPZAH9HylKhYQBAoyIsDcTlvl_ItDzHs/edit#gid=762158314)
-* Ansible Tower 3.6.0 Project [here](https://github.com/orgs/ansible/projects/8)
 
 ## Supported Platforms
 
 ### Ansible Versions
 
-  * stable.2.6
   * stable-2.7
   * stable-2.8
+  * stable-2.9
 
 ### Operating Systems Versions
 
   * RHEL Derivatives 7.4+
-  * RHEL Derivatives 8.0+
+  * RHEL Derivatives 8
 
 ## Features Tested
 
-### Remove Ubuntu support (Yanis/Elijah)
+### Override SCM Branch on JT and related enhancements (Elijah/Caleb)
 
-- [ ] Testing complete
+  - [x] [Testing complete](https://github.com/ansible/tower-qa/blob/devel/docs/test_plans/features/36_branch_on_jt.md)
 
-### Remove /api/v1 (Elijah/Elyezer/Danny)
+### Subscription and Enforcement License Changes (Elijah/Caleb)
 
-- [ ] Testing complete
+  - [x] [Testing complete](https://github.com/ansible/tower-qa/blob/devel/docs/test_plans/features/36_license_changes.md)
 
-### Upgrade Django 2.2 LTS and DJRF (Yanis/Danny)
+### Primary Galaxy Server (Danny, Mat, Elyezer, Caleb)
 
-- [ ] Testing complete
+  - [ ] [Testing complete](https://github.com/ansible/tower-qa/blob/devel/docs/test_plans/features/36_primary_galaxy_server.md)
 
-### Upgrade PostgreSQL to version 10 and psycopg (Yanis/Mat)
+### Project with Collections Requirements (Eleyzer, Mat, Danny, Caleb)
 
-- [ ] Testing complete
+  - [ ] [Testing complete](https://github.com/ansible/tower-qa/blob/devel/docs/test_plans/features/36_project_with_collections_requirements.md)
 
-### Upgrade Node LTS (Yanis/Danny)
+### Supported CLI shipped with Tower (Elijah, Caleb)
 
-- [ ] Testing complete
+  - [ ] [Testing complete](https://github.com/ansible/tower-qa/blob/devel/docs/test_plans/features/36_supported_cli.md)
 
-### Runner work (Mat/Elijah/Danny)
+### Templated Notifications (Yanis, Mat, John)
 
-- [ ] Testing complete
+  - [ ] [Testing complete](https://github.com/ansible/tower-qa/blob/devel/docs/test_plans/features/36_templated_notification.md)
 
-### Remove Inventory computed field (Elijah/Elyezer)
+### Upgrade to PostgresSQL 10 (Yanis, Mat)
 
-- [ ] Testing complete
+  - [ ] [Testing complete](https://github.com/ansible/tower-qa/blob/devel/docs/test_plans/features/36_upgrade_to_postgres10.md)
 
-### Customizable notification (Mat/Yanis/John)
+### Webhook notification enhancement (Yanis, Mat, John)
 
-- [ ] Testing complete
+  - [ ] [Testing complete](https://github.com/ansible/tower-qa/blob/devel/docs/test_plans/features/36_webhook_notification.md)
 
-### Workflow Pause / Approve (Elijah/Mat/Danny)
+### Workflow Limit and scm_branch Prompting (Caleb, Danny)
 
-- [ ] Testing complete
+  - [x] [Testing complete](https://github.com/ansible/tower-qa/blob/devel/docs/test_plans/features/36_workflow_limit.md)
 
-### Performance data capturing and display (Yanis/Caleb/Danny)
+### Workflow Approval Nodes (Apurva, Elijah)
 
-- [ ] Testing complete
+  - [x] [Testing complete](https://github.com/ansible/tower-qa/blob/devel/docs/test_plans/features/36_workflow_pause_approve.md)
 
-### SSL for PostgreSQL and RabbitMQ (Yanis/Elijah)
+### Workflow Approval Notifications (Apruva, Elijah)
 
-- [ ] Testing complete
+  - [ ] [Testing complete]()
 
-### Webhooks in Tower (Elyezer/Danny)
-
-- [ ] Testing complete
-
-### CLI and SDK (Elijah/Elyezer/John)
-
-- [ ] Testing complete
-
-### Project branch on JT/WFJT (Yanis/Elyezer/Danny)
-
-- [ ] Testing complete
-
-### License key change (Elijah/Caleb/Danny)
-
-- [ ] Testing complete
 
 
 ## Verifications steps
@@ -108,32 +92,31 @@
 
 ### Upgrade
 
-To test upgrades, use the following pipelines:
 
-  * OpenShift 3.3.x to Release: [Release 33 to devel - OpenShift - Release Verification](http://jenkins.ansible.eng.rdu2.redhat.com/blue/organizations/jenkins/Pipelines%2Fupgrade-release33-openshift-release-verification/)
-  * OpenShift 3.4.x to Release: [Release 34 to devel - OpenShift - Release Verification](http://jenkins.ansible.eng.rdu2.redhat.com/blue/organizations/jenkins/Pipelines%2FRelease%2034%20to%20devel%20-%20OpenShift%20-%20Release%20Verification/)
-  * Non-OpenShift 3.3.x to Release: [Release 33 to devel - Release Verification](http://jenkins.ansible.eng.rdu2.redhat.com/blue/organizations/jenkins/Pipelines%2Fupgrade-release33-release-verification/)
-  * Non-OpenShift 3.4.x to Release: [Release 34 to devel - Release Verification](http://jenkins.ansible.eng.rdu2.redhat.com/blue/organizations/jenkins/Pipelines%2Fupgrade-release34-release-verification/)
+  * OpenShift 3.3.x to Release:
+  * OpenShift 3.4.x to Release:
+  * OpenShift 3.5.x to Release:
+  * Non-OpenShift 3.3.x to Release:
+  * Non-OpenShift 3.4.x to Release:
+  * Non-OpenShift 3.5.x to Release:
 
-  * [ ] 3.2.8 to 3.6.0
+  * [ ] Check ansible version check that is [hardcoded in tower-packaging](https://github.com/ansible/tower-packaging/blob/f8d3d4cd6d1cf35cad6e09de88068440d667ff42/setup/roles/preflight/defaults/main.yml#L6)
+  * [ ] 3.2.8 to 3.5.0
     * [ ] Bundle/Plain - Standalone
-  * [ ] 3.3.{0-5} -> 3.6.0
-    * [ ] Bundle/Plain - Standalone/Cluster
-    * [ ] OpenShift
-  * [ ] 3.4.{0-3} -> 3.6.0
-    * [ ] Bundle/Plain - Standalone/Cluster
-    * [ ] OpenShift
-  * [ ] 3.5.{0-1} -> 3.6.0
-    * [ ] Bundle/Plain - Standalone/Cluster
-    * [ ] OpenShift
+  * [ ] 3.3.{0-5} -> 3.5.0
+    * [ ] [Bundle/Plain - Standalone/Cluster]
+    * [ ] [OpenShift]
+  * [ ] 3.4.{0-3} -> 3.5.0
+    * [ ] [Bundle/Plain - Standalone/Cluster]
+    * [ ] [OpenShift]
 
 
 ### Regression
 
-  * [ ] UI regression
-  * [ ] API regression - Standalone
-  * [ ] API regression - Traditional Cluster
-  * [ ] API regression - OpenShift Cluster
+  * [ ] [UI regression]
+  * [ ] [API regression - Standalone]
+  * [ ] [API regression - Traditional Cluster]
+  * [ ] [API regression - OpenShift Cluster]
   * [ ] Tower social authentication regression completed (vm)
     * [ ] Google OAuth
     * [ ] GitHub
@@ -145,14 +128,15 @@ To test upgrades, use the following pipelines:
   * [ ] Logging regression completed - cluster
   * [ ] Backup/restore successful - standalone
   * [ ] Backup/restore successful - traditional cluster
-  * [ ] Backup/restore successful - OpenShift
-  * [ ] Deploy tower with HTTPS+Load Balancer+Let's Encrypt + run tests against instance
+  * [ ] [Backup/restore successful - OpenShift]
+  * [ ] [Deploy tower with HTTPS+Load Balancer+Let's Encrypt + run tests against instance]
   * [ ] Deploy tower in OpenShift with an external DB + run tests against instance
+
 
 ### Artifacts
 
-Use this pipeline to verify: http://jenkins.ansible.eng.rdu2.redhat.com/blue/organizations/jenkins/Pipelines%2Fbuild-artifacts-pipeline
+Use this pipeline to verify: #FIXME
 
-  * [ ] AMI
-  * [ ] Vagrant image
-  * [ ] Documentation
+  * [ ] [AMI]
+  * [ ] [Vagrant image]
+  * [ ] [Documentation]
