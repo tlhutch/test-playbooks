@@ -98,7 +98,7 @@ def get_tower_version_that_is_being_tested(builds, release_pipeline_build_id):
     first_build_number = builds.get_first_buildnumber()
     last_build_number = builds.get_last_buildnumber()
 
-    for build_id in range(first_build_number, last_build_number)[::-1]:
+    for build_id in range(first_build_number, last_build_number + 1)[::-1]:
         if (
             builds[build_id].get_upstream_build().get_number()
             == release_pipeline_build_id
