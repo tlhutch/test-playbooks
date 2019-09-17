@@ -424,6 +424,83 @@ class TestJobTemplateBranchOverride(APITest):
         job = wf_job_node.related.job.get()
         assert job.scm_branch == prompt_branch
 
+    def test_workflow_job_template_promptable(self, factories):
+        project = factories.project(allow_override=True)
+        host = factories.host()
+        jt_prompt = factories.job_template(
+            project=project,
+            playbook='debug.yml',
+            inventory=host.related.inventory.get(),
+            ask_scm_branch_on_launch=True
+            )
+
+        wfjt = factories.workflow_job_template(scm_branch='wfjt_branch', ask_scm_branch_on_launch=True)
+        assert wfjt.scm_branch == 'wfjt_branch'  # sanity
+        assert wfjt.ask_scm_branch_on_launch is True  # sanity
+
+        node = factories.workflow_job_template_node(
+            workflow_job_template=wfjt,
+            unified_job_template=jt_prompt,
+            scm_branch='wfjt_node_branch'
+        )
+        assert node.scm_branch == 'wfjt_node_branch'  # sanity
+
+        # launch and verify with just the WFJT value
+        wf_job = wfjt.launch().wait_until_completed()
+        assert wf_job.scm_branch == 'wfjt_branch'  # sanity
+        wf_job.assert_status('failed')  # Should fail because branch does not exist
+        wf_job_node = wf_job.related.workflow_nodes.get().results.pop()
+        job = wf_job_node.related.job.get()
+        assert job.scm_branch == 'wfjt_branch'
+
+        wf_job = wfjt.launch(payload=dict(scm_branch='wfjt_prompt_branch')).wait_until_completed()
+        assert wf_job.scm_branch == 'wfjt_prompt_branch'  # sanity
+        wf_job.assert_status('failed')  # Should fail because branch does not exist
+        wf_job_node = wf_job.related.workflow_nodes.get().results.pop()
+        job = wf_job_node.related.job.get()
+        assert job.scm_branch == 'wfjt_prompt_branch'
+
+        # Test that these attrs are updatable
+        wfjt.scm_branch = 'foo'
+        assert wfjt.scm_branch == 'foo'
+        wfjt.ask_scm_branch_on_launch = False
+        assert wfjt.ask_scm_branch_on_launch is False
+
+    def test_workflow_job_template_promptable_non_promptable_jt(self, factories):
+        project = factories.project(allow_override=True)
+        host = factories.host()
+        jt_prompt = factories.job_template(
+            project=project,
+            playbook='debug.yml',
+            inventory=host.related.inventory.get(),
+            ask_scm_branch_on_launch=False,
+            scm_branch='fake_branch'
+            )
+
+        wfjt = factories.workflow_job_template(scm_branch='wfjt_branch', ask_scm_branch_on_launch=True)
+        assert wfjt.scm_branch == 'wfjt_branch'  # sanity
+        assert wfjt.ask_scm_branch_on_launch is True  # sanity
+
+        factories.workflow_job_template_node(
+            workflow_job_template=wfjt,
+            unified_job_template=jt_prompt,
+        )
+        # Verify the WFJT value is not passed to a non-promtable JT
+        wf_job = wfjt.launch().wait_until_completed()
+        assert wf_job.scm_branch == 'wfjt_branch'  # sanity
+        wf_job.assert_status('failed')  # Should fail because branch does not exist
+        wf_job_node = wf_job.related.workflow_nodes.get().results.pop()
+        job = wf_job_node.related.job.get()
+        assert job.scm_branch == 'fake_branch'
+
+        # Verify the WFJT launch scm_branch argument is not passed to a non-promtable JT
+        wf_job = wfjt.launch(payload=dict(scm_branch='wfjt_prompt_branch')).wait_until_completed()
+        assert wf_job.scm_branch == 'wfjt_prompt_branch'  # sanity
+        wf_job.assert_status('failed')  # Should fail because branch does not exist
+        wf_job_node = wf_job.related.workflow_nodes.get().results.pop()
+        job = wf_job_node.related.job.get()
+        assert job.scm_branch == 'fake_branch'
+
     @pytest.mark.parametrize('refspec, good_ref, bad_ref', [
         ('+refs/pull/62/head:refs/remotes/origin/pull/62/head', 'pull/62/head', 'pull/hotdog/catsup'),
         ('+refs/pull/62/head:pull/hotdog/catsup', 'pull/hotdog/catsup', 'pull/62/head'),
