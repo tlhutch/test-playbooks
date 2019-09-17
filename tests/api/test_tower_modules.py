@@ -341,3 +341,96 @@ class Test_Ansible_Tower_Modules(APITest):
         }, factories, venv_path(python_venv_name))
 
         assert 0 == len(v2.inventory.get(name=inventory.name).results)
+
+    def test_ansible_tower_module_job(self, request, factories, v2, venv_path, python_venv_name):
+        jt_name = utils.random_title()
+        project = factories.project()
+        inventory = factories.inventory()
+        factories.host(inventory=inventory, variables=dict(ansible_host='localhost', ansible_connection='local'))
+
+        # We need this to teardown the JT if it fails before the end. The try
+        # block also means it wont fail if we get to the end and clean up the
+        # JT as part of the test
+        def cleanup_jt():
+            try:
+                return v2.job_templates.get(name=jt_name).results[0].delete()
+            except:
+                print("failed to remove JT in teardown")
+
+        request.addfinalizer(cleanup_jt)
+        self.run_tower_module('tower_job_template', {
+            'name': jt_name,
+            'description': 'hello world',
+            'job_type': 'run',
+            'inventory': inventory.name,
+            'playbook': 'sleep.yml',
+            'project': project.name,
+        }, factories, venv_path(python_venv_name))
+
+        jt = v2.job_templates.get(name=jt_name).results[0]
+        assert jt_name == jt['name']
+        assert jt['description'] == 'hello world'
+
+        # Launch the JT we just built
+        self.run_tower_module('tower_job_launch', {
+            'job_template': jt_name,
+            'extra_vars': 'sleep_interval: 1000'
+        }, factories, venv_path(python_venv_name))
+
+        job = v2.jobs.get(name=jt_name).results[0]
+        assert job.summary_fields.job_template.name == jt_name
+
+        job_id1 = job.id
+
+        # Cancel the job we just launched
+        self.run_tower_module('tower_job_cancel', {
+            'job_id': job_id1,
+        }, factories, venv_path(python_venv_name))
+
+        job = v2.jobs.get(id=job_id1).results[0]
+        assert job.summary_fields.job_template.name == jt_name
+        assert job.status == "canceled"
+
+        # Launch another job
+        self.run_tower_module('tower_job_launch', {
+            'job_template': jt_name,
+            'extra_vars': 'sleep_interval: 10'
+        }, factories, venv_path(python_venv_name))
+
+        job = v2.jobs.get(name=jt_name).results[1]
+        assert job.summary_fields.job_template.name == jt_name
+
+        job_id2 = job.id
+
+        # Sanity check
+        assert job_id1 != job_id2
+
+        # Wait for the job we just launched
+        self.run_tower_module('tower_job_wait', {
+            'job_id': job_id2,
+        }, factories, venv_path(python_venv_name))
+
+        job = v2.jobs.get(id=job_id2).results[0]
+        assert job.summary_fields.job_template.name == jt_name
+        assert job.status == "successful"
+
+        # List jobs
+        # I'm not entirely sure how to test this better
+        job_output = self.run_tower_module('tower_job_list', {}, factories,
+                venv_path(python_venv_name)).wait_until_completed()
+
+        # Basic test
+        assert job_output.status == 'successful'
+
+        # Remove our job template
+        self.run_tower_module('tower_job_template', {
+            'name': jt_name,
+            'job_type': 'run',
+            'inventory': inventory.name,
+            'playbook': 'sleep.yml',
+            'project': project.name,
+            'state': 'absent',
+        }, factories, venv_path(python_venv_name))
+
+        job_templates = v2.job_templates.get(name=jt_name).results
+        assert len(job_templates) == 0
