@@ -151,11 +151,11 @@ def did_it_run(
             except Exception:
                 continue
             if (
-                build_params["TOWER_VERSION"] == tower_version
-                and build_params["SCENARIO"] == scenario
-                and build_params["PLATFORM"] == platform
-                and build_params["ANSIBLE_VERSION"] == ansible_version
-                and current_release_pipeline_id < release_pipeline_build_id
+                # build_params["TOWER_VERSION"] == tower_version
+                # and build_params["SCENARIO"] == scenario
+                # and build_params["PLATFORM"] == platform
+                # and build_params["ANSIBLE_VERSION"] == ansible_version
+                current_release_pipeline_id < release_pipeline_build_id
             ):
                 return False
             elif (
