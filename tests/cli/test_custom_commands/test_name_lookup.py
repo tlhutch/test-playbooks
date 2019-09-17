@@ -39,8 +39,8 @@ class TestLookupByName(object):
                 auth=True
                 )
             assert result.returncode == 0, format_error(result)
-            assert name in result.stdout.decode(encoding='utf-8'), format_error(result)
-            assert str(obj.id)in result.stdout.decode(encoding='utf-8'), format_error(result)
+            assert name in result.stdout, format_error(result)
+            assert str(obj.id)in result.stdout, format_error(result)
 
     def test_create_job_template_with_named_sub_resources(self, v2, cli, class_resources):
         # make new jt
