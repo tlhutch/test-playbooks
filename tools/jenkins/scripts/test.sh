@@ -38,7 +38,7 @@ CREDS=$(retrieve_credential_file "${INVENTORY}")
 set +e
 
 # Run license tests that need to run serially
-pytest -v -c config/api.cfg \
+pytest -vv -c config/api.cfg \
     --junit-xml=reports/junit/results-license.xml \
     --ansible-host-pattern="${TOWER_HOST}" \
     --ansible-inventory="${INVENTORY}" \
@@ -71,7 +71,7 @@ if [[ -n "${TESTEXPR}" ]]; then
 fi
 
 # Let's run tests in parallel
-pytest -v -c config/api.cfg \
+pytest -vv -c config/api.cfg \
     --junit-xml=reports/junit/results-parallel.xml \
     --ansible-host-pattern="${TOWER_HOST}" \
     --ansible-inventory="${INVENTORY}" \
@@ -89,7 +89,7 @@ if [[ $? == 1 ]]; then
 fi
 
 # Run tests that need to run serially
-pytest -v -c config/api.cfg \
+pytest -vv -c config/api.cfg \
     --ansible-host-pattern="${TOWER_HOST}" \
     --ansible-inventory="${INVENTORY}" \
     --api-credentials="${CREDS}" \
@@ -108,7 +108,7 @@ fi
 ./scripts/prefix_lastfailed "$(find .pytest_cache -name lastfailed)"
 pytest --cache-show "cache/lastfailed"
 
-pytest -v -c config/api.cfg \
+pytest -vv -c config/api.cfg \
     --last-failed --last-failed-no-failures none \
     --junit-xml=reports/junit/results-rerun.xml \
     --ansible-host-pattern="${TOWER_HOST}" \
