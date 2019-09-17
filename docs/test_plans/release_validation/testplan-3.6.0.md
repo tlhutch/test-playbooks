@@ -17,6 +17,7 @@
 
 * Quality Engineers Danny, Elijah, Elyezer, John, Mat, Yanis, Apurva, Caleb
 * Initial planning document for whole engineering org (API + UI + QE) [here](https://docs.google.com/spreadsheets/d/1NNTN-SBM23UQPZAH9HylKhYQBAoyIsDcTlvl_ItDzHs/edit#gid=762158314)
+* Ansible Tower 3.6.0 Project [here](https://github.com/orgs/ansible/projects/8)
 
 ## Supported Platforms
 
@@ -29,9 +30,37 @@
 ### Operating Systems Versions
 
   * RHEL Derivatives 7.4+
-  * RHEL Derivatives 8
+  * RHEL Derivatives 8.0+
 
 ## Features Tested
+
+### Remove Ubuntu support (Yanis/Elijah)
+
+- [x] Testing complete #NEEDLINK
+
+### Remove /api/v1 (Elijah/Elyezer/Danny)
+
+- [x] Testing complete #NEEDLINK
+
+### Upgrade Django 2.2 LTS and DJRF (Yanis/Danny)
+
+- [x] Testing complete #NEEDLINK
+
+### Upgrade Node LTS (Yanis/Danny)
+
+- [x] Testing complete #NEEDLINK
+
+### Container Groups (Mat/Danny)
+
+- [ ] Testing complete #NEEDLINK
+
+### Remove Inventory computed field (Elijah/Elyezer)
+
+- [x] PUNTED
+
+### SSL for PostgreSQL and RabbitMQ (Yanis/Elijah)
+
+- [ ] Testing complete #NEEDLINK
 
 ### Override SCM Branch on JT and related enhancements (Elijah/Caleb)
 
