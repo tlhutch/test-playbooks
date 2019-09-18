@@ -14,23 +14,31 @@ class TestRHSMLicense(LicenseTest):
     def test_get_licenses_from_subscription(self, connection):
         subs_page = Subscriptions(connection=connection)
         all_licenses = subs_page.get_possible_licenses(rh_username=config.credentials.redhat.username, rh_password=config.credentials.redhat.password)
-        assert len(all_licenses) == 4
+        assert len(all_licenses) == 6
         expected_license_names = sorted(['Red Hat Ansible Tower, Premium (Unlimited Managed Nodes, L3 Only)',
             'Ansible Tower by Red Hat, Self-Support (8 Managed Nodes)',
             'Red Hat Ansible Tower, Standard (80639 Managed Nodes, L3 Only)',
-            'Ansible Tower by Red Hat, Standard (Managed Hosting Provider)'
+            'Ansible Tower by Red Hat, Standard (Managed Hosting Provider)',
+            'Red Hat Ansible Automation, Premium (10204 Managed Nodes)',
+            'Red Hat Ansible Automation, Standard (20000 Managed Nodes)',
             ])
         found_license_names = sorted([sub_license['subscription_name'] for sub_license in all_licenses])
         assert found_license_names == expected_license_names
         for sub_license in all_licenses:
             if 'Unlimited' in sub_license['subscription_name']:
                 assert sub_license['instance_count'] == 9999999, sub_license
-            if 'Self-Support' in sub_license['subscription_name']:
+            elif 'Self-Support' in sub_license['subscription_name']:
                 assert sub_license['instance_count'] == 8, sub_license
-            if '80639 Managed Nodes' in sub_license['subscription_name']:
+            elif '80639 Managed Nodes' in sub_license['subscription_name']:
                 assert sub_license['instance_count'] == 80639, sub_license
-            if 'Managed Hosting Provider' in sub_license['subscription_name']:
+            elif 'Managed Hosting Provider' in sub_license['subscription_name']:
                 assert sub_license['instance_count'] == 4, sub_license
+            elif 'Red Hat Ansible Automation, Premium' in sub_license['subscription_name']:
+                assert sub_license['instance_count'] == 10204, sub_license
+            elif 'Red Hat Ansible Automation, Standard' in sub_license['subscription_name']:
+                assert sub_license['instance_count'] == 20000, sub_license
+            else:
+                raise AssertionError("Unexpected license encountered!")
 
     def test_bad_rhsm_password(self, connection):
         subs_page = Subscriptions(connection=connection)
