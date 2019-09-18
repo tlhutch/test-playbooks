@@ -212,6 +212,9 @@ class Test_Ansible_Tower_Modules(APITest):
         proj = v2.projects.get(name=proj_name).results[0]
         assert proj_name == proj['name']
         assert proj['description'] == 'hello world'
+        assert proj['scm_type'] == 'git'
+        assert proj['scm_url'] == 'git@github.com:ansible/test-playbooks.git'
+        assert proj['organization'] == organization.id
 
     def test_ansible_tower_module_project_delete(self, factories, v2, venv_path, python_venv_name):
         proj = factories.project()
@@ -235,6 +238,8 @@ class Test_Ansible_Tower_Modules(APITest):
         cred = v2.credentials.get(name=cred_name).results[0]
         assert cred_name == cred['name']
         assert cred['description'] == 'hello world'
+        assert cred['kind'] == 'ssh'
+        assert cred['organization'] == organization.id
 
     def test_ansible_tower_module_credential_delete(self, factories, v2, venv_path, python_venv_name):
         cred = factories.credential()
@@ -259,6 +264,7 @@ class Test_Ansible_Tower_Modules(APITest):
         cred = v2.credential_types.get(name=cred_name).results[0]
         assert cred_name == cred['name']
         assert cred['description'] == 'hello world'
+        assert cred['kind'] == 'cloud'
 
     def test_ansible_tower_module_credential_type_delete(self, factories, v2, venv_path, python_venv_name):
         cred = factories.credential_type()
@@ -283,6 +289,7 @@ class Test_Ansible_Tower_Modules(APITest):
         group = v2.groups.get(name=group_name).results[0]
         assert group_name == group['name']
         assert group['description'] == 'hello world'
+        assert group['inventory'] == inv.id
 
     def test_ansible_tower_module_group_delete(self, factories, v2, venv_path, python_venv_name):
         group = factories.group()
@@ -307,6 +314,7 @@ class Test_Ansible_Tower_Modules(APITest):
         host = v2.hosts.get(name=host_name).results[0]
         assert host_name == host['name']
         assert host['description'] == 'hello world'
+        assert host['inventory'] == inv.id
 
     def test_ansible_tower_module_host_delete(self, factories, v2, venv_path, python_venv_name):
         host = factories.host()
@@ -331,6 +339,7 @@ class Test_Ansible_Tower_Modules(APITest):
         inventory = v2.inventory.get(name=inventory_name).results[0]
         assert inventory_name == inventory['name']
         assert inventory['description'] == 'hello world'
+        assert inventory['organization'] == org.name
 
     def test_ansible_tower_module_inventory_delete(self, factories, v2, venv_path, python_venv_name):
         inventory = factories.inventory()
@@ -370,6 +379,10 @@ class Test_Ansible_Tower_Modules(APITest):
         jt = v2.job_templates.get(name=jt_name).results[0]
         assert jt_name == jt['name']
         assert jt['description'] == 'hello world'
+        assert jt['job_type'] == 'run'
+        assert jt['inventory'] == inventory.id
+        assert jt['playbook'] == 'sleep.yml'
+        assert jt['project'] == project.id
 
         # Launch the JT we just built
         self.run_tower_module('tower_job_launch', {
@@ -379,6 +392,7 @@ class Test_Ansible_Tower_Modules(APITest):
 
         job = v2.jobs.get(name=jt_name).results[0]
         assert job.summary_fields.job_template.name == jt_name
+        assert job['sleep_interval'] == 1000
 
         job_id1 = job.id
 
@@ -399,6 +413,7 @@ class Test_Ansible_Tower_Modules(APITest):
 
         job = v2.jobs.get(name=jt_name).results[1]
         assert job.summary_fields.job_template.name == jt_name
+        assert job['sleep_interval'] == 10
 
         job_id2 = job.id
 
