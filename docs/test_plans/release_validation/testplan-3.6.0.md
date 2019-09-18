@@ -92,7 +92,7 @@
 
 ### Webhook notification enhancement (Yanis, Mat, John)
 
-  - [ ] [Testing complete](https://github.com/ansible/tower-qa/blob/devel/docs/test_plans/features/36_webhook_notification.md)
+  - [x] [Testing complete](https://github.com/ansible/tower-qa/blob/devel/docs/test_plans/features/36_webhook_notification.md)
 
 ### Workflow Limit and scm_branch Prompting (Caleb, Danny)
 
@@ -122,20 +122,16 @@
 ### Upgrade
 
 
-  * OpenShift 3.3.x to Release:
   * OpenShift 3.4.x to Release:
   * OpenShift 3.5.x to Release:
-  * Non-OpenShift 3.3.x to Release:
   * Non-OpenShift 3.4.x to Release:
   * Non-OpenShift 3.5.x to Release:
 
   * [ ] Check ansible version check that is [hardcoded in tower-packaging](https://github.com/ansible/tower-packaging/blob/f8d3d4cd6d1cf35cad6e09de88068440d667ff42/setup/roles/preflight/defaults/main.yml#L6)
-  * [ ] 3.2.8 to 3.5.0
-    * [ ] Bundle/Plain - Standalone
-  * [ ] 3.3.{0-5} -> 3.5.0
+  * [ ] 3.4.{0-3} -> Release
     * [ ] [Bundle/Plain - Standalone/Cluster]
     * [ ] [OpenShift]
-  * [ ] 3.4.{0-3} -> 3.5.0
+  * [ ] 3.5.{0-3} -> Release
     * [ ] [Bundle/Plain - Standalone/Cluster]
     * [ ] [OpenShift]
 
