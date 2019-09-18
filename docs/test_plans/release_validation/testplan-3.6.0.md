@@ -36,19 +36,19 @@
 
 ### Remove Ubuntu support (Yanis/Elijah)
 
-- [x] Testing complete #NEEDLINK
+- [x] [Testing complete](https://github.com/ansible/tower-qa/issues/3405)
 
 ### Remove /api/v1 (Elijah/Elyezer/Danny)
 
-- [x] Testing complete #NEEDLINK
+- [x] [Testing complete](https://github.com/ansible/tower-qa/issues/2935)
 
 ### Upgrade Django 2.2 LTS and DJRF (Yanis/Danny)
 
-- [x] Testing complete #NEEDLINK
+- [x] Testing complete (Existing regression testing was used for validation)
 
 ### Upgrade Node LTS (Yanis/Danny)
 
-- [x] Testing complete #NEEDLINK
+- [x] [Testing complete](https://github.com/ansible/tower-qa/issues/3407)
 
 ### Container Groups (Mat/Danny)
 
@@ -60,7 +60,7 @@
 
 ### SSL for PostgreSQL and RabbitMQ (Yanis/Elijah)
 
-- [ ] Testing complete #NEEDLINK
+- [ ] [Testing complete](https://github.com/ansible/tower-qa/issues/4090)
 
 ### Override SCM Branch on JT and related enhancements (Elijah/Caleb)
 
@@ -104,7 +104,7 @@
 
 ### Workflow Approval Notifications (Apruva, Elijah)
 
-  - [ ] [Testing complete]()
+  - [ ] [Testing complete](https://github.com/ansible/tower-qa/blob/apurva-workflow-approval-notifications/docs/test_plans/features/36_workflow_approval_notifications.md)
 
 
 
