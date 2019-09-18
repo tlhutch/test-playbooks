@@ -210,6 +210,7 @@ class Test_Ansible_Tower_Modules(APITest):
         }, factories, venv_path(python_venv_name))
 
         proj = v2.projects.get(name=proj_name).results[0]
+        proj.related.project_updates.get().results[0].wait_until_completed()
         assert proj_name == proj['name']
         assert proj['description'] == 'hello world'
         assert proj['scm_type'] == 'git'
