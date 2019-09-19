@@ -377,6 +377,8 @@ class Test_Job_Events(APITest):
             if 'res' not in data:
                 if event.event not in ['runner_on_skipped', 'runner_on_start']:
                     raise Exception('Unexpected lack of result in event_data: {0}'.format(event))
+                if event.event == 'runner_on_start':
+                    assert event.event_display == 'Host Started'
                 continue
             if 'results' in data.res:
                 results = data.res.results
