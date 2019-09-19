@@ -107,12 +107,10 @@ pipeline {
                         env.E2E_EXTERNAL_GRID_PORT = "80"
                     }  
                 }
-                withCredentials([string(credentialsId: 'awx_admin_password', variable: 'AWX_ADMIN_PASSWORD'),
-                                file(credentialsId: '86ed99e9-dad9-49e9-b0db-9257fb563bad', variable: 'JSON_KEY_FILE_PATH')]) {
++                withCredentials([file(credentialsId: '86ed99e9-dad9-49e9-b0db-9257fb563bad', variable: 'JSON_KEY_FILE_PATH')]) {
                     sshagent(['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
                         sh '''#!/bin/bash
-                        AWX_ADMIN_PASSWORD=${AWX_ADMIN_PASSWORD} \
-                            E2E_URL=${E2E_URL} \
+                        E2E_URL=${E2E_URL} \
                             DEPLOYMENT_TYPE=${DEPLOYMENT_TYPE} \
                             E2E_FORK=${E2E_FORK} \
                             E2E_BRANCH=${E2E_BRANCH} \

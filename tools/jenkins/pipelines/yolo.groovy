@@ -338,11 +338,9 @@ pipeline {
                                         file(credentialsId: 'abcd0260-fb83-404e-860f-f9697911a0bc', variable: 'VAULT_FILE'),
                                         file(credentialsId: '86ed99e9-dad9-49e9-b0db-9257fb563bad', variable: 'JSON_KEY_FILE'),
                                         string(credentialsId: 'aws_access_key', variable: 'AWS_ACCESS_KEY'),
-                                        string(credentialsId: 'aws_secret_key', variable: 'AWS_SECRET_KEY'),
-                                        string(credentialsId: 'awx_admin_password', variable: 'AWX_ADMIN_PASSWORD')]) {
+                                        string(credentialsId: 'aws_secret_key', variable: 'AWS_SECRET_KEY')]) {
                             withEnv(["AWS_SECRET_KEY=${AWS_SECRET_KEY}",
                                      "AWS_ACCESS_KEY=${AWS_ACCESS_KEY}",
-                                     "AWX_ADMIN_PASSWORD=${AWX_ADMIN_PASSWORD}",
                                      "AWX_ANSIBLE_RUNNER_URL=${AWX_ANSIBLE_RUNNER_URL}",
                                      "AWX_USE_TLS=${AWX_USE_TLS}",
                                      "SCENARIO=${SCENARIO}",
@@ -362,10 +360,17 @@ pipeline {
                                     // Generate variable file for tower deployment
                                     sh './tools/jenkins/scripts/generate_vars.sh'
 
+                                    // Archive the admin_password and show to the user
+                                    sh 'mkdir -p artifacts'
+                                    sh 'grep "admin_password" "playbooks/vars.yml" | awk \'{ print $2 }\' | tee artifacts/admin_password'
+
+                                    // Update the credentials files before deploying the test runner so that the credentials files are copied with the random generated admin password in place
+                                    sh 'sed -i "s/default: &id001 {password: fo0m4nchU,/default: \\&id001 {password: $(cat artifacts/admin_password),/" config/credentials.yml'
+                                    sh 'sed -i "s/default: &id001 {password: fo0m4nchU,/default: \\&id001 {password: $(cat artifacts/admin_password),/" config/credentials-pkcs8.vault'
+
                                     sh 'ansible-playbook -v -i playbooks/inventory -e @playbooks/test_runner_vars.yml playbooks/deploy-test-runner.yml'
 
                                     // Archive test runner inventory file and show it to user so they can optionally shell in
-                                    sh 'mkdir -p artifacts'
                                     sh 'cat playbooks/inventory.test_runner | tee artifacts/inventory.test_runner'
                                     sh 'grep -A 1 test-runner playbooks/inventory.test_runner | tail -n 1 | cut -d" " -f1 > artifacts/test_runner_host'
 
@@ -375,8 +380,9 @@ pipeline {
                         }
 
                         script {
-                            TEST_RUNNER_HOST = readFile('artifacts/test_runner_host').trim()
+                            ADMIN_PASSWORD = readFile('artifacts/admin_password').trim()
                             SSH_OPTS = '-o ForwardAgent=yes -o StrictHostKeyChecking=no'
+                            TEST_RUNNER_HOST = readFile('artifacts/test_runner_host').trim()
                         }
                     }
                 }
@@ -471,6 +477,14 @@ pipeline {
                                     value: "${params.TOWER_BRANCH}"
                                 ),
                                 string(
+                                    name: 'E2E_SCRIPT_BRANCH',
+                                    value: "${params.TOWER_QA_BRANCH}"
+                                ),
+                                password(
+                                    name: 'E2E_PASSWORD',
+                                    value: "${ADMIN_PASSWORD}",
+                                ),
+                                string(
                                     name: 'E2E_TEST_SELECTION',
                                     value: "${params.E2E_TESTEXPR}"
                                 ),
@@ -563,6 +577,10 @@ def genSlackMessage (parrot) {
         message += "Instance URL - ${readFile('artifacts/tower_url').trim()}\n"
     } else {
         message += 'Instance URL - N/A\n'
+    }
+
+    if (fileExists('artifacts/admin_password')) {
+        message += "Admin password - <${env.BUILD_URL}artifact/artifacts/admin_password/*view*/|admin_password>\n"
     }
 
     message += """\

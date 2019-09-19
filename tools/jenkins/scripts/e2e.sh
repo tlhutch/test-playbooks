@@ -20,12 +20,11 @@
 # - DEPLOYMENT_TYPE: awx or tower. Currently defaults to tower.
 # - SELENIUM_DOCKER_TAG: This is the tag used for selenium/node-chrome
 #   and node/firefox images. Defaults to "latest".
-# - AWX_ADMIN_PASSWORD: Manually provide this if you don't have a VARS_FILE
-#   like playbooks/vars.yml.
 # - E2E_URL: Target instance to test.
 # - E2E_USERNAME: Login to use during tests. Defaults to "admin".
-# - E2E_PASSWORD: Password for tests. Defaults to the value of AWX_ADMIN_PASSWORD.
 #   Change this if you want to run E2E with a different user than admin.
+# - E2E_PASSWORD: Password for tests. If not provided, will try to fetch from
+#   the VARS_FILE.
 # - E2E_FORK: Fork of repo to draw tests from. Defaults to "ansible".
 # - E2E_BRANCH: Branch of repo to draw tests from. Defaults to "devel".
 # - E2E_TEST_SELECTION: Test filter for nightwatch tests. Defaults to "*".
@@ -48,45 +47,39 @@ SKIP_DOCKER_LOGIN=${SKIP_DOCKER_LOGIN:-false}
 
 # Define your target E2E_URL ahead of time if you do not have a playbooks/inventory.cluster file
 # generated to use for information.
-if [[ -z "$E2E_URL" ]]; then
+if [[ -z "${E2E_URL}" ]]; then
     INVENTORY=$(retrieve_inventory_file)
-    echo "inventory used: $INVENTORY"
+    echo "inventory used: ${INVENTORY}"
     E2E_URL="https://$(retrieve_tower_server_from_inventory "${INVENTORY}")"
-    echo "E2E_URL retrieved from inventory is $E2E_URL"
+    echo "E2E_URL retrieved from inventory is ${E2E_URL}"
 fi
 
 # A string, either awx or tower
-if [[ -z "$DEPLOYMENT_TYPE" ]]; then
+if [[ -z "${DEPLOYMENT_TYPE}" ]]; then
     DEPLOYMENT_TYPE=$(retrieve_deployment_type "${E2E_URL}")
-fi
-
-if [[ -z "$AWX_ADMIN_PASSWORD" ]]; then
-    AWX_ADMIN_PASSWORD=$(retrieve_value_from_vars_file "${VARS_FILE}" admin_password)
 fi
 
 SELENIUM_DOCKER_TAG=${SELENIUM_DOCKER_TAG:-"latest"}
 
 # Include https:// in URL. This is the URL the tests will target.
 E2E_USERNAME=${E2E_USERNAME:-admin}
-E2E_PASSWORD=${E2E_PASSWORD:-"$AWX_ADMIN_PASSWORD"}
+E2E_PASSWORD=${E2E_PASSWORD:-}
 E2E_FORK=${E2E_FORK:-"ansible"}
 E2E_BRANCH=${E2E_BRANCH:-"devel"}
 E2E_TEST_SELECTION=${E2E_TEST_SELECTION:-"*"}
 E2E_RETRIES=${E2E_RETRIES:-"2"}
 
+if [[ -z "${E2E_PASSWORD}" ]]; then
+    E2E_PASSWORD=$(retrieve_value_from_vars_file "${VARS_FILE}" admin_password)
+fi
+
 # Uses locally sourced chromedriver by default
 E2E_EXTERNAL_GRID_HOSTNAME=${E2E_EXTERNAL_GRID_HOSTNAME:-$"hub"}
 E2E_EXTERNAL_GRID_PORT=${E2E_EXTERNAL_GRID_PORT:-$"4444"}
 
-git clone -b "${E2E_BRANCH}" git@github.com:"${E2E_FORK}"/"${DEPLOYMENT_TYPE}".git --depth 1 ${DEPLOYMENT_TYPE}
+git clone -b "${E2E_BRANCH}" "git@github.com:${E2E_FORK}/${DEPLOYMENT_TYPE}.git" --depth 1 "${DEPLOYMENT_TYPE}"
 
-# if [[ "$DEPLOYMENT_TYPE" == "tower" ]]; then
-  if [[ 1 ]]; then
-    python "$(dirname "${0}")"/apply_license_py2.py -u admin -p "${AWX_ADMIN_PASSWORD}" "${E2E_URL}"
-    CONTAINER_IMAGE_NAME=tower_e2e
-else
-    CONTAINER_IMAGE_NAME=awx_e2e
-fi
+python "$(dirname "${0}")"/apply_license_py2.py -u admin -p "${E2E_PASSWORD}" "${E2E_URL}"
 
 # Only skip login if explicitly set to true
 if ! [[ $SKIP_DOCKER_LOGIN == "true" ]]; then
@@ -96,8 +89,8 @@ if ! [[ $SKIP_DOCKER_LOGIN == "true" ]]; then
 else
     echo "SKIP_DOCKER_LOGIN is set to true, skipping and going to the docker pull step"
 fi
-docker pull gcr.io/ansible-tower-engineering/"${CONTAINER_IMAGE_NAME}":latest
-docker tag gcr.io/ansible-tower-engineering/"${CONTAINER_IMAGE_NAME}":latest ${CONTAINER_IMAGE_NAME}:latest
+docker pull gcr.io/ansible-tower-engineering/tower_e2e:latest
+docker tag gcr.io/ansible-tower-engineering/tower_e2e:latest tower_e2e:latest
 
 mkdir -p "${DEPLOYMENT_TYPE}/awx/ui/test/e2e/screenshots"
 

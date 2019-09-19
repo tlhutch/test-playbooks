@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 from argparse import ArgumentParser
-import binascii
 import yaml
 import sys
 import os
+import random
+import string
 
 # Purpose: To generate cloud instance vars for the deploy playbooks of the form:
 # ec2_images: [{'name': 'rhel-7.4-x86_64', 'user': 'ec2-user', 'id': 'ami-c998b6b2',
@@ -56,7 +57,7 @@ def parse_args():
 
 
 def random_password():
-    return binascii.b2a_hex(os.urandom(5)).decode()
+    return ''.join(random.SystemRandom().choices(string.ascii_letters + string.digits, k=16))
 
 
 def prune_image_vars(image_vars):
