@@ -68,7 +68,7 @@ def os_python_version(session_ansible_python):
 
 
 @pytest.fixture(autouse=True)
-def skip_if_wrong_python(request, os_python_version):
+def skip_if_wrong_python(request, os_python_version, is_docker):
     """Skip when the venv python version does not match the OS base Python
     version.
 
@@ -76,7 +76,7 @@ def skip_if_wrong_python(request, os_python_version):
     have libsexlinux-python available.
     """
     python_venv_name = request.getfixturevalue('python_venv_name')
-    if not python_venv_name.startswith(f'python{os_python_version}'):
+    if not python_venv_name.startswith(f'python{os_python_version}') and not is_docker:
         pytest.skip(f'OS Python version is {os_python_version} which does not match venv')
 
 
@@ -197,3 +197,252 @@ class Test_Ansible_Tower_Modules(APITest):
         module_tower_version = job_event['event_data']['res']['tower_version']
 
         assert tower_version == module_tower_version
+
+    def test_ansible_tower_module_project_create(self, request, v2, factories, venv_path, python_venv_name, organization):
+        proj_name = utils.random_title()
+        request.addfinalizer(lambda *args: v2.projects.get(name=proj_name).results[0].delete())
+        self.run_tower_module('tower_project', {
+            'name': proj_name,
+            'description': 'hello world',
+            'scm_type': 'git',
+            'scm_url': 'git@github.com:ansible/test-playbooks.git',
+            'organization': organization.name,
+        }, factories, venv_path(python_venv_name))
+
+        proj = v2.projects.get(name=proj_name).results[0]
+        proj.related.project_updates.get().results[0].wait_until_completed()
+        assert proj_name == proj['name']
+        assert proj['description'] == 'hello world'
+        assert proj['scm_type'] == 'git'
+        assert proj['scm_url'] == 'git@github.com:ansible/test-playbooks.git'
+        assert proj['organization'] == organization.id
+
+    def test_ansible_tower_module_project_delete(self, factories, v2, venv_path, python_venv_name):
+        proj = factories.project()
+        self.run_tower_module('tower_project', {
+            'name': proj.name,
+            'state': 'absent',
+        }, factories, venv_path(python_venv_name))
+
+        assert not v2.projects.get(name=proj.name).results
+
+    def test_ansible_tower_module_credential_create(self, request, v2, factories, venv_path, python_venv_name, organization):
+        cred_name = utils.random_title()
+        request.addfinalizer(lambda *args: v2.credentials.get(name=cred_name).results[0].delete())
+        self.run_tower_module('tower_credential', {
+            'name': cred_name,
+            'description': 'hello world',
+            'kind': 'ssh',
+            'organization': organization.name,
+        }, factories, venv_path(python_venv_name))
+
+        cred = v2.credentials.get(name=cred_name).results[0]
+        assert cred_name == cred['name']
+        assert cred['description'] == 'hello world'
+        assert cred['kind'] == 'ssh'
+        assert cred['organization'] == organization.id
+
+    def test_ansible_tower_module_credential_delete(self, factories, v2, venv_path, python_venv_name):
+        cred = factories.credential()
+        self.run_tower_module('tower_credential', {
+            'name': cred.name,
+            'state': 'absent',
+            'kind': cred.kind,
+            'organization': cred.summary_fields.organization.name
+        }, factories, venv_path(python_venv_name))
+
+        assert 0 == len(v2.credentials.get(name=cred.name).results)
+
+    def test_ansible_tower_module_credential_type_create(self, request, v2, factories, venv_path, python_venv_name, organization):
+        cred_name = utils.random_title()
+        request.addfinalizer(lambda *args: v2.credential_types.get(name=cred_name).results[0].delete())
+        self.run_tower_module('tower_credential_type', {
+            'name': cred_name,
+            'description': 'hello world',
+            'kind': 'cloud',
+        }, factories, venv_path(python_venv_name))
+
+        cred = v2.credential_types.get(name=cred_name).results[0]
+        assert cred_name == cred['name']
+        assert cred['description'] == 'hello world'
+        assert cred['kind'] == 'cloud'
+
+    def test_ansible_tower_module_credential_type_delete(self, factories, v2, venv_path, python_venv_name):
+        cred = factories.credential_type()
+        self.run_tower_module('tower_credential_type', {
+            'name': cred.name,
+            'state': 'absent',
+            'kind': cred.kind,
+        }, factories, venv_path(python_venv_name))
+
+        assert 0 == len(v2.credential_types.get(name=cred.name).results)
+
+    def test_ansible_tower_module_group_create(self, request, v2, factories, venv_path, python_venv_name):
+        group_name = utils.random_title()
+        inv = factories.inventory()
+        request.addfinalizer(lambda *args: v2.groups.get(name=group_name).results[0].delete())
+        self.run_tower_module('tower_group', {
+            'name': group_name,
+            'description': 'hello world',
+            'inventory': inv.name
+        }, factories, venv_path(python_venv_name))
+
+        group = v2.groups.get(name=group_name).results[0]
+        assert group_name == group['name']
+        assert group['description'] == 'hello world'
+        assert group['inventory'] == inv.id
+
+    def test_ansible_tower_module_group_delete(self, factories, v2, venv_path, python_venv_name):
+        group = factories.group()
+        self.run_tower_module('tower_group', {
+            'name': group.name,
+            'inventory': group.summary_fields.inventory.name,
+            'state': 'absent',
+        }, factories, venv_path(python_venv_name))
+
+        assert 0 == len(v2.groups.get(name=group.name).results)
+
+    def test_ansible_tower_module_host_create(self, request, v2, factories, venv_path, python_venv_name):
+        host_name = utils.random_title()
+        inv = factories.inventory()
+        request.addfinalizer(lambda *args: v2.hosts.get(name=host_name).results[0].delete())
+        self.run_tower_module('tower_host', {
+            'name': host_name,
+            'description': 'hello world',
+            'inventory': inv.name
+        }, factories, venv_path(python_venv_name))
+
+        host = v2.hosts.get(name=host_name).results[0]
+        assert host_name == host['name']
+        assert host['description'] == 'hello world'
+        assert host['inventory'] == inv.id
+
+    def test_ansible_tower_module_host_delete(self, factories, v2, venv_path, python_venv_name):
+        host = factories.host()
+        self.run_tower_module('tower_host', {
+            'name': host.name,
+            'inventory': host.summary_fields.inventory.name,
+            'state': 'absent',
+        }, factories, venv_path(python_venv_name))
+
+        assert 0 == len(v2.hosts.get(name=host.name).results)
+
+    def test_ansible_tower_module_inventory_create(self, request, v2, factories, venv_path, python_venv_name):
+        inventory_name = utils.random_title()
+        org = factories.organization()
+        request.addfinalizer(lambda *args: v2.inventory.get(name=inventory_name).results[0].delete())
+        self.run_tower_module('tower_inventory', {
+            'name': inventory_name,
+            'description': 'hello world',
+            'organization': org.name
+        }, factories, venv_path(python_venv_name))
+
+        inventory = v2.inventory.get(name=inventory_name).results[0]
+        assert inventory_name == inventory['name']
+        assert inventory['description'] == 'hello world'
+        assert inventory['organization'] == org.id
+
+    def test_ansible_tower_module_inventory_delete(self, factories, v2, venv_path, python_venv_name):
+        inventory = factories.inventory()
+        self.run_tower_module('tower_inventory', {
+            'name': inventory.name,
+            'organization': inventory.summary_fields.organization.name,
+            'state': 'absent',
+        }, factories, venv_path(python_venv_name))
+
+        assert 0 == len(v2.inventory.get(name=inventory.name).results)
+
+    def test_ansible_tower_module_job(self, request, factories, v2, venv_path, python_venv_name):
+        jt_name = utils.random_title()
+        project = factories.project()
+        inventory = factories.inventory()
+        factories.host(inventory=inventory, variables=dict(ansible_host='localhost', ansible_connection='local'))
+
+        # We need this to teardown the JT if it fails before the end. The try
+        # block also means it wont fail if we get to the end and clean up the
+        # JT as part of the test
+        def cleanup_jt():
+            try:
+                return v2.job_templates.get(name=jt_name).results[0].delete()
+            except:
+                print("failed to remove JT in teardown")
+
+        request.addfinalizer(cleanup_jt)
+        self.run_tower_module('tower_job_template', {
+            'name': jt_name,
+            'description': 'hello world',
+            'job_type': 'run',
+            'inventory': inventory.name,
+            'playbook': 'sleep.yml',
+            'project': project.name,
+        }, factories, venv_path(python_venv_name))
+
+        jt = v2.job_templates.get(name=jt_name).results[0]
+        assert jt_name == jt['name']
+        assert jt['description'] == 'hello world'
+        assert jt['job_type'] == 'run'
+        assert jt['inventory'] == inventory.id
+        assert jt['playbook'] == 'sleep.yml'
+        assert jt['project'] == project.id
+
+        # Launch the JT we just built
+        self.run_tower_module('tower_job_launch', {
+            'job_template': jt_name,
+        }, factories, venv_path(python_venv_name))
+
+        job = v2.jobs.get(name=jt_name).results[0]
+        assert job.summary_fields.job_template.name == jt_name
+
+        job_id1 = job.id
+
+        # Cancel the job we just launched
+        self.run_tower_module('tower_job_cancel', {
+            'job_id': job_id1,
+        }, factories, venv_path(python_venv_name))
+
+        job = v2.jobs.get(id=job_id1).results[0]
+        assert job.summary_fields.job_template.name == jt_name
+        assert job.status == "canceled"
+
+        # Launch another job
+        self.run_tower_module('tower_job_launch', {
+            'job_template': jt_name,
+        }, factories, venv_path(python_venv_name))
+
+        job = v2.jobs.get(name=jt_name).results[1]
+        assert job.summary_fields.job_template.name == jt_name
+
+        job_id2 = job.id
+
+        # Sanity check
+        assert job_id1 != job_id2
+
+        # Wait for the job we just launched
+        self.run_tower_module('tower_job_wait', {
+            'job_id': job_id2,
+        }, factories, venv_path(python_venv_name))
+
+        job = v2.jobs.get(id=job_id2).results[0]
+        assert job.summary_fields.job_template.name == jt_name
+        assert job.status == "successful"
+
+        # List jobs
+        # I'm not entirely sure how to test this better
+        job_output = self.run_tower_module('tower_job_list', {}, factories,
+                venv_path(python_venv_name)).wait_until_completed()
+
+        # Basic test
+        assert job_output.status == 'successful'
+
+        # Remove our job template
+        self.run_tower_module('tower_job_template', {
+            'name': jt_name,
+            'job_type': 'run',
+            'inventory': inventory.name,
+            'playbook': 'sleep.yml',
+            'project': project.name,
+            'state': 'absent',
+        }, factories, venv_path(python_venv_name))
+
+        job_templates = v2.job_templates.get(name=jt_name).results
+        assert not job_templates
