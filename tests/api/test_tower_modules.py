@@ -224,7 +224,7 @@ class Test_Ansible_Tower_Modules(APITest):
             'state': 'absent',
         }, factories, venv_path(python_venv_name))
 
-        assert 0 == len(v2.projects.get(name=proj.name).results)
+        assert not v2.projects.get(name=proj.name).results
 
     def test_ansible_tower_module_credential_create(self, request, v2, factories, venv_path, python_venv_name, organization):
         cred_name = utils.random_title()
@@ -445,4 +445,4 @@ class Test_Ansible_Tower_Modules(APITest):
         }, factories, venv_path(python_venv_name))
 
         job_templates = v2.job_templates.get(name=jt_name).results
-        assert len(job_templates) == 0
+        assert not job_templates
