@@ -120,6 +120,7 @@ Tower Memcached Container Image: ${params.MEMCACHED_CONTAINER_IMAGE}"""
             steps {
                 withCredentials([string(credentialsId: 'awx_admin_password', variable: 'AWX_ADMIN_PASSWORD')]) {
                     withEnv(["OPENSHIFT_PASS=${AWX_ADMIN_PASSWORD}",
+                             "ANSIBLE_FORCE_COLOR=true",
                              "OPENSHIFT_DEPLOYMENT=true"]) {
                         sh './tools/jenkins/scripts/backup.sh'
                     }
@@ -152,6 +153,7 @@ Tower Memcached Container Image: ${params.MEMCACHED_CONTAINER_IMAGE}"""
             steps {
                 withCredentials([string(credentialsId: 'awx_admin_password', variable: 'AWX_ADMIN_PASSWORD')]) {
                     withEnv(["OPENSHIFT_PASS=${AWX_ADMIN_PASSWORD}",
+                             "ANSIBLE_FORCE_COLOR=true",
                              "OPENSHIFT_DEPLOYMENT=true"]) {
                         sh './tools/jenkins/scripts/restore.sh'
                     }
