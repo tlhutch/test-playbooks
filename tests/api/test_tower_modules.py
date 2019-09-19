@@ -340,7 +340,7 @@ class Test_Ansible_Tower_Modules(APITest):
         inventory = v2.inventory.get(name=inventory_name).results[0]
         assert inventory_name == inventory['name']
         assert inventory['description'] == 'hello world'
-        assert inventory['organization'] == org.name
+        assert inventory['organization'] == org.id
 
     def test_ansible_tower_module_inventory_delete(self, factories, v2, venv_path, python_venv_name):
         inventory = factories.inventory()
@@ -388,12 +388,10 @@ class Test_Ansible_Tower_Modules(APITest):
         # Launch the JT we just built
         self.run_tower_module('tower_job_launch', {
             'job_template': jt_name,
-            'extra_vars': 'sleep_interval: 1000'
         }, factories, venv_path(python_venv_name))
 
         job = v2.jobs.get(name=jt_name).results[0]
         assert job.summary_fields.job_template.name == jt_name
-        assert job['sleep_interval'] == 1000
 
         job_id1 = job.id
 
@@ -409,12 +407,10 @@ class Test_Ansible_Tower_Modules(APITest):
         # Launch another job
         self.run_tower_module('tower_job_launch', {
             'job_template': jt_name,
-            'extra_vars': 'sleep_interval: 10'
         }, factories, venv_path(python_venv_name))
 
         job = v2.jobs.get(name=jt_name).results[1]
         assert job.summary_fields.job_template.name == jt_name
-        assert job['sleep_interval'] == 10
 
         job_id2 = job.id
 
