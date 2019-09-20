@@ -29,7 +29,7 @@ Scope selected: ${params.SCOPE}"""
 
                 script {
                     if (params.TOWER_VERSION == '3.5.x' ) {
-                        _TOWER_VERSION = '3.5.3'
+                        _TOWER_VERSION = '3.5.4'
                     } else if (params.TOWER_VERSION == '3.4.x') {
                         _TOWER_VERSION = '3.4.6'
                     } else if (params.TOWER_VERSION == '3.3.x') {

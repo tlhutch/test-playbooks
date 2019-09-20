@@ -34,7 +34,7 @@ pipeline {
                     } else if (params.TOWER_VERSION == '3.4') {
                         _TOWER_VERSION = '3.4.5'
                     } else if (params.TOWER_VERSION == '3.5') {
-                        _TOWER_VERSION = '3.5.2'
+                        _TOWER_VERSION = '3.5.3'
                     } else {
                         _TOWER_VERSION = 'devel'
                     }
