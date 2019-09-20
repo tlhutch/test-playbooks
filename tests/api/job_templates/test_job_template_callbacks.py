@@ -639,6 +639,7 @@ class TestJobTemplateCallbacks(APITest):
             job1.relaunch()
 
     @pytest.mark.yolo
+    @pytest.mark.github('https://github.com/ansible/tower-qa/issues/4114', skip=True)
     def test_job_triggered_by_callback_sources_venv(self, skip_if_cluster, v2, factories, create_venv, job_template_with_host_config_key,
                                                     host_config_key, remote_hosts, venv_path):
         folder_name = utils.random_title(non_ascii=False)
