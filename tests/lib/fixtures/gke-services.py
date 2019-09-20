@@ -67,7 +67,7 @@ def create_gke_client():
         kube_config.api_key_prefix['authorization'] = 'Bearer'
         kube_config.ssl_ca_cert = '/tmp/ssl_ca_cert'
         with open(kube_config.ssl_ca_cert, 'wb') as f:
-            f.write(base64.decodestring(gke_cluster['masterAuth']['clusterCaCertificate'].encode()))
+            f.write(base64.decodebytes(gke_cluster['masterAuth']['clusterCaCertificate'].encode()))
         client = kubernetes.client.ApiClient(configuration=kube_config)
         return K8sClient(client)
     return create_client
