@@ -145,7 +145,6 @@ class TestSplunkLogging(APITest):
         return callable
 
     def test_splunk_log(self, factories, v2, splunk_logger_url, splunk_logger_session, results_exist, get_log_results):
-        _api = splunk_api_session
         _log = splunk_logger_session
 
         my_uuid1 = uuid.uuid4()
@@ -172,7 +171,6 @@ class TestSplunkLogging(APITest):
         get_log_results,
         results_exist
         ):
-        _api = splunk_api_session
 
         new_settings = {
             'LOG_AGGREGATOR_HOST': splunk_logger_url,
@@ -184,13 +182,23 @@ class TestSplunkLogging(APITest):
 
         inv = factories.inventory()
         host = inv.add_host()
+        inv2 = factories.inventory()
+        host2 = inv.add_host()
         adhoc = factories.ad_hoc_command(inventory=inv)
         adhoc.wait_until_completed()
+        wfjt = factories.workflow_job_template()
+        jt = factories.job_template(inventory=inv2)
+        factories.workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt)
+        wf_job = wfjt.launch().wait_until_completed()
+        wf_job.assert_successful()
+        spawned_job_id = jt.related.jobs.get().results.pop().id
         # It can take time for the event to be processed and end up in the search results
         utils.poll_until(results_exist, interval=5, timeout=120)
         results = get_log_results()
         adhoc_results_logged = []
-        event_with_host_name = None
+        event_with_adhoc_host_name = None
+        event_with_wfjob_host_name = None
+        workflow_job_events_logged = []
         for result in results:
             try:
                 result = dict(json.loads(result))
@@ -199,7 +207,13 @@ class TestSplunkLogging(APITest):
             if f'ad_hoc_command {adhoc.id}' in result.get('message', ''):
                 adhoc_results_logged.append(result)
             if host.name in result.get('host_name', ''):
-                adhoc_results_logged.append(result)
-                event_with_host_name = result
+                event_with_adhoc_host_name = result
+            if host2.name in result.get('host_name', ''):
+                event_with_wfjob_host_name = result
+            if spawned_job_id == result.get('job'):
+                assert wf_job.id == result.get('workflow_job_id')
+                workflow_job_events_logged.append(result)
         assert adhoc_results_logged
-        assert event_with_host_name
+        assert event_with_adhoc_host_name
+        assert workflow_job_events_logged
+        assert event_with_wfjob_host_name
