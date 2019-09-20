@@ -1,10 +1,14 @@
 import functools
+import json
 import os
 import stat
 import re
 
 from awxkit import config
 import pytest
+
+
+result_to_str = functools.partial(json.dumps, indent=2, sort_keys=True)
 
 
 @pytest.fixture(scope='session')
@@ -52,7 +56,7 @@ def tower_modules_collection(request, session_ansible_adhoc, ansible_collections
             state='directory',
         )
         for result in contacted.values():
-            assert result.get('state', None) == 'directory', result
+            assert result.get('state', None) == 'directory', result_to_str(result)
 
         build_dir = os.path.join(ansible_collections_path, 'build')
 
@@ -65,7 +69,7 @@ def tower_modules_collection(request, session_ansible_adhoc, ansible_collections
             force=True
         )
         for result in git_result.values():
-            assert (result.get('before') or result.get('after')), result
+            assert (result.get('before') or result.get('after')), result_to_str(result)
 
         # TODO: optionally build as awx or tower
         contacted = ansible_adhoc.shell((
@@ -73,14 +77,14 @@ def tower_modules_collection(request, session_ansible_adhoc, ansible_collections
             '-e package_name=awx -e namespace_name=awx -e package_version=0.0.1'
         ), chdir=build_dir)
         for result in contacted.values():
-            assert result.get('rc', None) == 0, result
+            assert result.get('rc', None) == 0, result_to_str(result)
 
         contacted = ansible_adhoc.shell(
             'ansible-galaxy collection build --force',
             chdir=os.path.join(build_dir, 'awx_collection')
         )
         for result in contacted.values():
-            assert result.get('rc', None) == 0, result
+            assert result.get('rc', None) == 0, result_to_str(result)
             stdout = result['stdout']
             assert 'Created collection' in stdout
             package_name = re.search(r'\b([a-z0-9\.-]*\.tar\.gz)\b', stdout).group(1)
@@ -91,8 +95,7 @@ def tower_modules_collection(request, session_ansible_adhoc, ansible_collections
             )
         )
         for result in contacted.values():
-            assert result.get('rc', None) == 0, result
-
+            assert result.get('rc', None) == 0, result_to_str(result)
         contacted = ansible_adhoc.file(
             dest=ansible_collections_path,
             mode=stat.S_IRUSR | stat.S_IXUSR | stat.S_IWUSR | stat.S_IRGRP | stat.S_IXGRP | stat.S_IROTH | stat.S_IXOTH,
@@ -100,7 +103,7 @@ def tower_modules_collection(request, session_ansible_adhoc, ansible_collections
             state='directory',
         )
         for result in contacted.values():
-            assert result.get('mode', None) == '0755', result
+            assert result.get('mode', None) == '0755', result_to_str(result)
     except AssertionError as e:
         pytest.fail(
             'Failed to install chrismeyersfsu.ansible_content_example\n{}'.format(e)
