@@ -157,8 +157,9 @@ class Test_Ansible_Tower_Modules(APITest):
         # TODO: update module name to "awx.awx.tower_organization" when modules are fully migrated
         # or maybe "awx.awx.organization", still not fully decided
         # no assertion here because only testing that job was successful
+        # also test "ansible.tower.xxx"
         self.run_tower_module(
-            'chrismeyersfsu.tower_modules.tower_organization', {'name': org.name},
+            'awx.awx.tower_organization', {'name': org.name},
             factories, venv_path(python_venv_name)
         )
 

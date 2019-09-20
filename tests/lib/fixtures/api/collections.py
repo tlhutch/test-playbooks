@@ -1,6 +1,7 @@
 import functools
 import os
 import stat
+import re
 
 from awxkit import config
 import pytest
@@ -52,13 +53,46 @@ def tower_modules_collection(request, session_ansible_adhoc, ansible_collections
         )
         for result in contacted.values():
             assert result.get('state', None) == 'directory', result
+
+        build_dir = os.path.join(ansible_collections_path, 'build')
+
+        # TODO: get awx/tower fork and branch from YOLameters
+        git_result = ansible_adhoc.git(
+            repo='https://github.com/AlanCoding/awx.git',
+            version='awx_modules_merge',
+            depth=1,
+            dest=build_dir,
+            force=True
+        )
+        for result in git_result.values():
+            assert (result.get('before') or result.get('after')), result
+
+        # TODO: optionally build as awx or tower
+        contacted = ansible_adhoc.shell((
+            'ansible-playbook -i localhost, awx_collection/template_galaxy.yml '
+            '-e package_name=awx -e namespace_name=awx -e package_version=0.0.1'
+        ), chdir=build_dir)
+        for result in contacted.values():
+            assert result.get('rc', None) == 0, result
+
         contacted = ansible_adhoc.shell(
-            'ansible-galaxy collection install chrismeyersfsu.tower_modules -p {}'.format(
-                ansible_collections_path
+            'ansible-galaxy collection build --force',
+            chdir=os.path.join(build_dir, 'awx_collection')
+        )
+        for result in contacted.values():
+            assert result.get('rc', None) == 0, result
+            stdout = result['stdout']
+            assert 'Created collection' in stdout
+            package_name = re.search(r'\b([a-z0-9\.-]*\.tar\.gz)\b', stdout).group(1)
+
+        contacted = ansible_adhoc.shell(
+            'ansible-galaxy collection install {} -p {} --force'.format(
+                os.path.join(build_dir, 'awx_collection', package_name), ansible_collections_path
             )
         )
         for result in contacted.values():
             assert result.get('rc', None) == 0, result
+
         contacted = ansible_adhoc.file(
             dest=ansible_collections_path,
             mode=stat.S_IRUSR | stat.S_IXUSR | stat.S_IWUSR | stat.S_IRGRP | stat.S_IXGRP | stat.S_IROTH | stat.S_IXOTH,
