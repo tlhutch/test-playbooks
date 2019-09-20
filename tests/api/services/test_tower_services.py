@@ -145,9 +145,12 @@ class TestTowerServices(APITest):
         good_wf_approval.approve()
         deny_wf_approval.deny()
         assert timeout_wf_approval.get().related.workflow_approval_template.get().timeout == TIMEOUT, 'Sanity check timeout is set correct'
-        timeout_wf_approval.wait_until_status('failed')
-        deny_wf_approval.wait_until_status('failed')
-        good_wf_approval.wait_until_status('successful')
+        timeout_wf_approval.wait_until_completed()
+        timeout_wf_approval.assert_status('failed')
+        deny_wf_approval.wait_until_completed()
+        deny_wf_approval.assert_status('failed')
+        good_wf_approval.wait_until_completed()
+        good_wf_approval.assert_status('successful')
         wf_job.wait_until_completed().assert_successful()
 
         jt.extra_vars = '{"sleep_interval": 1}'
