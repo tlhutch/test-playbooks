@@ -542,8 +542,7 @@ class Test_Projects(APITest):
         run_these = [
             'git config user.email jenkins@ansible.com',
             'git config user.name DoneByTest',
-            'rm debug.yml',
-            'git add debug.yml',
+            'git rm debug.yml',
             'git commit -m "Remove the debug.yml file, this should break things"'
         ]
         for this_command in run_these:
