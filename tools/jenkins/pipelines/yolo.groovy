@@ -13,6 +13,11 @@ pipeline {
             description: 'Deployment scenario for Tower',
             choices: ['standalone', 'cluster']
         )
+        choice(
+            name: 'AWX_USE_TLS',
+            description: 'Should the network services (postgresql, rabbitmq and nginx) use TLS (with custom CA issued certificates)',
+            choices: ['no', 'yes']
+        )
         string(
             name: 'TOWER_FORK',
             description: 'Fork of tower to deploy',
@@ -339,6 +344,7 @@ pipeline {
                                      "AWS_ACCESS_KEY=${AWS_ACCESS_KEY}",
                                      "AWX_ADMIN_PASSWORD=${AWX_ADMIN_PASSWORD}",
                                      "AWX_ANSIBLE_RUNNER_URL=${AWX_ANSIBLE_RUNNER_URL}",
+                                     "AWX_USE_TLS=${AWX_USE_TLS}",
                                      "SCENARIO=${SCENARIO}",
                                      "PLATFORM=${PLATFORM}",
                                      "ANSIBLE_VERSION=${ANSIBLE_NIGHTLY_BRANCH}",

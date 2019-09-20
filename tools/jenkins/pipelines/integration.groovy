@@ -22,6 +22,11 @@ pipeline {
             choices: ['standalone', 'cluster']
         )
         choice(
+            name: 'AWX_USE_TLS',
+            description: 'Should the network services (postgresql, rabbitmq and nginx) use TLS (with custom CA issued certificates)',
+            choices: ['no', 'yes']
+        )
+        choice(
             name: 'PLATFORM',
             description: 'The OS to install the Tower instance on',
             choices: ['rhel-7.7-x86_64', 'rhel-7.6-x86_64', 'rhel-7.5-x86_64', 'rhel-7.4-x86_64',
@@ -139,6 +144,7 @@ Bundle?: ${params.BUNDLE}"""
                                  string(credentialsId: 'awx_admin_password', variable: 'AWX_ADMIN_PASSWORD')]) {
                     withEnv(["AWS_SECRET_KEY=${AWS_SECRET_KEY}",
                              "AWS_ACCESS_KEY=${AWS_ACCESS_KEY}",
+                             "AWX_USE_TLS=${AWX_USE_TLS}",
                              "AWX_ADMIN_PASSWORD=${AWX_ADMIN_PASSWORD}"]) {
                         sshagent(credentials : ['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
                             sh './tools/jenkins/scripts/prep_test_runner.sh'
