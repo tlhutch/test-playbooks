@@ -1,3 +1,4 @@
+import json
 import uuid
 
 import pytest
@@ -50,7 +51,7 @@ def k8s_splunk(gke_client_cscope, request):
     K8sClient.core.create_namespaced_service(body=splunk_service, namespace='default')
     splunk_url = "https://http-{}-port-8000.{}".format(deployment_name, cluster_domain)
     splunk_api_url = 'https://https-{}-port-8089.{}'.format(deployment_name, cluster_domain)
-    splunk_logger_url = 'https://https-{}-port-8088.{}'.format(deployment_name, cluster_domain)
+    splunk_logger_url = 'https://https-{}-port-8088.{}/services/collector/event'.format(deployment_name, cluster_domain)
     request.addfinalizer(lambda: K8sClient.destroy(deployment_name))
 
     # Wait for HTTP service to become ready
@@ -98,26 +99,18 @@ def splunk_logger_session(splunk_logger_token):
     return log
 
 
+@pytest.mark.serial
 class TestSplunkLogging(APITest):
 
     '''
     Create 2 events in splunk; then find those 2 created events.
     '''
-    def test_splunk_log(self, factories, v2, splunk_logger_url, splunk_api_url, splunk_logger_session, splunk_api_session):
+
+    @pytest.fixture
+    def results_exist(self, splunk_api_session, splunk_api_url):
         _api = splunk_api_session
-        _log = splunk_logger_session
 
-        my_uuid1 = uuid.uuid4()
-        my_uuid2 = uuid.uuid4()
-
-        assert 200 == _log.post('{}/services/collector'.format(splunk_logger_url),
-                                json={'event': "my uuid is {}".format(str(my_uuid1))}).status_code
-        assert 200 == _log.post('{}/services/collector'.format(splunk_logger_url),
-                                json={'event': "my uuid is {}".format(str(my_uuid2))}).status_code
-
-        results = []
-
-        def get_log_results():
+        def callable():
             res = _api.post('{}/services/search/jobs/export'.format(splunk_api_url), data={'search': 'search *'})
             try:
                 found = list(ET.fromstring(res.content).findall('.//*v'))
@@ -127,15 +120,86 @@ class TestSplunkLogging(APITest):
             if not found:
                 return False
 
-            results.extend([f.text for f in found])
+            results = [f.text for f in found]
 
             if len(results) < 2:
                 return False
 
             return True
+        return callable
+
+    @pytest.fixture
+    def get_log_results(self, splunk_api_session, splunk_api_url):
+        _api = splunk_api_session
+
+        def callable():
+            res = _api.post('{}/services/search/jobs/export'.format(splunk_api_url), data={'search': 'search *'})
+            try:
+                found = list(ET.fromstring(res.content).findall('.//*v'))
+            except xml.etree.ElementTree.ParseError:
+                return []
+
+            results = [f.text for f in found]
+
+            return results
+        return callable
+
+    def test_splunk_log(self, factories, v2, splunk_logger_url, splunk_logger_session, results_exist, get_log_results):
+        _api = splunk_api_session
+        _log = splunk_logger_session
+
+        my_uuid1 = uuid.uuid4()
+        my_uuid2 = uuid.uuid4()
+
+        assert 200 == _log.post(splunk_logger_url,
+                                json={'event': "my uuid is {}".format(str(my_uuid1))}).status_code
+        assert 200 == _log.post(splunk_logger_url,
+                                json={'event': "my uuid is {}".format(str(my_uuid2))}).status_code
 
         # It can take time for the event to be processed and end up in the search results
-        utils.poll_until(get_log_results, interval=5, timeout=120)
+        utils.poll_until(results_exist, interval=5, timeout=120)
+        results = get_log_results()
 
         assert "my uuid is {}".format(str(my_uuid1)) in results
         assert "my uuid is {}".format(str(my_uuid2)) in results
+
+    def test_splunk_job_events_logging(self,
+        factories,
+        api_settings_logging_pg,
+        splunk_logger_url,
+        splunk_logger_token,
+        update_setting_pg,
+        get_log_results,
+        results_exist
+        ):
+        _api = splunk_api_session
+
+        new_settings = {
+            'LOG_AGGREGATOR_HOST': splunk_logger_url,
+            'LOG_AGGREGATOR_PASSWORD': splunk_logger_token,
+            'LOG_AGGREGATOR_TYPE': 'splunk',
+            'LOG_AGGREGATOR_ENABLED': True,
+            }
+        update_setting_pg(api_settings_logging_pg, new_settings)
+
+        inv = factories.inventory()
+        host = inv.add_host()
+        adhoc = factories.ad_hoc_command(inventory=inv)
+        adhoc.wait_until_completed()
+        # It can take time for the event to be processed and end up in the search results
+        utils.poll_until(results_exist, interval=5, timeout=120)
+        results = get_log_results()
+        adhoc_results_logged = []
+        event_with_host_name = None
+        for result in results:
+            try:
+                result = dict(json.loads(result))
+            except json.decoder.JSONDecodeError:
+                continue
+            if f'ad_hoc_command {adhoc.id}' in result.get('message', ''):
+                adhoc_results_logged.append(result)
+            if host.name in result.get('host_name', ''):
+                adhoc_results_logged.append(result)
+                event_with_host_name = result
+        assert adhoc_results_logged
+        assert event_with_host_name

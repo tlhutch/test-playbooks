@@ -613,3 +613,8 @@ def api_settings_user_pg(api_settings_pg):
 @pytest.fixture(scope="class")
 def api_settings_user_defaults_pg(api_settings_pg):
     return api_settings_pg.get_endpoint('user-defaults')
+
+# /api/v2/settings/logging
+@pytest.fixture(scope="class")
+def api_settings_logging_pg(api_settings_pg):
+    return api_settings_pg.get_endpoint('logging')
