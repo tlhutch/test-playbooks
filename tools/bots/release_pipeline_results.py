@@ -166,6 +166,7 @@ def did_it_run(
                 and build_params["SCENARIO"] == scenario
                 and build_params["PLATFORM"] == platform
                 and build_params["ANSIBLE_VERSION"] == ansible_version
+                and build_params["BUNDLE"] == 'no'
                 and current_release_pipeline_id == release_pipeline_build_id
             ):
                 return builds[build_id]
