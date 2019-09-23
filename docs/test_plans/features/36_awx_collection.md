@@ -34,7 +34,7 @@ as expected.
   - [x] organization
   - [x] project
   - [ ] receive
-  - [ ] role
+  - [x] role
   - [ ] send
   - [ ] settings
   - [ ] team

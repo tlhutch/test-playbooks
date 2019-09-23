@@ -447,3 +447,16 @@ class Test_Ansible_Tower_Modules(APITest):
 
         job_templates = v2.job_templates.get(name=jt_name).results
         assert not job_templates
+
+    def test_ansible_tower_module_role_create(self, request, v2, factories, venv_path, python_venv_name):
+        org = factories.organization()
+        user = factories.user()
+        self.run_tower_module('tower_role', {
+            'user': user.username,
+            'organization': org.name,
+            'role': 'admin',
+        }, factories, venv_path(python_venv_name))
+
+        role = v2.users.get(id=user.id)['results'][0]['related']['roles'].get().results[0]
+        assert str(org.id) in role['related']['organization']
+        assert role['related']['users'].get()['results'][0]['id'] == user.id
