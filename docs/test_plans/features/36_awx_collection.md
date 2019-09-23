@@ -39,5 +39,5 @@ as expected.
   - [ ] settings
   - [x] team
   - [x] user
-  - [ ] workflow\_launch
-  - [ ] workflow\_template
+  - [x] workflow\_launch
+  - [x] workflow\_template

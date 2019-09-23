@@ -517,3 +517,41 @@ class Test_Ansible_Tower_Modules(APITest):
 
         label = v2.labels.get(name=label_name).results[0]
         assert label_name == label['name']
+
+    def test_ansible_tower_module_workflow(self, request, factories, v2, venv_path, python_venv_name):
+        wf_name = utils.random_title()
+
+        # We need this to teardown the WF if it fails before the end. The try
+        # block also means it wont fail if we get to the end and clean up the
+        # WF as part of the test
+        def cleanup_wf():
+            try:
+                return v2.workflow_job_templates.get(name=wf_name).results[0].delete()
+            except:
+                print("failed to remove WF in teardown")
+
+        request.addfinalizer(cleanup_wf)
+        self.run_tower_module('tower_workflow_template', {
+            'name': wf_name,
+        }, factories, venv_path(python_venv_name))
+
+        wf = v2.workflow_job_templates.get(name=wf_name).results[0]
+        assert wf_name == wf['name']
+
+        # launch our workflow
+        self.run_tower_module('tower_workflow_launch', {
+            'workflow_template': wf_name,
+        }, factories, venv_path(python_venv_name))
+
+        wf_job = v2.workflow_jobs.get(name=wf_name).results[0]
+        assert wf_job['status'] == 'successful'
+        assert wf_name == wf_job['name']
+
+        # Remove our workflow
+        self.run_tower_module('tower_workflow_template', {
+            'name': wf_name,
+            'state': 'absent',
+        }, factories, venv_path(python_venv_name))
+
+        workflow_templates = v2.workflow_job_templates.get(name=wf_name).results
+        assert not workflow_templates
