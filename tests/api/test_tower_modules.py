@@ -460,3 +460,26 @@ class Test_Ansible_Tower_Modules(APITest):
         role = v2.users.get(id=user.id)['results'][0]['related']['roles'].get().results[0]
         assert str(org.id) in role['related']['organization']
         assert role['related']['users'].get()['results'][0]['id'] == user.id
+
+    def test_ansible_tower_module_team_create(self, request, v2, factories, venv_path, python_venv_name):
+        team_name = utils.random_title()
+        org = factories.organization()
+        request.addfinalizer(lambda *args: v2.teams.get(name=team_name).results[0].delete())
+        self.run_tower_module('tower_team', {
+            'name': team_name,
+            'organization': org.name
+        }, factories, venv_path(python_venv_name))
+
+        team = v2.teams.get(name=team_name).results[0]
+        assert team_name == team['name']
+        assert team['organization'] == org.id
+
+    def test_ansible_tower_module_team_delete(self, factories, v2, venv_path, python_venv_name):
+        team = factories.team()
+        self.run_tower_module('tower_team', {
+            'name': team.name,
+            'organization': team.summary_fields.organization.name,
+            'state': 'absent',
+        }, factories, venv_path(python_venv_name))
+
+        assert not v2.teams.get(name=team.name).results

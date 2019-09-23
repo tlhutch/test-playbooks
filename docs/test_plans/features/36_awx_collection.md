@@ -37,7 +37,7 @@ as expected.
   - [x] role
   - [ ] send
   - [ ] settings
-  - [ ] team
+  - [x] team
   - [ ] user
   - [ ] workflow\_launch
   - [ ] workflow\_template
