@@ -506,3 +506,14 @@ class Test_Ansible_Tower_Modules(APITest):
         }, factories, venv_path(python_venv_name))
 
         assert not v2.users.get(username=user.username).results
+
+    def test_ansible_tower_module_label_create(self, request, v2, factories, venv_path, python_venv_name):
+        label_name = utils.random_title()
+        org = factories.organization()
+        self.run_tower_module('tower_label', {
+            'name': label_name,
+            'organization': org.name
+        }, factories, venv_path(python_venv_name))
+
+        label = v2.labels.get(name=label_name).results[0]
+        assert label_name == label['name']
