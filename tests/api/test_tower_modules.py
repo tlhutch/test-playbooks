@@ -483,3 +483,26 @@ class Test_Ansible_Tower_Modules(APITest):
         }, factories, venv_path(python_venv_name))
 
         assert not v2.teams.get(name=team.name).results
+
+    def test_ansible_tower_module_user_create(self, request, v2, factories, venv_path, python_venv_name):
+        username = utils.random_title(non_ascii=False)
+        request.addfinalizer(lambda *args: v2.users.get(username=username).results[0].delete())
+        self.run_tower_module('tower_user', {
+            'username': username,
+            'password': username,
+            'email': 'example@example.com',
+        }, factories, venv_path(python_venv_name))
+
+        user = v2.users.get(username=username).results[0]
+        assert username == user['username']
+        assert user['email'] == 'example@example.com'
+
+    def test_ansible_tower_module_user_delete(self, factories, v2, venv_path, python_venv_name):
+        user = factories.user()
+        self.run_tower_module('tower_user', {
+            'username': user.username,
+            'email': user.email,
+            'state': 'absent',
+        }, factories, venv_path(python_venv_name))
+
+        assert not v2.users.get(username=user.username).results

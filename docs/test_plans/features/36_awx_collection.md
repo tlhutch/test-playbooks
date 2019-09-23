@@ -38,6 +38,6 @@ as expected.
   - [ ] send
   - [ ] settings
   - [x] team
-  - [ ] user
+  - [x] user
   - [ ] workflow\_launch
   - [ ] workflow\_template
