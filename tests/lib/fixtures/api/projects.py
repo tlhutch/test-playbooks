@@ -15,7 +15,7 @@ log = logging.getLogger(__name__)
 
 
 @pytest.fixture
-def git_file_path(skip_if_openshift, request, ansible_adhoc, is_docker):
+def git_file_path(skip_if_cluster, request, ansible_adhoc, is_docker):
     """Makes a git repo on the file system"""
     if is_docker:
         root = '/awx_devel'
