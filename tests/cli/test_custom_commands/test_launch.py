@@ -232,6 +232,7 @@ class TestAdhocLaunch(object):
             id=result.json['id']
         ).results[0].module_args == 'awx-manage --version'
 
+    @pytest.mark.github('https://github.com/ansible/awx/issues/4771', skip=True)
     def test_ahc_stdout_monitor(self, v2, cli, host, ssh_credential):
         result = cli([
             'awx', 'ad_hoc_commands', 'create', '--inventory',
