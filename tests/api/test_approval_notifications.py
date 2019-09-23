@@ -1,9 +1,7 @@
 import logging
-from urllib.parse import urlparse
 from awxkit.utils import suppress
 
 from tests.lib.notification_services import (confirm_notification, can_confirm_notification)
-from awxkit.config import config
 import awxkit.exceptions as exc
 import pytest
 from tests.api import APITest
@@ -38,20 +36,20 @@ def expected_job_notification(tower_url, notification_template_pg, job_pg, appro
     """
     nt_type = notification_template_pg.notification_type
     if tower_message:
-        msg = 'The approval node "' + str(approval_node.summary_fields.unified_job_template.name) + status + str(tower_url) + '/#/workflows/' + str(job_pg.id)
+        msg = 'The approval node "' + str(approval_node.summary_fields.unified_job_template.name) + '" ' + status + '. ' + str(tower_url) + '/#/workflows/' + str(job_pg.id)
     elif nt_type == "slack":
         if status == 'needs review':
             msg = 'The approval node "' + str(approval_node.summary_fields.unified_job_template.name) + '" needs review. This node can be viewed at: <' + str(
                     tower_url) + '/#/workflows/' + str(job_pg.id) + '>'
         else:
-            msg = 'The approval node "' + str(approval_node.summary_fields.unified_job_template.name) + status + '<' + str(tower_url) + '/#/workflows/' + str(job_pg.id) + '>'
+            msg = 'The approval node "' + str(approval_node.summary_fields.unified_job_template.name) + '" ' + status + '. <' + str(tower_url) + '/#/workflows/' + str(job_pg.id) + '>'
     elif nt_type == "webhook":
         if status == 'needs review':
             msg = 'The approval node "' + str(
-                approval_node.summary_fields.unified_job_template.name) + '"  needs review. This node can be viewed at: ' + str(
+                approval_node.summary_fields.unified_job_template.name) + '" needs review. This node can be viewed at: ' + str(
                 tower_url) + '/#/workflows/' + str(job_pg.id)
         else:
-            msg = 'The approval node "' + str(approval_node.summary_fields.unified_job_template.name) + status + str(tower_url) + '/#/workflows/' + str(job_pg.id)
+            msg = 'The approval node "' + str(approval_node.summary_fields.unified_job_template.name) + '" ' + status + '. ' + str(tower_url) + '/#/workflows/' + str(job_pg.id)
         headers = notification_template_pg.notification_configuration['headers']
         if wf_approval.finished is not None:
             finished = wf_approval.finished.replace('Z', '+00:00')
@@ -76,12 +74,6 @@ def expected_job_notification(tower_url, notification_template_pg, job_pg, appro
 @pytest.mark.usefixtures('authtoken')
 class Test_Notifications(APITest):
     """Notification tests"""
-
-    @pytest.fixture(scope='class')
-    def tower_baseurl(self, is_docker):
-        base_url = urlparse(config.base_url)
-        scheme = 'http' if base_url.scheme is None else base_url.scheme
-        return '{0}://{1}'.format(scheme, base_url.hostname)
 
     @pytest.mark.parametrize("nt_type", ['slack', 'webhook'])
     def test_workflow_approval_notifications(self, factories, workflow_job_template,
@@ -109,7 +101,7 @@ class Test_Notifications(APITest):
             msg = expected_job_notification(tower_baseurl, notification_template, wf_job, approval_node, wf_approval, 'needs review')
             assert confirm_notification(notification_template, msg)
         wf_approval.approve()
-        status = '" was approved. '
+        status = 'was approved'
         wf_approval = approval_job_node.wait_for_job().related.job.get()
         wf_job.wait_until_completed().assert_successful()
         # assert that the notification is sent for all enabled events and that the message is correct
@@ -158,49 +150,48 @@ class Test_Notifications(APITest):
         associate_notification_template(notification_template, workflow_job_template, 'success')
         associate_notification_template(notification_template, workflow_job_template, 'error')
         associate_notification_template(notification_template, workflow_job_template, 'approvals')
-        # Scenario created: approval_node1 will be approved, node2 will be rejected, node3 will timeout, Verify messages for all
-        approval_node1 = factories.workflow_job_template_node(
+        approval_node_approve = factories.workflow_job_template_node(
             workflow_job_template=workflow_job_template,
             unified_job_template=None
             ).make_approval_node()
-        approval_node2 = factories.workflow_job_template_node(
+        approval_node_deny = factories.workflow_job_template_node(
             workflow_job_template=workflow_job_template,
             unified_job_template=None
             ).make_approval_node()
-        approval_node3 = factories.workflow_job_template_node(
+        approval_node_timeout = factories.workflow_job_template_node(
             workflow_job_template=workflow_job_template,
             unified_job_template=None
             ).make_approval_node(timeout=1)
-        approval_node4 = factories.workflow_job_template_node(
+        approval_node_approve2 = factories.workflow_job_template_node(
             workflow_job_template=workflow_job_template,
             unified_job_template=None
             ).make_approval_node()
         with pytest.raises(exc.NoContent):
-            approval_node2.related.always_nodes.post(dict(id=approval_node4.id))
+            approval_node_deny.related.always_nodes.post(dict(id=approval_node_approve2.id))
         with pytest.raises(exc.NoContent):
-            approval_node3.related.always_nodes.post(dict(id=approval_node4.id))
+            approval_node_timeout.related.always_nodes.post(dict(id=approval_node_approve2.id))
         # launch the job and approve/ deny/ let the nodes time out
         wf_job = workflow_job_template.launch()
         wf_job.wait_until_status('running')
-        approval_jt1 = approval_node1.related.unified_job_template.get()
-        approval_job_node1 = wf_job.related.workflow_nodes.get(unified_job_template=approval_jt1.id).results.pop()
-        wf_approval1 = approval_job_node1.wait_for_job().related.job.get().wait_until_status('pending')
-        wf_approval1.approve()
-        status_approval_node1 = '" was approved. '
-        approval_jt2 = approval_node2.related.unified_job_template.get()
-        approval_job_node2 = wf_job.related.workflow_nodes.get(unified_job_template=approval_jt2.id).results.pop()
-        wf_approval2 = approval_job_node2.wait_for_job().related.job.get().wait_until_status('pending')
-        wf_approval2.deny()
-        status_approval_node2 = '" was denied. '
-        approval_jt3 = approval_node3.related.unified_job_template.get()
-        approval_job_node3 = wf_job.related.workflow_nodes.get(unified_job_template=approval_jt3.id).results.pop()
-        wf_approval3 = approval_job_node3.wait_for_job().related.job.get()
-        status_approval_node3 = '" has timed out. '
-        approval_jt4 = approval_node4.related.unified_job_template.get()
-        approval_job_node4 = wf_job.related.workflow_nodes.get(unified_job_template=approval_jt4.id).results.pop()
-        wf_approval4 = approval_job_node4.wait_for_job().related.job.get().wait_until_status('pending')
-        wf_approval4.approve()
-        status_approval_node4 = '" was approved. '
+        approval_jt_approve = approval_node_approve.related.unified_job_template.get()
+        approval_job_node_approve = wf_job.related.workflow_nodes.get(unified_job_template=approval_jt_approve.id).results.pop()
+        wf_approval_approve = approval_job_node_approve.wait_for_job().related.job.get().wait_until_status('pending')
+        wf_approval_approve.approve()
+        status_approval_node_approve = 'was approved'
+        approval_jt_deny = approval_node_deny.related.unified_job_template.get()
+        approval_job_node_deny = wf_job.related.workflow_nodes.get(unified_job_template=approval_jt_deny.id).results.pop()
+        wf_approval_deny = approval_job_node_deny.wait_for_job().related.job.get().wait_until_status('pending')
+        wf_approval_deny.deny()
+        status_approval_node_deny = 'was denied'
+        approval_jt_timeout = approval_node_timeout.related.unified_job_template.get()
+        approval_job_node_timeout = wf_job.related.workflow_nodes.get(unified_job_template=approval_jt_timeout.id).results.pop()
+        wf_approval_timeout = approval_job_node_timeout.wait_for_job().related.job.get()
+        status_approval_node_timeout = 'has timed out'
+        approval_jt_approve2 = approval_node_approve2.related.unified_job_template.get()
+        approval_job_node_approve2 = wf_job.related.workflow_nodes.get(unified_job_template=approval_jt_approve2.id).results.pop()
+        wf_approval_approve2 = approval_job_node_approve2.wait_for_job().related.job.get().wait_until_status('pending')
+        wf_approval_approve2.approve()
+        status_approval_node_approve2 = 'was approved'
         wf_job.wait_until_completed().assert_successful()
         # assert the count
         notifications_expected = 10
@@ -208,7 +199,11 @@ class Test_Notifications(APITest):
         assert notifications_pg.count == notifications_expected
         # assert that notifications are received for all events including needs approval, approved, denied, timed out
         if can_confirm_notification(slack_notification_template):
-            for approval_node, status_approval_node, wf_approval in [(approval_node1, status_approval_node1, wf_approval1), (approval_node2, status_approval_node2, wf_approval2), (approval_node3, status_approval_node3, wf_approval3), (approval_node4, status_approval_node4, wf_approval4)]:
+            for approval_node, status_approval_node, wf_approval in \
+                    [(approval_node_approve, status_approval_node_approve, wf_approval_approve),
+                     (approval_node_deny, status_approval_node_deny, wf_approval_deny),
+                     (approval_node_timeout, status_approval_node_timeout, wf_approval_timeout),
+                     (approval_node_approve2, status_approval_node_approve2, wf_approval_approve2)]:
                 msg = expected_job_notification(tower_baseurl, slack_notification_template, wf_job, approval_node, wf_approval, 'needs review')
                 assert confirm_notification(slack_notification_template, msg)
                 msg = expected_job_notification(tower_baseurl, slack_notification_template, wf_job, approval_node, wf_approval, status_approval_node)
@@ -222,39 +217,38 @@ class Test_Notifications(APITest):
         wfjt2 = factories.workflow_job_template(organization=org)
         # enable notifications
         associate_notification_template(notification_template, org, 'approvals')
-        # Scenario created: approval_node1 will be approved, node2 will be rejected, node3 will timeout, Verify messages for all
-        approval_node1 = factories.workflow_job_template_node(
+        approval_node_deny = factories.workflow_job_template_node(
             workflow_job_template=wfjt1,
             unified_job_template=None
             ).make_approval_node()
-        approval_node2 = factories.workflow_job_template_node(
+        approval_node_approve = factories.workflow_job_template_node(
             workflow_job_template=wfjt1,
             unified_job_template=None
             ).make_approval_node()
-        approval_node3 = factories.workflow_job_template_node(
+        approval_node_time_out = factories.workflow_job_template_node(
             workflow_job_template=wfjt2,
             unified_job_template=None
             ).make_approval_node(timeout=1)
         with pytest.raises(exc.NoContent):
-            approval_node1.related.always_nodes.post(dict(id=approval_node2.id))
+            approval_node_deny.related.always_nodes.post(dict(id=approval_node_approve.id))
         wf_job = wfjt1.launch()
         wf_job.wait_until_status('running')
-        approval_jt1 = approval_node1.related.unified_job_template.get()
-        approval_job_node1 = wf_job.related.workflow_nodes.get(unified_job_template=approval_jt1.id).results.pop()
-        wf_approval1 = approval_job_node1.wait_for_job().related.job.get().wait_until_status('pending')
-        wf_approval1.deny()
-        status_approval_node1 = '" was denied. '
-        approval_jt2 = approval_node2.related.unified_job_template.get()
-        approval_job_node2 = wf_job.related.workflow_nodes.get(unified_job_template=approval_jt2.id).results.pop()
-        wf_approval2 = approval_job_node2.wait_for_job().related.job.get().wait_until_status('pending')
-        wf_approval2.approve()
-        status_approval_node2 = '" was approved. '
-        status_approval_node3 = '" has timed out. '
+        approval_jt_deny = approval_node_deny.related.unified_job_template.get()
+        approval_job_node_deny = wf_job.related.workflow_nodes.get(unified_job_template=approval_jt_deny.id).results.pop()
+        wf_approval_deny = approval_job_node_deny.wait_for_job().related.job.get().wait_until_status('pending')
+        wf_approval_deny.deny()
+        status_approval_node_deny = 'was denied'
+        approval_jt_approve = approval_node_approve.related.unified_job_template.get()
+        approval_job_node_approve = wf_job.related.workflow_nodes.get(unified_job_template=approval_jt_approve.id).results.pop()
+        wf_approval_approve = approval_job_node_approve.wait_for_job().related.job.get().wait_until_status('pending')
+        wf_approval_approve.approve()
+        status_approval_node_approve = 'was approved'
+        status_approval_node_time_out = 'has timed out'
         wf_job.wait_until_completed().assert_successful()
         wf_job2 = wfjt2.launch()
-        approval_jt3 = approval_node3.related.unified_job_template.get()
-        approval_job_node3 = wf_job2.related.workflow_nodes.get(unified_job_template=approval_jt3.id).results.pop()
-        wf_approval3 = approval_job_node3.wait_for_job().related.job.get()
+        approval_jt_time_out = approval_node_time_out.related.unified_job_template.get()
+        approval_job_node_time_out = wf_job2.related.workflow_nodes.get(unified_job_template=approval_jt_time_out.id).results.pop()
+        wf_approval_time_out = approval_job_node_time_out.wait_for_job().related.job.get()
         wf_job2.wait_until_completed().assert_status('failed')
         # assert the count for both WFJTs
         notifications_expected = 4
@@ -264,9 +258,52 @@ class Test_Notifications(APITest):
         notifications_pg = wf_job2.get_related('notifications').wait_until_count(notifications_expected)
         assert notifications_pg.count == notifications_expected
         # assert that notifications are received for all events including needs approval, approved, denied, timed out
-        if can_confirm_notification(slack_notification_template):
-            for job, approval_node, status_approval_node, wf_approval in [(wf_job, approval_node1, status_approval_node1, wf_approval1), (wf_job, approval_node2, status_approval_node2, wf_approval2), (wf_job2, approval_node3, status_approval_node3, wf_approval3)]:
-                msg = expected_job_notification(tower_baseurl, slack_notification_template, job, approval_node, wf_approval, 'needs review')
-                assert confirm_notification(slack_notification_template, msg)
-                msg = expected_job_notification(tower_baseurl, slack_notification_template, job, approval_node, wf_approval, status_approval_node)
-                assert confirm_notification(slack_notification_template, msg)
+        for job, approval_node, status_approval_node, wf_approval in \
+                [(wf_job, approval_node_deny, status_approval_node_deny, wf_approval_deny),
+                 (wf_job, approval_node_approve, status_approval_node_approve, wf_approval_approve),
+                 (wf_job2, approval_node_time_out, status_approval_node_time_out, wf_approval_time_out)]:
+            msg = expected_job_notification(tower_baseurl, slack_notification_template, job, approval_node, wf_approval, 'needs review')
+            assert confirm_notification(slack_notification_template, msg)
+            msg = expected_job_notification(tower_baseurl, slack_notification_template, job, approval_node, wf_approval, status_approval_node)
+            assert confirm_notification(slack_notification_template, msg)
+
+    @pytest.fixture(scope="class")
+    def slack_notification_template_with_org(self, class_factories):
+        """Slack notification template"""
+        org = class_factories.organization()
+        nt = class_factories.notification_template(notification_type="slack", organization=org)
+        return nt, org
+
+    @pytest.mark.parametrize("user_role",
+                             ['wfjt_admin', 'system_auditor', 'org_auditor', 'org_executor', 'org_admin', 'org_not_admin'])
+    def test_associate_notification_template_rbac(self, factories,
+                                      slack_notification_template_with_org, user_role):
+        """Test RBAC for Associating notification template to the workflow"""
+        pytest.skip("figuring out")
+        nt, org = slack_notification_template_with_org
+        wfjt = factories.workflow_job_template(organization=org)
+        user = factories.user()
+        # Create User with appropriate permissions
+        if user_role == 'system_auditor':
+            user.is_system_auditor = True
+        if user_role == 'org_admin':
+            org.set_object_roles(user, 'admin')
+        if user_role == 'org_executor':
+            org.set_object_roles(user, 'execute')
+        if user_role == 'org_not_admin':
+            org.set_object_roles(user, 'notification admin')
+        if user_role == 'org_auditor':
+            org.set_object_roles(user, 'auditor')
+        if user_role == 'wfjt_admin':
+            wfjt.set_object_roles(user, 'admin')
+        if user_role == 'org_member':
+            org.set_object_roles(user, 'member')
+
+        with self.current_user(user.username, user.password):
+            # Assert that valid users can associate the notification template to the workflow
+            if user_role in ['org_admin', 'system_auditor', 'org_auditor', 'org_not_admin']:
+                associate_notification_template(nt, wfjt, 'approvals')
+            # Assert that invalid users can not associate the notification template to the workflow
+            else:
+                with pytest.raises(exc.Forbidden):
+                    associate_notification_template(nt, wfjt, 'approvals')
