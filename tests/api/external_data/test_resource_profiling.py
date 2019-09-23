@@ -18,7 +18,6 @@ class TestResourceProfiling(APITest):
     # Attempt to simplify locating files in a cluster
     def find_resource_profile(self, ansible_runner, job_id):
         result = ansible_runner.find(paths='/var/log/tower/playbook_profiling/{}'.format(job_id), recurse=True)
-        import pdb; pdb.set_trace()
         execution_node_result = [r for r in result.values() if r['matched'] > 0]
         if len(execution_node_result) > 1:
             raise Exception("Multiple nodes contain profiles for this job")
@@ -38,7 +37,7 @@ class TestResourceProfiling(APITest):
         factories.host(inventory=jt.ds.inventory)
         job = jt.launch().wait_until_completed()
         profile_found, profile_result = self.find_resource_profile(ansible_runner, job.id)
-        assert profile_found == True, profile_result
+        assert profile_found, profile_result
         stat_files = profile_result['files']
         filenames = [f['path'] for f in stat_files]
         for e in expected_files:
