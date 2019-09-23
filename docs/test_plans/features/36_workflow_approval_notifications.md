@@ -13,27 +13,20 @@ Notifications can be enabled at organization level or workflow level as well.
 
 ### Basic Flow
 
-- [ ] Confirm that a notification is sent only when it is enabled
-- [ ] Confirm that a notification is not sent when it is disabled
-- [ ] Confirm that a notification can be sent through following means:
-    - [ ] Email
-    - [ ] Grafana
-    - [ ] IRC
-    - [ ] Mattermost
-    - [ ] Pagerduty
-    - [ ] Rocketchat
-    - [ ] Slack
-    - [ ] Twilio
-    - [ ] Webhook
-- [ ] Confirm that a notification is received by all user(s)/channel(s) specified in the notification template.
-- [ ] Confirm that a notification is received when the approval node:
-    - [ ] Needs Approval
-    - [ ] Is approved
-    - [ ] Is denied
-    - [ ] Is timed out
-- [ ] Confirm that notifications can be set on
-    - [ ] Organization level: confirm that notification is sent for all the approval nodes in the organization
-    - [ ] Workflow level: confirm that the notification is sent for all the approval nodes in the workflow job template
+- [x] Confirm that a notification is sent only when it is enabled
+- [x] Confirm that a notification is not sent when it is disabled
+- [x] Confirm that a notification can be sent through following means:
+    - [x] Slack
+    - [x] Webhook
+- [x] Confirm that a notification is received by all user(s)/channel(s) specified in the notification template.
+- [x] Confirm that a notification is received when the approval node:
+    - [x] Needs Approval
+    - [x] Is approved
+    - [x] Is denied
+    - [x] Is timed out
+- [x] Confirm that notifications can be set on
+    - [x] Organization level: confirm that notification is sent for all the approval nodes in the organization
+    - [x] Workflow level: confirm that the notification is sent for all the approval nodes in the workflow job template
 
 ### RBAC
 - [ ] Confirm that a user with permissions can create/ enable notifications
@@ -41,3 +34,4 @@ Notifications can be enabled at organization level or workflow level as well.
 
 ### Edge cases
 - [ ] Confirm that the option for enabling approval notifications is not available for any tower resource apart from a workflow and organization eg: normal job, project
+- [ ] Confirm notifications on "any" event
