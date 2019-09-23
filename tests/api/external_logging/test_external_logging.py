@@ -1,5 +1,6 @@
 import json
 import uuid
+import functools
 
 import pytest
 import requests
@@ -110,7 +111,7 @@ class TestSplunkLogging(APITest):
     def results_exist(self, splunk_api_session, splunk_api_url):
         _api = splunk_api_session
 
-        def callable():
+        def callable(expected_results=2, expected_content=None):
             res = _api.post('{}/services/search/jobs/export'.format(splunk_api_url), data={'search': 'search *'})
             try:
                 found = list(ET.fromstring(res.content).findall('.//*v'))
@@ -122,8 +123,11 @@ class TestSplunkLogging(APITest):
 
             results = [f.text for f in found]
 
-            if len(results) < 2:
+            if len(results) < expected_results:
                 return False
+
+            if expected_content:
+                return expected_content in ' '.join(results)
 
             return True
         return callable
@@ -186,14 +190,21 @@ class TestSplunkLogging(APITest):
         host2 = inv.add_host()
         adhoc = factories.ad_hoc_command(inventory=inv)
         adhoc.wait_until_completed()
+
+        adhoc_results_exist = functools.partial(results_exist, expected_results=9, expected_content=host.name)
+        utils.poll_until(adhoc_results_exist, interval=5, timeout=120)
+
         wfjt = factories.workflow_job_template()
         jt = factories.job_template(inventory=inv2)
         factories.workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt)
         wf_job = wfjt.launch().wait_until_completed()
         wf_job.assert_successful()
         spawned_job_id = jt.related.jobs.get().results.pop().id
-        # It can take time for the event to be processed and end up in the search results
-        utils.poll_until(results_exist, interval=5, timeout=120)
+
+        # Expect 19 events, 9 from adhoc job and 10 from workflow job
+        wf_results_exist = functools.partial(results_exist, expected_results=19, expected_content=host2.name)
+        utils.poll_until(wf_results_exist, interval=5, timeout=120)
+
         results = get_log_results()
         adhoc_results_logged = []
         event_with_adhoc_host_name = None
@@ -204,7 +215,7 @@ class TestSplunkLogging(APITest):
                 result = dict(json.loads(result))
             except json.decoder.JSONDecodeError:
                 continue
-            if f'ad_hoc_command {adhoc.id}' in result.get('message', ''):
+            if adhoc.id == result.get('ad_hoc_command'):
                 adhoc_results_logged.append(result)
             if host.name in result.get('host_name', ''):
                 event_with_adhoc_host_name = result
@@ -213,7 +224,7 @@ class TestSplunkLogging(APITest):
             if spawned_job_id == result.get('job'):
                 assert wf_job.id == result.get('workflow_job_id')
                 workflow_job_events_logged.append(result)
-        assert adhoc_results_logged
-        assert event_with_adhoc_host_name
-        assert workflow_job_events_logged
-        assert event_with_wfjob_host_name
+        assert adhoc_results_logged, results
+        assert event_with_adhoc_host_name, results
+        assert workflow_job_events_logged, results
+        assert event_with_wfjob_host_name, results
