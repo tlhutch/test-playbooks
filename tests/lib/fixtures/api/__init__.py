@@ -2,6 +2,7 @@ from awxkit.awx import version_cmp
 from awxkit.api import get_registered_page
 from awxkit.config import config as qe_config
 import pytest
+from urllib.parse import urlparse
 
 
 @pytest.fixture(scope='session')
@@ -618,3 +619,10 @@ def api_settings_user_defaults_pg(api_settings_pg):
 @pytest.fixture(scope="class")
 def api_settings_logging_pg(api_settings_pg):
     return api_settings_pg.get_endpoint('logging')
+
+
+@pytest.fixture(scope='session')
+def tower_baseurl(is_docker):
+    base_url = urlparse(qe_config.base_url)
+    scheme = 'http' if base_url.scheme is None else base_url.scheme
+    return '{0}://{1}'.format(scheme, base_url.hostname)
