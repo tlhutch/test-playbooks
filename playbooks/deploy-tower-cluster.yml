@@ -29,7 +29,7 @@
       when: "'7.5' in ansible_distribution_version and fips_enabled | default(true) | bool and not awx_upgrade | default(false) | bool"
 
 - name: 'Add authorized keys on non-installer instances'
-  hosts: 'tower:instance_group_*:database:haproxy:managed_hosts:!cluster_installer'
+  hosts: 'tower:instance_group_*:isolated_group_*:database:haproxy:managed_hosts:!cluster_installer'
   roles:
     - role: auth_keys
 

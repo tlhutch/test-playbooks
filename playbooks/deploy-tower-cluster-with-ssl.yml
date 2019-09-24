@@ -7,7 +7,7 @@
       my_inventory_file: '{{inventory_dir}}/inventory.cluster'
 
 - name: 'Add authorized keys on non-installer instances'
-  hosts: 'tower:instance_group_*:database:haproxy:managed_hosts:secondary:!cluster_installer'
+  hosts: 'tower:instance_group_*:database:isolated_group_*:haproxy:managed_hosts:secondary:!cluster_installer'
   roles:
     - role: auth_keys
 
