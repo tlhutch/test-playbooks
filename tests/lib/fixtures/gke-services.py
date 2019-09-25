@@ -12,6 +12,7 @@ class K8sClient(object):
         self.K8sClient = kubernetes.client
         self.apps = kubernetes.client.AppsV1Api(self.client)
         self.core = kubernetes.client.CoreV1Api(self.client)
+        self.rbac = kubernetes.client.RbacAuthorizationV1Api(self.client)
         self.storage = kubernetes.client.StorageV1Api(self.client)
         self.deploymentobject = kubernetes.client.V1Deployment()
         self.serviceobject = kubernetes.client.V1Service()
@@ -52,6 +53,42 @@ class K8sClient(object):
         self.core.delete_namespaced_service(deploymentname, 'default', body=kubernetes.client.V1DeleteOptions())
         self.apps.delete_namespaced_deployment(deploymentname, 'default', body=kubernetes.client.V1DeleteOptions())
 
+    def setup_container_group_namespace(self, namespace):
+        # Prepare objects
+        self.serviceaccount = f'serviceaccount-{namespace}'
+        self.role = f'serviceaccount-role-{namespace}'
+        self.namespace = namespace
+        self.namespaceobject = kubernetes.client.V1Namespace(metadata={'name': self.namespace})
+        self.serviceaccountobject = kubernetes.client.V1ServiceAccount(metadata={'name': self.serviceaccount})
+        pod_rules = kubernetes.client.V1PolicyRule(api_groups=[""], resources=["pods"], verbs=["get", "list", "watch", "create", "update", "patch", "delete"])
+        pod_exec_rules = kubernetes.client.V1PolicyRule(api_groups=[''], resources=['pods/exec'], verbs=["create"])
+        self.roleobject = kubernetes.client.V1Role(rules=[pod_rules, pod_exec_rules], metadata={'name': self.role})
+        role_subject = kubernetes.client.V1Subject(name=self.serviceaccount, kind='ServiceAccount')
+        role_ref = kubernetes.client.V1RoleRef(name=self.role, kind='Role', api_group='rbac.authorization.k8s.io')
+        self.rolebindobject = kubernetes.client.V1RoleBinding(metadata={'name': f'{namespace}-{self.role}-rolebind'}, subjects=[role_subject], role_ref=role_ref)
+
+        # Actually create these items
+        self.core.create_namespace(self.namespaceobject)
+        self.core.create_namespaced_service_account(namespace, self.serviceaccountobject)
+        self.rbac.create_namespaced_role(namespace, self.roleobject)
+        self.rbac.create_namespaced_role_binding(namespace, self.rolebindobject)
+        secrets = self.core.list_namespaced_secret(namespace)
+        tokens = [token.data['token'] for token in secrets.items if token.metadata.namespace == namespace and token.metadata.annotations.get('kubernetes.io/service-account.name') == self.serviceaccount]
+        assert len(tokens) == 1
+        token = base64.decodebytes(tokens.pop().encode()).decode(encoding='utf-8')
+        self.serviceaccount_token = token
+
+    def destroy_container_group_namespace(self, namespace=None):
+        """Delete created items for container groups setup.
+
+        Optionally, delete different namespace and all dependent objects. (useful in development)
+        """
+        if namespace:
+            self.core.delete_namespace(namespace, body=kubernetes.client.V1DeleteOptions(), propagation_policy='Background')
+            return
+        if hasattr(self, 'namespaceobject'):
+            self.core.delete_namespace(self.namespaceobject.metadata['name'], body=kubernetes.client.V1DeleteOptions(), propagation_policy='Background')
+
 
 def create_gke_client():
     def create_client(credentials):
@@ -66,10 +103,13 @@ def create_gke_client():
         kube_config.api_key['authorization'] = credentials['cloud']['gke']['api_key']
         kube_config.api_key_prefix['authorization'] = 'Bearer'
         kube_config.ssl_ca_cert = '/tmp/ssl_ca_cert'
+        cacrt = base64.decodebytes(gke_cluster['masterAuth']['clusterCaCertificate'].encode())
         with open(kube_config.ssl_ca_cert, 'wb') as f:
-            f.write(base64.decodebytes(gke_cluster['masterAuth']['clusterCaCertificate'].encode()))
+            f.write(cacrt)
         client = kubernetes.client.ApiClient(configuration=kube_config)
-        return K8sClient(client)
+        k8sclient = K8sClient(client)
+        k8sclient.cacrt = cacrt.decode(encoding='utf-8')
+        return k8sclient
     return create_client
 
 
