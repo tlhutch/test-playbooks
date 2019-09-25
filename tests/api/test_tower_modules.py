@@ -163,7 +163,7 @@ class Test_Ansible_Tower_Modules(APITest):
             factories, venv_path(python_venv_name)
         )
 
-    def test_ansible_tower_module_organization_create(self, request, v2, factories, venv_path, python_venv_name):
+    def test_ansible_tower_module_organization_create_update(self, request, v2, factories, venv_path, python_venv_name):
         org_name = utils.random_title()
         request.addfinalizer(lambda *args: v2.organizations.get(name=org_name).results[0].delete())
         self.run_tower_module('tower_organization', {
@@ -172,8 +172,20 @@ class Test_Ansible_Tower_Modules(APITest):
         }, factories, venv_path(python_venv_name))
 
         org = v2.organizations.get(name=org_name).results[0]
+        org_id = org.id
         assert org_name == org['name']
         assert org['description'] == 'hello world'
+
+        # Test updating the object
+        self.run_tower_module('tower_organization', {
+            'name': org_name,
+            'description': 'updated description',
+        }, factories, venv_path(python_venv_name))
+
+        org = v2.organizations.get(name=org_name).results[0]
+        assert org.id == org_id
+        assert org_name == org['name']
+        assert org['description'] == 'updated description'
 
     def test_ansible_tower_module_organization_delete(self, factories, v2, venv_path, python_venv_name):
         org = factories.organization()
@@ -199,7 +211,7 @@ class Test_Ansible_Tower_Modules(APITest):
 
         assert tower_version == module_tower_version
 
-    def test_ansible_tower_module_project_create(self, request, v2, factories, venv_path, python_venv_name, organization):
+    def test_ansible_tower_module_project_create_update(self, request, v2, factories, venv_path, python_venv_name, organization):
         proj_name = utils.random_title()
         request.addfinalizer(lambda *args: v2.projects.get(name=proj_name).results[0].delete())
         self.run_tower_module('tower_project', {
@@ -211,9 +223,27 @@ class Test_Ansible_Tower_Modules(APITest):
         }, factories, venv_path(python_venv_name))
 
         proj = v2.projects.get(name=proj_name).results[0]
+        proj_id = proj.id
         proj.related.project_updates.get().results[0].wait_until_completed()
         assert proj_name == proj['name']
         assert proj['description'] == 'hello world'
+        assert proj['scm_type'] == 'git'
+        assert proj['scm_url'] == 'git@github.com:ansible/test-playbooks.git'
+        assert proj['organization'] == organization.id
+
+        self.run_tower_module('tower_project', {
+            'name': proj_name,
+            'description': 'updated description',
+            'scm_type': 'git',
+            'scm_url': 'git@github.com:ansible/test-playbooks.git',
+            'organization': organization.name,
+        }, factories, venv_path(python_venv_name))
+
+        proj = v2.projects.get(name=proj_name).results[0]
+        proj.related.project_updates.get().results[0].wait_until_completed()
+        assert proj.id == proj_id
+        assert proj_name == proj['name']
+        assert proj['description'] == 'updated description'
         assert proj['scm_type'] == 'git'
         assert proj['scm_url'] == 'git@github.com:ansible/test-playbooks.git'
         assert proj['organization'] == organization.id
@@ -227,7 +257,7 @@ class Test_Ansible_Tower_Modules(APITest):
 
         assert not v2.projects.get(name=proj.name).results
 
-    def test_ansible_tower_module_credential_create(self, request, v2, factories, venv_path, python_venv_name, organization):
+    def test_ansible_tower_module_credential_create_update(self, request, v2, factories, venv_path, python_venv_name, organization):
         cred_name = utils.random_title()
         request.addfinalizer(lambda *args: v2.credentials.get(name=cred_name).results[0].delete())
         self.run_tower_module('tower_credential', {
@@ -238,8 +268,23 @@ class Test_Ansible_Tower_Modules(APITest):
         }, factories, venv_path(python_venv_name))
 
         cred = v2.credentials.get(name=cred_name).results[0]
+        cred_id = cred.id
         assert cred_name == cred['name']
         assert cred['description'] == 'hello world'
+        assert cred['kind'] == 'ssh'
+        assert cred['organization'] == organization.id
+
+        self.run_tower_module('tower_credential', {
+            'name': cred_name,
+            'description': 'updated description',
+            'kind': 'ssh',
+            'organization': organization.name,
+        }, factories, venv_path(python_venv_name))
+
+        cred = v2.credentials.get(name=cred_name).results[0]
+        assert cred_id == cred.id
+        assert cred_name == cred['name']
+        assert cred['description'] == 'updated description'
         assert cred['kind'] == 'ssh'
         assert cred['organization'] == organization.id
 
@@ -254,7 +299,7 @@ class Test_Ansible_Tower_Modules(APITest):
 
         assert 0 == len(v2.credentials.get(name=cred.name).results)
 
-    def test_ansible_tower_module_credential_type_create(self, request, v2, factories, venv_path, python_venv_name, organization):
+    def test_ansible_tower_module_credential_type_create_update(self, request, v2, factories, venv_path, python_venv_name, organization):
         cred_name = utils.random_title()
         request.addfinalizer(lambda *args: v2.credential_types.get(name=cred_name).results[0].delete())
         self.run_tower_module('tower_credential_type', {
@@ -264,8 +309,21 @@ class Test_Ansible_Tower_Modules(APITest):
         }, factories, venv_path(python_venv_name))
 
         cred = v2.credential_types.get(name=cred_name).results[0]
+        cred_id = cred.id
         assert cred_name == cred['name']
         assert cred['description'] == 'hello world'
+        assert cred['kind'] == 'cloud'
+
+        self.run_tower_module('tower_credential_type', {
+            'name': cred_name,
+            'description': 'updated description',
+            'kind': 'cloud',
+        }, factories, venv_path(python_venv_name))
+
+        cred = v2.credential_types.get(name=cred_name).results[0]
+        assert cred.id == cred_id
+        assert cred_name == cred['name']
+        assert cred['description'] == 'updated description'
         assert cred['kind'] == 'cloud'
 
     def test_ansible_tower_module_credential_type_delete(self, factories, v2, venv_path, python_venv_name):
@@ -278,7 +336,7 @@ class Test_Ansible_Tower_Modules(APITest):
 
         assert 0 == len(v2.credential_types.get(name=cred.name).results)
 
-    def test_ansible_tower_module_group_create(self, request, v2, factories, venv_path, python_venv_name):
+    def test_ansible_tower_module_group_create_update(self, request, v2, factories, venv_path, python_venv_name):
         group_name = utils.random_title()
         inv = factories.inventory()
         request.addfinalizer(lambda *args: v2.groups.get(name=group_name).results[0].delete())
@@ -289,8 +347,21 @@ class Test_Ansible_Tower_Modules(APITest):
         }, factories, venv_path(python_venv_name))
 
         group = v2.groups.get(name=group_name).results[0]
+        group_id = group.id
         assert group_name == group['name']
         assert group['description'] == 'hello world'
+        assert group['inventory'] == inv.id
+
+        self.run_tower_module('tower_group', {
+            'name': group_name,
+            'description': 'updated description',
+            'inventory': inv.name
+        }, factories, venv_path(python_venv_name))
+
+        group = v2.groups.get(name=group_name).results[0]
+        assert group.id == group_id
+        assert group_name == group['name']
+        assert group['description'] == 'updated description'
         assert group['inventory'] == inv.id
 
     def test_ansible_tower_module_group_delete(self, factories, v2, venv_path, python_venv_name):
@@ -303,7 +374,7 @@ class Test_Ansible_Tower_Modules(APITest):
 
         assert 0 == len(v2.groups.get(name=group.name).results)
 
-    def test_ansible_tower_module_host_create(self, request, v2, factories, venv_path, python_venv_name):
+    def test_ansible_tower_module_host_create_update(self, request, v2, factories, venv_path, python_venv_name):
         host_name = utils.random_title()
         inv = factories.inventory()
         request.addfinalizer(lambda *args: v2.hosts.get(name=host_name).results[0].delete())
@@ -314,8 +385,21 @@ class Test_Ansible_Tower_Modules(APITest):
         }, factories, venv_path(python_venv_name))
 
         host = v2.hosts.get(name=host_name).results[0]
+        host_id = host.id
         assert host_name == host['name']
         assert host['description'] == 'hello world'
+        assert host['inventory'] == inv.id
+
+        self.run_tower_module('tower_host', {
+            'name': host_name,
+            'description': 'updated description',
+            'inventory': inv.name
+        }, factories, venv_path(python_venv_name))
+
+        host = v2.hosts.get(name=host_name).results[0]
+        assert host.id == host_id
+        assert host_name == host['name']
+        assert host['description'] == 'updated description'
         assert host['inventory'] == inv.id
 
     def test_ansible_tower_module_host_delete(self, factories, v2, venv_path, python_venv_name):
@@ -328,7 +412,7 @@ class Test_Ansible_Tower_Modules(APITest):
 
         assert 0 == len(v2.hosts.get(name=host.name).results)
 
-    def test_ansible_tower_module_inventory_create(self, request, v2, factories, venv_path, python_venv_name):
+    def test_ansible_tower_module_inventory_create_update(self, request, v2, factories, venv_path, python_venv_name):
         inventory_name = utils.random_title()
         org = factories.organization()
         request.addfinalizer(lambda *args: v2.inventory.get(name=inventory_name).results[0].delete())
@@ -339,8 +423,21 @@ class Test_Ansible_Tower_Modules(APITest):
         }, factories, venv_path(python_venv_name))
 
         inventory = v2.inventory.get(name=inventory_name).results[0]
+        inventory_id = inventory.id
         assert inventory_name == inventory['name']
         assert inventory['description'] == 'hello world'
+        assert inventory['organization'] == org.id
+
+        self.run_tower_module('tower_inventory', {
+            'name': inventory_name,
+            'description': 'updated description',
+            'organization': org.name
+        }, factories, venv_path(python_venv_name))
+
+        inventory = v2.inventory.get(name=inventory_name).results[0]
+        assert inventory_id == inventory.id
+        assert inventory_name == inventory['name']
+        assert inventory['description'] == 'updated description'
         assert inventory['organization'] == org.id
 
     def test_ansible_tower_module_inventory_delete(self, factories, v2, venv_path, python_venv_name):
@@ -368,6 +465,7 @@ class Test_Ansible_Tower_Modules(APITest):
             except:
                 print("failed to remove JT in teardown")
 
+        # Create a JT
         request.addfinalizer(cleanup_jt)
         self.run_tower_module('tower_job_template', {
             'name': jt_name,
@@ -379,8 +477,28 @@ class Test_Ansible_Tower_Modules(APITest):
         }, factories, venv_path(python_venv_name))
 
         jt = v2.job_templates.get(name=jt_name).results[0]
+        jt_id = jt.id
         assert jt_name == jt['name']
         assert jt['description'] == 'hello world'
+        assert jt['job_type'] == 'run'
+        assert jt['inventory'] == inventory.id
+        assert jt['playbook'] == 'sleep.yml'
+        assert jt['project'] == project.id
+
+        # Update the JT
+        self.run_tower_module('tower_job_template', {
+            'name': jt_name,
+            'description': 'updated description',
+            'job_type': 'run',
+            'inventory': inventory.name,
+            'playbook': 'sleep.yml',
+            'project': project.name,
+        }, factories, venv_path(python_venv_name))
+
+        jt = v2.job_templates.get(name=jt_name).results[0]
+        assert jt.id == jt_id
+        assert jt_name == jt['name']
+        assert jt['description'] == 'updated description'
         assert jt['job_type'] == 'run'
         assert jt['inventory'] == inventory.id
         assert jt['playbook'] == 'sleep.yml'
