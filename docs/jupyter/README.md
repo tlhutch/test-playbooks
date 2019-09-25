@@ -61,3 +61,4 @@ Use the following steps to get the tower-qa credentials file and make it availab
     2. You will also need to make sure that Vagrant is [forwarding](https://www.vagrantup.com/docs/networking/forwarded_ports.html) the open port
 1. After Jupiter starts up, it should print a URL that you can follow to access Jupyter
 1. The opening page of Jupyter should show the list of awxkit notebooks
+1. By default, jupyter notebooks are configured to talk to https://127.0.0.1:8043, if you want use a different awx/tower server, invoke jupyter in an environment with `AWXKIT_BASE_URL` set to your desired host

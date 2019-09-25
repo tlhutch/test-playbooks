@@ -12,6 +12,13 @@ def start_session():
                                                                 }
                                                             }
                                                         )
+    if not hasattr(config, 'base_url'):
+        config.base_url = 'https://127.0.0.1:8043'
+    if not hasattr(config, 'project_urls'):
+        config.project_urls = { 'git': 'https://github.com/ansible/test-playbooks.git',
+                                'svn': 'https://github.com/ansible/test-playbooks',
+                                'hg': 'https://bitbucket.org/ansibleengineering/test-playbooks-hg'
+                              }
     root = api.Api()
     config.use_sessions = True
     root.load_session().get()
