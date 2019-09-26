@@ -149,9 +149,13 @@ class TestWebhookReceiver(APITest):
         # Assert that credential type of Access token can be set
         jt.webhook_credential = valid_credential.id
         assert jt.webhook_credential == valid_credential.id
-
-        # Assert that if the webhook service is blanked out, the key and the receiver is unset too
+        # Assert that the webhook service cannot be blanked out if the webhook_credential is set
+        with pytest.raises(awxkit.exceptions.BadRequest):
+            jt.webhook_service = ""
+        # Assert that the webhook service can be blanked out if the webhook_credential is blank
+        jt.webhook_credential = None
         jt.webhook_service = ""
+        # Assert that if the webhook service is blanked out, the key and the receiver is unset too
         assert jt.webhook_service == ""
         assert jt.related.webhook_key.get().webhook_key == ""
         assert jt.related.webhook_receiver == ""
