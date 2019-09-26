@@ -23,7 +23,7 @@ as expected.
   - [x] group
   - [x] host
   - [x] inventory
-  - [ ] inventory\_source
+  - [x] inventory\_source
   - [x] job\_cancel
   - [x] job\_launch
   - [x] job\_list

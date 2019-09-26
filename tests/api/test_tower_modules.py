@@ -450,6 +450,49 @@ class Test_Ansible_Tower_Modules(APITest):
 
         assert 0 == len(v2.inventory.get(name=inventory.name).results)
 
+    def test_ansible_tower_module_inventory_source_create_update(self, request, factories, v2, venv_path, python_venv_name):
+        inventory_source_name = utils.random_title()
+        org = factories.organization()
+        inventory_script = factories.inventory_script(organization=org)
+        inventory = factories.inventory(organization=org)
+        request.addfinalizer(lambda *args: v2.inventory_sources.get(name=inventory_source_name).results[0].delete())
+        self.run_tower_module('tower_inventory_source', {
+            'name': inventory_source_name,
+            'inventory': inventory.name,
+            'description': 'hello world',
+            'source': 'custom',
+            'source_script': inventory_script.name,
+        }, factories, venv_path(python_venv_name))
+
+        inventory_source = v2.inventory_sources.get(name=inventory_source_name).results[0]
+        inventory_source_id = inventory_source.id
+        assert inventory_source_name == inventory_source['name']
+        assert inventory_source['description'] == 'hello world'
+
+        self.run_tower_module('tower_inventory_source', {
+            'name': inventory_source_name,
+            'inventory': inventory.name,
+            'description': 'updated description',
+            'source': 'custom',
+            'source_script': inventory_script.name,
+        }, factories, venv_path(python_venv_name))
+
+        inventory_source = v2.inventory_sources.get(name=inventory_source_name).results[0]
+        assert inventory_source_id == inventory_source.id
+        assert inventory_source_name == inventory_source['name']
+        assert inventory_source['description'] == 'updated description'
+
+    def test_ansible_tower_module_inventory_source_delete(self, factories, v2, venv_path, python_venv_name):
+        inventory_source = factories.inventory_source()
+        self.run_tower_module('tower_inventory_source', {
+            'name': inventory_source.name,
+            'inventory': inventory_source.summary_fields.inventory.name,
+            'source': inventory_source.source,
+            'state': 'absent',
+        }, factories, venv_path(python_venv_name))
+
+        assert 0 == len(v2.inventory_sources.get(name=inventory_source.name).results)
+
     def test_ansible_tower_module_job(self, request, factories, v2, venv_path, python_venv_name):
         jt_name = utils.random_title()
         project = factories.project()
