@@ -40,7 +40,7 @@ def create_webhook_gitlab(url, secret):
     payload = ""
     headers = {
         'Content-Type': "application/json",
-        'PRIVATE-TOKEN': "cWkyiy-M62zyHotfa7VP",
+        'PRIVATE-TOKEN': config['credentials']['gitlab']['token'],
         'Host': "gitlab.com",
     }
     response = requests.request("POST", hooks_url, data=payload, headers=headers, params=querystring, verify=False)
@@ -59,13 +59,13 @@ def delete_webhook_gitlab(id):
 
 
 @pytest.fixture
-def webhook_config(request, factories, tower_baseurl, v2):
+def jobs_triggered_by_github_webhook(request, factories, tower_baseurl, v2):
     """Create a JT/WFJT, create a webhook for the resource and then teardown the webhook
     after returning the job that was launched by the webhook ping event"""
     if not hasattr(request, 'param'):
         pytest.skip("no parameters")
-    resource = request.param[0]
-    service = request.param[1]
+    resource = request.param
+    service = "github"
     if resource == 'job template':
         jt = factories.job_template()
     elif resource == 'workflow job template':
@@ -74,29 +74,44 @@ def webhook_config(request, factories, tower_baseurl, v2):
     url = tower_baseurl + str(jt.related.webhook_receiver)
     secret = str(jt.related.webhook_key.get().webhook_key)
     # Create Webhook
-    if service == 'github':
-        response = create_webhook_github(url, secret)
-    elif resource == 'gitlab':
-        response = create_webhook_gitlab(url, secret)
+    response = create_webhook_github(url, secret)
     assert response.status_code == 201
     # Assert that the ping event launches the job (for github only) and return the job back
-    if service == 'github':
-        if resource == 'job template':
-            poll_until(lambda: v2.job_templates.get(id=jt.id).results.pop().related.jobs.get().count == 1, interval=5,
-                       timeout=600)
-            job = v2.job_templates.get(id=jt.id).results.pop().related.jobs.get()
-        else:
-            poll_until(
-                lambda: v2.workflow_job_templates.get(id=jt.id).results.pop().related.workflow_jobs.get().count == 1,
-                interval=5,
-                timeout=600)
-            job = v2.workflow_job_templates.get(id=jt.id).results.pop().related.workflow_jobs.get()
-    # gitlab does not send a ping event after the webhook credential, hence no JT/WFJT is launched
+    if resource == 'job template':
+        poll_until(lambda: v2.job_templates.get(id=jt.id).results.pop().related.jobs.get().count == 1, interval=5,
+                   timeout=600)
+        job = v2.job_templates.get(id=jt.id).results.pop().related.jobs.get()
     else:
-        job = True
+        poll_until(
+            lambda: v2.workflow_job_templates.get(id=jt.id).results.pop().related.workflow_jobs.get().count == 1,
+            interval=5,
+            timeout=600)
+        job = v2.workflow_job_templates.get(id=jt.id).results.pop().related.workflow_jobs.get()
     yield job
     # Delete the created webhook by fetching the id from the response
     delete_webhook_github(response.json()['id'])
+
+
+@pytest.fixture
+def gitlab_webhook_creation_response(request, factories, tower_baseurl, v2):
+    """Create a JT/WFJT, create a webhook for the resource and then teardown the webhook
+    Note: gitlab does not send a ping event after webhook creation"""
+    if not hasattr(request, 'param'):
+        pytest.skip("no parameters")
+    resource = request.param
+    service = "gitlab"
+    if resource == 'job template':
+        jt = factories.job_template()
+    elif resource == 'workflow job template':
+        jt = factories.workflow_job_template()
+    jt.webhook_service = service
+    url = tower_baseurl + str(jt.related.webhook_receiver)
+    secret = str(jt.related.webhook_key.get().webhook_key)
+    # Create Webhook and yield the response
+    response = create_webhook_gitlab(url, secret)
+    yield response
+    # Delete the created webhook by fetching the id from the response
+    delete_webhook_gitlab(response.json()['id'])
 
 
 @pytest.mark.usefixtures('authtoken')
@@ -105,7 +120,7 @@ class TestWebhookReceiver(APITest):
 
     @pytest.mark.parametrize("service", ['github', 'gitlab'])
     @pytest.mark.parametrize("resource", ['job template', 'workflow job template'])
-    def test_basic_api(self, v2, factories, service, resource):
+    def test_basic_api(self, v2, factories, service, resource, github_credential, gitlab_credential):
         """Test the Basic API for Webhooks"""
         if resource == 'job template':
             jt = factories.job_template()
@@ -125,19 +140,16 @@ class TestWebhookReceiver(APITest):
             assert jt.related.webhook_receiver == "/api/v2/workflow_job_templates/" + str(jt.id) + "/" + service + "/"
         assert jt.webhook_credential is None
         # Assert that any credential type other than the personal access token is not allowed
-        credential_type_id_github = v2.credential_types.get(namespace="github_token").results.pop().id
-        credential_type_id_gitlab = v2.credential_types.get(namespace="gitlab_token").results.pop().id
         if service == "github":
-            valid_credential = factories.credential(credential_type=credential_type_id_github)
-            invalid_credential = factories.credential(credential_type=credential_type_id_gitlab)
+            valid_credential, invalid_credential = github_credential, gitlab_credential
         else:
-            valid_credential = factories.credential(credential_type=credential_type_id_gitlab)
-            invalid_credential = factories.credential(credential_type=credential_type_id_github)
+            invalid_credential, valid_credential = github_credential, gitlab_credential
         with pytest.raises(awxkit.exceptions.BadRequest):
             jt.webhook_credential = invalid_credential.id
         # Assert that credential type of Access token can be set
         jt.webhook_credential = valid_credential.id
         assert jt.webhook_credential == valid_credential.id
+
         # Assert that if the webhook service is blanked out, the key and the receiver is unset too
         jt.webhook_service = ""
         assert jt.webhook_service == ""
@@ -148,16 +160,24 @@ class TestWebhookReceiver(APITest):
         assert another_jt.webhook_service == service
         assert another_jt.webhook_credential == valid_credential.id
 
-    @pytest.mark.parametrize('webhook_config', [('job template', 'github'), ('job template', 'gitlab'),
-                                                ('workflow job template', 'github'),
-                                                ('workflow job template', 'gitlab')], indirect=True)
-    def test_webhook_config(self, webhook_config):
+    @pytest.mark.parametrize('jobs_triggered_by_github_webhook', ['job template', 'workflow job template'], indirect=True)
+    def test_webhook_config_github(self, jobs_triggered_by_github_webhook):
         """Test Webhook Configuration"""
-        job = webhook_config
-        assert len(job.results) == 1
-        job = job.results.pop()
+        # get the jobs triggered after webhook creation on github
+        jobs_triggered = jobs_triggered_by_github_webhook
+        # Assert that a ping event sent after webhook creation launches the job
+        assert len(jobs_triggered.results) == 1
+        job = jobs_triggered.results.pop()
         assert job.extra_vars != ""
         assert job.webhook_service == "github"
+
+    @pytest.mark.parametrize('gitlab_webhook_creation_response', ['job template', 'workflow job template'], indirect=True)
+    def test_webhook_config_gitlab(self, gitlab_webhook_creation_response):
+        """Test Webhook Configuration"""
+        # get the jobs triggered after webhook creation on github
+        response = gitlab_webhook_creation_response
+        # Assert that the webhook is created, note that gitlab does not send a ping event to launch the job
+        assert response.status_code == 201
 
     @pytest.mark.parametrize("user_role",
                              ['sysadmin', 'jt_admin', 'system_auditor', 'org_executor', 'org_member', 'org_admin'])
