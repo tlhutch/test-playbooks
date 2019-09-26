@@ -275,15 +275,17 @@ class Test_Notifications(APITest):
         return nt, org
 
     @pytest.mark.parametrize("user_role",
-                             ['wfjt_admin', 'system_auditor', 'org_auditor', 'org_executor', 'org_admin', 'org_not_admin'])
+                             ["sys_admin", 'org_admin', 'wfjt_admin', 'system_auditor', 'org_auditor', 'org_executor', 'org_not_admin', 'org_member'])
     def test_associate_notification_template_rbac(self, factories,
                                       slack_notification_template_with_org, user_role):
-        """Test RBAC for Associating notification template to the workflow"""
-        pytest.skip("figuring out")
+        """Test RBAC for Viewing, Creating and Associating notification template to the workflow"""
+        # pytest.skip("figuring out")
         nt, org = slack_notification_template_with_org
         wfjt = factories.workflow_job_template(organization=org)
-        user = factories.user()
+        user = factories.user(organization=org)
         # Create User with appropriate permissions
+        if user_role == 'sys_admin':
+            user.is_superuser = True
         if user_role == 'system_auditor':
             user.is_system_auditor = True
         if user_role == 'org_admin':
@@ -298,12 +300,41 @@ class Test_Notifications(APITest):
             wfjt.set_object_roles(user, 'admin')
         if user_role == 'org_member':
             org.set_object_roles(user, 'member')
-
         with self.current_user(user.username, user.password):
-            # Assert that valid users can associate the notification template to the workflow
-            if user_role in ['org_admin', 'system_auditor', 'org_auditor', 'org_not_admin']:
+            if user_role in ['sys_admin', 'org_admin']:
+                # Assert that valid users can create a notification template
+                factories.notification_template(organization=org)
+                # Assert that valid users can get a notification template
+                nt.get()
+                # Assert that valid users can associate the notification template to the workflow
                 associate_notification_template(nt, wfjt, 'approvals')
-            # Assert that invalid users can not associate the notification template to the workflow
-            else:
+
+            elif user_role in ['system_auditor', 'org_auditor']:
+                # Assert that invalid users can not create a notification template
+                with pytest.raises(exc.Forbidden):
+                    factories.notification_template(organization=org)
+                # Assert that the notification admin can get a notification template
+                nt.get()
+                # Assert that invalid users can not associate the notification template to the workflow
+                with pytest.raises(exc.Forbidden):
+                    associate_notification_template(nt, wfjt, 'approvals')
+
+            elif user_role in ['org_not_admin']:
+                # Assert that the notification admin can create a notification template
+                factories.notification_template(organization=org)
+                # Assert that the notification admin can get a notification template
+                nt.get()
+                # Assert that the notification admin can not associate the notification template to the workflow
+                with pytest.raises(exc.Forbidden):
+                    associate_notification_template(nt, wfjt, 'approvals')
+
+            elif user_role in['wfjt_admin', 'org_executor', 'org_member']:
+                # Assert that invalid users can not create a notification template
+                with pytest.raises(exc.Forbidden):
+                    factories.notification_template(organization=org)
+                # Assert that invalid users can not get a notification template
+                with pytest.raises(exc.Forbidden):
+                    nt.get()
+                # Assert that invalid users can not associate the notification template to the workflow
                 with pytest.raises(exc.Forbidden):
                     associate_notification_template(nt, wfjt, 'approvals')
