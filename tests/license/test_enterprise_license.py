@@ -247,11 +247,21 @@ print(json.dumps({
         assert inv_update.failed is False, 'inventory failed to update when it should have succeeded'
         assert 'ERROR    License expired.\nSee' in inv_update.result_stdout
 
-    def test_inventory_update_license_expired_trial(self, api_config_pg, factories):
+    def test_inventory_update_license_expired_trial(self, api_config_pg, v2, factories, is_docker):
         """Verify job launch fails with a trial license that is expired."""
         trial_license_1000 = generate_license(license_type='enterprise', instance_count=1000, days=-1000, trial=True)
         api_config_pg.post(trial_license_1000)
         org = factories.organization()
+
+        # NOTE: Assigning instance group because of known latency problem in cluster with license application
+        igs = v2.instance_groups.get()
+        ig = [ig for ig in igs.results if ig.name == '1']
+        if not ig and is_docker:
+            ig = igs.results[0]
+        assert len(ig) == 1
+        ig = ig.pop()
+        org.add_instance_group(ig)
+
         inv = factories.inventory(organization=org)
         inv_script = factories.inventory_script(organization=org, script="""#!/usr/bin/env python
 # -*- coding: utf-8 -*-
