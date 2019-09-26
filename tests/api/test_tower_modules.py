@@ -336,6 +336,56 @@ class Test_Ansible_Tower_Modules(APITest):
 
         assert 0 == len(v2.credential_types.get(name=cred.name).results)
 
+    def test_ansible_tower_module_notification_create_update(self, request, v2, factories, venv_path, python_venv_name, organization):
+        notification_name = utils.random_title()
+        request.addfinalizer(lambda *args: v2.notification_templates.get(name=notification_name).results[0].delete())
+        self.run_tower_module('tower_notification', {
+            'name': notification_name,
+            'organization': organization.name,
+            'description': 'hello world',
+            'channels': '[#foo]',
+            'notification_type': 'slack',
+            'token': 'fake_token',
+        }, factories, venv_path(python_venv_name))
+
+        notification = v2.notification_templates.get(name=notification_name).results[0]
+        notification_id = notification.id
+        assert notification_name == notification['name']
+        assert notification['description'] == 'hello world'
+        assert notification.summary_fields.organization.name == organization.name
+        assert notification['notification_type'] == 'slack'
+
+        self.run_tower_module('tower_notification', {
+            'name': notification_name,
+            'organization': organization.name,
+            'description': 'updated description',
+            'channels': '[#foo]',
+            'notification_type': 'slack',
+            'token': 'fake_token',
+        }, factories, venv_path(python_venv_name))
+
+        notification = v2.notification_templates.get(name=notification_name).results[0]
+        assert notification.id == notification_id
+        assert notification_name == notification['name']
+        assert notification['description'] == 'updated description'
+        assert notification.summary_fields.organization.name == organization.name
+        assert notification['notification_type'] == 'slack'
+
+    def test_ansible_tower_module_notification_delete(self, v2, factories, venv_path, python_venv_name, organization):
+        token = utils.random_title()
+        notification = factories.notification_template(token=token)
+        self.run_tower_module('tower_notification', {
+            'name': notification.name,
+            'organization': notification.summary_fields.organization.name,
+            'channels': str(notification.notification_configuration.channels),
+            'notification_type': notification.notification_type,
+            'token': token,
+            'state': 'absent',
+        }, factories, venv_path(python_venv_name))
+
+        notifications = v2.notification_templates.get(name=notification.name).results
+        assert not notifications
+
     def test_ansible_tower_module_group_create_update(self, request, v2, factories, venv_path, python_venv_name):
         group_name = utils.random_title()
         inv = factories.inventory()

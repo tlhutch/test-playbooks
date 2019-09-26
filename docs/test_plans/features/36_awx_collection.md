@@ -30,7 +30,7 @@ as expected.
   - [x] job\_template
   - [x] job\_wait
   - [x] label
-  - [ ] notification
+  - [x] notification
   - [x] organization
   - [x] project
   - [ ] receive
