@@ -53,15 +53,23 @@ class K8sClient(object):
         self.core.delete_namespaced_service(deploymentname, 'default', body=kubernetes.client.V1DeleteOptions())
         self.apps.delete_namespaced_deployment(deploymentname, 'default', body=kubernetes.client.V1DeleteOptions())
 
-    def setup_container_group_namespace(self, namespace):
+    def setup_container_group_namespace(self, namespace, corrupt_role=False):
+        """Set up necessary namespace, service account, and role for use in a ContainerGroup.
+
+        :params:
+            namespace: <str> name of namespace
+            corrupt_role: <bool> if true, intentionally provide inadequate role to service account
+        """
         # Prepare objects
         self.serviceaccount = f'serviceaccount-{namespace}'
         self.role = f'serviceaccount-role-{namespace}'
         self.namespace = namespace
         self.namespaceobject = kubernetes.client.V1Namespace(metadata={'name': self.namespace})
         self.serviceaccountobject = kubernetes.client.V1ServiceAccount(metadata={'name': self.serviceaccount})
-        pod_rules = kubernetes.client.V1PolicyRule(api_groups=[""], resources=["pods"], verbs=["get", "list", "watch", "create", "update", "patch", "delete"])
-        pod_exec_rules = kubernetes.client.V1PolicyRule(api_groups=[''], resources=['pods/exec'], verbs=["create"])
+        pod_verbs = ["get", "list", "watch", "create", "update", "patch", "delete"]
+        pod_exec_verbs = ["create"]
+        pod_rules = kubernetes.client.V1PolicyRule(api_groups=[""], resources=["pods"], verbs=pod_verbs)
+        pod_exec_rules = kubernetes.client.V1PolicyRule(api_groups=[''], resources=['pods/exec'], verbs=pod_exec_verbs)
         self.roleobject = kubernetes.client.V1Role(rules=[pod_rules, pod_exec_rules], metadata={'name': self.role})
         role_subject = kubernetes.client.V1Subject(name=self.serviceaccount, kind='ServiceAccount')
         role_ref = kubernetes.client.V1RoleRef(name=self.role, kind='Role', api_group='rbac.authorization.k8s.io')
@@ -70,8 +78,9 @@ class K8sClient(object):
         # Actually create these items
         self.core.create_namespace(self.namespaceobject)
         self.core.create_namespaced_service_account(namespace, self.serviceaccountobject)
-        self.rbac.create_namespaced_role(namespace, self.roleobject)
-        self.rbac.create_namespaced_role_binding(namespace, self.rolebindobject)
+        if not corrupt_role:
+            self.rbac.create_namespaced_role(namespace, self.roleobject)
+            self.rbac.create_namespaced_role_binding(namespace, self.rolebindobject)
         secrets = self.core.list_namespaced_secret(namespace)
         tokens = [token.data['token'] for token in secrets.items if token.metadata.namespace == namespace and token.metadata.annotations.get('kubernetes.io/service-account.name') == self.serviceaccount]
         assert len(tokens) == 1
