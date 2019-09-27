@@ -85,6 +85,9 @@ class TestResourceProfiling(APITest):
         profiles = self.get_resource_profiles(ansible_adhoc, job.id, job.execution_node)
         assert len(profiles) == len(self.expected_files)
         self.check_filenames(profiles)
+        linecounts = self.count_lines_in_files(ansible_adhoc, profiles, job.execution_node)
+        for f in profiles:
+            assert linecounts[f] > 5, linecounts[f]
 
     def test_performance_stats_enabled_does_not_break_old_ansible(self, ansible_adhoc, v2, factories, skip_if_openshift, create_venv, venv_path, global_resource_profiling_enabled):
         folder_name = random_title(non_ascii=False)
