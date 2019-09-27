@@ -23,21 +23,18 @@ as expected.
   - [x] group
   - [x] host
   - [x] inventory
-  - [ ] inventory\_source
+  - [x] inventory\_source
   - [x] job\_cancel
   - [x] job\_launch
   - [x] job\_list
   - [x] job\_template
   - [x] job\_wait
-  - [ ] label
-  - [ ] notification
+  - [x] label
+  - [x] notification
   - [x] organization
   - [x] project
-  - [ ] receive
-  - [ ] role
-  - [ ] send
-  - [ ] settings
-  - [ ] team
-  - [ ] user
-  - [ ] workflow\_launch
-  - [ ] workflow\_template
+  - [x] role
+  - [x] team
+  - [x] user
+  - [x] workflow\_launch
+  - [x] workflow\_template
