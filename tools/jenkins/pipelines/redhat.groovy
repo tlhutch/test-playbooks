@@ -38,7 +38,7 @@ Scope selected: ${params.SCOPE}"""
             }
         }
 
-        stage('Build RPM') {
+        stage('Build RPM and Artifacts') {
             parallel {
                 stage('epel-7-rpm') {
                     steps {
@@ -68,6 +68,23 @@ Scope selected: ${params.SCOPE}"""
                                booleanParam(name: 'TRIGGER', value: false),
                                string(name: 'TARGET_DIST', value: 'epel-8-x86_64'),
                                string(name: 'MOCK_CFG', value: 'rhel-8-x86_64')
+                            ]
+                        )
+                    }
+                }
+
+                stage('build-awx-cli') {
+                    when {
+                        expression {
+                            return !(params.TOWER_VERSION ==~ /3.[3-5].[0-9]*/)
+                        }
+                    }
+
+                    steps {
+                        build(
+                            job: 'Build_AWX_CLI',
+                            parameters: [
+                              string(name: 'TOWER_PACKAGING_BRANCH', value: branch_name),
                             ]
                         )
                     }
