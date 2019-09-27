@@ -1,5 +1,6 @@
 from tests.api import APITest
 import pytest
+from awxkit.utils import (poll_until, random_title)
 
 
 @pytest.mark.serial
@@ -75,7 +76,7 @@ class TestResourceProfiling(APITest):
         for f in profiles:
             assert 19 < linecounts[f] < 25, linecounts[f]
 
-    def test_performance_stats_generated_on_isolated_nodes(self, ansible_adhoc, update_setting_pg, v2, factories, skip_if_openshift, skip_if_not_cluster, global_resource_profiling_enabled):
+    def test_performance_stats_generated_on_isolated_nodes(self, ansible_adhoc, v2, factories, skip_if_openshift, skip_if_not_cluster, global_resource_profiling_enabled):
         ig = v2.instance_groups.get(name='protected').results.pop()
         jt = factories.job_template(playbook='sleep.yml', extra_vars='{"sleep_interval": 2}')
         jt.add_instance_group(ig)
@@ -84,3 +85,16 @@ class TestResourceProfiling(APITest):
         profiles = self.get_resource_profiles(ansible_adhoc, job.id, job.execution_node)
         assert len(profiles) == len(self.expected_files)
         self.check_filenames(profiles)
+
+    def test_performance_stats_enabled_does_not_break_old_ansible(self, ansible_adhoc, v2, factories, skip_if_openshift, create_venv, venv_path, global_resource_profiling_enabled):
+        folder_name = random_title(non_ascii=False)
+        with create_venv(folder_name, 'psutil ansible==2.7'):
+            poll_until(lambda: venv_path(folder_name) in v2.config.get().custom_virtualenvs, interval=1, timeout=15)
+            jt = factories.job_template(playbook='sleep.yml', extra_vars='{"sleep_interval": 2}')
+            jt.ds.inventory.add_host()
+            jt.custom_virtualenv = venv_path(folder_name)
+            job = jt.launch().wait_until_completed()
+            job.assert_successful()
+            assert job.job_env['VIRTUAL_ENV'].rstrip('/') == job.custom_virtualenv.rstrip('/') == venv_path(folder_name).rstrip('/')
+            profiles = self.get_resource_profiles(ansible_adhoc, job.id, job.execution_node)
+            assert len(profiles) == 0
