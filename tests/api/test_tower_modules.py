@@ -171,7 +171,7 @@ class Test_Ansible_Tower_Modules(APITest):
             'description': 'hello world',
         }, factories, venv_path(python_venv_name))
 
-        org = v2.organizations.get(name=org_name).results[0]
+        org = v2.organizations.get(name=org_name).results.pop()
         org_id = org.id
         assert org_name == org['name']
         assert org['description'] == 'hello world'
@@ -182,7 +182,7 @@ class Test_Ansible_Tower_Modules(APITest):
             'description': 'updated description',
         }, factories, venv_path(python_venv_name))
 
-        org = v2.organizations.get(name=org_name).results[0]
+        org = v2.organizations.get(name=org_name).results.pop()
         assert org.id == org_id
         assert org_name == org['name']
         assert org['description'] == 'updated description'
@@ -267,7 +267,7 @@ class Test_Ansible_Tower_Modules(APITest):
             'organization': organization.name,
         }, factories, venv_path(python_venv_name))
 
-        cred = v2.credentials.get(name=cred_name).results[0]
+        cred = v2.credentials.get(name=cred_name).results.pop()
         cred_id = cred.id
         assert cred_name == cred['name']
         assert cred['description'] == 'hello world'
@@ -281,7 +281,7 @@ class Test_Ansible_Tower_Modules(APITest):
             'organization': organization.name,
         }, factories, venv_path(python_venv_name))
 
-        cred = v2.credentials.get(name=cred_name).results[0]
+        cred = v2.credentials.get(name=cred_name).results.pop()
         assert cred_id == cred.id
         assert cred_name == cred['name']
         assert cred['description'] == 'updated description'
@@ -308,7 +308,7 @@ class Test_Ansible_Tower_Modules(APITest):
             'kind': 'cloud',
         }, factories, venv_path(python_venv_name))
 
-        cred = v2.credential_types.get(name=cred_name).results[0]
+        cred = v2.credential_types.get(name=cred_name).results.pop()
         cred_id = cred.id
         assert cred_name == cred['name']
         assert cred['description'] == 'hello world'
@@ -320,7 +320,7 @@ class Test_Ansible_Tower_Modules(APITest):
             'kind': 'cloud',
         }, factories, venv_path(python_venv_name))
 
-        cred = v2.credential_types.get(name=cred_name).results[0]
+        cred = v2.credential_types.get(name=cred_name).results.pop()
         assert cred.id == cred_id
         assert cred_name == cred['name']
         assert cred['description'] == 'updated description'
@@ -348,7 +348,7 @@ class Test_Ansible_Tower_Modules(APITest):
             'token': 'fake_token',
         }, factories, venv_path(python_venv_name))
 
-        notification = v2.notification_templates.get(name=notification_name).results[0]
+        notification = v2.notification_templates.get(name=notification_name).results.pop()
         notification_id = notification.id
         assert notification_name == notification['name']
         assert notification['description'] == 'hello world'
@@ -364,7 +364,7 @@ class Test_Ansible_Tower_Modules(APITest):
             'token': 'fake_token',
         }, factories, venv_path(python_venv_name))
 
-        notification = v2.notification_templates.get(name=notification_name).results[0]
+        notification = v2.notification_templates.get(name=notification_name).results.pop()
         assert notification.id == notification_id
         assert notification_name == notification['name']
         assert notification['description'] == 'updated description'
@@ -396,7 +396,7 @@ class Test_Ansible_Tower_Modules(APITest):
             'inventory': inv.name
         }, factories, venv_path(python_venv_name))
 
-        group = v2.groups.get(name=group_name).results[0]
+        group = v2.groups.get(name=group_name).results.pop()
         group_id = group.id
         assert group_name == group['name']
         assert group['description'] == 'hello world'
@@ -408,7 +408,7 @@ class Test_Ansible_Tower_Modules(APITest):
             'inventory': inv.name
         }, factories, venv_path(python_venv_name))
 
-        group = v2.groups.get(name=group_name).results[0]
+        group = v2.groups.get(name=group_name).results.pop()
         assert group.id == group_id
         assert group_name == group['name']
         assert group['description'] == 'updated description'
@@ -434,7 +434,7 @@ class Test_Ansible_Tower_Modules(APITest):
             'inventory': inv.name
         }, factories, venv_path(python_venv_name))
 
-        host = v2.hosts.get(name=host_name).results[0]
+        host = v2.hosts.get(name=host_name).results.pop()
         host_id = host.id
         assert host_name == host['name']
         assert host['description'] == 'hello world'
@@ -446,7 +446,7 @@ class Test_Ansible_Tower_Modules(APITest):
             'inventory': inv.name
         }, factories, venv_path(python_venv_name))
 
-        host = v2.hosts.get(name=host_name).results[0]
+        host = v2.hosts.get(name=host_name).results.pop()
         assert host.id == host_id
         assert host_name == host['name']
         assert host['description'] == 'updated description'
@@ -472,7 +472,7 @@ class Test_Ansible_Tower_Modules(APITest):
             'organization': org.name
         }, factories, venv_path(python_venv_name))
 
-        inventory = v2.inventory.get(name=inventory_name).results[0]
+        inventory = v2.inventory.get(name=inventory_name).results.pop()
         inventory_id = inventory.id
         assert inventory_name == inventory['name']
         assert inventory['description'] == 'hello world'
@@ -484,7 +484,7 @@ class Test_Ansible_Tower_Modules(APITest):
             'organization': org.name
         }, factories, venv_path(python_venv_name))
 
-        inventory = v2.inventory.get(name=inventory_name).results[0]
+        inventory = v2.inventory.get(name=inventory_name).results.pop()
         assert inventory_id == inventory.id
         assert inventory_name == inventory['name']
         assert inventory['description'] == 'updated description'
@@ -514,7 +514,7 @@ class Test_Ansible_Tower_Modules(APITest):
             'source_script': inventory_script.name,
         }, factories, venv_path(python_venv_name))
 
-        inventory_source = v2.inventory_sources.get(name=inventory_source_name).results[0]
+        inventory_source = v2.inventory_sources.get(name=inventory_source_name).results.pop()
         inventory_source_id = inventory_source.id
         assert inventory_source_name == inventory_source['name']
         assert inventory_source['description'] == 'hello world'
@@ -527,7 +527,7 @@ class Test_Ansible_Tower_Modules(APITest):
             'source_script': inventory_script.name,
         }, factories, venv_path(python_venv_name))
 
-        inventory_source = v2.inventory_sources.get(name=inventory_source_name).results[0]
+        inventory_source = v2.inventory_sources.get(name=inventory_source_name).results.pop()
         assert inventory_source_id == inventory_source.id
         assert inventory_source_name == inventory_source['name']
         assert inventory_source['description'] == 'updated description'
@@ -569,7 +569,7 @@ class Test_Ansible_Tower_Modules(APITest):
             'project': project.name,
         }, factories, venv_path(python_venv_name))
 
-        jt = v2.job_templates.get(name=jt_name).results[0]
+        jt = v2.job_templates.get(name=jt_name).results.pop()
         jt_id = jt.id
         assert jt_name == jt['name']
         assert jt['description'] == 'hello world'
@@ -588,7 +588,7 @@ class Test_Ansible_Tower_Modules(APITest):
             'project': project.name,
         }, factories, venv_path(python_venv_name))
 
-        jt = v2.job_templates.get(name=jt_name).results[0]
+        jt = v2.job_templates.get(name=jt_name).results.pop()
         assert jt.id == jt_id
         assert jt_name == jt['name']
         assert jt['description'] == 'updated description'
@@ -602,7 +602,7 @@ class Test_Ansible_Tower_Modules(APITest):
             'job_template': jt_name,
         }, factories, venv_path(python_venv_name))
 
-        job = v2.jobs.get(name=jt_name).results[0]
+        job = v2.jobs.get(name=jt_name).results.pop()
         assert job.summary_fields.job_template.name == jt_name
 
         job_id1 = job.id
@@ -612,7 +612,7 @@ class Test_Ansible_Tower_Modules(APITest):
             'job_id': job_id1,
         }, factories, venv_path(python_venv_name))
 
-        job = v2.jobs.get(id=job_id1).results[0]
+        job = v2.jobs.get(id=job_id1).results.pop()
         assert job.summary_fields.job_template.name == jt_name
         assert job.status == "canceled"
 
@@ -634,7 +634,7 @@ class Test_Ansible_Tower_Modules(APITest):
             'job_id': job_id2,
         }, factories, venv_path(python_venv_name))
 
-        job = v2.jobs.get(id=job_id2).results[0]
+        job = v2.jobs.get(id=job_id2).results.pop()
         assert job.summary_fields.job_template.name == jt_name
         assert job.status == "successful"
 
@@ -668,7 +668,7 @@ class Test_Ansible_Tower_Modules(APITest):
             'role': 'admin',
         }, factories, venv_path(python_venv_name))
 
-        role = v2.users.get(id=user.id)['results'][0]['related']['roles'].get().results[0]
+        role = v2.users.get(id=user.id)['results'][0]['related']['roles'].get().results.pop()
         assert str(org.id) in role['related']['organization']
         assert role['related']['users'].get()['results'][0]['id'] == user.id
 
@@ -681,7 +681,7 @@ class Test_Ansible_Tower_Modules(APITest):
             'organization': org.name
         }, factories, venv_path(python_venv_name))
 
-        team = v2.teams.get(name=team_name).results[0]
+        team = v2.teams.get(name=team_name).results.pop()
         assert team_name == team['name']
         assert team['organization'] == org.id
 
@@ -704,7 +704,7 @@ class Test_Ansible_Tower_Modules(APITest):
             'email': 'example@example.com',
         }, factories, venv_path(python_venv_name))
 
-        user = v2.users.get(username=username).results[0]
+        user = v2.users.get(username=username).results.pop()
         assert username == user['username']
         assert user['email'] == 'example@example.com'
 
@@ -726,7 +726,7 @@ class Test_Ansible_Tower_Modules(APITest):
             'organization': org.name
         }, factories, venv_path(python_venv_name))
 
-        label = v2.labels.get(name=label_name).results[0]
+        label = v2.labels.get(name=label_name).results.pop()
         assert label_name == label['name']
 
     def test_ansible_tower_module_workflow(self, request, factories, v2, venv_path, python_venv_name):
@@ -746,7 +746,7 @@ class Test_Ansible_Tower_Modules(APITest):
             'name': wf_name,
         }, factories, venv_path(python_venv_name))
 
-        wf = v2.workflow_job_templates.get(name=wf_name).results[0]
+        wf = v2.workflow_job_templates.get(name=wf_name).results.pop()
         assert wf_name == wf['name']
 
         # launch our workflow
@@ -754,7 +754,7 @@ class Test_Ansible_Tower_Modules(APITest):
             'workflow_template': wf_name,
         }, factories, venv_path(python_venv_name))
 
-        wf_job = v2.workflow_jobs.get(name=wf_name).results[0]
+        wf_job = v2.workflow_jobs.get(name=wf_name).results.pop()
         assert wf_job['status'] == 'successful'
         assert wf_name == wf_job['name']
 
