@@ -88,8 +88,9 @@ def jobs_triggered_by_github_webhook(request, factories, tower_baseurl, v2):
             timeout=600)
         job = v2.workflow_job_templates.get(id=jt.id).results.pop().related.workflow_jobs.get()
     yield job
-    # Delete the created webhook by fetching the id from the response
-    delete_webhook_github(response.json()['id'])
+    # Delete the webhook if created by fetching the id from the response
+    if response.status_code == 201:
+        delete_webhook_github(response.json()['id'])
 
 
 @pytest.fixture
@@ -110,8 +111,9 @@ def gitlab_webhook_creation_response(request, factories, tower_baseurl, v2):
     # Create Webhook and yield the response
     response = create_webhook_gitlab(url, secret)
     yield response
-    # Delete the created webhook by fetching the id from the response
-    delete_webhook_gitlab(response.json()['id'])
+    # Delete the webhook if created by fetching the id from the response
+    if response.status_code == 201:
+        delete_webhook_gitlab(response.json()['id'])
 
 
 @pytest.mark.usefixtures('authtoken')
@@ -120,7 +122,7 @@ class TestWebhookReceiver(APITest):
 
     @pytest.mark.parametrize("service", ['github', 'gitlab'])
     @pytest.mark.parametrize("resource", ['job template', 'workflow job template'])
-    def test_basic_api(self, v2, factories, service, resource, github_credential, gitlab_credential):
+    def test_basic_api(self, factories, service, resource, github_credential, gitlab_credential):
         """Test the Basic API for Webhooks"""
         if resource == 'job template':
             jt = factories.job_template()
@@ -166,7 +168,11 @@ class TestWebhookReceiver(APITest):
 
     @pytest.mark.parametrize('jobs_triggered_by_github_webhook', ['job template', 'workflow job template'], indirect=True)
     def test_webhook_config_github(self, jobs_triggered_by_github_webhook):
-        """Test Webhook Configuration"""
+        """Test Webhook Configuration for Github
+        Note: If the tests give 422 "validation failed" error,
+        it is because the repository can not have more than 20 push event webhooks,
+        although this might not happen since we are deleting the webhook after the test,
+        if it does, retry after deleting all hooks"""
         # get the jobs triggered after webhook creation on github
         jobs_triggered = jobs_triggered_by_github_webhook
         # Assert that a ping event sent after webhook creation launches the job
@@ -177,7 +183,7 @@ class TestWebhookReceiver(APITest):
 
     @pytest.mark.parametrize('gitlab_webhook_creation_response', ['job template', 'workflow job template'], indirect=True)
     def test_webhook_config_gitlab(self, gitlab_webhook_creation_response):
-        """Test Webhook Configuration"""
+        """Test Webhook Configuration for Gitlab"""
         # get the jobs triggered after webhook creation on github
         response = gitlab_webhook_creation_response
         # Assert that the webhook is created, note that gitlab does not send a ping event to launch the job
