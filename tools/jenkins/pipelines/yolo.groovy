@@ -203,6 +203,42 @@ pipeline {
         stage('Build Tower and deploy test-runner') {
             failFast true
             parallel {
+                stage('Build AWX CLI') {
+                    when {
+                        expression {
+                            return params.BUILD_INSTALLER_AND_PACKAGE
+                        }
+                    }
+
+                    steps {
+                        build(
+                            job: 'Build_AWX_CLI',
+                            parameters: [
+                                string(
+                                    name: 'TOWER_PACKAGING_REPO',
+                                    value: "git@github.com:${params.TOWER_PACKAGING_FORK}/tower-packaging.git"
+                                ),
+                                string(
+                                    name: 'TOWER_PACKAGING_BRANCH',
+                                    value: "origin/${params.TOWER_PACKAGING_BRANCH}"
+                                ),
+                                string(
+                                    name: 'TOWER_REPO',
+                                    value: "git@github.com:${params.TOWER_FORK}/${params.PRODUCT}.git"
+                                ),
+                                string(
+                                    name: 'TOWER_BRANCH',
+                                    value: "origin/${params.TOWER_BRANCH}"
+                                ),
+                                string(
+                                    name: 'NIGHTLY_REPO_DIR',
+                                    value: NIGHTLY_REPO_DIR
+                                )
+                            ]
+                        )
+                    }
+                }
+
                 stage('Build Installer') {
                     when {
                         expression {
