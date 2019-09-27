@@ -11,6 +11,12 @@ class TestResourceProfiling(APITest):
                       'cpu',
                       'pids']
 
+    interval_settings = ['AWX_RESOURCE_PROFILING_CPU_POLL_INTERVAL',
+                        'AWX_RESOURCE_PROFILING_MEMORY_POLL_INTERVAL',
+                        'AWX_RESOURCE_PROFILING_PID_POLL_INTERVAL']
+
+    default_interval = '0.25'
+
     def toggle_resource_profiling(self, update_setting_pg, v2, state="false"):
         system_settings = v2.settings.get().get_endpoint('jobs')
         payload = {'AWX_RESOURCE_PROFILING_ENABLED': state}
@@ -61,11 +67,22 @@ class TestResourceProfiling(APITest):
         profiles = self.get_resource_profiles(ansible_adhoc, job.id, job.execution_node)
         assert len(profiles) == 0
 
+    def test_performance_stats_default_interval_is_applied(self, ansible_adhoc, v2, factories, skip_if_openshift, global_resource_profiling_enabled):
+        system_settings = v2.settings.get().get_endpoint('jobs')
+        for s in self.interval_settings:
+            assert system_settings[s] == self.default_interval
+        jt = factories.job_template(playbook='sleep.yml', extra_vars='{"sleep_interval": 10}')
+        factories.host(inventory=jt.ds.inventory)
+        job = jt.launch().wait_until_completed()
+        profiles = self.get_resource_profiles(ansible_adhoc, job.id, job.execution_node)
+        self.check_filenames(profiles)
+        linecounts = self.count_lines_in_files(ansible_adhoc, profiles, job.execution_node)
+        for f in profiles:
+            assert 39 < linecounts[f] < 45, linecounts[f]
+
     def test_performance_stats_intervals_are_applied(self, ansible_adhoc, update_setting_pg, v2, factories, skip_if_openshift, global_resource_profiling_enabled):
         system_settings = v2.settings.get().get_endpoint('jobs')
-        payload = {'AWX_RESOURCE_PROFILING_CPU_POLL_INTERVAL': '0.5',
-                   'AWX_RESOURCE_PROFILING_MEMORY_POLL_INTERVAL': '0.5',
-                   'AWX_RESOURCE_PROFILING_PID_POLL_INTERVAL': '0.5'}
+        payload = {s: '0.5' for s in self.interval_settings}
         update_setting_pg(system_settings, payload)
         jt = factories.job_template(playbook='sleep.yml', extra_vars='{"sleep_interval": 10}')
         factories.host(inventory=jt.ds.inventory)
