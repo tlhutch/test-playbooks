@@ -1,0 +1,15 @@
+---
+- hosts: test-runner
+  tasks:
+    - name: Ensure the artifacts directory exists
+      file:
+        path: '{{ lookup("env", "PWD") }}/artifacts'
+        state: directory
+      delegate_to: localhost
+
+    - name: Retrieve junit results for cli tarball test
+      ignore_errors: yes
+      fetch:
+        src: ~/tower-qa/reports/junit/results-cli-tarball.xml
+        dest: '{{ lookup("env", "PWD") }}/artifacts/results-cli-tarball.xml'
+        flat: yes

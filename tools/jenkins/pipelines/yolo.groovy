@@ -462,12 +462,25 @@ pipeline {
                     return params.RUN_CLI_TESTS
                 }
             }
+            parallel {
+                stage('Run CLI RPM Install Tests') {
+                    steps {
+                        sshagent(credentials : ['github-ansible-jenkins-nopassphrase']) {
+                            sh "ssh ${SSH_OPTS} ec2-user@${TEST_RUNNER_HOST} 'cd tower-qa && TESTEXPR=\"${params.TESTEXPR}\" TOWERKIT_FORK=\"${params.TOWERKIT_FORK}\" TOWERKIT_BRANCH=\"${params.TOWERKIT_BRANCH}\" PRODUCT=\"${params.PRODUCT}\" AWXKIT_REPO=\"${params.AWXKIT_REPO}\" TOWER_FORK=\"${params.TOWER_FORK}\" TOWER_BRANCH=\"${params.TOWER_BRANCH}\" ./tools/jenkins/scripts/test-cli.sh'"
+                            sh 'ansible-playbook -v -i playbooks/inventory.test_runner playbooks/test_runner/run_fetch_artifacts_test_cli.yml'
+                            junit allowEmptyResults: true, testResults: 'artifacts/results-cli.xml'
+                        }
+                    }
+                }
 
-            steps {
-                sshagent(credentials : ['github-ansible-jenkins-nopassphrase']) {
-                    sh "ssh ${SSH_OPTS} ec2-user@${TEST_RUNNER_HOST} 'cd tower-qa && TESTEXPR=\"${params.TESTEXPR}\" TOWERKIT_FORK=\"${params.TOWERKIT_FORK}\" TOWERKIT_BRANCH=\"${params.TOWERKIT_BRANCH}\" PRODUCT=\"${params.PRODUCT}\" AWXKIT_REPO=\"${params.AWXKIT_REPO}\" TOWER_FORK=\"${params.TOWER_FORK}\" TOWER_BRANCH=\"${params.TOWER_BRANCH}\" ./tools/jenkins/scripts/test-cli.sh'"
-                    sh 'ansible-playbook -v -i playbooks/inventory.test_runner playbooks/test_runner/run_fetch_artifacts_test_cli.yml'
-                    junit allowEmptyResults: true, testResults: 'artifacts/results-cli.xml'
+                stage('Run CLI Pip Tarball Tests') {
+                    steps {
+                        sshagent(credentials : ['github-ansible-jenkins-nopassphrase']) {
+                            sh "ssh ${SSH_OPTS} ec2-user@${TEST_RUNNER_HOST} 'cd tower-qa && AW_REPO_URL=\"http://nightlies.testing.ansible.com/ansible-tower_nightlies_m8u16fz56qr6q7/${NIGHTLY_REPO_DIR}\" ./tools/jenkins/scripts/test-cli-tarball.sh'"
+                            sh 'ansible-playbook -v -i playbooks/inventory.test_runner playbooks/test_runner/run_fetch_artifacts_test_cli_tarball.yml'
+                            junit allowEmptyResults: true, testResults: 'artifacts/results-pip-tarball.xml'
+                        }
+                    }
                 }
             }
         }
