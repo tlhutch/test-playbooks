@@ -259,6 +259,10 @@ class TestResourcesPresent():
                 if field in ('organization', 'credential'):
                     self.confirm_related_field(field, found_project, desired_project)
                 else:
+                    # Due to an issue in previous version, when a project was defined with an empty
+                    # description, it would be filled with random data making this test fail.
+                    if field == 'description' and desired_project[field] == '':
+                        continue
                     self.confirm_field(field, found_project, desired_project)
             projects_to_update.append(found_project)
 

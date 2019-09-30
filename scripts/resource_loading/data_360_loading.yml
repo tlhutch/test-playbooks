@@ -165,7 +165,7 @@ credentials:
         become_username: ''
         become_password: ''
 
-    - name: 'SSH (user:bender_eng_user, ssh_key_data, ssh_key_unlock:***'
+    - name: 'SSH (user:bender_eng_user, ssh_key_data, ssh_key_unlock:***)'
       description: 'user:bender_eng_user, ssh_user:root, ssh_key_data, ssh_key_unlock:***'
       kind: ssh
       user: bender_eng_user
@@ -178,7 +178,7 @@ credentials:
         become_username: ''
         become_password: ''
 
-    - name: 'SSH (user:bender_eng_user, ssh_key_data, ssh_key_unlock:***'
+    - name: 'SSH (user:bender_eng_user, ssh_key_data, ssh_key_unlock:***)'
       description: 'user:bender_eng_user, ssh_user:root, ssh_key_data, ssh_key_unlock:***'
       kind: ssh
       user: bender_eng_user
@@ -217,8 +217,8 @@ credentials:
         become_username: '{become_username}'
         become_password: '{become_password}'
 
-    - name: 'SSH (team:Engineering, password:ASK, ssh_key_unlock:ASK, become_password:ASK)'
-      description: 'team:Engineering, ssh_user:root, password:ASK, ssh_key_unlock:ASK, become_password:ASK'
+    - name: 'SSH (team:Engineering, password:ASK, ssh_key_unlock:ASK, become_password:ASK, vault_password:ASK)'
+      description: 'team:Engineering, ssh_user:root, password:ASK, ssh_key_unlock:ASK, become_password:ASK, vault_password:ASK'
       kind: ssh
       user: null
       team: Bender Engineering

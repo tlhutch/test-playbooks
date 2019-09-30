@@ -17,10 +17,6 @@ TOWER_HOST="$(retrieve_tower_server_from_inventory "${INVENTORY}")"
 CREDS=$(retrieve_credential_file "${INVENTORY}")
 until is_tower_ready "https://${TOWER_HOST}"; do :; done
 
-set +e
-
 pytest -c config/load.cfg \
     --api-credentials="${CREDS}" \
     --base-url="https://${TOWER_HOST}"
-
-set -e
