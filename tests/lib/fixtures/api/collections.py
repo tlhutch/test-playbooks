@@ -60,10 +60,14 @@ def tower_modules_collection(request, session_ansible_adhoc, ansible_collections
 
         build_dir = os.path.join(ansible_collections_path, 'build')
 
-        # TODO: get awx/tower fork and branch from YOLameters
+        # Default to installing awx collection from ansible awx repo
+        fork = os.environ.get('TOWER_FORK', 'ansible')
+        product = os.environ.get('PRODUCT', 'awx')
+        branch = os.environ.get('TOWER_BRANCH', 'devel')
+
         git_result = ansible_adhoc.git(
-            repo='https://github.com/AlanCoding/awx.git',
-            version='awx_modules_merge',
+            repo=f'https://github.com/{fork}/{product}.git',
+            version=f'{branch}',
             depth=1,
             dest=build_dir,
             force=True
