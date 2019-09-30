@@ -22,7 +22,7 @@ class TestContainerGroups(APITest):
         ig = class_factories.instance_group(name=f'ContainerGroup - {namespace}')
         ig.credential = cred.id
         ig_options = v2_class.instance_groups.options()
-        pod_spec = yaml.load(ig_options.actions['POST']['pod_spec_override']['default'])
+        pod_spec = yaml.load(ig_options.actions['POST']['pod_spec_override']['default'], Loader=yaml.SafeLoader)
         pod_spec['metadata']['namespace'] = namespace
         ig.pod_spec_override = json.dumps(pod_spec)
 
@@ -91,7 +91,7 @@ class TestContainerGroups(APITest):
         update = proj.update().wait_until_completed()
         # TODO use sleep playbook and confirm a pod spins up on gke using client
         update.assert_successful()
-        update.instance_group == container_group.id
+        update.summary_fields.instance_group.id == container_group.id
 
     def test_launch_adhoc(self, container_group_and_client, factories):
         container_group, client = container_group_and_client
@@ -103,7 +103,7 @@ class TestContainerGroups(APITest):
         # TODO use sleep and confirm a pod spins up on gke using client
         adhoc.wait_until_completed(timeout=90)
         adhoc.assert_successful()
-        adhoc.instance_group == container_group.id
+        adhoc.summary_fields.instance_group.id == container_group.id
 
     def test_launch_cloud_inventory_update(self, container_group_and_client, aws_inventory_source):
         container_group, client = container_group_and_client
@@ -112,4 +112,4 @@ class TestContainerGroups(APITest):
         # TODO use sleep and confirm a pod spins up on gke using client
         update = aws_inventory_source.update().wait_until_completed()
         update.assert_successful()
-        update.instance_group == container_group.id
+        update.summary_fields.instance_group.id == container_group.id
