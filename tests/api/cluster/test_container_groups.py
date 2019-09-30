@@ -39,8 +39,6 @@ class TestContainerGroups(APITest):
     @pytest.fixture(scope='function', params=['cacrt', 'token', 'host', 'image', 'role', 'entry_point'])
     def bad_container_group_and_client(self, request, gke_client_fscope, factories, v2):
         problem = request.param
-        if problem == 'role':
-            pytest.skip("Need to fixup tower-qe cluster not to use legacy auth to test this.")
         client = gke_client_fscope(config.credentials)
         namespace = f'bad-{fauxfactory.gen_alphanumeric().lower()}'
         if problem == 'role':
@@ -63,14 +61,14 @@ class TestContainerGroups(APITest):
         if problem == 'image':
             pod_spec['spec']['containers'][0]['image'] = 'nginx'
         if problem == 'entry_point':
-            pod_spec['spec']['containers'][0]['args'] = ['sleep', '5']
+            pod_spec['spec']['containers'][0]['args'] = ['sleep', '10']
         ig.pod_spec_override = json.dumps(pod_spec)
 
         return ig, client, problem
 
     def test_failed_job(self, bad_container_group_and_client, factories):
         container_group, client, problem = bad_container_group_and_client
-        jt = factories.job_template()
+        jt = factories.job_template(playbook='sleep.yml', extra_vars='{"sleep_interval": 45}')
         jt.add_instance_group(container_group)
         job = jt.launch().wait_until_completed()
         if problem == 'cacrt':
@@ -80,12 +78,12 @@ class TestContainerGroups(APITest):
         elif problem == 'host':
             assert 'Name or service not known' in job.result_traceback
         elif problem == 'role':
-            pytest.skip("Need to fixup tower-qe cluster not to use legacy auth to test this.")
+            assert 'cannot create resource' in job.result_traceback
+            assert 'forbidden' in job.result_traceback.lower()
         elif problem == 'image':
             assert 'rsync error' in job.result_traceback
         elif problem == 'entry_point':
-            # need to do more research to see what is supposed to happen
-            pass
+            assert 'container not found' in job.result_traceback
         job.assert_status('error')
         assert job.instance_group == container_group.id, "Container group is not indicated that the job tried to run on"
 
