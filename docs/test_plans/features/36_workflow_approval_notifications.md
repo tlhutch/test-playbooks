@@ -29,9 +29,8 @@ Notifications can be enabled at organization level or workflow level as well.
     - [x] Workflow level: confirm that the notification is sent for all the approval nodes in the workflow job template
 
 ### RBAC
-- [ ] Confirm that a user with permissions can create/ enable notifications
-- [ ] Confirm that a user without permissions can not create/ enable notifications
+- [x] Confirm that a user with permissions can create/ enable notifications
+- [x] Confirm that a user without permissions can not create/ enable notifications
 
 ### Edge cases
-- [ ] Confirm that the option for enabling approval notifications is not available for any tower resource apart from a workflow and organization eg: normal job, project
-- [ ] Confirm notifications on "any" event
+- [x] Confirm that the option for enabling approval notifications is not available for any tower resource apart from a workflow and organization eg: normal job, project
