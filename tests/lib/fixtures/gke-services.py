@@ -1,9 +1,13 @@
+import json
+
 import pytest
 import googleapiclient.discovery
 import kubernetes.client
 import base64
 from google.oauth2 import service_account
 import fauxfactory
+
+from awxkit.config import config
 
 
 class K8sClient(object):
@@ -130,3 +134,33 @@ def gke_client_fscope():
 @pytest.fixture(scope='class')
 def gke_client_cscope():
     return create_gke_client()
+
+@pytest.fixture(scope='session')
+def gke_client_session_scope():
+    return create_gke_client()
+
+
+@pytest.fixture(scope='session')
+def session_container_group(session_subrequest, gke_client_session_scope, session_factories, v2_session):
+    client = gke_client_session_scope(config.credentials)
+    namespace = f'session-container-group-{fauxfactory.gen_alphanumeric().lower()}'
+    client.setup_container_group_namespace(namespace=namespace)
+    session_subrequest.addfinalizer(client.destroy_container_group_namespace)
+    cred_type = v2_session.credential_types.get(namespace='kubernetes_bearer_token').results.pop()
+    cred = session_factories.credential(
+        credential_type=cred_type,
+        inputs={
+            'host': client.client.configuration.host,
+            'verify_ssl': True,
+            'ssl_ca_cert': client.cacrt,
+            'bearer_token': client.serviceaccount_token
+            }
+        )
+    ig = session_factories.instance_group(name=f'ContainerGroup - {namespace}')
+    ig.credential = cred.id
+    ig_options = v2_session.instance_groups.options()
+    pod_spec = dict(ig_options.actions['POST']['pod_spec_override']['default'])
+    pod_spec['metadata']['namespace'] = namespace
+    ig.pod_spec_override = json.dumps(pod_spec)
+
+    return ig
