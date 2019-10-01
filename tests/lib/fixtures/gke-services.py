@@ -1,4 +1,5 @@
 import json
+import functools
 
 import pytest
 import googleapiclient.discovery
@@ -8,7 +9,7 @@ from google.oauth2 import service_account
 import fauxfactory
 
 from awxkit.config import config
-
+from awxkit import utils
 
 class K8sClient(object):
     def __init__(self, client):
@@ -91,16 +92,22 @@ class K8sClient(object):
         token = base64.decodebytes(tokens.pop().encode()).decode(encoding='utf-8')
         self.serviceaccount_token = token
 
-    def destroy_container_group_namespace(self, namespace=None):
+    def destroy_container_group_namespace(self, assert_no_hanging_pods=True, namespace=None):
         """Delete created items for container groups setup.
+
+        By default, before destroying namespace assert there are no remaining pods.
+
+        All jobs should be completed/canceled by the time this runs. If there are any hanging pods it is because
+        we did not clean up.
 
         Optionally, delete different namespace and all dependent objects. (useful in development)
         """
-        if namespace:
-            self.core.delete_namespace(namespace, body=kubernetes.client.V1DeleteOptions(), propagation_policy='Background')
-            return
-        if hasattr(self, 'namespaceobject'):
-            self.core.delete_namespace(self.namespaceobject.metadata['name'], body=kubernetes.client.V1DeleteOptions(), propagation_policy='Background')
+        namespace = namespace if namespace else self.namespaceobject.metadata['name']
+        if assert_no_hanging_pods:
+            get_pods = functools.partial(self.core.list_namespaced_pod, namespace)
+            utils.poll_until(lambda: len(get_pods().items) == 0)
+            assert len(get_pods().items) == 0, get_pods()
+        self.core.delete_namespace(namespace, body=kubernetes.client.V1DeleteOptions(), propagation_policy='Background')
 
 
 def create_gke_client():
