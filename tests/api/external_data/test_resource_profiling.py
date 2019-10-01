@@ -52,14 +52,6 @@ class TestResourceProfiling(APITest):
         assert len(profiles) == len(self.expected_files)
         self.check_filenames(profiles)
 
-    def test_performance_stats_enabled_by_verbosity_5(self, ansible_adhoc, skip_if_openshift, factories):
-        jt = factories.job_template(playbook='sleep.yml', extra_vars='{"sleep_interval": 2}', verbosity=5)
-        factories.host(inventory=jt.ds.inventory)
-        job = jt.launch().wait_until_completed()
-        profiles = self.get_resource_profiles(ansible_adhoc, job.id, job.execution_node)
-        assert len(profiles) == len(self.expected_files)
-        self.check_filenames(profiles)
-
     def test_performance_stats_not_created_when_disabled(self, ansible_adhoc, skip_if_openshift, factories):
         jt = factories.job_template(playbook='sleep.yml', extra_vars='{"sleep_interval": 2}')
         factories.host(inventory=jt.ds.inventory)
@@ -93,13 +85,13 @@ class TestResourceProfiling(APITest):
         for f in profiles:
             assert 19 < linecounts[f] < 25, linecounts[f]
 
-    def test_performance_stats_generated_on_isolated_nodes(self, ansible_adhoc, v2, factories, skip_if_openshift, skip_if_not_cluster, global_resource_profiling_enabled):
+    def test_performance_stats_generated_on_isolated_nodes_and_copied_to_controller(self, ansible_adhoc, v2, factories, skip_if_openshift, skip_if_not_cluster, global_resource_profiling_enabled):
         ig = v2.instance_groups.get(name='protected').results.pop()
         jt = factories.job_template(playbook='sleep.yml', extra_vars='{"sleep_interval": 2}')
         jt.add_instance_group(ig)
         factories.host(inventory=jt.ds.inventory)
         job = jt.launch().wait_until_completed()
-        profiles = self.get_resource_profiles(ansible_adhoc, job.id, job.execution_node)
+        profiles = self.get_resource_profiles(ansible_adhoc, job.id, job.controller_node)
         assert len(profiles) == len(self.expected_files)
         self.check_filenames(profiles)
         linecounts = self.count_lines_in_files(ansible_adhoc, profiles, job.execution_node)
