@@ -50,9 +50,9 @@
 
 - [x] [Testing complete](https://github.com/ansible/tower-qa/issues/3407)
 
-### Container Groups (Mat/Danny)
+### Container Groups (Mat/Elijah/Danny)
 
-- [ ] [Testing complete]()
+- [ ] [Testing complete](https://github.com/ansible/tower-qa/issues/3443)
 
 ### Remove Inventory computed field (Elijah/Elyezer)
 
@@ -108,7 +108,7 @@
 
 ### Workflow Approval Notifications (Apurva, Elijah)
 
-  - [ ] [Testing complete](https://github.com/ansible/tower-qa/issues/4089)
+  - [x] [Testing complete](https://github.com/ansible/tower-qa/issues/4089)
   
 ### Automation Analytics (Mat, Elyezer)
 
