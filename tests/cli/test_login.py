@@ -22,11 +22,13 @@ class TestLogin(object):
             ])
         assert "Error retrieving an OAuth2.0 token (<class 'awxkit.exceptions.Unauthorized'>" in result.stdout  # noqa
 
-    def test_personal_token(self, cli):
-        # login *always* prints a shell export that you can source i.e.,
-        # export TOWER_TOKEN="abc123"
-        result = cli(['awx', 'login'], auth=True)
-        token = result.stdout.split('=')[1].strip()
+    @pytest.mark.parametrize('fmt', ['human', 'json'])
+    def test_personal_token(self, cli, fmt):
+        result = cli(['awx', 'login', '-f', fmt], auth=True)
+        if fmt == 'human':
+            token = result.stdout.split('=')[1].strip()
+        else:
+            token = result.json['token']
         assert token is not None
         result = cli(['awx', 'me', '-k'], env={
             'PATH': os.environ['PATH'],
@@ -38,7 +40,7 @@ class TestLogin(object):
 
     def test_read_scoped_token(self, cli):
         result = cli(['awx', 'login', '--conf.scope', 'read'], auth=True)
-        token = result.stdout.split('=')[1].strip()
+        token = result.json['token']
 
         username = fauxfactory.gen_alphanumeric()
         result = cli([
