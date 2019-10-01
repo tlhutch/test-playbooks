@@ -48,7 +48,7 @@ pipelineJob('CVP Listener') {
               git {
                   remote {
                       url('git@github.com:ansible/tower-qa.git')
-                      credentials('d2d4d16b-dc9a-461b-bceb-601f9515c98a')
+                      credentials('github-ansible-jenkins-nopassphrase')
                   }
                   branch('*/devel')
               }

@@ -60,7 +60,7 @@ pipeline {
                     branches: [[name: "*/${params.TOWER_PACKAGING_BRANCH}" ]],
                     userRemoteConfigs: [
                         [
-                            credentialsId: 'd2d4d16b-dc9a-461b-bceb-601f9515c98a',
+                            credentialsId: 'github-ansible-jenkins-nopassphrase',
                             url: "git@github.com:${params.TOWER_PACKAGING_FORK}/tower-packaging.git"
                         ]
                     ]
@@ -78,7 +78,7 @@ pipeline {
                              "KEYTAB_FILE=/home/jenkins/ansible-tower-build.keytab",
                              "RED_HAT_USER=shanemcd@redhat.com",
                              "RED_HAT_PASSWORD=${RED_HAT_PASSWORD}"]) {
-                        sshagent(credentials : ['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
+                        sshagent(credentials : ['github-ansible-jenkins-nopassphrase']) {
                             sh './tools/jenkins/scripts/build_brew_rpm.sh'
                         }
                     }
@@ -96,7 +96,7 @@ pipeline {
             steps {
                 withEnv(["KEYTAB_FILE=/home/jenkins/ansible-tower-build.keytab",
                          "TOWER_BRANCH=${params.TOWER_BRANCH}"]) {
-                    sshagent(credentials : ['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
+                    sshagent(credentials : ['github-ansible-jenkins-nopassphrase']) {
                         sh './tools/jenkins/scripts/build_brew_container.sh'
                     }
                 }
@@ -120,13 +120,13 @@ pipeline {
                 withCredentials([string(credentialsId: 'awx_admin_password', variable: 'OPENSHIFT_PASSWORD')]) {
                     withEnv(["OPENSHIFT_PASSWORD=${OPENSHIFT_PASSWORD}",
                              "BREW_CONTAINER_IMAGE=${BREW_CONTAINER_IMAGE}"]) {
-                        sshagent(credentials : ['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
+                        sshagent(credentials : ['github-ansible-jenkins-nopassphrase']) {
                             checkout([
                                 $class: 'GitSCM',
                                 branches: [[name: "*/${params.TOWER_PACKAGING_BRANCH}" ]],
                                 userRemoteConfigs: [
                                     [
-                                        credentialsId: 'd2d4d16b-dc9a-461b-bceb-601f9515c98a',
+                                        credentialsId: 'github-ansible-jenkins-nopassphrase',
                                         url: "git@github.com:${params.TOWER_PACKAGING_FORK}/tower-packaging.git"
                                     ]
                                 ]

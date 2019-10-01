@@ -128,7 +128,7 @@ Scope selected: ${params.SCOPE}"""
                                 branches: [[name: "*/${branch_name}" ]],
                                 userRemoteConfigs: [
                                     [
-                                        credentialsId: 'd2d4d16b-dc9a-461b-bceb-601f9515c98a',
+                                        credentialsId: 'github-ansible-jenkins-nopassphrase',
                                         url: 'git@github.com:ansible/tower-qa.git'
                                     ]
                                 ]

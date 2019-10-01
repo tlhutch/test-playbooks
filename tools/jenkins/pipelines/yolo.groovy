@@ -356,7 +356,7 @@ pipeline {
                             branches: [[name: "*/${params.TOWER_QA_BRANCH}" ]],
                             userRemoteConfigs: [
                                 [
-                                    credentialsId: 'd2d4d16b-dc9a-461b-bceb-601f9515c98a',
+                                    credentialsId: 'github-ansible-jenkins-nopassphrase',
                                     url: "git@github.com:${params.TOWER_QA_FORK}/tower-qa.git"
                                 ]
                             ]
@@ -384,7 +384,7 @@ pipeline {
                                      "ANSIBLE_VERSION=${ANSIBLE_NIGHTLY_BRANCH}",
                                      "DEPLOYMENT_NAME=yolo-build-${env.BUILD_ID}",
                                      "AW_REPO_URL=http://nightlies.testing.ansible.com/ansible-tower_nightlies_m8u16fz56qr6q7/${NIGHTLY_REPO_DIR}"]) {
-                                sshagent(credentials : ['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
+                                sshagent(credentials : ['github-ansible-jenkins-nopassphrase']) {
                                     sh 'mkdir -p ~/.ssh && cp ${PUBLIC_KEY} ~/.ssh/id_rsa.pub'
                                     sh 'cp ${JSON_KEY_FILE} json_key_file'
                                     sh 'ansible-vault decrypt --vault-password-file="${VAULT_FILE}" config/credentials.vault --output=config/credentials.yml'
@@ -433,7 +433,7 @@ pipeline {
             }
 
             steps {
-                sshagent(credentials : ['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
+                sshagent(credentials : ['github-ansible-jenkins-nopassphrase']) {
                     sh "ssh ${SSH_OPTS} ec2-user@${TEST_RUNNER_HOST} 'cd tower-qa && ./tools/jenkins/scripts/install.sh'"
                     sh 'ansible-playbook -v -i playbooks/inventory.test_runner playbooks/test_runner/run_fetch_artifacts.yml'
                 }
@@ -448,7 +448,7 @@ pipeline {
             }
 
             steps {
-                sshagent(credentials : ['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
+                sshagent(credentials : ['github-ansible-jenkins-nopassphrase']) {
                     sh "ssh ${SSH_OPTS} ec2-user@${TEST_RUNNER_HOST} 'cd tower-qa && TESTEXPR=\"${params.TESTEXPR}\" TOWERKIT_FORK=\"${params.TOWERKIT_FORK}\" TOWERKIT_BRANCH=\"${params.TOWERKIT_BRANCH}\" PRODUCT=\"${params.PRODUCT}\" AWXKIT_REPO=\"${params.AWXKIT_REPO}\" TOWER_FORK=\"${params.TOWER_FORK}\" TOWER_BRANCH=\"${params.TOWER_BRANCH}\" ./tools/jenkins/scripts/test.sh'"
                     sh 'ansible-playbook -v -i playbooks/inventory.test_runner playbooks/test_runner/run_fetch_artifacts_test.yml'
                     junit allowEmptyResults: true, testResults: 'artifacts/results.xml'
@@ -464,7 +464,7 @@ pipeline {
             }
 
             steps {
-                sshagent(credentials : ['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
+                sshagent(credentials : ['github-ansible-jenkins-nopassphrase']) {
                     sh "ssh ${SSH_OPTS} ec2-user@${TEST_RUNNER_HOST} 'cd tower-qa && TESTEXPR=\"${params.TESTEXPR}\" TOWERKIT_FORK=\"${params.TOWERKIT_FORK}\" TOWERKIT_BRANCH=\"${params.TOWERKIT_BRANCH}\" PRODUCT=\"${params.PRODUCT}\" AWXKIT_REPO=\"${params.AWXKIT_REPO}\" TOWER_FORK=\"${params.TOWER_FORK}\" TOWER_BRANCH=\"${params.TOWER_BRANCH}\" ./tools/jenkins/scripts/test-cli.sh'"
                     sh 'ansible-playbook -v -i playbooks/inventory.test_runner playbooks/test_runner/run_fetch_artifacts_test_cli.yml'
                     junit allowEmptyResults: true, testResults: 'artifacts/results-cli.xml'
@@ -544,7 +544,7 @@ pipeline {
         always {
             script {
                 if (params.RUN_INSTALLER || params.RUN_TESTS || params.RUN_E2E) {
-                    sshagent(credentials : ['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
+                    sshagent(credentials : ['github-ansible-jenkins-nopassphrase']) {
                         sh "ssh ${SSH_OPTS} ec2-user@${TEST_RUNNER_HOST} 'cd tower-qa && ./tools/jenkins/scripts/collect.sh' || true" // Continue on even if this fails so we can archive anything available
                         sh 'ansible-playbook -v -i playbooks/inventory.test_runner playbooks/test_runner/run_fetch_artifacts_tower.yml || true' // Continue on even if this fails so we can archive anything available
                     }
@@ -564,7 +564,7 @@ pipeline {
 
             script {
                 if (params.TEARDOWN_INSTANCE_ON_SUCCESS && (params.RUN_TESTS || params.RUN_E2E) && params.TESTEXPR != 'test') {
-                    sshagent(credentials : ['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
+                    sshagent(credentials : ['github-ansible-jenkins-nopassphrase']) {
                         sh "ssh ${SSH_OPTS} ec2-user@${TEST_RUNNER_HOST} 'cd tower-qa && ./tools/jenkins/scripts/cleanup.sh'"
                     }
                 }
@@ -591,13 +591,13 @@ pipeline {
         cleanup {
             script {
                 if (params.TESTEXPR == 'test' && params.SCENARIO == 'standalone'  && params.RUN_TESTS) {
-                    sshagent(credentials : ['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
+                    sshagent(credentials : ['github-ansible-jenkins-nopassphrase']) {
                         sh "ssh ${SSH_OPTS} ec2-user@${TEST_RUNNER_HOST} 'cd tower-qa && ./tools/jenkins/scripts/cleanup.sh'"
                     }
                 }
 
                 if (params.RUN_INSTALLER) {
-                    sshagent(credentials : ['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
+                    sshagent(credentials : ['github-ansible-jenkins-nopassphrase']) {
                         sh 'ansible-playbook -v -i playbooks/inventory -e @playbooks/test_runner_vars.yml playbooks/reap-tower-ec2.yml'
                     }
                 }

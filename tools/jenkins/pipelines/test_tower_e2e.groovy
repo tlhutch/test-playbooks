@@ -92,7 +92,7 @@ pipeline {
                     submoduleCfg: [],
                     userRemoteConfigs: [
                         [
-                            credentialsId: 'd2d4d16b-dc9a-461b-bceb-601f9515c98a',
+                            credentialsId: 'github-ansible-jenkins-nopassphrase',
                             url: 'git@github.com:ansible/tower-qa.git'
                         ]
                     ]
@@ -108,7 +108,7 @@ pipeline {
                     }  
                 }
                 withCredentials([file(credentialsId: '86ed99e9-dad9-49e9-b0db-9257fb563bad', variable: 'JSON_KEY_FILE_PATH')]) {
-                    sshagent(['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
+                    sshagent(['github-ansible-jenkins-nopassphrase']) {
                         sh '''#!/bin/bash
                         E2E_URL=${E2E_URL} \
                             DEPLOYMENT_TYPE=${DEPLOYMENT_TYPE} \

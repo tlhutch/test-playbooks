@@ -114,7 +114,7 @@ Bundle?: ${params.BUNDLE}"""
                     branches: [[name: "*/release_${params.TOWER_VERSION_TO_UPGRADE_FROM}" ]],
                     userRemoteConfigs: [
                         [
-                            credentialsId: 'd2d4d16b-dc9a-461b-bceb-601f9515c98a',
+                            credentialsId: 'github-ansible-jenkins-nopassphrase',
                             url: 'git@github.com:ansible/tower-qa.git'
                         ]
                     ]
@@ -136,7 +136,7 @@ Bundle?: ${params.BUNDLE}"""
                              "TOWER_VERSION=${params.TOWER_VERSION_TO_UPGRADE_FROM}",
                              "ANSIBLE_FORCE_COLOR=true",
                              "AWX_APPLY_ISOLATED_GROUPS_FW_RULES=false"]) {
-                        sshagent(credentials : ['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
+                        sshagent(credentials : ['github-ansible-jenkins-nopassphrase']) {
                             sh './tools/jenkins/scripts/prep_test_runner.sh'
                             sh "ansible test-runner -i playbooks/inventory.test_runner -m git -a 'repo=git@github.com:ansible/tower-qa version=release_${params.TOWER_VERSION_TO_UPGRADE_FROM} dest=tower-qa ssh_opts=\"-o StrictHostKeyChecking=no\" force=yes'"
                         }
@@ -154,7 +154,7 @@ Bundle?: ${params.BUNDLE}"""
         stage ('Install') {
             steps {
                 withEnv(["ANSIBLE_FORCE_COLOR=true"]) {
-                    sshagent(credentials : ['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
+                    sshagent(credentials : ['github-ansible-jenkins-nopassphrase']) {
                         sh "ssh ${SSH_OPTS} ec2-user@${TEST_RUNNER_HOST} 'cd tower-qa && ./tools/jenkins/scripts/install.sh'"
                     }
                 }
@@ -163,7 +163,7 @@ Bundle?: ${params.BUNDLE}"""
 
         stage ('Load data') {
             steps {
-               sshagent(credentials : ['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
+               sshagent(credentials : ['github-ansible-jenkins-nopassphrase']) {
                    sh "ssh ${SSH_OPTS} ec2-user@${TEST_RUNNER_HOST} 'cd tower-qa && ./tools/jenkins/scripts/load.sh'"
                 }
             }
@@ -191,7 +191,7 @@ Bundle?: ${params.BUNDLE}"""
                              "TOWER_VERSION=${params.TOWER_VERSION_TO_UPGRADE_TO}",
                              "AWX_UPGRADE=true",
                              "CLEAN_DEPLOYMENT_BEFORE_JOB_RUN=no"]) {
-                        sshagent(credentials : ['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
+                        sshagent(credentials : ['github-ansible-jenkins-nopassphrase']) {
                             sh "ssh ${SSH_OPTS} ec2-user@${TEST_RUNNER_HOST} 'cd tower-qa && ./tools/jenkins/scripts/clean_cache.sh'"
                             sh './tools/jenkins/scripts/generate_vars.sh'
                             sh "ansible test-runner -i playbooks/inventory.test_runner -m copy -a 'src=playbooks/vars.yml dest=/home/ec2-user/tower-qa/playbooks/vars.yml'"
@@ -205,7 +205,7 @@ Bundle?: ${params.BUNDLE}"""
         stage ('Upgrade') {
             steps {
                 withEnv(["ANSIBLE_FORCE_COLOR=true"]) {
-                    sshagent(credentials : ['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
+                    sshagent(credentials : ['github-ansible-jenkins-nopassphrase']) {
                         sh "ssh ${SSH_OPTS} ec2-user@${TEST_RUNNER_HOST} 'cd tower-qa && ./tools/jenkins/scripts/install.sh'"
                         sh "ssh ${SSH_OPTS} ec2-user@${TEST_RUNNER_HOST} 'sed -i \"s/instance_name_prefix.*/instance_name_prefix: ${ORIGINAL_INSTANCE_NAME_PREFIX}/g\" tower-qa/playbooks/vars.yml'"
 
@@ -218,7 +218,7 @@ Bundle?: ${params.BUNDLE}"""
 
         stage ('Verify data integrity') {
             steps {
-               sshagent(credentials : ['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
+               sshagent(credentials : ['github-ansible-jenkins-nopassphrase']) {
                    sh "ssh ${SSH_OPTS} ec2-user@${TEST_RUNNER_HOST} 'cd tower-qa && ./tools/jenkins/scripts/verify.sh'"
                 }
             }
@@ -228,7 +228,7 @@ Bundle?: ${params.BUNDLE}"""
 
     post {
         always {
-            sshagent(credentials : ['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
+            sshagent(credentials : ['github-ansible-jenkins-nopassphrase']) {
                 sh "ssh ${SSH_OPTS} ec2-user@${TEST_RUNNER_HOST} 'cd tower-qa && ./tools/jenkins/scripts/collect.sh' || true"
                 sh 'ansible-playbook -v -i playbooks/inventory.test_runner playbooks/test_runner/run_fetch_artifacts_tower.yml || true'
                 sh 'ansible-playbook -v -i playbooks/inventory.test_runner playbooks/test_runner/run_fetch_artifacts.yml'
@@ -237,7 +237,7 @@ Bundle?: ${params.BUNDLE}"""
         }
 
         cleanup {
-            sshagent(credentials : ['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
+            sshagent(credentials : ['github-ansible-jenkins-nopassphrase']) {
                 sh "ssh ${SSH_OPTS} ec2-user@${TEST_RUNNER_HOST} 'cd tower-qa && ./tools/jenkins/scripts/cleanup.sh'"
                 sh 'ansible-playbook -v -i playbooks/inventory -e @playbooks/test_runner_vars.yml playbooks/reap-tower-ec2.yml'
             }

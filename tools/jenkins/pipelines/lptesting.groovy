@@ -87,7 +87,7 @@ Tower Version: ${_TOWER_VERSION}"""
             steps {
                 withCredentials([string(credentialsId: '59bf4b91-d28d-4ca1-a21d-cc26112e8725', variable: 'ACCESS_PASSWORD')]) {
                     withEnv(["ANSIBLE_FORCE_COLOR=true"]) {
-                        sshagent(credentials : ['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
+                        sshagent(credentials : ['github-ansible-jenkins-nopassphrase']) {
                             sh "ansible-playbook -i playbooks/inventory.lptesting playbooks/lptesting.yml -e tower_version=${_TOWER_VERSION} -e red_hat_username='yguenane@redhat.com' -e rhel_compose_id=${params.RHEL_COMPOSE_ID} -e red_hat_password='${ACCESS_PASSWORD}' --tags prepare"
                         }
                     }
@@ -98,7 +98,7 @@ Tower Version: ${_TOWER_VERSION}"""
         stage ('Install Tower') {
             steps {
                 withEnv(["ANSIBLE_FORCE_COLOR=true"]) {
-                    sshagent(credentials : ['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
+                    sshagent(credentials : ['github-ansible-jenkins-nopassphrase']) {
                         sh 'ansible-playbook -i playbooks/inventory.lptesting playbooks/lptesting.yml -e @playbooks/vars.yml --tags install'
                     }
                 }
@@ -115,7 +115,7 @@ Tower Version: ${_TOWER_VERSION}"""
                     branches: [[name: "*/${branch_name}" ]],
                     userRemoteConfigs: [
                         [
-                            credentialsId: 'd2d4d16b-dc9a-461b-bceb-601f9515c98a',
+                            credentialsId: 'github-ansible-jenkins-nopassphrase',
                             url: 'git@github.com:ansible/tower-qa.git'
                         ]
                     ]
@@ -127,7 +127,7 @@ Tower Version: ${_TOWER_VERSION}"""
             steps {
                 withEnv(['INVENTORY=playbooks/inventory.lptesting',
                          'TESTEXPR=yolo or ansible_integration']) {
-                    sshagent(credentials : ['d2d4d16b-dc9a-461b-bceb-601f9515c98a']) {
+                    sshagent(credentials : ['github-ansible-jenkins-nopassphrase']) {
                         sh './tools/jenkins/scripts/test.sh'
                         junit 'reports/junit/results-final.xml'
                         archiveArtifacts 'reports/junit/results-final.xml'
