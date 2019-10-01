@@ -99,6 +99,22 @@ class TestContainerGroups(APITest):
         assert job.instance_group == container_group.id
         assert host.name in job.result_stdout
 
+    def test_workflow_job(self, container_group_and_client, factories):
+        container_group, client = container_group_and_client
+        org = factories.organization()
+        org.add_instance_group(container_group)
+        inventory = factories.inventory(organization=org)
+        host = inventory.add_host()
+        jt = factories.job_template(inventory=inventory)
+        wfjt = factories.workflow_job_template(organization=org)
+        n1 = factories.workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt)
+        # TODO use sleep playbook and confirm a pod spins up on gke using client
+        wf_job = wfjt.launch().wait_until_completed()
+        wf_job.assert_successful()
+        n1_job_node = wf_job.related.workflow_nodes.get(unified_job_template=jt.id).results.pop()
+        n1_job = n1_job_node.wait_for_job().related.job.get()
+        assert n1_job.instance_group == container_group.id
+
     def test_launch_project_update(self, container_group_and_client, factories):
         container_group, client = container_group_and_client
         org = factories.organization()
@@ -114,7 +130,7 @@ class TestContainerGroups(APITest):
         organization = factories.organization()
         organization.add_instance_group(container_group)
         inv = factories.inventory(organization=organization)
-        inv.add_host()
+        host = inv.add_host()
         adhoc = factories.ad_hoc_command(inventory=inv)
         # TODO use sleep and confirm a pod spins up on gke using client
         adhoc.wait_until_completed(timeout=90)

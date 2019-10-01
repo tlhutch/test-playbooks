@@ -18,17 +18,24 @@ Allow new "instance group" type object that represents a connection to a k8s/ope
 
 ### API Verification Criteria
 
-- [ ] Verify can associate with JT and:
+- [x] Verify can associate with JT and:
     - [x] launch job
     - [x] pod is spun up in namespace specified
     - [x] job is run + expected result reported
-    - [ ] results are reported
+    - [x] results are reported
+
+- [x] Verify can associate with organization and in a WFJT using that org:
+    - [x] launch job
+	 	- for WFJT confirm:
+      - [x] pod is spun up in namespace specified
+      - [x] job is run + expected result reported
+      - [x] results are reported
 
 - [ ] Verify can associate with organization (as only instance group) and:
     - [x] launch adhoc command against inventory in org
     - [x] pod is spun up in namespace specified for adhoc job
     - [x] job is run + expected result reported
-    - [ ] adhoc results are reported
+    - [x] adhoc results are reported
     - [x] project updates run on controller tower node (NOT container group)
           - [ ] Fix bug where container group is shown on job + execution node is not set
           - [ ] execution node is properly reported as the controller node that handled update
