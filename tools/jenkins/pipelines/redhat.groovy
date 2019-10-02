@@ -92,7 +92,7 @@ Scope selected: ${params.SCOPE}"""
             }
         }
 
-        stage('Build Bundle TAR') {
+        stage('Build Bundle and Generate CLI doc') {
             parallel {
                 stage('epel-7-bundle') {
                     steps {
@@ -120,6 +120,16 @@ Scope selected: ${params.SCOPE}"""
                                string(name: 'TOWER_PACKAGING_BRANCH', value: "origin/${branch_name}"),
                                string(name: 'TARGET_DIST', value: 'epel-8-x86_64'),
                                booleanParam(name: 'TRIGGER', value: false)
+                            ]
+                        )
+                    }
+                }
+                stage('generate-cli-doc') {
+                    steps {
+                        build(
+                            job: 'build-awx-cli-docs',
+                            parameters: [
+                               string(name: 'TOWER_VERSION', value: params.TOWER_VERSION),
                             ]
                         )
                     }
