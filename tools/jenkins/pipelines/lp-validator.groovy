@@ -11,10 +11,6 @@ def towerVersion = ''
 def taskID = 0
 def milestone = ''
 
-library identifier: "contra-int-lib@master",
-        retriever: modernSCM([$class: 'GitSCMSource',
-                              remote: "https://gitlab.sat.engineering.redhat.com/contra/contra-int-lib.git"])
-
 pipeline {
 
     agent { label 'jenkins-jnlp-agent' }
