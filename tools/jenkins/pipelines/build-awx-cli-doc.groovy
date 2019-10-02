@@ -31,9 +31,10 @@ pipeline {
         stage('Build Information') {
             steps {
                 echo "Tower Version under test: ${params.TOWER_VERSION}"
-            }
-            script {
-                product_docs_branch_name = params.TOWER_VERSION == 'devel' ? 'master' : "release_${params.TOWER_VERSION}"
+
+                script {
+                    product_docs_branch_name = params.TOWER_VERSION == 'devel' ? 'master' : "release_${params.TOWER_VERSION}"
+                }
             }
         }
 
