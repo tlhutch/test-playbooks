@@ -64,6 +64,13 @@ class TestContainerGroups(APITest):
 
         return ig, client, problem
 
+    def create_pod_resourcequota(self, request, client, namespace, pod_quota):
+        resource_quota = client.K8sClient.V1ResourceQuota(spec=client.K8sClient.V1ResourceQuotaSpec(hard={"pods": str(pod_quota)}))
+        resource_quota.metadata = client.K8sClient.V1ObjectMeta(namespace=namespace,
+        name="pod-quota")
+        client.core.create_namespaced_resource_quota(namespace, resource_quota)
+        request.addfinalizer(lambda: client.core.delete_namespaced_resource_quota("pod-quota", namespace, body=resource_quota))
+
     def test_failed_job(self, bad_container_group_and_client, factories):
         container_group, client, problem = bad_container_group_and_client
         jt = factories.job_template(playbook='sleep.yml', extra_vars='{"sleep_interval": 45}')
@@ -140,3 +147,19 @@ class TestContainerGroups(APITest):
         adhoc.assert_successful()
         adhoc.summary_fields.instance_group.id == container_group.id
         assert host.name in adhoc.result_stdout
+
+    @pytest.mark.serial
+    def test_launch_exceeding_resource_quota(self, request, container_group_and_client, factories):
+        container_group, client = container_group_and_client
+        namespace = json.loads(container_group['pod_spec_override'])['metadata']['namespace']
+        self.create_pod_resourcequota(request, client, namespace, 1)
+        inventory = factories.inventory()
+        inventory.add_host()
+        jt = factories.job_template(inventory=inventory, playbook='sleep.yml', extra_vars='{"sleep_interval": 20}', allow_simultaneous=True)
+        jt.add_instance_group(container_group)
+        job0 = jt.launch().wait_until_started()
+        job1 = jt.launch().wait_until_status('pending', timeout=25)
+        job0.wait_until_completed()
+        job1.wait_until_completed()
+        job0.assert_successful()
+        job1.assert_successful()
