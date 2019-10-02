@@ -205,6 +205,7 @@ def class_factories(class_subrequest):
     """Inject a class-scoped factory namespace into your test context"""
     return factory_namespace(class_subrequest)
 
+
 @pytest.fixture(scope='session')
 def session_factories(session_subrequest):
     """Inject a session-scoped factory namespace into your test context"""

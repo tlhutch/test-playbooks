@@ -1,10 +1,8 @@
 import json
-import yaml
 
 import pytest
 import fauxfactory
 
-import awxkit.exceptions as exc
 from awxkit.config import config
 from tests.api import APITest
 
@@ -93,7 +91,6 @@ class TestContainerGroups(APITest):
         host = inventory.add_host()
         jt = factories.job_template(inventory=inventory)
         jt.add_instance_group(container_group)
-        # TODO use sleep playbook and confirm a pod spins up on gke using client
         job = jt.launch().wait_until_completed()
         job.assert_successful()
         assert job.instance_group == container_group.id
@@ -107,13 +104,13 @@ class TestContainerGroups(APITest):
         host = inventory.add_host()
         jt = factories.job_template(inventory=inventory)
         wfjt = factories.workflow_job_template(organization=org)
-        n1 = factories.workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt)
-        # TODO use sleep playbook and confirm a pod spins up on gke using client
+        factories.workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt)
         wf_job = wfjt.launch().wait_until_completed()
         wf_job.assert_successful()
         n1_job_node = wf_job.related.workflow_nodes.get(unified_job_template=jt.id).results.pop()
         n1_job = n1_job_node.wait_for_job().related.job.get()
         assert n1_job.instance_group == container_group.id
+        assert host.name in n1_job.result_stdout
 
     def test_launch_project_update(self, container_group_and_client, factories):
         container_group, client = container_group_and_client
@@ -121,7 +118,6 @@ class TestContainerGroups(APITest):
         org.add_instance_group(container_group)
         proj = factories.project(organization=org)
         update = proj.update().wait_until_completed()
-        # TODO use sleep playbook and confirm a pod spins up on gke using client
         update.assert_successful()
         update.summary_fields.instance_group.id == container_group.id
 
@@ -132,18 +128,15 @@ class TestContainerGroups(APITest):
         inv = factories.inventory(organization=organization)
         host = inv.add_host()
         adhoc = factories.ad_hoc_command(inventory=inv)
-        # TODO use sleep and confirm a pod spins up on gke using client
         adhoc.wait_until_completed(timeout=90)
         adhoc.assert_successful()
         adhoc.summary_fields.instance_group.id == container_group.id
         assert host.name in adhoc.result_stdout
 
-
     def test_launch_cloud_inventory_update(self, container_group_and_client, aws_inventory_source):
         container_group, client = container_group_and_client
         organization = aws_inventory_source.related.inventory.get().related.organization.get()
         organization.add_instance_group(container_group)
-        # TODO use sleep and confirm a pod spins up on gke using client
         update = aws_inventory_source.update().wait_until_completed()
         update.assert_successful()
         update.summary_fields.instance_group.id == container_group.id

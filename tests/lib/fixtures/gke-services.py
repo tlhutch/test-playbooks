@@ -11,6 +11,7 @@ import fauxfactory
 from awxkit.config import config
 from awxkit import utils
 
+
 class K8sClient(object):
     def __init__(self, client):
         self.client = client
@@ -141,6 +142,7 @@ def gke_client_fscope():
 @pytest.fixture(scope='class')
 def gke_client_cscope():
     return create_gke_client()
+
 
 @pytest.fixture(scope='session')
 def gke_client_session_scope():
