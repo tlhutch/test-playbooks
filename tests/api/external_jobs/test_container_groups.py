@@ -85,6 +85,23 @@ class TestContainerGroups(APITest):
         job.assert_status('error')
         assert job.instance_group == container_group.id, "Container group is not indicated that the job tried to run on"
 
+    def test_launch_project_update(self, container_group_and_client, factories):
+        container_group, client = container_group_and_client
+        org = factories.organization()
+        org.add_instance_group(container_group)
+        proj = factories.project(organization=org)
+        update = proj.update().wait_until_completed()
+        update.assert_successful()
+        assert update.execution_node != ""
+
+    def test_launch_cloud_inventory_update(self, container_group_and_client, aws_inventory_source):
+        container_group, client = container_group_and_client
+        organization = aws_inventory_source.related.inventory.get().related.organization.get()
+        organization.add_instance_group(container_group)
+        update = aws_inventory_source.update().wait_until_completed()
+        update.assert_successful()
+        assert update.execution_node != ""
+
     def test_launch_job(self, container_group_and_client, factories):
         container_group, client = container_group_and_client
         inventory = factories.inventory()
@@ -112,15 +129,6 @@ class TestContainerGroups(APITest):
         assert n1_job.instance_group == container_group.id
         assert host.name in n1_job.result_stdout
 
-    def test_launch_project_update(self, container_group_and_client, factories):
-        container_group, client = container_group_and_client
-        org = factories.organization()
-        org.add_instance_group(container_group)
-        proj = factories.project(organization=org)
-        update = proj.update().wait_until_completed()
-        update.assert_successful()
-        update.summary_fields.instance_group.id == container_group.id
-
     def test_launch_adhoc(self, container_group_and_client, factories):
         container_group, client = container_group_and_client
         organization = factories.organization()
@@ -132,11 +140,3 @@ class TestContainerGroups(APITest):
         adhoc.assert_successful()
         adhoc.summary_fields.instance_group.id == container_group.id
         assert host.name in adhoc.result_stdout
-
-    def test_launch_cloud_inventory_update(self, container_group_and_client, aws_inventory_source):
-        container_group, client = container_group_and_client
-        organization = aws_inventory_source.related.inventory.get().related.organization.get()
-        organization.add_instance_group(container_group)
-        update = aws_inventory_source.update().wait_until_completed()
-        update.assert_successful()
-        update.summary_fields.instance_group.id == container_group.id

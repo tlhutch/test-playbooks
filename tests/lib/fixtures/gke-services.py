@@ -10,6 +10,7 @@ import fauxfactory
 
 from awxkit.config import config
 from awxkit import utils
+from awxkit import exceptions as exc
 
 
 class K8sClient(object):
@@ -106,9 +107,14 @@ class K8sClient(object):
         namespace = namespace if namespace else self.namespaceobject.metadata['name']
         if assert_no_hanging_pods:
             get_pods = functools.partial(self.core.list_namespaced_pod, namespace)
-            utils.poll_until(lambda: len(get_pods().items) == 0)
-            assert len(get_pods().items) == 0, get_pods()
-        self.core.delete_namespace(namespace, body=kubernetes.client.V1DeleteOptions(), propagation_policy='Background')
+            try:
+                utils.poll_until(lambda: len(get_pods().items) == 0, timeout=30)
+            except exc.WaitUntilTimeout:
+                pods = get_pods()
+                hanging_pods = [{'pod-name': pod.metadata.name, 'pod-namespace': pod.metadata.namespace} for pod in pods.items]
+                assert len(hanging_pods) == 0, hanging_pods
+            finally:
+                self.core.delete_namespace(namespace, body=kubernetes.client.V1DeleteOptions(), propagation_policy='Background')
 
 
 def create_gke_client():
