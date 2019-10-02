@@ -17,6 +17,7 @@ class TestCredentialSearch(APITest):
         'jobtemplates__search',
         'modified_by__search',
         'organization__search',
+        'instancegroups__search',
         'projects__search',
         'projectupdates__search',
         'schedules__search',
