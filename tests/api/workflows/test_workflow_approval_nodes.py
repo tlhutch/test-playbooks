@@ -265,7 +265,7 @@ class TestWorkflowApprovalNodes(APITest):
         job_template_job_node = wf_job.related.workflow_nodes.get(unified_job_template=job_template_jt.id).results.pop()
         wf_approval = approval_job_node.wait_for_job().related.job.get().wait_until_status('pending')
 
-        job_template_job_node.related.job.get().wait_until_status('successful')
+        job_template_job_node.wait_for_job().related.job.get().wait_until_status('successful')
         assert wf_job.status == 'running'
 
         # verify that if the approval node got denied and it was the last node in that branch,
