@@ -208,7 +208,6 @@ class TestContainerGroups(APITest):
         adhoc.summary_fields.instance_group.id == container_group.id
         assert host.name in adhoc.result_stdout
 
-    @pytest.mark.serial
     @pytest.mark.github('https://github.com/ansible/awx/issues/4910', skip=True)
     def test_launch_exceeding_resource_quota(self, request, fscope_container_group_and_client, factories):
         container_group, client = fscope_container_group_and_client
