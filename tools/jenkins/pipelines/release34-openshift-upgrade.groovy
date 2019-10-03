@@ -6,7 +6,7 @@ pipeline {
         choice(
             name: 'UPGRADE_TO',
             description: 'Tower version to upgrade to',
-            choices: ['devel', '3.5.2']
+            choices: ['devel', '3.5.4', '3.4.6']
         )
     }
 
@@ -34,11 +34,10 @@ pipeline {
         stage('From 3.4.0') {
             steps {
                 build(
-                    job: 'Test_Tower_OpenShift_Upgrade',
+                    job: 'Pipelines/openshift-upgrade-pipeline',
                     parameters: [
-                        string(name: 'INSTALL_AWX_SETUP_PATH', value: '/setup_openshift/ansible-tower-openshift-setup-3.4.0.tar.gz'),
-                        string(name: 'TOWER_BRANCH', value: "origin/${branch_name}"),
-                        booleanParam(name: 'TRIGGER', value: false)
+                        string(name: 'TOWER_VERSION_TO_UPGRADE_FROM', value: '3.4.0'),
+                        string(name: 'TOWER_VERSION_TO_UPGRADE_TO', value: params.UPGRADE_TO)
                     ]
                 )
             }
@@ -47,11 +46,10 @@ pipeline {
         stage('From 3.4.1') {
             steps {
                 build(
-                    job: 'Test_Tower_OpenShift_Upgrade',
+                    job: 'Pipelines/openshift-upgrade-pipeline',
                     parameters: [
-                        string(name: 'INSTALL_AWX_SETUP_PATH', value: '/setup_openshift/ansible-tower-openshift-setup-3.4.1.tar.gz'),
-                        string(name: 'TOWER_BRANCH', value: "origin/${branch_name}"),
-                        booleanParam(name: 'TRIGGER', value: false)
+                        string(name: 'TOWER_VERSION_TO_UPGRADE_FROM', value: '3.4.1'),
+                        string(name: 'TOWER_VERSION_TO_UPGRADE_TO', value: params.UPGRADE_TO)
                     ]
                 )
             }
@@ -60,11 +58,10 @@ pipeline {
         stage('From 3.4.2') {
             steps {
                 build(
-                    job: 'Test_Tower_OpenShift_Upgrade',
+                    job: 'Pipelines/openshift-upgrade-pipeline',
                     parameters: [
-                        string(name: 'INSTALL_AWX_SETUP_PATH', value: '/setup_openshift/ansible-tower-openshift-setup-3.4.2.tar.gz'),
-                        string(name: 'TOWER_BRANCH', value: "origin/${branch_name}"),
-                        booleanParam(name: 'TRIGGER', value: false)
+                        string(name: 'TOWER_VERSION_TO_UPGRADE_FROM', value: '3.4.2'),
+                        string(name: 'TOWER_VERSION_TO_UPGRADE_TO', value: params.UPGRADE_TO)
                     ]
                 )
             }
@@ -73,11 +70,10 @@ pipeline {
         stage('From 3.4.3') {
             steps {
                 build(
-                    job: 'Test_Tower_OpenShift_Upgrade',
+                    job: 'Pipelines/openshift-upgrade-pipeline',
                     parameters: [
-                        string(name: 'INSTALL_AWX_SETUP_PATH', value: '/setup_openshift/ansible-tower-openshift-setup-3.4.3.tar.gz'),
-                        string(name: 'TOWER_BRANCH', value: "origin/${branch_name}"),
-                        booleanParam(name: 'TRIGGER', value: false)
+                        string(name: 'TOWER_VERSION_TO_UPGRADE_FROM', value: '3.4.3'),
+                        string(name: 'TOWER_VERSION_TO_UPGRADE_TO', value: params.UPGRADE_TO)
                     ]
                 )
             }
@@ -86,14 +82,26 @@ pipeline {
         stage('From 3.4.4') {
             steps {
                 build(
-                    job: 'Test_Tower_OpenShift_Upgrade',
+                    job: 'Pipelines/openshift-upgrade-pipeline',
                     parameters: [
-                        string(name: 'INSTALL_AWX_SETUP_PATH', value: '/setup_openshift/ansible-tower-openshift-setup-3.4.4.tar.gz'),
-                        string(name: 'TOWER_BRANCH', value: "origin/${branch_name}"),
-                        booleanParam(name: 'TRIGGER', value: false)
+                        string(name: 'TOWER_VERSION_TO_UPGRADE_FROM', value: '3.4.4'),
+                        string(name: 'TOWER_VERSION_TO_UPGRADE_TO', value: params.UPGRADE_TO)
                     ]
                 )
             }
         }
+
+        stage('From 3.4.5') {
+            steps {
+                build(
+                    job: 'Pipelines/openshift-upgrade-pipeline',
+                    parameters: [
+                        string(name: 'TOWER_VERSION_TO_UPGRADE_FROM', value: '3.4.5'),
+                        string(name: 'TOWER_VERSION_TO_UPGRADE_TO', value: params.UPGRADE_TO)
+                    ]
+                )
+            }
+        }
+
     }
 }
