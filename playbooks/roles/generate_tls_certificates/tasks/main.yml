@@ -5,18 +5,16 @@
     name: python-cryptography
 
 - set_fact:
-    deployment_type: cluster
     certificates_to_generate:
       - tower
-      - rabbitmq
       - pgsql
+
+- set_fact:
+    deployment_type: cluster
   when: "'database' in groups"
 
 - set_fact:
     deployment_type: standalone
-    certificates_to_generate:
-      - tower
-      - pgsql
   when: "'database' not in groups"
 
 - name: Generate private keys
@@ -32,12 +30,18 @@
   loop: '{{ certificates_to_generate }}'
   when: deployment_type == 'standalone'
 
-- name: Generate CSRs cluster
+- name: Generate CSR cluster (tower)
   openssl_csr:
-    path: '{{ tls_folder }}/{{ item }}.csr'
-    privatekey_path: '{{ tls_folder }}/{{ item }}.key'
+    path: '{{ tls_folder }}/tower.csr'
+    privatekey_path: '{{ tls_folder }}/tower.key'
     subject_alt_name: "{{ groups['tower'] | map('regex_replace', '^', 'DNS:') | list | join(',')}}"
-  loop: '{{ certificates_to_generate }}'
+  when: deployment_type == 'cluster'
+
+- name: Generate CSRs cluster (pgsql)
+  openssl_csr:
+    path: '{{ tls_folder }}/pgsql.csr'
+    privatekey_path: '{{ tls_folder }}/pgsql.key'
+    subject_alt_name: "{{ groups['database'] | map('regex_replace', '^', 'DNS:') | list | join(',')}}"
   when: deployment_type == 'cluster'
 
 - name: Generate CA key

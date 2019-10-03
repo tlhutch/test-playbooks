@@ -34,11 +34,7 @@ postgres_use_ssl: True
 postgres_ssl_cert: /tmp/pgsql.crt
 postgres_ssl_key: /tmp/pgsql.key
 custom_ca_cert: /tmp/root.crt
-
 {% if cluster_install | default(false) | bool %}
 rabbitmq_use_ssl: True
-rabbitmq_ssl_cert: /tmp/rabbitmq.crt
-rabbitmq_ssl_key: /tmp/rabbitmq.key
 {% endif %}
-
 {% endif %}
