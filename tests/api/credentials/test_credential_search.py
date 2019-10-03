@@ -6,12 +6,27 @@ from tests.api import APITest
 @pytest.mark.usefixtures('authtoken')
 class TestCredentialSearch(APITest):
 
-    related_search_fields = set(['ad_hoc_commands__search', 'created_by__search', 'credential_type__search',
-                                 'input_sources__search', 'insights_inventories__search', 'joblaunchconfigs__search',
-                                 'modified_by__search', 'organization__search',
-                                 'projects__search', 'projectupdates__search', 'schedules__search',
-                                 'target_input_sources__search', 'unifiedjobs__search', 'unifiedjobtemplates__search',
-                                 'workflowjobnodes__search', 'workflowjobtemplatenodes__search'])
+    related_search_fields = set([
+        'ad_hoc_commands__search',
+        'created_by__search',
+        'credential_type__search',
+        'input_sources__search',
+        'insights_inventories__search',
+        'joblaunchconfigs__search',
+        'jobs__search',
+        'jobtemplates__search',
+        'modified_by__search',
+        'organization__search',
+        'projects__search',
+        'projectupdates__search',
+        'schedules__search',
+        'target_input_sources__search',
+        'unifiedjobs__search',
+        'unifiedjobtemplates__search',
+        'workflowjobnodes__search',
+        'workflowjobs__search',
+        'workflowjobtemplatenodes__search',
+        'workflowjobtemplates__search'])
 
     def test_desired_related_search_fields(self, v2):
         assert set(v2.credentials.options().related_search_fields) == self.related_search_fields

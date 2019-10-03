@@ -391,6 +391,19 @@ def satellite6_credential(admin_user, factories):
 def cloud_credential(request):
     return request.getfixturevalue(request.param + '_credential')
 
+# Github/ Gitlab credentials
+@pytest.fixture(scope="class")
+def github_credential(v2_class, class_factories):
+    credential_type_github = v2_class.credential_types.get(namespace="github_token").results.pop().id
+    cred = class_factories.credential(credential_type=credential_type_github)
+    return cred
+
+
+@pytest.fixture(scope="class")
+def gitlab_credential(v2_class, class_factories):
+    credential_type_gitlab = v2_class.credential_types.get(namespace="gitlab_token").results.pop().id
+    cred = class_factories.credential(credential_type=credential_type_gitlab)
+    return cred
 
 # Kubernetes
 #

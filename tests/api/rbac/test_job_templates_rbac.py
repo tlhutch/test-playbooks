@@ -76,7 +76,7 @@ class Test_Job_Template_RBAC(APITest):
 
         with self.current_user(username=user.username, password=user.password):
             # check GET as test user
-            check_read_access(job_template, ["credential", "inventory", "project"])
+            check_read_access(job_template, ["credential", "inventory", "project", "webhook_key"])
 
             # check put/patch/delete
             assert_response_raised(job_template, http.client.FORBIDDEN)
