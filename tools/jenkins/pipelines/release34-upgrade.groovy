@@ -12,7 +12,7 @@ pipeline {
         choice(
             name: 'UPGRADE_TO',
             description: 'Tower version to upgrade to',
-            choices: ['devel', '3.5.2']
+            choices: ['devel', '3.5.4', '3.4.6']
         )
         choice(
             name: 'PLATFORM',
@@ -489,6 +489,98 @@ pipeline {
                                     string(name: 'PLATFORM', value: params.PLATFORM),
                                     string(name: 'BUNDLE', value: 'no'),
                                     string(name: 'DEPLOYMENT_NAME', value: 'evergreen-jenkins-tower-plain-cluster-344-upgrade')
+                                ]
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('From 3.4.5') {
+            parallel {
+                stage('Bundle-Standalone') {
+                    when {
+                        expression {
+                            return ! params.PLATFORM.contains('ubuntu');
+                        }
+                    }
+
+                    steps {
+                        retry(2) {
+                            build(
+                                job: 'upgrade-pipeline',
+                                parameters: [
+                                    string(name: 'TOWER_VERSION_TO_UPGRADE_FROM', value: '3.4.5'),
+                                    string(name: 'TOWER_VERSION_TO_UPGRADE_TO', value: params.UPGRADE_TO),
+                                    string(name: 'ANSIBLE_VERSION', value: params.ANSIBLE_VERSION),
+                                    string(name: 'SCENARIO', value: 'standalone'),
+                                    string(name: 'PLATFORM', value: params.PLATFORM),
+                                    string(name: 'BUNDLE', value: 'yes'),
+                                    string(name: 'DEPLOYMENT_NAME', value: 'evergreen-jenkins-tower-bundle-standalone-345-upgrade')
+                                ]
+                            )
+                        }
+                    }
+                }
+
+                stage('Bundle-Cluster') {
+                    when {
+                        expression {
+                            return ! params.PLATFORM.contains('ubuntu');
+                        }
+                    }
+
+                    steps {
+                        retry(2) {
+                            build(
+                                job: 'upgrade-pipeline',
+                                parameters: [
+                                    string(name: 'TOWER_VERSION_TO_UPGRADE_FROM', value: '3.4.5'),
+                                    string(name: 'TOWER_VERSION_TO_UPGRADE_TO', value: params.UPGRADE_TO),
+                                    string(name: 'ANSIBLE_VERSION', value: params.ANSIBLE_VERSION),
+                                    string(name: 'SCENARIO', value: 'cluster'),
+                                    string(name: 'PLATFORM', value: params.PLATFORM),
+                                    string(name: 'BUNDLE', value: 'yes'),
+                                    string(name: 'DEPLOYMENT_NAME', value: 'evergreen-jenkins-tower-bundle-cluster-345-upgrade')
+                                ]
+                            )
+                        }
+                    }
+                }
+
+                stage('Plain-Standalone') {
+                    steps {
+                        retry(2) {
+                            build(
+                                job: 'upgrade-pipeline',
+                                parameters: [
+                                    string(name: 'TOWER_VERSION_TO_UPGRADE_FROM', value: '3.4.5'),
+                                    string(name: 'TOWER_VERSION_TO_UPGRADE_TO', value: params.UPGRADE_TO),
+                                    string(name: 'ANSIBLE_VERSION', value: params.ANSIBLE_VERSION),
+                                    string(name: 'SCENARIO', value: 'standalone'),
+                                    string(name: 'PLATFORM', value: params.PLATFORM),
+                                    string(name: 'BUNDLE', value: 'no'),
+                                    string(name: 'DEPLOYMENT_NAME', value: 'evergreen-jenkins-tower-plain-standalone-345-upgrade')
+                                ]
+                            )
+                        }
+                    }
+                }
+
+                stage('Plain-Cluster') {
+                    steps {
+                        retry(2) {
+                            build(
+                                job: 'upgrade-pipeline',
+                                parameters: [
+                                    string(name: 'TOWER_VERSION_TO_UPGRADE_FROM', value: '3.4.5'),
+                                    string(name: 'TOWER_VERSION_TO_UPGRADE_TO', value: params.UPGRADE_TO),
+                                    string(name: 'ANSIBLE_VERSION', value: params.ANSIBLE_VERSION),
+                                    string(name: 'SCENARIO', value: 'cluster'),
+                                    string(name: 'PLATFORM', value: params.PLATFORM),
+                                    string(name: 'BUNDLE', value: 'no'),
+                                    string(name: 'DEPLOYMENT_NAME', value: 'evergreen-jenkins-tower-plain-cluster-345-upgrade')
                                 ]
                             )
                         }
