@@ -16,6 +16,15 @@ Allow new "instance group" type object that represents a connection to a k8s/ope
 - [AWX PR](https://github.com/ansible/tower/pulls/4189)
 - [tower-qa Ticket](https://github.com/ansible/tower-qa/issues/3443)
 
+### Bug tickets:
+https://github.com/ansible/awx/issues/4911
+https://github.com/ansible/awx/issues/4910
+https://github.com/ansible/awx/issues/4909
+https://github.com/ansible/awx/issues/4908
+https://github.com/ansible/awx/issues/4907
+https://github.com/ansible/awx/issues/4848
+
+
 ### API Verification Criteria
 
 - [x] Verify can associate with JT and:
