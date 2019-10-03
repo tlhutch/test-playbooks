@@ -94,6 +94,40 @@ class K8sClient(object):
         token = base64.decodebytes(tokens.pop().encode()).decode(encoding='utf-8')
         self.serviceaccount_token = token
 
+    def assert_job_pod_cleaned_up(self, job_id, namespace=None, timeout=30):
+        try:
+            utils.poll_until(lambda: len(self.get_job_pod(job_id, namespace=namespace)) == 0, timeout=timeout)
+        except exc.WaitUntilTimeout:
+            raise AssertionError(f'Job {job_id} left job pod in namespace')
+
+    def get_job_pod(self, job_id, namespace=None, timeout=30):
+        namespace = namespace if namespace else self.namespaceobject.metadata['name']
+        get_pods = functools.partial(self.core.list_namespaced_pod, namespace)
+
+        def _get_job_pod():
+            pods = get_pods()
+            return [pod for pod in pods.items if pod.metadata.name == f'job-{job_id}']
+        try:
+            utils.poll_until(lambda: len(_get_job_pod()) == 1, timeout=timeout)
+        except exc.WaitUntilTimeout:
+            pass
+        return _get_job_pod()
+
+    def wait_until_num_pods_in_namespace(self, namespace=None, num_pods=0, timeout=30):
+        namespace = namespace if namespace else self.namespaceobject.metadata['name']
+        get_pods = functools.partial(self.core.list_namespaced_pod, namespace)
+        try:
+            utils.poll_until(lambda: len(get_pods().items) == num_pods, timeout=timeout)
+        except exc.WaitUntilTimeout:
+            pass
+        pods = get_pods()
+        running_pods = [{'pod-name': pod.metadata.name, 'pod-namespace': pod.metadata.namespace} for pod in pods.items]
+        return running_pods
+
+    def assert_num_pods_in_namespace(self, namespace=None, num_pods=0, timeout=30):
+        pods = self.wait_until_num_pods_in_namespace(namespace=namespace, num_pods=num_pods, timeout=timeout)
+        assert len(pods) == num_pods, pods
+
     def destroy_container_group_namespace(self, assert_no_hanging_pods=True, namespace=None):
         """Delete created items for container groups setup.
 
@@ -106,13 +140,10 @@ class K8sClient(object):
         """
         namespace = namespace if namespace else self.namespaceobject.metadata['name']
         if assert_no_hanging_pods:
-            get_pods = functools.partial(self.core.list_namespaced_pod, namespace)
             try:
-                utils.poll_until(lambda: len(get_pods().items) == 0, timeout=30)
-            except exc.WaitUntilTimeout:
-                pods = get_pods()
-                hanging_pods = [{'pod-name': pod.metadata.name, 'pod-namespace': pod.metadata.namespace} for pod in pods.items]
-                assert len(hanging_pods) == 0, hanging_pods
+                self.assert_num_pods_in_namespace(namespace=namespace)
+            except AssertionError as e:
+                raise e
             finally:
                 self.core.delete_namespace(namespace, body=kubernetes.client.V1DeleteOptions(), propagation_policy='Background')
 

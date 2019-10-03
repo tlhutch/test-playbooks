@@ -120,6 +120,32 @@ class TestContainerGroups(APITest):
         assert job.instance_group == container_group.id
         assert host.name in job.result_stdout
 
+    def test_cancel_job(self, container_group_and_client, factories):
+        container_group, client = container_group_and_client
+        inventory = factories.inventory()
+        jt = factories.job_template(inventory=inventory, playbook='sleep.yml', extra_vars='{"sleep_interval": 120}')
+        jt.add_instance_group(container_group)
+        job = jt.launch().wait_until_status('running')
+        job_pod = client.get_job_pod(job.id)
+        assert len(job_pod) == 1, 'No job pod was spawned'
+        assert job.instance_group == container_group.id
+        job.cancel().wait_until_status('canceled')
+        client.assert_job_pod_cleaned_up(job.id)
+
+    def test_cancel_adhoc(self, container_group_and_client, factories):
+        container_group, client = container_group_and_client
+        organization = factories.organization()
+        organization.add_instance_group(container_group)
+        inv = factories.inventory(organization=organization)
+        inv.add_host()
+        adhoc = factories.ad_hoc_command(inventory=inv, module='command', module_args='sleep 120')
+        adhoc.wait_until_status('running')
+        job_pod = client.get_job_pod(adhoc.id)
+        assert len(job_pod) == 1, 'No job pod was spawned'
+        adhoc.summary_fields.instance_group.id == container_group.id
+        adhoc.cancel().wait_until_status('canceled')
+        client.assert_job_pod_cleaned_up(adhoc.id)
+
     def test_workflow_job(self, container_group_and_client, factories):
         container_group, client = container_group_and_client
         org = factories.organization()
