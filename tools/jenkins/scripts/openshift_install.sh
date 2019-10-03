@@ -126,6 +126,7 @@ admin_password: ${AWX_ADMIN_PASSWORD}
 pg_username: tower
 pg_password: towerpass
 secret_key: 'towersecret'
+rabbitmq_use_ssl: ${AWX_USE_TLS}
 rabbitmq_password: 'password'
 rabbitmq_erlang_cookie: 'cookiemonster'
 openshift_pg_pvc_name: postgresql-${OPENSHIFT_PROJECT}
@@ -142,6 +143,15 @@ kubernetes_rabbitmq_version: ${MESSAGING_CONTAINER_IMAGE_VERSION}
 kubernetes_memcached_image: ${MEMCACHED_CONTAINER_IMAGE}
 kubernetes_memcached_version: ${MEMCACHED_CONTAINER_IMAGE_VERSION}
 EOF
+
+
+cat << EOF > ssl_setup.yml
+- hosts: all
+  gather_facts: false
+  tasks:
+    - command: /usr/bin/env pip install cryptography
+EOF
+ansible-playbook -vvv -i inventory ssl_setup.yml
 
 cp vars.yml ../artifacts/openshift_installer_vars.yml
 

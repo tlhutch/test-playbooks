@@ -10,6 +10,11 @@ pipeline {
                       '3.4.6', '3.4.5', '3.4.4', '3.4.3', '3.4.2', '3.4.1', '3.4.0',
                       '3.3.8', '3.3.7', '3.3.6', '3.3.5', '3.3.4', '3.3.3', '3.3.2', '3.3.1', '3.3.0']
         )
+        choice(
+            name: 'AWX_USE_TLS',
+            description: 'Should RabbitMQ be deployed with TLS enabled (certificates are generated on the fly)',
+            choices: ['no', 'yes']
+        )
         string(
             name: 'TOWERQA_BRANCH',
             description: 'ansible/tower-qa branch to use (Empty will do the right thing)',
@@ -82,6 +87,7 @@ Tower Memcached Container Image: ${params.MEMCACHED_CONTAINER_IMAGE}"""
                 withCredentials([string(credentialsId: 'awx_admin_password', variable: 'AWX_ADMIN_PASSWORD')]) {
                     withEnv(["SCENARIO=openshift",
                              "OPENSHIFT_PASS=${AWX_ADMIN_PASSWORD}",
+                             "AWX_USE_TLS=${AWX_USE_TLS}",
                              "AWX_ADMIN_PASSWORD=${AWX_ADMIN_PASSWORD}",
                              "TOWER_VERSION=${params.TOWER_VERSION}"]) {
                         sh './tools/jenkins/scripts/generate_vars.sh'
