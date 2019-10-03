@@ -34,7 +34,15 @@ class TestContainerGroups(APITest):
 
         return ig, client
 
-    @pytest.fixture(scope='function', params=['cacrt', 'token', 'host', 'image', 'role', 'entry_point'])
+    @pytest.fixture(scope='function', params=[
+                                            'cacrt',
+                                            'token',
+                                            'host',
+                                            'image',
+                                            'role',
+                                            'entry_point'
+                                            ]
+                                        )
     def bad_container_group_and_client(self, request, gke_client_fscope, factories, v2):
         problem = request.param
         client = gke_client_fscope(config.credentials)
@@ -64,6 +72,27 @@ class TestContainerGroups(APITest):
 
         return ig, client, problem
 
+    def fscope_container_group_and_client(self, request, gke_client_fscope, factories, v2):
+        client = gke_client_fscope(config.credentials)
+        namespace = f'fscope-{fauxfactory.gen_alphanumeric().lower()}'
+        client.setup_container_group_namespace(namespace=namespace)
+        request.addfinalizer(client.destroy_container_group_namespace)
+        cred_type = v2.credential_types.get(namespace='kubernetes_bearer_token').results.pop()
+        cacrt = client.cacrt
+        host = client.client.configuration.host
+        token = client.serviceaccount_token
+        cred = factories.credential(credential_type=cred_type, inputs={
+            'host': host, 'verify_ssl': True, 'ssl_ca_cert': cacrt, 'bearer_token': token}
+            )
+        ig = factories.instance_group(name=f'ContainerGroup - {namespace}')
+        ig.credential = cred.id
+        ig_options = v2.instance_groups.options()
+        pod_spec = dict(ig_options.actions['POST']['pod_spec_override']['default'])
+        pod_spec['metadata']['namespace'] = namespace
+        ig.pod_spec_override = json.dumps(pod_spec)
+
+        return ig, client
+
     def create_pod_resourcequota(self, request, client, namespace, pod_quota):
         resource_quota = client.K8sClient.V1ResourceQuota(spec=client.K8sClient.V1ResourceQuotaSpec(hard={"pods": str(pod_quota)}))
         resource_quota.metadata = client.K8sClient.V1ObjectMeta(namespace=namespace,
@@ -71,6 +100,7 @@ class TestContainerGroups(APITest):
         client.core.create_namespaced_resource_quota(namespace, resource_quota)
         request.addfinalizer(lambda: client.core.delete_namespaced_resource_quota("pod-quota", namespace, body=resource_quota))
 
+    @pytest.mark.github('https://github.com/ansible/awx/issues/4909', ids=['entry_point', 'image'], skip=True)
     def test_failed_job(self, bad_container_group_and_client, factories):
         container_group, client, problem = bad_container_group_and_client
         jt = factories.job_template(playbook='sleep.yml', extra_vars='{"sleep_interval": 45}')
@@ -92,6 +122,7 @@ class TestContainerGroups(APITest):
         job.assert_status('error')
         assert job.instance_group == container_group.id, "Container group is not indicated that the job tried to run on"
 
+    @pytest.mark.github('https://github.com/ansible/awx/issues/4907', skip=True)
     def test_launch_project_update(self, container_group_and_client, factories):
         container_group, client = container_group_and_client
         org = factories.organization()
@@ -101,6 +132,7 @@ class TestContainerGroups(APITest):
         update.assert_successful()
         assert update.execution_node != ""
 
+    @pytest.mark.github('https://github.com/ansible/awx/issues/4907', skip=True)
     def test_launch_cloud_inventory_update(self, container_group_and_client, aws_inventory_source):
         container_group, client = container_group_and_client
         organization = aws_inventory_source.related.inventory.get().related.organization.get()
@@ -132,6 +164,7 @@ class TestContainerGroups(APITest):
         job.cancel().wait_until_status('canceled')
         client.assert_job_pod_cleaned_up(job.id)
 
+    @pytest.mark.github('https://github.com/ansible/awx/issues/4908', skip=True)
     def test_cancel_adhoc(self, container_group_and_client, factories):
         container_group, client = container_group_and_client
         organization = factories.organization()
@@ -162,6 +195,7 @@ class TestContainerGroups(APITest):
         assert n1_job.instance_group == container_group.id
         assert host.name in n1_job.result_stdout
 
+    @pytest.mark.github('https://github.com/ansible/awx/issues/4908', skip=True)
     def test_launch_adhoc(self, container_group_and_client, factories):
         container_group, client = container_group_and_client
         organization = factories.organization()
@@ -175,8 +209,9 @@ class TestContainerGroups(APITest):
         assert host.name in adhoc.result_stdout
 
     @pytest.mark.serial
-    def test_launch_exceeding_resource_quota(self, request, container_group_and_client, factories):
-        container_group, client = container_group_and_client
+    @pytest.mark.github('https://github.com/ansible/awx/issues/4910', skip=True)
+    def test_launch_exceeding_resource_quota(self, request, fscope_container_group_and_client, factories):
+        container_group, client = fscope_container_group_and_client
         namespace = json.loads(container_group['pod_spec_override'])['metadata']['namespace']
         self.create_pod_resourcequota(request, client, namespace, 1)
         inventory = factories.inventory()
