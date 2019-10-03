@@ -28,14 +28,14 @@ context('Organizations page', function () {
   })
 
   it('can edit an organization', function () {
-    cy.createOrg(`edit-org-${this.testID}`, `Editing test for orgs. Test ID: ${this.testID}`).then((orgID) => {
-      cy
-        .visit(`/#/organizations/${orgID}`)
-        .get('.pf-m-primary:nth-of-type(1)').click()
-        .get('#org-name').clear().type(`edited-org-${this.testID}`)
-        .get('#org-description').clear().type(`Edited test for orgs. Test ID: ${this.testID}`)
-        .get('button[aria-label=Save]').click()
-        .get('dd:nth-of-type(1)').should('have.text', `edited-org-${this.testID}`)
-    })
+    const org = cy.createOrReplace('organizations', `edit-org-${this.testID}`)
+    console.log(typeof(org))
+    cy
+      .visit(`/#/organizations/${org.id}`)
+      .get('.pf-m-primary:nth-of-type(1)').click()
+      .get('#org-name').clear().type(`edited-org-${this.testID}`)
+      .get('#org-description').clear().type(`Edited test for orgs. Test ID: ${this.testID}`)
+      .get('button[aria-label=Save]').click()
+      .get('dd:nth-of-type(1)').should('have.text', `edited-org-${this.testID}`)
   })
 })

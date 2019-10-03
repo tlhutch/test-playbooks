@@ -47,19 +47,47 @@ Cypress.Commands.add('login', () => {
 });
 
 /**
- * Performs a POST to the AWX API to create a new organization.
- * TODO: Refactor creation functions to perform a getOrCreate() function
- * that supports various resources.
+ * Interacts with awxkit to run create_or_replace(),
+ * which creates an arbitrary resource (and its dependencies).
+ * For more information on setting up awxkit to work with Cypress,
+ * please refer to the README in the cypress.json directory.
  *
- * @param {string} name
- * @param {string} description
- * @return {string} id - The ID of the created organization.
+ * Example usage:
+ * cy.createOrReplace('job_templates', 'foo')
+ * cy.createOrReplace('inventory', 'bar')
+ * Note that inventory in the above example isn't plural to match awxkit.v2.
+ *
+ * @param {string} resource - Any resource type available under awxkit.v2
+ * @param {string} name - The name of the resource. For user objects, this
+ *                        value should be set to the username.
  * */
-Cypress.Commands.add('createOrg', (name, description) => {
-  const body = {
-    name: `${name}`,
-    description: `${description}`
-  };
-  cy.apiRequest('POST', '/api/v2/organizations/', body)
-    .then((response) => response.body.id);
+Cypress.Commands.add('createOrReplace', (resource, name) => {
+  const options = `--resource="${resource}" --name="${name}"`;
+  const command = `python akit_client.py create_or_replace ${options} "${Cypress.config().baseUrl}"`;
+  console.log(`Calling awxkit create_or_replace(): ${options}`);
+  cy.exec(command).then((ret) => {
+    expect(ret.stderr).to.be.empty;
+    return JSON.parse(ret.stdout);
+  });
+});
+
+/**
+ * Interacts with awxkit to run arbitrary v2 commands.
+ * For more information on setting up awxkit to work with Cypress,
+ * please refer to the README in the cypress.json directory.
+ *
+ * Example usage:
+ * cy.akit('job_templates.create_or_replace(name="foo")')
+ * This is equivalent to v2.job_templates.create_or_replace(name="foo") in awxkit.
+ *
+ * @param {string} akitcommand - Any awxkit v2 object expression.
+ * */
+Cypress.Commands.add('akit', (akitcommand) => {
+  const options = `--akitcommand='${akitcommand}'`;
+  const command = `python akit_client.py akit ${options} '${Cypress.config().baseUrl}'`;
+  console.log(`Calling awxkit command: ${command}`);
+  cy.exec(command).then((ret) => {
+    expect(ret.stderr).to.be.empty;
+    return JSON.parse(ret.stdout);
+  });
 });
