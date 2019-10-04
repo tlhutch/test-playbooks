@@ -72,6 +72,7 @@ class TestContainerGroups(APITest):
 
         return ig, client, problem
 
+    @pytest.fixture
     def fscope_container_group_and_client(self, request, gke_client_fscope, factories, v2):
         client = gke_client_fscope(config.credentials)
         namespace = f'fscope-{fauxfactory.gen_alphanumeric().lower()}'
@@ -223,3 +224,92 @@ class TestContainerGroups(APITest):
         job1.wait_until_completed()
         job0.assert_successful()
         job1.assert_successful()
+
+    def test_sliced_jobs_launch_on_container_groups(self, container_group_and_client, factories):
+        ct = 4
+        container_group, client = container_group_and_client
+        jt = factories.job_template(job_slice_count=ct)
+        jt.add_instance_group(container_group)
+        inventory = jt.ds.inventory
+        for i in range(ct):
+            inventory.related.hosts.post(payload=dict(
+                name='foo{}'.format(i),
+                variables='ansible_connection: local'
+            ))
+        workflow_job = jt.launch()
+        assert workflow_job.type == 'workflow_job'
+        nodes = workflow_job.get_related('workflow_nodes').results
+        jobs = []
+        for node in nodes:
+            job = node.wait_for_job().get_related('job')
+            job.wait_until_status(['running'])
+            jobs.append(job)
+            assert job.instance_group == container_group.id
+        for job in jobs:
+            job.wait_until_completed()
+            job.assert_successful()
+
+    def test_sliced_jobs_run_in_containers(self, container_group_and_client, factories):
+        ct = 4
+        container_group, client = container_group_and_client
+        jt = factories.job_template(job_slice_count=ct, playbook='sleep.yml', extra_vars='{"sleep_interval": 60}')
+        jt.add_instance_group(container_group)
+        inventory = jt.ds.inventory
+        for i in range(ct):
+            inventory.related.hosts.post(payload=dict(
+                name='foo{}'.format(i),
+                variables='ansible_connection: local'
+            ))
+        workflow_job = jt.launch()
+        assert workflow_job.type == 'workflow_job'
+        nodes = workflow_job.get_related('workflow_nodes').results
+        jobs = []
+        for node in nodes:
+            job = node.wait_for_job().get_related('job')
+            job.wait_until_status(['running'])
+            jobs.append(job)
+        try:
+            for job in jobs:
+                job_pod = client.get_job_pod(job.id)
+                assert len(job_pod) == 1, 'No job pod was spawned'
+        finally:
+            workflow_job.cancel()
+            workflow_job.wait_until_completed()
+
+    @pytest.mark.github('https://github.com/ansible/awx/issues/4910', skip=True)
+    def test_sliced_jobs_exceeding_resource_quota(self, request, fscope_container_group_and_client, factories):
+        ct = 4
+        container_group, client = fscope_container_group_and_client
+        namespace = json.loads(container_group['pod_spec_override'])['metadata']['namespace']
+        self.create_pod_resourcequota(request, client, namespace, ct // 2)
+        jt = factories.job_template(job_slice_count=ct, playbook='sleep.yml', extra_vars='{"sleep_interval": 15}')
+        jt.add_instance_group(container_group)
+        inventory = jt.ds.inventory
+        for i in range(ct):
+            inventory.related.hosts.post(payload=dict(
+                name='foo{}'.format(i),
+                variables='ansible_connection: local'
+            ))
+        workflow_job = jt.launch()
+        assert workflow_job.type == 'workflow_job'
+        nodes = workflow_job.get_related('workflow_nodes').results
+        jobs = []
+        for node in nodes:
+            job = node.wait_for_job().get_related('job')
+            jobs.append(job)
+        queued_jobs = []
+        try:
+            for job in jobs:
+                job.assert_status(['running', 'pending'])
+                if job.get().status == 'pending':
+                    queued_jobs.append(job)
+        finally:
+            workflow_job.cancel()
+            workflow_job.wait_until_completed()
+        try:
+            for job in queued_jobs:
+                job.wait_until_completed()
+                job.assert_successful()
+        finally:
+            workflow_job.cancel()
+            workflow_job.wait_until_completed()

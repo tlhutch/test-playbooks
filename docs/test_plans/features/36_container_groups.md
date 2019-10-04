@@ -41,14 +41,14 @@ https://github.com/ansible/awx/issues/4848
       - [x] results are reported
 
 - [ ] @one-t Verify can associate with organization and in a sliced JT with more slices than the namespace has resources to launch pods:
-    - [ ] launch job
-    - [ ] check following for for each slice
-      - [ ] pod is spun up in namespace specified
-      - [ ] job is run + expected result reported
-      - [ ] results are reported
-      - [ ] the "overcommitted" slices wait and then are launched later (don't fail with trace back as is currently expected due to capacity short-circuit)
+    - [x] launch job
+    - [x] check following for for each slice
+      - [x] pod is spun up in namespace specified
+      - [x] job is run + expected result reported
+      - [x] results are reported
+      - [x] the "overcommitted" slices wait and then are launched later (don't fail with trace back as is currently expected due to capacity short-circuit)
 
-- [ ] @one-t Verify that when we exceed resource limits on kubernetes cluster no job is sent to it until it has capacity
+- [x] @one-t Verify that when we exceed resource limits on kubernetes cluster no job is sent to it until it has capacity
 
 - [ ] @one-t Verify can associate with organization (as only instance group) and:
     - [x] launch adhoc command against inventory in org
