@@ -88,7 +88,7 @@ class TestDispatcher(APITest):
 
         try:
             run_remote_command('supervisorctl stop tower-processes:awx-dispatcher')
-            job.wait_until_status('failed', since_job_created=False)
+            job.wait_until_status('failed', since_job_created=False, timeout=240)
             assert job.job_explanation == 'Task was marked as running in Tower but was not present in the job queue, so it has been marked as failed.'
         finally:
             run_remote_command('supervisorctl start tower-processes:awx-dispatcher')
