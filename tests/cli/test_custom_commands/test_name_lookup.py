@@ -1,3 +1,5 @@
+import fauxfactory
+import json
 import pytest
 
 from awxkit import utils
@@ -62,3 +64,32 @@ class TestLookupByName(object):
         assert jt.name == jt_name
         assert jt.related.project.get().id == class_resources['projects'].id
         assert jt.related.inventory.get().id == class_resources['inventory'].id
+
+    def test_lookup_by_camelcase_names(self, cli, ssh_credential, v2, factories):
+        hashi_type = v2.credential_types.get(
+            managed_by_tower=True,
+            name='HashiCorp Vault Secret Lookup'
+        ).results.pop()
+        hashi_cred = v2.credentials.post(factories.credential.payload(
+            name=fauxfactory.gen_utf8(),
+            description=fauxfactory.gen_utf8(),
+            credential_type=hashi_type,
+            inputs={
+                'url': 'https://example.org',
+                'token': 'some-auth-token',
+                'api_version': 'v2',
+            },
+        ))
+        result = cli([
+            'awx', 'credential_input_sources', 'create',
+            '--target_credential', ssh_credential.name,
+            '--source_credential', hashi_cred.name,
+            '--input_field_name', 'username',
+            '--metadata', json.dumps({
+                'secret_path': '/kv/path/',
+                'secret_key': 'password',
+            })
+        ], auth=True)
+        assert result.returncode == 0
+        result.json['summary_fields']['target_credential']['name'] == ssh_credential.name
+        result.json['summary_fields']['source_credential']['name'] == hashi_cred.name
