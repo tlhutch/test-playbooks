@@ -15,7 +15,7 @@ class TestResourceProfiling(APITest):
                         'AWX_RESOURCE_PROFILING_MEMORY_POLL_INTERVAL',
                         'AWX_RESOURCE_PROFILING_PID_POLL_INTERVAL']
 
-    default_interval = '0.25'
+    default_interval = 0.25
 
     def toggle_resource_profiling(self, update_setting_pg, v2, state="false"):
         system_settings = v2.settings.get().get_endpoint('jobs')
@@ -74,7 +74,7 @@ class TestResourceProfiling(APITest):
 
     def test_performance_stats_intervals_are_applied(self, ansible_adhoc, update_setting_pg, v2, factories, skip_if_openshift, global_resource_profiling_enabled):
         system_settings = v2.settings.get().get_endpoint('jobs')
-        payload = {s: '0.5' for s in self.interval_settings}
+        payload = {s: 0.5 for s in self.interval_settings}
         update_setting_pg(system_settings, payload)
         jt = factories.job_template(playbook='sleep.yml', extra_vars='{"sleep_interval": 10}')
         factories.host(inventory=jt.ds.inventory)
