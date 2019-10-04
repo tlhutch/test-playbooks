@@ -142,8 +142,6 @@ class K8sClient(object):
         if assert_no_hanging_pods:
             try:
                 self.assert_num_pods_in_namespace(namespace=namespace)
-            except AssertionError as e:
-                raise e
             finally:
                 self.core.delete_namespace(namespace, body=kubernetes.client.V1DeleteOptions(), propagation_policy='Background')
 
