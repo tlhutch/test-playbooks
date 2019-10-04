@@ -13,7 +13,7 @@ Allow new "instance group" type object that represents a connection to a k8s/ope
 ## Related Information
 
 - [AWX Ticket](https://github.com/ansible/awx/issues/1485)
-- [AWX PR](https://github.com/ansible/tower/pulls/4189)
+- [AWX PR](https://github.com/ansible/awx/pull/4189)
 - [tower-qa Ticket](https://github.com/ansible/tower-qa/issues/3443)
 
 ### Bug tickets:
