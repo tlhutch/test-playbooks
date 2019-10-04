@@ -158,6 +158,10 @@ class TestCombinedWorkflowFeatures(APITest):
         )
 
         wfj = wfjt.launch().wait_until_status('running')
+        parent_job_node = wfj.related.workflow_nodes.get(unified_job_template=parent.summary_fields.unified_job_template.id).results.pop()
+        poll_until(lambda: hasattr(parent_job_node.get().related, 'job'), interval=1, timeout=60)
+        parent_job = parent_job_node.get().related.job.get()
+        parent_job.wait_until_completed()
         approval_job_node = wfj.related.workflow_nodes.get(unified_job_template=approval_jt.id).results.pop()
         poll_until(lambda: hasattr(approval_job_node.get().related, 'job'), interval=1, timeout=60)
         wf_approval = approval_job_node.related.job.get()
