@@ -14,14 +14,16 @@ class TestResourcesPresent():
     def ctid_to_kind(self, v2):
         _ctypes = v2.credential_types.get(managed_by_tower=True, page_size=200).results
 
+        ctypes = _ctypes
         # NOTE(spredzy): Fix properly in 3.5.1. 'external' plugins are new in 3.5.0
         # so they haven't been loaded in pre 3.5.0 (e.g 3.4.3, 3.4.2, ....)
         # so they should not be part of what we check. But we will have to check it
         # for 3.5.0 to 3.5.1, but not for 3.4.3 to 3.5.1
         if LooseVersion(v2.ping.get().version) >= LooseVersion('3.5.0'):
             ctypes = [ctype for ctype in _ctypes if ctype['kind'] != 'external']
-        else:
-            ctypes = _ctypes
+        # Same logic applies for 'token' introduced in 3.6.0
+        if LooseVersion(v2.ping.get().version) >= LooseVersion('3.6.0'):
+            ctypes = [ctype for ctype in _ctypes if ctype['kind'] not in ['token', 'external']]
 
         ctid_to_name = {ct.id: ct.name.lower() for ct in ctypes}
         name_to_kind = {ct.name.lower(): credential_type_name_to_config_kind_map[ct.name.lower()] for ct in ctypes}
