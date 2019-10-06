@@ -125,6 +125,12 @@ Scope selected: ${params.SCOPE}"""
                     }
                 }
                 stage('generate-cli-doc') {
+                    when {
+                        expression {
+                            return !(params.TOWER_VERSION ==~ /3.[3-5].[0-9]*/)
+                        }
+                    }
+
                     steps {
                         build(
                             job: 'build-awx-cli-docs',
