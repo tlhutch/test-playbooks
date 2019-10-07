@@ -23,11 +23,16 @@ function retrieve_credential_file {
     tower_host=$(retrieve_tower_server_from_inventory "${inventory}")
     tower_user=$(retrieve_system_user_from_inventory "${inventory}")
 
-    is_fips_enabled=$(ssh -ostricthostkeychecking=no "${tower_user}"@"${tower_host}" cat /proc/sys/crypto/fips_enabled)
-    if [[ "${is_fips_enabled}" == 1 ]]; then
-        echo 'config/credentials-pkcs8.yml'
-    else
+
+    if grep 'ansible_connection=docker' "${inventory}" > /dev/null; then
         echo 'config/credentials.yml'
+    else
+        is_fips_enabled=$(ssh -ostricthostkeychecking=no "${tower_user}"@"${tower_host}" cat /proc/sys/crypto/fips_enabled)
+        if [[ "${is_fips_enabled}" == 1 ]]; then
+            echo 'config/credentials-pkcs8.yml'
+        else
+            echo 'config/credentials.yml'
+        fi
     fi
 }
 
