@@ -109,12 +109,12 @@ Provide a supported CLI that offers feature parity with previously upstream [tow
 - [x] confirm that tests delete the `awx` binary available in the tower-qa venv
 - [x] confirm that tests are configurable to call the `ansible-tower-cli` or `awx`  binary available in PATH
 - [x] confirm that we install the rpm for the `ansible-tower-cli` from the right repo
-- [ ] anisble-tower-cli has source tarball built for pip install on other distro (hosted at ansible.releases.com)
+- [x] anisble-tower-cli has source tarball built for pip install on other distro (hosted at ansible.releases.com)
 
 
 ## Docs Verification Criteria
 
-- [ ] Verify the CLI docs don't have any rendering issues
+- [x] Verify the CLI docs don't have any rendering issues
 - [x] Verify that the docs for passing related objects
       indicate what the data should be (id, name, etc)
 - [x] Verify that things like `extra_vars` has an example or clear instruction
