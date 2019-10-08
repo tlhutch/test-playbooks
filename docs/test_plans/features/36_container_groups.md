@@ -74,6 +74,10 @@ https://github.com/ansible/awx/issues/4848
 
 ### UI Verification Criteria
 
+#### RBAC / Permissions
+
+ - [ ] Fix Bug: System Auditor is able to view Container Groups https://github.com/ansible/awx/issues/4943
+
 #### OpenShift and Kubernetes API Bearer Token Form
 
  - [x] Create a new credential
@@ -85,38 +89,39 @@ https://github.com/ansible/awx/issues/4848
 
 #### Container Group Form
 
- - [ ] Fix bug: Name helper tooltip is out of alignment. Name tooltip needs to say ("Name of this container group")
+ - [ ] Fix bug: Name helper tooltip is out of alignment. https://github.com/ansible/awx/issues/4940
  - [x] Create a Container group with default pod spec
- - [ ] Cannot copy the container group
+ - [x] Cannot copy the container group
  - [x] Can delete container group
- - [ ] Fix bug where customize Pod Spec toggle is always enabled
+ - [x] Fix bug where customize Pod Spec toggle is always enabled
  - [x] Can change pod spec while it's yaml
+ - [ ] Can filter instance group list down to just container group type
+ - [ ] Warning available that let's the user know that this is a Tech Preview Feature with a link to doc https://github.com/ansible/awx/issues/4944
 
 #### Job Template Form
 
  - [x] A JT can be configured to run against a container group
- - [ ] On the form, the Instance Groups tooltip should say Instance and Container Group
+ - [ ] ~On the form, the Instance Groups tooltip should say Instance and Container Group~
 
 #### Organization Form
 
  - [x] An organization can be configured to use a container group
- - [ ] On the form, the Instance Groups tooltip should say Instance and Container Group
+ - [ ] ~On the form, the Instance Groups tooltip should say Instance and Container Group~
 
 #### Inventory Form
 
  - [x] An inventory can be configured to use a container group in jobs run against hosts in the inventory
- - [ ] On the form, the Instance Groups tooltip should say Instance and Container Group
+ - [ ] ~On the form, the Instance Groups tooltip should say Instance and Container Group~
 
 #### CG Execute
 
-- [ ] A JT can be configured to run on a CG and
+- [x] A JT can be configured to run on a CG
 - [ ] A SJT can be configured to run on a CG
 - [ ] A WFJT can be configured to run on a CG
-- [ ] A JT can be configured to run and canceled on a CG and the pod should be killed @shanemcd what happens in this scenario
-- [ ] An adhoc command can be configured to run and canceled on a CG and the pod should be killed @shanemcd what happens in this scenario
 - [ ] If the user enters incorrect or invalid credentials, a 401 traceback appears on the job results page.
 - [ ] If a user inputs the wrong api endpoint config, then no error is displayed when the job is executed and the job appears to run for an indeterminate amount of time.
-Job Results page.
+
+#### Job Results page.
 
 - [ ] Errors from job run should be displayed.
 - [ ] Container group should be shown and when clicked, the user is navigated to the container group
