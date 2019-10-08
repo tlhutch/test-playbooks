@@ -57,7 +57,7 @@ def expected_job_notification(tower_url, notification_template_pg, job_pg, appro
             finished = wf_approval.finished
         body = {'id': wf_approval.id,
                 'name': approval_node.summary_fields.unified_job_template.name,
-                'url': '',
+                'url': str(tower_url) + '/#/workflows/' + str(job_pg.id),
                 'created_by': wf_approval.summary_fields['created_by']['username'],
                 'started': wf_approval.started,
                 'finished': finished,
