@@ -132,12 +132,14 @@ Scope selected: ${params.SCOPE}"""
                     }
 
                     steps {
-                        build(
-                            job: 'build-awx-cli-docs',
-                            parameters: [
-                               string(name: 'TOWER_VERSION', value: params.TOWER_VERSION),
-                            ]
-                        )
+                        retry(2) {
+                            build(
+                                job: 'build-awx-cli-docs',
+                                parameters: [
+                                   string(name: 'TOWER_VERSION', value: params.TOWER_VERSION),
+                                ]
+                            )
+                        }
                     }
                 }
             }
