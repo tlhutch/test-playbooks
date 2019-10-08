@@ -52,14 +52,16 @@ class APITest(object):
 
         return True
 
-    def ensure_jt_runs_on_primary_instance(self, jt, api_version):
+    def primary_instance_group(self, api_version):
         igs = api_version.instance_groups.get(controller__isnull=True).results
         igs = [ig for ig in igs if not ig.is_containerized]
         if len(igs) > 1:
-            ig = [ig for ig in igs if ig.name == '1'].pop()
-            jt.add_instance_group(ig)
+            return [ig for ig in igs if ig.name == '1'].pop()
         else:
-            jt.add_instance_group(igs.pop())
+            return igs.pop()
+
+    def ensure_jt_runs_on_primary_instance(self, jt, api_version):
+            jt.add_instance_group(self.primary_instance_group(api_version))
 
     @contextlib.contextmanager
     def current_user(self, username=None, password=None):

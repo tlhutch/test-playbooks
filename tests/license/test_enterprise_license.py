@@ -254,13 +254,7 @@ print(json.dumps({
         org = factories.organization()
 
         # NOTE: Assigning instance group because of known latency problem in cluster with license application
-        igs = v2.instance_groups.get()
-        ig = [ig for ig in igs.results if ig.name == '1']
-        if not ig and is_docker:
-            ig = igs.results[0]
-        assert len(ig) == 1
-        ig = ig.pop()
-        org.add_instance_group(ig)
+        org.add_instance_group(self.primary_instance_group(v2))
 
         inv = factories.inventory(organization=org)
         inv_script = factories.inventory_script(organization=org, script="""#!/usr/bin/env python
