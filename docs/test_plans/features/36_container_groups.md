@@ -116,15 +116,15 @@ https://github.com/ansible/awx/issues/4848
 #### CG Execute
 
 - [x] A JT can be configured to run on a CG
-- [ ] A SJT can be configured to run on a CG
-- [ ] A WFJT can be configured to run on a CG
-- [ ] If the user enters incorrect or invalid credentials, a 401 traceback appears on the job results page.
-- [ ] If a user inputs the wrong api endpoint config, then no error is displayed when the job is executed and the job appears to run for an indeterminate amount of time.
+- [x] A SJT can be configured to run on a CG
+- [x] A WFJT can be configured to run on a CG
+- [x] If the user enters incorrect or invalid credentials, a 401 traceback appears on the job results page.
+- [x] If a user inputs the wrong api endpoint config, then the job will eventually error our with a useful debug message
 
 #### Job Results page.
 
-- [ ] Errors from job run should be displayed.
-- [ ] Container group should be shown and when clicked, the user is navigated to the container group
+- [x] Errors from job run should be displayed.
+- [x] Container group should be shown and when clicked, the user is navigated to the container group
 
 ### Packaging verification
 
