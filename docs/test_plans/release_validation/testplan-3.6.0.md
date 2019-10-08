@@ -60,7 +60,7 @@
 
 ### SSL for PostgreSQL and RabbitMQ (Yanis/Elijah)
 
-- [ ] [Testing complete](https://github.com/ansible/tower-qa/issues/4090)
+- [x] [Testing complete](https://github.com/ansible/tower-qa/pull/4169)
 
 ### Override SCM Branch on JT and related enhancements (Elijah/Caleb)
 
@@ -84,7 +84,7 @@
 
 ### Templated Notifications (Yanis, Mat, John)
 
-  - [ ] [Testing complete](https://github.com/ansible/tower-qa/blob/devel/docs/test_plans/features/36_templated_notification.md)
+  - [x] [Testing complete](https://github.com/ansible/tower-qa/blob/devel/docs/test_plans/features/36_templated_notification.md)
 
 ### Upgrade to PostgresSQL 10 (Yanis, Mat)
 
@@ -130,12 +130,12 @@
 ### Upgrade
 
 
-  * OpenShift 3.4.x to Release:
-  * OpenShift 3.5.x to Release:
-  * Non-OpenShift 3.4.x to Release:
-  * Non-OpenShift 3.5.x to Release:
+  * OpenShift 3.4.x to Release: Use this [Pipeline](http://jenkins.ansible.eng.rdu2.redhat.com/job/Pipelines/job/Release%2034%20to%20devel%20-%20OpenShift%20-%20Release%20Verification/) to verify
+  * OpenShift 3.5.x to Release: Use this [Pipeline](http://jenkins.ansible.eng.rdu2.redhat.com/job/Pipelines/job/upgrade-release35-openshift-release-verification/) to verify
+  * Non-OpenShift 3.4.x to Release: Use this [Pipeline](http://jenkins.ansible.eng.rdu2.redhat.com/job/Pipelines/job/upgrade-release34-release-verification/) to verify
+  * Non-OpenShift 3.5.x to Release: Use this [Pipeline](http://jenkins.ansible.eng.rdu2.redhat.com/job/Pipelines/job/upgrade-release35-release-verification/) to verify
 
-  * [ ] Check ansible version check that is [hardcoded in tower-packaging](https://github.com/ansible/tower-packaging/blob/f8d3d4cd6d1cf35cad6e09de88068440d667ff42/setup/roles/preflight/defaults/main.yml#L6)
+  * [x] Check ansible version check that is [hardcoded in tower-packaging](https://github.com/ansible/tower-packaging/blob/devel/setup/roles/preflight/defaults/main.yml#L6)
   * [ ] 3.4.{0-3} -> Release
     * [ ] [Bundle/Plain - Standalone/Cluster]
     * [ ] [OpenShift]
@@ -168,7 +168,7 @@
 
 ### Artifacts
 
-Use this pipeline to verify: #FIXME
+Use this [Pipeline](http://jenkins.ansible.eng.rdu2.redhat.com/job/Pipelines/job/build-artifacts-pipeline/) to verify
 
   * [ ] [AMI]
   * [ ] [Vagrant image]
