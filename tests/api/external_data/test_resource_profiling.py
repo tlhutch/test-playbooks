@@ -70,7 +70,7 @@ class TestResourceProfiling(APITest):
         self.check_filenames(profiles)
         linecounts = self.count_lines_in_files(ansible_adhoc, profiles, job.execution_node)
         for f in profiles:
-            assert 39 < linecounts[f] < 45, linecounts[f]
+            assert 39 < linecounts[f] < 50, linecounts[f]
 
     def test_performance_stats_intervals_are_applied(self, ansible_adhoc, update_setting_pg, v2, factories, skip_if_openshift, global_resource_profiling_enabled):
         system_settings = v2.settings.get().get_endpoint('jobs')
@@ -83,7 +83,7 @@ class TestResourceProfiling(APITest):
         self.check_filenames(profiles)
         linecounts = self.count_lines_in_files(ansible_adhoc, profiles, job.execution_node)
         for f in profiles:
-            assert 19 < linecounts[f] < 25, linecounts[f]
+            assert 19 < linecounts[f] < 30, linecounts[f]
 
     def test_performance_stats_generated_on_isolated_nodes_and_copied_to_controller(self, ansible_adhoc, v2, factories, skip_if_openshift, skip_if_not_cluster, global_resource_profiling_enabled):
         ig = v2.instance_groups.get(name='protected').results.pop()
@@ -94,7 +94,7 @@ class TestResourceProfiling(APITest):
         profiles = self.get_resource_profiles(ansible_adhoc, job.id, job.controller_node)
         assert len(profiles) == len(self.expected_files)
         self.check_filenames(profiles)
-        linecounts = self.count_lines_in_files(ansible_adhoc, profiles, job.execution_node)
+        linecounts = self.count_lines_in_files(ansible_adhoc, profiles, job.controller_node)
         for f in profiles:
             assert linecounts[f] > 5, linecounts[f]
 
