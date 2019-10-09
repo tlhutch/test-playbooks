@@ -39,7 +39,7 @@ class TestJobTemplateExtraVars(APITest):
             launch_time_vars.update(update)
             return json.dumps(launch_time_vars)
         except:
-            launch_time_vars = yaml.load(launch_time_vars)
+            launch_time_vars = yaml.load(launch_time_vars, Loader=yaml.SafeLoader)
             launch_time_vars.update(update)
             return yaml.dump(launch_time_vars)
 

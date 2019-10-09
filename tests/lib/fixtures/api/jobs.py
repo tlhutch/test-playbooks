@@ -57,7 +57,7 @@ def artifacts_from_stats_playbook():
         "  list: []",
         "  object: {}",
         "empty_list: []",
-        "empty_object: {}"]))
+        "empty_object: {}"]), Loader=yaml.SafeLoader)
 
 
 @pytest.fixture(scope="function")

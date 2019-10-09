@@ -250,7 +250,7 @@ class TestActivityStream(APITest):
                 dict_content = json.loads(content)
             except Exception:
                 try:
-                    dict_content = yaml.load(content)
+                    dict_content = yaml.load(content, Loader=yaml.SafeLoader)
                 except Exception:
                     pass
         sub_items = []
