@@ -2,6 +2,8 @@ from awxkit import utils
 import awxkit.exceptions as exc
 import pytest
 
+import fauxfactory
+
 from tests.api import APITest
 
 
@@ -693,3 +695,22 @@ class TestSCMInventorySource(APITest):
         # },
         group = groups.results[0]
         assert group.variables == {'foovar': 'fooval'}
+
+    def test_scm_inv_using_collection(self, factories):
+        pr_number = 83
+        project = factories.project(
+            name='Project alancoding.basic inventory collection requirement - %s' % fauxfactory.gen_utf8(),
+            scm_type='git',
+            scm_refspec=f"refs/pull/{pr_number}/head:refs/remotes/origin/pull/{pr_number}/head",
+            scm_branch=f"pull/{pr_number}/head"
+        )
+        inventory = factories.inventory(organization=project.ds.organization)
+        inv_src = factories.inventory_source(
+            source='scm', inventory=inventory, project=project,
+            source_path='inventories/basic.yml'
+        )
+
+        inv_update = inv_src.update().wait_until_completed()
+        inv_update.assert_successful()
+
+        assert inv_src.get_related('hosts').count == 4  # the number defined in the inventory file
