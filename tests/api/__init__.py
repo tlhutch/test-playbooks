@@ -61,7 +61,7 @@ class APITest(object):
             return igs.pop()
 
     def ensure_jt_runs_on_primary_instance(self, jt, api_version):
-            jt.add_instance_group(self.primary_instance_group(api_version))
+        jt.add_instance_group(self.primary_instance_group(api_version))
 
     @contextlib.contextmanager
     def current_user(self, username=None, password=None):
