@@ -388,6 +388,57 @@ class TestGeneralSettings(APITest):
         else:
             assert "The error was: 'ansible_distribution' is undefined" in job.result_stdout
 
+    def test_primary_galaxy_validation_need_url(self, api_settings_jobs_pg, update_setting_pg):
+        """Several of these settings have mutual-exclusivity conditions in Ansible core settings
+        This tests that the exclusivity rules are enforced on the Tower side"""
+        payload = dict(
+            PRIMARY_GALAXY_URL='',
+            PRIMARY_GALAXY_USERNAME='admin',
+            PRIMARY_GALAXY_PASSWORD='g4lxZforU'
+        )
+        with pytest.raises(exc.BadRequest) as excinfo:
+            update_setting_pg(api_settings_jobs_pg, payload)
+        for key in ('PRIMARY_GALAXY_USERNAME', 'PRIMARY_GALAXY_PASSWORD'):
+            assert key in excinfo.value.msg
+            assert excinfo.value.msg[key][0] == 'Cannot provide field if PRIMARY_GALAXY_URL is not set.'
+
+    def test_primary_galaxy_validation_token_vs_password(self, api_settings_jobs_pg, update_setting_pg, skip_if_pre_ansible29):
+        payload = dict(
+            PRIMARY_GALAXY_URL='https://foo.invalid',
+            PRIMARY_GALAXY_USERNAME='admin',
+            PRIMARY_GALAXY_PASSWORD='g4lxZforU',
+            PRIMARY_GALAXY_TOKEN='g4lxZforMe',
+            PRIMARY_GALAXY_AUTH_URL='https://foo.invalid'
+        )
+        with pytest.raises(exc.BadRequest) as excinfo:
+            update_setting_pg(api_settings_jobs_pg, payload)
+        for key in ('PRIMARY_GALAXY_TOKEN', 'PRIMARY_GALAXY_PASSWORD'):
+            assert key in excinfo.value.msg
+            assert excinfo.value.msg[key][0] == ('Setting Galaxy token and authentication URL is '
+                                                 'mutually exclusive with username and password.')
+
+    def test_primary_galaxy_exclusivity_rules(self, api_settings_jobs_pg, update_setting_pg, skip_if_pre_ansible29):
+        payload = dict(
+            PRIMARY_GALAXY_URL='https://foo.invalid',
+            PRIMARY_GALAXY_USERNAME='admin',
+            PRIMARY_GALAXY_PASSWORD=''
+        )
+        with pytest.raises(exc.BadRequest) as excinfo:
+            update_setting_pg(api_settings_jobs_pg, payload)
+        for key in ('PRIMARY_GALAXY_USERNAME', 'PRIMARY_GALAXY_PASSWORD'):
+            assert key in excinfo.value.msg
+            assert excinfo.value.msg[key][0] == ('If authenticating via username and password, both must be provided.')
+        payload = dict(
+            PRIMARY_GALAXY_URL='https://foo.invalid',
+            PRIMARY_GALAXY_TOKEN='',
+            PRIMARY_GALAXY_AUTH_URL='https://foo.invalid'
+        )
+        with pytest.raises(exc.BadRequest) as excinfo:
+            update_setting_pg(api_settings_jobs_pg, payload)
+        for key in ('PRIMARY_GALAXY_TOKEN', 'PRIMARY_GALAXY_AUTH_URL'):
+            assert key in excinfo.value.msg
+            assert excinfo.value.msg[key][0] == ('If authenticating via token, both token and authentication URL must be provided.')
+
     def test_activity_stream_enabled(self, factories, api_activity_stream_pg, api_settings_system_pg, update_setting_pg):
         """Verifies that if ACTIVITY_STREAM_ENABLED is enabled that Tower activity gets logged."""
         # find number of current activity stream elements

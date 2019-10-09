@@ -489,12 +489,15 @@ class Test_Projects(APITest):
 
         assert 'runner_on_ok' == galaxy_event.event
 
+    @pytest.mark.parametrize("verbose", (True, False))
     @pytest.mark.parametrize("scm_url, use_credential",
                              [('https://github.com/ansible/tower.git', True),
                               ('https://github.com/ansible/test-playbooks.git', True),
                               ('https://foobar:barfoo@github.com/ansible/tower.git', False)],
                              ids=['invalid_cred', 'valid_cred', 'cred_in_url'])
-    def test_project_update_results_do_not_leak_credential(self, factories, scm_url, use_credential):
+    def test_project_update_results_do_not_leak_credential(self, factories, scm_url, use_credential,
+                                                           verbose, api_settings_jobs_pg, update_setting_pg):
+        update_setting_pg(api_settings_jobs_pg, {"PROJECT_UPDATE_VVV": verbose})
         if use_credential:
             cred = factories.credential(kind='scm', username='foobar', password='barfoo')
         else:
@@ -599,7 +602,7 @@ class Test_Projects(APITest):
             assert result['stat']['exists'], "The expected galaxy collection requirement was not found (%s)." % \
                 expected_collection_path
 
-    def test_project_with_galaxy_collection_requirements_call_collection_module(self, request, skip_if_cluster, factories, ansible_runner,
+    def test_project_with_galaxy_collection_requirements_call_collection_module(self, skip_if_cluster, factories,
                                                                                 project_with_galaxy_collection_requirements,
                                                                                 ansible_version_cmp):
         """Verify that the downloaded collections are mapped into the job template playbook"""
@@ -663,3 +666,101 @@ class Test_Projects(APITest):
         job_pg = job_template_pg.launch()
         job_pg.wait_until_completed()
         job_pg.assert_status('failed')
+
+    def test_primary_galaxy_server(self, factories,
+                                   project_with_galaxy_collection_requirements, ansible_version_cmp,
+                                   api_settings_all_pg, update_setting_pg):
+        """Verify that a user-specified Galaxy server will be used and fallback to public server is possible"""
+        if ansible_version_cmp('2.9') < 0:
+            pytest.skip('Settings for primary galaxy server are irrelevant for Ansible below 2.9.')
+
+        payload = dict(
+            PRIMARY_GALAXY_URL='https://galaxy-dev.ansible.com',
+            PROJECT_UPDATE_VVV=True
+        )
+        update_setting_pg(api_settings_all_pg, payload)
+
+        jt = factories.job_template(
+            name="Verification that collection is being used {}".format(random_title()),
+            project=project_with_galaxy_collection_requirements,
+            playbook="use_debug_collection_role.yml"
+        )
+        jt.ds.inventory.add_host()
+        job = jt.launch()
+        job.wait_until_completed()
+        job.assert_successful()
+
+        sync = job.get_related('project_update')
+
+        event_qs = sync.get_related(
+            'events', event='runner_on_ok', task='fetch galaxy collections from collections/requirements.yml'
+        )
+        assert event_qs.count == 1
+        event = event_qs.results.pop()
+
+        output = '\n'.join(event.event_data['res']['stdout_lines'])
+
+        assert "Collection 'chrismeyersfsu.test_things' is not available from server primary_galaxy https://galaxy-dev.ansible.com" in output
+        assert "Collection 'chrismeyersfsu.test_things' obtained from server galaxy https://galaxy.ansible.com" in output
+
+    def test_invalid_galaxy_server_fails_job(self, factories,
+                                             project_with_galaxy_collection_requirements, ansible_version_cmp,
+                                             api_settings_all_pg, update_setting_pg):
+        if ansible_version_cmp('2.9') < 0:
+            pytest.skip('Settings for primary galaxy server are irrelevant for Ansible below 2.9.')
+
+        update_setting_pg(api_settings_all_pg, dict(PRIMARY_GALAXY_URL='https://foo.invalid'))
+
+        jt = factories.job_template(
+            name="Should fail with invalid galaxy server {}".format(random_title()),
+            project=project_with_galaxy_collection_requirements,
+            playbook="use_debug_collection_role.yml"
+        )
+        jt.ds.inventory.add_host()
+        job = jt.launch()
+        job.wait_until_completed()
+        job.assert_status(['failed', 'error'])
+
+    def test_galaxy_server_credential_redaction(self, factories,
+                                                project_with_galaxy_collection_requirements, ansible_version_cmp,
+                                                api_settings_all_pg, update_setting_pg):
+        """Verify galaxy username and token are redacted"""
+        if ansible_version_cmp('2.9') < 0:
+            pytest.skip('Settings for primary galaxy server are irrelevant for Ansible below 2.9.')
+
+        payload = dict(
+            PRIMARY_GALAXY_URL='https://galaxy-dev.ansible.com',
+            PRIMARY_GALAXY_USERNAME='admin',
+            PRIMARY_GALAXY_PASSWORD='password'
+        )
+        update_setting_pg(api_settings_all_pg, payload)
+
+        jt = factories.job_template(
+            name="Verification that collection secrets are redacted {}".format(random_title()),
+            project=project_with_galaxy_collection_requirements,
+            playbook="use_debug_collection_role.yml"
+        )
+        jt.ds.inventory.add_host()
+        job = jt.launch()
+        job.wait_until_completed()
+
+        sync = job.get_related('project_update')
+        env = sync.job_env
+        assert 'ANSIBLE_GALAXY_SERVER_PRIMARY_GALAXY_PASSWORD' in env
+        assert env['ANSIBLE_GALAXY_SERVER_PRIMARY_GALAXY_PASSWORD'] == '**********'
+
+        payload = dict(
+            PRIMARY_GALAXY_TOKEN='notavalidtoken',
+            PRIMARY_GALAXY_AUTH_URL='https://foo.invalid',
+            PRIMARY_GALAXY_USERNAME='',
+            PRIMARY_GALAXY_PASSWORD=''
+        )
+        update_setting_pg(api_settings_all_pg, payload)
+
+        job = jt.launch()
+        job.wait_until_completed()
+
+        sync = job.get_related('project_update')
+        env = sync.job_env
+        assert 'ANSIBLE_GALAXY_SERVER_PRIMARY_GALAXY_TOKEN' in env
+        assert env['ANSIBLE_GALAXY_SERVER_PRIMARY_GALAXY_TOKEN'] == '**********'
