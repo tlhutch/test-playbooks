@@ -300,7 +300,8 @@ class TestSchedules(SchedulesTest):
             if zone in ['Africa/Khartoum', 'Africa/Sao_Tome', 'Africa/Windhoek', 'America/Grand_Turk',
                         'Antarctica/Casey', 'Asia/Famagusta', 'Asia/Pyongyang', 'Pacific/Tongatapu',
                         'Europe/Volgograd', 'Africa/Casablanca', 'Africa/El_Aaiun', 'Asia/Qyzylorda',
-                        'America/Campo_Grande', 'America/Cuiaba', 'America/Sao_Paulo', 'Brazil/East']:
+                        'America/Campo_Grande', 'America/Cuiaba', 'America/Sao_Paulo', 'Brazil/East',
+                        'Pacific/Norfolk']:
                 # Bug in dateutil, timezone not supported, exported restricted or not important
                 continue
             try:
