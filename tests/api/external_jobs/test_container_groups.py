@@ -298,14 +298,10 @@ class TestContainerGroups(APITest):
             job = node.wait_for_job().get_related('job')
             jobs.append(job)
         queued_jobs = []
-        try:
-            for job in jobs:
-                job.assert_status(['running', 'pending'])
-                if job.get().status == 'pending':
-                    queued_jobs.append(job)
-        finally:
-            workflow_job.cancel()
-            workflow_job.wait_until_completed()
+        for job in jobs:
+            job.assert_status(['running', 'pending', 'waiting'])
+            if job.get().status in ['pending', 'waiting']:
+                queued_jobs.append(job)
         try:
             for job in queued_jobs:
                 job.wait_until_completed()
