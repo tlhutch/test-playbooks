@@ -102,7 +102,7 @@ class TestContainerGroups(APITest):
         request.addfinalizer(lambda: client.core.delete_namespaced_resource_quota("pod-quota", namespace, body=resource_quota))
 
     @pytest.mark.github('https://github.com/ansible/awx/issues/4909', ids=['entry_point', 'image'], skip=True)
-    def test_failed_job(self, bad_container_group_and_client, factories):
+    def test_container_group_failed_job(self, bad_container_group_and_client, factories):
         container_group, client, problem = bad_container_group_and_client
         jt = factories.job_template(playbook='sleep.yml', extra_vars='{"sleep_interval": 45}')
         jt.add_instance_group(container_group)
@@ -124,7 +124,7 @@ class TestContainerGroups(APITest):
         assert job.instance_group == container_group.id, "Container group is not indicated that the job tried to run on"
 
     @pytest.mark.github('https://github.com/ansible/awx/issues/4907', skip=True)
-    def test_launch_project_update(self, container_group_and_client, factories):
+    def test_container_group_launch_project_update(self, container_group_and_client, factories):
         container_group, client = container_group_and_client
         org = factories.organization()
         org.add_instance_group(container_group)
@@ -134,7 +134,7 @@ class TestContainerGroups(APITest):
         assert update.execution_node != ""
 
     @pytest.mark.github('https://github.com/ansible/awx/issues/4907', skip=True)
-    def test_launch_cloud_inventory_update(self, container_group_and_client, aws_inventory_source):
+    def test_container_group_launch_cloud_inventory_update(self, container_group_and_client, aws_inventory_source):
         container_group, client = container_group_and_client
         organization = aws_inventory_source.related.inventory.get().related.organization.get()
         organization.add_instance_group(container_group)
@@ -142,7 +142,7 @@ class TestContainerGroups(APITest):
         update.assert_successful()
         assert update.execution_node != ""
 
-    def test_launch_job(self, container_group_and_client, factories):
+    def test_container_group_launch_job(self, container_group_and_client, factories):
         container_group, client = container_group_and_client
         inventory = factories.inventory()
         host = inventory.add_host()
@@ -153,7 +153,7 @@ class TestContainerGroups(APITest):
         assert job.instance_group == container_group.id
         assert host.name in job.result_stdout
 
-    def test_cancel_job(self, container_group_and_client, factories):
+    def test_container_group_cancel_job(self, container_group_and_client, factories):
         container_group, client = container_group_and_client
         inventory = factories.inventory()
         jt = factories.job_template(inventory=inventory, playbook='sleep.yml', extra_vars='{"sleep_interval": 120}')
@@ -166,7 +166,7 @@ class TestContainerGroups(APITest):
         client.assert_job_pod_cleaned_up(job.id)
 
     @pytest.mark.github('https://github.com/ansible/awx/issues/4908', skip=True)
-    def test_cancel_adhoc(self, container_group_and_client, factories):
+    def test_container_group_cancel_adhoc(self, container_group_and_client, factories):
         container_group, client = container_group_and_client
         organization = factories.organization()
         organization.add_instance_group(container_group)
@@ -180,7 +180,7 @@ class TestContainerGroups(APITest):
         adhoc.cancel().wait_until_status('canceled')
         client.assert_job_pod_cleaned_up(adhoc.id)
 
-    def test_workflow_job(self, container_group_and_client, factories):
+    def test_container_group_workflow_job(self, container_group_and_client, factories):
         container_group, client = container_group_and_client
         org = factories.organization()
         org.add_instance_group(container_group)
@@ -197,7 +197,7 @@ class TestContainerGroups(APITest):
         assert host.name in n1_job.result_stdout
 
     @pytest.mark.github('https://github.com/ansible/awx/issues/4908', skip=True)
-    def test_launch_adhoc(self, container_group_and_client, factories):
+    def test_container_group_launch_adhoc(self, container_group_and_client, factories):
         container_group, client = container_group_and_client
         organization = factories.organization()
         organization.add_instance_group(container_group)
@@ -210,7 +210,7 @@ class TestContainerGroups(APITest):
         assert host.name in adhoc.result_stdout
 
     @pytest.mark.github('https://github.com/ansible/awx/issues/4910', skip=True)
-    def test_launch_exceeding_resource_quota(self, request, fscope_container_group_and_client, factories):
+    def test_container_group_launch_exceeding_resource_quota(self, request, fscope_container_group_and_client, factories):
         container_group, client = fscope_container_group_and_client
         namespace = json.loads(container_group['pod_spec_override'])['metadata']['namespace']
         self.create_pod_resourcequota(request, client, namespace, 1)
@@ -225,7 +225,7 @@ class TestContainerGroups(APITest):
         job0.assert_successful()
         job1.assert_successful()
 
-    def test_sliced_jobs_launch_on_container_groups(self, container_group_and_client, factories):
+    def test_container_group_sliced_jobs_launch_on_container_groups(self, container_group_and_client, factories):
         ct = 4
         container_group, client = container_group_and_client
         jt = factories.job_template(job_slice_count=ct)
@@ -249,7 +249,7 @@ class TestContainerGroups(APITest):
             job.wait_until_completed()
             job.assert_successful()
 
-    def test_sliced_jobs_run_in_containers(self, container_group_and_client, factories):
+    def test_container_group_sliced_jobs_run_in_containers(self, container_group_and_client, factories):
         ct = 4
         container_group, client = container_group_and_client
         jt = factories.job_template(job_slice_count=ct, playbook='sleep.yml', extra_vars='{"sleep_interval": 60}')
@@ -277,7 +277,7 @@ class TestContainerGroups(APITest):
             workflow_job.wait_until_completed()
 
     @pytest.mark.github('https://github.com/ansible/awx/issues/4910', skip=True)
-    def test_sliced_jobs_exceeding_resource_quota(self, request, fscope_container_group_and_client, factories):
+    def test_container_group_sliced_jobs_exceeding_resource_quota(self, request, fscope_container_group_and_client, factories):
         ct = 4
         container_group, client = fscope_container_group_and_client
         namespace = json.loads(container_group['pod_spec_override'])['metadata']['namespace']
