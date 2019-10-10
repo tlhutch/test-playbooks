@@ -106,3 +106,11 @@ For more information regarding these folders, please see the Cypress documentati
 - Cypress clears UI session data entirely during each test to avoid caching and cookie issues. Sometimes, this means you need to manipulate cookies directly yourself. For an example, see the custom `apiRequest()` function present in `cypress/support/commands.js`.
 
 - Avoid overlapping dependencies as much as possible. The current configuration calls a custom command, `generateTestID()`, which is has been made available as `this.testID` in every individual test. Feel free to use this to generate custom name suffixes to avoid conflicts. `cy.createOrReplace()` should also help in this regard.
+
+
+### Docker
+```
+cd tower-qa/ui-tests/awx-pf-tests
+docker build -t awx-pf-tests .
+docker run --network tools_default --link 'tools_ui_next_1:ui-next' -it -v $PWD:/e2e -w /e2e awx-pf-tests run --project .
+```
