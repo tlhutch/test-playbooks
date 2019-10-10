@@ -6,7 +6,7 @@ pipeline {
         choice(
             name: 'TOWER_VERSION',
             description: 'Tower version to deploy',
-            choices: ['devel', '3.5.x', '3.4.x', '3.3.x']
+            choices: ['devel', '3.6.x', '3.5.x', '3.4.x', '3.3.x']
         )
         choice(
             name: 'SCOPE',
@@ -29,7 +29,9 @@ pipeline {
 Scope selected: ${params.SCOPE}"""
 
                 script {
-                    if (params.TOWER_VERSION == '3.5.x' ) {
+                    if (params.TOWER_VERSION == '3.6.x' ) {
+                        _TOWER_VERSION = '3.6.0'
+                    } else if (params.TOWER_VERSION == '3.5.x') {
                         _TOWER_VERSION = '3.5.4'
                     } else if (params.TOWER_VERSION == '3.4.x') {
                         _TOWER_VERSION = '3.4.6'
