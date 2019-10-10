@@ -88,7 +88,7 @@ def _merge_junit(junit, output):
         if previous_type > current_type:
             print(
                 f'{case.name} with the following previous result:\n\n'
-                f'{previous_result}\n'
+                f'{previous_result}\n\n'
                 f'is being updated to:\n\n'
                 f'{current_result}\n'
             )
