@@ -1,0 +1,9 @@
+---
+- hosts: localhost
+  tasks:
+    - name: Enable ansible-tower nightlies repo
+      become: true
+      get_url:
+        url: "{{ aw_repo_url }}/cli/ansible-tower-cli-el{{ ansible_distribution_major_version }}.repo"
+        dest: /etc/yum.repos.d/ansible-tower-cli.repo
+

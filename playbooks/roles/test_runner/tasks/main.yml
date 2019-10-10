@@ -15,12 +15,6 @@
   command: yum-config-manager --enable rhui-REGION-rhel-server-extras --enable rhui-REGION-rhel-server-optional
   when: ansible_distribution_major_version == '7'
 
-- name: Enable ansible-tower nightlies repo
-  become: true
-  get_url:
-    url: "{{ aw_repo_url }}/cli/ansible-tower-cli-el{{ ansible_distribution_major_version }}.repo"
-    dest: /etc/yum.repos.d/ansible-tower-cli.repo
-
 - name: Install required packages (common)
   become: true
   package:

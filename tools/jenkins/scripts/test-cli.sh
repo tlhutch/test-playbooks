@@ -26,6 +26,8 @@ pip install -U "git+ssh://git@github.com/${AWXKIT_FORK}/${AWXKIT_REPO}.git@${AWX
 
 # We need to install the ansible-tower-cli package at this point as during
 # test-runner setup it may not be ready
+ansible-playbook -v -i playbooks/inventory.log -e "aw_repo_url=${AW_REPO_URL}" playbooks/test_runner/install_cli_repo.yml
+
 sudo yum install --enablerepo='ansible-tower-cli' -y ansible-tower-cli
 
 # Try remove the virtualenv awx binary to guarantee we use the one installed by
