@@ -1,14 +1,17 @@
+
+import re
+import time
+import dateutil
 from copy import deepcopy
 from uuid import uuid4
-import time
 
-import dateutil
+import pytest
+
 from awxkit.api.client import Connection
 from awxkit.api import get_registered_page
 from awxkit.config import config as qe_config
 from awxkit.utils import random_title
 from awxkit import exceptions as exc
-import pytest
 
 from tests.api import APITest
 
@@ -548,6 +551,44 @@ class TestApplicationTokens(APITest):
 
         with self.current_user(org_admin):
             assert token.related.activity_stream.get().count == 1
+
+    @pytest.mark.serial
+    @pytest.mark.ansible(host_pattern='tower[0]')  # target 1 normal instance
+    def test_application_token_cleanup_command(self, ansible_runner, v2, factories):
+        """Regression test for https://github.com/ansible/awx/issues/3825
+
+        Once tokens have been revoked, all of them should be removed by the management
+        command `awx-manage cleartokens`.
+        """
+        payload = factories.access_token.payload(oauth_2_application=True)
+        application = payload.ds.oauth_2_application
+        token = v2.tokens.post(payload)
+        oauth2_token_name = token['token']
+        refresh_token_name = token['refresh_token']
+
+        contacted = ansible_runner.command('awx-manage revoke_oauth2_tokens')
+        result = list(contacted.values())[0]
+        stdout = result['stdout']
+        stderr = result['stderr']
+        regular_token_revoked = re.search(f"revoked.*{oauth2_token_name}", stdout)
+        assert regular_token_revoked, f'Token not reported as revoked, stdout: {stdout}, stderr: {stderr}'
+        assert result['rc'] == 0, f'Unexpected return code, stdout: {stdout}, stderr: {stderr}'
+
+        contacted = ansible_runner.command('awx-manage revoke_oauth2_tokens --all')
+        result = list(contacted.values())[0]
+        stdout = result['stdout']
+        stderr = result['stderr']
+        refresh_token_revoked = re.search(f"revoked.*{refresh_token_name}", stdout)
+        assert refresh_token_revoked, f'Token not reported as revoked, stdout: {stdout}, stderr: {stderr}'
+        assert result['rc'] == 0, f'Unexpected return code, stdout: {stdout}, stderr: {stderr}'
+
+        contacted = ansible_runner.command('awx-manage cleartokens')
+        result = list(contacted.values())[0]
+        stdout = result['stdout']
+        stderr = result['stderr']
+        assert result['rc'] == 0, f'Unexpected return code, stdout: {stdout}, stderr: {stderr}'
+
+        assert application.related.tokens.get().count == 0
 
 
 class TestTokenAuthenticationBase(APITest):
