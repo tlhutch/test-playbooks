@@ -807,6 +807,32 @@ class Test_Job(APITest):
             with pytest.raises(exc.Forbidden):
                 job.delete()
 
+    def test_relative_roles_and_collections(self, factories, skip_if_pre_ansible29):
+        pr_number = 84
+        project = factories.project(
+            name='Project that uses relative role and collections in ansible.cfg - %s' % fauxfactory.gen_utf8(),
+            scm_type='git',
+            scm_refspec=f"refs/pull/{pr_number}/head:refs/remotes/origin/pull/{pr_number}/head",
+            scm_branch=f"pull/{pr_number}/head"
+        )
+        jt = factories.job_template(
+            project=project,
+            playbook='non_root/playbook.yml'
+        )
+        jt.ds.inventory.add_host()
+        job = jt.launch()
+        job.wait_until_completed()
+        job.assert_successful()
+        out = job.result_stdout
+        EXPECT_MESSAGES = (
+            'debug_for_collectiona_V9JE3Jh0PK',
+            'debug_for_collectionb_275KQmfb90',
+            'Task needed for role name to be displayed',
+            'this is from role_a which is not in a collection'
+        )
+        for msg in EXPECT_MESSAGES:
+            assert msg in out, out
+
 
 class Test_Job_Env(APITest):
     """Verify that credentials are properly passed to playbooks as
