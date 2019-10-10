@@ -47,7 +47,7 @@ nodeenv -p
 To install awxkit for use in fixtures:
 ```
 git clone https://github.com/ansible/awx
-pip install -e awx/awxkit -r awx/awxkit/requirements.txt -r awx/requirements/requirements_dev.txt
+pip install -e awx/awxkit -r awx/awxkit/requirements.txt
 
 ```
 
@@ -112,5 +112,5 @@ For more information regarding these folders, please see the Cypress documentati
 ```
 cd tower-qa/ui-tests/awx-pf-tests
 docker build -t awx-pf-tests .
-docker run --network tools_default --link 'tools_ui_next_1:ui-next' -it -v $PWD:/e2e -w /e2e awx-pf-tests run --project .
+docker run --network tools_default --link 'tools_ui_next_1:ui-next' -v $PWD:/e2e -w /e2e awx-pf-tests run --project .
 ```

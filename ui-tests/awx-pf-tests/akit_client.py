@@ -9,6 +9,7 @@ cypress/support/commands.js interacts with this file.
 """
 
 from awxkit import api, config, utils
+from awxkit.utils import PseudoNamespace as ns
 import optparse
 import os
 import sys
@@ -65,8 +66,8 @@ if __name__ == '__main__':
 
     func = args[0] # either 'akit' or 'create_or_replace'
     config.base_url = args[1] # Base URL of API
-    config.credentials = utils.load_credentials(opts.credentials)
-    config.project_urls = utils.load_projects(opts.projects)
+    config.credentials = ns({'default': {'username': 'awx-cy', 'password': 'm3kQ4Z6pfm'}})
+    #config.project_urls = utils.load_projects(opts.projects)
 
     root = api.Api()
     config.use_sessions = True

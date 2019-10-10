@@ -1,5 +1,5 @@
 {
-  "baseUrl": "https://localhost:3001", 
+  "baseUrl": "https://ui-next:3001",
   "video": false,
   "numTestsKeptInMemory": 50,
   "watchForFileChanges": true,
