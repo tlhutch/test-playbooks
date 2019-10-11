@@ -66,10 +66,12 @@ npm install -g npx
 ### Configuring Cypress settings
 In `cypress.json`, set the baseUrl value to that of the target UI you are testing. Do NOT include a trailing slash. This will break awxkit functions. For example, "https://localhost:3001" is fine, but "https://localhost:3001/" is not. 
 
-Inserting your credentials into cypress.json in plaintext isn't recommended, for standard security resasons. There are multiple ways to override the variables, listed [here](https://docs.cypress.io/guides/guides/environment-variables.html#Setting). The simplest way is to take an environment variable and prefix it with `CYPRESS_`. Cypress searches for this environment variable prefix and
-makes it available. For example, to override `AWX_E2E_USERNAME`:
+Inserting your credentials into cypress.json in plaintext isn't recommended, for standard security reasons. There are multiple ways to override the variables, listed [here](https://docs.cypress.io/guides/guides/environment-variables.html#Setting). The simplest way is to take an environment variable and prefix it with `CYPRESS_`. Cypress searches for this environment variable prefix and
+makes it available.
 ```
 export CYPRESS_AWX_E2E_USERNAME=foo 
+export CYPRESS_AWX_E2E_PASSWORD=bar
+export CYPRESS_baseUrl=https://localhost:3001
 npx cypress open # etc, etc,
 ```
 
