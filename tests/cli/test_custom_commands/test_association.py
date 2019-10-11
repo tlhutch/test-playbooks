@@ -101,6 +101,7 @@ class TestNotificationAssociation(object):
         ['start_notification', 'notification_templates_started'],
         ['success_notification', 'notification_templates_success'],
         ['failure_notification', 'notification_templates_error'],
+        ['approval_notification', 'notification_templates_approvals'],
     ])
     @pytest.mark.parametrize('by', ('id', 'name'))
     def test_org_notification(self, cli, webhook_notification_template,
@@ -118,6 +119,7 @@ class TestNotificationAssociation(object):
         ['start_notification', 'notification_templates_started'],
         ['success_notification', 'notification_templates_success'],
         ['failure_notification', 'notification_templates_error'],
+        ['approval_notification', 'notification_templates_approvals'],
     ])
     @pytest.mark.parametrize('by', ('id', 'name'))
     def test_wfjt_notification(self, cli, webhook_notification_template,
