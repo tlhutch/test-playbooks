@@ -2,6 +2,12 @@
  * Verifies basic operations on organizations.
  */
 context('Organizations page', function () {
+  // Aliases used in setup must be done with beforeEach(), not before()
+  // Aliases are wiped between tests for isolation
+  beforeEach(function() {
+    cy.createOrReplace('organizations', `test-organization`).as('org')
+  })
+
   it('reaches a 404 when trying to get the orgs list', function() {
     cy.server()
     cy.route({
@@ -28,10 +34,8 @@ context('Organizations page', function () {
   })
 
   it('can edit an organization', function () {
-    const org = cy.createOrReplace('organizations', `edit-org-${this.testID}`)
-    console.log(typeof(org))
     cy
-      .visit(`/#/organizations/${org.id}`)
+      .visit(`/#/organizations/${this.org.id}`)
       .get('.pf-m-primary:nth-of-type(1)').click()
       .get('#org-name').clear().type(`edited-org-${this.testID}`)
       .get('#org-description').clear().type(`Edited test for orgs. Test ID: ${this.testID}`)
