@@ -554,7 +554,7 @@ class TestApplicationTokens(APITest):
 
     @pytest.mark.serial
     @pytest.mark.ansible(host_pattern='tower[0]')  # target 1 normal instance
-    def test_application_token_cleanup_command(self, ansible_runner, v2, factories):
+    def test_revoked_tokens_cleaned_up(self, ansible_runner, v2, factories):
         """Regression test for https://github.com/ansible/awx/issues/3825
 
         Once tokens have been revoked, all of them should be removed by the management
@@ -589,6 +589,36 @@ class TestApplicationTokens(APITest):
         assert result['rc'] == 0, f'Unexpected return code, stdout: {stdout}, stderr: {stderr}'
 
         assert application.related.tokens.get().count == 0
+
+    @pytest.mark.serial
+    @pytest.mark.ansible(host_pattern='tower[0]')  # target 1 normal instance
+    def test_expired_tokens_cleaned_up(self, v2, update_setting_pg, ansible_runner, factories):
+        auth_settings = v2.settings.get().get_endpoint('authentication')
+        payload = {
+            'OAUTH2_PROVIDER': {
+                'ACCESS_TOKEN_EXPIRE_SECONDS': 1,
+                'REFRESH_TOKEN_EXPIRE_SECONDS': 1
+            }
+        }
+        update_setting_pg(auth_settings, payload)
+
+        user = factories.user(organization=factories.organization())
+        with self.current_user(user):
+            token = user.related.personal_tokens.post()
+            # the difference between the created and expiration dates
+            # should be _just under_ one second
+            assert (dateutil.parser.parse(token.expires) - dateutil.parser.parse(token.created)).seconds == 0
+            time.sleep(3)
+            assert user.related.personal_tokens.get().count == 1
+
+        contacted = ansible_runner.command('awx-manage cleartokens')
+        result = list(contacted.values())[0]
+        stdout = result['stdout']
+        stderr = result['stderr']
+        assert result['rc'] == 0, f'Unexpected return code, stdout: {stdout}, stderr: {stderr}'
+
+        with self.current_user(user):
+            assert user.related.personal_tokens.get().count == 0
 
 
 class TestTokenAuthenticationBase(APITest):
@@ -644,6 +674,7 @@ class TestTokenAuthentication(TestTokenAuthenticationBase):
             res = self.me(token.token)
             assert 'Authentication credentials were not provided. To establish a login session, visit /api/login/.' in str(e.value)
 
+    @pytest.mark.serial
     def test_access_token_expiration(self, v2, update_setting_pg, factories):
         auth_settings = v2.settings.get().get_endpoint('authentication')
         payload = {
