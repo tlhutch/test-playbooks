@@ -45,7 +45,8 @@ Platform under test: ${params.PLATFORM}"""
                     }
 
                     if (params.TOWER_VERSION == 'devel') {
-                        prev_maj_version = '3.6.0'
+                        // NOTE(spredzy): To change once 3.6.0 is officially released
+                        prev_maj_version = '3.5.3'
                     } else if (params.TOWER_VERSION ==~ /3.6.[0-9]*/) {
                         prev_maj_version = '3.5.3'
                         prev_min_version = '3.6.0'
