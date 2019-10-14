@@ -32,6 +32,8 @@
   * RHEL Derivatives 7.4+
   * RHEL Derivatives 8.0+
 
+**Note**: Starting with Ansible Tower release 3.6.0 Oracle Enterprise Linux won't be supported anymore.
+
 ## Features Tested
 
 ### Remove Ubuntu support (Yanis/Elijah)

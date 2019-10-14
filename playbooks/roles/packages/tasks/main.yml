@@ -1,23 +1,6 @@
 ---
 # Tasks to install awx-setup package-related dependencies on EL systems
 
-
-# NOTE: Oracle Linux does not provide sshpass and python-crypto
-# in its own repository. They can be found however in their own
-# custom EPEL
-- name: Enable Oracle Linux EPEL
-  yum_repository:
-    name: oraclelinux-epel
-    description: oraclelinux-epel
-    baseurl: http://yum.oracle.com/repo/OracleLinux/OL7/developer_EPEL/$basearch/
-    gpgcheck: yes
-    enabled: yes
-    gpgkey: file:///etc/pki/rpm-gpg/RPM-GPG-KEY-oracle
-    includepkgs:
-      - sshpass
-      - python-crypto
-  when: ansible_distribution == 'OracleLinux'
-
 - name: update yum
   package:
     name: yum
@@ -154,9 +137,3 @@
   command: ansible --version
   changed_when: false
   when: ansible_install_method not in ['none', None]
-
-- name: Remove Oracle Linux EPEL
-  yum_repository:
-    name: oraclelinux-epel
-    state: absent
-  when: ansible_distribution == 'OracleLinux'
