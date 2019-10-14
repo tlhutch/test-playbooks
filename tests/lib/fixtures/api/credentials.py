@@ -395,14 +395,14 @@ def cloud_credential(request):
 @pytest.fixture(scope="class")
 def github_credential(v2_class, class_factories):
     credential_type_github = v2_class.credential_types.get(namespace="github_token").results.pop().id
-    cred = class_factories.credential(credential_type=credential_type_github)
+    cred = class_factories.credential(credential_type=credential_type_github, token=config['credentials']['github']['token'])
     return cred
 
 
 @pytest.fixture(scope="class")
 def gitlab_credential(v2_class, class_factories):
     credential_type_gitlab = v2_class.credential_types.get(namespace="gitlab_token").results.pop().id
-    cred = class_factories.credential(credential_type=credential_type_gitlab)
+    cred = class_factories.credential(credential_type=credential_type_gitlab, token=config['credentials']['gitlab']['token'])
     return cred
 
 # Kubernetes
