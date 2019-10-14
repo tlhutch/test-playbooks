@@ -3,17 +3,22 @@
 set -euxo pipefail
 
 INVENTORY=${INVENTORY:-''}
+AW_REPO_URL=${AW_REPO_URL:-''}
 VARS_FILE=${VARS_FILE:-playbooks/vars.yml}
 PYTEST_NUMPROCESSES="8"
 
+# -- Start
+#
+# shellcheck source=lib/common
 source "$(dirname "${0}")"/lib/common
-
-# Install the awx CLI pip tarball and run a quick test
-curl "${AW_REPO_URL}/cli/ansible-tower-cli-latest.tar.gz" -o "ansible-tower-cli-latest.tar.gz"
-
 setup_python3_env 'cli_venv'
 
-pip install ansible-tower-cli-latest.tar.gz
+# Install the awx CLI pip tarball and run a quick test
+if [[ -z "${AW_REPO_URL}" ]]; then
+    AW_REPO_URL=$(retrieve_value_from_vars_file "${VARS_FILE}" aw_repo_url)
+fi
+
+pip install "${AW_REPO_URL}/cli/ansible-tower-cli-latest.tar.gz"
 pip install -r scripts/requirements.install
 pip install -r requirements.txt
 
@@ -24,7 +29,7 @@ TOWER_HOST=$(retrieve_tower_server_from_inventory "${INVENTORY}")
 CREDS=$(retrieve_credential_file "${INVENTORY}")
 
 # Confirm what awx cli we are using
-head -n1 `which awx`
+head -n1 "$(which awx)"
 
 pytest -v -c config/api.cfg \
     --junit-xml=reports/junit/results-cli-tarball.xml \
@@ -34,6 +39,3 @@ pytest -v -c config/api.cfg \
     --github-cfg="${CREDS}" \
     --base-url="https://${TOWER_HOST}" \
     tests/cli/test_help.py
-
-set -e
-
