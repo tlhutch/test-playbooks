@@ -40,7 +40,11 @@ def get_project_id_and_number_for_a_tower_version(version):
 def get_issues_content_from_column(url, index=1, issues=[]):
     """Recursive method to iterate over pages to retrieve all issues from columns"""
 
-    _issues = [github_request(_issue['content_url']).json() for _issue in github_request('%s?page=%s' % (url, index)).json()]
+    _issues = []
+    for _issue in github_request('%s?page=%s' % (url, index)).json():
+        if 'content_url' in _issue:
+            _issues.append(github_request(_issue['content_url']).json())
+
     issues = issues + _issues
     if len(_issues) == 30:
         return get_issues_content_from_column(url, index + 1, issues)
@@ -55,7 +59,7 @@ def get_open_issues_from_project(project_id):
     url = '{}/projects/{}/columns'.format(API_GITHUB, project_id)
 
     _columns = github_request(url).json()
-    cards_url = [column['cards_url'] for column in _columns if 'QE' not in column['name']]
+    cards_url = [column['cards_url'] for column in _columns if 'QE' not in column['name'] and 'Done' != column['name']]
 
     for url in cards_url:
         _issues += get_issues_content_from_column(url)
