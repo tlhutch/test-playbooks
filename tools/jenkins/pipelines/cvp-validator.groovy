@@ -13,10 +13,6 @@ def TOWER_CONTAINER_IMAGE = ''
 def MESSAGING_CONTAINER_IMAGE = ''
 def MEMCACHED_CONTAINER_IMAGE = ''
 
-library identifier: "contra-int-lib@master",
-        retriever: modernSCM([$class: 'GitSCMSource',
-                              remote: "https://gitlab.sat.engineering.redhat.com/contra/contra-int-lib.git"])
-
 pipeline {
 
     agent { label 'brew' }
