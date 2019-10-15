@@ -1,8 +1,6 @@
 from awxkit import exceptions as exc
 import pytest
 import threading
-import json
-from awxkit.utils import random_title
 
 from tests.api import APITest
 
@@ -155,30 +153,12 @@ class TestInventorySource(APITest):
         inv_source.wait_until_completed().assert_successful()
         inv_update.get().assert_successful()
 
-    def update_and_delete_resources(self, inv_source, factories):
+    def update_and_delete_resources(self, inv_source):
         inv_source.update().wait_until_completed().assert_successful()
-        inv = inv_source.ds.inventory
-        inv.variables = json.dumps({"ansible_connection": "local"})
-        jt = factories.job_template(
-            name='Run chatty_tasks for large inventory - {}'.format(random_title()),
-            inventory=inv, playbook='chatty_tasks.yml',
-            extra_vars=json.dumps({"num_messages": 2})
-        )
-        jobs = [jt.launch() for i in range(3)]
-        ahcs = [factories.ad_hoc_command(inventory=inv) for i in range(2)]
-        for job in jobs:
-            job.wait_until_completed()
-            job.assert_successful()
-        for ahc in ahcs:
-            ahc.wait_until_completed()
-            ahc.assert_successful()
 
         groups = inv_source.get_related('groups')
         hosts = inv_source.get_related('hosts')
-        # raise Exception('alan!')
 
-        import time
-        start_time = time.time()
         # Add all instances to newly created instance group, in parallel
         # Past issues seen include:
         # 504 timeout - deletion of groups is too heavy, request times out
@@ -191,7 +171,6 @@ class TestInventorySource(APITest):
             t.start()
         for t in threads:
             t.join()
-        end_time = time.time()
 
         with pytest.raises(exc.NotFound):
             groups.results[0].get()  # canary, actual groups span multiple pages
@@ -199,8 +178,6 @@ class TestInventorySource(APITest):
             hosts.results[0].get()
         assert groups.get().count == 0
         assert hosts.get().count == 0
-        time_taken = end_time - start_time
-        assert time_taken < 5.0
 
     def test_delete_sublist_resources(self, factories):
         inv_source = factories.inventory_source()
@@ -209,8 +186,6 @@ class TestInventorySource(APITest):
     def test_simultaneous_delete_sublist_resources_generic_large_inventory(self, factories):
         Ng = 470
         Nh = 189
-        # Ng = 47
-        # Nh = 18
         # In this inventory, all hosts are members of all groups,
         # so that makes it more challenging to avoid conflicts while deleting both
         inv_source = factories.inventory_source(
@@ -226,7 +201,7 @@ class TestInventorySource(APITest):
                 ])
             )
         )
-        self.update_and_delete_resources(inv_source, factories)
+        self.update_and_delete_resources(inv_source)
 
     @pytest.mark.github('https://github.com/ansible/awx/issues/4485', skip=True)
     def test_simultaneous_delete_sublist_resources_ec2(self, factories):
