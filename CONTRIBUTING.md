@@ -5,6 +5,42 @@ Hello! Excited to have you join us.
 If you have any questions about this document, reach out to the team on the `ship_it` channel in slack.
 If you have any updates, make a PR!
 
+## Getting ansible/tower-qa
+
+`ansible/tower-qa` is a private GitHub repository. Please make sure you are part of the Ansible Org on GitHub to be able to clone it.
+
+To clone it locally run:
+
+```
+#> git clone git@github.com:ansible/tower-qa.git
+```
+
+Whenever you submit a contribution to `ansible/tower-qa` it will go through some CI testing for lint.
+While this happens on our Jenkins, you can make sure your contribution (your commit) passes locally before even sending the pull request.
+
+For this to happen, please run the following command:
+
+```
+#> git config core.hooksPath hooks
+```
+
+Now everytime you will commit something, you should observe a similar output:
+
+```
+Starting commit sanity checking ...
+
+[tox] Ensuring tox passes... Success
+[whitespace] Ensure no whitespace are present... Success
+
+[yamllint d03113c21] hooks: Add pre-commit hook
+ Date: Wed Oct 16 15:47:53 2019 +0200
+ 2 files changed, 69 insertions(+), 1 deletion(-)
+ create mode 100755 hooks/pre-commit
+```
+
+You are now all set to start contributing ! Happy Hacking !
+
+
 ## Branching strategy
 ## Feature Test Branches
 
