@@ -1,0 +1,11 @@
+---
+ignore: |
+  playbooks/vars.yml
+  scripts/kubernetes/manifests/*.yml
+  scripts/kubernetes/manifests/*.yaml
+  config/credentials*
+
+extends: default
+
+rules:
+  line-length: disable
