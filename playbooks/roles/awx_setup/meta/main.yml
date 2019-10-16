@@ -1,5 +1,6 @@
+---
 dependencies:
-- { role: auth_keys }
-- { role: remove_pip_modules, when: not out_of_box_os | default(false) | bool}
-- { role: packages, when: not out_of_box_os | default(false) | bool }
-- { role: ntp, when: not out_of_box_os | default(false) | bool and not (ansible_distribution == 'RedHat' and ansible_distribution_major_version == '8') }
+  - {role: auth_keys}
+  - {role: remove_pip_modules, when: not out_of_box_os | default(false) | bool}
+  - {role: packages, when: not out_of_box_os | default(false) | bool}
+  - {role: ntp, when: not out_of_box_os | default(false) | bool and not (ansible_distribution == 'RedHat' and ansible_distribution_major_version == '8')}

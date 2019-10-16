@@ -12,7 +12,7 @@
     wait: '{{ terminate_ec2_wait_upon_termination | default(true) | bool }}'
     wait_timeout: '600'
     filters:
-        'tag:Name': '{{ec2_name_prefix}}-{{item.name}}'
-        'tag:ANSIBLE_INSTALL_METHOD': '{{ansible_install_method|default("nightly")}}'
+      'tag:Name': '{{ec2_name_prefix}}-{{item.name}}'
+      'tag:ANSIBLE_INSTALL_METHOD': '{{ansible_install_method|default("nightly")}}'
   with_items: '{{ ec2_images }}'
   when: delete_on_start | default(false) | bool or reap_instances | default(false) | bool

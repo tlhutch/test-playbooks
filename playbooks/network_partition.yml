@@ -18,33 +18,33 @@
 - hosts: instance_group_partition_1:instance_group_partition_2
   tasks:
     - block:
-      - name: install firewalld (yum)
-        yum:
-          name: firewalld
-          state: latest
-          update_cache: yes
-        when: ansible_pkg_mgr == 'yum'
+        - name: install firewalld (yum)
+          yum:
+            name: firewalld
+            state: latest
+            update_cache: true
+          when: ansible_pkg_mgr == 'yum'
 
-      - name: install firewalld (apt)
-        apt:
-          pkg: firewalld
-          state: latest
-          update_cache: yes
-        when: ansible_pkg_mgr == 'apt'
+        - name: install firewalld (apt)
+          apt:
+            pkg: firewalld
+            state: latest
+            update_cache: true
+          when: ansible_pkg_mgr == 'apt'
 
-      - name: enable firewalld
-        service:
-          name: firewalld
-          enabled: yes
-          state: started
+        - name: enable firewalld
+          service:
+            name: firewalld
+            enabled: true
+            state: started
 
-      - name: Add eth0 to trusted zone
-        firewalld:
-          interface: eth0
-          zone: trusted
-          state: enabled
-          permanent: true
-          immediate: true
+        - name: Add eth0 to trusted zone
+          firewalld:
+            interface: eth0
+            zone: trusted
+            state: enabled
+            permanent: true
+            immediate: true
       become: true
 
 - hosts: instance_group_partition_1
@@ -74,15 +74,15 @@
 - hosts: instance_group_partition_1:instance_group_partition_2
   tasks:
     - block:
-      - name: Install EPEL
-        yum:
-          name: https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
-          state: latest
+        - name: Install EPEL
+          yum:
+            name: https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+            state: latest
 
-      - name: Install tcpkill
-        yum:
-          name: dsniff
-          enablerepo: rhui-REGION-rhel-server-optional
+        - name: Install tcpkill
+          yum:
+            name: dsniff
+            enablerepo: rhui-REGION-rhel-server-optional
       become: true
       when: network_partition_state|default('enabled') == 'enabled'
 

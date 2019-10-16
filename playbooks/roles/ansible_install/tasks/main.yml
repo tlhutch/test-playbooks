@@ -20,17 +20,17 @@
     - make
     - python-pip
 
-#- name: checkout ansible
-#  git: repo={{ansible_git_repo}}
-#       dest=/tmp/ansible.git
-#       version={{ansible_target}}
-#       accept_hostkey=true
-#  register: ansible_git
+# name: checkout ansible
+# git: repo={{ansible_git_repo}}
+#      dest=/tmp/ansible.git
+#      version={{ansible_target}}
+#      accept_hostkey=true
+# register: ansible_git
 #
-#- name: pip install ansible
-#  pip: name=/tmp/ansible.git state=latest
+# name: pip install ansible
+# pip: name=/tmp/ansible.git state=latest
 
-#- name: run integration tests
-#  shell: cd test/integration && make
-#       chdir=/tmp/ansible.git
-#  ignore_errors: true
+# name: run integration tests
+# shell: cd test/integration && make
+#      chdir=/tmp/ansible.git
+# ignore_errors: true

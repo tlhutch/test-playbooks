@@ -45,7 +45,7 @@
       become: true
       user:
         name: ec2-user
-        append: yes
+        append: true
         groups: dockerroot
     - name: Copy docker configuration
       become: true
@@ -57,7 +57,7 @@
       service:
         name: docker
         state: started
-        enabled: yes
+        enabled: true
     - name: Create python3 symlink
       become: true
       file:
@@ -78,12 +78,12 @@
   when: ansible_distribution_major_version == '8'
 
 - name: Disable selinux
-  become: True
+  become: true
   selinux:
     state: disabled
 
 - name: Reboot
-  become: True
+  become: true
   reboot:
 
 - name: Retrieve proper reference to ansible/tower-qa
@@ -104,7 +104,7 @@
   copy:
     src: '{{ item.src }}'
     dest: '{{ item.dest }}'
-  ignore_errors: yes
+  ignore_errors: true
   with_items:
     - {src: "{{ lookup('env', 'PWD') }}/json_key_file", dest: '~/tower-qa/json_key_file'}
     - {src: "{{ lookup('env', 'PWD') }}/playbooks/vars.yml", dest: '~/tower-qa/playbooks'}

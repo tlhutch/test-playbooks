@@ -8,13 +8,13 @@ ntp_restrict:
   - "restrict 127.0.0.1"
   - "restrict -6 ::1"
 
-ntp_crypto: no
-ntp_includefile: no
-ntp_keys: no
-ntp_trustedkey: no
-ntp_requestkey: no
-ntp_controlkey: no
-ntp_statistics: no
-ntp_broadcast: no 
-ntp_broadcastclient: no         
-ntp_multicastclient: no
+ntp_crypto: false
+ntp_includefile: false
+ntp_keys: false
+ntp_trustedkey: false
+ntp_requestkey: false
+ntp_controlkey: false
+ntp_statistics: false
+ntp_broadcast: false
+ntp_broadcastclient: false
+ntp_multicastclient: false

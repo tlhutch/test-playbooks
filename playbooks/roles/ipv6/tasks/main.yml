@@ -14,4 +14,4 @@
 - name: Remove ipv4 address from device
   become: true
   command: ip addr del '{{ ansible_default_ipv4.address }}' broadcast '{{ ansible_default_ipv4.gateway }}' dev '{{ ansible_default_ipv4.interface }}'
-  ignore_errors: yes
+  ignore_errors: true

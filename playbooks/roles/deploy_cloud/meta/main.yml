@@ -1,3 +1,4 @@
+---
 dependencies:
-- { role: create_ec2 }
-- { role: save_inventory }
+  - {role: create_ec2}
+  - {role: save_inventory}

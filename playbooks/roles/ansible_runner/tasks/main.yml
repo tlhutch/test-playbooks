@@ -18,15 +18,15 @@
   when: ansible_distribution_major_version == '7'
 
 - block:
-  - set_fact:
-      pip_bin_name: pip3
+    - set_fact:
+        pip_bin_name: pip3
 
-  - name: Install needed packages (RHEl8)
-    package:
-      name:
-        - python3-devel
-        - gcc
-        - git
+    - name: Install needed packages (RHEl8)
+      package:
+        name:
+          - python3-devel
+          - gcc
+          - git
   when: ansible_distribution_major_version == '8'
 
 - command: '/var/lib/awx/venv/awx/bin/pip install -IU git+{{ awx_ansible_runner_url }}'

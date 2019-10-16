@@ -1,8 +1,9 @@
+---
 - name: Install FreeRADIUS packages
   yum:
     name: freeradius
     state: present
-    update_cache: yes
+    update_cache: true
 
 - name: Update RADIUS users file
   lineinfile:
@@ -15,10 +16,10 @@
   template:
     src: templates/clients.conf.j2
     dest: /etc/raddb/clients.conf
-    backup: yes
+    backup: true
 
 - name: Restart radius service
   service:
     name: radiusd
     state: restarted
-    enabled: yes
+    enabled: true

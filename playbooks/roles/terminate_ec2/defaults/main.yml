@@ -9,7 +9,7 @@ aws_access_key: ''
 aws_secret_key: ''
 ec2_region: 'us-east-1'
 ec2_instance_type: 'm3.large'
-ec2_security_group: 'AWX' # sg-b05be0db
+ec2_security_group: 'AWX'  # sg-b05be0db
 ec2_key_name: 'jenkins'
 ec2_name_prefix: '{{ instance_name_prefix }}'
 

@@ -5,7 +5,7 @@
   package:
     name: yum
     state: latest
-    update_cache: yes
+    update_cache: true
   when: ansible_pkg_mgr == 'yum'
   retries: 5
   delay: 10
@@ -16,7 +16,7 @@
   package:
     name: dnf
     state: latest
-    update_cache: yes
+    update_cache: true
   when: ansible_pkg_mgr == 'dnf'
   retries: 5
   delay: 10
@@ -62,7 +62,7 @@
 - name: yum clean cached ansible repository information
   command: yum clean all --disablerepo=* --enablerepo=ansible-nightly
   args:
-    warn: False
+    warn: false
   when: yum_repo is defined and yum_repo.changed
 
 # enable ansible-nightly repo (optional)
@@ -82,7 +82,7 @@
 - name: gather ansible nightly dependencies
   command: yum deplist --disablerepo=* --enablerepo=ansible-nightly ansible
   args:
-    warn: False
+    warn: false
   register: nightly_dep_candidates
   when: ansible_install_method == 'nightly'
 

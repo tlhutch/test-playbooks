@@ -1,2 +1,3 @@
+---
 dependencies:
-- { role: terminate_ec2 }
+  - {role: terminate_ec2}

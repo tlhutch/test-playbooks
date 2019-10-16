@@ -1,16 +1,16 @@
-# Container metadata 
-
+# Container metadata
+---
 version: "1"
 services:
   irc:
-    image: centos:7 
+    image: centos:7
     ports:
       - "6667:6667"
     command: ['/usr/local/src/inspircd/run/inspircd', 'start', '--nofork']
     dev_overrides:
       environment:
 registries: {}
-  # Add optional registries used for deployment. For example:
-  #  google:
-  #    url: https://gcr.io
-  #    namespace: my-cool-project-xxxxxx   
+# Add optional registries used for deployment. For example:
+#  google:
+#    url: https://gcr.io
+#    namespace: my-cool-project-xxxxxx

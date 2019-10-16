@@ -2,18 +2,18 @@
 - name: 'Deploy cloud hosts'
   hosts: local
   roles:
-    - { role: deploy_cloud }
+    - {role: deploy_cloud}
 
 - name: 'Dynamically create host groups'
   hosts: 'tower'
   tasks:
-   - name: group hosts by distribution_major_version
-     action: group_by key="{{ansible_distribution}}-{{ansible_distribution_major_version}}"
+    - name: group hosts by distribution_major_version
+      action: group_by key="{{ansible_distribution}}-{{ansible_distribution_major_version}}"
 
 - name: 'Install Tower'
   hosts: 'tower'
-  gather_facts: no
-  sudo: yes
+  gather_facts: false
+  sudo: true
   roles:
     - role: awx_setup
       awx_setup_path: '/setup-bundle/ansible-tower-setup-bundle-latest.el{{ ansible_distribution_major_version }}.tar.gz'

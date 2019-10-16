@@ -4,38 +4,38 @@ instance_name_prefix: "{{ lookup('env','USER') }}-tower-radius"
 my_inventory_file: '{{ inventory_dir }}/inventory.radius'
 
 ec2_images:
-    - {'name': 'centos-7.latest-x86_64', 'user': 'centos', 'id': 'ami-4bf3d731', 'type': 'm3.medium', 'groups': 'tower', 'security_group': 'Tower' }
-    - {'name': 'freeradius-centos-7.latest-x86_64', 'user': 'centos', 'id': 'ami-4bf3d731', 'type': 'm3.medium', 'groups': 'radius', 'security_group': 'RADIUS'}
+  - {'name': 'centos-7.latest-x86_64', 'user': 'centos', 'id': 'ami-4bf3d731', 'type': 'm3.medium', 'groups': 'tower', 'security_group': 'Tower'}
+  - {'name': 'freeradius-centos-7.latest-x86_64', 'user': 'centos', 'id': 'ami-4bf3d731', 'type': 'm3.medium', 'groups': 'radius', 'security_group': 'RADIUS'}
 
 ec2_security_groups:
-    - name: Tower
-      description: Security group for Tower instances
-      rules:
-        - proto: tcp
-          from_port: 80
-          to_port: 80
-          cidr_ip: 0.0.0.0/0
-        - proto: tcp
-          from_port: 22
-          to_port: 22
-          cidr_ip: 0.0.0.0/0
-        - proto: tcp
-          from_port: 443
-          to_port: 443
-          cidr_ip: 0.0.0.0/0
-        - proto: tcp
-          from_port: 8080
-          to_port: 8080
-          cidr_ip: 0.0.0.0/0
+  - name: Tower
+    description: Security group for Tower instances
+    rules:
+      - proto: tcp
+        from_port: 80
+        to_port: 80
+        cidr_ip: 0.0.0.0/0
+      - proto: tcp
+        from_port: 22
+        to_port: 22
+        cidr_ip: 0.0.0.0/0
+      - proto: tcp
+        from_port: 443
+        to_port: 443
+        cidr_ip: 0.0.0.0/0
+      - proto: tcp
+        from_port: 8080
+        to_port: 8080
+        cidr_ip: 0.0.0.0/0
 
-    - name: RADIUS 
-      description: Security group for freeradius servers
-      rules:
-        - proto: tcp
-          from_port: 22
-          to_port: 22
-          cidr_ip: 0.0.0.0/0
-        - proto: udp 
-          from_port: 1812 
-          to_port: 1812 
-          cidr_ip: 0.0.0.0/0
+  - name: RADIUS
+    description: Security group for freeradius servers
+    rules:
+      - proto: tcp
+        from_port: 22
+        to_port: 22
+        cidr_ip: 0.0.0.0/0
+      - proto: udp
+        from_port: 1812
+        to_port: 1812
+        cidr_ip: 0.0.0.0/0

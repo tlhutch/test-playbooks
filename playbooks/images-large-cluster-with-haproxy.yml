@@ -8,60 +8,60 @@ create_ec2_vpc_id: vpc-552da032
 create_ec2_vpc_subnet_id: subnet-9cdddbb0
 
 ec2_images:
-    - {'name': 'haproxy-rhel-7.7-x86_64', 'user': 'ec2-user', 'id': 'ami-00936483548a6d57f', 'type': 'm5.large', 'groups': 'haproxy', 'security_group': 'tower-cluster'}
-    - {'name': 'cluster-1-rhel-7.7-x86_64', 'user': 'ec2-user', 'id': 'ami-00936483548a6d57f', 'type': 'm5.large', 'groups': 'tower, cluster_installer, instance_group_ordinary_instances, instance_group_partition_1, instance_group_1, instance_group_ッ_ッ', 'security_group': 'tower-cluster'}
-    - {'name': 'cluster-2-rhel-7.7-x86_64', 'user': 'ec2-user', 'id': 'ami-00936483548a6d57f', 'type': 'm5.large', 'groups': 'tower, instance_group_ordinary_instances, instance_group_partition_1, instance_group_2, instance_group_6', 'security_group': 'tower-cluster'}
-    - {'name': 'cluster-3-rhel-7.7-x86_64', 'user': 'ec2-user', 'id': 'ami-00936483548a6d57f', 'type': 'm5.large', 'groups': 'tower, instance_group_ordinary_instances, instance_group_future_controller, instance_group_partition_2, instance_group_3, instance_group_6, instance_group_7', 'security_group': 'tower-cluster'}
-    - {'name': 'cluster-pg-rhel-7.7-x86_64', 'user': 'ec2-user', 'id': 'ami-00936483548a6d57f', 'type': 'm5.large', 'groups': 'database', 'security_group': 'tower-cluster'}
-    - {'name': 'cluster-managed-host-rhel-7.7-x86_64', 'user': 'ec2-user', 'id': 'ami-00936483548a6d57f', 'type': 'm5.large', 'groups': 'managed_hosts', 'security_group': 'tower-cluster'}
+  - {'name': 'haproxy-rhel-7.7-x86_64', 'user': 'ec2-user', 'id': 'ami-00936483548a6d57f', 'type': 'm5.large', 'groups': 'haproxy', 'security_group': 'tower-cluster'}
+  - {'name': 'cluster-1-rhel-7.7-x86_64', 'user': 'ec2-user', 'id': 'ami-00936483548a6d57f', 'type': 'm5.large', 'groups': 'tower, cluster_installer, instance_group_ordinary_instances, instance_group_partition_1, instance_group_1, instance_group_ッ_ッ', 'security_group': 'tower-cluster'}
+  - {'name': 'cluster-2-rhel-7.7-x86_64', 'user': 'ec2-user', 'id': 'ami-00936483548a6d57f', 'type': 'm5.large', 'groups': 'tower, instance_group_ordinary_instances, instance_group_partition_1, instance_group_2, instance_group_6', 'security_group': 'tower-cluster'}
+  - {'name': 'cluster-3-rhel-7.7-x86_64', 'user': 'ec2-user', 'id': 'ami-00936483548a6d57f', 'type': 'm5.large', 'groups': 'tower, instance_group_ordinary_instances, instance_group_future_controller, instance_group_partition_2, instance_group_3, instance_group_6, instance_group_7', 'security_group': 'tower-cluster'}
+  - {'name': 'cluster-pg-rhel-7.7-x86_64', 'user': 'ec2-user', 'id': 'ami-00936483548a6d57f', 'type': 'm5.large', 'groups': 'database', 'security_group': 'tower-cluster'}
+  - {'name': 'cluster-managed-host-rhel-7.7-x86_64', 'user': 'ec2-user', 'id': 'ami-00936483548a6d57f', 'type': 'm5.large', 'groups': 'managed_hosts', 'security_group': 'tower-cluster'}
 ec2_security_groups:
-    - name: tower-cluster
-      description: Security group for Tower instances
-      rules:
-        - proto: tcp
-          from_port: 22
-          to_port: 22
-          cidr_ip: 0.0.0.0/0
-        - proto: tcp
-          from_port: 80
-          to_port: 80
-          cidr_ip: 0.0.0.0/0
-        - proto: tcp
-          from_port: 389
-          to_port: 389
-          cidr_ip: 0.0.0.0/0
-        - proto: tcp
-          from_port: 443
-          to_port: 443
-          cidr_ip: 0.0.0.0/0
-        - proto: tcp
-          from_port: 1936
-          to_port: 1936
-          cidr_ip: 0.0.0.0/0
-        - proto: tcp
-          from_port: 4369
-          to_port: 4369
-          cidr_ip: 0.0.0.0/0
-        - proto: tcp
-          from_port: 5432
-          to_port: 5432
-          cidr_ip: 0.0.0.0/0
-        - proto: tcp
-          from_port: 5672
-          to_port: 5672
-          cidr_ip: 0.0.0.0/0
-        - proto: tcp
-          from_port: 8080
-          to_port: 8080
-          cidr_ip: 0.0.0.0/0
-        - proto: tcp
-          from_port: 15672
-          to_port: 15672
-          cidr_ip: 0.0.0.0/0
-        - proto: tcp
-          from_port: 25672
-          to_port: 25672
-          cidr_ip: 0.0.0.0/0
+  - name: tower-cluster
+    description: Security group for Tower instances
+    rules:
+      - proto: tcp
+        from_port: 22
+        to_port: 22
+        cidr_ip: 0.0.0.0/0
+      - proto: tcp
+        from_port: 80
+        to_port: 80
+        cidr_ip: 0.0.0.0/0
+      - proto: tcp
+        from_port: 389
+        to_port: 389
+        cidr_ip: 0.0.0.0/0
+      - proto: tcp
+        from_port: 443
+        to_port: 443
+        cidr_ip: 0.0.0.0/0
+      - proto: tcp
+        from_port: 1936
+        to_port: 1936
+        cidr_ip: 0.0.0.0/0
+      - proto: tcp
+        from_port: 4369
+        to_port: 4369
+        cidr_ip: 0.0.0.0/0
+      - proto: tcp
+        from_port: 5432
+        to_port: 5432
+        cidr_ip: 0.0.0.0/0
+      - proto: tcp
+        from_port: 5672
+        to_port: 5672
+        cidr_ip: 0.0.0.0/0
+      - proto: tcp
+        from_port: 8080
+        to_port: 8080
+        cidr_ip: 0.0.0.0/0
+      - proto: tcp
+        from_port: 15672
+        to_port: 15672
+        cidr_ip: 0.0.0.0/0
+      - proto: tcp
+        from_port: 25672
+        to_port: 25672
+        cidr_ip: 0.0.0.0/0
 
 # HA installer installs postgres so this should be done manually atm
 # rds_images:

@@ -8,8 +8,8 @@
       delegate_to: localhost
 
     - name: Retrieve junit results for cli tarball test
-      ignore_errors: yes
+      ignore_errors: true
       fetch:
         src: ~/tower-qa/reports/junit/results-cli-tarball.xml
         dest: '{{ lookup("env", "PWD") }}/artifacts/results-cli-tarball.xml'
-        flat: yes
+        flat: true

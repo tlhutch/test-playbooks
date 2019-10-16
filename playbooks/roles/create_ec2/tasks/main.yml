@@ -39,19 +39,19 @@
           delete_on_termination: true
     vpc_subnet_id: '{{ create_ec2_vpc_subnet_id|default(omit) }}'
     network:
-        assign_public_ip: '{{ create_ec2_assign_public_ip|default(omit) }}'
+      assign_public_ip: '{{ create_ec2_assign_public_ip|default(omit) }}'
     user_data: '{{ item.user_data|default(omit) }}'
     wait: '{{ create_ec2_wait_upon_creation | default(false) | bool }}'
     wait_timeout: '{{ create_ec2_wait_upon_creation_timeout|default(600) }}'
     tags:
-        ANSIBLE_INSTALL_METHOD: '{{ ansible_install_method|default("nightly") }}'
-        controller: "{{ item.controller|default('') }}"
-        Test-Flag-2202: 'Replace-Dash-In-Groups'
-        Ice: '{{ec2_name_prefix}}'
-        Owner: '{{ lookup("env","USER") }}'
-        host-type: '{{item.name}}'
-        towerqe-user: '{{ item.user }}'
-        towerqe-groups: '{{ item.groups }}'
+      ANSIBLE_INSTALL_METHOD: '{{ ansible_install_method|default("nightly") }}'
+      controller: "{{ item.controller|default('') }}"
+      Test-Flag-2202: 'Replace-Dash-In-Groups'
+      Ice: '{{ec2_name_prefix}}'
+      Owner: '{{ lookup("env","USER") }}'
+      host-type: '{{item.name}}'
+      towerqe-user: '{{ item.user }}'
+      towerqe-groups: '{{ item.groups }}'
   with_items: '{{ ec2_images }}'
   register: ec2_create_vars
 

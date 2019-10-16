@@ -6,15 +6,15 @@
 
 - name: Clear install directory
   file:
-     path: "{{ inspircd_install_dir }}"
-     state: absent
+    path: "{{ inspircd_install_dir }}"
+    state: absent
 
 - name: Create install directory
   file:
-     path: "{{ inspircd_install_dir }}"
-     state: directory
-     owner: "{{ inspircd_user }}"
-     group: "{{ inspircd_user }}"
+    path: "{{ inspircd_install_dir }}"
+    state: directory
+    owner: "{{ inspircd_user }}"
+    group: "{{ inspircd_user }}"
 
 - name: Download inspircd
   become: true

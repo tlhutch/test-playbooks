@@ -5,7 +5,7 @@ metadata:
   name: tower-qe-integration
 rules:
   - apiGroups: [""]
-    resources: ["pods" , "secrets", "configmaps", "services", "pods/exec"]
+    resources: ["pods", "secrets", "configmaps", "services", "pods/exec"]
     verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
   - apiGroups: ["apps"]
     resources: ["deployments"]
@@ -23,9 +23,9 @@ apiVersion: rbac.authorization.k8s.io/v1beta1
 metadata:
   name: tower-qe-integration
 subjects:
-- kind: ServiceAccount
-  name: default
-  namespace: default
+  - kind: ServiceAccount
+    name: default
+    namespace: default
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole

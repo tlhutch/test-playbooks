@@ -1,3 +1,4 @@
+---
 apiVersion: template.openshift.io/v1
 kind: Template
 metadata:
@@ -304,11 +305,10 @@ objects:
 
         #         `user:password@tcp(127.0.0.1:3306)/database_name`
 
-        #        
+        #
         `user:password@unix(/var/run/mysqld/mysqld.sock)/database_name`
 
         # memcache: 127.0.0.1:11211
-
 
 
         provider_config = sessions
@@ -394,7 +394,7 @@ objects:
         admin_user = admin
 
 
-        # default admin password, can be changed before first start of grafana, 
+        # default admin password, can be changed before first start of grafana,
         or in profile settings
 
         admin_password = admin
@@ -818,7 +818,6 @@ objects:
         # Syslog tag. By default, the process' argv[0] is used.
 
         tag =
-
 
 
         #################################### AMQP Event Publisher

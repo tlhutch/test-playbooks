@@ -1,3 +1,4 @@
+---
 # Grab logs from tower instances
 # By default will end up in playbooks/all_tower_sos_reports.tar.gz
 - name: 'Generate and grab sos reports from all tower instances'
@@ -10,17 +11,17 @@
   tasks:
     - name: Generate awx venv pip freeze output
       shell: /var/lib/awx/venv/awx/bin/pip freeze | tee /tmp/venv_awx_pip_freeze
-      become: yes
+      become: true
 
     - name: Generate ansible venv pip freeze output
       shell: /var/lib/awx/venv/ansible/bin/pip freeze | tee /tmp/venv_ansible_pip_freeze
-      become: yes
+      become: true
 
     - name: Retrieve artifacts from test runner
       fetch:
         src: '/tmp/{{ item }}'
         dest: '~/tower-qa/{{ item }}'
-        flat: yes
+        flat: true
       loop:
         - venv_awx_pip_freeze
         - venv_ansible_pip_freeze

@@ -1,3 +1,4 @@
+---
 # Choose location for ansible package repository (optional)
 ansible_nightly_repo: http://nightlies.testing.ansible.com/ansible_nightlies_QcGXFZKv5VfQHi
 

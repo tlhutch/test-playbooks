@@ -8,8 +8,8 @@
       delegate_to: localhost
 
     - name: Retrieve junit results
-      ignore_errors: yes
+      ignore_errors: true
       fetch:
         src: ~/tower-qa/reports/junit/results-cli.xml
         dest: '{{ lookup("env", "PWD") }}/artifacts/results-cli.xml'
-        flat: yes
+        flat: true

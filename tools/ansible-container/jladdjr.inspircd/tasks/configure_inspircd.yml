@@ -3,10 +3,10 @@
   become: true
   become_user: "{{ inspircd_user }}"
   template:
-     src: inspircd.conf.j2
-     dest: "{{ inspircd_conf_dir }}/inspircd.conf"
-     force: yes
-     backup: yes
+    src: inspircd.conf.j2
+    dest: "{{ inspircd_conf_dir }}/inspircd.conf"
+    force: true
+    backup: true
   notify:
     - Restart inspircd
 
@@ -14,10 +14,10 @@
   become: true
   become_user: "{{ inspircd_user }}"
   template:
-     src: modules.conf.j2
-     dest: "{{ inspircd_conf_dir }}/modules.conf"
-     force: yes
-     backup: yes
+    src: modules.conf.j2
+    dest: "{{ inspircd_conf_dir }}/modules.conf"
+    force: true
+    backup: true
   notify:
     - Restart inspircd
 
@@ -25,10 +25,10 @@
   become: true
   become_user: "{{ inspircd_user }}"
   template:
-     src: motd.txt.j2
-     dest: "{{ inspircd_conf_dir }}/motd.txt"
-     force: yes
-     backup: yes
+    src: motd.txt.j2
+    dest: "{{ inspircd_conf_dir }}/motd.txt"
+    force: true
+    backup: true
   notify:
     - Restart inspircd
 
@@ -36,8 +36,8 @@
   become: true
   become_user: "{{ inspircd_user }}"
   template:
-     src: opers.conf.j2
-     dest: "{{ inspircd_conf_dir }}/opers.conf"
+    src: opers.conf.j2
+    dest: "{{ inspircd_conf_dir }}/opers.conf"
   notify:
     - Restart inspircd
 
@@ -45,7 +45,7 @@
   become: true
   become_user: "{{ inspircd_user }}"
   template:
-     src: rules.txt.j2
-     dest: "{{ inspircd_conf_dir }}/rules.txt"
+    src: rules.txt.j2
+    dest: "{{ inspircd_conf_dir }}/rules.txt"
   notify:
     - Restart inspircd

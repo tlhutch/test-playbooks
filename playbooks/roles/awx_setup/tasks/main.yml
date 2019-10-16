@@ -10,7 +10,7 @@
   unarchive:
     src: '{{aw_repo_url}}/{{awx_setup_path}}'
     dest: '/tmp/'
-    remote_src: yes
+    remote_src: true
     extra_opts:
       - --transform
       - s|^[^/]*|setup|
@@ -54,7 +54,7 @@
   # Also set AW_REPO_URL so during bootstrap phase we use correct dependencies repo
   command: ./setup.sh -e @vars.yml -e @vars-static.yml
   args:
-      chdir: /tmp/setup
+    chdir: /tmp/setup
   environment:
     # To install with ansible < 1.9, sudo support is accessible by way of the following variable
     # ANSIBLE_SUDO: 'True'
@@ -65,11 +65,11 @@
 
 - name: verify Tower API is accepting connections
   uri:
-      url: "{{'http' if disable_ssl else 'https'}}://localhost/api/v2/config/"
-      validate_certs: false
-      user: 'admin'
-      password: '{{ admin_password }}'
-      force_basic_auth: yes
+    url: "{{'http' if disable_ssl else 'https'}}://localhost/api/v2/config/"
+    validate_certs: false
+    user: 'admin'
+    password: '{{ admin_password }}'
+    force_basic_auth: true
   register: result
   until: result['status']|default(0) == 200
   retries: 6

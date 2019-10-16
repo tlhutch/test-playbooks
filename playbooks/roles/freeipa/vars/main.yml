@@ -1,109 +1,109 @@
 ---
 freeipa_users:
-- username: tower_all
-  first: Ansible
-  last: Tower
-  cn: tower view-all user
-- username: tower_0
-  first: ansible
-  last: Tower
-  cn: tower user 0
-- username: tower_1
-  first: ansible
-  last: Tower
-  cn: tower user 1
-- username: saml_user
-  first: SAML
-  last: User
-  cn: SAML User
-- username: bbelcher
-  first: Bob
-  last: Belcher
-  cn: Bob Belcher
-- username: gbelcher
-  first: Gene
-  last: Belcher
-  cn: Gene Belcher
-- username: libelcher
-  first: Linda
-  last: Belcher
-  cn: Linda Belcher
-- username: lobelcher
-  first: Louise
-  last: Belcher
-  cn: Louise Belcher
-- username: tbelcher
-  first: Tina
-  last: Belcher
-  cn: Tina Belcher
-- username: hfarnsworth
-  first: Hubert
-  last: Farnsworth
-  cn: Hubert Farnsworth
-- username: pfry
-  first: Philip
-  last: Fry
-  cn: Philip Fry
-- username: tleela
-  first: Turanga
-  last: Leela
-  cn: Turanga Leela
-- username: awong
-  first: Amy
-  last: Wong
-  cn: Amy Wong
-- username: brodriguez
-  first: Bender
-  last: Rodriguez
-  cn: Bender Rodriguez
-- username: marcher
-  first: Mallory
-  last: Archer
-  cn: Mallory Archer
-- username: lkane
-  first: Lana
-  last: Kane
-  cn: Lana Kane
-- username: sarcher
-  first: Sterling
-  last: Archer
-  cn: Sterling Archer
-- username: bstrickland
-  first: Buck
-  last: Strickland
-  cn: Buck Strickland
-- username: hhill
-  first: Hank
-  last: Hill
-  cn: Hank Hill
-- username: jjack
-  first: Joe
-  last: Jack
-  cn: Joe Jack
+  - username: tower_all
+    first: Ansible
+    last: Tower
+    cn: tower view-all user
+  - username: tower_0
+    first: ansible
+    last: Tower
+    cn: tower user 0
+  - username: tower_1
+    first: ansible
+    last: Tower
+    cn: tower user 1
+  - username: saml_user
+    first: SAML
+    last: User
+    cn: SAML User
+  - username: bbelcher
+    first: Bob
+    last: Belcher
+    cn: Bob Belcher
+  - username: gbelcher
+    first: Gene
+    last: Belcher
+    cn: Gene Belcher
+  - username: libelcher
+    first: Linda
+    last: Belcher
+    cn: Linda Belcher
+  - username: lobelcher
+    first: Louise
+    last: Belcher
+    cn: Louise Belcher
+  - username: tbelcher
+    first: Tina
+    last: Belcher
+    cn: Tina Belcher
+  - username: hfarnsworth
+    first: Hubert
+    last: Farnsworth
+    cn: Hubert Farnsworth
+  - username: pfry
+    first: Philip
+    last: Fry
+    cn: Philip Fry
+  - username: tleela
+    first: Turanga
+    last: Leela
+    cn: Turanga Leela
+  - username: awong
+    first: Amy
+    last: Wong
+    cn: Amy Wong
+  - username: brodriguez
+    first: Bender
+    last: Rodriguez
+    cn: Bender Rodriguez
+  - username: marcher
+    first: Mallory
+    last: Archer
+    cn: Mallory Archer
+  - username: lkane
+    first: Lana
+    last: Kane
+    cn: Lana Kane
+  - username: sarcher
+    first: Sterling
+    last: Archer
+    cn: Sterling Archer
+  - username: bstrickland
+    first: Buck
+    last: Strickland
+    cn: Buck Strickland
+  - username: hhill
+    first: Hank
+    last: Hill
+    cn: Hank Hill
+  - username: jjack
+    first: Joe
+    last: Jack
+    cn: Joe Jack
 
 freeipa_groups:
-- name: bobsburgers
-  members: ['bbelcher', 'gbelcher', 'libelcher', 'lobelcher', 'tbelcher']
-- name: bobsburgers_admins
-  members: ['bbelcher', 'libelcher']
-- name: planetexpress
-  members: ['hfarnsworth', 'tleela', 'pfry', 'awong', 'brodriguez']
-- name: planetexpress_admins
-  members: ['hfarnsworth', 'tleela']
-- name: dreamland
-  members: ['marcher', 'sarcher', 'lkane']
-- name: dreamland_admins
-  members: ['marcher']
-- name: stricklandpropane
-  members: ['bstrickland', 'hhill', 'jjack']
-- name: stricklandpropane_admins
-  members: ['bstrickland', 'hhill']
-- name: tower_dir_all
-  members: ['tower_all']
-- name: tower_dir_0
-  members: ['tower_0']
-- name: tower_dir_1
-  members: ['tower_1']
+  - name: bobsburgers
+    members: ['bbelcher', 'gbelcher', 'libelcher', 'lobelcher', 'tbelcher']
+  - name: bobsburgers_admins
+    members: ['bbelcher', 'libelcher']
+  - name: planetexpress
+    members: ['hfarnsworth', 'tleela', 'pfry', 'awong', 'brodriguez']
+  - name: planetexpress_admins
+    members: ['hfarnsworth', 'tleela']
+  - name: dreamland
+    members: ['marcher', 'sarcher', 'lkane']
+  - name: dreamland_admins
+    members: ['marcher']
+  - name: stricklandpropane
+    members: ['bstrickland', 'hhill', 'jjack']
+  - name: stricklandpropane_admins
+    members: ['bstrickland', 'hhill']
+  - name: tower_dir_all
+    members: ['tower_all']
+  - name: tower_dir_0
+    members: ['tower_0']
+  - name: tower_dir_1
+    members: ['tower_1']
 
 freeipa_permissions:
   - name: Tower - Planet Express

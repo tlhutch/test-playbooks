@@ -14,17 +14,17 @@
 - name: 'Group hosts by distribution_major_version'
   hosts: 'tower,instance_group_*,primary,secondary'
   tasks:
-   - name: group hosts by distribution_major_version
-     action: group_by key="{{ansible_distribution}}-{{ansible_distribution_major_version}}"
+    - name: group hosts by distribution_major_version
+      action: group_by key="{{ansible_distribution}}-{{ansible_distribution_major_version}}"
 
 - name: 'Configure cluster ssh keys'
   hosts: 'tower:instance_group_*:isolated_group_*:primary:secondary:database'
   roles:
-    - { role: cluster_key_config, install_group: "{{ 'cluster_installer' if 'cluster_installer' in groups else 'primary' }}" }
+    - {role: cluster_key_config, install_group: "{{ 'cluster_installer' if 'cluster_installer' in groups else 'primary' }}"}
 
 - name: 'Install cluster tower on installer instance'
   hosts: 'cluster_installer,primary'
-  gather_facts: no
+  gather_facts: false
   become: true
   become_method: sudo
   roles:
@@ -34,6 +34,6 @@
   hosts: 'haproxy'
   roles:
     - role: haproxy
-  gather_facts: no
+  gather_facts: false
   become: true
   become_method: sudo

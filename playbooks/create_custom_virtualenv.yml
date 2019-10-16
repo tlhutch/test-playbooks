@@ -1,3 +1,4 @@
+---
 - hosts: all
   vars:
     venv_base: /var/lib/awx/venv
@@ -25,7 +26,7 @@
               when: remote_python == 'python36'
 
             - set_fact:
-               _remote_python: python3.6
+                _remote_python: python3.6
               when: remote_python == 'python36'
 
           when: ansible_os_family == 'RedHat' and ansible_distribution_major_version == '7'
@@ -45,11 +46,11 @@
                 state: link
 
             - set_fact:
-               _remote_python: python3
+                _remote_python: python3
               when: remote_python == 'python36'
 
             - set_fact:
-               _remote_python: /usr/libexec/platform-python
+                _remote_python: /usr/libexec/platform-python
               when: remote_python == 'python'
 
           when: ansible_os_family == 'RedHat' and ansible_distribution_major_version == '8'

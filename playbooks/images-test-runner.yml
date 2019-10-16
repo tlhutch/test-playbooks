@@ -4,15 +4,15 @@ create_ec2_vpc_id: vpc-552da032
 create_ec2_vpc_subnet_id: subnet-9cdddbb0
 
 ec2_images:
-    - {'name': 'rhel-7.7-x86_64',        'user': 'ec2-user',    'id': 'ami-00936483548a6d57f', 'type': 'm5.large', 'groups': 'test-runner', 'security_group': 'Tower-TestRunner' }
-    - {'name': 'rhel-8.0-x86_64',        'user': 'ec2-user',    'id': 'ami-098bb5d92c8886ca1', 'type': 'm5.large', 'groups': 'test-runner', 'security_group': 'Tower-TestRunner' }
+  - {'name': 'rhel-7.7-x86_64', 'user': 'ec2-user', 'id': 'ami-00936483548a6d57f', 'type': 'm5.large', 'groups': 'test-runner', 'security_group': 'Tower-TestRunner'}
+  - {'name': 'rhel-8.0-x86_64', 'user': 'ec2-user', 'id': 'ami-098bb5d92c8886ca1', 'type': 'm5.large', 'groups': 'test-runner', 'security_group': 'Tower-TestRunner'}
 
 ec2_security_groups:
-    - name: Tower-TestRunner
-      description: Security group for Tower-TestRunner instances
-      rules:
-        - proto: tcp
-          from_port: 22
-          to_port: 22
-          cidr_ip: 0.0.0.0/0
-          cidr_ipv6: ::/0
+  - name: Tower-TestRunner
+    description: Security group for Tower-TestRunner instances
+    rules:
+      - proto: tcp
+        from_port: 22
+        to_port: 22
+        cidr_ip: 0.0.0.0/0
+        cidr_ipv6: ::/0

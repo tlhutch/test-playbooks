@@ -1,3 +1,4 @@
+---
 # Whether to upgrade an existing awx installation
 awx_upgrade: false
 
@@ -40,4 +41,4 @@ rabbitmq_enable_manager: '{{ cluster_install }}'
 minimum_var_space: 0
 disable_ssl: false
 
-isolated_key_generation: yes
+isolated_key_generation: true

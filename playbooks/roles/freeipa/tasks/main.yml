@@ -45,7 +45,7 @@
   yum:
     name: freeipa-server
     state: latest
-    update_cache: True
+    update_cache: true
   become: true
 
 - name: Uninstall freeipa configuration
@@ -66,7 +66,7 @@
   when: letsencrypt_cert_path is defined
 
 - name: Install freeipa configuration
-  shell:  "ipa-server-install -p {{ freeipa_password }} -a {{ freeipa_password }} -n {{ freeipa_domain }} -r {{ freeipa_realm }} --hostname {{ freeipa_hostname }} -v -U {{ freeipa_cert_args|default('') }}"
+  shell: "ipa-server-install -p {{ freeipa_password }} -a {{ freeipa_password }} -n {{ freeipa_domain }} -r {{ freeipa_realm }} --hostname {{ freeipa_hostname }} -v -U {{ freeipa_cert_args|default('') }}"
   become: true
 
 - name: establish kerberos session

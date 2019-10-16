@@ -1,4 +1,4 @@
-# Ansible playbook to provision container. An inventory will be automatically 
+# Ansible playbook to provision container. An inventory will be automatically
 # created using the names of the services from container.yml file.
 ---
 - hosts: all

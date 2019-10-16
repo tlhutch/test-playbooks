@@ -2,20 +2,20 @@
 - name: 'Gather facts'
   hosts: '!local'
   tasks:
-   - name: group hosts by distribution_major_version
-     action: group_by key="{{ansible_distribution}}-{{ansible_distribution_major_version}}"
+    - name: group hosts by distribution_major_version
+      action: group_by key="{{ansible_distribution}}-{{ansible_distribution_major_version}}"
 
 - name: 'Install Tower'
   hosts: '!local'
-  gather_facts: no
-  sudo: yes
+  gather_facts: false
+  sudo: true
   roles:
-    - { role: awx_setup }
+    - {role: awx_setup}
 
 # Attempt to catch problems caused by reboots such as https://github.com/ansible/tower/issues/3521
 - name: Reboot systems to ensure tower works after reboot
   # Not all issues may be caught by ansible-tower-service status but at least we know the server "should" be up by then
-  become: yes
+  become: true
   hosts: 'tower'
   tasks:
     - name: Reboot tower

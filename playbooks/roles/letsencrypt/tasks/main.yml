@@ -9,8 +9,8 @@
   yum:
     name: letsencrypt
     state: latest
-    skip_broken: True
-    update_cache: True
+    skip_broken: true
+    update_cache: true
   become: true
 
 - name: Generate certificate

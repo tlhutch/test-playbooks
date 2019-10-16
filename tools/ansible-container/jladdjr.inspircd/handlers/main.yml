@@ -1,7 +1,7 @@
 ---
 - name: Restart inspircd
   debug: msg="Determining if inspircd running first.."
-  changed_when: True
+  changed_when: true
   notify:
     - Check if inspircd running
     - Stop inspircd after check
@@ -22,8 +22,8 @@
 
 - name: Test connection
   irc:
-     server: localhost
-     port: "{{ inspircd_bind_port }}"
-     channel: "#does_not_exist"
-     nick: "ansible_test"
-     msg: "Testing.."
+    server: localhost
+    port: "{{ inspircd_bind_port }}"
+    channel: "#does_not_exist"
+    nick: "ansible_test"
+    msg: "Testing.."

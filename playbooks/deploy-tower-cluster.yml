@@ -36,17 +36,17 @@
 - name: 'Group hosts by distribution_major_version'
   hosts: 'tower,instance_group_*'
   tasks:
-   - name: group hosts by distribution_major_version
-     action: group_by key="{{ansible_distribution}}-{{ansible_distribution_major_version}}"
+    - name: group hosts by distribution_major_version
+      action: group_by key="{{ansible_distribution}}-{{ansible_distribution_major_version}}"
 
 - name: 'Configure cluster ssh keys'
   hosts: 'tower:instance_group_*:isolated_group_*:database'
   roles:
-    - { role: cluster_key_config, install_group: cluster_installer }
+    - {role: cluster_key_config, install_group: cluster_installer}
 
 - name: Install proper ansible version on all nodes
   hosts: all:!localhost
-  gather_facts: no
+  gather_facts: false
   become: true
   tasks:
     - include_role:
@@ -55,7 +55,7 @@
 
 - name: 'Install cluster tower on installer instance'
   hosts: 'cluster_installer'
-  gather_facts: no
+  gather_facts: false
   become: true
   become_method: sudo
   roles:
@@ -63,8 +63,8 @@
 
 - name: Install specific version of ansible-runner (if applies)
   hosts: tower
-  gather_facts: no
-  become: yes
+  gather_facts: false
+  become: true
   tasks:
     - include_role:
         name: ansible_runner
@@ -72,8 +72,8 @@
 
 - name: Install specific version of ansible-runner (if applies)
   hosts: isolated_group*
-  gather_facts: no
-  become: yes
+  gather_facts: false
+  become: true
   tasks:
     - include_role:
         name: ansible_runner
@@ -85,7 +85,7 @@
   hosts: 'haproxy'
   roles:
     - role: haproxy
-  gather_facts: no
+  gather_facts: false
   become: true
   become_method: sudo
 
@@ -120,7 +120,7 @@
     - name: Restart sshd
       service:
         name: sshd
-        enabled: yes
+        enabled: true
         state: restarted
 
 - name: Remove IPV4
@@ -149,7 +149,7 @@
         group: awx
         mode: 0640
         content: "AWX_ISOLATED_PERIODIC_CHECK = 60"
-        force: True
+        force: true
       become: true
 
 - name: Restart dispatcher so that changes in /etc/tower/conf.d take effect
@@ -157,7 +157,7 @@
   tasks:
     - command: supervisorctl restart tower-processes:awx-dispatcher
       become: true
-      retries: 2 # Allow retries due to observed flakiness of restarting dispatcher
+      retries: 2
       delay: 3
       register: result
       until: result is success

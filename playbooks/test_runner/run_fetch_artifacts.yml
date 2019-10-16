@@ -11,8 +11,8 @@
       fetch:
         src: '{{ item.src }}'
         dest: '{{ item.dest }}'
-        flat: yes
-      ignore_errors: yes
+        flat: true
+      ignore_errors: true
       with_items:
         - {src: '~/tower-qa/playbooks/vars.yml', dest: '{{ lookup("env", "PWD") }}/artifacts/vars.yml'}
         - {src: '~/tower-qa/playbooks/inventory.log', dest: '{{ lookup("env", "PWD") }}/artifacts/inventory.log'}

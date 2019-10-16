@@ -19,4 +19,4 @@
       fetch:
         src: ~/tower-qa/reports/junit/results-final.xml
         dest: '{{ lookup("env", "PWD") }}/artifacts/results.xml'
-        flat: yes
+        flat: true

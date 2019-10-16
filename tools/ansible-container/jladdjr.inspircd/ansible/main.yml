@@ -1,9 +1,9 @@
 # Ansible playbook to provision container.
 # An inventory will be automatically created using the names of the services
 # from container.yml file.
-
-- hosts: irc 
+---
+- hosts: irc
   gather_facts: true
-  remote_user: root 
+  remote_user: root
   roles:
-    - { role: jladdjr.inspircd, inspircd_power_die_password: "PASSWORD", inspircd_power_restart_password: "PASSWORD", inspircd_operator_password: "PASSWORD" }
+    - {role: jladdjr.inspircd, inspircd_power_die_password: "PASSWORD", inspircd_power_restart_password: "PASSWORD", inspircd_operator_password: "PASSWORD"}

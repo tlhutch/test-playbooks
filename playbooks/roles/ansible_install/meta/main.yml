@@ -1,3 +1,4 @@
+---
 dependencies:
-- { role: packages }
-- { role: auth_keys }
+  - {role: packages}
+  - {role: auth_keys}

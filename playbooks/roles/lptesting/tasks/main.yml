@@ -1,10 +1,11 @@
+---
 - block:
   - name: Set Compose ID yum repositories
     yum_repository:
       name: '{{ item.name }}'
       description: 'description - {{ item.name }}'
       baseurl: '{{ item.base_url }}'
-      gpgcheck: no
+      gpgcheck: false
     loop:
       - name: '{{ rhel_compose_id  | replace(".", "_") }}_Server'
         base_url: 'http://download.eng.bos.redhat.com/rhel-7/rel-eng/RHEL-7/{{ rhel_compose_id }}/compose/Server/x86_64/os'
@@ -28,16 +29,16 @@
   when: "'RHEL-7' in rhel_compose_id"
 
 - block:
-  - name: Set Compose ID yum repositories
-    yum_repository:
-      name: '{{ item.name }}'
-      description: 'description - {{ item.name }}'
-      baseurl: '{{ item.base_url }}'
-      gpgcheck: no
-    loop:
-      - name: '{{ rhel_compose_id  | replace(".", "_") }}_BaseOS'
-        base_url: 'http://download.eng.bos.redhat.com/rhel-8/rel-eng/RHEL-8/{{ rhel_compose_id }}/compose/BaseOS/x86_64/os/'
-      - name: '{{ rhel_compose_id  | replace(".", "_") }}_AppStream'
-        base_url: 'http://download.eng.bos.redhat.com/rhel-8/rel-eng/RHEL-8/{{ rhel_compose_id }}/compose/AppStream/x86_64/os/'
+    - name: Set Compose ID yum repositories
+      yum_repository:
+        name: '{{ item.name }}'
+        description: 'description - {{ item.name }}'
+        baseurl: '{{ item.base_url }}'
+        gpgcheck: false
+      loop:
+        - name: '{{ rhel_compose_id  | replace(".", "_") }}_BaseOS'
+          base_url: 'http://download.eng.bos.redhat.com/rhel-8/rel-eng/RHEL-8/{{ rhel_compose_id }}/compose/BaseOS/x86_64/os/'
+        - name: '{{ rhel_compose_id  | replace(".", "_") }}_AppStream'
+          base_url: 'http://download.eng.bos.redhat.com/rhel-8/rel-eng/RHEL-8/{{ rhel_compose_id }}/compose/AppStream/x86_64/os/'
 
   when: "'RHEL-8' in rhel_compose_id"

@@ -43,18 +43,18 @@
 
 - name: 'Install Tower'
   hosts: 'tower'
-  gather_facts: no
+  gather_facts: false
   become: true
   become_method: sudo
   environment:
     PATH: "/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin"
   roles:
-    - { role: awx_setup }
+    - {role: awx_setup}
 
 - name: Install specific version of ansible-runner (if applies)
   hosts: tower
-  gather_facts: no
-  become: yes
+  gather_facts: false
+  become: true
   tasks:
     - include_role:
         name: ansible_runner

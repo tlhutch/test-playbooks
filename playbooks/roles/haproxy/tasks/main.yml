@@ -4,14 +4,14 @@
   yum:
     name: yum
     state: latest
-    update_cache: yes
+    update_cache: true
   when: ansible_pkg_mgr == 'yum'
 
 - name: update apt
   apt:
     pkg: apt
     state: latest
-    update_cache: yes
+    update_cache: true
   when: ansible_pkg_mgr == 'apt'
 
 - name: install haproxy
@@ -46,7 +46,7 @@
 - name: allow haproxy bind any selinux policy
   seboolean:
     name: haproxy_connect_any
-    state: yes
+    state: true
 
 - name: generate ssl key
   command: openssl req -x509 -nodes -days 365 -newkey rsa:2048 -subj "/C=US/ST=Denial/L=Springfield/O=Dis/CN=www.example.com" -keyout /etc/awx.key -out /etc/awx.crt

@@ -1,3 +1,4 @@
+---
 - name: Change default user attribute Permission
   shell: 'ipa permission-mod "System: Read User Standard Attributes" --bindtype="permission"'
 

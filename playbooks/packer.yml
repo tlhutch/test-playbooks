@@ -8,16 +8,16 @@
 - hosts: local
   gather_facts: false
   roles:
-    - { role: create_ec2 }
-    - { role: save_inventory }
+    - {role: create_ec2}
+    - {role: save_inventory}
 
 #
 # Install ansible
 #
 - hosts: '!local'
-  sudo: yes
+  sudo: true
   roles:
-    - { role: ansible_install }
+    - {role: ansible_install}
 
 #
 # Create AMI and terminate instance
@@ -25,5 +25,5 @@
 - hosts: local
   gather_facts: false
   roles:
-    - { role: create_ami }
-    - { role: terminate_ec2 }
+    - {role: create_ami}
+    - {role: terminate_ec2}

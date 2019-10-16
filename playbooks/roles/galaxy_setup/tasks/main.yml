@@ -12,7 +12,7 @@
 - name: is galaxy already installed?
   shell: ls /etc/galaxy/galaxy.cert
   register: is_galaxy_installed
-  ignore_errors: yes
+  ignore_errors: true
 
 - name: disable sudo requiretty for root
   lineinfile: dest=/etc/sudoers
@@ -21,13 +21,11 @@
      line='Defaults:root !requiretty'
 
 - name: create galaxy galaxy_vars.yaml
-  #template: src=galaxy_vars.yml.j2 dest=/tmp/galaxy-setup/galaxy_vars.yaml
+  # template: src=galaxy_vars.yml.j2 dest=/tmp/galaxy-setup/galaxy_vars.yaml
   template: src=galaxy_vars.yml.j2 dest=/tmp/galaxy-setup/group_vars/all
   when: is_galaxy_installed|failed or galaxy_upgrade
 
 - name: setup.sh
-  #shell: bash -x setup.sh -e @galaxy_vars.yaml
+  # shell: bash -x setup.sh -e @galaxy_vars.yaml
   shell: bash -x setup.sh
-     chdir=/tmp/galaxy-setup
-     # creates=/etc/galaxy/galaxy.cert
   when: is_galaxy_installed|failed or galaxy_upgrade
