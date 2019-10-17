@@ -74,15 +74,15 @@
 
 ### Primary Galaxy Server (Danny, Mat, Elyezer, Caleb)
 
-  - [ ] [Testing complete](https://github.com/ansible/tower-qa/blob/devel/docs/test_plans/features/36_primary_galaxy_server.md)
+  - [x] [Testing complete](https://github.com/ansible/tower-qa/blob/devel/docs/test_plans/features/36_primary_galaxy_server.md)
 
 ### Project with Collections Requirements (Eleyzer, Mat, Danny, Caleb)
 
-  - [ ] [Testing complete](https://github.com/ansible/tower-qa/blob/devel/docs/test_plans/features/36_project_with_collections_requirements.md)
+  - [x] [Testing complete](https://github.com/ansible/tower-qa/blob/devel/docs/test_plans/features/36_project_with_collections_requirements.md)
 
 ### Supported CLI shipped with Tower (Elijah, Caleb)
 
-  - [ ] [Testing complete](https://github.com/ansible/tower-qa/blob/devel/docs/test_plans/features/36_supported_cli.md)
+  - [x] [Testing complete](https://github.com/ansible/tower-qa/blob/devel/docs/test_plans/features/36_supported_cli.md)
 
 ### Templated Notifications (Yanis, Mat, John)
 
@@ -98,7 +98,7 @@
   
 ### Webhook receiver (Mat, Elyezer, Apurva, Danny)
 
-  - [ ] [Testing complete](https://github.com/ansible/tower-qa/issues/4088)
+  - [x] [Testing complete](https://github.com/ansible/tower-qa/issues/4088)
 
 ### Workflow Limit and scm_branch Prompting (Caleb, Danny)
 
@@ -114,7 +114,7 @@
   
 ### Automation Analytics (Mat, Elyezer)
 
-  - [ ] [Testing complete](https://github.com/ansible/tower-qa/issues/3444)
+  - [x] [Testing complete](https://github.com/ansible/tower-qa/issues/3444)
 
 
 
@@ -122,11 +122,11 @@
 
 ### Install
 
-  * [ ] Standalone
-  * [ ] Standalone Bundle
-  * [ ] Traditional Cluster with isolated nodes
-  * [ ] Traditional Cluster Bundle with isolated nodes
-  * [ ] OpenShift Cluster
+  * [ ] Standalone (automated)
+  * [ ] Standalone Bundle (automated)
+  * [ ] Traditional Cluster with isolated nodes (automated)
+  * [ ] Traditional Cluster Bundle with isolated nodes (automated)
+  * [ ] OpenShift Cluster (automated)
 
 
 ### Upgrade
@@ -148,24 +148,23 @@
 
 ### Regression
 
-  * [ ] [UI regression]
-  * [ ] [API regression - Standalone]
-  * [ ] [API regression - Traditional Cluster]
-  * [ ] [API regression - OpenShift Cluster]
+  * [ ] [UI regression] (automated + manual monday 28th october)
+  * [ ] [API regression - Standalone] (automated)
+  * [ ] [API regression - Traditional Cluster] (automated)
+  * [ ] [API regression - OpenShift Cluster] (automated)
   * [ ] Tower social authentication regression completed (vm)
-    * [ ] Google OAuth
-    * [ ] GitHub
-    * [ ] GitHub Org
-    * [ ] GitHub Team
-    * [ ] Azure OAuth
-    * [ ] Radius
-  * [ ] Tower SAML integration regression completed (vm)
-  * [ ] Logging regression completed - cluster
-  * [ ] Backup/restore successful - standalone
-  * [ ] Backup/restore successful - traditional cluster
-  * [ ] [Backup/restore successful - OpenShift]
-  * [ ] [Deploy tower with HTTPS+Load Balancer+Let's Encrypt + run tests against instance]
-  * [ ] Deploy tower in OpenShift with an external DB + run tests against instance
+    * [ ] Google OAuth (@elijah + @appuk)
+    * [ ] GitHub (@elijah + @appuk)
+    * [ ] GitHub Org (@elijah + @appuk)
+    * [ ] GitHub Team (@elijah + @appuk)
+    * [ ] Azure OAuth (@elyezer + 
+    * [ ] Radius (@one-t + please recruit one other to teach)
+  * [ ] Tower SAML integration regression completed (vm) (@one-t + please recruit one other to teach)
+  * [ ] Backup/restore successful - standalone (automated)
+  * [ ] Backup/restore successful - traditional cluster (automated)
+  * [ ] [Backup/restore successful - OpenShift] (automated)
+  * [ ] [Deploy tower with HTTPS+Load Balancer+Let's Encrypt + run tests against instance] (@unlikelyzero + @Spredzy)
+  * [ ] Deploy tower in OpenShift with an external DB + run tests against instance (@elijah + @calebb)
 
 
 ### Artifacts
