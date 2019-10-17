@@ -86,8 +86,11 @@ def tower_credential(factories):
                                 password=config.credentials.default.password, host=config.base_url)
 
 
+# FIXME Remove "skip_if_cluster" fixture. We must skip if cluster right now
+# because the node we're installing awx collection on doesn't have access to
+# the tower repo in a cluster deployment.
 @pytest.mark.fixture_args(venvs=CUSTOM_VENVS, cluster=True)
-@pytest.mark.usefixtures('skip_if_pre_ansible29', 'skip_if_openshift', 'authtoken', 'tower_modules_collection', 'shared_custom_venvs')
+@pytest.mark.usefixtures('skip_if_pre_ansible29', 'skip_if_openshift', 'authtoken', 'tower_modules_collection', 'shared_custom_venvs', 'skip_if_cluster')
 @pytest.mark.parametrize('python_venv_name', CUSTOM_VENVS_NAMES)
 class Test_Ansible_Tower_Modules_via_Playbooks(APITest):
     @pytest.mark.parametrize('tower_module', TOWER_MODULES_PARAMS)
@@ -117,8 +120,11 @@ class Test_Ansible_Tower_Modules_via_Playbooks(APITest):
         job.assert_successful()
 
 
+# FIXME Remove "skip_if_cluster" fixture. We must skip if cluster right now
+# because the node we're installing awx collection on doesn't have access to
+# the tower repo in a cluster deployment.
 @pytest.mark.fixture_args(venvs=CUSTOM_VENVS, cluster=True)
-@pytest.mark.usefixtures('skip_if_pre_ansible29', 'skip_if_openshift', 'authtoken', 'tower_modules_collection', 'shared_custom_venvs')
+@pytest.mark.usefixtures('skip_if_pre_ansible29', 'skip_if_openshift', 'authtoken', 'tower_modules_collection', 'shared_custom_venvs', 'skip_if_cluster')
 @pytest.mark.parametrize('python_venv_name', CUSTOM_VENVS_NAMES)
 class Test_Ansible_Tower_Modules(APITest):
     def run_tower_module(self, module_name, module_args, factories, is_docker, v2, request, ansible_collections_path, virtual_env_path=None, more_vars=None):
