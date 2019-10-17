@@ -22,4 +22,31 @@ import './commands';
 beforeEach(() => {
   cy.login(); // For test isolation, Cypress clears out user sessions (see Cypress Best Practices)
   cy.generateTestID(); // Generates a number for unique name suffixes on every test run.
+  Cypress.Commands.overwrite('log', (subject, message) => cy.task('log', message));
 });
+
+Cypress.on('window:before:load', (win) => {
+        Cypress.log({
+            name: 'console.log',
+            message: 'wrap on console.log',
+        });
+
+        // pass through cypress log so we can see log inside command execution order
+        win.console.log = (...args) => {
+            Cypress.log({
+                name: 'console.log',
+                message: args,
+            });
+        };
+    });
+
+    Cypress.on('log:added', (options) => {
+        if (options.instrument === 'command') {
+            // eslint-disable-next-line no-console
+            console.log(
+                `${(options.displayName || options.name || '').toUpperCase()} ${
+                    options.message
+                }`,
+            );
+        }
+    });
