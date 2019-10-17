@@ -398,7 +398,7 @@ pipeline {
 
                                     // Archive the admin_password and show to the user
                                     sh 'mkdir -p artifacts'
-                                    sh 'grep "admin_password" "playbooks/vars.yml" | awk \'{ print $2 }\' | tee artifacts/admin_password'
+                                    sh 'grep "^admin_password:" "playbooks/vars.yml" | awk \'{ print $2 }\' | tee artifacts/admin_password'
 
                                     // Update the credentials files before deploying the test runner so that the credentials files are copied with the random generated admin password in place
                                     sh 'sed -i "s/default: &id001 {password: fo0m4nchU,/default: \\&id001 {password: $(cat artifacts/admin_password),/" config/credentials.yml'
