@@ -11,6 +11,36 @@ from tests.api import APITest
 @pytest.mark.usefixtures('authtoken')
 class Test_Webhook_NotificationTemplate(APITest):
 
+    @pytest.mark.parametrize('message, error_message, expect_exception', [
+        ['test', 'is not a valid json dictionary (Expecting value: line 1 column 1 (char 0)).', True],
+        ['{"foo": "bar"}', '', False],
+    ])
+    def test_validate_inputs(self, factories, message, error_message, expect_exception):
+        notification_configuration = {
+            'headers': {},
+            'url': 'https://ansible-tower-engineering.appspot.com',
+        }
+        messages = {
+            'error': {'body': None, 'message': None},
+            'started': {'body': message, 'message': None},
+            'success': {'body': None, 'message': None},
+        }
+
+        if expect_exception:
+            with pytest.raises(awxkit.exceptions.BadRequest) as e:
+                factories.notification_template(
+                    notification_type="webhook",
+                    notification_configuration=notification_configuration,
+                    messages=messages
+                )
+            assert error_message in str(e.value)
+        else:
+            factories.notification_template(
+                notification_type="webhook",
+                notification_configuration=notification_configuration,
+                messages=messages
+            )
+
     @pytest.mark.parametrize('method, expect_exception', [
         ['POST', False],
         ['PUT', False],
