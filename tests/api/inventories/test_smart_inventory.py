@@ -16,9 +16,9 @@ class TestSmartInventory(APITest):
 
         facts = host.related.ansible_facts.get()
         inv = factories.inventory(organization=host.ds.inventory.ds.organization, kind='smart',
-                                     host_filter=('ansible_facts__ansible_distribution={0} and'
-            'ansible_facts__ansible_distribution_version="{1}"')
-            .format(facts.ansible_distribution, facts.ansible_distribution_version))
+                                  host_filter=('ansible_facts__ansible_distribution={0} and'
+                                               'ansible_facts__ansible_distribution_version="{1}"')
+                                  .format(facts.ansible_distribution, facts.ansible_distribution_version))
 
         hosts = inv.related.hosts.get()
         assert hosts.count == 1
@@ -27,7 +27,7 @@ class TestSmartInventory(APITest):
     def test_host_updates_for_edit_and_deletion(self, factories):
         host = factories.host()
         inventory = factories.inventory(organization=host.ds.inventory.ds.organization, kind='smart',
-                                           host_filter="name={0}".format(host.name))
+                                        host_filter="name={0}".format(host.name))
         hosts = inventory.related.hosts.get()
         assert hosts.count == 1
 
@@ -40,7 +40,7 @@ class TestSmartInventory(APITest):
     def test_host_filter_is_organization_scoped(self, factories):
         host1, host2 = [factories.host(name="test_host_{0}".format(i)) for i in range(2)]
         inventory = factories.inventory(organization=host1.ds.inventory.ds.organization, kind='smart',
-                                           host_filter='search=test_host')
+                                        host_filter='search=test_host')
 
         hosts = inventory.related.hosts.get()
         assert hosts.count == 1
@@ -49,7 +49,7 @@ class TestSmartInventory(APITest):
     def test_smart_inventory_reflects_dependent_resources(self, factories):
         host = factories.host()
         inv = factories.inventory(organization=host.ds.inventory.ds.organization, kind='smart',
-                                     host_filter='name={0}'.format(host.name))
+                                  host_filter='name={0}'.format(host.name))
 
         assert inv.total_hosts == 1
         assert inv.total_groups == 0
@@ -63,6 +63,36 @@ class TestSmartInventory(APITest):
         assert inv.groups_with_active_failures == 0
         assert inv.inventory_sources_with_failures == 0
         assert inv.has_active_failures
+
+    @pytest.mark.serial
+    def test_consumed_capacity_for_hosts_with_smart_inventory(self, v2, factories, organization):
+        """
+        Test that the consumed capacity for the instance group is calculated accurately for
+        a JT that has forks and uses smart inventory
+        issue: https://github.com/ansible/tower/issues/3734
+        """
+        # Create a smart inventory that uses an instance group
+        ig = factories.instance_group()
+        instance = v2.instances.get().results.pop()
+        ig.add_instance(instance)
+        iv = factories.inventory(organization=organization)
+        iv.add_instance_group(ig)
+        capacity = instance.capacity
+        forks = min(50, capacity / 2)
+        # create hosts that will be added in the smart inventory
+        for n in range(capacity):
+            factories.host(name='test_host_' + str(n), inventory=iv)
+        smart_iv = factories.inventory(organization=organization, kind='smart', host_filter="search=test_host_")
+        smart_iv.add_instance_group(ig)
+        # create a job template with the smart inventory and instance group
+        jt = factories.job_template(inventory=smart_iv, forks=forks, playbook='sleep.yml')
+        jt.add_instance_group(ig)
+        expected_percent_capacity_remaining = ((capacity - forks) / capacity) * 100
+        expected_percent_capacity_remaining_range = range(int(expected_percent_capacity_remaining - 10),
+                                                          int(expected_percent_capacity_remaining + 10))
+        jt.launch().wait_until_status('running')
+        # Launching the job shows the correct consumed capacity percent in the instance group/instance
+        assert int(ig.get().percent_capacity_remaining) in expected_percent_capacity_remaining_range
 
     def test_unable_to_create_host(self, factories):
         inventory = factories.inventory(host_filter='name=localhost', kind='smart')
@@ -110,7 +140,7 @@ class TestSmartInventory(APITest):
     def test_able_to_update_smart_inventory_into_regular_inventory(self, factories):
         host = factories.host()
         inventory = factories.inventory(organization=host.ds.inventory.ds.organization,
-                                           host_filter="name={0}".format(host.name), kind="smart")
+                                        host_filter="name={0}".format(host.name), kind="smart")
         assert inventory.related.hosts.get().count == 1
 
         inventory.patch(host_filter="", kind="")
@@ -127,7 +157,7 @@ class TestSmartInventory(APITest):
         factories.host(name="test_host_root", inventory=inventory)
 
         smart_inventory = factories.inventory(organization=inventory.ds.organization, host_filter="search=test_host",
-                                                 kind="smart")
+                                              kind="smart")
         hosts = smart_inventory.related.hosts.get()
         assert hosts.count == 3
 
@@ -153,7 +183,7 @@ class TestSmartInventory(APITest):
         factories.host(name="test_host_root", inventory=inventory)
 
         smart_inventory = factories.inventory(organization=inventory.ds.organization, host_filter="search=test_host",
-                                                 kind="smart")
+                                              kind="smart")
         hosts = smart_inventory.related.hosts.get()
         assert hosts.count == 3
 
@@ -179,7 +209,7 @@ class TestSmartInventory(APITest):
         factories.host(name="test_host_root", inventory=inventory)
 
         smart_inventory = factories.inventory(organization=inventory.ds.organization, host_filter="search=test_host",
-                                                 kind="smart")
+                                              kind="smart")
         host_names = [host.name for host in smart_inventory.related.hosts.get().results]
         assert len(host_names) == 3
 
@@ -200,7 +230,7 @@ class TestSmartInventory(APITest):
         factories.host(name="test_host_root", inventory=inventory)
 
         smart_inventory = factories.inventory(organization=inventory.ds.organization, host_filter="search=test_host",
-                                                 kind="smart")
+                                              kind="smart")
         host_names = [host.name for host in smart_inventory.related.hosts.get().results]
         assert len(host_names) == 3
         jt = factories.job_template(inventory=smart_inventory)
@@ -217,7 +247,7 @@ class TestSmartInventory(APITest):
     def test_ahcs_should_not_run_on_disabled_smart_inventory_hosts(self, factories):
         host = factories.host(enabled=False)
         smart_inventory = factories.inventory(organization=host.ds.inventory.ds.organization, kind="smart",
-                                                 host_filter="name={0}".format(host.name))
+                                              host_filter="name={0}".format(host.name))
         ahc = factories.ad_hoc_command(inventory=smart_inventory, module_name='ping').wait_until_completed()
         ahc.assert_successful()
         assert 'provided hosts list is empty' in ahc.result_stdout
@@ -225,7 +255,7 @@ class TestSmartInventory(APITest):
     def test_jobs_should_not_run_on_disabled_smart_inventory_hosts(self, factories):
         host = factories.host(enabled=False)
         smart_inventory = factories.inventory(organization=host.ds.inventory.ds.organization, kind="smart",
-                                                 host_filter="name={0}".format(host.name))
+                                              host_filter="name={0}".format(host.name))
         job = factories.job_template(inventory=smart_inventory).launch().wait_until_completed()
         job.assert_successful()
         assert 'skipping: no hosts matched' in job.result_stdout
@@ -233,7 +263,7 @@ class TestSmartInventory(APITest):
     def test_host_update_after_ahc(self, factories):
         host = factories.host()
         smart_inventory = factories.inventory(organization=host.ds.inventory.ds.organization, kind="smart",
-                                                 host_filter="name={0}".format(host.name))
+                                              host_filter="name={0}".format(host.name))
         ahc = factories.ad_hoc_command(inventory=smart_inventory).wait_until_completed()
 
         ahcs = host.related.ad_hoc_commands.get()
@@ -253,7 +283,7 @@ class TestSmartInventory(APITest):
     def test_host_update_after_job(self, factories):
         host = factories.host()
         smart_inventory = factories.inventory(organization=host.ds.inventory.ds.organization, kind="smart",
-                                                 host_filter="name={0}".format(host.name))
+                                              host_filter="name={0}".format(host.name))
         job = factories.job_template(inventory=smart_inventory).launch().wait_until_completed()
 
         job.assert_successful()
@@ -277,7 +307,7 @@ class TestSmartInventory(APITest):
         host = factories.host()
         inventory = host.ds.inventory
         factories.inventory(organization=host.ds.inventory.ds.organization, kind="smart",
-                               host_filter="name={0}".format(host.name))
+                            host_filter="name={0}".format(host.name))
 
         assert host.get().related.inventory.get().id == inventory.id
         assert host.summary_fields.inventory.id == inventory.id
@@ -338,7 +368,7 @@ class TestSmartInventory(APITest):
         jt.launch().wait_until_completed().assert_successful()
 
         smart_inventory = factories.inventory(organization=inventory.ds.organization, kind="smart",
-                                                 host_filter="name={0}".format(host.name), variables="")
+                                              host_filter="name={0}".format(host.name), variables="")
         assert smart_inventory.related.hosts.get().count == 1
 
         jt.inventory = smart_inventory.id
@@ -349,7 +379,8 @@ class TestSmartInventory(APITest):
     def test_overriden_smart_inventory_variables(self, factories):
         host = factories.host(variables="ansible_connection: local")
         smart_inventory = factories.inventory(organization=host.ds.inventory.ds.organization, kind="smart",
-                                                 host_filter="name={0}".format(host.name), variables="ansible_connection: ssh")
+                                              host_filter="name={0}".format(host.name),
+                                              variables="ansible_connection: ssh")
         assert smart_inventory.related.hosts.get().count == 1
 
         jt = factories.job_template(inventory=smart_inventory)
@@ -358,7 +389,7 @@ class TestSmartInventory(APITest):
     def test_smart_inventory_deletion_should_not_cascade_delete_hosts(self, factories):
         host = factories.host()
         inventory = factories.inventory(organization=host.ds.inventory.ds.organization, kind='smart',
-                                           host_filter='name={0}'.format(host.name))
+                                        host_filter='name={0}'.format(host.name))
         assert inventory.related.hosts.get().count == 1
 
         inventory.delete().wait_until_deleted()
