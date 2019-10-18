@@ -11,7 +11,7 @@ import argparse
 import enum
 import textwrap
 
-from junitparser import Error, Failure, JUnitXml, Skipped, TestSuite
+from junitparser import Error, Failure, JUnitXml, JUnitXmlError, Skipped, TestSuite
 
 
 _CACHE = {}
@@ -44,6 +44,27 @@ def _format_result(result, indent=4 * ' '):
     return textwrap.indent(output, indent)
 
 
+def _check_multiple_results(case):
+    try:
+        case.result
+    except JUnitXmlError:
+        print(f'{case.name} has multiple results:\n')
+        selected_result = None
+        selected_result_type = _result_type(selected_result)
+        for element in (Failure, Error, Skipped):
+            result = case.child(element)
+            result_type = _result_type(result)
+            result_string = _format_result(result)
+            if result:
+                print(f'{result_string}\n')
+                if selected_result_type < result_type:
+                    selected_result = result
+                    selected_result_type = result_type
+        case.result = selected_result
+        result_string = _format_result(result)
+        print(f'{case.name} was updated to have only the following result:\n\n{result_string}\n')
+
+
 def _merge_junit(junit, output):
     # pytest is now wrapping the testsuite element into a testsuites element
     # since pytest 5.1.0 was released. Find the testsuite to parse the cases.
@@ -55,6 +76,7 @@ def _merge_junit(junit, output):
 
     for case in junit:
         if case.name not in _CACHE:
+            _check_multiple_results(case)
             output.add_testcase(case)
             _CACHE[case.name] = case
 
@@ -67,7 +89,7 @@ def _merge_junit(junit, output):
         if previous_type > current_type:
             print(
                 f'{case.name} with the following previous result:\n\n'
-                f'{previous_result}\n'
+                f'{previous_result}\n\n'
                 f'is being updated to:\n\n'
                 f'{current_result}\n'
             )
