@@ -51,20 +51,7 @@ def expected_job_notification(tower_url, notification_template_pg, job_pg, appro
         else:
             msg = 'The approval node "' + str(approval_node.summary_fields.unified_job_template.name) + '" ' + status + '. ' + str(tower_url) + '/#/workflows/' + str(job_pg.id)
         headers = notification_template_pg.notification_configuration['headers']
-        if wf_approval.finished is not None:
-            finished = wf_approval.finished.replace('Z', '+00:00')
-        else:
-            finished = wf_approval.finished
-        body = {'id': wf_approval.id,
-                'name': approval_node.summary_fields.unified_job_template.name,
-                'url': str(tower_url) + '/#/workflows/' + str(job_pg.id),
-                'created_by': wf_approval.summary_fields['created_by']['username'],
-                'started': wf_approval.started,
-                'finished': finished,
-                'status': wf_approval.status,
-                'traceback': wf_approval.result_traceback,
-                'body': msg
-                }
+        body = {'body': msg}
         msg = (headers, body)
     else:
         raise Exception("notification type %s not supported" % nt_type)

@@ -625,4 +625,5 @@ def api_settings_logging_pg(api_settings_pg):
 def tower_baseurl(is_docker):
     base_url = urlparse(qe_config.base_url)
     scheme = 'http' if base_url.scheme is None else base_url.scheme
-    return '{0}://{1}'.format(scheme, base_url.hostname)
+    hostname = base_url.hostname if not is_docker else 'towerhost'
+    return '{0}://{1}'.format(scheme, hostname)
