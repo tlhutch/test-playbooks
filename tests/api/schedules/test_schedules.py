@@ -29,6 +29,14 @@ class TestSchedules(SchedulesTest):
             unified_job_template.add_schedule(name=schedule.name)
         assert e.match('Schedule with this Unified job template and Name already exists.')
 
+    def test_non_regression_valid_rrules(self, unified_job_template):
+        valid_rrules = [
+            'DTSTART:20301017T080000Z+2:00 RRULE:FREQ=DAILY;INTERVAL=1;COUNT=1',  # Adding Z+02:00 offset to DTSTART
+        ]
+
+        for _rrule in valid_rrules:
+            unified_job_template.add_schedule(rrule=_rrule)
+
     def test_invalid_rrules_are_rejected(self, unified_job_template):
         invalid_rrules = [
             ('', 'This field may not be blank.'),
