@@ -57,6 +57,8 @@ def confirm_webhook_message(msg, notification_template_pg):
     notification_result = requests.get('https://postb.in/api/bin/%s/req/shift' % bin_id).json()  # returns dict
 
     expected_body = msg[1]
+    if not isinstance(notification_result, dict) or 'body' not in notification_result:
+        return False
     body = notification_result['body']
 
     # Both body and expected body should be dictionaries - convert to actual dictionaries

@@ -44,7 +44,8 @@ class Test_Common_NotificationTemplate(APITest):
         return dict(
             started=dict(message=content, body=content),
             success=dict(message=content, body=content),
-            error=dict(message=content, body=content)
+            error=dict(message=content, body=content),
+            workflow_approval=None
         )
 
     def build_errors(self, error):
@@ -113,7 +114,7 @@ class Test_Common_NotificationTemplate(APITest):
         assert confirm_notification(nt, expected_msg.format(job=job))
 
     def test_notification_template_default_contains_no_message(self, notification_template):
-        assert 'messages' in notification_template and notification_template['messages'] == {'started': None, 'success': None, 'error': None}
+        assert 'messages' in notification_template and notification_template['messages'] == {'started': None, 'success': None, 'error': None, 'workflow_approval': None}
 
     def test_notification_template_contains_update_all_default_messages(self, notification_template):
         notification_configuration_event = self.build_supported_messages(notification_template.notification_type)
@@ -121,7 +122,7 @@ class Test_Common_NotificationTemplate(APITest):
         notification_template.get()
         for event in ['started', 'success', 'error']:
             assert notification_template['messages'][event] == notification_configuration_event[event]
-        assert sorted(['started', 'success', 'error']) == sorted(list(notification_template['messages'].keys()))
+        assert sorted(['started', 'success', 'error', 'workflow_approval']) == sorted(list(notification_template['messages'].keys()))
 
     def test_notification_template_contains_update_some_default_messages(self, notification_template):
         full_configuration_event = self.build_supported_messages(notification_template.notification_type)
@@ -130,7 +131,7 @@ class Test_Common_NotificationTemplate(APITest):
             notification_template.patch(messages=partial_configuration_event)
             notification_template.get()
             assert notification_template['messages'][event] == partial_configuration_event[event]
-            assert sorted(['started', 'success', 'error']) == sorted(list(notification_template['messages'].keys()))
+            assert sorted(['started', 'success', 'error', 'workflow_approval']) == sorted(list(notification_template['messages'].keys()))
 
     def test_notification_template_fails_when_providing_invalid_payload(self, notification_template):
         notification_configuration_shouldfail = {
