@@ -113,7 +113,7 @@ class K8sClient(object):
             pass
         return _get_job_pod()
 
-    def wait_until_num_pods_in_namespace(self, namespace=None, num_pods=0, timeout=30):
+    def wait_until_num_pods_in_namespace(self, namespace=None, num_pods=0, timeout=120):
         try:
             utils.poll_until(lambda: len(self.get_pods(namespace).items) == num_pods, timeout=timeout)
         except exc.WaitUntilTimeout:
@@ -122,7 +122,7 @@ class K8sClient(object):
         running_pods = [{'pod-name': pod.metadata.name, 'pod-namespace': pod.metadata.namespace} for pod in pods.items]
         return running_pods
 
-    def assert_num_pods_in_namespace(self, namespace=None, num_pods=0, timeout=30):
+    def assert_num_pods_in_namespace(self, namespace=None, num_pods=0, timeout=120):
         pods = self.wait_until_num_pods_in_namespace(namespace=namespace, num_pods=num_pods, timeout=timeout)
         assert len(pods) == num_pods, pods
 

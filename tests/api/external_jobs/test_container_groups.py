@@ -118,9 +118,8 @@ class TestContainerGroups(APITest):
             assert 'forbidden' in job.result_traceback.lower()
         elif problem == 'image':
             assert 'rsync error' in job.result_traceback
-        elif problem == 'entry_point':
-            assert 'container not found' in job.result_traceback
         job.assert_status('error')
+        assert job.result_traceback != ''
         assert job.instance_group == container_group.id, "Container group is not indicated that the job tried to run on"
 
     @pytest.mark.github('https://github.com/ansible/awx/issues/4907', skip=True)
