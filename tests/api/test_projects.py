@@ -269,6 +269,47 @@ class Test_Projects(APITest):
             assert result['stat']['exists'], "The expected project directory was not found (%s)." % \
                 expected_project_path
 
+    def test_update_with_git_submodule(self, factories):
+        """This test makes a project from a repo that contains a git submodule
+        it then runs a job that utilizes a playbook from that submodule
+        """
+        project = factories.project(
+            name='Project with submodule {}'.format(random_title()),
+            scm_url='https://github.com/ansible/test-playbooks',
+            scm_refspec='+refs/pull/*/head:refs/remotes/origin/pr/*',
+            scm_branch='origin/pr/86'
+        )
+        jt = factories.job_template(
+            name='JT using playbook inside submodule {}'.format(random_title()),
+            project=project,
+            playbook='test-playbooks/debug.yml',  # parent git config + child content
+            extra_vars='{msg: "this message confirms the submodule playbook ran"}'
+        )
+        jt.ds.inventory.add_host()
+        job = jt.launch().wait_until_completed()
+        job.assert_successful()
+
+        assert 'this message confirms the submodule playbook ran' in job.result_stdout
+
+    def test_update_with_relative_git_submodule(self, factories):
+        project = factories.project(
+            name='Project with relative submodule {}'.format(random_title()),
+            scm_url='https://github.com/ansible/test-playbooks',
+            scm_refspec='+refs/pull/*/head:refs/remotes/origin/pr/*',
+            scm_branch='origin/pr/85'
+        )
+        jt = factories.job_template(
+            name='JT using playbook inside relative submodule {}'.format(random_title()),
+            project=project,
+            playbook='test-playbooks/debug.yml',  # parent git config + child content
+            extra_vars='{msg: "this message confirms the submodule playbook ran"}'
+        )
+        jt.ds.inventory.add_host()
+        job = jt.launch().wait_until_completed()
+        job.assert_successful()
+
+        assert 'this message confirms the submodule playbook ran' in job.result_stdout
+
     @pytest.mark.parametrize('timeout, status, job_explanation', [
         (0, 'successful', ''),
         (60, 'successful', ''),
