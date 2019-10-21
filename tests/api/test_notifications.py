@@ -64,12 +64,12 @@ def expected_job_notification(tower_url, notification_template_pg, job_pg, job_r
     nt_type = notification_template_pg.notification_type
     job_description = ("System " if job_pg.type == 'system_job' else "") + "Job"
     if tower_message:
-        msg = (job_description + " #%s '%s' succeeded: %s/#/jobs/" +
+        msg = (job_description + " #%s '%s' successful: %s/#/jobs/" +
                ("system" if job_pg.type == "system_job" else "playbook") + "/%s") % \
               (job_pg.id, job_pg.name, tower_url, job_pg.id)
 
     elif nt_type == "slack":
-        msg = (job_description + " #%s '%s' succeeded: <%s/#/jobs/" +
+        msg = (job_description + " #%s '%s' successful: <%s/#/jobs/" +
                ("system" if job_pg.type == "system_job" else "playbook") + "/%s>") % \
               (job_pg.id, job_pg.name, tower_url, job_pg.id)
     elif nt_type == "webhook":
