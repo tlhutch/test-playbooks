@@ -160,7 +160,7 @@ class TestContainerGroups(APITest):
         jt.add_instance_group(container_group)
         job = jt.launch().wait_until_status('running')
         job_pod = client.get_job_pod(job.id)
-        assert len(job_pod) == 1, 'No job pod was spawned'
+        assert len(job_pod) == 1, f'Did not find expected job pod. Only found {[pod.metadata.name for pod in client.get_pods()]}'
         assert job.instance_group == container_group.id
         job.cancel().wait_until_status('canceled')
         client.assert_job_pod_cleaned_up(job.id)
@@ -175,7 +175,7 @@ class TestContainerGroups(APITest):
         adhoc = factories.ad_hoc_command(inventory=inv, module='command', module_args='sleep 120')
         adhoc.wait_until_status('running')
         job_pod = client.get_job_pod(adhoc.id)
-        assert len(job_pod) == 1, 'No job pod was spawned'
+        assert len(job_pod) == 1, f'Did not find expected job pod. Only found {[pod.metadata.name for pod in client.get_pods()]}'
         adhoc.summary_fields.instance_group.id == container_group.id
         adhoc.cancel().wait_until_status('canceled')
         client.assert_job_pod_cleaned_up(adhoc.id)
@@ -271,7 +271,7 @@ class TestContainerGroups(APITest):
         try:
             for job in jobs:
                 job_pod = client.get_job_pod(job.id)
-                assert len(job_pod) == 1, 'No job pod was spawned'
+                assert len(job_pod) == 1, f'Did not find expected job pod. Only found {[pod.metadata.name for pod in client.get_pods()]}'
         finally:
             workflow_job.cancel()
             workflow_job.wait_until_completed()
