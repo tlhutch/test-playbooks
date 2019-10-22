@@ -193,15 +193,14 @@ class Test_Common_NotificationTemplate(APITest):
         notifications = job.get_related('notifications').wait_until_count(1)
 
         if notification_template.notification_type == 'webhook':
-            key = 'body'
             headers = notification_template.notification_configuration['headers']
             body = messages_for_event_only[event]['body']
             message = (headers, body)
+            assert event in notifications.results.pop().body.get('event', '')
         else:
-            key = 'subject'
             message = messages_for_event_only[event]['message']
+            assert event in notifications.results.pop()['subject']
 
-        assert event in notifications.results.pop()[key]
         if can_confirm_notification(notification_template):
             assert confirm_notification(notification_template, message)
 
