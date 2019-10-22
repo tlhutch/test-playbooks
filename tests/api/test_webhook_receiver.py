@@ -269,6 +269,69 @@ class TestWebhookReceiver(APITest):
         assert job.webhook_service == "github"
         job.wait_until_completed().assert_successful()
 
+    @pytest.mark.parametrize('resource_with_webhook_configured_on_github', ['job template', 'workflow job template'], indirect=True)
+    def test_webhook_push_event_github_with_survey(self, v2, resource_with_webhook_configured_on_github, push_event_response_github):
+        """Test that if the JT/WFJT has survey enabled, push event triggers the job and is completed successfully,
+        without giving 500 error as in the issue: https://github.com/ansible/awx/issues/5062
+        """
+        # creates a webhook for the resource and gets the specific resource which has webhooks enabled
+        jt = resource_with_webhook_configured_on_github
+        survey = [dict(required=True,
+                       question_name='Q',
+                       variable='var1',
+                       type='password')]
+        # Add a survey to the resource
+        jt.survey_enabled = True
+        jt.add_survey(spec=survey)
+        # Commit to the repository on which the webhook is configured
+        assert push_event_response_github.status_code == 200
+        # Assert that the push event launches the specific job
+        # Expected count of jobs is 2 since one is launched by the ping event and one launched by the push event
+        if jt.type == 'job_template':
+            poll_until(lambda: v2.job_templates.get(id=jt.id).results.pop().related.jobs.get().count == 2, interval=5, timeout=300)
+            job = v2.job_templates.get(id=jt.id).results.pop().related.jobs.get().results.pop()
+        else:
+            poll_until(
+                lambda: v2.workflow_job_templates.get(id=jt.id).results.pop().related.workflow_jobs.get().count == 2, interval=5, timeout=300)
+            job = v2.workflow_job_templates.get(id=jt.id).results.pop().related.workflow_jobs.get().results.pop()
+        # Assert that the launched job is successful
+        assert job.extra_vars != ""
+        assert json.loads(job.extra_vars)['tower_webhook_event_type'] == 'push'
+        assert job.webhook_service == "github"
+        job.wait_until_completed().assert_successful()
+
+    @pytest.mark.parametrize('resource_with_webhook_configured_on_gitlab', ['job template', 'workflow job template'], indirect=True)
+    def test_webhook_push_event_gitlab_with_survey(self, v2, resource_with_webhook_configured_on_gitlab, push_event_response_gitlab):
+        """Test that if the JT/WFJT has survey enabled, push event triggers the job and is completed successfully,
+        without giving 500 error as in the issue: https://github.com/ansible/awx/issues/5062
+        """
+        # creates a webhook for the resource and gets the specific resource which has webhooks enabled
+        jt = resource_with_webhook_configured_on_gitlab
+        survey = [dict(required=True,
+                       question_name='Q',
+                       variable='var1',
+                       type='password',
+                       default='abcde')]
+        # Add a survey to the resource
+        jt.survey_enabled = True
+        jt.add_survey(spec=survey)
+        # Commit to the repository on which the webhook is configured
+        assert push_event_response_gitlab.status_code == 200
+        # Assert that the push event launches the specific job
+        # Expected count of jobs is 1 since one is not launched by the ping event but only by the push event
+        if jt.type == 'job_template':
+            poll_until(lambda: v2.job_templates.get(id=jt.id).results.pop().related.jobs.get().count == 1, interval=5, timeout=300)
+            job = v2.job_templates.get(id=jt.id).results.pop().related.jobs.get().results.pop()
+        else:
+            poll_until(
+                lambda: v2.workflow_job_templates.get(id=jt.id).results.pop().related.workflow_jobs.get().count == 1, interval=5, timeout=300)
+            job = v2.workflow_job_templates.get(id=jt.id).results.pop().related.workflow_jobs.get().results.pop()
+        # Assert that the launched job is successful
+        assert job.extra_vars != ""
+        assert json.loads(job.extra_vars)['tower_webhook_event_type'] == 'Push Hook'
+        assert job.webhook_service == "gitlab"
+        job.wait_until_completed().assert_successful()
+
     @pytest.mark.parametrize('resource_with_webhook_configured_on_gitlab', ['job template', 'workflow job template'], indirect=True)
     def test_webhook_push_event_gitlab(self, v2, resource_with_webhook_configured_on_gitlab, push_event_response_gitlab):
         """Test that after creation of webhook, any push event to the repository launches the specific job"""
