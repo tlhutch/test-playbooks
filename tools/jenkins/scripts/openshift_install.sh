@@ -126,6 +126,7 @@ openshift_skip_tls_verify: true
 admin_password: ${AWX_ADMIN_PASSWORD}
 pg_username: tower
 pg_password: towerpass
+pg_admin_password: towerpass
 secret_key: 'towersecret'
 rabbitmq_use_ssl: ${AWX_USE_TLS}
 rabbitmq_password: 'password'
