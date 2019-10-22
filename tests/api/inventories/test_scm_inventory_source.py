@@ -696,7 +696,7 @@ class TestSCMInventorySource(APITest):
         group = groups.results[0]
         assert group.variables == {'foovar': 'fooval'}
 
-    def test_scm_inv_using_collection(self, factories):
+    def test_scm_inv_using_collection_from_galaxy(self, factories):
         pr_number = 83
         project = factories.project(
             name='Project alancoding.basic inventory collection requirement - %s' % fauxfactory.gen_utf8(),
@@ -714,3 +714,30 @@ class TestSCMInventorySource(APITest):
         inv_update.assert_successful()
 
         assert inv_src.get_related('hosts').count == 4  # the number defined in the inventory file
+
+    def test_scm_inv_using_relative_collection_via_config(self, factories):
+        """In this test, the collection farm.animals is pointed to by
+        collection_paths in ansible.cfg
+        """
+        pr_number = 89
+        project = factories.project(
+            name='Project farm.animals.cow inventory relative collection - %s' % fauxfactory.gen_utf8(),
+            scm_type='git',
+            scm_refspec=f"refs/pull/{pr_number}/head:refs/remotes/origin/pull/{pr_number}/head",
+            scm_branch=f"pull/{pr_number}/head"
+        )
+        inventory = factories.inventory(
+            name='Sources farm.animals.cow relative collection inventory - %s' % fauxfactory.gen_utf8(),
+            organization=project.ds.organization
+        )
+        inv_src = factories.inventory_source(
+            source='scm', inventory=inventory, project=project,
+            source_path='inventories/cow.yaml'
+        )
+
+        inv_update = inv_src.update().wait_until_completed()
+        inv_update.assert_successful()
+
+        hosts_pg = inv_src.get_related('hosts')
+        assert hosts_pg.count == 1
+        assert hosts_pg.results.pop().name == 'moooooo'
