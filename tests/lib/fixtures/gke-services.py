@@ -69,17 +69,24 @@ class K8sClient(object):
         # Prepare objects
         self.serviceaccount = f'serviceaccount-{namespace}'
         self.role = f'serviceaccount-role-{namespace}'
-        self.namespace = namespace
-        self.namespaceobject = kubernetes.client.V1Namespace(metadata={'name': self.namespace})
-        self.serviceaccountobject = kubernetes.client.V1ServiceAccount(metadata={'name': self.serviceaccount})
+        self.nsmeta = kubernetes.client.V1ObjectMeta(labels=dict(integration='True'),
+                                    name=namespace)
+        self.namespaceobject = kubernetes.client.V1Namespace(metadata=self.nsmeta)
+        self.sameta = kubernetes.client.V1ObjectMeta(labels=dict(integration='True'),
+                                    name=self.serviceaccount)
+        self.serviceaccountobject = kubernetes.client.V1ServiceAccount(metadata=self.sameta)
         pod_verbs = ["get", "list", "watch", "create", "update", "patch", "delete"]
         pod_exec_verbs = ["create"]
         pod_rules = kubernetes.client.V1PolicyRule(api_groups=[""], resources=["pods"], verbs=pod_verbs)
         pod_exec_rules = kubernetes.client.V1PolicyRule(api_groups=[''], resources=['pods/exec'], verbs=pod_exec_verbs)
-        self.roleobject = kubernetes.client.V1Role(rules=[pod_rules, pod_exec_rules], metadata={'name': self.role})
+        self.rometa = kubernetes.client.V1ObjectMeta(labels=dict(integration='True'),
+                                    name=self.role)
+        self.roleobject = kubernetes.client.V1Role(rules=[pod_rules, pod_exec_rules], metadata=self.rometa)
         role_subject = kubernetes.client.V1Subject(name=self.serviceaccount, kind='ServiceAccount')
         role_ref = kubernetes.client.V1RoleRef(name=self.role, kind='Role', api_group='rbac.authorization.k8s.io')
-        self.rolebindobject = kubernetes.client.V1RoleBinding(metadata={'name': f'{namespace}-{self.role}-rolebind'}, subjects=[role_subject], role_ref=role_ref)
+        self.robmeta = kubernetes.client.V1ObjectMeta(labels=dict(integration='True'),
+                                    name=f'{namespace}-{self.role}-rolebind')
+        self.rolebindobject = kubernetes.client.V1RoleBinding(metadata=self.robmeta, subjects=[role_subject], role_ref=role_ref)
 
         # Actually create these items
         self.core.create_namespace(self.namespaceobject)
@@ -100,7 +107,7 @@ class K8sClient(object):
             raise AssertionError(f'Job {job_id} left job pod in namespace')
 
     def get_pods(self, namespace=None):
-        namespace = namespace if namespace else self.namespaceobject.metadata['name']
+        namespace = namespace if namespace else self.namespaceobject.metadata.name
         return self.core.list_namespaced_pod(namespace)
 
     def get_job_pod(self, job_id, namespace=None, timeout=30):
@@ -136,7 +143,7 @@ class K8sClient(object):
 
         Optionally, delete different namespace and all dependent objects. (useful in development)
         """
-        namespace = namespace if namespace else self.namespaceobject.metadata['name']
+        namespace = namespace if namespace else self.namespaceobject.metadata.name
         if assert_no_hanging_pods:
             try:
                 self.assert_num_pods_in_namespace(namespace=namespace)
