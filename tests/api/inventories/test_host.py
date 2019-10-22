@@ -12,3 +12,8 @@ class TestHost(APITest):
         with pytest.raises(exc.Duplicate) as e:
             factories.host(name=host.name, inventory=host.ds.inventory)
         assert e.value[1]['__all__'] == ['Host with this Name and Inventory already exists.']
+
+    def test_jinja_in_inventory_hostname_fail(self, factories):
+        with pytest.raises(exc.BadRequest) as e:
+            factories.host(name="{{ lookup('pipe', 'touch /tmp/foo') }}")
+        assert 'Inline Jinja variables are not allowed' in str(e.value)
