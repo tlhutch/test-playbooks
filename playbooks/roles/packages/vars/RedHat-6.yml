@@ -1,9 +1,0 @@
----
-# List of RHUI (RH Update Infrastructure) repositories to enable
-redhat_rhui_repos:
-    - rhui-REGION-rhel-server-releases-optional
-
-# List of RHSM (RH Subscription Manager) repositories to enable
-redhat_rhsm_repos:
-    - rhel-6-server-optional-rpms
-    # - 'rhel-{{ ansible_distribution_major_version }}-server-optional-rpms'

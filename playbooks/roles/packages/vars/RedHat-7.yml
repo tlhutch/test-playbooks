@@ -1,8 +1,8 @@
 ---
 # List of RHUI (RH Update Infrastructure) repositories to enable
 redhat_rhui_repos:
-    - rhui-REGION-rhel-server-optional
-    - rhui-REGION-rhel-server-extras
+    - rhel-7-server-rhui-extras-rpms
+    - rhel-7-server-rhui-optional-rpms
 
 # List of RHSM (RH Subscription Manager) repositories to enable
 redhat_rhsm_repos:
