@@ -39,6 +39,14 @@ def tower_modules_collection(request, session_ansible_adhoc, ansible_collections
     # because it needs that a local directory is present on the host's
     # filesystem that is receiving the API call. On the other hand, for
     # standalone deployments the target group should be `tower`
+
+    # Default to installing awx collection from ansible awx repo
+    fork = os.environ.get('TOWER_FORK', 'ansible')
+    product = os.environ.get('PRODUCT', 'awx')
+    branch = os.environ.get('TOWER_BRANCH', 'devel')
+    if product == 'tower':
+        pytest.skip("Current approach does not work because we don't have creds on tower box, skip because otherwise git command will hang.")
+
     try:
         ansible_adhoc = session_ansible_adhoc()['cluster_installer']
     except KeyError:
@@ -59,11 +67,6 @@ def tower_modules_collection(request, session_ansible_adhoc, ansible_collections
             assert result.get('state', None) == 'directory', result_to_str(result)
 
         build_dir = os.path.join(ansible_collections_path, 'build')
-
-        # Default to installing awx collection from ansible awx repo
-        fork = os.environ.get('TOWER_FORK', 'ansible')
-        product = os.environ.get('PRODUCT', 'awx')
-        branch = os.environ.get('TOWER_BRANCH', 'devel')
 
         git_result = ansible_adhoc.git(
             repo=f'https://github.com/{fork}/{product}.git',
