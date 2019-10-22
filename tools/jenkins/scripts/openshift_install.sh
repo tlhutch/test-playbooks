@@ -60,7 +60,7 @@ AWX_ADMIN_PASSWORD="$(retrieve_value_from_vars_file "${VARS_FILE}" admin_passwor
 TOWER_VERSION="$(retrieve_value_from_vars_file "${VARS_FILE}" tower_version)"
 
 
-if [[ "${TOWER_VERSION}" == "devel" ]]; then
+if [[ "${TOWER_VERSION}" == "devel" ]] || [[ "${TOWER_VERSION}" == "3.6.0" ]]; then
     _TOWER_VERSION='latest'
     # NOTE: there are no images for the devel dependencies, so use the latest release.
     # Update this after every release
