@@ -108,7 +108,7 @@ class Test_Notifications(APITest):
         if nt_type == 'slack':
             assert notification_pg.subject == tower_msg
         else:
-            assert notification_pg.body == tower_msg
+            assert notification_pg.body.get('body', '') == tower_msg
         # Confirm that notification is received when approval node is approved
         if can_confirm_notification(notification_template):
             msg = expected_job_notification(tower_baseurl, notification_template, wf_job, approval_node, wf_approval, status)
