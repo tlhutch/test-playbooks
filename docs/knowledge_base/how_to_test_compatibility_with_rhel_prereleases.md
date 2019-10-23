@@ -59,7 +59,8 @@ Those 4 steps are run for all the [currently supported version of Tower](https:/
 * RHEL Layered Product Interoperability Testing Information Session - ([Slides](https://docs.google.com/presentation/d/14T38IbMMMC6JBBbhKcFf7RXTu7xT2mBPZeQ7NM34rZg/edit#slide=id.gb6f3e2d2d_2_207)) ([Recording](https://bluejeans.com/s/DhW@w))
 * [RHEL 6, 7, 8 Interoperability testing spreadsheet (Test Status)](https://docs.google.com/spreadsheets/d/1nLRLxubSlctsyVIlkW6Kbob0kSqQYDNxbbx30rwg82w/edit#gid=1416156808)
 * [RHEL 8.0 Interop Dashboard (Confluence)](https://docs.engineering.redhat.com/display/PIT/RHEL+8.0+Interop+Dashboard)
-* [RHEL Layered Product Interoperability Testing (Confluence)](https://docs.engineering.redhat.com/display/PIT/RHEL+Layered+Product+Interoperability+Testing)
+* [RHEL Layered Product Interoperability Testing (Confluence)](https://docs.engineering.redhat.com/pages/viewpage.action?pageId=63298238#RLPTestingProcess-qe-tester)
 * [QE Product Interop Testing Group (Mojo)](https://mojo.redhat.com/groups/qe-product-interop-testing)
+* [Description of service level offerings](https://docs.engineering.redhat.com/display/PIT/Service+Model+Offerings)
 
 Written by [Jim Ladd](mailto:jladd@redhat.com) (Github: jladdjr) Oct 5, 2018.
