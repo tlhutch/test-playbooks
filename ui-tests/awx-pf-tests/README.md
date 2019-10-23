@@ -10,8 +10,11 @@ This is an automated functional test suite for the AWX Patternfly UI. It uses Cy
 ### Requirements and installation.
 
 #### Short Version
-Run this block (if you already have AWX cloned, remove that line and adjust the python install paths as needed.): 
+Run this block and include the username and password for an admin account for your AWX instance. If you already have AWX cloned, remove that line and adjust the python install paths as needed.: 
 ```
+export CYPRESS_AWX_E2E_USERNAME=username
+export CYPRESS_AWX_E2E_PASSWORD=password
+export CYPRESS_baseUrl=https://localhost:3001
 python3 -m venv ~/.envs/awxkit
 source ~/.envs/awxkit/bin/activate
 pip install nodeenv
@@ -66,8 +69,7 @@ npm install -g npx
 ### Configuring Cypress settings
 In `cypress.json`, set the baseUrl value to that of the target UI you are testing. Do NOT include a trailing slash. This will break awxkit functions. For example, "https://localhost:3001" is fine, but "https://localhost:3001/" is not. 
 
-Inserting your credentials into cypress.json in plaintext isn't recommended, for standard security reasons. There are multiple ways to override the variables, listed [here](https://docs.cypress.io/guides/guides/environment-variables.html#Setting). The simplest way is to take an environment variable and prefix it with `CYPRESS_`. Cypress searches for this environment variable prefix and
-makes it available.
+Inserting your credentials into cypress.json in plaintext isn't recommended, for standard security reasons. There are multiple ways to override the variables, listed [here](https://docs.cypress.io/guides/guides/environment-variables.html#Setting). The simplest way is to take an environment variable and prefix it with `CYPRESS_`. Cypress searches for this environment variable prefix and makes it available. Cypress can _only_ see environment variables with this prefix, or vars set in a cypress config file. 
 ```
 export CYPRESS_AWX_E2E_USERNAME=foo 
 export CYPRESS_AWX_E2E_PASSWORD=bar
