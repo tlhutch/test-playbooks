@@ -19,10 +19,8 @@ def parse_args():
     # Build parser
     parser = optparse.OptionParser(usage="{0} akit | create_or_replace [options] BASE_URL".format(sys.argv[0],))
     cwd = os.path.dirname(__file__)
-    _cred_help = 'Credential file to be loaded (default: config/credentials.yml). \
-            Use "false" for none.'
-    _proj_help = 'Project file to be loaded (default: config/projects.yml). \
-            Use "false" for none.'
+    _username_help = 'Admin username to the test instance'
+    _password_help = 'Admin password to the test instance'
     _name_help = 'Name to be used for the resource.'
     _akitcommand_help = 'A string, passed to awxkit as an arbitrary v2 command. \
             For example, "job_templates()" would call v2.job_templates() in awxkit.'
@@ -30,17 +28,17 @@ def parse_args():
             (job_templates, organizations, etc.) to be used. \
             Format is the same as awxkit.'
     parser.add_option(
-        '--credentials',
+        '--username',
         action="store",
-        dest='credentials',
-        default=os.path.join(cwd, '..', '..', 'config/credentials.yml'),
-        help=_cred_help)
+        dest='username',q
+        default=os.environ.get('AWX_E2E_USERNAME'),
+        help=_username_help)
     parser.add_option(
-        '--projects',
+        '--password',
         action="store",
-        dest='projects',
-        default=os.path.join(cwd, '..', '..', 'config/projects.yml'),
-        help=_proj_help)
+        dest='password',
+        default=os.environ.get('AWX_E2E_PASSWORD'),
+        help=_password)
     parser.add_option(
         '--name',
         action="store",
@@ -66,8 +64,7 @@ if __name__ == '__main__':
 
     func = args[0] # either 'akit' or 'create_or_replace'
     config.base_url = args[1] # Base URL of API
-    config.credentials = ns({'default': {'username': 'awx-cy', 'password': 'm3kQ4Z6pfm'}})
-    #config.project_urls = utils.load_projects(opts.projects)
+    config.credentials = ns({'default': {'username': opts.username, 'password': opts.password}})
 
     root = api.Api()
     config.use_sessions = True
