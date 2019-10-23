@@ -10,8 +10,11 @@ This is an automated functional test suite for the AWX Patternfly UI. It uses Cy
 ### Requirements and installation.
 
 #### Short Version
-Run this block (if you already have AWX cloned, remove that line and adjust the python install paths as needed.): 
+Run this block and include the username and password for an admin account for your AWX instance. If you already have AWX cloned, remove that line and adjust the python install paths as needed.: 
 ```
+export CYPRESS_AWX_E2E_USERNAME=username
+export CYPRESS_AWX_E2E_PASSWORD=password
+export CYPRESS_baseUrl=https://localhost:3001
 python3 -m venv ~/.envs/awxkit
 source ~/.envs/awxkit/bin/activate
 pip install nodeenv
@@ -47,7 +50,7 @@ nodeenv -p
 To install awxkit for use in fixtures:
 ```
 git clone https://github.com/ansible/awx
-pip install -e awx/awxkit -r awx/awxkit/requirements.txt -r awx/requirements/requirements_dev.txt
+pip install -e awx/awxkit -r awx/awxkit/requirements.txt
 
 ```
 
@@ -66,10 +69,11 @@ npm install -g npx
 ### Configuring Cypress settings
 In `cypress.json`, set the baseUrl value to that of the target UI you are testing. Do NOT include a trailing slash. This will break awxkit functions. For example, "https://localhost:3001" is fine, but "https://localhost:3001/" is not. 
 
-Inserting your credentials into cypress.json in plaintext isn't recommended, for standard security resasons. There are multiple ways to override the variables, listed [here](https://docs.cypress.io/guides/guides/environment-variables.html#Setting). The simplest way is to take an environment variable and prefix it with `CYPRESS_`. Cypress searches for this environment variable prefix and
-makes it available. For example, to override `AWX_E2E_USERNAME`:
+Inserting your credentials into cypress.json in plaintext isn't recommended, for standard security reasons. There are multiple ways to override the variables, listed [here](https://docs.cypress.io/guides/guides/environment-variables.html#Setting). The simplest way is to take an environment variable and prefix it with `CYPRESS_`. Cypress searches for this environment variable prefix and makes it available. Cypress can _only_ see environment variables with this prefix, or vars set in a cypress config file. 
 ```
 export CYPRESS_AWX_E2E_USERNAME=foo 
+export CYPRESS_AWX_E2E_PASSWORD=bar
+export CYPRESS_baseUrl=https://localhost:3001
 npx cypress open # etc, etc,
 ```
 
@@ -106,3 +110,11 @@ For more information regarding these folders, please see the Cypress documentati
 - Cypress clears UI session data entirely during each test to avoid caching and cookie issues. Sometimes, this means you need to manipulate cookies directly yourself. For an example, see the custom `apiRequest()` function present in `cypress/support/commands.js`.
 
 - Avoid overlapping dependencies as much as possible. The current configuration calls a custom command, `generateTestID()`, which is has been made available as `this.testID` in every individual test. Feel free to use this to generate custom name suffixes to avoid conflicts. `cy.createOrReplace()` should also help in this regard.
+
+
+### Docker
+```
+cd tower-qa/ui-tests/awx-pf-tests
+docker build -t awx-pf-tests .
+docker run --network tools_default --link 'tools_ui_next_1:ui-next' -v $PWD:/e2e -w /e2e awx-pf-tests run --project .
+```
