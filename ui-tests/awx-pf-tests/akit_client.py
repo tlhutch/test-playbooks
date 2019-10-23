@@ -8,8 +8,7 @@ creates/replaces a resource, or lets you run any awxkit v2 expression.
 cypress/support/commands.js interacts with this file.
 """
 
-from awxkit import api, config, utils
-from awxkit.utils import PseudoNamespace as ns
+from awxkit import api, config
 import optparse
 import os
 import sys
@@ -18,27 +17,12 @@ import sys
 def parse_args():
     # Build parser
     parser = optparse.OptionParser(usage="{0} akit | create_or_replace [options] BASE_URL".format(sys.argv[0],))
-    cwd = os.path.dirname(__file__)
-    _username_help = 'Admin username to the test instance'
-    _password_help = 'Admin password to the test instance'
     _name_help = 'Name to be used for the resource.'
     _akitcommand_help = 'A string, passed to awxkit as an arbitrary v2 command. \
             For example, "job_templates()" would call v2.job_templates() in awxkit.'
     _resource_help = 'Specify the type of resource \
             (job_templates, organizations, etc.) to be used. \
             Format is the same as awxkit.'
-    parser.add_option(
-        '--username',
-        action="store",
-        dest='username',q
-        default=os.environ.get('AWX_E2E_USERNAME'),
-        help=_username_help)
-    parser.add_option(
-        '--password',
-        action="store",
-        dest='password',
-        default=os.environ.get('AWX_E2E_PASSWORD'),
-        help=_password)
     parser.add_option(
         '--name',
         action="store",
@@ -64,8 +48,11 @@ if __name__ == '__main__':
 
     func = args[0] # either 'akit' or 'create_or_replace'
     config.base_url = args[1] # Base URL of API
-    config.credentials = ns({'default': {'username': opts.username, 'password': opts.password}})
-
+    config.credentials = {'default': {
+        'username': os.environ['CYPRESS_AWX_E2E_USERNAME'],
+        'password': os.environ['CYPRESS_AWX_E2E_PASSWORD'],
+    }}
+    config.project_urls = {'git': 'https://github.com/ansible/test-playbooks.git'}
     root = api.Api()
     config.use_sessions = True
     root.load_session().get()

@@ -8,8 +8,6 @@
   "viewportWidth": 1024,
   "chromeWebSecurity": false,
   "env": {
-    "AWX_E2E_USERNAME": "username",
-    "AWX_E2E_PASSWORD": "password",
     "CYPRESS_INSTALL_BINARY": "https://cdn.cypress.io/beta/binary/3.5.0/linux-x64/circle-develop-a425f2366031dda39e367043310707878fda395c-147606/cypress.zip",
     "packages": "https://cdn.cypress.io/beta/npm/3.5.0/circle-develop-a425f2366031dda39e367043310707878fda395c-147605/cypress.tgz"
   },
