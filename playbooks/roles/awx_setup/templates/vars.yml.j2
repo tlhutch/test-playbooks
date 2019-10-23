@@ -39,6 +39,8 @@ rabbitmq_use_ssl: True
 {% endif %}
 {% endif %}
 
+{% if ansible_distribution_major_version == '7' %}
 redhat_aws_rhui_repos:
   - rhel-7-server-rhui-extras-rpms
   - rhel-server-rhui-rhscl-7-rpms
+{% endif %}
