@@ -203,7 +203,6 @@ class TestInventorySource(APITest):
         )
         self.update_and_delete_resources(inv_source)
 
-    @pytest.mark.github('https://github.com/ansible/awx/issues/4485', skip=True)
     def test_simultaneous_delete_sublist_resources_ec2(self, factories):
         # Reported custom issue where server error, deadlocks, occured
         inv_source = factories.inventory_source(
