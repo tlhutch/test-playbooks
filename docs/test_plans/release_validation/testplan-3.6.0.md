@@ -137,11 +137,12 @@
   * Non-OpenShift 3.4.x to Release: Use this [Pipeline](http://jenkins.ansible.eng.rdu2.redhat.com/job/Pipelines/job/upgrade-release34-release-verification/) to verify
   * Non-OpenShift 3.5.x to Release: Use this [Pipeline](http://jenkins.ansible.eng.rdu2.redhat.com/job/Pipelines/job/upgrade-release35-release-verification/) to verify
 
-  * [ ] RPM install 3.4.{0-3} -> Release
-    * [ ] [Bundle/Plain - Standalone/Cluster]
+  * [ ] 3.4.{0-5} -> Release
+    * [ ] [Bundle/Plain - Standalone/Cluster - 7.6 non-FIPs]
+    * [ ] [Bundle/Plain - Standalone/Cluster - 7.5 FIPs w/ ansible 2.7] (make sure stable 2.7 is used because 3.4.3 installer does not support 2.8+)
     * [ ] [OpenShift]
-  * [ ] RPM install 3.5.{0-3} -> Release
-    * [ ] [Bundle/Plain - Standalone/Cluster]
+  * [ ] 3.5.{0-3} -> Release
+    * [ ] [Bundle/Plain - Standalone/Cluster] (Run the pipeline with rhel 7.6 and 8.0 - non-FIPS and rhel 7.5 FIPS)
     * [ ] [OpenShift]
 
 ### Other
@@ -151,9 +152,12 @@
 ### Regression
 
   * [ ] [UI regression] (automated + manual monday 28th october)
-  * [ ] [API regression - Standalone] (automated) @elyezer
-  * [ ] [API regression - Traditional Cluster] (automated) @elyezer
+  * [ ] [API regression - Standalone w/ TLS enabled] (manual trigger of yolo job) @elyezer
+  * [ ] [API regression - Standalone w/ TLS disabled] (automated) @elyezer
+  * [ ] [API regression - Traditional Cluster w/ TLS enabled] (manual trigger of yolo job) @elyezer
+  * [ ] [API regression - Traditional Cluster w/ TLS disabled] (automated)
   * [ ] [API regression - OpenShift Cluster] (automated) @elyezer
+  * [ ] [API regression - OpenShift Cluster] (manual trigger of job) @elyezer
   * [ ] Tower social authentication regression completed (vm)
     * [x] Google OAuth (@elijah + @appuk)
     * [x] GitHub (@elijah + @appuk)
