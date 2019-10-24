@@ -644,7 +644,7 @@ class Test_Workflow_Convergence(APITest):
             with pytest.raises(NoContent):
                 node.related.always_nodes.post(dict(id=convergence_node.id))
 
-        wfj = wfjt.launch().wait_until_completed()
+        wfj = wfjt.launch().wait_until_completed(timeout=600)
         wfj.assert_successful()
         assert wfj.extra_vars == '{}'
 

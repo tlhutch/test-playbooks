@@ -39,7 +39,7 @@ class TestWorkflowJobTemplateSurveys(APITest):
         else:
             jt.add_survey(spec=self.survey)
 
-        wfj = wfjt.launch().wait_until_completed()
+        wfj = wfjt.launch().wait_until_completed(timeout=120)
         job = jt.get().related.last_job.get()
         wfj.assert_successful()
         job.assert_successful()
@@ -58,7 +58,7 @@ class TestWorkflowJobTemplateSurveys(APITest):
         jt_survey[1]['default'] = 'wfjn_var2_default'
         jt.add_survey(jt_survey)
 
-        wfj1 = wfjt.launch().wait_until_completed()
+        wfj1 = wfjt.launch().wait_until_completed(timeout=120)
         job1 = jt.get().related.last_job.get()
         wfj1.assert_successful()
         job1.assert_successful()
@@ -89,7 +89,7 @@ class TestWorkflowJobTemplateSurveys(APITest):
                        default='var2_default')]
         wfjt.add_survey(spec=survey)
 
-        wfj = wfjt.launch(dict(extra_vars=dict(var1='launch'))).wait_until_completed()
+        wfj = wfjt.launch(dict(extra_vars=dict(var1='launch'))).wait_until_completed(timeout=120)
         job = jt.get().related.last_job.get()
         wfj.assert_successful()
         job.assert_successful()
@@ -120,7 +120,7 @@ class TestWorkflowJobTemplateSurveys(APITest):
         survey[1]['default'] = 'jt_default2'
         jt.add_survey(spec=survey)
 
-        wfj = wfjt.launch().wait_until_completed()
+        wfj = wfjt.launch().wait_until_completed(timeout=120)
         job = jt.get().related.last_job.get()
         wfj.assert_successful()
         job.assert_successful()

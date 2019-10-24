@@ -315,7 +315,7 @@ class TestWorkflowExtraVars(APITest):
 
         # with var1, verify that a string survey variable passes $encrypted$ placeholder
         payload = dict(var1='$encrypted$', var2='$encrypted$', var3='$encrypted$')
-        wfj = wfjt.launch(dict(extra_vars=payload)).wait_until_completed()
+        wfj = wfjt.launch(dict(extra_vars=payload)).wait_until_completed(timeout=600)
         job = jt.get().related.last_job.get()
         wfj.assert_successful()
         job.assert_successful()
@@ -420,7 +420,7 @@ class TestWorkflowExtraVars(APITest):
         jt.add_survey(spec=jt_survey)
 
         payload = dict(extra_vars=dict(var1='launch', var2='launch', var3='launch'))
-        wfj = wfjt.launch(payload).wait_until_completed()
+        wfj = wfjt.launch(payload).wait_until_completed(timeout=600)
         job = jt.get().related.last_job.get()
         wfj.assert_successful()
         job.assert_successful()
@@ -453,7 +453,7 @@ class TestWorkflowExtraVars(APITest):
         stats_node.add_always_node(unified_job_template=success_jt).add_success_node(unified_job_template=failure_jt) \
             .add_failure_node(unified_job_template=success_jt)
 
-        wfj = wfjt.launch().wait_until_completed()
+        wfj = wfjt.launch().wait_until_completed(timeout=600)
         wfj.assert_successful()
         assert wfj.extra_vars == '{}'
 
@@ -511,7 +511,11 @@ class TestWorkflowExtraVars(APITest):
         receiving_node = workflow_job.related.workflow_nodes.get(
             unified_job_template=receiving_jt.id
         ).results.pop()
-        receiving_node.wait_for_job()
+        stats_node = workflow_job.related.workflow_nodes.get(
+            unified_job_template=set_stats_jt.id
+        ).results.pop()
+        stats_node.wait_for_job(timeout=120)
+        receiving_node.wait_for_job(timeout=120)
         receiving_job = receiving_node.get_related('job')
         assert json.loads(receiving_job.extra_vars) == artifacts_from_stats_playbook
 
@@ -554,5 +558,5 @@ class TestWorkflowExtraVars(APITest):
         receiving_job = receiving_jt_node.get_related('job')
         assert json.loads(receiving_job.extra_vars) == artifacts_from_stats_playbook
 
-        workflow_job.wait_until_completed()
+        workflow_job.wait_until_completed(timeout=600)
         workflow_job.assert_successful()
