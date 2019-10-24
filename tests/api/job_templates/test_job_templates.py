@@ -354,8 +354,7 @@ print(json.dumps(inv, indent=2))
         # launch the job template and check the results
         job_pg = job_template_with_random_limit.launch().wait_until_completed()
         assert job_pg.status == "failed", "Unexpected job_pg.status - %s." % job_pg
-        assert "--limit does not match any hosts" in job_pg.result_stdout, \
-            "Unexpected job_pg.result_stdout when launching a job_template with an unmatched limit."
+        assert "--limit does not match any hosts" in job_pg.result_stdout, f'stdout: {job_pg.result_stdout}\n traceback: {job_pg.result_traceback}'
 
     @pytest.mark.ansible_integration
     def test_launch_with_matched_tag_value(self, job_template_with_random_tag):
