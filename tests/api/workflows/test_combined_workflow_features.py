@@ -1,7 +1,6 @@
 import json
 
 import pytest
-from awxkit.utils import poll_until
 from awxkit.exceptions import NoContent
 
 from tests.api import APITest
@@ -117,12 +116,12 @@ class TestCombinedWorkflowFeatures(APITest):
             }
         set_stats_jt = factories.job_template(playbook='test_set_stats.yml', extra_vars=set_stats_vars)
         set_stats_jt.add_instance_group(instance_group)
-        tartarabuelo = factories.workflow_job_template_node(
+        set_stats_root_node = factories.workflow_job_template_node(
             workflow_job_template=wfjt,
             unified_job_template=set_stats_jt
         )
         # Make sure set stats flow through project update
-        abuelo = tartarabuelo.add_success_node(
+        abuelo = set_stats_root_node.add_success_node(
             unified_job_template=factories.inventory_source()
         )
         # Make sure set stats flow through project update.
@@ -158,14 +157,15 @@ class TestCombinedWorkflowFeatures(APITest):
         )
 
         wfj = wfjt.launch().wait_until_status('running')
+        set_stats_root_node_job_node = wfj.related.workflow_nodes.get(unified_job_template=set_stats_jt.id).results.pop()
+        set_stats_job = set_stats_root_node_job_node.wait_for_job(timeout=120).related.job.get()
+        set_stats_job.wait_until_completed()
         parent_job_node = wfj.related.workflow_nodes.get(unified_job_template=parent.summary_fields.unified_job_template.id).results.pop()
-        poll_until(lambda: hasattr(parent_job_node.get().related, 'job'), interval=1, timeout=60)
-        parent_job = parent_job_node.get().related.job.get()
+        parent_job = parent_job_node.wait_for_job(timeout=120).related.job.get()
         parent_job.wait_until_completed()
         approval_job_node = wfj.related.workflow_nodes.get(unified_job_template=approval_jt.id).results.pop()
-        poll_until(lambda: hasattr(approval_job_node.get().related, 'job'), interval=1, timeout=60)
-        wf_approval = approval_job_node.related.job.get()
-        poll_until(lambda: wf_approval.get().status == 'pending', interval=1, timeout=60)
+        wf_approval = approval_job_node.wait_for_job(timeout=120).related.job.get()
+        wf_approval.wait_until_status('pending')
 
         # Approve so the workflow will proceed
         wf_approval.approve()
