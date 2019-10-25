@@ -2,6 +2,8 @@ from awxkit import utils
 import awxkit.exceptions as exc
 import pytest
 
+import fauxfactory
+
 from tests.api import APITest
 
 
@@ -693,3 +695,57 @@ class TestSCMInventorySource(APITest):
         # },
         group = groups.results[0]
         assert group.variables == {'foovar': 'fooval'}
+
+    def test_scm_inv_using_collection_from_galaxy(self, factories):
+        pr_number = 83  # https://github.com/ansible/test-playbooks/pull/83
+        # Closed pull request contents:
+        # collections/requirements.yml
+        # inventories/basic.yml
+        # The inventory file 'basic.yml' references alancoding.basic.basic,
+        # a collection that exists in Ansible Galaxy
+        project = factories.project(
+            name='Project alancoding.basic inventory collection requirement - %s' % fauxfactory.gen_utf8(),
+            scm_type='git',
+            scm_refspec=f"refs/pull/{pr_number}/head:refs/remotes/origin/pull/{pr_number}/head",
+            scm_branch=f"pull/{pr_number}/head"
+        )
+        inventory = factories.inventory(organization=project.ds.organization)
+        inv_src = factories.inventory_source(
+            source='scm', inventory=inventory, project=project,
+            source_path='inventories/basic.yml'
+        )
+
+        inv_update = inv_src.update().wait_until_completed()
+        inv_update.assert_successful()
+
+        assert inv_src.get_related('hosts').count == 4  # the number defined in the inventory file
+
+    def test_scm_inv_using_relative_collection_via_config(self, factories):
+        pr_number = 89  # https://github.com/ansible/test-playbooks/pull/89
+        # Closed pull request contents:
+        # my_collections/ansible_collections/farm/animals/plugins/inventory/cow.py
+        # inventories/cow.yaml
+        # ansible.cfg
+        # The ansible.cfg file adds 'my_collections' to colleciton paths
+        # 'cow.py' references 'farm.animals.cow' for inventory plugin
+        project = factories.project(
+            name='Project farm.animals.cow inventory relative collection - %s' % fauxfactory.gen_utf8(),
+            scm_type='git',
+            scm_refspec=f"refs/pull/{pr_number}/head:refs/remotes/origin/pull/{pr_number}/head",
+            scm_branch=f"pull/{pr_number}/head"
+        )
+        inventory = factories.inventory(
+            name='Sources farm.animals.cow relative collection inventory - %s' % fauxfactory.gen_utf8(),
+            organization=project.ds.organization
+        )
+        inv_src = factories.inventory_source(
+            source='scm', inventory=inventory, project=project,
+            source_path='inventories/cow.yaml'
+        )
+
+        inv_update = inv_src.update().wait_until_completed()
+        inv_update.assert_successful()
+
+        hosts_pg = inv_src.get_related('hosts')
+        assert hosts_pg.count == 1
+        assert hosts_pg.results.pop().name == 'moooooo'
