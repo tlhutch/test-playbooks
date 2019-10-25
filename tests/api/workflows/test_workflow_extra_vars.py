@@ -2,7 +2,7 @@ import json
 import copy
 
 from awxkit import utils
-from awxkit.exceptions import NoContent, BadRequest
+from awxkit.exceptions import NoContent, BadRequest, Forbidden
 import pytest
 
 from tests.api import APITest
@@ -394,10 +394,18 @@ class TestWorkflowExtraVars(APITest):
                 wfjt.launch(dict(extra_vars=dict())).wait_until_completed()
             assert "variables_needed_to_start" in e.value.msg
 
-    def test_launch_vars_passed_with_wfjt_when_launch_vars_and_multiple_surveys_present(self, instance_group, factories):
-        host = factories.host()
-        wfjt = factories.workflow_job_template(ask_variables_on_launch=True, extra_vars=dict(var1='wfjt', var2='wfjt'))
-        jt = factories.job_template(inventory=host.ds.inventory, playbook='debug_extra_vars.yml',
+    @pytest.mark.parametrize('jt_prompts', ['same', 'none', 'all'])
+    def test_launch_vars_passed_with_wfjt_when_launch_vars_and_multiple_surveys_present(self, instance_group, factories, jt_prompts):
+        org = factories.organization()
+        inv = factories.inventory(organization=org)
+        factories.host(inventory=inv)
+        wfjt = factories.workflow_job_template(
+            ask_variables_on_launch=True,
+            extra_vars=dict(var1='wfjt', var2='wfjt'),
+            organization=org
+        )
+        project = factories.project(organization=org)
+        jt = factories.job_template(inventory=inv, playbook='debug_extra_vars.yml', project=project,
                                        extra_vars=dict(var1='jt', var2='jt'))
         jt.add_instance_group(instance_group)
         factories.workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt)
@@ -414,10 +422,13 @@ class TestWorkflowExtraVars(APITest):
                             default='survey')]
         wfjt.add_survey(spec=wfjt_survey)
 
-        jt_survey = copy.deepcopy(wfjt_survey)
-        jt_survey[0]['default'] = 'wfjn_var1_default'
-        jt_survey[1]['default'] = 'wfjn_var2_default'
-        jt.add_survey(spec=jt_survey)
+        if jt_prompts == 'same':
+            jt_survey = copy.deepcopy(wfjt_survey)
+            jt_survey[0]['default'] = 'wfjn_var1_default'
+            jt_survey[1]['default'] = 'wfjn_var2_default'
+            jt.add_survey(spec=jt_survey)
+        if jt_prompts == 'all':
+            jt.ask_variables_on_launch = True
 
         payload = dict(extra_vars=dict(var1='launch', var2='launch', var3='launch'))
         wfj = wfjt.launch(payload).wait_until_completed(timeout=600)
@@ -429,6 +440,25 @@ class TestWorkflowExtraVars(APITest):
 
         assert json.loads(wfj.extra_vars) == dict(var1='launch', var2='$encrypted$', var3='launch')
         assert json.loads(job.extra_vars) == dict(var1='launch', var2='$encrypted$', var3='launch')
+
+        execute_user = factories.user()
+        wfjt.set_object_roles(execute_user, 'execute')
+        jt.set_object_roles(execute_user, 'execute')
+
+        org_admin = factories.user(organization=org)
+        org.set_object_roles(org_admin, 'admin')
+
+        # also see https://github.com/ansible/tower/issues/3479 for background
+        for other_user in (execute_user, org_admin):
+            with self.current_user(other_user):
+                # this is forbidden because original user gave var2='launch'
+                # this is a password value, so should not be shared with other users
+                with pytest.raises(Forbidden) as e:
+                    wfj.relaunch()
+                assert 'secret prompts provided by another user' in str(e.value.msg)
+                with pytest.raises(Forbidden) as e:
+                    job.relaunch()
+                assert 'secret prompts provided by another user' in str(e.value.msg)
 
     def test_wfjt_nodes_source_variables_with_set_stats(self, instance_group, factories, artifacts_from_stats_playbook):
         host = factories.host()
