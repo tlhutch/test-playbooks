@@ -54,7 +54,9 @@ AWX_IPV6_DEPLOYMENT=$(retrieve_boolean_value "${AWX_IPV6_DEPLOYMENT}")
 DELETE_ON_START=$(retrieve_boolean_value "${DELETE_ON_START}")
 REAP_INSTANCES=$(retrieve_boolean_value "${REAP_INSTANCES}")
 OUT_OF_BOX_OS=$(retrieve_boolean_value "${OUT_OF_BOX_OS}")
-AWX_SETUP_PATH=$(retrieve_awx_setup_path_based_on_version_and_scenario "${TOWER_VERSION}" "${SCENARIO}" "${AW_REPO_URL}" "${BUNDLE}" "${PLATFORM}")
+if [[ -z "${AWX_SETUP_PATH}" ]]; then
+    AWX_SETUP_PATH=$(retrieve_awx_setup_path_based_on_version_and_scenario "${TOWER_VERSION}" "${SCENARIO}" "${AW_REPO_URL}" "${BUNDLE}" "${PLATFORM}")
+fi
 INSTANCE_NAME_PREFIX=$(generate_instance_name_prefix "${INSTANCE_NAME_PREFIX}" "${PLATFORM}" "${ANSIBLE_VERSION}" "${TOWER_VERSION}")
 
 # FIXME(spredzy): Remove the below code when stable-2.8 is in epel 8
