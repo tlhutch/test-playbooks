@@ -1,9 +1,10 @@
-from fauxfactory import gen_uuid
+from fauxfactory import gen_uuid, gen_utf8
 import pytest
 
 from tests.api import APITest
 from tests.lib.helpers.copy_utils import check_fields
-
+from tests.api.credentials.test_credential_plugins import TestHashiCorpVaultCredentials
+from awxkit.config import config
 
 @pytest.mark.usefixtures('authtoken')
 class Test_Copy_Credential(APITest):
@@ -42,3 +43,39 @@ class Test_Copy_Credential(APITest):
         job.related.stdout.get(format='txt_download')
         stdout = job.result_stdout
         assert var1_value in stdout, "Unexpected stdout - {}".format(stdout)
+
+    @pytest.mark.yolo
+    def test_check_copied_input_sources(self, factories, v2, k8s_vault, copy_with_teardown):
+        # create a hashicorp vault lookup credential
+        hashi = TestHashiCorpVaultCredentials()
+        hashi_credential = hashi.create_hashicorp_vault_credential(factories, v2, k8s_vault, config.credentials.hashivault.token, 'v1')
+
+        # create a credential using the lookup
+        cred_type = v2.credential_types.get(managed_by_tower=True, kind='ssh').results.pop()
+        payload = factories.credential.payload(
+            name=gen_utf8(),
+            description=gen_utf8(),
+            credential_type=cred_type
+        )
+        credential = v2.credentials.post(payload)
+
+        metadata_username = {
+            'secret_path': '/kv/example-user/',
+            'secret_key': 'username',
+        }
+        credential.related.input_sources.post(dict(
+            input_field_name='username',
+            source_credential=hashi_credential.id,
+            metadata=metadata_username,
+        ))
+
+        # copy credential
+        copied_credential = copy_with_teardown(credential)
+
+        # run job with copied credential
+        host = factories.host()
+
+        jt = factories.job_template(inventory=host.ds.inventory, playbook='ping.yml', credential=None)
+        jt.add_credential(copied_credential)
+        job = jt.launch().wait_until_completed()
+        job.assert_successful()
