@@ -80,10 +80,20 @@ if __name__ == '__main__':
             username = opts.name
             opts.name = None
         resource_obj = getattr(v2, opts.resource)
-        print(resource_obj.create_or_replace(
-            resource=opts.resource,
-            name=opts.name,
-            username=username
-        ))
+        if opts.resource == 'job_templates' or opts.resource == 'projects':
+            jt_object = resource_obj.create_or_replace(
+                resource=opts.resource,
+                name=opts.name,
+                username=username
+            )
+            # import pdb; pdb.set_trace()
+            jt_object_json = '{ "name": "'+ str(jt_object.name) +'", "id": '+ str(jt_object.id) + '}'
+            print(jt_object_json)
+        else:
+            print(resource_obj.create_or_replace(
+                resource=opts.resource,
+                name=opts.name,
+                username=username
+            ))
     elif (func == 'akit'):
         eval(f'print(v2.{opts.akitcommand})')
