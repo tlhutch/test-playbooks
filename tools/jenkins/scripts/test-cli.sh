@@ -30,7 +30,7 @@ pip install -U "git+ssh://git@github.com/${AWXKIT_FORK}/${AWXKIT_REPO}.git@${AWX
 if [[ -z "${AW_REPO_URL}" ]]; then
     AW_REPO_URL=$(retrieve_value_from_vars_file "${VARS_FILE}" aw_repo_url)
 fi
-ansible-playbook -v -i playbooks/inventory.log -e "aw_repo_url=${AW_REPO_URL}" playbooks/test_runner/install_cli_repo.yml
+ansible-playbook --become -v -i playbooks/inventory.log -e "aw_repo_url=${AW_REPO_URL}" playbooks/test_runner/install_cli_repo.yml
 
 sudo yum install --enablerepo='ansible-tower-cli' -y ansible-tower-cli
 
