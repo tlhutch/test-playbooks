@@ -12,5 +12,5 @@
       lineinfile:
         backrefs: yes
         regexp: "^baseurl"
-        line: "baseurl={{ aw_repo_url }}/rpm/epel-7-$basearch"
+        line: "baseurl={{ aw_repo_url }}/rpm/epel-{{ ansible_distribution_major_version }}-$basearch"
         path: "{{ cli_repo_dest }}"
