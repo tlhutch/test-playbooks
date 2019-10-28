@@ -39,9 +39,9 @@ pipeline {
             defaultValue: 'devel'
         )
         string(
-            name: 'E2E_TEST_SELECTION',
-            description: 'Run the tests selected by this pattern',
-            defaultValue: '*'
+            name: 'SLACK_CHANNEL',
+            description: 'Can be either a #channel or @user',
+            defaultValue: '#e2e-test-results'
         )
     }
     options {
@@ -148,23 +148,28 @@ pipeline {
     post {
         always {
             archiveArtifacts 'tower-qa/ui-tests/awx-pf-tests/cypress-report.xml, tower-qa/ui-tests/awx-pf-tests/cypress/screenshots/*.xml'
-            junit 'tower-qa/ui-tests/awx-pf-tests/cypress-report.xml'
-
+            xunit thresholds: [failed(failureThreshold: '2', unstableThreshold: '1')],
+                  pattern 'tower-qa/ui-tests/awx-pf-tests/cypress-report.xml'
         }
         success {
             slackSend(
-                color: "good",
                 teamDomain: "ansible",
-                channel: "#e2e-test-resuts",
-                message: "patternfly devel is <${env.RUN_DISPLAY_URL}|passing>"
+                channel: "${SLACK_CHANNEL}",
+                message: "patternfly devel pipeline is <${env.RUN_DISPLAY_URL}|passing>"
+            )
+        }
+        unstable {
+            slackSend(
+                teamDomain: "ansible",
+                channel: "${SLACK_CHANNEL}",
+                message: "patternfly devel pipeline is <${env.RUN_DISPLAY_URL}|unstable>"
             )
         }
         failure {
             slackSend(
-                color: "bad",
                 teamDomain: "ansible",
-                channel: "#e2e-test-resuts",
-                message: "patternfly devel is <${env.RUN_DISPLAY_URL}|not passing>"
+                channel: "${SLACK_CHANNEL}",
+                message: "patternfly devel pipeline is <${env.RUN_DISPLAY_URL}|failing>"
             )
         }
     }
