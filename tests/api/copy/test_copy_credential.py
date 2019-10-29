@@ -6,6 +6,7 @@ from tests.lib.helpers.copy_utils import check_fields
 from tests.api.credentials.test_credential_plugins import TestHashiCorpVaultCredentials
 from awxkit.config import config
 
+
 @pytest.mark.usefixtures('authtoken')
 class Test_Copy_Credential(APITest):
 

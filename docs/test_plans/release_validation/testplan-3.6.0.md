@@ -54,7 +54,7 @@
 
 ### Container Groups (Mat/Elijah/Danny)
 
-- [ ] [Testing complete](https://github.com/ansible/tower-qa/issues/3443)
+- [x] [Testing complete](https://github.com/ansible/tower-qa/issues/3443)
 
 ### Remove Inventory computed field (Elijah/Elyezer)
 
@@ -95,7 +95,7 @@
 ### Webhook notification enhancement (Yanis, Mat, John)
 
   - [x] [Testing complete](https://github.com/ansible/tower-qa/blob/devel/docs/test_plans/features/36_webhook_notification.md)
-  
+
 ### Webhook receiver (Mat, Elyezer, Apurva, Danny)
 
   - [x] [Testing complete](https://github.com/ansible/tower-qa/issues/4088)
@@ -111,7 +111,7 @@
 ### Workflow Approval Notifications (Apurva, Elijah)
 
   - [x] [Testing complete](https://github.com/ansible/tower-qa/issues/4089)
-  
+
 ### Automation Analytics (Mat, Elyezer)
 
   - [x] [Testing complete](https://github.com/ansible/tower-qa/issues/3444)
@@ -120,7 +120,7 @@
 
 ## Verifications steps
 
-### Install
+### Install (@elyezer)
 
   * [ ] Standalone (automated)
   * [ ] Standalone Bundle (automated)
@@ -129,7 +129,7 @@
   * [ ] OpenShift Cluster (automated)
 
 
-### Upgrade
+### Upgrade (@elyezer)
 
 
   * OpenShift 3.4.x to Release: Use this [Pipeline](http://jenkins.ansible.eng.rdu2.redhat.com/job/Pipelines/job/Release%2034%20to%20devel%20-%20OpenShift%20-%20Release%20Verification/) to verify
@@ -137,32 +137,34 @@
   * Non-OpenShift 3.4.x to Release: Use this [Pipeline](http://jenkins.ansible.eng.rdu2.redhat.com/job/Pipelines/job/upgrade-release34-release-verification/) to verify
   * Non-OpenShift 3.5.x to Release: Use this [Pipeline](http://jenkins.ansible.eng.rdu2.redhat.com/job/Pipelines/job/upgrade-release35-release-verification/) to verify
 
-  * [x] Check ansible version check that is [hardcoded in tower-packaging](https://github.com/ansible/tower-packaging/blob/devel/setup/roles/preflight/defaults/main.yml#L6)
-  * [ ] 3.4.{0-3} -> Release
+  * [ ] RPM install 3.4.{0-3} -> Release
     * [ ] [Bundle/Plain - Standalone/Cluster]
     * [ ] [OpenShift]
-  * [ ] 3.5.{0-3} -> Release
+  * [ ] RPM install 3.5.{0-3} -> Release
     * [ ] [Bundle/Plain - Standalone/Cluster]
     * [ ] [OpenShift]
 
+### Other
+
+  * [x] Check ansible version check that is [hardcoded in tower-packaging](https://github.com/ansible/tower-packaging/blob/devel/setup/roles/preflight/defaults/main.yml#L6)
 
 ### Regression
 
   * [ ] [UI regression] (automated + manual monday 28th october)
-  * [ ] [API regression - Standalone] (automated)
-  * [ ] [API regression - Traditional Cluster] (automated)
-  * [ ] [API regression - OpenShift Cluster] (automated)
+  * [ ] [API regression - Standalone] (automated) @elyezer
+  * [ ] [API regression - Traditional Cluster] (automated) @elyezer
+  * [ ] [API regression - OpenShift Cluster] (automated) @elyezer
   * [ ] Tower social authentication regression completed (vm)
-    * [ ] Google OAuth (@elijah + @appuk)
-    * [ ] GitHub (@elijah + @appuk)
-    * [ ] GitHub Org (@elijah + @appuk)
-    * [ ] GitHub Team (@elijah + @appuk)
-    * [ ] Azure OAuth (@elyezer + 
+    * [x] Google OAuth (@elijah + @appuk)
+    * [x] GitHub (@elijah + @appuk)
+    * [x] GitHub Org (@elijah + @appuk)
+    * [x] GitHub Team (@elijah + @appuk)
+    * [ ] Azure OAuth (@elyezer + )
     * [ ] Radius (@one-t + please recruit one other to teach)
   * [ ] Tower SAML integration regression completed (vm) (@one-t + please recruit one other to teach)
-  * [ ] Backup/restore successful - standalone (automated)
-  * [ ] Backup/restore successful - traditional cluster (automated)
-  * [ ] [Backup/restore successful - OpenShift] (automated)
+  * [ ] Backup/restore successful - standalone (automated) @elyezer
+  * [ ] Backup/restore successful - traditional cluster (automated) @elyezer
+  * [ ] [Backup/restore successful - OpenShift] (automated) @elyezer
   * [ ] [Deploy tower with HTTPS+Load Balancer+Let's Encrypt + run tests against instance] (@unlikelyzero + @Spredzy)
   * [ ] Deploy tower in OpenShift with an external DB + run tests against instance (@elijah + @calebb)
 
