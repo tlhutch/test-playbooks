@@ -161,7 +161,7 @@
     * [x] GitHub Team (@elijah + @appuk)
     * [ ] Azure OAuth (@elyezer + )
     * [ ] Radius (@one-t + please recruit one other to teach)
-  * [ ] Tower SAML integration regression completed (vm) (@one-t + please recruit one other to teach)
+  * [x] Tower SAML integration regression completed (vm) (@one-t + please recruit one other to teach)
   * [ ] Backup/restore successful - standalone (automated) @elyezer
   * [ ] Backup/restore successful - traditional cluster (automated) @elyezer
   * [ ] [Backup/restore successful - OpenShift] (automated) @elyezer
