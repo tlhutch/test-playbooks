@@ -147,31 +147,40 @@ pipeline {
     }
     post {
         always {
-            archiveArtifacts 'tower-qa/ui-tests/awx-pf-tests/cypress-report.xml, tower-qa/ui-tests/awx-pf-tests/cypress/screenshots/*.xml'
-            xunit thresholds: [failed(failureThreshold: '2', unstableThreshold: '1')],
-                  pattern 'tower-qa/ui-tests/awx-pf-tests/cypress-report.xml'
+            xunit thresholds: [
+                    failed(failureThreshold: '2', 
+                    unstableThreshold: '1')
+                ], 
+                tools: [
+                    Custom(customXSL: 'tower-qa/ui-tests/awx-pf-tests/cypress-report-stylesheet.xsl', 
+                    deleteOutputFiles: true, 
+                    failIfNotNew: true, 
+                    pattern: 'tower-qa/ui-tests/awx-pf-tests/results/*.xml', 
+                    skipNoTestFiles: false, stopProcessingIfError: true)
+                ]
         }
         success {
             slackSend(
                 teamDomain: "ansible",
                 channel: "${SLACK_CHANNEL}",
-                message: "patternfly devel pipeline is <${env.RUN_DISPLAY_URL}|passing>"
+                message: "patternfly ${UI_BRANCH} branch pipeline is <${env.RUN_DISPLAY_URL}|passing>"
             )
         }
         unstable {
             slackSend(
                 teamDomain: "ansible",
                 channel: "${SLACK_CHANNEL}",
-                message: "patternfly devel pipeline is <${env.RUN_DISPLAY_URL}|unstable>"
+                message: "patternfly ${UI_BRANCH} branch pipeline is <${env.RUN_DISPLAY_URL}|unstable>"
             )
         }
         failure {
             slackSend(
                 teamDomain: "ansible",
                 channel: "${SLACK_CHANNEL}",
-                message: "patternfly devel pipeline is <${env.RUN_DISPLAY_URL}|failing>"
+                message: "patternfly ${UI_BRANCH} branch pipeline is <${env.RUN_DISPLAY_URL}|failing>"
             )
         }
     }
 }
+
 
