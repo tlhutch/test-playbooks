@@ -1,3 +1,5 @@
+import json
+
 import pytest
 
 import fauxfactory
@@ -296,3 +298,122 @@ class TestWorkflowLaunch(object):
             assert 'Launching'.format(wfjt.name) in result.stdout
             assert ' successful'.format(inv_source.name) in result.stdout
             assert result.stdout.splitlines()[-1] == 'successful'
+
+
+@pytest.mark.usefixtures('authtoken')
+class TestJobTemplateLaunchArguments(object):
+
+    def test_extra_vars_on_launch(self, cli, job_template_ask_variables_on_launch):
+        jt = job_template_ask_variables_on_launch
+        result = cli([
+            'awx', 'job_templates', 'launch', str(jt.id),
+            '--extra_vars',
+            '{"foo": "bar", "spam": "eggs"}'
+        ], auth=True)
+        assert result.returncode == 0, format_error(result)
+        related_jobs = jt.related.jobs.get().results
+        extra_vars = json.loads(related_jobs[-1].extra_vars)
+        assert extra_vars == {'foo': 'bar', 'spam': 'eggs'}
+
+    def test_inventory_on_launch(self, cli, factories):
+        inv = factories.inventory()
+        jt = factories.job_template(ask_inventory_on_launch=True)
+        result = cli([
+            'awx', 'job_templates', 'launch', str(jt.id),
+            '--inventory', str(inv.id)
+        ], auth=True)
+        assert result.returncode == 0, format_error(result)
+        related_jobs = jt.related.jobs.get().results
+        assert related_jobs[-1].inventory == inv.id
+
+    @pytest.mark.parametrize('enablement, flag, value', [
+        ['ask_limit_on_launch', 'limit', 'localhost'],
+        ['ask_tags_on_launch', 'job_tags', 'foo,bar'],
+        ['ask_skip_tags_on_launch', 'skip_tags', 'foo,bar'],
+        ['ask_job_type_on_launch', 'job_type', 'run'],
+        ['ask_verbosity_on_launch', 'verbosity', 5],
+        ['ask_diff_mode_on_launch', 'diff_mode', True],
+    ])
+    def test_miscellaneous_ask_at_launch_time_args(self, cli, factories, enablement, flag, value):
+        jt = factories.job_template(**{enablement: True})
+        result = cli([
+            'awx', 'job_templates', 'launch', str(jt.id),
+            '--{}'.format(flag), str(value)
+        ], auth=True)
+        assert result.returncode == 0, format_error(result)
+        related_jobs = jt.related.jobs.get().results
+        assert getattr(related_jobs[-1], flag) == value
+
+    def test_machine_credential_at_launch_time(self, cli, factories):
+        machine = factories.credential()
+        jt = factories.job_template(ask_credential_on_launch=True)
+        result = cli([
+            'awx', 'job_templates', 'launch', str(jt.id),
+            '--credentials', machine.name
+        ], auth=True)
+        assert result.returncode == 0, format_error(result)
+        related_jobs = jt.related.jobs.get().results
+        creds = related_jobs[-1].summary_fields['credentials']
+        assert len(creds) == 1
+        assert creds[0]['name'] == machine.name
+
+    def test_multiple_credentials_at_launch_time(self, cli, factories):
+        machine = factories.credential()
+        vault = factories.credential(kind='vault')
+        jt = factories.job_template(ask_credential_on_launch=True)
+        result = cli([
+            'awx', 'job_templates', 'launch', str(jt.id),
+            '--credentials', ', '.join([machine.name, vault.name])
+        ], auth=True)
+        assert result.returncode == 0, format_error(result)
+        related_jobs = jt.related.jobs.get().results
+        creds = related_jobs[-1].summary_fields['credentials']
+        assert len(creds) == 2
+        creds = [c['name'] for c in creds]
+        assert machine.name in creds
+        assert vault.name in creds
+
+    def test_credential_missing_ssh_password_at_launch(self, cli, factories):
+        machine = factories.credential(password='ASK')
+        jt = factories.job_template(ask_credential_on_launch=True)
+
+        result = cli([
+            'awx', 'job_templates', 'launch', str(jt.id),
+            '--credentials', machine.name
+        ], auth=True)
+        assert result.returncode == 1
+        assert result.json == {'passwords_needed_to_start': ['ssh_password']}
+
+        result = cli([
+            'awx', 'job_templates', 'launch', str(jt.id),
+            '--credentials', machine.name,
+            '--credential_passwords', '{"ssh_password": "secret"}',
+        ], auth=True)
+        assert result.returncode == 0
+
+    def test_required_survey_spec(self, cli, job_template_ping, required_survey_spec):
+        job_template_ping.add_survey(spec=required_survey_spec)
+        before = job_template_ping.related.jobs.get().count
+
+        # this JT has two required arguments, verify that the CLI
+        # tells you what they are
+        result = cli([
+            'awx', 'job_templates', 'launch', str(job_template_ping.id)
+        ], auth=True)
+        assert result.returncode == 1
+        assert "'likes_chicken' value missing" in result.json['variables_needed_to_start']
+        assert "'favorite_color' value missing" in result.json['variables_needed_to_start']
+
+        result = cli([
+            'awx', 'job_templates', 'launch', str(job_template_ping.id),
+            '--extra_vars',
+            '{"likes_chicken": ["yes"], "favorite_color": "blue", "survey_var": "foo"}'
+        ], auth=True)
+        assert result.returncode == 0, format_error(result)
+        assert job_template_ping.related.jobs.get().count == before + 1
+        related_jobs = job_template_ping.related.jobs.get().results
+        extra_vars = json.loads(related_jobs[-1].extra_vars)
+        assert extra_vars['favorite_color'] == 'blue'
+        assert extra_vars['likes_chicken'] == ['yes']
+        assert extra_vars['intersection'] == 'survey'  # has a default
+        assert extra_vars['survey_var'] == 'foo'

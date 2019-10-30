@@ -78,6 +78,14 @@ resources_and_requirements = [
     ('labels', 'create', ['--name', '--organization'], 'required'),
     ('workflow_job_templates', 'create', ['--name'], 'required'),
     ('workflow_job_template_nodes', 'create', ['--workflow_job_template'], 'required'),
+    # launch arguments
+    ('job_templates', 'launch', ['--extra_vars', '--inventory',
+                                 '--scm_branch', '--limit', '--job_tags',
+                                 '--skip_tags', '--job_type', '--verbosity',
+                                 '--diff_mode', '--credentials',
+                                 '--credential_passwords'], 'optional'),
+    ('workflow_job_templates', 'launch', ['--extra_vars', '--inventory',
+                                          '--scm_branch', '--limit'], 'optional'),
     # associate/disassociate
     ('job_templates', 'associate', ['--credential', '--start_notification',
                                     '--success_notification',
