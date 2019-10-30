@@ -213,8 +213,9 @@ class TestWebhookReceiver(APITest):
         assert another_jt.webhook_credential == valid_credential.id
 
     @pytest.mark.parametrize('resource_with_webhook_configured_on_github', ['job template', 'workflow job template'], indirect=True)
-    def test_webhook_ping_event_github(self, v2, resource_with_webhook_configured_on_github):
+    def test_webhook_ping_event_github(self, v2, resource_with_webhook_configured_on_github, skip_if_openshift):
         """Test that Webhook creation sends a ping event and the job is launched
+        This test skips openshift since openshift is behind VPN so github/gitlab can't reach them
         Note: If the tests give 422 "validation failed" error,
         it is because the repository can not have more than 20 push event webhooks,
         although this might not happen since we are deleting the webhook after the test,
@@ -224,13 +225,13 @@ class TestWebhookReceiver(APITest):
         # Assert that the ping event launches the job (for github only)
         if jt.type == 'job_template':
             poll_until(lambda: v2.job_templates.get(id=jt.id).results.pop().related.jobs.get().count == 1, interval=5,
-                       timeout=600)
+                       timeout=60)
             jobs_triggered = v2.job_templates.get(id=jt.id).results.pop().related.jobs.get()
         else:
             poll_until(
                 lambda: v2.workflow_job_templates.get(id=jt.id).results.pop().related.workflow_jobs.get().count == 1,
                 interval=5,
-                timeout=600)
+                timeout=60)
             jobs_triggered = v2.workflow_job_templates.get(id=jt.id).results.pop().related.workflow_jobs.get()
         # Assert that a ping event sent after webhook creation launches the job
         assert len(jobs_triggered.results) == 1
@@ -241,8 +242,9 @@ class TestWebhookReceiver(APITest):
         assert job.webhook_service == "github"
 
     @pytest.mark.parametrize('resource_with_webhook_configured_on_github', ['job template', 'workflow job template'], indirect=True)
-    def test_webhook_push_event_github(self, v2, resource_with_webhook_configured_on_github, push_event_response_github):
+    def test_webhook_push_event_github(self, v2, resource_with_webhook_configured_on_github, push_event_response_github, skip_if_openshift):
         """Test that after creation of webhook, any push event to the repository launches the specific job
+        This test skips openshift since openshift is behind VPN so github/gitlab can't reach them
         Note: If the tests give 422 "validation failed" error,
         it is because the repository can not have more than 20 push event webhooks,
         although this might not happen since we are deleting the webhook after the test,
@@ -255,13 +257,13 @@ class TestWebhookReceiver(APITest):
         # Expected count of jobs is 2 since one is launched by the ping event and one launched by the push event
         if jt.type == 'job_template':
             poll_until(lambda: v2.job_templates.get(id=jt.id).results.pop().related.jobs.get().count == 2, interval=5,
-                       timeout=600)
+                       timeout=150)
             job = v2.job_templates.get(id=jt.id).results.pop().related.jobs.get().results.pop()
         else:
             poll_until(
                 lambda: v2.workflow_job_templates.get(id=jt.id).results.pop().related.workflow_jobs.get().count == 2,
                 interval=5,
-                timeout=600)
+                timeout=150)
             job = v2.workflow_job_templates.get(id=jt.id).results.pop().related.workflow_jobs.get().results.pop()
         # Assert the launched job details
         assert job.extra_vars != ""
@@ -270,10 +272,10 @@ class TestWebhookReceiver(APITest):
         job.wait_until_completed().assert_successful()
 
     @pytest.mark.parametrize('resource_with_webhook_configured_on_github', ['job template', 'workflow job template'], indirect=True)
-    def test_webhook_push_event_github_with_survey(self, v2, resource_with_webhook_configured_on_github, push_event_response_github):
+    def test_webhook_push_event_github_with_survey(self, v2, resource_with_webhook_configured_on_github, push_event_response_github, skip_if_openshift):
         """Test that if the JT/WFJT has survey enabled, push event triggers the job and is completed successfully,
         without giving 500 error as in the issue: https://github.com/ansible/awx/issues/5062
-        """
+        This test skips openshift since openshift is behind VPN so github/gitlab can't reach them"""
         # creates a webhook for the resource and gets the specific resource which has webhooks enabled
         jt = resource_with_webhook_configured_on_github
         survey = [dict(required=True,
@@ -288,11 +290,11 @@ class TestWebhookReceiver(APITest):
         # Assert that the push event launches the specific job
         # Expected count of jobs is 2 since one is launched by the ping event and one launched by the push event
         if jt.type == 'job_template':
-            poll_until(lambda: v2.job_templates.get(id=jt.id).results.pop().related.jobs.get().count == 2, interval=5, timeout=300)
+            poll_until(lambda: v2.job_templates.get(id=jt.id).results.pop().related.jobs.get().count == 2, interval=5, timeout=150)
             job = v2.job_templates.get(id=jt.id).results.pop().related.jobs.get().results.pop()
         else:
             poll_until(
-                lambda: v2.workflow_job_templates.get(id=jt.id).results.pop().related.workflow_jobs.get().count == 2, interval=5, timeout=300)
+                lambda: v2.workflow_job_templates.get(id=jt.id).results.pop().related.workflow_jobs.get().count == 2, interval=5, timeout=150)
             job = v2.workflow_job_templates.get(id=jt.id).results.pop().related.workflow_jobs.get().results.pop()
         # Assert that the launched job is successful
         assert job.extra_vars != ""
@@ -301,10 +303,10 @@ class TestWebhookReceiver(APITest):
         job.wait_until_completed().assert_successful()
 
     @pytest.mark.parametrize('resource_with_webhook_configured_on_gitlab', ['job template', 'workflow job template'], indirect=True)
-    def test_webhook_push_event_gitlab_with_survey(self, v2, resource_with_webhook_configured_on_gitlab, push_event_response_gitlab):
+    def test_webhook_push_event_gitlab_with_survey(self, v2, resource_with_webhook_configured_on_gitlab, push_event_response_gitlab, skip_if_openshift):
         """Test that if the JT/WFJT has survey enabled, push event triggers the job and is completed successfully,
         without giving 500 error as in the issue: https://github.com/ansible/awx/issues/5062
-        """
+        This test skips openshift since openshift is behind VPN so github/gitlab can't reach them"""
         # creates a webhook for the resource and gets the specific resource which has webhooks enabled
         jt = resource_with_webhook_configured_on_gitlab
         survey = [dict(required=True,
@@ -320,11 +322,11 @@ class TestWebhookReceiver(APITest):
         # Assert that the push event launches the specific job
         # Expected count of jobs is 1 since one is not launched by the ping event but only by the push event
         if jt.type == 'job_template':
-            poll_until(lambda: v2.job_templates.get(id=jt.id).results.pop().related.jobs.get().count == 1, interval=5, timeout=300)
+            poll_until(lambda: v2.job_templates.get(id=jt.id).results.pop().related.jobs.get().count == 1, interval=5, timeout=150)
             job = v2.job_templates.get(id=jt.id).results.pop().related.jobs.get().results.pop()
         else:
             poll_until(
-                lambda: v2.workflow_job_templates.get(id=jt.id).results.pop().related.workflow_jobs.get().count == 1, interval=5, timeout=300)
+                lambda: v2.workflow_job_templates.get(id=jt.id).results.pop().related.workflow_jobs.get().count == 1, interval=5, timeout=150)
             job = v2.workflow_job_templates.get(id=jt.id).results.pop().related.workflow_jobs.get().results.pop()
         # Assert that the launched job is successful
         assert job.extra_vars != ""
@@ -333,8 +335,9 @@ class TestWebhookReceiver(APITest):
         job.wait_until_completed().assert_successful()
 
     @pytest.mark.parametrize('resource_with_webhook_configured_on_gitlab', ['job template', 'workflow job template'], indirect=True)
-    def test_webhook_push_event_gitlab(self, v2, resource_with_webhook_configured_on_gitlab, push_event_response_gitlab):
-        """Test that after creation of webhook, any push event to the repository launches the specific job"""
+    def test_webhook_push_event_gitlab(self, v2, resource_with_webhook_configured_on_gitlab, push_event_response_gitlab, skip_if_openshift):
+        """Test that after creation of webhook, any push event to the repository launches the specific job
+        This test skips openshift since openshift is behind VPN so github/gitlab can't reach them"""
         # creates a webhook for the resource and gets the specific resource which has webhooks enabled
         jt = resource_with_webhook_configured_on_gitlab
         # Commit to the repository on which the webhook is configured
@@ -343,13 +346,13 @@ class TestWebhookReceiver(APITest):
         # Expected count of jobs is 1 which is launched by the push event, ping event does not launch a job
         if jt.type == 'job_template':
             poll_until(lambda: v2.job_templates.get(id=jt.id).results.pop().related.jobs.get().count == 1, interval=5,
-                       timeout=600)
+                       timeout=150)
             jobs = v2.job_templates.get(id=jt.id).results.pop().related.jobs.get()
         else:
             poll_until(
                 lambda: v2.workflow_job_templates.get(id=jt.id).results.pop().related.workflow_jobs.get().count == 1,
                 interval=5,
-                timeout=600)
+                timeout=150)
             jobs = v2.workflow_job_templates.get(id=jt.id).results.pop().related.workflow_jobs.get()
         assert len(jobs.results) == 1
         job = jobs.results.pop()
@@ -360,8 +363,9 @@ class TestWebhookReceiver(APITest):
         job.wait_until_completed().assert_successful()
 
     @pytest.mark.parametrize('resource_with_webhook_configured_on_github', ['all'], indirect=True)
-    def test_webhook_on_multiple_resources_github(self, v2, resource_with_webhook_configured_on_github, push_event_response_github):
-        """Test that if multiple resources have webhook enabled for the same repository on github, a push event launches all the relevant jobs"""
+    def test_webhook_on_multiple_resources_github(self, v2, resource_with_webhook_configured_on_github, push_event_response_github, skip_if_openshift):
+        """Test that if multiple resources have webhook enabled for the same repository on github, a push event launches all the relevant jobs
+        This test skips openshift since openshift is behind VPN so github/gitlab can't reach them"""
         # creates a webhook for both JT and WFJT that have webhooks configured on the same repository
         jt, wfjt = resource_with_webhook_configured_on_github
         # Commit to the repository on which the webhook is configured
@@ -369,12 +373,12 @@ class TestWebhookReceiver(APITest):
         # Assert that the ping event and push event launches the all resources that have webhook enabled
         # Expected count of jobs is 2 since one is launched by the ping event and one launched by the push event
         poll_until(lambda: v2.job_templates.get(id=jt.id).results.pop().related.jobs.get().count == 2, interval=5,
-                   timeout=600)
+                   timeout=150)
         jt_job = v2.job_templates.get(id=jt.id).results.pop().related.jobs.get().results.pop()
         poll_until(
             lambda: v2.workflow_job_templates.get(id=wfjt.id).results.pop().related.workflow_jobs.get().count == 2,
             interval=5,
-            timeout=600)
+            timeout=150)
         wfjt_job = v2.workflow_job_templates.get(id=wfjt.id).results.pop().related.workflow_jobs.get().results.pop()
         assert jt_job.extra_vars != ""
         assert json.loads(jt_job.extra_vars)['tower_webhook_event_type'] == 'push'
@@ -384,8 +388,9 @@ class TestWebhookReceiver(APITest):
         wfjt_job.wait_until_completed().assert_successful()
 
     @pytest.mark.parametrize('resource_with_webhook_configured_on_gitlab', ['all'], indirect=True)
-    def test_webhook_on_multiple_resources_gitlab(self, v2, resource_with_webhook_configured_on_gitlab, push_event_response_gitlab):
-        """Test that if multiple resources have webhook enabled for the same repository on gitlab, a push event launches all the relevant jobs"""
+    def test_webhook_on_multiple_resources_gitlab(self, v2, resource_with_webhook_configured_on_gitlab, push_event_response_gitlab, skip_if_openshift):
+        """Test that if multiple resources have webhook enabled for the same repository on gitlab, a push event launches all the relevant jobs
+        This test skips openshift since openshift is behind VPN so github/gitlab can't reach them"""
         # creates a webhook for both JT and WFJT that have webhooks configured on the same repository
         jt, wfjt = resource_with_webhook_configured_on_gitlab
         # Commit to the repository on which the webhook is configured
@@ -393,12 +398,12 @@ class TestWebhookReceiver(APITest):
         # Assert that the ping event and push event launches the all resources that have webhook enabled
         # Expected count of jobs is 2 since one is launched by the ping event and one launched by the push event
         poll_until(lambda: v2.job_templates.get(id=jt.id).results.pop().related.jobs.get().count == 1, interval=5,
-                   timeout=600)
+                   timeout=150)
         jt_job = v2.job_templates.get(id=jt.id).results.pop().related.jobs.get().results.pop()
         poll_until(
             lambda: v2.workflow_job_templates.get(id=wfjt.id).results.pop().related.workflow_jobs.get().count == 1,
             interval=5,
-            timeout=600)
+            timeout=150)
         wfjt_job = v2.workflow_job_templates.get(id=wfjt.id).results.pop().related.workflow_jobs.get().results.pop()
         assert jt_job.extra_vars != ""
         assert json.loads(jt_job.extra_vars)['tower_webhook_event_type'] == 'Push Hook'
