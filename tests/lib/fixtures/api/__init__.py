@@ -622,8 +622,10 @@ def api_settings_logging_pg(api_settings_pg):
 
 
 @pytest.fixture(scope='session')
-def tower_baseurl(is_docker):
+def tower_baseurl(is_docker, is_openshift_cluster):
     base_url = urlparse(qe_config.base_url)
     scheme = 'http' if base_url.scheme is None else base_url.scheme
-    hostname = base_url.hostname if not is_docker else 'towerhost'
+    hostname = base_url.hostname
+    if is_docker and not is_openshift_cluster:
+        hostname = 'towerhost'
     return '{0}://{1}'.format(scheme, hostname)
