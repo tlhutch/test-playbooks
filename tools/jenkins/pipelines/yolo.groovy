@@ -183,8 +183,8 @@ pipeline {
         stage('Build Information') {
             steps {
                 script {
-                    if (params.TOWER_BRANCH == 'devel' && params.TOWER_PACKAGING_BRANCH == 'devel') {
-                        NIGHTLY_REPO_DIR = 'devel'
+                    if (params.TOWER_BRANCH == params.TOWER_PACKAGING_BRANCH) {
+                        NIGHTLY_REPO_DIR = "${params.TOWER_BRANCH}"
                     } else {
                         NIGHTLY_REPO_DIR = "tower_${params.TOWER_BRANCH}_packaging_${params.TOWER_PACKAGING_BRANCH}"
                     }
