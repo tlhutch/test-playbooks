@@ -46,6 +46,14 @@ title: '[Tower Version] Title of the feature'
 
 <!-- In case you find any blockers use this section to track them. -->
 
+### Dependencies
+- Does this feature have any external dependencies?
+- What are their deadlines?
+- What are the contacts for that team?
+- Does testing this feature require new infrastructure?
+- Does testing this feature require new automation (e.g. new way to deploy tower)
+
+
 ## Draft Verification Criteria
 
 <!--
