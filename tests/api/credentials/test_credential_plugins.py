@@ -1091,7 +1091,7 @@ class TestCyberArkAimCredentials(APITest):
         # create a credential w/ cyberark aim creds
         cred_type = v2.credential_types.get(
             managed_by_tower=True,
-            name='CyberArk AIM Secret Lookup'
+            name='CyberArk AIM Central Credential Provider Lookup'
         ).results.pop()
         inputs = {
             'url': url,
