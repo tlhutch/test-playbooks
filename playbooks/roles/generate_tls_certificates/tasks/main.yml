@@ -38,6 +38,12 @@
     path: '{{ tls_folder }}/{{ item }}.csr'
     privatekey_path: '{{ tls_folder }}/{{ item }}.key'
     common_name: localhost
+    subject_alt_name: 'DNS:localhost'
+    key_usage:
+      - keyEncipherment
+      - dataEncipherment
+    extended_key_usage:
+      - serverAuth
   loop: '{{ certificates_to_generate }}'
   when: deployment_type == 'standalone'
 
@@ -45,7 +51,13 @@
   openssl_csr:
     path: '{{ tls_folder }}/tower.csr'
     privatekey_path: '{{ tls_folder }}/tower.key'
+    common_name: '{{ ansible_hostname }}'
     subject_alt_name: "{{ groups['tower'] | map('regex_replace', '^', 'DNS:') | list | join(',')}}"
+    key_usage:
+      - keyEncipherment
+      - dataEncipherment
+    extended_key_usage:
+      - serverAuth
   when: deployment_type == 'cluster'
 
 - name: Generate CSRs cluster (pgsql)
@@ -83,6 +95,7 @@
     provider: ownca
     ownca_path: '{{ tls_folder }}/root.crt'
     ownca_privatekey_path: '{{ tls_folder }}/root.key'
+    ownca_not_after: '+824d'
   loop: '{{ certificates_to_generate }}'
 
 - name: Cleanup CA CSR files
