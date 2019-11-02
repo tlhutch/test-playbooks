@@ -58,7 +58,7 @@
   tasks:
     - include_role:
         name: ansible_runner
-      when: awx_ansible_runner_url is defined and awx_ansible_runner_url != '' and ansible_distribution != 'OracleLinux'
+      when: awx_ansible_runner_url is defined and awx_ansible_runner_url != ''
 
 - name: Remove IPV4
   hosts: tower

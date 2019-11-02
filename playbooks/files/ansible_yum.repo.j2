@@ -1,6 +1,6 @@
 [ansible-nightly]
 name=Nightly Ansible Repository - $releasever $basearch
-{% if ansible_distribution in ['RedHat','CentOS','OracleLinux'] %}
+{% if ansible_distribution in ['RedHat','CentOS'] %}
 baseurl={{ ansible_nightly_repo }}/rpm/epel-{{ ansible_distribution_major_version }}-$basearch
 {% elif ansible_distribution == 'Fedora' %}
 baseurl={{ ansible_nightly_repo }}/rpm/fedora-$releasever-$basearch
