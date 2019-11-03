@@ -174,6 +174,8 @@ class TestCloudInventoryUpdate(APITest):
         # https://github.com/ansible/ansible/pull/54060
         azure_bug = True
         constructed_groups = assert_expected_hostvars(inv_source, inv_update, cloud_inventory_hostvars, cloud_hostvars_that_create_groups, azure_bug)
+        # Issue that require this to be done: https://github.com/ansible/awx/issues/5219
+        constructed_groups = (group for group in constructed_groups if ' ' not in group)
         assert_expected_hostgroups(inv_source, inv_update, cloud_inventory_hostgroups, constructed_groups)
         assert_expected_hostnames(inv_source, cloud_hostvars_that_create_host_names)
 
