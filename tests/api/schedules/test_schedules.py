@@ -267,7 +267,7 @@ class TestSchedules(SchedulesTest):
 
     def test_schedule_preview_accounts_for_repeated_dst_hour(self, v2):
         schedules = v2.schedules.get()
-        dst_ends = ('20191103', '20211107', '20221106', '20231105',
+        dst_ends = ('20211107', '20221106', '20231105',
                     '20241103', '20251102', '20261101', '20271107',
                     '20281105', '20291104')
         for dst_end in dst_ends:
