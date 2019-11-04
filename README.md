@@ -185,7 +185,8 @@ awxkit is a library for interacting with [AWX's](https://github.com/ansible/awx)
 1. AWX instance.
 2. Python 3.6 virtual environment (it probably work on Python 3.6+)
 3. Recommended: Valid [tower-qa credential file](https://github.com/ansible/tower-qa/blob/master/scripts/create_credentials.py).
-4. Recommended: [IPython](https://pypi.python.org/pypi/ipython/5.5.0)
+4. Recommended: Valid [projects yml file](https://github.com/ansible/tower-qa/blob/devel/config/projects.yml) for creating projects with default scm urls
+5. Recommended: [IPython](https://pypi.python.org/pypi/ipython/5.5.0)
 
 
 # Installation
@@ -216,7 +217,7 @@ mode, which is good for development.
 awxkit's interface was designed to blend web crawling and AWX API usage.  It is accessible as a standard python package, but will likely be most helpful in a python repl via `akit`:
 
 ```bash
-whoiam$ AWXKIT_USER=username AWXKIT_USER_PASSWORD=password AWXKIT_BASE_URL=https://${AWX_HOST} akit
+whoiam$ AWXKIT_USER=username AWXKIT_USER_PASSWORD=password AWXKIT_BASE_URL=https://${AWX_HOST} akit -c path/to/credentials.yml -p path/to/projects.yml
 ```
 This will load a basic user session as the specified user on the target system.  Immediately accessible are two page objects `root` and `v2`:
 
