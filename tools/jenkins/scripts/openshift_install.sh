@@ -15,6 +15,11 @@ OPENSHIFT_PASS=${OPENSHIFT_PASS:-''}
 OPENSHIFT_PROJECT=${OPENSHIFT_PROJECT:-"tower-qe-$(date +'%s')"}
 OPENSHIFT_ROUTE=${OPENSHIFT_ROUTE:-"https://ansible-tower-web-svc-${OPENSHIFT_PROJECT}.openshift.ansible.eng.rdu2.redhat.com"}
 
+PG_HOSTNAME=${PG_HOSTNAME:-''}
+PG_PORT=${PG_PORT:-'5432'}
+PG_USERNAME=${PG_USERNAME:-'tower'}
+PG_PASSWORD=${PG_PASSWORD:-'towerpass'}
+PG_DATABASE=${PG_DATABASE:-'tower'}
 
 if [[ -z "${OPENSHIFT_PASS}" ]]; then
     >&2 echo "openshift_install.sh: Environment variable OPENSHIFT_PASS must be specified"
@@ -32,7 +37,8 @@ openshift_login
 
 if [[ "${AWX_UPGRADE}" == false ]]; then
     openshift_bootstrap_project "${OPENSHIFT_PROJECT}"
-    cat << EOF > pvc.yml
+    if [[ -z "${PG_HOSTNAME}" ]] ; then
+        cat << EOF > pvc.yml
 ---
 kind: PersistentVolumeClaim
 apiVersion: v1
@@ -47,7 +53,8 @@ spec:
     requests:
       storage: 2Gi
 EOF
-    oc create -f pvc.yml
+        oc create -f pvc.yml
+    fi
 
 fi
 
@@ -127,9 +134,11 @@ openshift_project: ${OPENSHIFT_PROJECT}
 openshift_user: jenkins
 openshift_skip_tls_verify: true
 admin_password: ${AWX_ADMIN_PASSWORD}
-pg_username: tower
-pg_password: towerpass
 pg_admin_password: towerpass
+pg_database: ${PG_DATABASE}
+pg_password: ${PG_PASSWORD}
+pg_port: ${PG_PORT}
+pg_username: ${PG_USERNAME}
 secret_key: 'towersecret'
 rabbitmq_use_ssl: ${AWX_USE_TLS}
 rabbitmq_password: 'password'
@@ -149,6 +158,11 @@ kubernetes_memcached_image: ${MEMCACHED_CONTAINER_IMAGE}
 kubernetes_memcached_version: ${MEMCACHED_CONTAINER_IMAGE_VERSION}
 EOF
 
+if [[ -n "${PG_HOSTNAME}" ]] ; then
+    cat <<EOF >> vars.yml
+pg_hostname: ${PG_HOSTNAME}
+EOF
+fi
 
 cat << EOF > ssl_setup.yml
 - hosts: all

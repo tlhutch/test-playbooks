@@ -45,6 +45,31 @@ pipeline {
             description: 'Override the URL from which the Tower Memcached container image will be pulled from. (Empty will pull the proper one based on TOWER_VERSION)',
             defaultValue: ''
         )
+        string(
+            name: 'PG_HOSTNAME',
+            description: 'Provide a database host. If none provided, an ephemeral database will be created in openshift.',
+            defaultValue: ''
+        )
+        string(
+            name: 'PG_PORT',
+            description: 'Provide the database port if using pre-configured database with PG_HOST',
+            defaultValue: ''
+        )
+        string(
+            name: 'PG_DATABASE',
+            description: 'Provide the name of the database in the postgres instance if using pre-configured database with PG_HOST',
+            defaultValue: ''
+        )
+        string(
+            name: 'PG_USERNAME',
+            description: 'Override default database user. If nothing provided, default will be used.',
+            defaultValue: ''
+        )
+        string(
+            name: 'PG_PASSWORD',
+            description: 'Override default database user password. If nothing provided, default will be used.',
+            defaultValue: ''
+        )
         choice(
             name: 'CLEAN_DEPLOYMENT_AFTER_JOB_RUN',
             description: 'Should the deployment be removed after job is run ?',
@@ -113,6 +138,11 @@ Tower Memcached Container Image: ${params.MEMCACHED_CONTAINER_IMAGE}"""
             steps {
                 withCredentials([string(credentialsId: 'awx_admin_password', variable: 'AWX_ADMIN_PASSWORD')]) {
                     withEnv(["OPENSHIFT_PASS=${AWX_ADMIN_PASSWORD}",
+                             "PG_PASSWORD=${PG_PASSWORD}",
+                             "PG_HOSTNAME=${PG_HOSTNAME}",
+                             "PG_USERNAME=${PG_USERNAME}",
+                             "PG_DATABASE=${PG_DATABASE}",
+                             "PG_PORT=${PG_PORT}",
                              "ANSIBLE_FORCE_COLOR=true"]) {
                         sh './tools/jenkins/scripts/openshift_install.sh'
                     }
