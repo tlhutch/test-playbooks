@@ -5,6 +5,7 @@ set -euxo pipefail
 VARS_FILE=${VARS_FILE:-playbooks/vars.yml}
 AWX_UPGRADE=${AWX_UPGRADE:-false}
 AWX_USE_TLS=${AWX_USE_TLS:-false}
+AW_REPO_URL=${AW_REPO_URL:-''}
 
 TOWER_CONTAINER_IMAGE=${TOWER_CONTAINER_IMAGE:-''}
 MESSAGING_CONTAINER_IMAGE=${MESSAGING_CONTAINER_IMAGE:-''}
@@ -54,8 +55,10 @@ mkdir -p artifacts
 echo "${OPENSHIFT_PROJECT}" > artifacts/openshift_project
 cp "${VARS_FILE}" artifacts/vars.yml
 
-AW_REPO_URL="$(retrieve_value_from_vars_file "${VARS_FILE}" aw_repo_url)\
+if [[ -z "${AW_REPO_URL}" ]]; then
+    AW_REPO_URL="$(retrieve_value_from_vars_file "${VARS_FILE}" aw_repo_url)\
 $(retrieve_value_from_vars_file "${VARS_FILE}" awx_setup_path)"
+fi
 AWX_ADMIN_PASSWORD="$(retrieve_value_from_vars_file "${VARS_FILE}" admin_password)"
 TOWER_VERSION="$(retrieve_value_from_vars_file "${VARS_FILE}" tower_version)"
 
