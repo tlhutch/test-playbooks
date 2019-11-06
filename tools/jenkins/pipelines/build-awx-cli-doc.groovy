@@ -125,6 +125,7 @@ ansible-playbook -i tools/ansible/inventory tools/ansible/build-awx-cli-docs.yml
   -e tower_host=$TOWER_URL \
   -e tower_username=admin \
   -e tower_password=fo0m4nchU \
+  -e tower_branch=$branch_name \
   -e product_docs_branch=$product_docs_branch_name
 """
                     }
