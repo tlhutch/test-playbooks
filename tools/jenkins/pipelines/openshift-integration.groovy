@@ -11,6 +11,10 @@ pipeline {
                       '3.4.6', '3.4.5', '3.4.4', '3.4.3', '3.4.2', '3.4.1', '3.4.0',
                       '3.3.8', '3.3.7', '3.3.6', '3.3.5', '3.3.4', '3.3.3', '3.3.2', '3.3.1', '3.3.0']
         )
+        string(
+            name: 'AW_REPO_URL',
+            description: 'Specify the URL of the OpenShift Installer (Empty will pull the proper one based on TOWER_VERSION)'
+        )
         choice(
             name: 'AWX_USE_TLS',
             description: 'Should RabbitMQ be deployed with TLS enabled (certificates are generated on the fly)',
@@ -95,6 +99,7 @@ Tower Memcached Container Image: ${params.MEMCACHED_CONTAINER_IMAGE}"""
                     withEnv(["SCENARIO=openshift",
                              "OPENSHIFT_PASS=${AWX_ADMIN_PASSWORD}",
                              "AWX_USE_TLS=${AWX_USE_TLS}",
+                             "AW_REPO_URL=${AW_REPO_URL}",
                              "AWX_ADMIN_PASSWORD=${AWX_ADMIN_PASSWORD}",
                              "TOWER_VERSION=${params.TOWER_VERSION}"]) {
                         sh 'ansible-vault decrypt --vault-password-file="${VAULT_FILE}" config/credentials.vault --output=config/credentials.yml'
