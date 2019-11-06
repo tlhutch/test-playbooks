@@ -186,7 +186,7 @@ awxkit is a library for interacting with [AWX's](https://github.com/ansible/awx)
 2. Python 3.6 virtual environment (it probably work on Python 3.6+)
 3. Recommended: Valid [tower-qa credential file](https://github.com/ansible/tower-qa/blob/master/scripts/create_credentials.py).
 4. Recommended: Valid [projects yml file](https://github.com/ansible/tower-qa/blob/devel/config/projects.yml) for creating projects with default scm urls
-5. Recommended: [IPython](https://pypi.python.org/pypi/ipython/5.5.0)
+5. Recommended: [IPython](https://pypi.org/project/ipython/)
 
 
 # Installation
