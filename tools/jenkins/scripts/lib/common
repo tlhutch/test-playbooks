@@ -89,11 +89,9 @@ function setup_env_based_on_deployment_scenario {
            VARS_FILE=playbooks/test_runner_vars.yml
            IMAGE_VARS=playbooks/images-test-runner.yml
            INSTANCE_NAME_PREFIX=test-runner-${PLATFORM}-${INSTANCE_NAME_PREFIX}
-           # If the tower platform is RHEL 8, deploy a RHEL 8 test-runner,
+           # If the tower platform is RHEL 8.X, deploy a RHEL 8.X test-runner,
            # otherwise just deploy a RHEL 7.7 test-runner
-           # We might want to make this better so that we dont have to change
-           # this every time there's a new RHEL 8 minor release
-           if [[ "$PLATFORM" != 'rhel-8.0-x86_64' ]] ; then
+           if [[ ! "$PLATFORM" =~ 'rhel-8' ]] ; then
                PLATFORM='rhel-7.7-x86_64'
            fi
            AWX_IPV6_DEPLOYMENT=no
@@ -143,7 +141,7 @@ function retrieve_awx_setup_path_based_on_version_and_scenario {
     bundle=$4
     platform=$5
 
-    if [[ "${platform}" == "rhel-8.0-x86_64" ]]; then
+    if [[ "${platform}" =~ 'rhel-8' ]]; then
         _platform='el8'
     else
         _platform='el7'
