@@ -8,14 +8,13 @@ user_data_install_py2: &install_py2
   "{{ lookup('file', 'files/install_py2.sh') }}"
 
 ec2_images:
-    - {'name': 'centos-7.latest-x86_64', 'user': 'centos',      'id': 'ami-9887c6e7', 'type': 'm5.large', 'groups': 'tower,instance_group_non_default', 'security_group': 'Tower' }
-    - {'name': 'rhel-7.4-x86_64',        'user': 'ec2-user',    'id': 'ami-7a96b801', 'type': 'm5.large', 'groups': 'tower,instance_group_non_default', 'security_group': 'Tower' }
-    - {'name': 'rhel-7.5-x86_64',        'user': 'ec2-user',    'id': 'ami-0d70a070', 'type': 'm5.large', 'groups': 'tower,instance_group_non_default', 'security_group': 'Tower' }
-    - {'name': 'rhel-7.6-x86_64',        'user': 'ec2-user',    'id': 'ami-06fd194eff2ab1451', 'type': 'm5.large', 'groups': 'tower,instance_group_non_default', 'security_group': 'Tower' }
-    - {'name': 'rhel-7.7-x86_64',        'user': 'ec2-user',    'id': 'ami-00936483548a6d57f', 'type': 'm5.large', 'groups': 'tower,instance_group_non_default', 'security_group': 'Tower' }
-    - {'name': 'rhel-8.0-x86_64',        'user': 'ec2-user',    'id': 'ami-098bb5d92c8886ca1', 'type': 'm5.large', 'groups': 'tower,instance_group_non_default', 'security_group': 'Tower' }
-    - {'name': 'rhel-8.1-x86_64',        'user': 'ec2-user',    'id': 'ami-002cdac160d085b42', 'type': 'm5.large', 'groups': 'tower,instance_group_non_default', 'security_group': 'Tower'}
-    - {'name': 'ol-7.6-x86_64',          'user': 'ec2-user',    'id': 'ami-06e5c2a0f634abeb1', 'type': 'm5.large', 'groups': 'tower,instance_group_non_default', 'security_group': 'Tower' }
+  - {'name': 'centos-7.latest-x86_64', 'user': 'centos', 'id': 'ami-9887c6e7', 'type': 'm5.large', 'groups': 'tower,instance_group_non_default', 'security_group': 'Tower'}
+  - {'name': 'rhel-7.4-x86_64', 'user': 'ec2-user', 'id': 'ami-7a96b801', 'type': 'm5.large', 'groups': 'tower,instance_group_non_default', 'security_group': 'Tower'}
+  - {'name': 'rhel-7.5-x86_64', 'user': 'ec2-user', 'id': 'ami-0d70a070', 'type': 'm5.large', 'groups': 'tower,instance_group_non_default', 'security_group': 'Tower'}
+  - {'name': 'rhel-7.6-x86_64', 'user': 'ec2-user', 'id': 'ami-06fd194eff2ab1451', 'type': 'm5.large', 'groups': 'tower,instance_group_non_default', 'security_group': 'Tower'}
+  - {'name': 'rhel-7.7-x86_64', 'user': 'ec2-user', 'id': 'ami-00936483548a6d57f', 'type': 'm5.large', 'groups': 'tower,instance_group_non_default', 'security_group': 'Tower'}
+  - {'name': 'rhel-8.0-x86_64', 'user': 'ec2-user', 'id': 'ami-098bb5d92c8886ca1', 'type': 'm5.large', 'groups': 'tower,instance_group_non_default', 'security_group': 'Tower'}
+  - {'name': 'rhel-8.1-x86_64', 'user': 'ec2-user', 'id': 'ami-002cdac160d085b42', 'type': 'm5.large', 'groups': 'tower,instance_group_non_default', 'security_group': 'Tower'}
 
 ec2_security_groups:
     - name: Tower
