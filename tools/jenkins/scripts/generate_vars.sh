@@ -60,7 +60,7 @@ fi
 INSTANCE_NAME_PREFIX=$(generate_instance_name_prefix "${INSTANCE_NAME_PREFIX}" "${PLATFORM}" "${ANSIBLE_VERSION}" "${TOWER_VERSION}")
 
 # FIXME(spredzy): Remove the below code when stable-2.8 is in epel 8
-if [[ "${PLATFORM}" == "rhel-8.0-x86_64" ]]; then
+if [[ "${PLATFORM}" =~ "rhel-8" ]]; then
     ANSIBLE_INSTALL_METHOD='none'
 fi
 

@@ -6,6 +6,7 @@ create_ec2_vpc_subnet_id: subnet-9cdddbb0
 ec2_images:
     - {'name': 'rhel-7.7-x86_64',        'user': 'ec2-user',    'id': 'ami-00936483548a6d57f', 'type': 'm5.large', 'groups': 'test-runner', 'security_group': 'Tower-TestRunner' }
     - {'name': 'rhel-8.0-x86_64',        'user': 'ec2-user',    'id': 'ami-098bb5d92c8886ca1', 'type': 'm5.large', 'groups': 'test-runner', 'security_group': 'Tower-TestRunner' }
+    - {'name': 'rhel-8.1-x86_64',        'user': 'ec2-user',    'id': 'ami-002cdac160d085b42', 'type': 'm5.large', 'groups': 'test-runner', 'security_group': 'Tower-TestRunner'}
 
 ec2_security_groups:
     - name: Tower-TestRunner
