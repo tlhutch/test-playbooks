@@ -624,7 +624,7 @@ class Test_Ansible_Tower_Modules(APITest):
 
         job = v2.jobs.get(id=job_id1).results.pop()
         assert job.summary_fields.job_template.name == jt_name
-        assert job.status == "canceled"
+        job.assert_status("canceled")
 
         # Launch another job
         self.run_tower_module('tower_job_launch', {
@@ -646,7 +646,7 @@ class Test_Ansible_Tower_Modules(APITest):
 
         job = v2.jobs.get(id=job_id2).results.pop()
         assert job.summary_fields.job_template.name == jt_name
-        assert job.status == "successful"
+        job.assert_status("successful")
 
         # List jobs
         # I'm not entirely sure how to test this better
@@ -654,7 +654,7 @@ class Test_Ansible_Tower_Modules(APITest):
                 is_docker, v2, request, ansible_collections_path, venv_path(python_venv_name)).wait_until_completed()
 
         # Basic test
-        assert job_output.status == 'successful'
+        job_output.assert_status('successful')
 
         # Remove our job template
         self.run_tower_module('tower_job_template', {
