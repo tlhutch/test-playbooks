@@ -1,6 +1,13 @@
 ---
 # Download ansible-tower-setup and run the setup playbook
 
+- name: Update systemd
+  yum:
+    name: systemd*
+    state: latest
+    update_cache: true
+    update_only: true
+
 - name: remove any previously extracted tarball files
   file:
     path: '/tmp/setup'
