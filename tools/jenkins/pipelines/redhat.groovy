@@ -149,14 +149,14 @@ Scope selected: ${params.SCOPE}"""
             steps {
                 script {
                     def tasks = [:]
-                    def oses = ['rhel-7.4-x86_64', 'rhel-7.5-x86_64', 'rhel-7.6-x86_64', 'rhel-7.7-x86_64', 'rhel-8.0-x86_64', 'centos-7.latest-x86_64']
+                    def oses = ['rhel-7.4-x86_64', 'rhel-7.5-x86_64', 'rhel-7.6-x86_64', 'rhel-7.7-x86_64', 'rhel-8.0-x86_64', 'rhel-8.1-x86_64', 'centos-7.latest-x86_64']
 
                     if (params.SCOPE == 'latest' && params.TOWER_VERSION ==~ /3.[3-4].[0-9]*/) {
                         oses = ['rhel-7.7-x86_64']
                     } else if (params.SCOPE == 'latest') {
-                        oses = ['rhel-7.7-x86_64', 'rhel-8.0-x86_64']
+                        oses = ['rhel-7.7-x86_64', 'rhel-8.1-x86_64']
                     } else {
-                        oses = ['rhel-7.4-x86_64', 'rhel-7.5-x86_64', 'rhel-7.6-x86_64', 'rhel-7.7-x86_64', 'rhel-8.0-x86_64', 'centos-7.latest-x86_64']
+                        oses = ['rhel-7.4-x86_64', 'rhel-7.5-x86_64', 'rhel-7.6-x86_64', 'rhel-7.7-x86_64', 'rhel-8.0-x86_64', 'rhel-8.1-x86_64', 'centos-7.latest-x86_64']
                     }
 
                     for (int i=0;i<oses.size(); i++) {

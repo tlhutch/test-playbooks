@@ -70,7 +70,7 @@ pipeline {
                         build(
                             job: 'Test_Tower_Yolo_Express',
                             parameters: [
-                                string(name: 'PLATFORM', value: 'rhel-8.0-x86_64'),
+                                string(name: 'PLATFORM', value: 'rhel-8.1-x86_64'),
                                 string(name: 'PRODUCT', value: 'tower'),
                                 string(name: 'COMMENTS', value: "ansible/ansible-runner el8/standalone"),
                                 string(name: 'RUNNER_FORK', value: params.RUNNER_FORK),
@@ -89,7 +89,7 @@ pipeline {
                         build(
                             job: 'Test_Tower_Yolo_Express',
                             parameters: [
-                                string(name: 'PLATFORM', value: 'rhel-8.0-x86_64'),
+                                string(name: 'PLATFORM', value: 'rhel-8.1-x86_64'),
                                 string(name: 'PRODUCT', value: 'tower'),
                                 string(name: 'SCENARIO', value: 'cluster'),
                                 string(name: 'COMMENTS', value: "ansible/ansible-runner el8/cluster"),

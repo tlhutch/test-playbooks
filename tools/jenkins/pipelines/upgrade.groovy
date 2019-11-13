@@ -35,7 +35,7 @@ pipeline {
             name: 'PLATFORM',
             description: 'The OS to install the Tower instance on',
             choices: ['rhel-7.7-x86_64', 'rhel-7.6-x86_64', 'rhel-7.5-x86_64', 'rhel-7.4-x86_64',
-                      'rhel-8.0-x86_64', 'centos-7.latest-x86_64',
+                      'rhel-8.1-x86_64', 'rhel-8.0-x86_64', 'centos-7.latest-x86_64',
                       'ubuntu-16.04-x86_64', 'ubuntu-14.04-x86_64']
         )
         choice(
