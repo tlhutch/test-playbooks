@@ -153,6 +153,13 @@ Scope selected: ${params.SCOPE}"""
                                 channel: "#ship_it",
                                 message: msg
                             )
+                            slackSend(
+                                botUser: false,
+                                color: color,
+                                teamDomain: "ansible",
+                                channel: "#fortheloveofthegreen",
+                                message: msg
+                            )
                         }
                     }
                 }
