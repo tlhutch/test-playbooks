@@ -13,7 +13,8 @@ pipeline {
         )
         string(
             name: 'AW_REPO_URL',
-            description: 'Specify the URL of the OpenShift Installer (Empty will pull the proper one based on TOWER_VERSION)'
+            description: 'Specify the URL of the OpenShift Installer (Empty will pull the proper one based on TOWER_VERSION)',
+            defaultValue: ''
         )
         choice(
             name: 'AWX_USE_TLS',
