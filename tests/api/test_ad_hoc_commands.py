@@ -124,7 +124,12 @@ class Test_Ad_Hoc_Commands_Host(APITest):
         host = factories.host(name='test_host', inventory=inventory)
 
         ahc = factories.ad_hoc_command(inventory=inventory).wait_until_completed()
-        assert set(event.host for event in ahc.get_related('events').results) == set([None, host.id])
+        events = ahc.get_related('events').results
+        assert set(event.host for event in events) == set([None, host.id])
+
+        assert set([
+            'runner_on_ok', 'runner_on_start', 'playbook_on_stats'
+        ]) == set([event['event'] for event in events if event['event'] != 'verbose'])
 
 
 @pytest.mark.usefixtures('authtoken')
