@@ -120,63 +120,89 @@
 
 ## Verifications steps
 
-### Install (@elyezer)
+### Install
 
-  * [ ] Standalone (automated)
-  * [ ] Standalone Bundle (automated)
-  * [ ] Traditional Cluster with isolated nodes (automated)
-  * [ ] Traditional Cluster Bundle with isolated nodes (automated)
-  * [ ] OpenShift Cluster (automated)
+  * [x] Standalone (automated)
+    * [x] [RHEL 7.6](http://jenkins.ansible.eng.rdu2.redhat.com/job/Pipelines/job/integration-pipeline/6732/)
+    * [x] [RHEL 8.0](http://jenkins.ansible.eng.rdu2.redhat.com/job/Pipelines/job/integration-pipeline/6724/)
+  * [x] Standalone Bundle (automated)
+    * [x] [RHEL 7.6](http://jenkins.ansible.eng.rdu2.redhat.com/job/Pipelines/job/integration-pipeline/6735/)
+    * [x] [RHEL 8.0](http://jenkins.ansible.eng.rdu2.redhat.com/job/Pipelines/job/integration-pipeline/6727/)
+  * [x] Traditional Cluster with isolated nodes (automated)
+    * [x] [RHEL 7.6](http://jenkins.ansible.eng.rdu2.redhat.com/job/Pipelines/job/integration-pipeline/6745/)
+    * [x] [RHEL 8.0](http://jenkins.ansible.eng.rdu2.redhat.com/job/Pipelines/job/integration-pipeline/6738/)
+  * [x] Traditional Cluster Bundle with isolated nodes (automated)
+    * [x] [RHEL 7.6](http://jenkins.ansible.eng.rdu2.redhat.com/job/Pipelines/job/integration-pipeline/6750/)
+    * [x] [RHEL 8.0](http://jenkins.ansible.eng.rdu2.redhat.com/job/Pipelines/job/integration-pipeline/6739/)
+  * [x] [OpenShift Cluster (automated)](http://jenkins.ansible.eng.rdu2.redhat.com/job/Pipelines/job/openshift-integration-pipeline/123/)
 
 
-### Upgrade (@elyezer)
+### Upgrade
 
 
-  * OpenShift 3.4.x to Release: Use this [Pipeline](http://jenkins.ansible.eng.rdu2.redhat.com/job/Pipelines/job/Release%2034%20to%20devel%20-%20OpenShift%20-%20Release%20Verification/) to verify
-  * OpenShift 3.5.x to Release: Use this [Pipeline](http://jenkins.ansible.eng.rdu2.redhat.com/job/Pipelines/job/upgrade-release35-openshift-release-verification/) to verify
+  * [x] [OpenShift 3.4.x to Release](http://jenkins.ansible.eng.rdu2.redhat.com/job/Pipelines/job/Release%2034%20to%20devel%20-%20OpenShift%20-%20Release%20Verification/13/)
+  * [x] [OpenShift 3.5.x to Release](http://jenkins.ansible.eng.rdu2.redhat.com/job/Pipelines/job/upgrade-release35-openshift-release-verification/17/)
   * Non-OpenShift 3.4.x to Release: Use this [Pipeline](http://jenkins.ansible.eng.rdu2.redhat.com/job/Pipelines/job/upgrade-release34-release-verification/) to verify
+    * [x] [Non-OpenShift 3.4.x to Release](http://jenkins.ansible.eng.rdu2.redhat.com/job/Pipelines/job/upgrade-release34-release-verification/18/)
   * Non-OpenShift 3.5.x to Release: Use this [Pipeline](http://jenkins.ansible.eng.rdu2.redhat.com/job/Pipelines/job/upgrade-release35-release-verification/) to verify
+    * [x] [Non-OpenShift 3.5.x to Release - RHEL 7.6](http://jenkins.ansible.eng.rdu2.redhat.com/job/Pipelines/job/upgrade-release35-release-verification/8/)
+    * [x] [Non-OpenShift 3.5.x to Release - RHEL 8.0](http://jenkins.ansible.eng.rdu2.redhat.com/job/Pipelines/job/upgrade-release35-release-verification/6/)
 
   * [ ] 3.4.{0-5} -> Release
-    * [ ] [Bundle/Plain - Standalone/Cluster - 7.6 non-FIPs]
-    * [ ] [Bundle/Plain - Standalone/Cluster - 7.5 FIPs w/ ansible 2.7] (make sure stable 2.7 is used because 3.4.3 installer does not support 2.8+)
+    * [x] [Bundle/Plain - Standalone/Cluster - non FIPS](http://jenkins.ansible.eng.rdu2.redhat.com/job/Pipelines/job/upgrade-release34-release-verification/18/)
+    * [ ] [Bundle/Plain - Standalone/Cluster - FIPS](http://jenkins.ansible.eng.rdu2.redhat.com/job/Pipelines/job/upgrade-release34-release-verification/19/)
     * [ ] [OpenShift]
-  * [ ] 3.5.{0-3} -> Release
-    * [ ] [Bundle/Plain - Standalone/Cluster] (Run the pipeline with rhel 7.6 and 8.0 - non-FIPS and rhel 7.5 FIPS)
-    * [ ] [OpenShift]
+  * [x] 3.5.{0-3} -> Release
+    * [x] [RHEL8 Bundle Cluster 3.5.3 to release](http://jenkins.ansible.eng.rdu2.redhat.com/job/Pipelines/job/upgrade-pipeline/18644/)
+    * [x] [RHEL8 Bundle Standalone 3.5.3 to release](http://jenkins.ansible.eng.rdu2.redhat.com/job/Pipelines/job/upgrade-pipeline/18643/)
+    * [x] [RHEL8 Plain Cluster 3.5.3 to release](http://jenkins.ansible.eng.rdu2.redhat.com/job/Pipelines/job/upgrade-pipeline/18642/parameters/)
+    * [x] [RHEL8 Plain Standalone 3.5.3 to release](http://jenkins.ansible.eng.rdu2.redhat.com/job/Pipelines/job/upgrade-pipeline/18641/)
+    * [x] [OpenShift](http://jenkins.ansible.eng.rdu2.redhat.com/job/Pipelines/job/upgrade-release35-openshift-release-verification/18/)
 
 ### Other
 
-  * [x] Check ansible version check that is [hardcoded in tower-packaging](https://github.com/ansible/tower-packaging/blob/devel/setup/roles/preflight/defaults/main.yml#L6)
+  * [x] Check ansible version check that is [hardcoded in tower-packaging](https://github.com/ansible/tower-packaging/blob/release_3.6.0/setup/roles/preflight/defaults/main.yml#L6)
+  * [x] Check that Tower minimum version in the update is at n - 2 [value](https://github.com/ansible/tower-packaging/blob/release_3.6.0/setup/roles/preflight/tasks/main.yml#L78-L81)
 
 ### Regression
 
-  * [ ] [UI regression] (automated + manual monday 28th october)
-  * [ ] [API regression - Standalone w/ TLS enabled] (manual trigger of yolo job) @elyezer
-  * [ ] [API regression - Standalone w/ TLS disabled] (automated) @elyezer
-  * [ ] [API regression - Traditional Cluster w/ TLS enabled] (manual trigger of yolo job) @elyezer
-  * [ ] [API regression - Traditional Cluster w/ TLS disabled] (automated)
-  * [ ] [API regression - OpenShift Cluster] (automated) @elyezer
-  * [ ] [API regression - OpenShift Cluster] (manual trigger of job) @elyezer
-  * [ ] Tower social authentication regression completed (vm)
+  * [x] [UI regression] (automated + manual monday 28th october)
+  * [x] API regression - Standalone w/ TLS enabled
+    * [x] [API regression - Standalone w/ TLS enabled RHEL 7.6](http://jenkins.ansible.eng.rdu2.redhat.com/job/Test_Tower_Yolo_Express/6793/)
+    * [x] [API regression - Standalone w/ TLS enabled RHEL 7.7](http://jenkins.ansible.eng.rdu2.redhat.com/job/Test_Tower_Yolo_Express/6774/)
+    * [x] [API regression - Standalone w/ TLS enabled RHEL 8.0](http://jenkins.ansible.eng.rdu2.redhat.com/job/Test_Tower_Yolo_Express/6784/)
+      * [Re-run of the services tests](http://jenkins.ansible.eng.rdu2.redhat.com/job/Test_Tower_Yolo_Express/6798/)
+  * [x] [API regression - Standalone w/ TLS disabled] (automated)
+    * [x] [API regression - Standalone w/ TLS disabled RHEL 7.6](http://jenkins.ansible.eng.rdu2.redhat.com/job/Test_Tower_Yolo_Express/6879/)
+    * [x] [API regression - Standalone w/ TLS disabled RHEL 7.7](http://jenkins.ansible.eng.rdu2.redhat.com/job/Test_Tower_Yolo_Express/6880/)
+    * [x] [API regression - Standalone w/ TLS disabled RHEL 8.0](http://jenkins.ansible.eng.rdu2.redhat.com/job/Test_Tower_Yolo_Express/6881/)
+  * [x] API regression - Traditional Cluster w/ TLS enabled
+    * [x] [API regression - Traditional Cluster w/ TLS enabled RHEL 7.7](http://jenkins.ansible.eng.rdu2.redhat.com/job/Test_Tower_Yolo_Express/6776/)
+    * [x] [API regression - Traditional Cluster w/ TLS enabled RHEL 8.0](http://jenkins.ansible.eng.rdu2.redhat.com/job/Test_Tower_Yolo_Express/6796/)
+  * [x] [API regression - Traditional Cluster w/ TLS disabled] (automated)
+    * [x] [API regression - Traditional Cluster w/ TLS disabled RHEL 7.6](http://jenkins.ansible.eng.rdu2.redhat.com/job/Test_Tower_Yolo_Express/6888/)
+    * [x] [API regression - Traditional Cluster w/ TLS disabled RHEL 7.7](http://jenkins.ansible.eng.rdu2.redhat.com/job/Test_Tower_Yolo_Express/6889/)
+    * [x] [API regression - Traditional Cluster w/ TLS disabled RHEL 8.0](http://jenkins.ansible.eng.rdu2.redhat.com/job/Test_Tower_Yolo_Express/6883/)
+  * [x] [API regression - OpenShift Cluster](http://jenkins.ansible.eng.rdu2.redhat.com/job/Pipelines/job/openshift-integration-pipeline/129/)
+  * [x] Tower social authentication regression completed (vm)
     * [x] Google OAuth (@elijah + @appuk)
     * [x] GitHub (@elijah + @appuk)
     * [x] GitHub Org (@elijah + @appuk)
     * [x] GitHub Team (@elijah + @appuk)
-    * [ ] Azure OAuth (@elyezer + )
-    * [x] Radius (@one-t + please recruit one other to teach)
-  * [x] Tower SAML integration regression completed (vm) (@one-t + please recruit one other to teach)
-  * [ ] Backup/restore successful - standalone (automated) @elyezer
-  * [ ] Backup/restore successful - traditional cluster (automated) @elyezer
-  * [ ] [Backup/restore successful - OpenShift] (automated) @elyezer
-  * [ ] [Deploy tower with HTTPS+Load Balancer+Let's Encrypt + run tests against instance] (@unlikelyzero + @Spredzy)
-  * [ ] Deploy tower in OpenShift with an external DB + run tests against instance (@elijah + @calebb)
+    * [x] Azure OAuth (@elyezer)
+    * [x] Radius (@one-t)
+  * [x] Tower SAML integration regression completed (vm) (@one-t)
+  * [x] [Backup/restore successful - standalone](http://jenkins.ansible.eng.rdu2.redhat.com/job/Pipelines/job/backup-and-restore-pipeline/8842/)
+  * [x] [Backup/restore successful - traditional cluster](http://jenkins.ansible.eng.rdu2.redhat.com/job/Pipelines/job/backup-and-restore-pipeline/8848/)
+  * [x] [Backup/restore successful - OpenShift](http://jenkins.ansible.eng.rdu2.redhat.com/job/Pipelines/job/openshift-backup-and-restore-pipeline/92/)
+  * [x] Deploy tower in OpenShift with an external DB + run tests against instance (@elijah + @calebb)
+        - found and fixed https://github.com/ansible/tower-packaging/issues/482
 
 
 ### Artifacts
 
 Use this [Pipeline](http://jenkins.ansible.eng.rdu2.redhat.com/job/Pipelines/job/build-artifacts-pipeline/) to verify
 
-  * [ ] [AMI]
-  * [ ] [Vagrant image]
-  * [ ] [Documentation]
+  * [x] [AMI](http://jenkins.ansible.eng.rdu2.redhat.com/job/Build_Tower_Image/477/)
+  * [x] [Vagrant image](http://jenkins.ansible.eng.rdu2.redhat.com/job/Build_Tower_Vagrant_Box/418/)
+  * [x] [Documentation](http://jenkins.ansible.eng.rdu2.redhat.com/job/Build_Tower_Docs/3758/)
