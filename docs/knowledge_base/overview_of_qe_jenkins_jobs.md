@@ -18,7 +18,7 @@ In order to access the above link you will need to be on the Red Hat VPN. One lo
 If you are presented with a page saying Unauthorized, please reach out to Frank Jansen or Graham Mainwaring.
 
 The QE team as a whole maintains the pipelines and jobs listed [below](#list-of-jenkins-jobs).
-Also we have a [dashboard](link to the dashboard), more information about it will be provided later on this document.
+Also we have a [dashboard](http://tower-qe-dashboard.ansible.eng.rdu2.redhat.com/jenkins/releases), more information about it will be provided later on this document.
 It is a good practice to take a look on the dashboard at least once a day to check how things are going for the current releases.
 
 
@@ -31,6 +31,55 @@ The Ansible Tower QE team follows a certain number of general practices so our c
   * No Jenkins specific feature should be used. We should be able to switch from Jenkins to any build system at any given time.
   * Unless you are certain nobody uses your Job, do not remove a job but move it to the Trash folder.
   * While creating a new pipeline, please create it in the [qe-sandbox](http://jenkins.ansible.eng.rdu2.redhat.com/job/qe-sandbox/) folder until it is ready.
+
+## Daily Test Triage
+
+In order to keep us in a state where we can ship Tower tower with confidence, we need to keep our test results green. Inevitably, bugs in Tower or tower-qa occur, or something else changes which causes test or pipeline failures. The best approach is to address these failures daily and assess what the cause of the failure (if any) was and take appropriate action.
+
+In #ship_it and in #fortheloveofthegreen we get daily notificaitons of the nightly pipeline results on our "most important" platforms.
+
+We like for this notification to look like this:
+![green-build](green-build.png)
+
+...but it is not uncommon for it to get like this:
+![yellow-build](yellow-build.png)
+
+What to do? First thing is first, we pass around daily triage of these tests results. A list of names/days can be found in title of #fortheloveofthegreen.
+
+The triage person should inspect the test results of (first) these most basic builds and look to see if any patterns emerge. While the triage person should dedicate time to identifying the causes of the failures, they are not responsible for fixing them. They are responsible for finding people to fix them :D. Find people to own each failure. The goal is to keep green and keep this backlog as small as possible, so when it comes time for developers to run tests to verify their feature, or to release, the tests give a clear signal and we don't have to do alot of guessing at that time.
+
+Types of problems to look out for:
+
+* infra/network flake
+* Regression in ansible -- e.g. fails w/ one version of ansible but not others. (note: default YOLO is devel, default nightly that is on message is latest stable)
+* bug in tower/awx
+     * file a bug! If fix in the works, that is enough. If not, make PR to skip test w/ github marker.
+* new "feature" or removal of feature in awx/tower that was intentional, but broke tower-qa
+    * update tests and let developer know what happened
+* bug in tower-qa
+    * fix test or file github issue in tower-qa
+* test running against innappropriate environment
+    * make sure appropriate fixtures to detect environment and skip based on that info are applied to tests
+
+First thing to do is to identify if it is happening only on cluster or standalone, or only on openshift.
+
+If there are obvious "owners" of the tests, ping them and see if they have time to investigate.
+
+Otherwise, pick a test and log that you are working on it in #fortheloveofthegreen.
+
+Attempt to reproduce the test failure in an appropriate environment, be that cluster, openshift, standalone, or locally in with a development environment.
+
+If it is not reproducable, identify where the test is failing on jenkins and make PR to improve the error message if the error message does not provide enough context to understand what is going on.
+
+If you idenitify a bug, file an issue in awx or tower depending on the nature of the bug. If fix is in the works, that is all you need to do. If it may take some time for the fix to land, make a PR to skip the test based on a github marker.
+
+If the error has been occuring for multiple days and no fix is in the works, write up a tower-qa issue and provide all context you have on the issue. Raise issue to other QE and developers and see if you can get any movement on it. Label it as a bug and as high priority and add it to the QE project for the major release we are in. As a last resort, put a github mark on the tests and have it skip  to skip and add it to the 3.7 milestone. This is a last resort because we'd much rather keep green by fixing broken tests.
+
+Reach out to code owners for the tests and try and delegate test failures to their respective owners. `git blame` is a valuable resource. Additionally, ping in #tower_api_internal to find a subject matter expert if tests are failing regarding a specific feature (e.g. all the rbac tests for workflows start failing suddenly).
+
+Leave a log of your activiities in #fortheloveofthegreen so the next person on triage can address them.
+
+Finally, if the main platforms are green or all failures are triaged, check the [dashboard](http://tower-qe-dashboard.ansible.eng.rdu2.redhat.com/jenkins/releases) to see all platforms results. Similar steps to the above should be followed to identify problems and get people working on fixes.
 
 
 ## Release Verification
@@ -68,22 +117,27 @@ As stated earlier, this release verification process is run on a timely manner, 
   * Latest - 2: weekly
   * Latest - 3: weekly
 
-This is an example of the cron definition at the time of the writing (`devel` being future `3.6.0`):
+This is an example of the cron definition at the time of the writing (`devel` being future `3.7.0`):
 
 **Note**: This is the responsibility of all the team members to ensure those test remains green at all time or if not the team is aware of the reason why it can't be green.
 
 ```
 H 18 * * * % TOWER_VERSION=devel
-H 18 * * * % TOWER_VERSION=3.5.x
-H H * * 6 % TOWER_VERSION=3.4.x
-H H * * 7 % TOWER_VERSION=3.3.x
+H 18 * * * % TOWER_VERSION=3.6.x
+H H * * * % TOWER_VERSION=3.5.x
+# H H * * 6 % TOWER_VERSION=3.4.x
+# H H * * 7 % TOWER_VERSION=3.3.x
 ```
+
+The older pipelines are commented out in the config and should be re-enabled when we near a patch release, as this may be several months apart, we don't run them as often.
 
 Finally, when this pipeline is triggered, by default `latest` is selected as scope. This means only the latest versions of the supported Operating System are run.
 If one wants to run **all** the supported Operating Systems, then one will need to choose `full` as the scope value.
 
 
 ## Ansible Core Compatibility
+
+## FIXME This process uses old jobs/methods and we'd like to replace it with reporting results from our release pipelines https://github.com/ansible/tower-qa/issues/2410
 
 Installs the latest release of Tower against Ansible development branches. Runs a subset of full integration that exercises the contact points between Tower and Ansible. Used by Tower team to sign-off on Ansible releases. A subset of the install / test jobs are triggered each night based on which development branches were changed in the past day.
 
