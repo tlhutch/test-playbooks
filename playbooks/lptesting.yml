@@ -1,6 +1,15 @@
 ---
 - hosts: localhost
   tags:
+    - cleanup
+  tasks:
+    - name: Make sure node(s) are absent
+      os_server:
+        name: '{{ rhel_compose_id }}-{{ tower_version }}'
+        state: absent
+
+- hosts: localhost
+  tags:
     - deploy
   tasks:
     - name: Set ansible_python_interpreter (RHEL-7)

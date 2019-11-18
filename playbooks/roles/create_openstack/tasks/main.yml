@@ -1,12 +1,4 @@
 ---
-- name: Make sure node(s) are absent
-  os_server:
-    name: '{{ item.name }}'
-    state: absent
-  tags:
-    - cleanup
-
-
 - name: Deploy node(s)
   os_server:
     name: '{{ item.name }}'
