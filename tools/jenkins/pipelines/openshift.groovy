@@ -6,7 +6,7 @@ pipeline {
         choice(
             name: 'TOWER_VERSION',
             description: 'Tower version to test',
-            choices: ['devel', '3.6.0', '3.5.4', '3.4.6', '3.3.8']
+            choices: ['devel', '3.6.1', '3.5.4', '3.4.6', '3.3.8']
         )
         choice(
             name: 'TRIGGER_BREW_PIPELINE',
@@ -31,16 +31,16 @@ pipeline {
                     branch_name = params.TOWER_VERSION == 'devel' ? 'devel' : "release_${params.TOWER_VERSION}"
                     // NOTE: there are no images for the devel dependencies, so use the latest release.
                     // Update this after every release
-                    upgrade_registry_namespace = 'ansible-tower-35'
+                    upgrade_registry_namespace = 'ansible-tower-36'
                     install_registry_namespace = upgrade_registry_namespace
 
-                    if (params.TOWER_VERSION == 'devel' || params.TOWER_VERSION ==~ /3.6.[0-9]*/) {
+                    if (params.TOWER_VERSION == 'devel') {
+                        prev_maj_version = '3.6.0'
+                    } else if (params.TOWER_VERSION ==~ /3.6.[0-9]*/) {
                         prev_maj_version = '3.5.3'
-                    // NOTE(spredzy): To uncomment once 3.6 containers are officially GA
-                    // } else if (params.TOWER_VERSION ==~ /3.6.[0-9]*/) {
-                    //     prev_maj_version = '3.5.3'
-                    //     prev_min_version = '3.6.0'
-                    //     install_registry_namespace = 'ansible-tower-35'
+                        prev_min_version = '3.6.0'
+                        install_registry_namespace = 'ansible-tower-36'
+                        upgrade_registry_namespace = 'ansible-tower-35'
                     } else if (params.TOWER_VERSION ==~ /3.5.[0-9]*/) {
                         prev_maj_version = '3.4.5'
                         prev_min_version = '3.5.3'

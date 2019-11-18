@@ -6,7 +6,7 @@ pipeline {
         choice(
             name: 'TOWER_VERSION',
             description: 'Tower version to test',
-            choices: ['devel', '3.6.0', '3.5.4', '3.4.6', '3.3.8']
+            choices: ['devel', '3.6.1', '3.5.4', '3.4.6', '3.3.8']
         )
         choice(
             name: 'ANSIBLE_VERSION',
@@ -45,8 +45,7 @@ Platform under test: ${params.PLATFORM}"""
                     }
 
                     if (params.TOWER_VERSION == 'devel') {
-                        // NOTE(spredzy): To change once 3.6.0 is officially released
-                        prev_maj_version = '3.5.3'
+                        prev_maj_version = '3.6.0'
                     } else if (params.TOWER_VERSION ==~ /3.6.[0-9]*/) {
                         prev_maj_version = '3.5.3'
                         prev_min_version = '3.6.0'
