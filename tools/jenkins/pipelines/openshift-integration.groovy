@@ -176,6 +176,9 @@ Tower Memcached Container Image: ${params.MEMCACHED_CONTAINER_IMAGE}"""
         cleanup {
             script {
                 if (params.CLEAN_DEPLOYMENT_AFTER_JOB_RUN == 'yes') {
+                    script {
+                        OPENSHIFT_PROJECT = readFile('artifacts/openshift_project').trim()
+                    }
                     withCredentials([string(credentialsId: 'awx_admin_password', variable: 'AWX_ADMIN_PASSWORD')]) {
                         withEnv(["OPENSHIFT_PASS=${AWX_ADMIN_PASSWORD}",
                                  "OPENSHIFT_PROJECT=${OPENSHIFT_PROJECT}"]) {
