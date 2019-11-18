@@ -62,7 +62,7 @@ def modify_settings(api_settings_all_pg, update_setting_pg):
                        LOG_AGGREGATOR_USERNAME="test",  # /api/v2/settings/logging/
                        RADIUS_PORT=1000,  # /api/v2/settings/radius/
                        SOCIAL_AUTH_SAML_SP_ENTITY_ID="test",  # /api/v2/settings/saml/
-                       TOWER_ADMIN_ALERTS=False,  # /api/v2/settings/system/
+                       ACTIVITY_STREAM_ENABLED=False, # /api/v2/settings/system/
                        TACACSPLUS_PORT=777,  # /api/v2/settings/tacasplus/
                        CUSTOM_LOGIN_INFO="test")  # /api/v2/settings/ui/
         update_setting_pg(api_settings_all_pg, payload)
