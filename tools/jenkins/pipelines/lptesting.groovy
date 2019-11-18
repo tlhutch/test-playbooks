@@ -35,6 +35,8 @@ pipeline {
                         _TOWER_VERSION = '3.4.5'
                     } else if (params.TOWER_VERSION == '3.5') {
                         _TOWER_VERSION = '3.5.3'
+                    } else if (params.TOWER_VERSION == '3.6') {
+                        _TOWER_VERSION = '3.6.0'
                     } else {
                         _TOWER_VERSION = 'devel'
                     }
@@ -76,7 +78,7 @@ Tower Version: ${_TOWER_VERSION}"""
                              "OS_ENDPOINT_TYPE=publicURL",
                              "OS_IDENTITY_API_VERSION=3",
                              "ANSIBLE_FORCE_COLOR=true"]) {
-                        sh "ansible-playbook playbooks/lptesting.yml -e rhel_compose_id=${params.RHEL_COMPOSE_ID} -e tower_version=${_TOWER_VERSION} -e rhel_image_name=${RHEL_IMAGE_NAME} --tags deploy"
+                        sh "ansible-playbook playbooks/lptesting.yml -e rhel_compose_id=${params.RHEL_COMPOSE_ID} -e tower_version=${_TOWER_VERSION} -e rhel_image_name=${RHEL_IMAGE_NAME} --tags cleanup,deploy"
                     }
                 }
                 archiveArtifacts artifacts: 'playbooks/inventory.lptesting'
@@ -131,6 +133,28 @@ Tower Version: ${_TOWER_VERSION}"""
                         sh './tools/jenkins/scripts/test.sh'
                         junit 'reports/junit/results-final.xml'
                         archiveArtifacts 'reports/junit/results-final.xml'
+                    }
+                }
+            }
+        }
+    }
+
+    post {
+        cleanup {
+            script {
+                withCredentials([string(credentialsId: 'f0e7830e-477f-483c-b7b1-55c3704a6307', variable: 'OS_PASSWORD')]) {
+                    withEnv(["OS_PASSWORD=${OS_PASSWORD}",
+                             "OS_AUTH_URL=https://rhos-d.infra.prod.upshift.rdu2.redhat.com:13000/v3",
+                             "OS_PROJECT_ID=0ac6ff23baf344e78d6f81fb5d5b2aa8",
+                             "OS_PROJECT_NAME=ansible-tower",
+                             "OS_USER_DOMAIN_NAME=redhat.com",
+                             "OS_PROJECT_DOMAIN_ID=62cf1b5ec006489db99e2b0ebfb55f57",
+                             "OS_USERNAME=yguenane",
+                             "OS_REGION_NAME=regionOne",
+                             "OS_ENDPOINT_TYPE=publicURL",
+                             "OS_IDENTITY_API_VERSION=3",
+                             "ANSIBLE_FORCE_COLOR=true"]) {
+                        sh "ansible-playbook playbooks/lptesting.yml -e rhel_compose_id=${params.RHEL_COMPOSE_ID} -e tower_version=${_TOWER_VERSION} -e rhel_image_name=${RHEL_IMAGE_NAME} --tags cleanup"
                     }
                 }
             }
