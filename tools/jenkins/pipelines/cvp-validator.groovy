@@ -176,6 +176,7 @@ Submitting results back to ResultsDB `ansible-tower-${TOWER_NAMESPACE}.default.i
                                     "issuer": "Unknown issuer"
                                 },
                                 "type": "${type}",
+                                "version": "0.1.0",
                                 "namespace": "${namespace}"
                               }"""
 
