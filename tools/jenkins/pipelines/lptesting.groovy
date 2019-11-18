@@ -15,7 +15,7 @@ pipeline {
         choice(
             name: 'TOWER_VERSION',
             description: 'Tower version to deploy',
-            choices: ['devel', '3.5', '3.4', '3.3']
+            choices: ['devel', '3.6', '3.5', '3.4', '3.3']
         )
     }
 
@@ -142,6 +142,17 @@ Tower Version: ${_TOWER_VERSION}"""
     post {
         cleanup {
             script {
+                checkout([
+                    $class: 'GitSCM',
+                    branches: [[name: "*/devel" ]],
+                    userRemoteConfigs: [
+                        [
+                            credentialsId: 'github-ansible-jenkins-nopassphrase',
+                            url: 'git@github.com:ansible/tower-qa.git'
+                        ]
+                    ]
+                ])
+
                 withCredentials([string(credentialsId: 'f0e7830e-477f-483c-b7b1-55c3704a6307', variable: 'OS_PASSWORD')]) {
                     withEnv(["OS_PASSWORD=${OS_PASSWORD}",
                              "OS_AUTH_URL=https://rhos-d.infra.prod.upshift.rdu2.redhat.com:13000/v3",
