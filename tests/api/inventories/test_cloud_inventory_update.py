@@ -465,6 +465,52 @@ class TestCloudInventoryUpdate(APITest):
             found_res_group = hostvars.get('resource_group', 'NO KEY resource_group FOUND')
             assert found_res_group == res_group, f'Resource group {res_group} not found, only found \n {found_res_group}. All hostvars found were {pformat(hostvars)}'
 
+    @pytest.mark.parametrize("tags", ['Creator,peanutbutter',
+                                      'Creator:jmarshall,peanutbutter:jelly'])
+    def test_azure_use_tags_filters(self, factories, tags):
+        # tags can be a list of keys or key:value pairs
+        # the filtering uses AND operation -- a host must have each key
+        # or key:value in its tags dictionary, else it is excluded
+        #
+        # In tower interface, spaces are allowed in the input, e.g.
+        # tags: Creator, peanutbutter
+        # inventory.py strips the extra spaces
+        # awxkit does not strip, and expects proper JSON-able content and
+        # will throw an error if spaces are present
+        source_vars = "tags: " + tags
+
+        inv_source = factories.inventory_source(
+            source='azure_rm',
+            credential=factories.credential(kind='azure_rm'),
+            source_vars=source_vars
+        )
+
+        update = inv_source.update().wait_until_completed()
+        update.assert_successful()
+
+        host_results = inv_source.get_related('hosts')
+
+        assert host_results.count > 0
+
+        tags_list = []
+        tags_dict = {}
+        if ':' in tags:
+            # tags is a dictionary
+            for kv in tags.split(','):
+                kvpair = kv.split(':')
+                tags_dict[kvpair[0].strip()] = kvpair[1].strip()
+        else:
+            # tags is a list of keys
+            tags_list = [i.strip() for i in tags.split(',')]
+
+        for host in host_results.results:
+            hostvars = host.variables
+            host_tags = hostvars.get('tags', {})
+            for kv in tags_dict: # check for matching kv pairs
+                assert tags_dict[kv] == host_tags.get(kv)
+            for kv in tags_list: # check for matching keys
+                assert kv in host_tags
+
     @pytest.mark.ansible_integration
     def test_aws_replace_dash_in_groups_source_variable(self, factories):
         """Tests that AWS inventory groups will be registered with underscores instead of hyphens
