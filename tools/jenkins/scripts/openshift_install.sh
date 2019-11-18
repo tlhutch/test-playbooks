@@ -72,17 +72,13 @@ TOWER_VERSION="$(retrieve_value_from_vars_file "${VARS_FILE}" tower_version)"
 
 if [[ "${TOWER_VERSION}" == "devel" ]]; then
     _TOWER_VERSION='latest'
-    # NOTE: there are no images for the devel dependencies, so use the latest release.
-    # Update this after every release
-    _TOWER_NAMESPACE='ansible-tower-35'
 else
     _TOWER_VERSION="${TOWER_VERSION}"
-    _TOWER_NAMESPACE="ansible-tower-${TOWER_VERSION:0:1}${TOWER_VERSION:2:1}"
 fi
 
 MESSAGING_CONTAINER_IMAGE_VERSION='latest'
 if [[ -z "${MESSAGING_CONTAINER_IMAGE}" ]]; then
-    MESSAGING_CONTAINER_IMAGE="registry.access.redhat.com/${_TOWER_NAMESPACE}/ansible-tower-messaging"
+    MESSAGING_CONTAINER_IMAGE="quay.io/ansible-tower/ansible-tower-messaging"
 else
     _MESSAGING_CONTAINER_IMAGE_VERSION=$(echo "${MESSAGING_CONTAINER_IMAGE}" | cut -d'/' -f2 | awk -F: '{ print $2 }')
     if [[ -n "${_MESSAGING_CONTAINER_IMAGE_VERSION}" ]]; then
@@ -93,7 +89,7 @@ fi
 
 MEMCACHED_CONTAINER_IMAGE_VERSION='latest'
 if [[ -z "${MEMCACHED_CONTAINER_IMAGE}" ]]; then
-    MEMCACHED_CONTAINER_IMAGE="registry.access.redhat.com/${_TOWER_NAMESPACE}/ansible-tower-memcached"
+    MEMCACHED_CONTAINER_IMAGE="quay.io/ansible-tower/ansible-tower-memcached"
 else
     _MEMCACHED_CONTAINER_IMAGE_VERSION=$(echo "${MEMCACHED_CONTAINER_IMAGE}" | cut -d'/' -f2 | awk -F: '{ print $2 }')
     if [[ -n "${_MEMCACHED_CONTAINER_IMAGE_VERSION}" ]]; then
@@ -105,7 +101,7 @@ fi
 TOWER_CONTAINER_IMAGE_VERSION='latest'
 if [[ -z "${TOWER_CONTAINER_IMAGE}" ]]; then
     if [[ "${AW_REPO_URL}" =~ "releases.ansible.com" ]]; then
-        TOWER_CONTAINER_IMAGE="registry.access.redhat.com/${_TOWER_NAMESPACE}/ansible-tower"
+        TOWER_CONTAINER_IMAGE="quay.io/ansible-tower/ansible-tower"
         TOWER_CONTAINER_IMAGE_VERSION="${_TOWER_VERSION}"
     else
         oc tag tower-qe/ansible-tower:"${_TOWER_VERSION}" ansible-tower:"${_TOWER_VERSION}"
