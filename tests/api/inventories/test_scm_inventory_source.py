@@ -696,7 +696,7 @@ class TestSCMInventorySource(APITest):
         group = groups.results[0]
         assert group.variables == {'foovar': 'fooval'}
 
-    def test_scm_inv_using_collection_from_galaxy(self, factories):
+    def test_scm_inv_using_collection_from_galaxy(self, factories, skip_if_pre_ansible29):
         pr_number = 83  # https://github.com/ansible/test-playbooks/pull/83
         # Closed pull request contents:
         # collections/requirements.yml
