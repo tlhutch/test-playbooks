@@ -23,7 +23,7 @@ def ansible_collections_path(is_docker):
 
 
 def _run_uninstall_tower_modules_collection(ansible_adhoc, collection_path):
-    collection_install_path = os.path.join(collection_path, 'ansible_collections', 'chrismeyersfsu')
+    collection_install_path = os.path.join(collection_path, 'ansible_collections', 'awx')
     ansible_adhoc.shell('rm -rf {}'.format(collection_install_path))
 
 
@@ -113,5 +113,5 @@ def tower_modules_collection(request, session_ansible_adhoc, ansible_collections
             assert result.get('mode', None) == '0755', result_to_str(result)
     except AssertionError as e:
         pytest.fail(
-            'Failed to install chrismeyersfsu.ansible_content_example\n{}'.format(e)
+            'Failed to install awx.awx\n{}'.format(e)
         )
