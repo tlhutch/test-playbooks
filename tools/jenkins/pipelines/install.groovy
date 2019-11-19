@@ -167,6 +167,16 @@ Bundle?: ${params.BUNDLE}"""
             }
         }
 
+        stage ('Install Idempotence') {
+            steps {
+                withEnv(["ANSIBLE_FORCE_COLOR=true"]) {
+                    sshagent(credentials : ['github-ansible-jenkins-nopassphrase']) {
+                        sh "ssh ${SSH_OPTS} ec2-user@${TEST_RUNNER_HOST} 'cd tower-qa && ./tools/jenkins/scripts/install.sh'"
+                    }
+                }
+            }
+        }
+
         stage('Collect artifacts (SOS Reports, pip freeze) from Tower instances') {
             steps {
                 sshagent(credentials : ['github-ansible-jenkins-nopassphrase']) {
