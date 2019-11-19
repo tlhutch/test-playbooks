@@ -162,6 +162,24 @@ Bundle?: ${params.BUNDLE}"""
                 withEnv(["ANSIBLE_FORCE_COLOR=true"]) {
                     sshagent(credentials : ['github-ansible-jenkins-nopassphrase']) {
                         sh "ssh ${SSH_OPTS} ec2-user@${TEST_RUNNER_HOST} 'cd tower-qa && ./tools/jenkins/scripts/install.sh'"
+                        // Ensure we do not teardown the instance so we can run idempotence test
+                        script {
+                            ORIGINAL_DELETE_ON_START_VALUE = sh (
+                                script: "grep delete_on_start playbooks/vars.yml | cut -d' ' -f2 || true",
+                                returnStdout: true
+                            ).trim()
+                        }
+                        sh "ansible test-runner -i playbooks/inventory.test_runner -a 'sed -i \"s/delete_on_start: .*/delete_on_start: false/g\" /home/ec2-user/tower-qa/playbooks/vars.yml'"
+                    }
+                }
+            }
+        }
+
+        stage ('Install Idempotence') {
+            steps {
+                withEnv(["ANSIBLE_FORCE_COLOR=true"]) {
+                    sshagent(credentials : ['github-ansible-jenkins-nopassphrase']) {
+                        sh "ssh ${SSH_OPTS} ec2-user@${TEST_RUNNER_HOST} 'cd tower-qa && ./tools/jenkins/scripts/install.sh'"
                     }
                 }
             }
@@ -189,6 +207,7 @@ Bundle?: ${params.BUNDLE}"""
 
         cleanup {
             sshagent(credentials : ['github-ansible-jenkins-nopassphrase']) {
+                sh "ansible test-runner -i playbooks/inventory.test_runner -a 'sed -i \"s/delete_on_start: .*/delete_on_start: ${ORIGINAL_DELETE_ON_START_VALUE}/g\" /home/ec2-user/tower-qa/playbooks/vars.yml'"
                 sh "ssh ${SSH_OPTS} ec2-user@${TEST_RUNNER_HOST} 'cd tower-qa && ./tools/jenkins/scripts/cleanup.sh'"
                 sh 'ansible-playbook -v -i playbooks/inventory -e @playbooks/test_runner_vars.yml playbooks/reap-tower-ec2.yml'
             }
