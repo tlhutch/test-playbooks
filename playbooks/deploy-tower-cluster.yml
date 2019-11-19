@@ -52,6 +52,12 @@
     - include_role:
         name: packages
       when: not out_of_box_os | default(false) | bool
+    - name: update systemd
+      yum:
+        name: systemd*
+        state: latest
+        update_cache: true
+        update_only: true
 
 - name: 'Install cluster tower on installer instance'
   hosts: 'cluster_installer'
