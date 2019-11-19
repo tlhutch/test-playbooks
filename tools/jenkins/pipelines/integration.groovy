@@ -166,21 +166,21 @@ Bundle?: ${params.BUNDLE}"""
             steps {
                 withEnv(["ANSIBLE_FORCE_COLOR=true"]) {
                     sshagent(credentials : ['github-ansible-jenkins-nopassphrase']) {
+                        // Use SSH this way so we can get live feed of output on jenkins
                         sh "ssh ${SSH_OPTS} ec2-user@${TEST_RUNNER_HOST} 'cd tower-qa && ./tools/jenkins/scripts/install.sh'"
                     }
                 }
             }
         }
 
-        stage ('Install Idempotence') {
-            steps {
-                withEnv(["ANSIBLE_FORCE_COLOR=true"]) {
-                    sshagent(credentials : ['github-ansible-jenkins-nopassphrase']) {
-                        sh "ssh ${SSH_OPTS} ec2-user@${TEST_RUNNER_HOST} 'cd tower-qa && ./tools/jenkins/scripts/install.sh'"
-                    }
-                }
-            }
-        }
+        // NOTE: https://github.com/ansible/tower-qa/issues/3216:w
+        // stage ('E2E Tests') {
+        //     steps {
+        //        sshagent(credentials : ['github-ansible-jenkins-nopassphrase']) {
+        //            sh 'ansible-playbook -v -i playbooks/inventory.test_runner playbooks/test_runner/run_e2e_test.yml'
+        //         }
+        //     }
+        // }
 
         stage ('Integration Tests') {
             steps {
