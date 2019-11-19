@@ -1,13 +1,14 @@
 /**
- * Verifies basic operations on organizations.
+ * Verifies CRUD operations on organizations.
  */
-context('Organizations page', function () {
+context('Organization CRUD operations', function () {
   // Aliases used in setup must be done with beforeEach(), not before()
   // Aliases are wiped between tests for isolation
   beforeEach(function() {
     cy.createOrReplace('organizations', `test-organization`).as('org')
   })
 
+  // TODO: needs to be properly implemented. Current code just demos route function
   it('reaches a 404 when trying to get the orgs list', function() {
     cy.server()
     cy.route({

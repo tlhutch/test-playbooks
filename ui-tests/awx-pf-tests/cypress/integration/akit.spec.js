@@ -1,5 +1,6 @@
 /**
  * Example that shows two ways to call tower resources through the API.
+ * Used as a sanity check to ensure calls to akit work.
  */
 
 context('some page', function () {
