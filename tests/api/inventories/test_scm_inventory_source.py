@@ -94,6 +94,7 @@ class TestSCMInventorySource(APITest):
         assert len(inv.related.hosts.get().results) > 0
         # TODO: Come up with minimum hostvars and groups we want to see from these plugins
 
+    @pytest.mark.github('https://github.com/ansible/ansible/issues/65064', skip=True)
     @pytest.mark.ansible_integration
     def test_scm_inventory_hosts_and_host_vars(self, scm_inv_source_with_group_and_host_var_dirs):
         inv_source = scm_inv_source_with_group_and_host_var_dirs
