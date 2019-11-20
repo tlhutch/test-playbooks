@@ -10,6 +10,7 @@ VARS_FILE=${VARS_FILE:-playbooks/vars.yml}
 source "$(dirname "${0}")"/lib/common
 
 setup_python3_env
+local_python_path=$(command -v python)
 pip install -U boto boto3 botocore pip ansible
 
 PLAYBOOK=$(retrieve_value_from_vars_file "${VARS_FILE}" awx_playbook)
@@ -33,6 +34,9 @@ if [[ -f "${INVENTORY}" ]]; then
 else
     _INVENTORY="playbooks/inventory"
 fi
+
+# Ensure the localhost node is always using the python from the venv
+sed -i "s#\(.*ansible_connection=local\).*#\1 ansible_python_interpreter='${local_python_path}'#g" "${_INVENTORY}"
 
 ansible-playbook "${VERBOSITY}" -i "${_INVENTORY}" -e @"${VARS_FILE}" "${PLAYBOOK}"
 
