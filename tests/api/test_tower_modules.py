@@ -110,6 +110,7 @@ class Test_Ansible_Tower_Modules_via_Playbooks(APITest):
         extra_vars = {
             'tower_module_under_test': tower_module,
             'ansible_python_interpreter': os.path.join(virtual_env_path, 'bin/python'),
+            'collection_id': 'awx.awx'  # TODO: change if testing ansible.tower
         }
         jt = factories.job_template(project=project, playbook='tower_modules/wrapper.yml',
                                     extra_vars=json.dumps(extra_vars), verbosity=5)
