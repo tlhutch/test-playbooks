@@ -61,6 +61,7 @@ Tower Version: ${_TOWER_VERSION}"""
                         sh './tools/jenkins/scripts/generate_vars.sh && source /home/jenkins/venvs/venv/bin/activate && deactivate'
                     }
                 }
+                archiveArtifacts artifacts: 'playbooks/vars.yml'
             }
         }
 
