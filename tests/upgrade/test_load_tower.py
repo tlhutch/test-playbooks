@@ -239,6 +239,7 @@ class TestLoadResources():
         [t.join() for t in threads]
 
         for job in jobs:
+            job = job.get()
             try:
                 if job.name in ('language_features/tags.yml (tags:foo, limit:unresolvable-name.example.com)',
                                 'ansible-playbooks.git/dynamic_inventory.yml',
@@ -248,7 +249,9 @@ class TestLoadResources():
                 else:
                     assert job.is_successful
             except Exception as e:
-                pytest.warn(str(e.value))
+                import logging
+                log = logging.getLogger(__name__)
+                log.debug(f"not all jobs succeded, exception raised: {str(e)}")
 
     def test_create_instance_group_mapping(self, v2_class):
         igs = v2_class.instance_groups.get().results
