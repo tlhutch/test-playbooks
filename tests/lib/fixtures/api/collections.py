@@ -81,7 +81,7 @@ def tower_modules_collection(request, session_ansible_adhoc, ansible_collections
         # TODO: optionally build as awx or tower
         contacted = ansible_adhoc.shell((
             'ansible-playbook -i localhost, awx_collection/template_galaxy.yml '
-            '-e package_name=awx -e namespace_name=awx -e package_version=0.0.1'
+            '-e collection_package=awx -e collection_namespace=awx -e collection_version=0.0.1'
         ), chdir=build_dir)
         for result in contacted.values():
             assert result.get('rc', None) == 0, result_to_str(result)
