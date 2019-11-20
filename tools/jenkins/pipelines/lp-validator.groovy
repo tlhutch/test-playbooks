@@ -150,7 +150,7 @@ Sending message to UMB to topic `VirtualTopic.qe.ci.product-scenario.test.comple
                                 "namespace": "interop",
                                 "type": "product-scenario",
                                 "result": "${status}",
-                                "xunit_urls": ["${fpaste_url}raw"]
+                                "xunit_urls": ["${fpaste_url}"]
                             }
                           }"""
 
