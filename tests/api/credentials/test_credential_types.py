@@ -248,7 +248,7 @@ class TestCredentialTypes(APITest):
         cred = factories.credential(credential_type=factories.credential_type().id)
 
         with pytest.raises(exc.Forbidden) as e:
-            cred.ds.credential_type.inputs = dict(test=True)
+            cred.ds.credential_type.inputs = dict(fields=[{"id": "input_id", "label": "input_label", }])
         assert e.value.msg['detail'] == (
             'Modifications to inputs are not allowed for credential types that are in use')
 
