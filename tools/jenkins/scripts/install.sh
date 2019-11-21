@@ -40,9 +40,6 @@ sed -i "s#\(.*ansible_connection=local\).*#\1 ansible_python_interpreter='${loca
 
 ansible-playbook "${VERBOSITY}" -i "${_INVENTORY}" -e @"${VARS_FILE}" "${PLAYBOOK}"
 
-# Ensure the localhost node is always using the python from the venv (save inventory rewrite it)
-sed -i "s#\(.*ansible_connection=local\).*#\1 ansible_python_interpreter='${local_python_path}'#g" "${_INVENTORY}"
-
 TOWER_URL="https://$(retrieve_tower_server_from_inventory "${INVENTORY}")"
 _TOWER_VERSION=$(curl -ks "${TOWER_URL}"/api/v2/ping/ | python -c 'import json,sys; print(json.loads(sys.stdin.read())["version"])' | cut -d . -f 1-3)
 
