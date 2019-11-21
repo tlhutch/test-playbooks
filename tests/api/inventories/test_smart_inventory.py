@@ -73,7 +73,7 @@ class TestSmartInventory(APITest):
         """
         # Create a smart inventory that uses an instance group
         ig = factories.instance_group()
-        instance = v2.instances.get().results.pop()
+        instance = v2.instances.get(rampart_groups__controller__isnull=True).results.pop()
         ig.add_instance(instance)
         iv = factories.inventory(organization=organization)
         iv.add_instance_group(ig)
