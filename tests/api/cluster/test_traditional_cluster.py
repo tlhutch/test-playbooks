@@ -170,8 +170,8 @@ class TestTraditionalCluster(APITest):
                 inventory_file_instance_groups[match.group(2)] = group_mapping[group]
 
         instance_groups = [group.name for group in v2.instance_groups.get().results]
-        assert len(instance_groups) == len(inventory_file_instance_groups.keys())
-        assert set(instance_groups) == set(inventory_file_instance_groups.keys())
+        assert len(instance_groups) >= len(inventory_file_instance_groups.keys())
+        assert set(inventory_file_instance_groups.keys()) <= set(instance_groups)
 
         # group_mapping maps instance groups to fqdns, but we need ip addresses
         # relate the two to eachother via the ansible_host var passed with each

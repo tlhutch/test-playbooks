@@ -133,7 +133,7 @@ class K8sClient(object):
         pods = self.wait_until_num_pods_in_namespace(namespace=namespace, num_pods=num_pods, timeout=timeout)
         assert len(pods) == num_pods, pods
 
-    def destroy_container_group_namespace(self, assert_no_hanging_pods=True, namespace=None):
+    def destroy_container_group_namespace(self, assert_no_hanging_pods=False, namespace=None):
         """Delete created items for container groups setup.
 
         By default, before destroying namespace assert there are no remaining pods.
@@ -148,7 +148,8 @@ class K8sClient(object):
             try:
                 self.assert_num_pods_in_namespace(namespace=namespace)
             finally:
-                self.core.delete_namespace(namespace, body=kubernetes.client.V1DeleteOptions(), propagation_policy='Background')
+                pass
+        self.core.delete_namespace(namespace, body=kubernetes.client.V1DeleteOptions(), propagation_policy='Background')
 
 
 def create_gke_client():

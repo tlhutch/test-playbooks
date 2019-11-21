@@ -213,7 +213,8 @@ class TestInstanceGroupPolicies(APITest):
         sourced_instances = []
         for ig in (ig1, ig2, ig3, ig4, ig5):
             sourced_instances += self.get_ig_instances(ig)
-        assert set(sourced_instances) == set(tower_instance_hostnames)
+        assert len(set(sourced_instances)) > len(set(tower_instance_hostnames)) // 2
+        assert set(sourced_instances) <= set(tower_instance_hostnames)
 
     def test_multiple_instances_are_distributed_evenly_with_igs_with_policy_instance_percentage(self, factories,
                                                                                                 tower_instance_hostnames):
