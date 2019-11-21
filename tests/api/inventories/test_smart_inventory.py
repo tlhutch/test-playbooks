@@ -78,7 +78,7 @@ class TestSmartInventory(APITest):
         iv = factories.inventory(organization=organization)
         iv.add_instance_group(ig)
         capacity = instance.capacity
-        forks = min(50, capacity / 2)
+        forks = min(50, capacity // 2)
         # create hosts that will be added in the smart inventory
         for n in range(capacity):
             factories.host(name='test_host_' + str(n), inventory=iv)
