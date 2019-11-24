@@ -248,7 +248,7 @@ function setup_python3_env {
     fi
 
     # Ensure pip is updated
-    pip install -U pip
+    pip install -U pip wheel setuptools
 }
 
 function retrieve_value_from_vars_file {
