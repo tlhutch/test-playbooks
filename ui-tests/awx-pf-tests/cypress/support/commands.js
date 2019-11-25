@@ -2,7 +2,7 @@
  * Generates a random number to be assigned to each individual test run.
  * This is useful for randomly generated names for resources used in tests.
  */
-Cypress.Commands.add('generateTestID', () => cy.wrap(`${Cypress._.random(0, 1e10)}`).as('testID'));
+Cypress.Commands.add('generateTestID', () => cy.wrap(`${Cypress._.random(0, 1e10)}`).as('testID'))
 
 /**
  * Shell built around cy.request(). Cypress attempts to handle CSRF token verification to an extent,
@@ -17,20 +17,22 @@ Cypress.Commands.add('generateTestID', () => cy.wrap(`${Cypress._.random(0, 1e10
  *                         but its behavior can be viewed in the documentation for cy.request().
  */
 Cypress.Commands.add('apiRequest', (method, url, body, form = false) => {
-  cy.request(url).then(() => cy.getCookie('csrftoken').then((cookie) => {
-    body.csrfmiddlewaretoken = cookie.value
-    cy.request({
-      method,
-      url,
-      form,
-      headers: {
-        'referer': `${Cypress.config().baseUrl}/api/login/`,
-        'x-csrftoken': `${cookie.value}`
-      },
-      body: body
+  cy.request(url).then(() =>
+    cy.getCookie('csrftoken').then(cookie => {
+      body.csrfmiddlewaretoken = cookie.value
+      cy.request({
+        method,
+        url,
+        form,
+        headers: {
+          referer: `${Cypress.config().baseUrl}/api/login/`,
+          'x-csrftoken': `${cookie.value}`,
+        },
+        body: body,
+      })
     })
-  }));
-});
+  )
+})
 
 /**
  * Logs into the AWX server. CSRF tokens are cleared on every test in Cypress for complete
@@ -41,10 +43,10 @@ Cypress.Commands.add('login', () => {
   const body = {
     username: Cypress.env('AWX_E2E_USERNAME'),
     password: Cypress.env('AWX_E2E_PASSWORD'),
-    next: '/api/'
-  };
-  cy.apiRequest('POST', `/api/login/`, body, true);
-});
+    next: '/api/',
+  }
+  cy.apiRequest('POST', `/api/login/`, body, true)
+})
 
 /**
  * Interacts with awxkit to run create_or_replace(),
@@ -62,14 +64,14 @@ Cypress.Commands.add('login', () => {
  *                        value should be set to the username.
  * */
 Cypress.Commands.add('createOrReplace', (resource, name) => {
-  const options = `--resource="${resource}" --name="${name}"`;
-  const command = `python akit_client.py create_or_replace ${options} "${Cypress.config().baseUrl}"`;
-  console.log(`Calling awxkit create_or_replace(): ${options}`);
-  cy.exec(command).then((ret) => {
-    expect(ret.stderr).to.be.empty;
-    return JSON.parse(ret.stdout);
-  });
-});
+  const options = `--resource="${resource}" --name="${name}"`
+  const command = `python akit_client.py create_or_replace ${options} "${Cypress.config().baseUrl}"`
+  console.log(`Calling awxkit create_or_replace(): ${options}`)
+  cy.exec(command).then(ret => {
+    expect(ret.stderr).to.be.empty
+    return JSON.parse(ret.stdout)
+  })
+})
 
 /**
  * Interacts with awxkit to run arbitrary v2 commands.
@@ -82,12 +84,12 @@ Cypress.Commands.add('createOrReplace', (resource, name) => {
  *
  * @param {string} akitcommand - Any awxkit v2 object expression.
  * */
-Cypress.Commands.add('akit', (akitcommand) => {
-  const options = `--akitcommand='${akitcommand}'`;
-  const command = `python akit_client.py akit ${options} '${Cypress.config().baseUrl}'`;
-  console.log(`Calling awxkit command: ${command}`);
-  cy.exec(command).then((ret) => {
-    expect(ret.stderr).to.be.empty;
-    return JSON.parse(ret.stdout);
-  });
-});
+Cypress.Commands.add('akit', akitcommand => {
+  const options = `--akitcommand='${akitcommand}'`
+  const command = `python akit_client.py akit ${options} '${Cypress.config().baseUrl}'`
+  console.log(`Calling awxkit command: ${command}`)
+  cy.exec(command).then(ret => {
+    expect(ret.stderr).to.be.empty
+    return JSON.parse(ret.stdout)
+  })
+})

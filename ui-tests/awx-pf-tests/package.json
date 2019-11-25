@@ -1,0 +1,21 @@
+{
+  "name": "awx-pf-tests",
+  "version": "1.0.0",
+  "description": "This is an automated functional test suite for the AWX Patternfly UI. It uses Cypress as its base framework.",
+  "scripts": {
+    "cypress": "cypress open",
+    "cypress-headless": "cypress run",
+    "lint": "eslint --ext .js .",
+    "prettier": "prettier --print-width 100 --no-semi --single-quote --trailing-comma es5 --write \"cypress/**/*.js\"",
+    "prettier-check": "prettier --check --print-width 100 --no-semi --single-quote --trailing-comma es5 \"cypress/**/*.js\""
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "cypress": "^3.6.1",
+    "eslint": "^6.6.0",
+    "eslint-plugin-cypress": "^2.7.0",
+    "prettier": "^1.19.1"
+  }
+}

@@ -14,12 +14,12 @@
 // ***********************************************************
 
 // Import commands.js using ES2015 syntax:
-import './commands';
+import './commands'
 
 // Alternatively you can use CommonJS syntax:
 // require('./commands')
 
 beforeEach(() => {
-  cy.login(); // For test isolation, Cypress clears out user sessions (see Cypress Best Practices)
-  cy.generateTestID(); // Generates a number for unique name suffixes on every test run.
-});
+  cy.login() // For test isolation, Cypress clears out user sessions (see Cypress Best Practices)
+  cy.generateTestID() // Generates a number for unique name suffixes on every test run.
+})

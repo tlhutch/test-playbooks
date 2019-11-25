@@ -26,8 +26,10 @@ pip install -e awx/awxkit -r awx/awxkit/requirements.txt -r awx/requirements/req
 In *this* directory (the directory containing cypress.json), run:
 
 ```
-npm install cypress
+npm install
 ```
+
+This will install cypress, as well as a few dependencies for linting.
 
 #### Long version:
 Since this suite leverages `awxkit` to perform setup functions, you'll need to have a Python 3 virtual environment that has `awxkit` installed, as well as `nodeenv` so Node subprocesses can access installed modules:
@@ -61,11 +63,6 @@ See details for awx-pf setup in general [here](https://github.com/ansible/awx/tr
 npm install cypress  # --save-dev option will update dependencies in package.json
 ```
 
-npm's default installation also includes `npx`, which allows you to execute npm modules directly without searching for the binary executable path. If you don't have this dependency, install it via npm:
-```
-npm install -g npx
-```
-
 ### Configuring Cypress settings
 In `cypress.json`, set the baseUrl value to that of the target UI you are testing. Do NOT include a trailing slash. This will break awxkit functions. For example, "https://localhost:3001" is fine, but "https://localhost:3001/" is not. 
 
@@ -74,22 +71,18 @@ Inserting your credentials into cypress.json in plaintext isn't recommended, for
 export CYPRESS_AWX_E2E_USERNAME=foo 
 export CYPRESS_AWX_E2E_PASSWORD=bar
 export CYPRESS_baseUrl=https://localhost:3001
-npx cypress open # etc, etc,
+npm run cypress # etc, etc,
 ```
 
 ### Usage
-To open the Cypress test inspection tools to assist with test development:
+To open the Cypress test inspection tools to assist with test development (assumes you are at the top level directory of `tower-qa`):
 ```
-npx cypress open --project tower-qa/ui-tests-/awx-pf-tests
+npm --prefix tower-qa/ui-tests-/awx-pf-tests run cypress
 ```
 
 To run the test suite in headless mode (assuming you are in the same directory as `cypress.json`):
 ```
-npx cypress run
-```
-*NOTE:* The `--project` option needs to be added and pointed to the directory containing `cypress.json` if this command isn't executed in the same directory. Depending on configuration, if it does not find an existing project, Cypress will then otherwise generate an example `cypress.json` and `cypress/` directory with a demo test suite. For example:
-```
-npx cypress run --project tower-qa/ui-tests/awx-pf-tests
+npm run cypress-headless
 ```
 
 ### Directory Organization
@@ -98,6 +91,14 @@ At the top level, there is a `cypress.json` file and a `cypress/` directory; wit
 - `integration/`: Contains the tests themselves.
 - `plugins/`: Contains the loader for Cypress plugins and any plugins you might like to add.
 - `support/`: Contains custom commands and setup functions for global use in the test suite.
+
+### Contributing
+Before making commits, ensure that `eslint` likes your code, and use `prettier` to automatically format it.
+From the directory containing `cypress.json` and `package.json`, some useful commands:
+`npm run lint` -  Fix any errors or warnings you see.
+`npm run prettier-check` - See what files will be changed before you run `prettier`.
+`npm run prettier` - This will clean your files up for you, but be careful with it! Run `git diff` afterwards for a sanity check.
+`npm run cypress-headless` - Are tests passing successfully?
 
 For more information regarding these folders, please see the Cypress documentation.
 

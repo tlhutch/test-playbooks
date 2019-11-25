@@ -11,6 +11,7 @@ cypress/support/commands.js interacts with this file.
 from awxkit import api, config
 import optparse
 import os
+import pprint
 import sys
 
 
@@ -65,10 +66,10 @@ if __name__ == '__main__':
             username = opts.name
             opts.name = None
         resource_obj = getattr(v2, opts.resource)
-        print(resource_obj.create_or_replace(
+        pprint.pprint(resource_obj.create_or_replace(
             resource=opts.resource,
             name=opts.name,
             username=username
         ))
     elif (func == 'akit'):
-        eval(f'print(v2.{opts.akitcommand})')
+        eval(f'pprint.pprint(v2.{opts.akitcommand})')
