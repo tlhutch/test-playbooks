@@ -2,8 +2,8 @@
 
 set -euxo pipefail
 
-if [[ -z "${OPENSHIFT_PASS}" ]]; then
-    >&2 echo "openshift_install.sh: Environment variable OPENSHIFT_PASS must be specified"
+if [[ -z "${OPENSHIFT_TOKEN}" ]]; then
+    >&2 echo "openshift_install.sh: Environment variable OPENSHIFT_TOKEN must be specified"
     exit 1
 fi
 

@@ -273,10 +273,8 @@ function is_rhel8 {
 #
 
 function openshift_login {
-    oc login \
-        -u jenkins \
-        -p "${OPENSHIFT_PASS}" \
-        https://console.openshift.ansible.eng.rdu2.redhat.com:8443 \
+    oc --token="${OPENSHIFT_TOKEN}" login \
+        https://console.ocp3.ansible.eng.rdu2.redhat.com:8443 \
         --insecure-skip-tls-verify=true
 }
 
