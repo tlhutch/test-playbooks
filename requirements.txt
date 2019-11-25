@@ -6,7 +6,7 @@ elasticsearch
 fauxfactory
 gcloud
 git+ssh://git@github.com/ansible/pytest-ansible.git
-git+ssh://git@github.com/ansible/tower.git@release_3.6.1#egg=awxkit[websockets]&subdirectory=awxkit
+git+ssh://git@github.com/ansible/tower.git@release_3.6.2#egg=awxkit[websockets]&subdirectory=awxkit
 git+ssh://git@github.com/jlaska/pytest-github.git
 google-api-python-client
 junit-xml
