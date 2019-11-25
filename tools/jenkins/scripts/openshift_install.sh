@@ -10,9 +10,9 @@ TOWER_CONTAINER_IMAGE=${TOWER_CONTAINER_IMAGE:-''}
 MESSAGING_CONTAINER_IMAGE=${MESSAGING_CONTAINER_IMAGE:-''}
 MEMCACHED_CONTAINER_IMAGE=${MEMCACHED_CONTAINER_IMAGE:-''}
 
-OPENSHIFT_PASS=${OPENSHIFT_PASS:-''}
+OPENSHIFT_TOKEN=${OPENSHIFT_TOKEN:-''}
 OPENSHIFT_PROJECT=${OPENSHIFT_PROJECT:-"tower-qe-$(date +'%s')"}
-OPENSHIFT_ROUTE=${OPENSHIFT_ROUTE:-"https://ansible-tower-web-svc-${OPENSHIFT_PROJECT}.openshift.ansible.eng.rdu2.redhat.com"}
+OPENSHIFT_ROUTE=${OPENSHIFT_ROUTE:-"https://ansible-tower-web-svc-${OPENSHIFT_PROJECT}.ocp3.ansible.eng.rdu2.redhat.com"}
 
 PG_HOSTNAME=${PG_HOSTNAME:-''}
 PG_PORT=${PG_PORT:-'5432'}
@@ -20,8 +20,8 @@ PG_USERNAME=${PG_USERNAME:-'tower'}
 PG_PASSWORD=${PG_PASSWORD:-'towerpass'}
 PG_DATABASE=${PG_DATABASE:-'tower'}
 
-if [[ -z "${OPENSHIFT_PASS}" ]]; then
-    >&2 echo "openshift_install.sh: Environment variable OPENSHIFT_PASS must be specified"
+if [[ -z "${OPENSHIFT_TOKEN}" ]]; then
+    >&2 echo "openshift_install.sh: Environment variable OPENSHIFT_TOKEN must be specified"
     exit 1
 fi
 
@@ -122,7 +122,7 @@ curl -s "${AW_REPO_URL}" | tar -xzf - --transform "s|^[^/]*|setup|"
 cd setup
 cat << EOF > vars.yml
 ---
-openshift_host: https://console.openshift.ansible.eng.rdu2.redhat.com:8443
+openshift_host: https://console.ocp3.ansible.eng.rdu2.redhat.com:8443
 openshift_project: ${OPENSHIFT_PROJECT}
 openshift_user: jenkins
 openshift_skip_tls_verify: true
@@ -167,7 +167,7 @@ ansible-playbook -vvv -i inventory ssl_setup.yml
 
 cp vars.yml ../artifacts/openshift_installer_vars.yml
 
-./setup_openshift.sh -e openshift_password="${OPENSHIFT_PASS}" -e @vars.yml
+./setup_openshift.sh -e openshift_token="${OPENSHIFT_TOKEN}" -e @vars.yml
 until is_tower_ready "${OPENSHIFT_ROUTE}"; do sleep 10; done
 oc scale sts "ansible-tower" --replicas=5
 
