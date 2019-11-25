@@ -86,9 +86,10 @@ Tower Memcached Container Image: ${params.MEMCACHED_CONTAINER_IMAGE}"""
         stage('Prepare Environment') {
             steps {
                 withCredentials([file(credentialsId: 'abcd0260-fb83-404e-860f-f9697911a0bc', variable: 'VAULT_FILE'),
-                                 string(credentialsId: 'awx_admin_password', variable: 'AWX_ADMIN_PASSWORD')]) {
+                                 string(credentialsId: 'awx_admin_password', variable: 'AWX_ADMIN_PASSWORD'),
+                                 string(credentialsId: 'jenkins_token_ocp3_ansible_eng', variable: 'OPENSHIFT_TOKEN')]) {
                     withEnv(["SCENARIO=openshift",
-                             "OPENSHIFT_PASS=${AWX_ADMIN_PASSWORD}",
+                             "OPENSHIFT_TOKEN=${OPENSHIFT_TOKEN}",
                              "AWX_USE_TLS=${AWX_USE_TLS}",
                              "AWX_ADMIN_PASSWORD=${AWX_ADMIN_PASSWORD}",
                              "TOWER_VERSION=${params.TOWER_VERSION}"]) {
@@ -101,8 +102,8 @@ Tower Memcached Container Image: ${params.MEMCACHED_CONTAINER_IMAGE}"""
 
         stage ('Install') {
             steps {
-                withCredentials([string(credentialsId: 'awx_admin_password', variable: 'AWX_ADMIN_PASSWORD')]) {
-                    withEnv(["OPENSHIFT_PASS=${AWX_ADMIN_PASSWORD}",
+                withCredentials([string(credentialsId: 'jenkins_token_ocp3_ansible_eng', variable: 'OPENSHIFT_TOKEN')]) {
+                    withEnv(["OPENSHIFT_TOKEN=${OPENSHIFT_TOKEN}",
                              "ANSIBLE_FORCE_COLOR=true"]) {
                         sh './tools/jenkins/scripts/openshift_install.sh'
                     }
@@ -125,8 +126,8 @@ Tower Memcached Container Image: ${params.MEMCACHED_CONTAINER_IMAGE}"""
 
         stage ('Backup instance') {
             steps {
-                withCredentials([string(credentialsId: 'awx_admin_password', variable: 'AWX_ADMIN_PASSWORD')]) {
-                    withEnv(["OPENSHIFT_PASS=${AWX_ADMIN_PASSWORD}",
+                withCredentials([string(credentialsId: 'jenkins_token_ocp3_ansible_eng', variable: 'OPENSHIFT_TOKEN')]) {
+                    withEnv(["OPENSHIFT_TOKEN=${OPENSHIFT_TOKEN}",
                              "ANSIBLE_FORCE_COLOR=true",
                              "OPENSHIFT_DEPLOYMENT=true"]) {
                         sh './tools/jenkins/scripts/backup.sh'
@@ -137,14 +138,14 @@ Tower Memcached Container Image: ${params.MEMCACHED_CONTAINER_IMAGE}"""
 
         stage ('Re-Install') {
             steps {
-                withCredentials([string(credentialsId: 'awx_admin_password', variable: 'AWX_ADMIN_PASSWORD')]) {
-                    withEnv(["OPENSHIFT_PASS=${AWX_ADMIN_PASSWORD}",
+                withCredentials([string(credentialsId: 'jenkins_token_ocp3_ansible_eng', variable: 'OPENSHIFT_TOKEN')]) {
+                    withEnv(["OPENSHIFT_TOKEN=${OPENSHIFT_TOKEN}",
                              "OPENSHIFT_PROJECT=${OPENSHIFT_PROJECT}"]) {
                         sh './tools/jenkins/scripts/openshift_cleanup.sh'
                     }
                 }
-                withCredentials([string(credentialsId: 'awx_admin_password', variable: 'AWX_ADMIN_PASSWORD')]) {
-                    withEnv(["OPENSHIFT_PASS=${AWX_ADMIN_PASSWORD}",
+                withCredentials([string(credentialsId: 'jenkins_token_ocp3_ansible_eng', variable: 'OPENSHIFT_TOKEN')]) {
+                    withEnv(["OPENSHIFT_TOKEN=${OPENSHIFT_TOKEN}",
                              "ANSIBLE_FORCE_COLOR=true"]) {
                         sh './tools/jenkins/scripts/openshift_install.sh'
                     }
@@ -158,8 +159,8 @@ Tower Memcached Container Image: ${params.MEMCACHED_CONTAINER_IMAGE}"""
 
         stage ('Restore backup') {
             steps {
-                withCredentials([string(credentialsId: 'awx_admin_password', variable: 'AWX_ADMIN_PASSWORD')]) {
-                    withEnv(["OPENSHIFT_PASS=${AWX_ADMIN_PASSWORD}",
+                withCredentials([string(credentialsId: 'jenkins_token_ocp3_ansible_eng', variable: 'OPENSHIFT_TOKEN')]) {
+                    withEnv(["OPENSHIFT_TOKEN=${OPENSHIFT_TOKEN}",
                              "ANSIBLE_FORCE_COLOR=true",
                              "OPENSHIFT_DEPLOYMENT=true"]) {
                         sh './tools/jenkins/scripts/restore.sh'
@@ -187,8 +188,8 @@ Tower Memcached Container Image: ${params.MEMCACHED_CONTAINER_IMAGE}"""
                     script {
                         OPENSHIFT_PROJECT = readFile('artifacts/openshift_project').trim()
                     }
-                    withCredentials([string(credentialsId: 'awx_admin_password', variable: 'AWX_ADMIN_PASSWORD')]) {
-                        withEnv(["OPENSHIFT_PASS=${AWX_ADMIN_PASSWORD}",
+                    withCredentials([string(credentialsId: 'jenkins_token_ocp3_ansible_eng', variable: 'OPENSHIFT_TOKEN')]) {
+                        withEnv(["OPENSHIFT_TOKEN=${OPENSHIFT_TOKEN}",
                                  "OPENSHIFT_PROJECT=${OPENSHIFT_PROJECT}"]) {
                             sh './tools/jenkins/scripts/openshift_cleanup.sh'
                         }

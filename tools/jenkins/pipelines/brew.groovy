@@ -117,8 +117,8 @@ pipeline {
             agent { label 'jenkins-jnlp-agent' }
 
             steps {
-                withCredentials([string(credentialsId: 'awx_admin_password', variable: 'OPENSHIFT_PASSWORD')]) {
-                    withEnv(["OPENSHIFT_PASSWORD=${OPENSHIFT_PASSWORD}",
+                withCredentials([string(credentialsId: 'jenkins_token_ocp3_ansible_eng', variable: 'OPENSHIFT_TOKEN')]) {
+                    withEnv(["OPENSHIFT_TOKEN=${OPENSHIFT_TOKEN}",
                              "BREW_CONTAINER_IMAGE=${BREW_CONTAINER_IMAGE}"]) {
                         sshagent(credentials : ['github-ansible-jenkins-nopassphrase']) {
                             checkout([

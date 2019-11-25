@@ -121,9 +121,9 @@ Tower Memcached Container Image: ${params.MEMCACHED_CONTAINER_IMAGE}"""
         stage('Prepare Environment') {
             steps {
                 withCredentials([file(credentialsId: 'abcd0260-fb83-404e-860f-f9697911a0bc', variable: 'VAULT_FILE'),
-                                 string(credentialsId: 'awx_admin_password', variable: 'AWX_ADMIN_PASSWORD')]) {
+                                 string(credentialsId: 'jenkins_token_ocp3_ansible_eng', variable: 'OPENSHIFT_TOKEN')]) {
                     withEnv(["SCENARIO=openshift",
-                             "OPENSHIFT_PASS=${AWX_ADMIN_PASSWORD}",
+                             "OPENSHIFT_TOKEN=${OPENSHIFT_TOKEN}",
                              "AWX_USE_TLS=${AWX_USE_TLS}",
                              "AW_REPO_URL=${AW_REPO_URL}",
                              "AWX_ADMIN_PASSWORD=${AWX_ADMIN_PASSWORD}",
@@ -137,8 +137,8 @@ Tower Memcached Container Image: ${params.MEMCACHED_CONTAINER_IMAGE}"""
 
         stage ('Install') {
             steps {
-                withCredentials([string(credentialsId: 'awx_admin_password', variable: 'AWX_ADMIN_PASSWORD')]) {
-                    withEnv(["OPENSHIFT_PASS=${AWX_ADMIN_PASSWORD}",
+                withCredentials([string(credentialsId: 'jenkins_token_ocp3_ansible_eng', variable: 'OPENSHIFT_TOKEN')]) {
+                    withEnv(["OPENSHIFT_TOKEN=${OPENSHIFT_TOKEN}",
                              "PG_PASSWORD=${PG_PASSWORD}",
                              "PG_HOSTNAME=${PG_HOSTNAME}",
                              "PG_USERNAME=${PG_USERNAME}",
@@ -179,8 +179,8 @@ Tower Memcached Container Image: ${params.MEMCACHED_CONTAINER_IMAGE}"""
                     script {
                         OPENSHIFT_PROJECT = readFile('artifacts/openshift_project').trim()
                     }
-                    withCredentials([string(credentialsId: 'awx_admin_password', variable: 'AWX_ADMIN_PASSWORD')]) {
-                        withEnv(["OPENSHIFT_PASS=${AWX_ADMIN_PASSWORD}",
+                    withCredentials([string(credentialsId: 'jenkins_token_ocp3_ansible_eng', variable: 'OPENSHIFT_TOKEN')]) {
+                        withEnv(["OPENSHIFT_TOKEN=${OPENSHIFT_TOKEN}",
                                  "OPENSHIFT_PROJECT=${OPENSHIFT_PROJECT}"]) {
                             sh './tools/jenkins/scripts/openshift_cleanup.sh'
                         }
