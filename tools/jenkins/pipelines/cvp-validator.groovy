@@ -45,7 +45,7 @@ pipeline {
                         } else if (TOWER_VERSION == '3.5') {
                             _TOWER_VERSION = '3.5.3'
                         } else {
-                            _TOWER_VERSION = '3.6.0'
+                            _TOWER_VERSION = '3.6.1'
                         }
 
                         // Deduce the Toewr Namespace (ie. 35 for 3.5.x) for later consumption
