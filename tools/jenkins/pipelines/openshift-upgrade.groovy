@@ -19,6 +19,11 @@ pipeline {
                       '3.4.6', '3.4.5', '3.4.4', '3.4.3', '3.4.2', '3.4.1', '3.4.0',
                       '3.3.8', '3.3.7', '3.3.6', '3.3.5', '3.3.4', '3.3.3', '3.3.2', '3.3.1', '3.3.0']
         )
+        choice(
+            name: 'ANSIBLE_VERSION',
+            description: 'Ansible version to run the upgrade playbooks with. (NOTE: The version within the container might be different)',
+            choices: ['devel', 'stable-2.9', 'stable-2.8', 'stable-2.7']
+        )
         string(
             name: 'TOWERQA_BRANCH',
             description: 'ansible/tower-qa branch to use (Empty will do the right thing)',
@@ -102,6 +107,7 @@ Tower Memcached Container Image: ${params.MEMCACHED_CONTAINER_IMAGE}"""
                     withEnv(["SCENARIO=openshift",
                              "OPENSHIFT_TOKEN=${OPENSHIFT_TOKEN}",
                              "AWX_ADMIN_PASSWORD=${AWX_ADMIN_PASSWORD}",
+                             "ANSIBLE_INSTALL_METHOD=pip",
                              "TOWER_VERSION=${params.TOWER_VERSION_TO_UPGRADE_FROM}"]) {
                         sh 'ansible-vault decrypt --vault-password-file="${VAULT_FILE}" config/credentials.vault --output=config/credentials.yml'
                         sh './tools/jenkins/scripts/generate_vars.sh'
@@ -172,6 +178,7 @@ Tower Memcached Container Image: ${params.MEMCACHED_CONTAINER_IMAGE}"""
                              "ANSIBLE_FORCE_COLOR=true",
                              "SCENARIO=openshift",
                              "AWX_UPGRADE=true",
+                             "ANSIBLE_INSTALL_METHOD=pip",
                              "TOWER_VERSION=${params.TOWER_VERSION_TO_UPGRADE_TO}"]) {
                         sh './tools/jenkins/scripts/generate_vars.sh'
                         sh './tools/jenkins/scripts/openshift_install.sh'
