@@ -121,6 +121,7 @@ Tower Memcached Container Image: ${params.MEMCACHED_CONTAINER_IMAGE}"""
         stage('Prepare Environment') {
             steps {
                 withCredentials([file(credentialsId: 'abcd0260-fb83-404e-860f-f9697911a0bc', variable: 'VAULT_FILE'),
+                                 string(credentialsId: 'awx_admin_password', variable: 'AWX_ADMIN_PASSWORD'),
                                  string(credentialsId: 'jenkins_token_ocp3_ansible_eng', variable: 'OPENSHIFT_TOKEN')]) {
                     withEnv(["SCENARIO=openshift",
                              "OPENSHIFT_TOKEN=${OPENSHIFT_TOKEN}",
