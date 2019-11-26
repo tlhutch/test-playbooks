@@ -72,7 +72,19 @@ The <http://jenkins.ansible.eng.rdu2.redhat.com/view/Tower/job/Pipelines/job/lpt
                         ]
                     )
 
-                    copyArtifacts filter: 'reports/junit/results-final.xml', fingerprintArtifacts: true, flatten: true, projectName: 'Pipelines/lptesting-pipeline', selector: specific("${finalStatus.number}")
+                    copyArtifacts filter: 'reports/junit/results-final.xml', fingerprintArtifacts: true, flatten: true, optional: true, projectName: 'Pipelines/lptesting-pipeline', selector: specific("${finalStatus.number}")
+
+                    if (! fileExists('results-final.xml')) {
+                        sh """\
+                        tee results-final.xml << EOF
+                        <testsuite tests="1">
+                            <testcase classname="ansible_tower_scenario" name="configuration_failure">
+                                <failure message="uanble to run the scenario"/>
+                            </testcase>
+                        </testsuite>
+                        EOF
+                        """.stripIndent()
+                    }
                     sh 'yum install -y fpaste'
                     fpaste_url = sh(script: 'fpaste results-final.xml 2>/dev/null', returnStdout: true)
                     fpaste_url = fpaste_url.replace('/view/', '/view/raw/').trim()
