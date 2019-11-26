@@ -18,6 +18,11 @@ pipeline {
             description: 'Branch to use for tower-packaging (Empty will do the right thing)',
             defaultValue: ''
         )
+        choice(
+            name: 'OFFICIAL',
+            description: 'Is this part of an official release ?',
+            choices: ['no', 'yes']
+        )
     }
 
     options {
@@ -136,8 +141,22 @@ ansible-playbook -i tools/ansible/inventory tools/ansible/build-awx-cli-docs.yml
         stage ('Synchronize documentation') {
             steps {
                 sshagent(credentials : ['github-ansible-jenkins-nopassphrase']) {
-                    sh "ansible-playbook -i tools/ansible/inventory tools/ansible/publish-awx-cli-docs.yml -v"
+                    sh "ansible-playbook -i tools/ansible/inventory tools/ansible/publish-awx-cli-docs.yml -e official=${params.OFFICIAL} -v"
                 }
+            }
+        }
+
+        stage ('Synchronize Release Mirrors') {
+            when {
+                expression {
+                    return params.OFFICIAL == "yes"
+                }
+            }
+
+            steps {
+                build(
+                    job: 'Sync_Release_Mirrors'
+                )
             }
         }
     }
