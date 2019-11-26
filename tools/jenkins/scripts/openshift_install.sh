@@ -69,6 +69,12 @@ fi
 AWX_ADMIN_PASSWORD="$(retrieve_value_from_vars_file "${VARS_FILE}" admin_password)"
 TOWER_VERSION="$(retrieve_value_from_vars_file "${VARS_FILE}" tower_version)"
 
+ANSIBLE_INSTALL_METHOD="$(retrieve_value_from_vars_file "${VARS_FILE}" ansible_install_method)"
+if [[ "${ANSIBLE_INSTALL_METHOD}" == "pip" ]]; then
+    ANSIBLE_VERSION="$(retrieve_value_from_vars_file "${VARS_FILE}" ansible_nightly_branch)"
+    pip install -U git+https://github.com/ansible/ansible.git@${ANSIBLE_VERSION}
+    ansible --version
+fi
 
 if [[ "${TOWER_VERSION}" == "devel" ]]; then
     _TOWER_VERSION='latest'
