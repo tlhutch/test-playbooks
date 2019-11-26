@@ -4,6 +4,7 @@ import yaml
 import sys
 import os
 import random
+import time
 import string
 
 # Purpose: To generate cloud instance vars for the deploy playbooks of the form:
@@ -56,8 +57,18 @@ def parse_args():
     return args
 
 
-def random_password():
-    return ''.join(random.SystemRandom().choices(string.ascii_letters + string.digits, k=16))
+def random_password(length=16):
+    if (int(time.time()) % 2) == 0:
+        password = ''.join(random.SystemRandom().choices(string.ascii_letters + string.digits, k=length))
+    else:
+        # Single and double quote are not properly handled currently. Hence
+        # removing them from the set of usable chracter
+        sub_printable = string.printable.replace("'", "").replace('"', '').strip()
+        # Make sure we always start with an ascii letter as it is a common
+        # requirements for passwords.
+        password = 'a' + ''.join(random.SystemRandom().choices(sub_printable, k=length))
+
+    return "'%s'" % password
 
 
 def prune_image_vars(image_vars):
