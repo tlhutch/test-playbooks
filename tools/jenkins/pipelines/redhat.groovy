@@ -89,6 +89,35 @@ Scope selected: ${params.SCOPE}"""
                         )
                     }
                 }
+
+                stage('dependency-repo-el7-rpms') {
+                    steps {
+                        build(
+                            job: 'Build_Tower_Dependency_Repo',
+                            parameters: [
+                               string(name: 'TOWER_PACKAGING_BRANCH', value: "origin/${branch_name}"),
+                               string(name: 'TARGET_DIST', value: "epel-7-x86_64"),
+                            ]
+                        )
+                    }
+                }
+
+                stage('dependency-repo-el8-rpms') {
+                    when {
+                        expression {
+                            return !(params.TOWER_VERSION ==~ /3.[3-4].[0-9]*/)
+                        }
+                    }
+                    steps {
+                        build(
+                            job: 'Build_Tower_Dependency_Repo',
+                            parameters: [
+                               string(name: 'TOWER_PACKAGING_BRANCH', value: "origin/${branch_name}"),
+                               string(name: 'TARGET_DIST', value: "epel-8-x86_64"),
+                            ]
+                        )
+                    }
+                }
             }
         }
 
