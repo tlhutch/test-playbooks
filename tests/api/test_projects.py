@@ -560,6 +560,22 @@ class Test_Projects(APITest):
         project.assert_successful()
         assert project.scm_revision
 
+    def test_project_sync_happens_with_job_running(self, factories, git_file_path, ansible_adhoc, api_config_pg):
+        """Ensure that a project sync can happen while a related job is running."""
+        project = factories.project(scm_url=git_file_path)
+
+        jt = factories.job_template(
+            project=project,
+            playbook='sleep.yml',
+            extra_vars={'sleep_interval': 180},
+        )
+        jt.ds.inventory.add_host()
+        job = jt.launch().wait_until_status('running')
+
+        project.update().wait_until_completed().assert_successful()
+        job.assert_status('running')
+        job.cancel().wait_until_completed().assert_status('canceled')
+
     def test_project_sync_does_not_update(self, factories, git_file_path, ansible_adhoc, api_config_pg):
         """If a project is not set to update on launch, then
         runs of a job template using this project should not pull a new revision
