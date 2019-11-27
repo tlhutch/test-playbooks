@@ -13,11 +13,12 @@ context('Add users to Organization', function() {
     cy.get('button[aria-label="Access"]').click()
     cy.get('button[aria-label="Add"]').click()
     cy.get('div.pf-c-wizard__outer-wrap > div >main > div > div > div:nth-child(2)').click()
+    cy.get('footer button[type="submit"]').click()
     cy.get('[class="pf-c-wizard__inner-wrap"] [aria-label="Search text input"]').type(
       `${this.user1.username}{enter}	`
     )
     cy.get(`[name="${this.user1.username}"][type="checkbox"]`).click()
-    cy.get('[aria-label="Clear all search filters"]').click()
+    cy.get('.searchTagChip button[aria-label="close"]').click()
     cy.get('[class="pf-c-wizard__inner-wrap"] [aria-label="Search text input"]').type(
       `${this.user2.username}{enter}	`
     )
@@ -68,7 +69,7 @@ context('Add teams to Organization', function() {
       `${this.team1.name}{enter}	`
     )
     cy.get(`[name="${this.team1.name}"][type="checkbox"]`).click()
-    cy.get('[aria-label="Clear all search filters"]').click()
+    cy.get('.searchTagChip button[aria-label="close"]').click()
     cy.get('[class="pf-c-wizard__inner-wrap"] [aria-label="Search text input"]').type(
       `${this.team2.name}{enter}	`
     )

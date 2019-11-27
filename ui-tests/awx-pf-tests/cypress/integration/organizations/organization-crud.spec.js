@@ -23,9 +23,16 @@ context('Create and Edit Organization', function() {
     cy.get('button[aria-label=Save]').click()
     cy.get('dd:nth-of-type(1)').should('have.text', `create-org-${this.testID}`)
   })
+})
+
+context('Edit Organization', function() {
+  before(function() {
+    cy.createOrReplace('organizations', `organization-to-edit`).as('org')
+  })
 
   it('can edit an organization', function() {
-    cy.get('.pf-m-primary:nth-of-type(1)').click()
+    cy.visit(`/#/organizations/${this.org.id}`)
+    cy.get(`a[href="#/organizations/${this.org.id}/edit"]`).click()
     cy.get('#org-name')
       .clear()
       .type(`edited-org-${this.testID}`)

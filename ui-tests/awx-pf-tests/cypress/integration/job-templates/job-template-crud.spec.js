@@ -21,7 +21,7 @@ context('Create and Edit Job Template', function() {
   it('can create a job template', function() {
     cy.visit('/#/templates')
     cy.get('button[aria-label=Add]').click()
-    cy.get('a[href*="job_template/add"]').click()
+    cy.get('a[href*="/template/add"]').click()
     cy.get('#template-name').type(`create-jt-${this.testID}`)
     cy.get('#template-description').type(`Creation test for JTs. Test ID: ${this.testID}`)
     cy.get('#inventory-lookup').click()
@@ -36,9 +36,16 @@ context('Create and Edit Job Template', function() {
     cy.get('button[aria-label=Save]').click()
     cy.get('dd:nth-of-type(1)').should('have.text', `create-jt-${this.testID}`)
   })
+})
+
+context('Edit Job Template', function() {
+  before(function() {
+    cy.createOrReplace('job_templates', `JT-to-edit`).as('edit')
+  })
 
   it('can edit a job template', function() {
-    cy.get('.pf-m-primary:nth-of-type(1)').click()
+    cy.visit(`/#/templates/job_template/${this.edit.id}`)
+    cy.get('a[aria-label=Edit]').click()
     cy.get('#template-name')
       .clear()
       .type(`edited-jt-${this.testID}`)
