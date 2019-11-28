@@ -68,6 +68,12 @@ Platform under test: ${params.PLATFORM}"""
                     } else {
                         testexpr = ''
                     }
+
+                    if (params.PLATFORM == 'rhel-7.5-x86_64') {
+                        awx_use_fips = 'yes'
+                    } else {
+                        awx_use_fips = 'no'
+                    }
                 }
             }
         }
@@ -89,6 +95,7 @@ Platform under test: ${params.PLATFORM}"""
                                                 string(name: 'SCENARIO', value: 'standalone'),
                                                 string(name: 'PLATFORM', value: params.PLATFORM),
                                                 string(name: 'BUNDLE', value: 'no'),
+                                                string(name: 'AWX_USE_FIPS', value: awx_use_fips),
                                                 string(name: 'DEPLOYMENT_NAME', value: 'evergreen-jenkins-tower-plain-standalone-minor-upgrade')
                                             ]
                                         )
@@ -110,6 +117,7 @@ Platform under test: ${params.PLATFORM}"""
                                                 string(name: 'SCENARIO', value: 'standalone'),
                                                 string(name: 'PLATFORM', value: params.PLATFORM),
                                                 string(name: 'BUNDLE', value: 'no'),
+                                                string(name: 'AWX_USE_FIPS', value: awx_use_fips),
                                                 string(name: 'DEPLOYMENT_NAME', value: 'evergreen-jenkins-tower-plain-standalone-major-upgrade')
                                             ]
                                         )
@@ -129,6 +137,7 @@ Platform under test: ${params.PLATFORM}"""
                                             string(name: 'SCENARIO', value: 'standalone'),
                                             string(name: 'PLATFORM', value: params.PLATFORM),
                                             string(name: 'BUNDLE', value: 'no'),
+                                            string(name: 'AWX_USE_FIPS', value: awx_use_fips),
                                             string(name: 'DEPLOYMENT_NAME', value: 'evergreen-jenkins-tower-plain-standalone-backup-and-restore')
                                         ]
                                     )
@@ -147,6 +156,7 @@ Platform under test: ${params.PLATFORM}"""
                                         string(name: 'SCENARIO', value: 'standalone'),
                                         string(name: 'PLATFORM', value: params.PLATFORM),
                                         string(name: 'BUNDLE', value: 'no'),
+                                        string(name: 'AWX_USE_FIPS', value: awx_use_fips),
                                         string(name: 'TESTEXPR', value: testexpr),
                                         string(name: 'DEPLOYMENT_NAME', value: 'evergreen-jenkins-tower-plain-standalone-integration')
                                     ]
@@ -175,6 +185,7 @@ Platform under test: ${params.PLATFORM}"""
                                                 string(name: 'SCENARIO', value: 'cluster'),
                                                 string(name: 'PLATFORM', value: params.PLATFORM),
                                                 string(name: 'BUNDLE', value: 'no'),
+                                                string(name: 'AWX_USE_FIPS', value: awx_use_fips),
                                                 string(name: 'DEPLOYMENT_NAME', value: 'evergreen-jenkins-tower-plain-cluster-minor-upgrade')
                                             ]
                                         )
@@ -196,6 +207,7 @@ Platform under test: ${params.PLATFORM}"""
                                                 string(name: 'SCENARIO', value: 'cluster'),
                                                 string(name: 'PLATFORM', value: params.PLATFORM),
                                                 string(name: 'BUNDLE', value: 'no'),
+                                                string(name: 'AWX_USE_FIPS', value: awx_use_fips),
                                                 string(name: 'DEPLOYMENT_NAME', value: 'evergreen-jenkins-tower-plain-cluster-major-upgrade')
                                             ]
                                         )
@@ -215,6 +227,7 @@ Platform under test: ${params.PLATFORM}"""
                                             string(name: 'SCENARIO', value: 'cluster'),
                                             string(name: 'PLATFORM', value: params.PLATFORM),
                                             string(name: 'BUNDLE', value: 'no'),
+                                            string(name: 'AWX_USE_FIPS', value: awx_use_fips),
                                             string(name: 'DEPLOYMENT_NAME', value: 'evergreen-jenkins-tower-plain-cluster-backup-and-restore')
                                         ]
                                     )
@@ -233,6 +246,7 @@ Platform under test: ${params.PLATFORM}"""
                                         string(name: 'SCENARIO', value: 'cluster'),
                                         string(name: 'PLATFORM', value: params.PLATFORM),
                                         string(name: 'BUNDLE', value: 'no'),
+                                        string(name: 'AWX_USE_FIPS', value: awx_use_fips),
                                         string(name: 'TESTEXPR', value: testexpr),
                                         string(name: 'DEPLOYMENT_NAME', value: 'evergreen-jenkins-tower-plain-cluster-integration')
                                     ]
@@ -266,6 +280,7 @@ Platform under test: ${params.PLATFORM}"""
                                                 string(name: 'SCENARIO', value: 'standalone'),
                                                 string(name: 'PLATFORM', value: params.PLATFORM),
                                                 string(name: 'BUNDLE', value: 'yes'),
+                                                string(name: 'AWX_USE_FIPS', value: awx_use_fips),
                                                 string(name: 'DEPLOYMENT_NAME', value: 'evergreen-jenkins-tower-bundle-standalone-minor-upgrade')
                                             ]
                                         )
@@ -287,6 +302,7 @@ Platform under test: ${params.PLATFORM}"""
                                                 string(name: 'SCENARIO', value: 'standalone'),
                                                 string(name: 'PLATFORM', value: params.PLATFORM),
                                                 string(name: 'BUNDLE', value: 'yes'),
+                                                string(name: 'AWX_USE_FIPS', value: awx_use_fips),
                                                 string(name: 'DEPLOYMENT_NAME', value: 'evergreen-jenkins-tower-bundle-standalone-major-upgrade')
                                             ]
                                         )
@@ -306,6 +322,7 @@ Platform under test: ${params.PLATFORM}"""
                                             string(name: 'SCENARIO', value: 'standalone'),
                                             string(name: 'PLATFORM', value: params.PLATFORM),
                                             string(name: 'BUNDLE', value: 'yes'),
+                                            string(name: 'AWX_USE_FIPS', value: awx_use_fips),
                                             string(name: 'DEPLOYMENT_NAME', value: 'evergreen-jenkins-tower-bundle-standalone-backup-and-restore')
                                         ]
                                     )
@@ -325,6 +342,7 @@ Platform under test: ${params.PLATFORM}"""
                                         string(name: 'PLATFORM', value: params.PLATFORM),
                                         string(name: 'BUNDLE', value: 'yes'),
                                         string(name: 'TESTEXPR', value: testexpr),
+                                        string(name: 'AWX_USE_FIPS', value: awx_use_fips),
                                         string(name: 'DEPLOYMENT_NAME', value: 'evergreen-jenkins-tower-bundle-standalone-integration')
                                     ]
                                 ).result
@@ -357,6 +375,7 @@ Platform under test: ${params.PLATFORM}"""
                                                 string(name: 'SCENARIO', value: 'cluster'),
                                                 string(name: 'PLATFORM', value: params.PLATFORM),
                                                 string(name: 'BUNDLE', value: 'yes'),
+                                                string(name: 'AWX_USE_FIPS', value: awx_use_fips),
                                                 string(name: 'DEPLOYMENT_NAME', value: 'evergreen-jenkins-tower-bundle-cluster-minor-upgrade')
                                             ]
                                         )
@@ -378,6 +397,7 @@ Platform under test: ${params.PLATFORM}"""
                                                 string(name: 'SCENARIO', value: 'cluster'),
                                                 string(name: 'PLATFORM', value: params.PLATFORM),
                                                 string(name: 'BUNDLE', value: 'yes'),
+                                                string(name: 'AWX_USE_FIPS', value: awx_use_fips),
                                                 string(name: 'DEPLOYMENT_NAME', value: 'evergreen-jenkins-tower-bundle-cluster-major-upgrade')
                                             ]
                                         )
@@ -397,6 +417,7 @@ Platform under test: ${params.PLATFORM}"""
                                             string(name: 'SCENARIO', value: 'cluster'),
                                             string(name: 'PLATFORM', value: params.PLATFORM),
                                             string(name: 'BUNDLE', value: 'yes'),
+                                            string(name: 'AWX_USE_FIPS', value: awx_use_fips),
                                             string(name: 'DEPLOYMENT_NAME', value: 'evergreen-jenkins-tower-bundle-cluster-backup-and-restore')
                                         ]
                                     )
@@ -415,6 +436,7 @@ Platform under test: ${params.PLATFORM}"""
                                         string(name: 'SCENARIO', value: 'cluster'),
                                         string(name: 'PLATFORM', value: params.PLATFORM),
                                         string(name: 'BUNDLE', value: 'yes'),
+                                        string(name: 'AWX_USE_FIPS', value: awx_use_fips),
                                         string(name: 'TESTEXPR', value: testexpr),
                                         string(name: 'DEPLOYMENT_NAME', value: 'evergreen-jenkins-tower-bundle-cluster-integration')
                                     ]
