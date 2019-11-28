@@ -33,13 +33,13 @@
         name: generate_tls_certificates
       when: awx_use_tls | default(false) | bool
 
-- name: Enable FIPS for isolated nodes
-  hosts: 'tower'
+- name: Enable FIPS for tower nodes
+  hosts: tower
   tasks:
     - name: Run FIPS Role
       include_role:
         name: fips
-      when: "'7.5' in ansible_distribution_version and fips_enabled | default(true) | bool and not awx_upgrade | default(false) | bool"
+      when: awx_use_fips | default(false) | bool and not awx_upgrade | default(false) | bool
 
 - name: 'Install Tower'
   hosts: 'tower'

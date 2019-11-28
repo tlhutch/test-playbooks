@@ -35,6 +35,7 @@ export ANSIBLE_FORCE_COLOR=${ANSIBLE_FORCE_COLOR:-True}
 export OUT_OF_BOX_OS=${OUT_OF_BOX_OS:-no}
 export FROM_STAGE=${FROM_STAGE:-no}
 export AWX_USE_TLS=${AWX_USE_TLS:-no}
+export AWX_USE_FIPS=${AWX_USE_FIPS:-no}
 
 ANSIBLE_NIGHTLY_REPO=${ANSIBLE_NIGHTLY_REPO}/${ANSIBLE_VERSION}
 
@@ -49,6 +50,7 @@ setup_env_based_on_deployment_scenario "${SCENARIO}"
 if [[ -z "${AW_REPO_URL}" ]]; then
     AW_REPO_URL=$(retrieve_aw_repo_url_based_on_version "${TOWER_VERSION}")
 fi
+AWX_USE_FIPS=$(retrieve_boolean_value "${AWX_USE_FIPS}")
 AWX_USE_TLS=$(retrieve_boolean_value "${AWX_USE_TLS}")
 AWX_IPV6_DEPLOYMENT=$(retrieve_boolean_value "${AWX_IPV6_DEPLOYMENT}")
 DELETE_ON_START=$(retrieve_boolean_value "${DELETE_ON_START}")
