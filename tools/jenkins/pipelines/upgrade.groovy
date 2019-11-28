@@ -39,6 +39,10 @@ pipeline {
                       'ubuntu-16.04-x86_64', 'ubuntu-14.04-x86_64']
         )
         choice(
+            name: 'AWX_USE_FIPS',
+            description: 'Should FIPS be enabled for this deployment ?',
+            choices: ['no', 'yes']
+        choice(
             name: 'BUNDLE',
             description: 'Should the bundle version be used ?',
             choices: ['no', 'yes']
@@ -135,6 +139,7 @@ Bundle?: ${params.BUNDLE}"""
                     withEnv(["AWS_SECRET_KEY=${AWS_SECRET_KEY}",
                              "AWS_ACCESS_KEY=${AWS_ACCESS_KEY}",
                              "AWX_ADMIN_PASSWORD=${AWX_ADMIN_PASSWORD}",
+                             "AWX_USE_FIPS=${AWX_USE_FIPS}",
                              "TOWER_VERSION=${params.TOWER_VERSION_TO_UPGRADE_FROM}",
                              "ANSIBLE_FORCE_COLOR=true",
                              "AWX_APPLY_ISOLATED_GROUPS_FW_RULES=false"]) {

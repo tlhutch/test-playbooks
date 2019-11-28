@@ -18,6 +18,11 @@ pipeline {
             description: 'Should the network services (postgresql, rabbitmq and nginx) use TLS (with custom CA issued certificates)',
             choices: ['no', 'yes']
         )
+        choice(
+            name: 'AWX_USE_FIPS',
+            description: 'Should FIPS be enabled for this deployment ?',
+            choices: ['no', 'yes']
+        )
         string(
             name: 'TOWER_FORK',
             description: 'Fork of tower to deploy',
@@ -382,6 +387,7 @@ pipeline {
                                      "AWS_ACCESS_KEY=${AWS_ACCESS_KEY}",
                                      "AWX_ANSIBLE_RUNNER_URL=${AWX_ANSIBLE_RUNNER_URL}",
                                      "AWX_USE_TLS=${AWX_USE_TLS}",
+                                     "AWX_USE_FIPS=${AWX_USE_FIPS}",
                                      "SCENARIO=${SCENARIO}",
                                      "PLATFORM=${PLATFORM}",
                                      "ANSIBLE_VERSION=${ANSIBLE_NIGHTLY_BRANCH}",

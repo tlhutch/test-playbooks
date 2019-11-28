@@ -28,6 +28,11 @@ pipeline {
             choices: ['no', 'yes']
         )
         choice(
+            name: 'AWX_USE_FIPS',
+            description: 'Should FIPS be enabled for this deployment ?',
+            choices: ['no', 'yes']
+        )
+        choice(
             name: 'PLATFORM',
             description: 'The OS to install the Tower instance on',
             choices: ['rhel-7.7-x86_64', 'rhel-7.6-x86_64', 'rhel-7.5-x86_64', 'rhel-7.4-x86_64',
@@ -141,6 +146,7 @@ Bundle?: ${params.BUNDLE}"""
                     withEnv(["AWS_SECRET_KEY=${AWS_SECRET_KEY}",
                              "AWS_ACCESS_KEY=${AWS_ACCESS_KEY}",
                              "AWX_USE_TLS=${AWX_USE_TLS}",
+                             "AWX_USE_FIPS=${AWX_USE_FIPS}",
                              "AWX_ADMIN_PASSWORD=${AWX_ADMIN_PASSWORD}",
                              "ANSIBLE_FORCE_COLOR=true"]) {
                         sshagent(credentials : ['github-ansible-jenkins-nopassphrase']) {
