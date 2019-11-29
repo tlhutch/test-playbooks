@@ -68,7 +68,7 @@ def random_password(length=16):
         # requirements for passwords.
         password = 'a' + ''.join(random.SystemRandom().choices(sub_printable, k=length))
 
-    return "'%s'" % password
+    return password
 
 
 def prune_image_vars(image_vars):
