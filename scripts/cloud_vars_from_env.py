@@ -63,7 +63,7 @@ def random_password(length=16):
     else:
         # Single and double quote are not properly handled currently. Hence
         # removing them from the set of usable chracter
-        sub_printable = string.printable.replace("'", "").replace('"', '').strip()
+        sub_printable = string.printable.replace("'", "").replace('"', '').replace('/', '').strip()
         # Make sure we always start with an ascii letter as it is a common
         # requirements for passwords.
         password = 'a' + ''.join(random.SystemRandom().choices(sub_printable, k=length))
