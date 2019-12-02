@@ -176,28 +176,28 @@ def get_package_based_job_results(builds, tower_version, release_pipeline_build_
     PARAMS_SET = [
         {
             "tower_version": tower_version,
-            "ansible_version": "stable-2.8",
+            "ansible_version": "stable-2.9",
             "scenario": "standalone",
             "platform": "rhel-8.1-x86_64",
             "release_pipeline_build_id": release_pipeline_build_id,
         },
         {
             "tower_version": tower_version,
-            "ansible_version": "stable-2.8",
+            "ansible_version": "stable-2.9",
             "scenario": "cluster",
             "platform": "rhel-8.1-x86_64",
             "release_pipeline_build_id": release_pipeline_build_id,
         },
         {
             "tower_version": tower_version,
-            "ansible_version": "stable-2.8",
+            "ansible_version": "stable-2.9",
             "scenario": "standalone",
             "platform": "rhel-7.7-x86_64",
             "release_pipeline_build_id": release_pipeline_build_id,
         },
         {
             "tower_version": tower_version,
-            "ansible_version": "stable-2.8",
+            "ansible_version": "stable-2.9",
             "scenario": "cluster",
             "platform": "rhel-7.7-x86_64",
             "release_pipeline_build_id": release_pipeline_build_id,
