@@ -159,33 +159,41 @@ def shared_custom_venvs(request, venv_path, is_docker, is_traditional_cluster_cl
             See doc string of this fixture for more details on usage.
             ''')
     else:
-        limit = 'instance_group_ordinary_instances' if is_traditional_cluster_class else 'tower'
-        if is_docker:
-            limit = 'tower'
+        # If we set the venv_group in fixture_args, override the defaults
+        limit = fixture_args.kwargs.get('venv_group', None)
+        if not limit:
+            limit = 'instance_group_ordinary_instances' if is_traditional_cluster_class else 'tower'
+            if is_docker:
+                limit = 'tower'
+
         if 'venvs' not in fixture_args.kwargs.keys():
             pytest.fail('''
             Must provide "venvs" to create in fixture_args!
             See doc string of this fixture for more details on usage.
             ''')
         else:
+            if limit == 'local' and is_docker:
+                return venv_paths
+
             for venv_info in fixture_args.kwargs['venvs']:
                 venv_name = venv_info['name']
                 packages = venv_info['packages']
                 use_python = venv_info['python_interpreter']
+
                 setup_playbook_args = [
                        venv_name,
                        limit,
                        packages,
                        use_python,
                        is_docker,
-                       inv_path
+                       inv_path,
                        ]
                 teardown_playbook_args = [
                        venv_name,
                        limit,
                        use_python,
                        is_docker,
-                       inv_path
+                       inv_path,
                        ]
                 teardown_venv = functools.partial(
                     _run_teardown_venv_playbook, *teardown_playbook_args

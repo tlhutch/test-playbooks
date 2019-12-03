@@ -17,8 +17,10 @@ def ansible_collections_path(is_docker):
 
     See https://github.com/ansible/ansible/blob/stable-2.9/lib/ansible/config/base.yml#L221.
     """
+
     if is_docker:
-        return '/var/lib/awx/.ansible/collections'
+        return '~/.ansible/collections'
+
     return '/usr/share/ansible/collections'
 
 
@@ -28,7 +30,7 @@ def _run_uninstall_tower_modules_collection(ansible_adhoc, collection_path):
 
 
 @pytest.fixture(scope='class')
-def tower_modules_collection(request, session_ansible_adhoc, ansible_collections_path):
+def tower_modules_collection(request, modified_ansible_adhoc, ansible_collections_path):
     '''
     Emulate ansible 2.9 ansible-galaxy collection install. This fixture exists
     because the aforementioned command doesn't yet exist. Thus, our emulation.
@@ -47,10 +49,24 @@ def tower_modules_collection(request, session_ansible_adhoc, ansible_collections
     if product == 'tower':
         pytest.skip("Current approach does not work because we don't have creds on tower box, skip because otherwise git command will hang.")
 
-    try:
-        ansible_adhoc = session_ansible_adhoc()['cluster_installer']
-    except KeyError:
-        ansible_adhoc = session_ansible_adhoc()['tower']
+    ansible_path = ''
+    # If we set the venv_group in fixture_args, override the defaults
+    fixture_args = request.node.get_closest_marker('fixture_args')
+    if fixture_args and fixture_args.kwargs.get('venv_group'):
+        limit = fixture_args.kwargs.get('venv_group')
+        ansible_adhoc = modified_ansible_adhoc()[limit]
+        if os.getenv('VIRTUAL_ENV'):
+            venv_path = os.getenv('VIRTUAL_ENV')
+            if os.path.exists(os.path.join(venv_path, 'bin', 'ansible-playbook')) and os.path.exists(os.path.join(venv_path, 'bin', 'ansible-galaxy')):
+                ansible_path = os.path.join(venv_path, 'bin')
+    else:
+        try:
+            ansible_adhoc = modified_ansible_adhoc()['cluster_installer']
+        except KeyError:
+            ansible_adhoc = modified_ansible_adhoc()['tower']
+
+    ansible_galaxy_bin = os.path.join(ansible_path, 'ansible-galaxy')
+    ansible_playbook_bin = os.path.join(ansible_path, 'ansible-playbook')
 
     if not config.prevent_teardown:
         uninstall_tower_modules_collection = functools.partial(
@@ -80,14 +96,16 @@ def tower_modules_collection(request, session_ansible_adhoc, ansible_collections
 
         # TODO: optionally build as awx or tower
         contacted = ansible_adhoc.shell((
-            'ansible-playbook -i localhost, awx_collection/template_galaxy.yml '
-            '-e collection_package=awx -e collection_namespace=awx -e collection_version=0.0.1'
+            '{} -i localhost, awx_collection/template_galaxy.yml '
+            '-e collection_package=awx -e collection_namespace=awx -e collection_version=0.0.1'.format(ansible_playbook_bin)
         ), chdir=build_dir)
         for result in contacted.values():
             assert result.get('rc', None) == 0, result_to_str(result)
 
         contacted = ansible_adhoc.shell(
-            'ansible-galaxy collection build --force',
+            '{} collection build --force'.format(
+                ansible_galaxy_bin
+            ),
             chdir=os.path.join(build_dir, 'awx_collection')
         )
         for result in contacted.values():
@@ -97,7 +115,8 @@ def tower_modules_collection(request, session_ansible_adhoc, ansible_collections
             package_name = re.search(r'\b([a-z0-9\.-]*\.tar\.gz)\b', stdout).group(1)
 
         contacted = ansible_adhoc.shell(
-            'ansible-galaxy collection install {} -p {} --force'.format(
+            '{} collection install {} -p {} --force'.format(
+                ansible_galaxy_bin,
                 os.path.join(build_dir, 'awx_collection', package_name), ansible_collections_path
             )
         )

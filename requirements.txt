@@ -1,3 +1,4 @@
+ansible-tower-cli
 boto
 boto3
 botocore
