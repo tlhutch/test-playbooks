@@ -42,6 +42,7 @@ pipeline {
             name: 'AWX_USE_FIPS',
             description: 'Should FIPS be enabled for this deployment ?',
             choices: ['no', 'yes']
+        )
         choice(
             name: 'BUNDLE',
             description: 'Should the bundle version be used ?',
