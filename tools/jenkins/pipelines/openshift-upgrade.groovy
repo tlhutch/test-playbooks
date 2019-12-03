@@ -103,8 +103,10 @@ Tower Memcached Container Image: ${params.MEMCACHED_CONTAINER_IMAGE}"""
             steps {
                 withCredentials([file(credentialsId: 'abcd0260-fb83-404e-860f-f9697911a0bc', variable: 'VAULT_FILE'),
                                  string(credentialsId: 'jenkins_token_ocp3_ansible_eng', variable: 'OPENSHIFT_TOKEN'),
+                                 string(credentialsId: 'jenkins_password_ocp3_ansible_eng', variable: 'OPENSHIFT_PASS'),
                                  string(credentialsId: 'awx_admin_password', variable: 'AWX_ADMIN_PASSWORD')]) {
                     withEnv(["SCENARIO=openshift",
+                             "OPENSHIFT_PASS=${OPENSHIFT_PASS}",
                              "OPENSHIFT_TOKEN=${OPENSHIFT_TOKEN}",
                              "AWX_ADMIN_PASSWORD=${AWX_ADMIN_PASSWORD}",
                              "ANSIBLE_INSTALL_METHOD=pip",
@@ -118,8 +120,10 @@ Tower Memcached Container Image: ${params.MEMCACHED_CONTAINER_IMAGE}"""
 
         stage ('Install') {
             steps {
-                withCredentials([string(credentialsId: 'jenkins_token_ocp3_ansible_eng', variable: 'OPENSHIFT_TOKEN')]) {
-                    withEnv(["OPENSHIFT_TOKEN=${OPENSHIFT_TOKEN}",
+                withCredentials([string(credentialsId: 'jenkins_token_ocp3_ansible_eng', variable: 'OPENSHIFT_TOKEN'),
+                                 string(credentialsId: 'jenkins_password_ocp3_ansible_eng', variable: 'OPENSHIFT_PASS')]) {
+                    withEnv(["OPENSHIFT_PASS=${OPENSHIFT_PASS}",
+                             "OPENSHIFT_TOKEN=${OPENSHIFT_TOKEN}",
                              "TOWER_CONTAINER_IMAGE=${params.TOWER_CONTAINER_IMAGE_TO_UPGRADE_FROM}",
                              "MESSAGING_CONTAINER_IMAGE=${params.MESSAGING_CONTAINER_IMAGE_TO_UPGRADE_FROM}",
                              "MEMCACHED_CONTAINER_IMAGE=${params.MEMCACHED_CONTAINER_IMAGE_TO_UPGRADE_FROM}",
@@ -168,8 +172,10 @@ Tower Memcached Container Image: ${params.MEMCACHED_CONTAINER_IMAGE}"""
         stage ('Upgrade') {
             steps {
                 withCredentials([string(credentialsId: 'awx_admin_password', variable: 'AWX_ADMIN_PASSWORD'),
+                                 string(credentialsId: 'jenkins_password_ocp3_ansible_eng', variable: 'OPENSHIFT_PASS'),
                                  string(credentialsId: 'jenkins_token_ocp3_ansible_eng', variable: 'OPENSHIFT_TOKEN')]) {
-                    withEnv(["OPENSHIFT_TOKEN=${OPENSHIFT_TOKEN}",
+                    withEnv(["OPENSHIFT_PASS=${OPENSHIFT_PASS}",
+                             "OPENSHIFT_TOKEN=${OPENSHIFT_TOKEN}",
                              "OPENSHIFT_PROJECT=${OPENSHIFT_PROJECT}",
                              "AWX_ADMIN_PASSWORD=${AWX_ADMIN_PASSWORD}",
                              "TOWER_CONTAINER_IMAGE=${params.TOWER_CONTAINER_IMAGE_TO_UPGRADE_TO}",
@@ -206,8 +212,10 @@ Tower Memcached Container Image: ${params.MEMCACHED_CONTAINER_IMAGE}"""
                     script {
                         OPENSHIFT_PROJECT = readFile('artifacts/openshift_project').trim()
                     }
-                    withCredentials([string(credentialsId: 'jenkins_token_ocp3_ansible_eng', variable: 'OPENSHIFT_TOKEN')]) {
-                        withEnv(["OPENSHIFT_TOKEN=${OPENSHIFT_TOKEN}",
+                    withCredentials([string(credentialsId: 'jenkins_token_ocp3_ansible_eng', variable: 'OPENSHIFT_TOKEN'),
+                                     string(credentialsId: 'jenkins_password_ocp3_ansible_eng', variable: 'OPENSHIFT_PASS')]) {
+                        withEnv(["OPENSHIFT_PASS=${OPENSHIFT_PASS}",
+                                 "OPENSHIFT_TOKEN=${OPENSHIFT_TOKEN}",
                                  "OPENSHIFT_PROJECT=${OPENSHIFT_PROJECT}"]) {
                             sh './tools/jenkins/scripts/openshift_cleanup.sh'
                         }
