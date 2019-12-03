@@ -114,6 +114,11 @@ pipeline {
             defaultValue: true
         )
         booleanParam(
+            name: 'RUN_PATTERNFLY_E2E',
+            description: 'Should the Patternfly e2e test suite be run as part of this pipeline? (This will build its own local UI and connect to the running Tower instance)',
+            defaultValue: false
+        )
+        booleanParam(
             name: 'RUN_CLI_TESTS',
             description: 'Should the CLI test suite be run as part of this pipeline ?',
             defaultValue: true
@@ -519,42 +524,15 @@ pipeline {
                         build(
                             job: 'Test_Tower_E2E',
                             parameters: [
-                                string(
-                                    name: 'E2E_URL',
-                                    value: "${AWX_E2E_URL}"
-                                ),
-                                string(
-                                    name: 'DEPLOYMENT_TYPE',
-                                    value: "${params.PRODUCT}"
-                                ),
-                                string(
-                                    name: 'E2E_FORK',
-                                    value: "${params.TOWER_FORK}"
-                                ),
-                                string(
-                                    name: 'E2E_BRANCH',
-                                    value: "${params.TOWER_BRANCH}"
-                                ),
-                                string(
-                                    name: 'E2E_SCRIPT_BRANCH',
-                                    value: "${params.TOWER_QA_BRANCH}"
-                                ),
-                                password(
-                                    name: 'E2E_PASSWORD',
-                                    value: "${ADMIN_PASSWORD}",
-                                ),
-                                string(
-                                    name: 'E2E_TEST_SELECTION',
-                                    value: "${params.E2E_TESTEXPR}"
-                                ),
-                                string(
-                                    name: 'E2E_RETRIES',
-                                    value: "${env.E2E_RETRIES}"
-                                ),
-                                booleanParam(
-                                    name: 'E2E_RUN_EXTERNAL_GRID',
-                                    value: "${params.E2E_RUN_EXTERNAL_GRID}"
-                                ),
+                                string(name: 'E2E_URL', value: "${AWX_E2E_URL}"),
+                                string(name: 'DEPLOYMENT_TYPE', value: "${params.PRODUCT}"),
+                                string(name: 'E2E_FORK', value: "${params.TOWER_FORK}"),
+                                string(name: 'E2E_BRANCH', value: "${params.TOWER_BRANCH}"),
+                                string(name: 'E2E_SCRIPT_BRANCH', value: "${params.TOWER_QA_BRANCH}"),
+                                password(name: 'E2E_PASSWORD', value: "${ADMIN_PASSWORD}",),
+                                string(name: 'E2E_TEST_SELECTION', value: "${params.E2E_TESTEXPR}"),
+                                string(name: 'E2E_RETRIES', value: "${env.E2E_RETRIES}"),
+                                booleanParam(name: 'E2E_RUN_EXTERNAL_GRID', value: "${params.E2E_RUN_EXTERNAL_GRID}"),
                             ],
                             propagate: true
                         )
@@ -562,11 +540,34 @@ pipeline {
                 }
             }
         }
+
+        stage('Run Patternfly E2E') {
+            when {expression { return params.RUN_PATTERNFLY_E2E } }
+            steps {
+                script {
+                    def AWX_E2E_URL = readFile('artifacts/tower_url').trim()
+                    def E2E_HOSTNAME = AWX_E2E_URL.replaceAll("/\\z", "").replaceAll("https://", "").replaceAll("http://", "") // removes protocol from URL
+                    build(
+                        job: 'Test_Tower_PatternFly_E2E',
+                        parameters: [
+                            string(name: 'AWX_E2E_URL', value: "${E2E_HOSTNAME}"),
+                            password(name: 'AWX_E2E_PASSWORD', value: "${ADMIN_PASSWORD}"),
+                            string(name: 'UI_REPO', value: "git@github.com:${TOWER_FORK}/tower.git"),
+                            string(name: 'UI_BRANCH', value: "${TOWER_BRANCH}"),
+                            string(name: 'E2E_TEST_REPO', value: "git@github.com:${TOWER_QA_FORK}/tower-qa.git"),
+                            string(name: 'E2E_TEST_BRANCH', value: "${TOWER_QA_BRANCH}"),
+                            string(name: 'SLACK_CHANNEL', value: "${SLACK_USERNAME}")
+                        ],
+                        propagate: true
+                    )
+                }
+            }
+        }
     }
     post {
         always {
             script {
-                if (params.RUN_INSTALLER || params.RUN_TESTS || params.RUN_E2E) {
+                if (params.RUN_INSTALLER || params.RUN_TESTS || params.RUN_E2E || params.RUN_PATTERNFLY_E2E) {
                     sshagent(credentials : ['github-ansible-jenkins-nopassphrase']) {
                         sh "ssh ${SSH_OPTS} ec2-user@${TEST_RUNNER_HOST} 'cd tower-qa && ./tools/jenkins/scripts/collect.sh' || true" // Continue on even if this fails so we can archive anything available
                         sh 'ansible-playbook -v -i playbooks/inventory.test_runner playbooks/test_runner/run_fetch_artifacts_tower.yml || true' // Continue on even if this fails so we can archive anything available
