@@ -740,6 +740,7 @@ class TestTraditionalCluster(APITest):
         job = jt.launch().wait_until_completed()
         job.assert_successful()
 
+    @pytest.mark.github('https://github.com/ansible/tower/issues/4007', ids=['svn-isolated group', 'svn-regular instance group'], skip=True)
     @pytest.mark.serial
     @pytest.mark.parametrize('run_on_isolated_group', [True, False], ids=['isolated group', 'regular instance group'])
     @pytest.mark.parametrize('scm_type', ['git', 'svn', 'hg'])

@@ -484,6 +484,7 @@ class Test_Autospawned_Jobs(APITest):
         sorted_unified_jobs = [inv_update_pg, job_pg]
         confirm_unified_jobs(sorted_unified_jobs)
 
+    @pytest.mark.github('https://github.com/ansible/tower/issues/4007', ids=['svn'], skip=True)
     @pytest.mark.parametrize('scm_type', ['git', 'hg', 'svn'])
     def test_project_update_on_launch(self, scm_type, factories):
         """Verify that two project updates are triggered by a job launch when we
