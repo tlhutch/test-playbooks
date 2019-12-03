@@ -2,7 +2,7 @@
 set -euo pipefail
 
 BETELGEUSE_PATH="$(realpath "$(dirname "${0}")/..")"
-OUTPUT_PATH="$(realpath "${BETELGEUSE_PATH}/../../reports/betelgeuse")"
+OUTPUT_PATH="$(realpath -m "${BETELGEUSE_PATH}/../../reports/betelgeuse")"
 POLARION_ASSIGNEE="${POLARION_ASSIGNEE:-importer}"
 POLARION_PASSWORD="${POLARION_PASSWORD:-polarion}"
 POLARION_PROJECT="${POLARION_PROJECT:-AnsibleTower}"

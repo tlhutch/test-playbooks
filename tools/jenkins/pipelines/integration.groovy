@@ -94,6 +94,11 @@ pipeline {
             description: 'Should the deployment be cleaned if job fails ?',
             choices: ['yes', 'no']
         )
+        choice(
+            name: 'CREATE_POLARION_TEST_RUN',
+            description: 'Should the test results be uploaded to Polarion as a new Test Run?',
+            choices: ['no', 'yes (production)', 'yes (stage)']
+        )
     }
 
     options {
@@ -117,12 +122,13 @@ Bundle?: ${params.BUNDLE}"""
         stage('Checkout tower-qa') {
             steps {
                 script {
+                    if (params.TOWER_VERSION == 'devel') {
+                        tower_branch_name = 'devel'
+                    } else {
+                        tower_branch_name = "release_${params.TOWER_VERSION}"
+                    }
                     if (params.TOWERQA_BRANCH == '') {
-                        if (params.TOWER_VERSION == 'devel') {
-                            towerqa_branch_name = 'devel'
-                        } else {
-                            towerqa_branch_name = "release_${params.TOWER_VERSION}"
-                        }
+                        towerqa_branch_name = tower_branch_name
                     } else {
                         towerqa_branch_name = params.TOWERQA_BRANCH
                     }
@@ -210,7 +216,7 @@ Bundle?: ${params.BUNDLE}"""
             steps {
                 withEnv(["TESTEXPR=${TESTEXPR}"]) {
                     sshagent(credentials : ['github-ansible-jenkins-nopassphrase']) {
-                        sh "ssh ${SSH_OPTS} ec2-user@${TEST_RUNNER_HOST} 'cd tower-qa && TESTEXPR=\"${params.TESTEXPR}\" TOWERKIT_BRANCH=\"${towerqa_branch_name}\" PRODUCT=\"tower\" ./tools/jenkins/scripts/test-cli.sh'"
+                        sh "ssh ${SSH_OPTS} ec2-user@${TEST_RUNNER_HOST} 'cd tower-qa && TESTEXPR=\"${params.TESTEXPR}\" TOWER_BRANCH=\"${tower_branch_name}\" PRODUCT=\"tower\" ./tools/jenkins/scripts/test-cli.sh'"
                         sh 'ansible-playbook -v -i playbooks/inventory.test_runner playbooks/test_runner/run_fetch_artifacts_test_cli.yml'
                         junit 'artifacts/results-cli.xml'
                     }
@@ -222,6 +228,49 @@ Bundle?: ${params.BUNDLE}"""
                 sshagent(credentials : ['github-ansible-jenkins-nopassphrase']) {
                     sh "ssh ${SSH_OPTS} ec2-user@${TEST_RUNNER_HOST} 'cd tower-qa && ./tools/jenkins/scripts/collect.sh'"
                     sh 'ansible-playbook -v -i playbooks/inventory.test_runner playbooks/test_runner/run_fetch_artifacts_tower.yml'
+                }
+            }
+        }
+
+        stage('Create Polarion Test Run') {
+            when {
+                expression {
+                    params.CREATE_POLARION_TEST_RUN.startsWith('yes')
+                }
+            }
+            steps {
+                script {
+                    test_run_ansible_version = params.ANSIBLE_VERSION
+                    test_run_bundle = 'false'
+                    test_run_cluster = 'false'
+                    test_run_os = params.PLATFORM
+                    test_run_tower_version = params.TOWER_VERSION
+
+                    if (params.BUNDLE == 'yes') {
+                        test_run_bundle = 'true'
+                    }
+                    if (params.SCENARIO == 'cluster') {
+                        test_run_cluster = 'true'
+                    }
+                    if (params.CREATE_POLARION_TEST_RUN.contains('production')) {
+                        polarion_url = 'https://polarion.engineering.redhat.com'
+                    } else {
+                        polarion_url = 'https://polarion.stage.engineering.redhat.com'
+                    }
+                }
+
+                withEnv([
+                    "JUNIT_PATH=test-run-results.xml",
+                    "POLARION_PASSWORD=polarion",
+                    "POLARION_USERNAME=ansible_machine",
+                    "POLARION_URL=${polarion_url}",
+                    "TEST_RUN_ANSIBLEVERSION=${test_run_ansible_version}",
+                    "TEST_RUN_BUNDLE=${test_run_bundle}",
+                    "TEST_RUN_CLUSTER=${test_run_cluster}",
+                    "TEST_RUN_OS=${test_run_os}",
+                    "TEST_RUN_TOWERVERSION=${test_run_tower_version}"
+                ]) {
+                    sh './tools/jenkins/scripts/create-polarion-test-run.sh'
                 }
             }
         }
