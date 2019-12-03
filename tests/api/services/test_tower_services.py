@@ -25,29 +25,29 @@ class TestTowerServices(APITest):
         ("status", True)
     ], ids=['ansible-tower-service start', 'ansible-tower-service stop', 'ansible-tower-service restart', 'ansible-tower-service status'])
     @pytest.mark.ansible(host_pattern='tower[0]')  # target 1 normal instance
-    def test_tower_status_on_el7(self, ansible_runner, ansible_os_family, restart_tower_on_teardown, command, active):
-        """Executes ansible-tower-service commands and checks process statuses.
-        Note: we check process output with systemctl on EL7 systems and with
-        service on EL6 systems.
-        """
+    def test_tower_status_on_rhel(self, ansible_runner, restart_tower_on_teardown, command, active):
+        """Executes ansible-tower-service commands and checks process statuses."""
         # issue ansible-tower-service command
         contacted = ansible_runner.command('ansible-tower-service ' + command)
         result = list(contacted.values())[0]
-        assert result['rc'] == 0, "ansible-tower-service {0} failed. Command stderr: \n{1}".format(command, result['stderr'])
+        assert result['rc'] == 0, (
+            f"ansible-tower-service {command} failed. Command stderr: \n{result['stderr']}"
+        )
 
         # determine expected_processes
-        contacted = ansible_runner.shell('cat /etc/sysconfig/ansible-tower')
+        contacted = ansible_runner.shell('cat /lib/systemd/system/ansible-tower.service')
         stdout = list(contacted.values())[0]['stdout']
-        match = re.search("TOWER_SERVICES=\"(.*?)\"", stdout)
+        match = re.search(r'Wants=(.+)', stdout)
         processes = match.group(1).split()
 
         # assess process statuses
         for process in processes:
-            contacted = ansible_runner.command('systemctl status {}'.format(process))
+            contacted = ansible_runner.command(f'systemctl status {process}')
             result = list(contacted.values())[0]
-            assert ("Active: active (running)" in result['stdout']) is active, \
-                "Unexpected process status for process {0} after executing ansible-tower-service {1}\n\nstdout:\n{2}"\
-                .format(process, command, result['stdout'])
+            assert ("Active: active (running)" in result['stdout']) is active, (
+                f"Unexpected process status for process {process} after executing "
+                f"ansible-tower-service {command}\n\nstdout:\n{result['stdout']}"
+            )
 
     @pytest.mark.parametrize('plugin', ['rabbitmq', 'tower'])
     @pytest.mark.ansible(host_pattern='tower[0]')  # target 1 normal instance
