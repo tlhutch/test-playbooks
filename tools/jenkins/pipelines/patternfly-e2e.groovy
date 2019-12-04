@@ -112,7 +112,7 @@ pipeline {
                      # Ansible ad-hoc command to modify /etc/tower/settings.py to allow remote UI calls.
                      ansible all -i "${AWX_E2E_URL}," -m lineinfile -a 'path=/etc/tower/settings.py line=\"CSRF_TRUSTED_ORIGINS=['\\''{{ lookup("env", "AWX_E2E_URL") }}:443'\\'']\" state=present' --ssh-extra-args='-o "StrictHostKeyChecking no"' --become --become-user=root -u 'ec2-user'
                      # Ansible ad-hoc command to restart tower and refresh settings.py
-                     ansible all -i "${AWX_E2E_URL}," -m shell -a 'ansible-tower-service restart' --become --become-user=root -u 'ec2-user'
+                     ansible all -i "${AWX_E2E_URL}," -m shell -a 'systemctl restart ansible-tower' --become --become-user=root -u 'ec2-user'
                      '''
                 }
            }
