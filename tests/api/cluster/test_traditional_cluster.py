@@ -179,15 +179,16 @@ class TestTraditionalCluster(APITest):
         # just stick to hostname.
         hostname_map = hosts_in_group('all', return_map=True)
         for group in v2.instance_groups.get().results:
-            instances = [instance.hostname for instance in group.get_related('instances').results]
-            assert len(instances) == len(inventory_file_instance_groups[group.name])
-            # Using default of host allows us to cope with situations when
-            # there is no "ansible_host" defined
-            if instances_using_ipv4(v2):
-                # instances are using ip addresses
-                assert set(instances) == set([hostname_map.get(host, host) for host in inventory_file_instance_groups[group.name]])
-            else:
-                assert set(instances) == set(inventory_file_instance_groups[group.name])
+            if not group.is_containerized:
+                instances = [instance.hostname for instance in group.get_related('instances').results]
+                assert len(instances) == len(inventory_file_instance_groups[group.name])
+                # Using default of host allows us to cope with situations when
+                # there is no "ansible_host" defined
+                if instances_using_ipv4(v2):
+                    # instances are using ip addresses
+                    assert set(instances) == set([hostname_map.get(host, host) for host in inventory_file_instance_groups[group.name]])
+                else:
+                    assert set(instances) == set(inventory_file_instance_groups[group.name])
 
     def test_instance_groups_do_not_include_isolated_instances(self, v2):
         igs = [ig for ig in v2.instance_groups.get().results if not ig.controller]

@@ -504,7 +504,7 @@ class TestJobTemplateBranchOverride(APITest):
     @pytest.mark.parametrize('refspec, good_ref, bad_ref', [
         ('+refs/pull/62/head:refs/remotes/origin/pull/62/head', 'pull/62/head', 'pull/hotdog/catsup'),
         ('+refs/pull/62/head:pull/hotdog/catsup', 'pull/hotdog/catsup', 'pull/62/head'),
-        ('+refs/pull/*/merge:refs/pr/merges/*', 'pr/merges/64', 'pull/64/head')
+        ('+refs/pull/*/merge:refs/pr/merges/*', 'pr/merges/94', 'pull/94/head')
         ],
         ids=[
             '+refs/pull/62/head:refs/remotes/origin/pull/62/head',
