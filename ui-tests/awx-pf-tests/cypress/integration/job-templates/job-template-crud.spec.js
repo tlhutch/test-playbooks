@@ -12,7 +12,7 @@ context('Reaches a 404', function() {
     cy.visit('/#/templates')
   })
 })
-context('Create and Edit Job Template', function() {
+context('Create Job Template', function() {
   before(function() {
     cy.createOrReplace('inventory', `create-jt-inv`).as('inv')
     cy.createOrReplace('projects', `create-jt-pro`).as('project')
@@ -68,7 +68,9 @@ context('Delete Job Template', function() {
     cy.wait(500)
     cy.get(`input[id="select-jobTemplate-${this.del.id}"][type="checkbox"]`).click()
     cy.get('button[aria-label="Delete"]').click()
+    cy.wait(500)
     cy.get('button[aria-label="confirm delete"]').click()
+    cy.wait(500)
     cy.get('.pf-c-empty-state .pf-c-empty-state__body').should(
       'have.class',
       'pf-c-empty-state__body'
