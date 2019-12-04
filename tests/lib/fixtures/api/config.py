@@ -36,20 +36,16 @@ def restart_tower_on_teardown(request, ansible_runner, ansible_os_family, skip_d
     """Restarts Tower upon teardown."""
     log.debug("calling fixture restart_tower")
 
-    # FIXME: implement with Ubuntu systems
-    if ansible_os_family == "Debian":
-        pytest.skip("Only supported on production EL distributions")
-
     def teardown():
         # determine Tower processes
-        contacted = ansible_runner.shell('cat /etc/sysconfig/ansible-tower')
+        contacted = ansible_runner.shell('cat /lib/systemd/system/ansible-tower.service')
         stdout = list(contacted.values())[0]['stdout']
-        match = re.search("TOWER_SERVICES=\"(.*?)\"", stdout)
+        match = re.search(r'Wants=(.+)', stdout)
         processes = match.group(1).split()
 
         # start Tower processes
         for process in processes:
             contacted = ansible_runner.service(name=process, state='started')
             result = list(contacted.values())[0]
-            assert result['state'] == 'started', "Starting service %s failed." % process
+            assert result['state'] == 'started', f"Starting service {process} failed."
     request.addfinalizer(teardown)
