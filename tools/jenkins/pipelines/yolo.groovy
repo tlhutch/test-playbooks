@@ -399,6 +399,7 @@ pipeline {
                                      "DEPLOYMENT_NAME=yolo-build-${env.BUILD_ID}",
                                      "AW_REPO_URL=http://nightlies.testing.ansible.com/ansible-tower_nightlies_m8u16fz56qr6q7/${NIGHTLY_REPO_DIR}"]) {
                                 sshagent(credentials : ['github-ansible-jenkins-nopassphrase']) {
+                                    sh 'mkdir -p artifacts'
                                     sh 'mkdir -p ~/.ssh && cp ${PUBLIC_KEY} ~/.ssh/id_rsa.pub'
                                     sh 'cp ${JSON_KEY_FILE} json_key_file'
                                     sh 'ansible-vault decrypt --vault-password-file="${VAULT_FILE}" config/credentials.vault --output=config/credentials.yml'
@@ -409,9 +410,9 @@ pipeline {
 
                                     // Generate variable file for tower deployment
                                     sh './tools/jenkins/scripts/generate_vars.sh'
+                                    sh 'cat playbooks/vars.yml | tee artifacts/vars.yml'
 
                                     // Archive the admin_password and show to the user
-                                    sh 'mkdir -p artifacts'
                                     sh 'grep "^admin_password:" "playbooks/vars.yml" | awk \'{ print $2 }\' | tee artifacts/admin_password'
 
                                     // Update the credentials files before deploying the test runner so that the credentials files are copied with the random generated admin password in place
