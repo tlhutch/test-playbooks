@@ -11,10 +11,14 @@ context('reaches a 404 when trying to get the orgs list', function() {
       response: {},
     }).as('orgs')
     cy.visit('/#/organizations')
+    cy.get('h1[class*="pf-c-title"]').should('have.text', 'Not Found')
+    cy.get('a[href="#/home"]').should('have.text', 'Back to Dashboard.')
+    cy.get(`button[class=pf-c-expandable__toggle]`).click()
+    cy.get('.pf-c-expandable__content strong').should('have.text', '404')
   })
 })
 
-context('Create and Edit Organization', function() {
+context('Create Organization', function() {
   it('can create an organization', function() {
     cy.visit('/#/organizations')
     cy.get('a[aria-label=Add]').click()
@@ -51,11 +55,11 @@ context('Delete Organization', function() {
 
   it('can delete an organization', function() {
     cy.visit('/#/organizations')
-    cy.get('input[aria-label*="Search"]').type(`${this.org.name}{enter}	`)
-    cy.wait(500)
-    cy.get(`input[id="select-organization-${this.org.id}"][type="checkbox"]`).click()
-    cy.get('button[aria-label="Delete"]').click()
-    cy.get('button[aria-label="confirm delete"]').click()
+    cy.get('input[aria-label*="Search"]').type(`${this.org.name}{enter}`)
+    cy.get('[class*=FilterTags__ResultCount-sc-4lbi43-1]').should('have.text', '1 results')
+    cy.get(`input[id="select-organization-${this.org.id}"][type="checkbox"]:enabled`).click()
+    cy.get('button[aria-label="Delete"]:enabled').click()
+    cy.get('button[aria-label="confirm delete"]:enabled').click()
     cy.get('.pf-c-empty-state .pf-c-empty-state__body').should(
       'have.class',
       'pf-c-empty-state__body'
