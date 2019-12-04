@@ -1,6 +1,18 @@
 ---
 # Tasks to install awx-setup package-related dependencies on EL systems
 
+
+# NOTE(spredzy): Currently in AWS if running rhel8 in fips mode
+#                sslverification fails for repo hence we disable
+#                it. This can safely be removed once the issue is
+#                fixed from the RHUI team
+- name: Do not sslverify packages (when rhel8 and fips is running)
+  command: sed -i 's/sslverify=1/sslverify=0/g' {{ item }}
+  loop:
+    - /etc/yum.repos.d/redhat-rhui.repo
+    - /etc/yum.repos.d/redhat-rhui-client-config.repo
+  when: ansible_distribution_major_version == '8' and awx_use_fips | default(false) | bool
+
 - name: update yum
   package:
     name: yum
@@ -38,6 +50,17 @@
 - name: include rhsm tasks
   include: rhsm.yml
   when: ansible_distribution == 'RedHat'
+
+# NOTE(spredzy): Currently in AWS if running rhel8 in fips mode
+#                sslverification fails for repo hence we disable
+#                it. This can safely be removed once the issue is
+#                fixed from the RHUI team
+- name: Do not sslverify packages (when rhel8 and fips is running)
+  command: sed -i 's/sslverify=1/sslverify=0/g' {{ item }}
+  loop:
+    - /etc/yum.repos.d/redhat-rhui.repo
+    - /etc/yum.repos.d/redhat-rhui-client-config.repo
+  when: ansible_distribution_major_version == '8' and awx_use_fips | default(false) | bool
 
 - name: install playbook dependency rpms
   package:
