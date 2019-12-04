@@ -49,6 +49,7 @@ pipeline {
         timestamps()
         ansiColor('xterm')
         parallelsAlwaysFailFast()
+        buildDiscarder(logRotator(daysToKeepStr: '10'))
     }
     stages {
         stage ('Clone Git repo') {
