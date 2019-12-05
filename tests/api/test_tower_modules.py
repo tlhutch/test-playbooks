@@ -626,6 +626,7 @@ class Test_Ansible_Tower_Modules(APITest):
             'inventory': inventory.name,
             'playbook': 'sleep.yml',
             'project': project.name,
+            'extra_vars': { 'sleep_interval': 120 },
         }
         module_output = self.run_module(venv_path(python_venv['name']), ansible_adhoc, is_docker, request, 'awx.awx.tower_job_template', jt_module_args)
         self.check_module_output(request, ansible_adhoc, module_output, jt_module_args, True)
@@ -638,20 +639,7 @@ class Test_Ansible_Tower_Modules(APITest):
         assert jt['inventory'] == inventory.id
         assert jt['playbook'] == 'sleep.yml'
         assert jt['project'] == project.id
-
-        # Update the JT
-        jt_module_args['description'] = 'updated description'
-        module_output = self.run_module(venv_path(python_venv['name']), ansible_adhoc, is_docker, request, 'awx.awx.tower_job_template', jt_module_args)
-        self.check_module_output(request, ansible_adhoc, module_output, jt_module_args, True)
-
-        jt = v2.job_templates.get(name=jt_name).results.pop()
-        assert jt.id == jt_id
-        assert jt_name == jt['name']
-        assert jt['description'] == 'updated description'
-        assert jt['job_type'] == 'run'
-        assert jt['inventory'] == inventory.id
-        assert jt['playbook'] == 'sleep.yml'
-        assert jt['project'] == project.id
+        assert jt['extra_vars'] == '{"sleep_interval": 120}'
 
         # Launch the JT we just built
         job_module_args = {
@@ -673,6 +661,22 @@ class Test_Ansible_Tower_Modules(APITest):
         self.check_module_output(request, ansible_adhoc, module_output, job_module_args, True)
 
         utils.poll_until(lambda: v2.jobs.get(id=job_id1).results.pop().status == "canceled", interval=1, timeout=300)
+
+        # Update the JT
+        jt_module_args['description'] = 'updated description'
+        jt_module_args['extra_vars'] = { 'sleep_interval': 5 }
+        module_output = self.run_module(venv_path(python_venv['name']), ansible_adhoc, is_docker, request, 'awx.awx.tower_job_template', jt_module_args)
+        self.check_module_output(request, ansible_adhoc, module_output, jt_module_args, True)
+
+        jt = v2.job_templates.get(name=jt_name).results.pop()
+        assert jt.id == jt_id
+        assert jt_name == jt['name']
+        assert jt['description'] == 'updated description'
+        assert jt['job_type'] == 'run'
+        assert jt['inventory'] == inventory.id
+        assert jt['playbook'] == 'sleep.yml'
+        assert jt['project'] == project.id
+        assert jt['extra_vars'] == '{"sleep_interval": 5}'
 
         # Launch another job
         job_module_args = {
