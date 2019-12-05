@@ -83,7 +83,7 @@ because your local ssh credentials will not be accessible from inside the contai
 
 ### Run Integration Tests
 
-Note: It is reccomended you run Python 3.6.6 if possible to match what is
+Note: It is recommended you run Python 3.6.6 if possible to match what is
 running on Jenkins.  There are some notable differences between Python 3.6 and
 Python 3.7, which is the default python on Fedora 29+. You can install multiple
 Python versions on Fedora, see [the
@@ -100,6 +100,7 @@ python3.6 -m venv ~/venvs/tower-qa
 source ~/venvs/tower-qa/bin/activate
 pip install -r requirements.txt
 ansible-vault decrypt config/credentials.vault --output=config/credentials.yml    # you will need the vault password
+# When running tests using docker ensure that the password and username created previously are present on the credentials.yml file
 py.test -c config/docker.cfg
 ```
 
@@ -127,7 +128,7 @@ so that you changes are picked up automatically.
 ```
 cd ~/
 git clone git@github.com:ansible/awx.git
-# make sure you are in the tower-qa venv, then install tkit
+# make sure you are in the tower-qa venv, then install awxkit
 source ~/venv/tower-qa/bin/activate
 pip install -e ~/awx/awxkit/
 ```
