@@ -34,7 +34,7 @@ context('Create Project', function() {
     cy.get('#scm_type').select('Git')
     cy.get('#project-scm-url').type(`https://github.com/ansible/ansible-tower-samples`)
     cy.get('button[aria-label=Save]').click()
-    cy.get('dd:nth-of-type(1)').should('have.text', `create-proj-${this.testID}`)
+    cy.get('dd[data-cy*="name"]').should('have.text', `create-proj-${this.testID}`)
   })
 })
 
@@ -53,7 +53,7 @@ context('Edit Project', function() {
       .clear()
       .type(`Edited test for Project. Test ID: ${this.testID}`)
     cy.get('button[aria-label=Save]').click()
-    cy.get('dd:nth-of-type(1)').should('have.text', `edited-proj-${this.testID}`)
+    cy.get('dd[data-cy*="name"]').should('have.text', `edited-proj-${this.testID}`)
   })
 })
 

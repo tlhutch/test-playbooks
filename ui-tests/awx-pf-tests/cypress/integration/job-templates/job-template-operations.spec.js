@@ -12,9 +12,9 @@ context.skip('Launch a Job Template without prompts', function() {
     cy.get('input[aria-label*="Search"]').type(`${this.launch.name}{enter}`)
     cy.get('[class*=FilterTags__ResultCount-sc-4lbi43-1]').should('have.text', '1 results')
     cy.get('[aria-label="Templates List"] .pf-c-data-list__item-row button').click()
-    cy.get('[dataCy="job-status"]').should('have.text', 'Running')
+    cy.get('[data-cy="job-status"]').should('have.text', 'Running')
     // Issue: the job status does not change to successful unless page is refreshed
-    // .get('[dataCy="job-status"]').should('have.text', 'Successful')
+    // .get('[data-cy="job-status"]').should('have.text', 'Successful')
   })
 })
 
@@ -27,7 +27,7 @@ context.skip('Launch a Job Template with prompts', function() {
     cy.get('input[aria-label*="Search"]').type(`${this.launch.name}{enter}`)
     cy.get('[class*=FilterTags__ResultCount-sc-4lbi43-1]').should('have.text', '1 results')
     cy.get('[aria-label="Templates List"] .pf-c-data-list__item-row button').click()
-    cy.get('[dataCy="job-status"]').should('have.text', 'Running')
-    cy.get('[dataCy="job-status"]').should('have.text', 'Successful')
+    cy.get('[data-cy="job-status"]').should('have.text', 'Running')
+    cy.get('[data-cy="job-status"]').should('have.text', 'Successful')
   })
 })

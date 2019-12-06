@@ -12,7 +12,7 @@ context('Add users to Organization', function() {
     cy.get('dd:nth-of-type(1)').should('have.text', `${this.org.name}`)
     cy.get('button[aria-label="Access"]').click()
     cy.get('button[aria-label="Add"]').click()
-    cy.get('div.pf-c-wizard__outer-wrap > div >main > div > div > div:nth-child(2)').click()
+    cy.get('[data-cy="add-role-users"]').click()
     cy.get('footer button[type="submit"]').click()
     cy.get('[class="pf-c-wizard__inner-wrap"] [aria-label="Search text input"]').type(
       `${this.user1.username}{enter}`
@@ -49,7 +49,7 @@ context('Add users to Organization', function() {
     cy.visit(`/#/organizations/${this.org.id}`)
     cy.get('button[aria-label="Access"]').click()
     cy.get('button[aria-label="Add"]').click()
-    cy.get('div.pf-c-wizard__outer-wrap > div >main > div > div > div:nth-child(2)').click()
+    cy.get('[data-cy="add-role-users"]').click()
     cy.get('[class="pf-c-wizard__footer"] [class="pf-c-button pf-m-primary"]').click()
   })
 })
@@ -66,7 +66,7 @@ context('Add teams to Organization', function() {
     cy.get('dd:nth-of-type(1)').should('have.text', `${this.org.name}`)
     cy.get('button[aria-label="Access"]').click()
     cy.get('button[aria-label="Add"]').click()
-    cy.get('div.pf-c-wizard__outer-wrap > div >main > div > div > div:nth-child(3)').click()
+    cy.get('[data-cy="add-role-teams"]').click()
     cy.get('[class="pf-c-wizard__footer"] [class="pf-c-button pf-m-primary"]').click()
     cy.get('[class="pf-c-wizard__inner-wrap"] [aria-label="Search text input"]').type(
       `${this.team1.name}{enter}`
@@ -95,7 +95,7 @@ context('Add teams to Organization', function() {
     cy.visit(`/#/organizations/${this.org.id}`)
     cy.get('button[aria-label="Access"]').click()
     cy.get('button[aria-label="Add"]').click()
-    cy.get('div.pf-c-wizard__outer-wrap > div >main > div > div > div:nth-child(3)').click()
+    cy.get('[data-cy="add-role-teams"]').click()
     cy.get('[class="pf-c-wizard__footer"] [class="pf-c-button pf-m-primary"]').click()
   })
 })

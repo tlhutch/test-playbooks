@@ -25,7 +25,7 @@ context('Create Organization', function() {
     cy.get('#org-name').type(`create-org-${this.testID}`)
     cy.get('#org-description').type(`Creation test for orgs. Test ID: ${this.testID}`)
     cy.get('button[aria-label=Save]').click()
-    cy.get('dd:nth-of-type(1)').should('have.text', `create-org-${this.testID}`)
+    cy.get('dd[data-cy*="name"]').should('have.text', `create-org-${this.testID}`)
   })
 })
 
@@ -44,7 +44,7 @@ context('Edit Organization', function() {
       .clear()
       .type(`Edited test for orgs. Test ID: ${this.testID}`)
     cy.get('button[aria-label=Save]').click()
-    cy.get('dd:nth-of-type(1)').should('have.text', `edited-org-${this.testID}`)
+    cy.get('dd[data-cy*="name"]').should('have.text', `edited-org-${this.testID}`)
   })
 })
 

@@ -31,7 +31,7 @@ context('Create a team', function() {
     cy.get(`#selected-${this.org.id}`).click()
     cy.get('[aria-label="Select Organization"] button[class*="pf-m-primary"]').click()
     cy.get('button[aria-label=Save]').click()
-    cy.get('dd:nth-of-type(1)').should('have.text', `create-team-${this.testID}`)
+    cy.get('dd[data-cy*="name"]').should('have.text', `create-team-${this.testID}`)
   })
 })
 
@@ -50,7 +50,7 @@ context('Edit a team', function() {
       .clear()
       .type(`Edited test for Teams. Test ID: ${this.testID}`)
     cy.get('button[aria-label=Save]').click()
-    cy.get('dd:nth-of-type(1)').should('have.text', `edit-team-${this.testID}`)
+    cy.get('dd[data-cy*="name"]').should('have.text', `edit-team-${this.testID}`)
   })
 })
 
