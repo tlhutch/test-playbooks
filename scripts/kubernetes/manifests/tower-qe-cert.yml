@@ -7,14 +7,15 @@ metadata:
  namespace: default
 spec:
  secretName: tower-qe-tls
+ duration: 2160h
+ renewBefore: 360h
+ organization:
+   - jetstack
+ usages:
+   - server auth
+   - client auth
  issuerRef:
    name: letsencrypt-prod
    kind: ClusterIssuer
  dnsNames:
    - '*.services.k8s.tower-qe.testing.ansible.com'
- acme:
-   config:
-     - dns01:
-         provider: route53
-       domains:
-         - '*.services.k8s.tower-qe.testing.ansible.com'

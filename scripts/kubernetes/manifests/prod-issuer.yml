@@ -1,9 +1,12 @@
 # This requires that certmanager be installed in the cluster.
+# With Helm v3+ (tillerless): 
+# kubectl create namespace cert-manager
 # This defines the configuration for LetsEncrypt, and allows it to authenticate with AWS to prove domain ownership
 apiVersion: cert-manager.io/v1alpha2
 kind: ClusterIssuer
 metadata:
   name: letsencrypt-prod
+  namespace: cert-manager
 spec:
   acme:
     # The ACME server URL
@@ -14,14 +17,11 @@ spec:
     privateKeySecretRef:
       name: letsencrypt-prod
     solvers:
-      - selector:
-          dnsZones:
-            - "testing.ansible.com"
-        dns01:
-          route53:
-            region: us-east-1
-            hostedZoneID: "Z35LGTHTIG0JBJ"
-            accessKeyID: "$ACCESS-KEY-MATCHING-SECRET-KEY"
-            secretAccessKeySecretRef:
-              name: prod-route53-credentials-secret
-              key: secret-access-key
+    - dns01:
+        route53:
+          region: us-east-1
+          hostedZoneID: Z35LGTHTIG0JBJ
+          accessKeyID: "$ACCESS_KEY_MATCHING_SECRET_KEY"
+          secretAccessKeySecretRef:
+            name: prod-route53-credentials-secret
+            key: secret-access-key
