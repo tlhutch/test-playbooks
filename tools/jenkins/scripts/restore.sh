@@ -25,6 +25,6 @@ else
 
     ansible "${INSTALL_NODE}" \
         -i "${INVENTORY}" \
-        -a 'chdir=/tmp/setup ./setup.sh -r -e @vars.yml' \
+        -a 'chdir=/tmp/setup ./setup.sh -r -e @vars.yml -e ansible_become=true' \
         -e ansible_become=true
 fi

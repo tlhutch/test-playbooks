@@ -19,7 +19,7 @@ else
     ansible "${INSTALL_NODE}" \
         -i "${INVENTORY}" \
         -m shell \
-        -a 'chdir=/tmp/setup ./setup.sh -b -e @vars.yml && chmod 0775 tower-backup-latest.tar.gz' \
+        -a 'chdir=/tmp/setup ./setup.sh -b -e @vars.yml -e ansible_become=true && chmod 0775 tower-backup-latest.tar.gz' \
         -e ansible_become=true
 
     rsync -e 'ssh -o StrictHostKeyChecking=no' -L "${INSTALL_USER}"@"${INSTALL_NODE}":/tmp/setup/tower-backup-latest.tar.gz .
