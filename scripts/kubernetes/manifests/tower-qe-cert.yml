@@ -9,8 +9,6 @@ spec:
  secretName: tower-qe-tls
  duration: 2160h
  renewBefore: 360h
- organization:
-   - jetstack
  usages:
    - server auth
    - client auth
