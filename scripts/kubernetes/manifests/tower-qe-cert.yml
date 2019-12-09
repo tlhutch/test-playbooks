@@ -1,6 +1,6 @@
 # This requires cert-manager to be installed in the cluster.
 # This is a certificate definition. It will allow cert-manager to periodically renew the wildcard cert consumed by nginx-app-proxy.
-apiVersion: certmanager.k8s.io/v1alpha1
+apiVersion: cert-manager.io/v1alpha2
 kind: Certificate
 metadata:
  name: tower-qe-services-tls
@@ -9,7 +9,7 @@ spec:
  secretName: tower-qe-tls
  issuerRef:
    name: letsencrypt-prod
-   kind: Issuer
+   kind: ClusterIssuer
  dnsNames:
    - '*.services.k8s.tower-qe.testing.ansible.com'
  acme:

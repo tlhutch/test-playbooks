@@ -1,7 +1,7 @@
 # This requires that certmanager be installed in the cluster.
 # This defines the configuration for LetsEncrypt, and allows it to authenticate with AWS to prove domain ownership
-apiVersion: certmanager.k8s.io/v1alpha1
-kind: Issuer
+apiVersion: cert-manager.io/v1alpha2
+kind: ClusterIssuer
 metadata:
   name: letsencrypt-prod
 spec:
@@ -13,13 +13,15 @@ spec:
     # Name of a secret used to store the ACME account private key
     privateKeySecretRef:
       name: letsencrypt-prod
-    dns01:
-      providers:
-        - name: route53
+    solvers:
+      - selector:
+          dnsZones:
+            - "testing.ansible.com"
+        dns01:
           route53:
             region: us-east-1
-            # Replace with an actual key
-            accessKeyID: '$AWX_ACCESS_KEY_ID'
+            hostedZoneID: "Z35LGTHTIG0JBJ"
+            accessKeyID: "$ACCESS-KEY-MATCHING-SECRET-KEY"
             secretAccessKeySecretRef:
               name: prod-route53-credentials-secret
               key: secret-access-key
