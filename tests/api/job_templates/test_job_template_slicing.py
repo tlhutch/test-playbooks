@@ -427,6 +427,7 @@ class TestJobTemplateSlicing(APITest):
                 str(n)), inventory=inventory)
         smart_inventory = factories.inventory(organization=inventory.ds.organization, host_filter="search=test_host",
                                                  kind="smart")
+        assert smart_inventory.total_hosts == 9
         jt = sliced_jt_factory(3, jt_kwargs=dict(inventory=smart_inventory))
         workflow_job = jt.launch()
         assert workflow_job.type == 'workflow_job'

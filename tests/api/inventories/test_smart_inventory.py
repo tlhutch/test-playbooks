@@ -23,6 +23,8 @@ class TestSmartInventory(APITest):
         hosts = inv.related.hosts.get()
         assert hosts.count == 1
         assert hosts.results.pop().id == host.id
+        inv = inv.get()
+        assert inv.total_hosts == 1  # computed field
 
     def test_host_updates_for_edit_and_deletion(self, factories):
         host = factories.host()
@@ -36,6 +38,11 @@ class TestSmartInventory(APITest):
 
         host.delete()
         assert hosts.get().count == 0
+        # Host counts do not automatically update when related hosts are edited (potential AWX issue)
+        # Since total_hosts is used for capacity calculation, it should still recompute on no-op
+        inventory.patch()
+        inventory = inventory.get()
+        assert inventory.total_hosts == 0
 
     def test_host_filter_is_organization_scoped(self, factories):
         host1, host2 = [factories.host(name="test_host_{0}".format(i)) for i in range(2)]
@@ -83,6 +90,7 @@ class TestSmartInventory(APITest):
         for n in range(capacity):
             factories.host(name='test_host_' + str(n), inventory=iv)
         smart_iv = factories.inventory(organization=organization, kind='smart', host_filter="search=test_host_")
+        assert smart_iv.total_hosts == capacity  # total_hosts used for capacity calc
         smart_iv.add_instance_group(ig)
         # create a job template with the smart inventory and instance group
         jt = factories.job_template(inventory=smart_iv, forks=forks, playbook='sleep.yml')
