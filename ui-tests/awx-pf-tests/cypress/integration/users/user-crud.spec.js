@@ -36,7 +36,7 @@ context('Create a User', function() {
     cy.get('[aria-label="Select Organization"] button[class*="pf-m-primary"]').click()
     cy.get('#user-type').select('System Auditor')
     cy.get('button[aria-label=Save]').click()
-    cy.get('dd:nth-of-type(1)').should('have.text', `create-user-${this.testID}`)
+    cy.get('dd[data-cy*="username"]').should('have.text', `create-user-${this.testID}`)
   })
 })
 
@@ -61,7 +61,7 @@ context('Edit a User', function() {
       .clear()
       .type(`${this.testID}`)
     cy.get('button[aria-label=Save]').click()
-    cy.get('dd:nth-of-type(1)').should('have.text', `edited-user-${this.testID}`)
+    cy.get('dd[data-cy*="username"]').should('have.text', `edited-user-${this.testID}`)
   })
 })
 
