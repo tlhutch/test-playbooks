@@ -57,7 +57,7 @@ def k8s_splunk(gke_client_cscope, request):
 
     # Wait for HTTP service to become ready
     utils.poll_until(lambda: requests.get(splunk_api_url).status_code == 200,
-                     interval=5, timeout=120)
+                     interval=5, timeout=240)
     return splunk_url, splunk_api_url, splunk_logger_url
 
 
