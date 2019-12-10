@@ -3,6 +3,7 @@ import pytest
 import requests
 
 from awxkit.config import config
+from awxkit import utils
 
 from tests.api import APITest
 
@@ -35,7 +36,7 @@ def k8s_govcsim(gke_client_cscope, request):
     sim_fqdn = "https-{}-port-443.{}".format(deployment_name, cluster_domain)
 
     sess = requests.Session()
-    sess.get('{}/spawn?username=user&password=pass&cluster=1&port=443&vm=5'.format(controller_url))
+    utils.poll_until(lambda: sess.get('{}/spawn?username=user&password=pass&cluster=1&port=443&vm=5'.format(controller_url)).status_code == 200, interval=5, timeout=20)
     return sim_fqdn
 
 
