@@ -51,6 +51,11 @@ ec2_security_groups:
         to_port: 5672
         cidr_ip: 0.0.0.0/0
       - proto: tcp
+        from_port: 6379
+        to_port: 6379
+        cidr_ip: 0.0.0.0/0
+        cidr_ipv6: ::/0
+      - proto: tcp
         from_port: 8080
         to_port: 8080
         cidr_ip: 0.0.0.0/0
