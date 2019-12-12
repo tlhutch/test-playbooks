@@ -70,6 +70,9 @@ def random_password(length=16):
         # Remove ` as it seems to be creating issues when deploying - to be re-enabled
         # when root cause is found
         sub_printable = sub_printable.replace('`', '').strip()
+        # Remove { and } as it creates issue with jinja templating
+        sub_printable = sub_printable.replace('{', '').replace('}', '').strip()
+
         # Make sure we always start with an ascii letter as it is a common
         # requirements for passwords.
         password = 'a' + ''.join(random.SystemRandom().choices(sub_printable, k=length))
