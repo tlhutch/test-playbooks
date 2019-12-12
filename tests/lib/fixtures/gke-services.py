@@ -87,9 +87,11 @@ class K8sClient(object):
         self.robmeta = kubernetes.client.V1ObjectMeta(labels=dict(integration='True'),
                                     name=f'{namespace}-{self.role}-rolebind')
         self.rolebindobject = kubernetes.client.V1RoleBinding(metadata=self.robmeta, subjects=[role_subject], role_ref=role_ref)
+        self.limitrangeobject = kubernetes.client.V1LimitRange(spec=dict({"limits":[{"defaultRequest": {"cpu": "100m"}, "type": "Container"}]}))
 
         # Actually create these items
         self.core.create_namespace(self.namespaceobject)
+        self.core.create_namespaced_limit_range(namespace, self.limitrangeobject)
         self.core.create_namespaced_service_account(namespace, self.serviceaccountobject)
         if not corrupt_role:
             self.rbac.create_namespaced_role(namespace, self.roleobject)
