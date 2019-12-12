@@ -124,6 +124,11 @@ pipeline {
             defaultValue: true
         )
         booleanParam(
+            name: 'RUN_COLLECTION_TESTS',
+            description: 'Should the awx collection test suite be run as part of this pipeline ?',
+            defaultValue: true
+        )
+        booleanParam(
             name: 'RETRY_FAILED_TESTS',
             description: 'Should e2e tests be retried on failure ?',
             defaultValue: true
@@ -260,6 +265,46 @@ pipeline {
                         build(
                             job: 'Build_Tower_TAR',
                             parameters: [
+                                string(
+                                    name: 'TOWER_PACKAGING_REPO',
+                                    value: "git@github.com:${params.TOWER_PACKAGING_FORK}/tower-packaging.git"
+                                ),
+                                string(
+                                    name: 'TOWER_PACKAGING_BRANCH',
+                                    value: "origin/${params.TOWER_PACKAGING_BRANCH}"
+                                ),
+                                string(
+                                    name: 'TOWER_REPO',
+                                    value: "git@github.com:${params.TOWER_FORK}/${params.PRODUCT}.git"
+                                ),
+                                string(
+                                    name: 'TOWER_BRANCH',
+                                    value: "origin/${params.TOWER_BRANCH}"
+                                ),
+                                string(
+                                    name: 'NIGHTLY_REPO_DIR',
+                                    value: NIGHTLY_REPO_DIR
+                                )
+                            ]
+                        )
+                    }
+                }
+
+                stage('Build Ansible Tower Collection') {
+                    when {
+                        expression {
+                            return params.BUILD_INSTALLER_AND_PACKAGE
+                        }
+                    }
+
+                    steps {
+                        build(
+                            job: 'Build_Ansible_Tower_Collection',
+                            parameters: [
+                                string(
+                                    name: 'PRODUCT',
+                                    value: PRODUCT
+                                ),
                                 string(
                                     name: 'TOWER_PACKAGING_REPO',
                                     value: "git@github.com:${params.TOWER_PACKAGING_FORK}/tower-packaging.git"
@@ -493,6 +538,21 @@ pipeline {
                             junit allowEmptyResults: true, testResults: 'artifacts/results-pip-tarball.xml'
                         }
                     }
+                }
+            }
+        }
+
+        stage('Run Collection Tests') {
+            when {
+                expression {
+                    return params.RUN_COLLECTION_TESTS
+                }
+            }
+            steps {
+                sshagent(credentials : ['github-ansible-jenkins-nopassphrase']) {
+                    sh "ssh ${SSH_OPTS} ec2-user@${TEST_RUNNER_HOST} 'cd tower-qa && TESTEXPR=\"${params.TESTEXPR}\" TOWERKIT_FORK=\"${params.TOWERKIT_FORK}\" TOWERKIT_BRANCH=\"${params.TOWERKIT_BRANCH}\" PRODUCT=\"${params.PRODUCT}\" AWXKIT_REPO=\"${params.AWXKIT_REPO}\" TOWER_FORK=\"${params.TOWER_FORK}\" TOWER_BRANCH=\"${params.TOWER_BRANCH}\" ./tools/jenkins/scripts/test-collection.sh'"
+                    sh 'ansible-playbook -v -i playbooks/inventory.test_runner playbooks/test_runner/run_fetch_artifacts_test_collection.yml'
+                    junit allowEmptyResults: true, testResults: 'artifacts/results-collection.xml'
                 }
             }
         }
