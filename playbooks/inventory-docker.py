@@ -3,7 +3,7 @@
 import subprocess
 import json
 
-p = subprocess.run("docker ps | egrep -o 'tools_awx(_run)?_([^ ]+)?'", capture_output=True, shell=True)
+p = subprocess.run("docker ps | egrep -o 'tools_awx(_run)?_([^ ]+)?'", stdout=subprocess.PIPE, shell=True)
 docker_host = p.stdout.decode('utf-8').rstrip()
 
 out = {
