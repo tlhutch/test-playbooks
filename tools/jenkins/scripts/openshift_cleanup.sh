@@ -25,4 +25,5 @@ source "$(dirname "${0}")"/lib/common
 setup_python3_env
 
 openshift_login
-oc delete project "${OPENSHIFT_PROJECT}"  --grace-period=0 --force
+oc -n "${OPENSHIFT_PROJECT}" delete pods --all --grace-period=0 --force
+oc delete project "${OPENSHIFT_PROJECT}" --grace-period=0 --force
