@@ -79,6 +79,21 @@ Platform under test: ${params.PLATFORM}"""
                     } else {
                         awx_use_fips = 'no'
                     }
+
+                    // Conditions that do not run major upgrades
+                    // Tower version 3.5 below does not support RHEL8
+                    // When tower is 3.4.x and ansible is either stable-2.9 or
+                    // devel
+                    // When tower is 3.3.x or (platform is rhel-8 and tower is
+                    // below 3.5.x)
+
+                    if (params.TOWER_VERSION ==~ /3\.3\..*/ || (params.PLATFORM.contains('rhel-8') && params.TOWER_VERSION ==~ /3\.[34]\..*/)) {
+                        run_major_upgrade = false
+                    } else if (params.TOWER_VERSION ==~ /3\.4\.[0-9]+/ && params.ANSIBLE_VERSION ==~ /stable-2\.9|devel/) {
+                        run_major_upgrade = false
+                    } else {
+                        run_major_upgrade = true
+                    }
                 }
             }
         }
@@ -111,7 +126,7 @@ Platform under test: ${params.PLATFORM}"""
                         }
 
                         script {
-                            if (!(params.PLATFORM.contains('rhel-8') && params.TOWER_VERSION ==~ /3.5.[0-9]*/) && !(params.TOWER_VERSION ==~ /3.3.[0-9]*/)) {
+                            if (run_major_upgrade) {
                                 stage('Plain-Standalone Major Upgrade') {
                                     retry(2) {
                                         build(
@@ -205,7 +220,7 @@ Platform under test: ${params.PLATFORM}"""
                         }
 
                         script {
-                            if (!(params.PLATFORM.contains('rhel-8') && params.TOWER_VERSION ==~ /3.5.[0-9]*/) && !(params.TOWER_VERSION ==~ /3.3.[0-9]*/)) {
+                            if (run_major_upgrade) {
                                 stage('Plain-Cluster Major Upgrade') {
                                     retry(2) {
                                         build(
@@ -304,7 +319,7 @@ Platform under test: ${params.PLATFORM}"""
                         }
 
                         script {
-                            if (!(params.PLATFORM.contains('rhel-8') && params.TOWER_VERSION ==~ /3.5.[0-9]*/) && !(params.TOWER_VERSION ==~ /3.3.[0-9]*/)) {
+                            if (run_major_upgrade) {
                                 stage('Bundle-Standalone Major Upgrade') {
                                     retry(2) {
                                         build(
@@ -403,7 +418,7 @@ Platform under test: ${params.PLATFORM}"""
                         }
 
                         script {
-                            if (!(params.PLATFORM.contains('rhel-8') && params.TOWER_VERSION ==~ /3.5.[0-9]*/) && !(params.TOWER_VERSION ==~ /3.3.[0-9]*/)) {
+                            if (run_major_upgrade) {
                                 stage('Bundle-Cluster Major Upgrade') {
                                     retry(2) {
                                         build(

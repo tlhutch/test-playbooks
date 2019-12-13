@@ -30,10 +30,12 @@ pipeline {
                     def tasks = [:]
                     def ansible_versions = [:]
 
-                    if (params.PLATFORM.contains('rhel-8')) {
-                        ansible_versions = ['devel', 'stable-2.9', 'stable-2.8']
+                    if (params.TOWER_VERSION ==~ /3.3.[0-9]*/) {
+                        ansible_versions = ['stable-2.7']
+                    } else if (params.TOWER_VERSION ==~ /3.4.[0-9]*/) {
+                        ansible_versions = ['stable-2.7', 'stable-2.8']
                     } else {
-                        ansible_versions = ['devel', 'stable-2.9', 'stable-2.8', 'stable-2.7']
+                        ansible_versions = ['stable-2.7', 'stable-2.8', 'stable-2.9', 'devel']
                     }
 
                     for(int j=0; j<ansible_versions.size(); j++) {
