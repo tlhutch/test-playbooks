@@ -20,6 +20,18 @@ out = {
             'ansible_connection': 'docker',
             'ansible_user': 'awx'
         }
+    },
+    "_meta": {
+        "hostvars": {
+            "127.0.0.1": {
+                'ansible_connection': 'local',
+                'ansible_python_interpreter': '/usr/bin/env python',
+            },
+            docker_host: {
+                'ansible_connection': 'docker',
+                'ansible_user': 'awx'
+            }
+        }
     }
 }
 print(json.dumps(out))
