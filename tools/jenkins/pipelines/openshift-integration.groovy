@@ -169,11 +169,15 @@ Tower Memcached Container Image: ${params.MEMCACHED_CONTAINER_IMAGE}"""
 
         stage ('Integration Tests') {
             steps {
-                withEnv(["TESTEXPR=${TESTEXPR}", "OPENSHIFT_PROJECT=${OPENSHIFT_PROJECT}"]) {
-                    sshagent(credentials : ['github-ansible-jenkins-nopassphrase']) {
-                        sh './tools/jenkins/scripts/test.sh'
-                        sh 'cp reports/junit/results-final.xml artifacts/results.xml'
-                        junit 'artifacts/results.xml'
+                withCredentials([string(credentialsId: 'jenkins_token_ocp3_ansible_eng', variable: 'OPENSHIFT_TOKEN')]) {
+                    withEnv(["OPENSHIFT_TOKEN=${OPENSHIFT_TOKEN}",
+                             "TESTEXPR=${TESTEXPR}",
+                             "OPENSHIFT_PROJECT=${OPENSHIFT_PROJECT}"]) {
+                        sshagent(credentials : ['github-ansible-jenkins-nopassphrase']) {
+                            sh './tools/jenkins/scripts/test.sh'
+                            sh 'cp reports/junit/results-final.xml artifacts/results.xml'
+                            junit 'artifacts/results.xml'
+                        }
                     }
                 }
             }
