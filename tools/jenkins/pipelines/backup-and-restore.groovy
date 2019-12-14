@@ -220,6 +220,12 @@ Bundle?: ${params.BUNDLE}"""
                 sh 'ansible-playbook -v -i playbooks/inventory.test_runner playbooks/test_runner/run_fetch_artifacts.yml'
             }
             archiveArtifacts allowEmptyArchive: true, artifacts: 'artifacts/*'
+            node('jenkins-jnlp-agent') {
+                script {
+                    json = "{\"tower\":\"${params.TOWER_VERSION}\", \"url\": \"${env.RUN_DISPLAY_URL}\", \"component\":\"backup_restore\", \"status\":\"${currentBuild.result}\", \"tls\":\"0\", \"deploy\":\"${params.SCENARIO}\", \"platform\":\"${params.PLATFORM}\", \"ansible\":\"${params.ANSIBLE_VERSION}\""
+                }
+                sh "curl -v -X POST 'http://tower-qe-dashboard.ansible.eng.rdu2.redhat.com/jenkins/sign_off_jobs' -H 'Content-type: application/json' -d '${json}'"
+            }
         }
 
         cleanup {
