@@ -89,6 +89,11 @@ pipeline {
             description: 'Should the deployment be cleaned if job fails ?',
             choices: ['yes', 'no']
         )
+        choice(
+            name: 'UPDATE_QE_DASHBOARD',
+            description: 'Should the results of this run be sent to the QE dashboard ?',
+            choices: ['no', 'yes']
+        )
     }
 
     options {
@@ -211,9 +216,9 @@ Bundle?: ${params.BUNDLE}"""
             archiveArtifacts allowEmptyArchive: true, artifacts: 'artifacts/*'
             node('jenkins-jnlp-agent') {
                 script {
-                    json = "{\"tower\":\"${params.TOWER_VERSION}\", \"url\": \"${env.RUN_DISPLAY_URL}\", \"component\":\"install\", \"status\":\"${currentBuild.result}\", \"tls\":\"${params.AWX_USE_TLS}\", \"fips\":\"${params.AWX_USE_FIPS}\", \"deploy\":\"${params.SCENARIO}\", \"platform\":\"${params.PLATFORM}\", \"ansible\":\"${params.ANSIBLE_VERSION}\""
+                    json = "{\"tower\":\"${params.TOWER_VERSION}\", \"url\": \"${env.RUN_DISPLAY_URL}\", \"component\":\"install\", \"status\":\"${currentBuild.result}\", \"tls\":\"${params.AWX_USE_TLS}\", \"fips\":\"${params.AWX_USE_FIPS}\", \"deploy\":\"${params.SCENARIO}\", \"platform\":\"${params.PLATFORM}\", \"ansible\":\"${params.ANSIBLE_VERSION}\"}"
                 }
-                sh "curl -v -X POST 'http://tower-qe-dashboard.ansible.eng.rdu2.redhat.com/jenkins/sign_off_jobs' -H 'Content-type: application/json' -d '${json}'"
+                sh "test ${params.UPDATE_QE_DASHBOARD} = 'yes' && curl -v -X POST 'http://tower-qe-dashboard.ansible.eng.rdu2.redhat.com/jenkins/sign_off_jobs' -H 'Content-type: application/json' -d '${json}' || echo 'Not updating dashboard for this run'"
             }
         }
 

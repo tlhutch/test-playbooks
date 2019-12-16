@@ -93,6 +93,11 @@ pipeline {
             description: 'Should the deployment be cleaned if job fails ?',
             choices: ['yes', 'no']
         )
+        choice(
+            name: 'UPDATE_QE_DASHBOARD',
+            description: 'Should the results of this run be sent to the QE dashboard ?',
+            choices: ['no', 'yes']
+        )
     }
 
     options {
@@ -250,9 +255,9 @@ Bundle?: ${params.BUNDLE}"""
                     } else {
                         component = 'minor_upgrade'
                     }
-                    json = "{\"tower\":\"${params.TOWER_VERSION_TO_UPGRADE_TO}\", \"url\": \"${env.RUN_DISPLAY_URL}\", \"component\":\"${component}\", \"status\":\"${currentBuild.result}\", \"tls\":\"false\", \"fips\":\"${params.AWX_USE_FIPS}\", \"deploy\":\"${params.SCENARIO}\", \"platform\":\"${params.PLATFORM}\", \"ansible\":\"${params.ANSIBLE_VERSION}\""
+                    json = "{\"tower\":\"${params.TOWER_VERSION_TO_UPGRADE_TO}\", \"url\": \"${env.RUN_DISPLAY_URL}\", \"component\":\"${component}\", \"status\":\"${currentBuild.result}\", \"tls\":\"false\", \"fips\":\"${params.AWX_USE_FIPS}\", \"deploy\":\"${params.SCENARIO}\", \"platform\":\"${params.PLATFORM}\", \"ansible\":\"${params.ANSIBLE_VERSION}\"}"
                 }
-                sh "curl -v -X POST 'http://tower-qe-dashboard.ansible.eng.rdu2.redhat.com/jenkins/sign_off_jobs' -H 'Content-type: application/json' -d '${json}'"
+                sh "test ${params.UPDATE_QE_DASHBOARD} = 'yes' && curl -v -X POST 'http://tower-qe-dashboard.ansible.eng.rdu2.redhat.com/jenkins/sign_off_jobs' -H 'Content-type: application/json' -d '${json}' || echo 'Not updating dashboard for this run'"
             }
         }
 
