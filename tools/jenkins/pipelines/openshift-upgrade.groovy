@@ -213,7 +213,7 @@ Tower Memcached Container Image: ${params.MEMCACHED_CONTAINER_IMAGE}"""
                     } else {
                         component = 'minor_upgrade'
                     }
-                    json = "{\"tower\":\"${params.TOWER_VERSION_TO_UPGRADE_TO}\", \"url\": \"${env.RUN_DISPLAY_URL}\", \"component\":\"${component}\", \"status\":\"${currentBuild.result}\", \"tls\":\"0\", \"deploy\":\"cluster\", \"platform\":\"OpenShift\", \"ansible\":\"${params.ANSIBLE_VERSION}\""
+                    json = "{\"tower\":\"${params.TOWER_VERSION_TO_UPGRADE_TO}\", \"url\": \"${env.RUN_DISPLAY_URL}\", \"component\":\"${component}\", \"status\":\"${currentBuild.result}\", \"tls\":\"false\", \"fips\":\"false\", \"deploy\":\"cluster\", \"platform\":\"OpenShift\", \"ansible\":\"${params.ANSIBLE_VERSION}\""
                 }
                 sh "curl -v -X POST 'http://tower-qe-dashboard.ansible.eng.rdu2.redhat.com/jenkins/sign_off_jobs' -H 'Content-type: application/json' -d '${json}'"
             }

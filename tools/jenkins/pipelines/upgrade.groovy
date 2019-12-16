@@ -250,7 +250,7 @@ Bundle?: ${params.BUNDLE}"""
                     } else {
                         component = 'minor_upgrade'
                     }
-                    json = "{\"tower\":\"${params.TOWER_VERSION_TO_UPGRADE_TO}\", \"url\": \"${env.RUN_DISPLAY_URL}\", \"component\":\"${component}\", \"status\":\"${currentBuild.result}\", \"tls\":\"0\", \"deploy\":\"${params.SCENARIO}\", \"platform\":\"${params.PLATFORM}\", \"ansible\":\"${params.ANSIBLE_VERSION}\""
+                    json = "{\"tower\":\"${params.TOWER_VERSION_TO_UPGRADE_TO}\", \"url\": \"${env.RUN_DISPLAY_URL}\", \"component\":\"${component}\", \"status\":\"${currentBuild.result}\", \"tls\":\"false\", \"fips\":\"${params.AWX_USE_FIPS}\", \"deploy\":\"${params.SCENARIO}\", \"platform\":\"${params.PLATFORM}\", \"ansible\":\"${params.ANSIBLE_VERSION}\""
                 }
                 sh "curl -v -X POST 'http://tower-qe-dashboard.ansible.eng.rdu2.redhat.com/jenkins/sign_off_jobs' -H 'Content-type: application/json' -d '${json}'"
             }
