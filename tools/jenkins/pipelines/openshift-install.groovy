@@ -171,7 +171,7 @@ Tower Memcached Container Image: ${params.MEMCACHED_CONTAINER_IMAGE}"""
             archiveArtifacts allowEmptyArchive: true, artifacts: 'artifacts/*'
             node('jenkins-jnlp-agent') {
                 script {
-                    json = "{\"tower\":\"${params.TOWER_VERSION}\", \"url\": \"${env.RUN_DISPLAY_URL}\", \"component\":\"install\", \"status\":\"${currentBuild.result}\", \"tls\":\"${params.AWX_USE_TLS}\", \"fips\":\"false\", \"deploy\":\"cluster\", \"platform\":\"OpenShift\", \"ansible\":\"${params.ANSIBLE_VERSION}\"}"
+                    json = "{\"tower\":\"${params.TOWER_VERSION}\", \"url\": \"${env.RUN_DISPLAY_URL}\", \"component\":\"install\", \"status\":\"${currentBuild.result}\", \"tls\":\"${params.AWX_USE_TLS}\", \"fips\":\"false\", \"deploy\":\"cluster\", \"platform\":\"OpenShift\", \"bundle\":\"no\", \"ansible\":\"${params.ANSIBLE_VERSION}\"}"
                 }
                 sh "test ${params.UPDATE_QE_DASHBOARD} = 'yes' && curl -v -X POST 'http://tower-qe-dashboard.ansible.eng.rdu2.redhat.com/jenkins/sign_off_jobs' -H 'Content-type: application/json' -d '${json}' || echo 'Not updating dashboard for this run'"
             }
