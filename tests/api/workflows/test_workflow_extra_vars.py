@@ -577,14 +577,14 @@ class TestWorkflowExtraVars(APITest):
         receiving_wfjt_node = workflow_job.related.workflow_nodes.get(
             unified_job_template=receiving_wfjt.id
         ).results.pop()
-        receiving_wfjt_node.wait_for_job()
+        receiving_wfjt_node.wait_for_job(timeout=120)
         receiving_wfjt_job = receiving_wfjt_node.get_related('job')
         assert json.loads(receiving_wfjt_job.extra_vars) == artifacts_from_stats_playbook
 
         receiving_jt_node = receiving_wfjt_job.related.workflow_nodes.get(
             unified_job_template=receiving_jt.id
         ).results.pop()
-        receiving_jt_node.wait_for_job()
+        receiving_jt_node.wait_for_job(timeout=120)
         receiving_job = receiving_jt_node.get_related('job')
         assert json.loads(receiving_job.extra_vars) == artifacts_from_stats_playbook
 
