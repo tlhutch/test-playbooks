@@ -35,6 +35,9 @@ fi
 TOWER_HOST=$(retrieve_tower_server_from_inventory "${INVENTORY}")
 CREDS=$(retrieve_credential_file "${INVENTORY}")
 
+# Setup the venvs and collection for the collection tests
+ansible-playbook -v -i "$INVENTORY" -e "product=$PRODUCT aw_repo_url=$AW_REPO_URL" playbooks/setup-collection-tests.yml
+
 set +e
 
 # Run tests that need to run serially
