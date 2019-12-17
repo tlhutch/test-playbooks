@@ -92,6 +92,8 @@ class TestInsights(APITest):
                 host.related.insights.get()
         assert e.value[1] == {'error': 'The Insights Credential for "{0}" was not found.'.format(insights_inventory.name)}
 
+
+    @pytest.mark.github('https://github.com/ansible/tower-qa/issues/4487', skip=True)
     def test_access_insights_with_valid_credential_and_registered_host(self, skip_if_cluster, factories, insights_inventory):
         """Verify that attempts to access Insights from a registered host with a valid Insights credential succeed."""
         credential = factories.credential(kind='insights')
