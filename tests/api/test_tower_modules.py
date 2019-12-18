@@ -184,15 +184,6 @@ class Test_Ansible_Tower_Modules(APITest):
                 actual_changed = module_output.contacted[hostname]['changed']
                 assert changed == actual_changed, f'module_output incorrect changed value, expected changed: {changed} actual state: {actual_changed}'
 
-    def test_ansible_tower_fully_qualified_collection_name(self, factories, venv_path, ansible_collections_path, request, update_setting_pg, v2, is_docker, ansible_adhoc, python_venv):
-        org = factories.organization()
-
-        module_args = {
-            'name': org.name,
-        }
-        module_output = self.run_module(venv_path(python_venv['name']), ansible_adhoc, is_docker, request, 'awx.awx.tower_organization', module_args)
-        self.check_module_output(request, ansible_adhoc, module_output, module_args, False)
-
     def test_ansible_tower_module_organization_create_update(self, factories, venv_path, ansible_collections_path, request, update_setting_pg, v2, is_docker, ansible_adhoc, python_venv):
         org_name = utils.random_title()
         request.addfinalizer(lambda *args: v2.organizations.get(name=org_name).results[0].delete())
