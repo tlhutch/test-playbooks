@@ -893,7 +893,7 @@ class Test_Ansible_Tower_Inventory_Plugin(APITest):
         for hostname in ansible_adhoc.options['inventory_manager'].groups[venv_group].host_names:
             assert 'rc' in module_output.contacted[hostname], f'module is missing an "rc" value: {module_output.__dict__}'
             rc = module_output.contacted[hostname]['rc']
-            assert rc == 0, f'ansible-inventory command failed with rc: {rc} module output: {module_output.__dict__}'
+            assert rc == 0, f'ansible-inventory command failed with rc: {rc} module output: {module_output.contacted[hostname]["stderr"]}'
             assert 'invocation' in module_output.contacted[hostname], f'module could not be invoked: {module_output.__dict__}'
             assert 'stdout' in module_output.contacted[hostname], f'module stdout was not captured: {module_output.__dict__}'
 
