@@ -218,7 +218,7 @@ Tower Memcached Container Image: ${params.MEMCACHED_CONTAINER_IMAGE}"""
                     } else {
                         component = 'minor_upgrade'
                     }
-                    json = "{\"tower\":\"${params.TOWER_VERSION_TO_UPGRADE_TO}\", \"url\": \"${env.RUN_DISPLAY_URL}\", \"component\":\"${component}\", \"status\":\"${currentBuild.result}\", \"tls\":\"false\", \"fips\":\"false\", \"deploy\":\"cluster\", \"platform\":\"OpenShift\", \"bundle\":\"no\", \"ansible\":\"${params.ANSIBLE_VERSION}\"}"
+                    json = "{\"tower\":\"${params.TOWER_VERSION_TO_UPGRADE_TO}\", \"url\": \"${env.RUN_DISPLAY_URL}\", \"component\":\"${component}\", \"status\":\"${currentBuild.result}\", \"tls\":\"no\", \"fips\":\"no\", \"deploy\":\"cluster\", \"platform\":\"OpenShift\", \"bundle\":\"no\", \"ansible\":\"${params.ANSIBLE_VERSION}\"}"
                 }
                 sh "test ${params.UPDATE_QE_DASHBOARD} = 'yes' && curl -v -X POST 'http://tower-qe-dashboard.ansible.eng.rdu2.redhat.com/jenkins/sign_off_jobs' -H 'Content-type: application/json' -d '${json}' || echo 'Not updating dashboard for this run'"
             }
