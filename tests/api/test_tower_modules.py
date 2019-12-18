@@ -878,6 +878,7 @@ class Test_Ansible_Tower_Inventory_Plugin(APITest):
         # Change this awx.awx.tower to use ansible.tower.tower when we're
         # deploying the tower build of the collection in the future
         module_output = ansible_adhoc.shell(
+            'ANSIBLE_INVENTORY_UNPARSED_FAILED=true '
             f'ANSIBLE_INVENTORY_ENABLED="awx.awx.tower" '
             f'TOWER_HOST={config.base_url} '
             f'TOWER_USERNAME={config.credentials.users.admin.username} '
