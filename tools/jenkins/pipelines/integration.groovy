@@ -297,7 +297,6 @@ Bundle?: ${params.BUNDLE}"""
                 sh "test ${params.UPDATE_QE_DASHBOARD} = 'yes' && curl -v -X POST 'http://tower-qe-dashboard.ansible.eng.rdu2.redhat.com/jenkins/sign_off_jobs' -H 'Content-type: application/json' -d '${json}' || echo 'Not updating dashboard for this run'"
             }
         }
-        }
 
         cleanup {
             sshagent(credentials : ['github-ansible-jenkins-nopassphrase']) {
