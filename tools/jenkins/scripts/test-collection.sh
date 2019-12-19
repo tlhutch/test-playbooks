@@ -36,7 +36,9 @@ TOWER_HOST=$(retrieve_tower_server_from_inventory "${INVENTORY}")
 CREDS=$(retrieve_credential_file "${INVENTORY}")
 
 # Setup the venvs and collection for the collection tests
-ansible-playbook -v -i "$INVENTORY" -e "product=$PRODUCT aw_repo_url=$AW_REPO_URL" playbooks/setup-collection-tests.yml
+ansible-playbook -v -i "$INVENTORY" -l 'local,tower' -e "venv_base=/venv venv_folder_name=python2_tower_modules remote_python=python2 venv_packages='ansible-tower-cli psutil git+https://github.com/ansible/ansible.git'" playbooks/create_custom_virtualenv.yml
+ansible-playbook -v -i "$INVENTORY" -l 'local,tower' -e "venv_base=/venv venv_folder_name=python3_tower_modules remote_python=python36 venv_packages='ansible-tower-cli psutil git+https://github.com/ansible/ansible.git'" playbooks/create_custom_virtualenv.yml
+ansible-playbook -v -i "$INVENTORY" -l 'local,tower' -e "product=$PRODUCT aw_repo_url=$AW_REPO_URL ansible_galaxy_bin='/venv/python3_tower_modules/bin/ansible-galaxy'" playbooks/setup-collection-tests.yml
 
 set +e
 

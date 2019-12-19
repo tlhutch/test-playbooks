@@ -1,7 +1,7 @@
 ---
 - hosts: local:tower:isolated_group_protected
   vars:
-    venv_base: /venv
+    ansible_galaxy_bin: ansible-galaxy
   become: true
   tasks:
     - name: set the collection prefix awx
@@ -14,47 +14,8 @@
         collection_prefix: 'ansible-tower'
       when: product == 'tower'
 
-    - block:
-      - name: Install needed packages
-        package:
-          name:
-            - python-virtualenv
-            - gcc
-      - name: set the virtualenv path
-        set_fact:
-          virtualenv_path: "{{ venv_base }}/python2_tower_modules"
-      - name: create the python2 virtualenv
-        pip:
-          virtualenv: "{{ virtualenv_path }}"
-          name:
-            - ansible-tower-cli
-            - psutil
-            - git+https://github.com/ansible/ansible.git
-          virtualenv_python: python2
-      when: ansible_distribution_major_version == '7'
-
-    - block:
-      - name: Install needed packages
-        package:
-          name:
-            - python3-virtualenv
-            - python2-devel
-            - gcc
-      - name: set the virtualenv path
-        set_fact:
-          virtualenv_path: "{{ venv_base }}/python3_tower_modules"
-      - name: create the python3 virtualenv
-        pip:
-          virtualenv: "{{ virtualenv_path }}"
-          name:
-            - ansible-tower-cli
-            - psutil
-            - git+https://github.com/ansible/ansible.git
-          virtualenv_python: python36
-      when: ansible_distribution_major_version == '8'
-
     - name: install the tower collection
-      shell: "{{ virtualenv_path }}/bin/ansible-galaxy collection install -p /usr/share/ansible/collections {{ aw_repo_url }}/collection/{{ collection_prefix }}-latest.tar.gz"
+      shell: "{{ ansible_galaxy_bin }} collection install -p /usr/share/ansible/collections {{ aw_repo_url }}/collection/{{ collection_prefix }}-latest.tar.gz"
 
     - name: chmod the tower collection
       file:
