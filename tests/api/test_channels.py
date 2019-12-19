@@ -153,7 +153,10 @@ class TestAdHocCommandChannels(ChannelsTest, APITest):
                                           inventory=host.ds.inventory).wait_until_completed()
         ws.ad_hoc_stdout(ahc.id)
         ahc.wait_until_completed().assert_successful()
-        assert [m for m in ws]
+        events = [m for m in ws]
+        assert events, 'No events came through!'
+        ws_ahc_events = [event for event in events if event['group_name'] == 'jobs']
+        assert len(ws_ahc_events) == ahc.related.events.get(page_size=200).count
 
         ws.unsubscribe()
         self.sleep_and_clear_messages(ws)
@@ -186,6 +189,8 @@ class TestJobChannels(ChannelsTest, APITest):
     @pytest.mark.parametrize('desired_status', ('pending', 'waiting', 'running', 'successful'))
     def test_job_command_status_changes(self, job_and_ws_events, desired_status):
         job, events = job_and_ws_events
+        ws_job_events = [event for event in events if event['group_name'] == 'job_events']
+        assert len(ws_job_events) == job.related.job_events.get(page_size=200).count
         desired_msg = dict(group_name='jobs', status=desired_status, unified_job_id=job.id, type='job')
         if desired_status == 'waiting':
             desired_msg['instance_group_name'] = 'tower'
@@ -195,6 +200,8 @@ class TestJobChannels(ChannelsTest, APITest):
     @pytest.mark.ansible_integration
     def test_job_events_subscribe(self, job_and_ws_events):
         job, ws_events = job_and_ws_events
+        ws_job_events = [event for event in ws_events if event['group_name'] == 'job_events']
+        assert len(ws_job_events) == job.related.job_events.get(page_size=200).count
 
         not_of_interest = ('created', 'event_name', 'modified', 'summary_fields', 'related')
         filtered_ws_events = self.filtered_events(ws_events, not_of_interest)
@@ -224,7 +231,10 @@ class TestJobChannels(ChannelsTest, APITest):
                                         inventory=host.ds.inventory).launch()
         ws.job_stdout(job.id)
         job.wait_until_completed().assert_successful()
-        assert [m for m in ws]
+        events = [m for m in ws]
+        assert events, 'No events came through!'
+        ws_job_events = [event for event in events if event['group_name'] == 'job_events']
+        assert len(ws_job_events) == job.related.job_events.get(page_size=200).count
 
         ws.unsubscribe()
         self.sleep_and_clear_messages(ws)
@@ -319,6 +329,8 @@ class TestInventoryChannels(ChannelsTest, APITest):
     @pytest.mark.parametrize('desired_status', ('pending', 'waiting', 'running', 'successful'))
     def test_inventory_update_status_changes(self, inv_update_and_ws_events, desired_status):
         inv_update, events = inv_update_and_ws_events
+        ws_inv_events = [event for event in events if event['group_name'] == 'inventory_update_events']
+        assert len(ws_inv_events) == inv_update.related.events.get(page_size=200).count
         desired_msg = dict(group_name='jobs',
                            status=desired_status,
                            unified_job_id=inv_update.id,
@@ -334,6 +346,8 @@ class TestInventoryChannels(ChannelsTest, APITest):
     @pytest.mark.ansible_integration
     def test_inventory_update_events_subscribe(self, inv_update_and_ws_events):
         inv_update, ws_events = inv_update_and_ws_events
+        ws_inv_events = [event for event in ws_events if event['group_name'] == 'inventory_update_events']
+        assert len(ws_inv_events) == inv_update.related.events.get(page_size=200).count
 
         not_of_interest = ('created', 'event_name', 'modified', 'summary_fields', 'related')
         filtered_ws_events = self.filtered_events(ws_events, not_of_interest)
@@ -361,7 +375,10 @@ class TestInventoryChannels(ChannelsTest, APITest):
         inv_update = inv_source.update()
         ws.inventory_update_stdout(inv_update.id)
         inv_update.wait_until_completed().assert_successful()
-        assert [m for m in ws]
+        events = [m for m in ws]
+        assert events, 'No events came through!'
+        ws_inv_events = [event for event in events if event['group_name'] == 'inventory_update_events']
+        assert len(ws_inv_events) == inv_update.related.events.get(page_size=200).count
 
         ws.unsubscribe()
         self.sleep_and_clear_messages(ws)
@@ -430,7 +447,10 @@ class TestProjectUpdateChannels(ChannelsTest, APITest):
         project_update = project.update()
         ws.project_update_stdout(project_update.id)
         project_update.wait_until_completed().assert_successful()
-        assert [m for m in ws]
+        events = [m for m in ws]
+        assert events, 'No events came through!'
+        ws_project_events = [event for event in events if event['group_name'] == 'project_update_events']
+        assert len(ws_project_events) == project_update.related.events.get(page_size=200).count
 
         ws.unsubscribe()
         self.sleep_and_clear_messages(ws)
