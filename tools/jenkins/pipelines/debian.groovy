@@ -6,7 +6,7 @@ pipeline {
         choice(
             name: 'TOWER_VERSION',
             description: 'Tower version to deploy',
-            choices: ['3.5.4', '3.4.6', '3.3.8']
+            choices: ['3.5.5', '3.4.6', '3.3.8']
         )
         choice(
             name: 'SCOPE',

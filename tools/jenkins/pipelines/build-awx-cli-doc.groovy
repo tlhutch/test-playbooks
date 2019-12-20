@@ -6,7 +6,7 @@ pipeline {
         choice(
             name: 'TOWER_VERSION',
             description: 'Tower version to deploy',
-            choices: ['devel', '3.6.2' , '3.6.1', '3.6.0']
+            choices: ['devel', '3.6.3', '3.6.2', '3.6.1', '3.6.0']
         )
         string(
             name: 'TOWER_PACKAGING_FORK',

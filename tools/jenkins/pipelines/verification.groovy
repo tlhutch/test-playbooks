@@ -6,7 +6,7 @@ pipeline {
         choice(
             name: 'TOWER_VERSION',
             description: 'Tower version to test',
-            choices: ['devel', '3.6.2', '3.5.4', '3.4.6', '3.3.8']
+            choices: ['devel', '3.6.3', '3.5.5', '3.4.6', '3.3.8']
         )
         choice(
             name: 'ANSIBLE_VERSION',
