@@ -199,10 +199,7 @@ pipeline {
                         NIGHTLY_REPO_DIR = "tower_${params.TOWER_BRANCH}_packaging_${params.TOWER_PACKAGING_BRANCH}"
                     }
 
-                    // TODO: (Calebb) Make this a regex so with new versions of
-                    // RHEL 8 we dont have to continue updating this if
-                    // statement
-                    if (params.PLATFORM == 'rhel-8.0-x86_64' || params.PLATFORM == 'rhel-8.1-x86_64') {
+                    if (params.PLATFORM.contains('rhel-8')) {
                         target_dist = 'epel-8-x86_64'
                         mock_cfg = 'rhel-8-x86_64'
                     } else {
