@@ -415,10 +415,9 @@ pipeline {
                                     // Archive the admin_password and show to the user
                                     sh 'grep "^admin_password:" "playbooks/vars.yml" | awk \'{ print $2 }\' | tee artifacts/admin_password'
 
-                                    // Update the credentials files before deploying the test runner so that the credentials files are copied with the random generated admin password in place
-                                    sh 'sed -i "s/default: &id001 {password: fo0m4nchU,/default: \\&id001 {password: \'$(cat artifacts/admin_password)\',/" config/credentials.yml'
-                                    sh 'cat config/credentials.yml | grep default'
-                                    sh 'if [ -e config/credentials-pkcs8.yml ]; then sed -i "s/default: &id001 {password: fo0m4nchU,/default: \\&id001 {password: \'$(cat artifacts/admin_password)\',/" config/credentials-pkcs8.yml; fi'
+                                    sh """python -c 'import yaml; content = yaml.load(open("config/credentials.yml").read()); password = open("artifacts/admin_password").read().strip(); content["default"]["password"] = password; open("config/credentials.yml", "w").write(yaml.dump(content, default_flow_style=False, default_style="|"));'"""
+                                    sh "cat config/credentials.yml"
+                                    sh """python -c 'import yaml; content = yaml.load(open("config/credentials-pkcs8.yml").read()); password = open("artifacts/admin_password").read().strip(); content["default"]["password"] = password; open("config/credentials-pkcs8.yml", "w").write(yaml.dump(content, default_flow_style=False, default_style="|"));' || true"""
 
                                     sh 'ansible-playbook -v -i playbooks/inventory -e @playbooks/test_runner_vars.yml playbooks/deploy-test-runner.yml'
 
