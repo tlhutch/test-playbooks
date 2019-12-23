@@ -165,6 +165,20 @@ class TestJobTemplateSurveys(APITest):
                                                                    variable="submitter_email",
                                                                    type="text")]))
 
+    def test_bad_survey_post_returns_400(self, job_template_ping):
+        """Verify the API allows a survey_spec with an empty name and description"""
+        job_template_ping.survey_enabled = True
+        with pytest.raises(exc.BadRequest) as e:
+            job_template_ping.related.survey_spec.post(dict(name='',
+                                                        description='',
+                                                        spec=[dict(required=False,
+                                                                   question_name="broken",
+                                                                   question_description="broken",
+                                                                   variable="broken",
+                                                                   type="broken")]))
+        assert "allowed question types" in str(e)
+        assert "error" in str(e)
+
     def test_update_survey_spec(self, job_template_ping, optional_survey_spec, required_survey_spec):
         """Verify the API allows replacing a survey spec with subsequent posts"""
         job_template_ping.add_survey(spec=optional_survey_spec)
