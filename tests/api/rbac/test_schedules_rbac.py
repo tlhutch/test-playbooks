@@ -105,6 +105,9 @@ class Test_Schedules_RBAC(APITest):
         with self.current_user(user):
             if role in ('admin', 'execute'):
                 job.related.create_schedule.post()
+                # https://github.com/ansible/awx/issues/4147 previously data that should have been
+                # ignored via payload sanitization was causing 500 server error
+                job.related.create_schedule.post({'credentials': ['aardvark']})
             else:
                 with pytest.raises(exc.Forbidden):
                     job.related.create_schedule.post()
