@@ -778,6 +778,12 @@ class Test_Projects(APITest):
         job.wait_until_completed()
         job.assert_status(['failed', 'error'])
 
+    def test_galaxy_validation_errors(self, api_settings_jobs_pg, api_settings_all_pg, update_setting_pg):
+        for settings_pg in (api_settings_jobs_pg, api_settings_all_pg):
+            with pytest.raises(exc.BadRequest) as e:
+                update_setting_pg(api_settings_jobs_pg, dict(PUBLIC_GALAXY_ENABLED=False, PRIMARY_GALAXY_URL=''))
+            assert 'URL for Primary Galaxy must be defined before disabling public Galaxy' in str(e)
+
     def test_galaxy_server_credential_redaction(self, factories,
                                                 project_with_galaxy_collection_requirements, ansible_version_cmp,
                                                 api_settings_all_pg, update_setting_pg):
