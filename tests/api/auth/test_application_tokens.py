@@ -372,12 +372,24 @@ class TestApplicationTokens(APITest):
         assert token.get().description == token_body['description']
         assert token.scope == 'read'
 
-    def test_delete_token(self, v2, factories):
+    @pytest.mark.parametrize('with_self', [True, False])
+    def test_delete_token(self, v2, factories, with_self):
         token = factories.access_token(oauth_2_application=False)
         tokens = v2.tokens.get(id=token.id)
         assert tokens.count == 1
 
-        token.delete()
+        if with_self:
+            # Test that we can then delete the token with itself
+            # See https://github.com/ansible/awx/issues/5478
+            conn = Connection(qe_config.base_url)
+            conn.login(token=token.token, auth_type='Bearer')
+            resp = conn.delete(
+                '/api/v2/tokens/{}'.format(token.id),
+            )
+            assert resp.status_code == 204
+        else:
+            token.delete()
+
         tokens = v2.tokens.get(id=token.id)
         assert tokens.count == 0
 
