@@ -1,4 +1,5 @@
 import json
+import yaml
 
 import pytest
 
@@ -298,6 +299,41 @@ class TestWorkflowLaunch(object):
             assert 'Launching'.format(wfjt.name) in result.stdout
             assert ' successful'.format(inv_source.name) in result.stdout
             assert result.stdout.splitlines()[-1] == 'successful'
+
+    @pytest.mark.parametrize('input_type', ['json', 'yaml'])
+    def test_launch_with_extra_vars(self, v2, cli, factories, input_type):
+        wfjt = factories.workflow_job_template()
+        var1 = {'name': 'var1', 'value': 'foo'}
+        var2 = {'name': 'var2', 'value': 'foo'}
+        survey = [dict(required=True,
+                       question_name='test-1',
+                       variable=var1['name'],
+                       type='text',
+                       default='var1_default'),
+                  dict(required=True,
+                       question_name='test-2',
+                       variable=var2['name'],
+                       type='text',
+                       default='var2_default')]
+        wfjt.add_survey(spec=survey)
+
+        if input_type == 'json':
+            vars = json.dumps({var1['name']: var1['value'], var2['name']: var2['value']})
+        else:
+            vars = yaml.dump({var1['name']: var1['value'], var2['name']: var2['value']})
+
+        result = cli([
+            'awx', 'workflow_job_templates', 'launch', str(wfjt.id), '--extra_vars', vars,
+        ], auth=True)
+        assert result.returncode == 0, format_error(result)
+        assert result.json['status'] in JOB_STATUSES
+
+        wf_jobs = wfjt.related.workflow_jobs.get()
+        assert wf_jobs.count == 1
+        vars = json.loads(wf_jobs.results[0].extra_vars)
+        assert vars[var1['name']] == var1['value']
+        assert vars[var2['name']] == var2['value']
+        assert wf_jobs.results[0].id == result.json['id']
 
 
 @pytest.mark.usefixtures('authtoken')
