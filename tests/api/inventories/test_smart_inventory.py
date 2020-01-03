@@ -67,7 +67,6 @@ class TestSmartInventory(APITest):
         assert jt.launch().wait_until_completed().status == 'failed'
 
         assert inv.get().hosts_with_active_failures == 1
-        assert inv.groups_with_active_failures == 0
         assert inv.inventory_sources_with_failures == 0
         assert inv.has_active_failures
 

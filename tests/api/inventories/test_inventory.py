@@ -115,7 +115,6 @@ class TestInventory(APITest):
         assert inv.has_inventory_sources
 
         assert inv.hosts_with_active_failures == 1
-        assert inv.groups_with_active_failures == 1
         assert inv.inventory_sources_with_failures == 1
         assert inv.has_active_failures
 

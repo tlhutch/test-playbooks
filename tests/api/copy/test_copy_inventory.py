@@ -14,8 +14,7 @@ class Test_Copy_Inventory(APITest):
     unequal_fields = ['id', 'created', 'modified']
 
     def check_group_fields(self, old_group, new_group, old_inventory, new_inventory):
-        identical_fields = ['type', 'name', 'description', 'variables', 'total_hosts', 'total_groups',
-                            'has_inventory_sources']
+        identical_fields = ['type', 'name', 'description', 'variables']
         unequal_fields = ['id', 'created', 'modified', 'inventory']
 
         assert old_group.inventory == old_inventory.id
