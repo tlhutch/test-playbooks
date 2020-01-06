@@ -12,6 +12,33 @@ result_to_str = functools.partial(json.dumps, indent=2, sort_keys=True)
 
 
 @pytest.fixture(scope='session')
+def collection_package(is_docker):
+    if is_docker:
+        return 'awx'
+
+    product = os.environ.get('PRODUCT', 'awx')
+    if product == 'tower':
+        return 'ansible'
+    else:
+        return 'awx'
+
+
+@pytest.fixture(scope='session')
+def collection_namespace(is_docker):
+    if is_docker:
+        return 'awx'
+
+    product = os.environ.get('PRODUCT', 'awx')
+    return product
+
+
+# This is the Fully Qualified Collection Name (fqcn) for the tower/awx collection
+@pytest.fixture(scope='session')
+def collection_fqcn(is_docker, collection_package, collection_namespace):
+    return collection_package + '.' + collection_namespace
+
+
+@pytest.fixture(scope='session')
 def ansible_collections_path(is_docker):
     """Return the ansible collections path to use depending on the deployment.
 

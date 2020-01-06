@@ -99,7 +99,7 @@ def tower_credential(factories):
 @pytest.mark.parametrize('python_venv', CUSTOM_VENVS, ids=CUSTOM_VENVS_NAMES)
 class Test_Ansible_Tower_Modules_via_Playbooks(APITest):
     @pytest.mark.parametrize('tower_module', TOWER_MODULES_PARAMS)
-    def test_ansible_tower_module(self, factories, tower_module, project, tower_credential, venv_path, python_venv, is_cluster):
+    def test_ansible_tower_module(self, factories, tower_module, project, tower_credential, venv_path, python_venv, is_cluster, collection_fqcn):
         """
         Ansible modules that interact with Tower live in an Ansible Collection.
         This test invokes the integration tests that ran in Ansible core CI
@@ -115,7 +115,7 @@ class Test_Ansible_Tower_Modules_via_Playbooks(APITest):
         extra_vars = {
             'tower_module_under_test': tower_module,
             'ansible_python_interpreter': os.path.join(virtual_env_path, 'bin/python'),
-            'collection_id': 'awx.awx'  # TODO: change if testing ansible.tower
+            'collection_id': collection_fqcn
         }
         jt = factories.job_template(project=project, playbook='tower_modules/wrapper.yml',
                                     extra_vars=json.dumps(extra_vars), verbosity=5)
@@ -184,7 +184,7 @@ class Test_Ansible_Tower_Modules(APITest):
                 actual_changed = module_output.contacted[hostname]['changed']
                 assert changed == actual_changed, f'module_output incorrect changed value, expected changed: {changed} actual state: {actual_changed}'
 
-    def test_ansible_tower_module_organization_create_update(self, factories, venv_path, ansible_collections_path, request, update_setting_pg, v2, is_docker, ansible_adhoc, python_venv):
+    def test_ansible_tower_module_organization_create_update(self, factories, venv_path, ansible_collections_path, request, update_setting_pg, v2, is_docker, ansible_adhoc, python_venv, collection_fqcn):
         org_name = utils.random_title()
         request.addfinalizer(lambda *args: v2.organizations.get(name=org_name).results[0].delete())
         module_args = {
@@ -192,7 +192,8 @@ class Test_Ansible_Tower_Modules(APITest):
             'description': 'hello world',
         }
 
-        module_output = self.run_module(venv_path(python_venv['name']), ansible_adhoc, is_docker, request, 'awx.awx.tower_organization', module_args)
+        module_output = self.run_module(venv_path(python_venv['name']),
+                ansible_adhoc, is_docker, request, collection_fqcn + '.tower_organization', module_args)
         self.check_module_output(request, ansible_adhoc, module_output, module_args, True)
 
         org = v2.organizations.get(name=org_name).results.pop()
@@ -206,7 +207,7 @@ class Test_Ansible_Tower_Modules(APITest):
             'description': 'updated description',
         }
 
-        module_output = self.run_module(venv_path(python_venv['name']), ansible_adhoc, is_docker, request, 'awx.awx.tower_organization', module_args)
+        module_output = self.run_module(venv_path(python_venv['name']), ansible_adhoc, is_docker, request, collection_fqcn + '.tower_organization', module_args)
         self.check_module_output(request, ansible_adhoc, module_output, module_args, True)
 
         org = v2.organizations.get(name=org_name).results.pop()
@@ -214,26 +215,26 @@ class Test_Ansible_Tower_Modules(APITest):
         assert org_name == org['name']
         assert org['description'] == 'updated description'
 
-    def test_ansible_tower_module_organization_delete(self, factories, v2, venv_path, is_docker, request, ansible_collections_path, ansible_adhoc, python_venv):
+    def test_ansible_tower_module_organization_delete(self, factories, v2, venv_path, is_docker, request, ansible_collections_path, ansible_adhoc, python_venv, collection_fqcn):
         org = factories.organization()
         module_args = {
             'name': org.name,
             'state': 'absent',
         }
 
-        module_output = self.run_module(venv_path(python_venv['name']), ansible_adhoc, is_docker, request, 'awx.awx.tower_organization', module_args)
+        module_output = self.run_module(venv_path(python_venv['name']), ansible_adhoc, is_docker, request, collection_fqcn + '.tower_organization', module_args)
         self.check_module_output(request, ansible_adhoc, module_output, module_args, True)
 
         utils.poll_until(lambda: not v2.organizations.get(name=org.name).results, interval=1, timeout=30)
         assert not v2.organizations.get(name=org.name).results
 
-    def test_ansible_tower_module_organization_check_mode(self, factories, tower_version, venv_path, is_docker, v2, request, ansible_collections_path, ansible_adhoc, python_venv):
+    def test_ansible_tower_module_organization_check_mode(self, factories, tower_version, venv_path, is_docker, v2, request, ansible_collections_path, ansible_adhoc, python_venv, collection_fqcn):
         '''
         Ensure that orgnization check_mode: True returns the tower_version
         '''
         pytest.skip("unimplemented")
 
-    def test_ansible_tower_module_project_create_update(self, request, ansible_collections_path, v2, factories, venv_path, organization, is_docker, ansible_adhoc, python_venv):
+    def test_ansible_tower_module_project_create_update(self, request, ansible_collections_path, v2, factories, venv_path, organization, is_docker, ansible_adhoc, python_venv, collection_fqcn):
         proj_name = utils.random_title()
         request.addfinalizer(lambda *args: v2.projects.get(name=proj_name).results[0].delete())
 
@@ -245,7 +246,7 @@ class Test_Ansible_Tower_Modules(APITest):
             'organization': organization.name,
         }
 
-        module_output = self.run_module(venv_path(python_venv['name']), ansible_adhoc, is_docker, request, 'awx.awx.tower_project', module_args)
+        module_output = self.run_module(venv_path(python_venv['name']), ansible_adhoc, is_docker, request, collection_fqcn + '.tower_project', module_args)
         self.check_module_output(request, ansible_adhoc, module_output, module_args, True)
 
         proj = v2.projects.get(name=proj_name).results[0]
@@ -259,7 +260,7 @@ class Test_Ansible_Tower_Modules(APITest):
 
         module_args['description'] = 'updated description'
 
-        module_output = self.run_module(venv_path(python_venv['name']), ansible_adhoc, is_docker, request, 'awx.awx.tower_project', module_args)
+        module_output = self.run_module(venv_path(python_venv['name']), ansible_adhoc, is_docker, request, collection_fqcn + '.tower_project', module_args)
         self.check_module_output(request, ansible_adhoc, module_output, module_args, True)
 
         proj = v2.projects.get(name=proj_name).results[0]
@@ -271,19 +272,19 @@ class Test_Ansible_Tower_Modules(APITest):
         assert proj['scm_url'] == TEST_REPO_URL
         assert proj['organization'] == organization.id
 
-    def test_ansible_tower_module_project_delete(self, factories, v2, venv_path, is_docker, request, ansible_collections_path, ansible_adhoc, python_venv):
+    def test_ansible_tower_module_project_delete(self, factories, v2, venv_path, is_docker, request, ansible_collections_path, ansible_adhoc, python_venv, collection_fqcn):
         proj = factories.project()
         module_args = {
             'name': proj.name,
             'state': 'absent',
         }
 
-        module_output = self.run_module(venv_path(python_venv['name']), ansible_adhoc, is_docker, request, 'awx.awx.tower_project', module_args)
+        module_output = self.run_module(venv_path(python_venv['name']), ansible_adhoc, is_docker, request, collection_fqcn + '.tower_project', module_args)
         self.check_module_output(request, ansible_adhoc, module_output, module_args, True)
 
         utils.poll_until(lambda: not v2.projects.get(name=proj.name).results, interval=1, timeout=30)
 
-    def test_ansible_tower_module_credential_create_update(self, request, ansible_collections_path, v2, factories, venv_path, organization, is_docker, ansible_adhoc, python_venv):
+    def test_ansible_tower_module_credential_create_update(self, request, ansible_collections_path, v2, factories, venv_path, organization, is_docker, ansible_adhoc, python_venv, collection_fqcn):
         cred_name = utils.random_title()
         request.addfinalizer(lambda *args: v2.credentials.get(name=cred_name).results[0].delete())
 
@@ -294,7 +295,7 @@ class Test_Ansible_Tower_Modules(APITest):
             'organization': organization.name,
         }
 
-        module_output = self.run_module(venv_path(python_venv['name']), ansible_adhoc, is_docker, request, 'awx.awx.tower_credential', module_args)
+        module_output = self.run_module(venv_path(python_venv['name']), ansible_adhoc, is_docker, request, collection_fqcn + '.tower_credential', module_args)
         self.check_module_output(request, ansible_adhoc, module_output, module_args, True)
 
         cred = v2.credentials.get(name=cred_name).results.pop()
@@ -306,7 +307,7 @@ class Test_Ansible_Tower_Modules(APITest):
 
         module_args['description'] = 'updated description'
 
-        module_output = self.run_module(venv_path(python_venv['name']), ansible_adhoc, is_docker, request, 'awx.awx.tower_credential', module_args)
+        module_output = self.run_module(venv_path(python_venv['name']), ansible_adhoc, is_docker, request, collection_fqcn + '.tower_credential', module_args)
         self.check_module_output(request, ansible_adhoc, module_output, module_args, True)
 
         cred = v2.credentials.get(name=cred_name).results.pop()
@@ -316,7 +317,7 @@ class Test_Ansible_Tower_Modules(APITest):
         assert cred['kind'] == 'ssh'
         assert cred['organization'] == organization.id
 
-    def test_ansible_tower_module_credential_delete(self, factories, v2, venv_path, is_docker, request, ansible_collections_path, ansible_adhoc, python_venv):
+    def test_ansible_tower_module_credential_delete(self, factories, v2, venv_path, is_docker, request, ansible_collections_path, ansible_adhoc, python_venv, collection_fqcn):
         cred = factories.credential()
         module_args = {
             'name': cred.name,
@@ -325,12 +326,12 @@ class Test_Ansible_Tower_Modules(APITest):
             'organization': cred.summary_fields.organization.name
         }
 
-        module_output = self.run_module(venv_path(python_venv['name']), ansible_adhoc, is_docker, request, 'awx.awx.tower_credential', module_args)
+        module_output = self.run_module(venv_path(python_venv['name']), ansible_adhoc, is_docker, request, collection_fqcn + '.tower_credential', module_args)
         self.check_module_output(request, ansible_adhoc, module_output, module_args, True)
 
         utils.poll_until(lambda: not v2.credentials.get(name=cred.name).results, interval=1, timeout=30)
 
-    def test_ansible_tower_module_credential_type_create_update(self, request, ansible_collections_path, v2, factories, venv_path, organization, is_docker, ansible_adhoc, python_venv):
+    def test_ansible_tower_module_credential_type_create_update(self, request, ansible_collections_path, v2, factories, venv_path, organization, is_docker, ansible_adhoc, python_venv, collection_fqcn):
         cred_name = utils.random_title()
         request.addfinalizer(lambda *args: v2.credential_types.get(name=cred_name).results[0].delete())
         module_args = {
@@ -338,7 +339,7 @@ class Test_Ansible_Tower_Modules(APITest):
             'description': 'hello world',
             'kind': 'cloud',
         }
-        module_output = self.run_module(venv_path(python_venv['name']), ansible_adhoc, is_docker, request, 'awx.awx.tower_credential_type', module_args)
+        module_output = self.run_module(venv_path(python_venv['name']), ansible_adhoc, is_docker, request, collection_fqcn + '.tower_credential_type', module_args)
         self.check_module_output(request, ansible_adhoc, module_output, module_args, True)
 
         cred = v2.credential_types.get(name=cred_name).results.pop()
@@ -348,7 +349,7 @@ class Test_Ansible_Tower_Modules(APITest):
         assert cred['kind'] == 'cloud'
 
         module_args['description'] = 'updated description'
-        module_output = self.run_module(venv_path(python_venv['name']), ansible_adhoc, is_docker, request, 'awx.awx.tower_credential_type', module_args)
+        module_output = self.run_module(venv_path(python_venv['name']), ansible_adhoc, is_docker, request, collection_fqcn + '.tower_credential_type', module_args)
         self.check_module_output(request, ansible_adhoc, module_output, module_args, True)
 
         cred = v2.credential_types.get(name=cred_name).results.pop()
@@ -357,7 +358,7 @@ class Test_Ansible_Tower_Modules(APITest):
         assert cred['description'] == 'updated description'
         assert cred['kind'] == 'cloud'
 
-    def test_ansible_tower_module_credential_type_delete(self, factories, v2, venv_path, is_docker, request, ansible_collections_path, ansible_adhoc, python_venv):
+    def test_ansible_tower_module_credential_type_delete(self, factories, v2, venv_path, is_docker, request, ansible_collections_path, ansible_adhoc, python_venv, collection_fqcn):
         cred = factories.credential_type()
         module_args = {
             'name': cred.name,
@@ -365,12 +366,12 @@ class Test_Ansible_Tower_Modules(APITest):
             'kind': cred.kind,
         }
 
-        module_output = self.run_module(venv_path(python_venv['name']), ansible_adhoc, is_docker, request, 'awx.awx.tower_credential_type', module_args)
+        module_output = self.run_module(venv_path(python_venv['name']), ansible_adhoc, is_docker, request, collection_fqcn + '.tower_credential_type', module_args)
         self.check_module_output(request, ansible_adhoc, module_output, module_args, True)
 
         utils.poll_until(lambda: not v2.credential_types.get(name=cred.name).results, interval=1, timeout=30)
 
-    def test_ansible_tower_module_notification_create_update(self, request, ansible_collections_path, v2, factories, venv_path, organization, is_docker, ansible_adhoc, python_venv):
+    def test_ansible_tower_module_notification_create_update(self, request, ansible_collections_path, v2, factories, venv_path, organization, is_docker, ansible_adhoc, python_venv, collection_fqcn):
         notification_name = utils.random_title()
         request.addfinalizer(lambda *args: v2.notification_templates.get(name=notification_name).results[0].delete())
         module_args = {
@@ -381,7 +382,7 @@ class Test_Ansible_Tower_Modules(APITest):
             'notification_type': 'slack',
             'token': 'fake_token',
         }
-        module_output = self.run_module(venv_path(python_venv['name']), ansible_adhoc, is_docker, request, 'awx.awx.tower_notification', module_args)
+        module_output = self.run_module(venv_path(python_venv['name']), ansible_adhoc, is_docker, request, collection_fqcn + '.tower_notification', module_args)
         # TODO (calebb): find a way to check this parameter that makes sense
         modified_module_args = deepcopy(module_args)
         modified_module_args.pop('token')
@@ -395,7 +396,7 @@ class Test_Ansible_Tower_Modules(APITest):
         assert notification['notification_type'] == 'slack'
 
         module_args['description'] = 'updated description'
-        module_output = self.run_module(venv_path(python_venv['name']), ansible_adhoc, is_docker, request, 'awx.awx.tower_notification', module_args)
+        module_output = self.run_module(venv_path(python_venv['name']), ansible_adhoc, is_docker, request, collection_fqcn + '.tower_notification', module_args)
         # TODO (calebb): find a way to check this parameter that makes sense
         modified_module_args = deepcopy(module_args)
         modified_module_args.pop('token')
@@ -408,7 +409,7 @@ class Test_Ansible_Tower_Modules(APITest):
         assert notification.summary_fields.organization.name == organization.name
         assert notification['notification_type'] == 'slack'
 
-    def test_ansible_tower_module_notification_delete(self, v2, factories, venv_path, organization, is_docker, request, ansible_collections_path, ansible_adhoc, python_venv):
+    def test_ansible_tower_module_notification_delete(self, v2, factories, venv_path, organization, is_docker, request, ansible_collections_path, ansible_adhoc, python_venv, collection_fqcn):
         token = utils.random_title()
         notification = factories.notification_template(token=token)
         module_args = {
@@ -419,7 +420,7 @@ class Test_Ansible_Tower_Modules(APITest):
             'token': token,
             'state': 'absent',
         }
-        module_output = self.run_module(venv_path(python_venv['name']), ansible_adhoc, is_docker, request, 'awx.awx.tower_notification', module_args)
+        module_output = self.run_module(venv_path(python_venv['name']), ansible_adhoc, is_docker, request, collection_fqcn + '.tower_notification', module_args)
         # TODO (calebb): find a way to check this parameter that makes sense
         modified_module_args = deepcopy(module_args)
         modified_module_args.pop('token')
@@ -427,7 +428,7 @@ class Test_Ansible_Tower_Modules(APITest):
 
         utils.poll_until(lambda: not v2.notification_templates.get(name=notification.name).results, interval=1, timeout=30)
 
-    def test_ansible_tower_module_group_create_update(self, request, ansible_collections_path, v2, factories, venv_path, is_docker, ansible_adhoc, python_venv):
+    def test_ansible_tower_module_group_create_update(self, request, ansible_collections_path, v2, factories, venv_path, is_docker, ansible_adhoc, python_venv, collection_fqcn):
         group_name = utils.random_title()
         inv = factories.inventory()
         request.addfinalizer(lambda *args: v2.groups.get(name=group_name).results[0].delete())
@@ -436,7 +437,7 @@ class Test_Ansible_Tower_Modules(APITest):
             'description': 'hello world',
             'inventory': inv.name
         }
-        module_output = self.run_module(venv_path(python_venv['name']), ansible_adhoc, is_docker, request, 'awx.awx.tower_group', module_args)
+        module_output = self.run_module(venv_path(python_venv['name']), ansible_adhoc, is_docker, request, collection_fqcn + '.tower_group', module_args)
         self.check_module_output(request, ansible_adhoc, module_output, module_args, True)
 
         group = v2.groups.get(name=group_name).results.pop()
@@ -446,7 +447,7 @@ class Test_Ansible_Tower_Modules(APITest):
         assert group['inventory'] == inv.id
 
         module_args['description'] = 'updated description'
-        module_output = self.run_module(venv_path(python_venv['name']), ansible_adhoc, is_docker, request, 'awx.awx.tower_group', module_args)
+        module_output = self.run_module(venv_path(python_venv['name']), ansible_adhoc, is_docker, request, collection_fqcn + '.tower_group', module_args)
         self.check_module_output(request, ansible_adhoc, module_output, module_args, True)
 
         group = v2.groups.get(name=group_name).results.pop()
@@ -455,14 +456,14 @@ class Test_Ansible_Tower_Modules(APITest):
         assert group['description'] == 'updated description'
         assert group['inventory'] == inv.id
 
-    def test_ansible_tower_module_group_delete(self, factories, v2, venv_path, is_docker, request, ansible_collections_path, ansible_adhoc, python_venv):
+    def test_ansible_tower_module_group_delete(self, factories, v2, venv_path, is_docker, request, ansible_collections_path, ansible_adhoc, python_venv, collection_fqcn):
         group = factories.group()
         module_args = {
             'name': group.name,
             'inventory': group.summary_fields.inventory.name,
             'state': 'absent',
         }
-        module_output = self.run_module(venv_path(python_venv['name']), ansible_adhoc, is_docker, request, 'awx.awx.tower_group', module_args)
+        module_output = self.run_module(venv_path(python_venv['name']), ansible_adhoc, is_docker, request, collection_fqcn + '.tower_group', module_args)
         # TODO (calebb): This parameter should probably be output by the collection when we replace tower-cli
         modified_module_args = deepcopy(module_args)
         modified_module_args.pop('state')
@@ -470,7 +471,7 @@ class Test_Ansible_Tower_Modules(APITest):
 
         utils.poll_until(lambda: not v2.groups.get(name=group.name).results, interval=1, timeout=30)
 
-    def test_ansible_tower_module_host_create_update(self, request, ansible_collections_path, v2, factories, venv_path, is_docker, ansible_adhoc, python_venv):
+    def test_ansible_tower_module_host_create_update(self, request, ansible_collections_path, v2, factories, venv_path, is_docker, ansible_adhoc, python_venv, collection_fqcn):
         host_name = utils.random_title()
         inv = factories.inventory()
         request.addfinalizer(lambda *args: v2.hosts.get(name=host_name).results[0].delete())
@@ -479,7 +480,7 @@ class Test_Ansible_Tower_Modules(APITest):
             'description': 'hello world',
             'inventory': inv.name
         }
-        module_output = self.run_module(venv_path(python_venv['name']), ansible_adhoc, is_docker, request, 'awx.awx.tower_host', module_args)
+        module_output = self.run_module(venv_path(python_venv['name']), ansible_adhoc, is_docker, request, collection_fqcn + '.tower_host', module_args)
         self.check_module_output(request, ansible_adhoc, module_output, module_args, True)
 
         host = v2.hosts.get(name=host_name).results.pop()
@@ -489,7 +490,7 @@ class Test_Ansible_Tower_Modules(APITest):
         assert host['inventory'] == inv.id
 
         module_args['description'] = 'updated description'
-        module_output = self.run_module(venv_path(python_venv['name']), ansible_adhoc, is_docker, request, 'awx.awx.tower_host', module_args)
+        module_output = self.run_module(venv_path(python_venv['name']), ansible_adhoc, is_docker, request, collection_fqcn + '.tower_host', module_args)
         self.check_module_output(request, ansible_adhoc, module_output, module_args, True)
 
         host = v2.hosts.get(name=host_name).results.pop()
@@ -498,19 +499,19 @@ class Test_Ansible_Tower_Modules(APITest):
         assert host['description'] == 'updated description'
         assert host['inventory'] == inv.id
 
-    def test_ansible_tower_module_host_delete(self, factories, v2, venv_path, is_docker, request, ansible_collections_path, ansible_adhoc, python_venv):
+    def test_ansible_tower_module_host_delete(self, factories, v2, venv_path, is_docker, request, ansible_collections_path, ansible_adhoc, python_venv, collection_fqcn):
         host = factories.host()
         module_args = {
             'name': host.name,
             'inventory': host.summary_fields.inventory.name,
             'state': 'absent',
         }
-        module_output = self.run_module(venv_path(python_venv['name']), ansible_adhoc, is_docker, request, 'awx.awx.tower_host', module_args)
+        module_output = self.run_module(venv_path(python_venv['name']), ansible_adhoc, is_docker, request, collection_fqcn + '.tower_host', module_args)
         self.check_module_output(request, ansible_adhoc, module_output, module_args, True)
 
         utils.poll_until(lambda: not v2.hosts.get(name=host.name).results, interval=1, timeout=30)
 
-    def test_ansible_tower_module_inventory_create_update(self, request, ansible_collections_path, v2, factories, venv_path, is_docker, ansible_adhoc, python_venv):
+    def test_ansible_tower_module_inventory_create_update(self, request, ansible_collections_path, v2, factories, venv_path, is_docker, ansible_adhoc, python_venv, collection_fqcn):
         inventory_name = utils.random_title()
         org = factories.organization()
         request.addfinalizer(lambda *args: v2.inventory.get(name=inventory_name).results[0].delete())
@@ -519,7 +520,7 @@ class Test_Ansible_Tower_Modules(APITest):
             'description': 'hello world',
             'organization': org.name
         }
-        module_output = self.run_module(venv_path(python_venv['name']), ansible_adhoc, is_docker, request, 'awx.awx.tower_inventory', module_args)
+        module_output = self.run_module(venv_path(python_venv['name']), ansible_adhoc, is_docker, request, collection_fqcn + '.tower_inventory', module_args)
         self.check_module_output(request, ansible_adhoc, module_output, module_args, True)
 
         inventory = v2.inventory.get(name=inventory_name).results.pop()
@@ -529,7 +530,7 @@ class Test_Ansible_Tower_Modules(APITest):
         assert inventory['organization'] == org.id
 
         module_args['description'] = 'updated description'
-        module_output = self.run_module(venv_path(python_venv['name']), ansible_adhoc, is_docker, request, 'awx.awx.tower_inventory', module_args)
+        module_output = self.run_module(venv_path(python_venv['name']), ansible_adhoc, is_docker, request, collection_fqcn + '.tower_inventory', module_args)
         self.check_module_output(request, ansible_adhoc, module_output, module_args, True)
 
         inventory = v2.inventory.get(name=inventory_name).results.pop()
@@ -538,19 +539,19 @@ class Test_Ansible_Tower_Modules(APITest):
         assert inventory['description'] == 'updated description'
         assert inventory['organization'] == org.id
 
-    def test_ansible_tower_module_inventory_delete(self, factories, v2, venv_path, is_docker, request, ansible_collections_path, ansible_adhoc, python_venv):
+    def test_ansible_tower_module_inventory_delete(self, factories, v2, venv_path, is_docker, request, ansible_collections_path, ansible_adhoc, python_venv, collection_fqcn):
         inventory = factories.inventory()
         module_args = {
             'name': inventory.name,
             'organization': inventory.summary_fields.organization.name,
             'state': 'absent',
         }
-        module_output = self.run_module(venv_path(python_venv['name']), ansible_adhoc, is_docker, request, 'awx.awx.tower_inventory', module_args)
+        module_output = self.run_module(venv_path(python_venv['name']), ansible_adhoc, is_docker, request, collection_fqcn + '.tower_inventory', module_args)
         self.check_module_output(request, ansible_adhoc, module_output, module_args, True)
 
         utils.poll_until(lambda: not v2.inventory.get(name=inventory.name).results, interval=1, timeout=30)
 
-    def test_ansible_tower_module_inventory_source_create_update(self, request, ansible_collections_path, factories, v2, venv_path, is_docker, ansible_adhoc, python_venv):
+    def test_ansible_tower_module_inventory_source_create_update(self, request, ansible_collections_path, factories, v2, venv_path, is_docker, ansible_adhoc, python_venv, collection_fqcn):
         inventory_source_name = utils.random_title()
         org = factories.organization()
         inventory_script = factories.inventory_script(organization=org)
@@ -563,7 +564,7 @@ class Test_Ansible_Tower_Modules(APITest):
             'source': 'custom',
             'source_script': inventory_script.name,
         }
-        module_output = self.run_module(venv_path(python_venv['name']), ansible_adhoc, is_docker, request, 'awx.awx.tower_inventory_source', module_args)
+        module_output = self.run_module(venv_path(python_venv['name']), ansible_adhoc, is_docker, request, collection_fqcn + '.tower_inventory_source', module_args)
         self.check_module_output(request, ansible_adhoc, module_output, module_args, True)
 
         inventory_source = v2.inventory_sources.get(name=inventory_source_name).results.pop()
@@ -572,7 +573,7 @@ class Test_Ansible_Tower_Modules(APITest):
         assert inventory_source['description'] == 'hello world'
 
         module_args['description'] = 'updated description'
-        module_output = self.run_module(venv_path(python_venv['name']), ansible_adhoc, is_docker, request, 'awx.awx.tower_inventory_source', module_args)
+        module_output = self.run_module(venv_path(python_venv['name']), ansible_adhoc, is_docker, request, collection_fqcn + '.tower_inventory_source', module_args)
         self.check_module_output(request, ansible_adhoc, module_output, module_args, True)
 
         inventory_source = v2.inventory_sources.get(name=inventory_source_name).results.pop()
@@ -580,7 +581,7 @@ class Test_Ansible_Tower_Modules(APITest):
         assert inventory_source_name == inventory_source['name']
         assert inventory_source['description'] == 'updated description'
 
-    def test_ansible_tower_module_inventory_source_delete(self, factories, v2, venv_path, is_docker, request, ansible_collections_path, ansible_adhoc, python_venv):
+    def test_ansible_tower_module_inventory_source_delete(self, factories, v2, venv_path, is_docker, request, ansible_collections_path, ansible_adhoc, python_venv, collection_fqcn):
         inventory_source = factories.inventory_source()
         module_args = {
             'name': inventory_source.name,
@@ -588,12 +589,12 @@ class Test_Ansible_Tower_Modules(APITest):
             'source': inventory_source.source,
             'state': 'absent',
         }
-        module_output = self.run_module(venv_path(python_venv['name']), ansible_adhoc, is_docker, request, 'awx.awx.tower_inventory_source', module_args)
+        module_output = self.run_module(venv_path(python_venv['name']), ansible_adhoc, is_docker, request, collection_fqcn + '.tower_inventory_source', module_args)
         self.check_module_output(request, ansible_adhoc, module_output, module_args, True)
 
         utils.poll_until(lambda: not v2.inventory_sources.get(name=inventory_source.name).results, interval=1, timeout=30)
 
-    def test_ansible_tower_module_job(self, request, ansible_collections_path, factories, v2, venv_path, is_docker, ansible_adhoc, python_venv):
+    def test_ansible_tower_module_job(self, request, ansible_collections_path, factories, v2, venv_path, is_docker, ansible_adhoc, python_venv, collection_fqcn):
         jt_name = utils.random_title()
         project = factories.project()
         inventory = factories.inventory()
@@ -619,7 +620,7 @@ class Test_Ansible_Tower_Modules(APITest):
             'project': project.name,
             'extra_vars': { 'sleep_interval': 120 },
         }
-        module_output = self.run_module(venv_path(python_venv['name']), ansible_adhoc, is_docker, request, 'awx.awx.tower_job_template', jt_module_args)
+        module_output = self.run_module(venv_path(python_venv['name']), ansible_adhoc, is_docker, request, collection_fqcn + '.tower_job_template', jt_module_args)
         self.check_module_output(request, ansible_adhoc, module_output, jt_module_args, True)
 
         jt = v2.job_templates.get(name=jt_name).results.pop()
@@ -636,7 +637,7 @@ class Test_Ansible_Tower_Modules(APITest):
         job_module_args = {
             'job_template': jt_name,
         }
-        module_output = self.run_module(venv_path(python_venv['name']), ansible_adhoc, is_docker, request, 'awx.awx.tower_job_launch', job_module_args)
+        module_output = self.run_module(venv_path(python_venv['name']), ansible_adhoc, is_docker, request, collection_fqcn + '.tower_job_launch', job_module_args)
         self.check_module_output(request, ansible_adhoc, module_output, job_module_args, True)
 
         job = v2.jobs.get(name=jt_name).results.pop()
@@ -648,7 +649,7 @@ class Test_Ansible_Tower_Modules(APITest):
         job_module_args = {
             'job_id': job_id1,
         }
-        module_output = self.run_module(venv_path(python_venv['name']), ansible_adhoc, is_docker, request, 'awx.awx.tower_job_cancel', job_module_args)
+        module_output = self.run_module(venv_path(python_venv['name']), ansible_adhoc, is_docker, request, collection_fqcn + '.tower_job_cancel', job_module_args)
         self.check_module_output(request, ansible_adhoc, module_output, job_module_args, True)
 
         utils.poll_until(lambda: v2.jobs.get(id=job_id1).results.pop().status == "canceled", interval=1, timeout=300)
@@ -656,7 +657,7 @@ class Test_Ansible_Tower_Modules(APITest):
         # Update the JT
         jt_module_args['description'] = 'updated description'
         jt_module_args['extra_vars'] = { 'sleep_interval': 5 }
-        module_output = self.run_module(venv_path(python_venv['name']), ansible_adhoc, is_docker, request, 'awx.awx.tower_job_template', jt_module_args)
+        module_output = self.run_module(venv_path(python_venv['name']), ansible_adhoc, is_docker, request, collection_fqcn + '.tower_job_template', jt_module_args)
         self.check_module_output(request, ansible_adhoc, module_output, jt_module_args, True)
 
         jt = v2.job_templates.get(name=jt_name).results.pop()
@@ -673,7 +674,7 @@ class Test_Ansible_Tower_Modules(APITest):
         job_module_args = {
             'job_template': jt_name,
         }
-        module_output = self.run_module(venv_path(python_venv['name']), ansible_adhoc, is_docker, request, 'awx.awx.tower_job_launch', job_module_args)
+        module_output = self.run_module(venv_path(python_venv['name']), ansible_adhoc, is_docker, request, collection_fqcn + '.tower_job_launch', job_module_args)
         self.check_module_output(request, ansible_adhoc, module_output, job_module_args, True)
 
         job = v2.jobs.get(name=jt_name).results[1]
@@ -688,7 +689,7 @@ class Test_Ansible_Tower_Modules(APITest):
         job_module_args = {
             'job_id': job_id2,
         }
-        module_output = self.run_module(venv_path(python_venv['name']), ansible_adhoc, is_docker, request, 'awx.awx.tower_job_wait', job_module_args)
+        module_output = self.run_module(venv_path(python_venv['name']), ansible_adhoc, is_docker, request, collection_fqcn + '.tower_job_wait', job_module_args)
         self.check_module_output(request, ansible_adhoc, module_output, job_module_args, False)
 
         job = v2.jobs.get(id=job_id2).results.pop()
@@ -697,12 +698,12 @@ class Test_Ansible_Tower_Modules(APITest):
 
         # List jobs
         # I'm not entirely sure how to test this better
-        module_output = self.run_module(venv_path(python_venv['name']), ansible_adhoc, is_docker, request, 'awx.awx.tower_job_list')
+        module_output = self.run_module(venv_path(python_venv['name']), ansible_adhoc, is_docker, request, collection_fqcn + '.tower_job_list')
         self.check_module_output(request, ansible_adhoc, module_output, changed=False)
 
         # Remove our job template
         jt_module_args['state'] = 'absent'
-        module_output = self.run_module(venv_path(python_venv['name']), ansible_adhoc, is_docker, request, 'awx.awx.tower_job_template', jt_module_args)
+        module_output = self.run_module(venv_path(python_venv['name']), ansible_adhoc, is_docker, request, collection_fqcn + '.tower_job_template', jt_module_args)
         # TODO (calebb): This parameter should probably be output by the collection when we replace tower-cli
         jt_modified_module_args = deepcopy(jt_module_args)
         jt_modified_module_args.pop('state')
@@ -710,7 +711,7 @@ class Test_Ansible_Tower_Modules(APITest):
 
         utils.poll_until(lambda: not v2.job_templates.get(name=jt_name).results, interval=1, timeout=30)
 
-    def test_ansible_tower_module_role_create(self, request, ansible_collections_path, v2, factories, venv_path, is_docker, ansible_adhoc, python_venv):
+    def test_ansible_tower_module_role_create(self, request, ansible_collections_path, v2, factories, venv_path, is_docker, ansible_adhoc, python_venv, collection_fqcn):
         org = factories.organization()
         user = factories.user()
         module_args = {
@@ -718,7 +719,7 @@ class Test_Ansible_Tower_Modules(APITest):
             'organization': org.name,
             'role': 'admin',
         }
-        module_output = self.run_module(venv_path(python_venv['name']), ansible_adhoc, is_docker, request, 'awx.awx.tower_role', module_args)
+        module_output = self.run_module(venv_path(python_venv['name']), ansible_adhoc, is_docker, request, collection_fqcn + '.tower_role', module_args)
         # TODO (calebb): This parameter should probably be output by the collection when we replace tower-cli
         modified_module_args = deepcopy(module_args)
         modified_module_args.pop('role')
@@ -728,7 +729,7 @@ class Test_Ansible_Tower_Modules(APITest):
         assert str(org.id) in role['related']['organization']
         assert role['related']['users'].get()['results'][0]['id'] == user.id
 
-    def test_ansible_tower_module_team_create(self, request, ansible_collections_path, v2, factories, venv_path, is_docker, ansible_adhoc, python_venv):
+    def test_ansible_tower_module_team_create(self, request, ansible_collections_path, v2, factories, venv_path, is_docker, ansible_adhoc, python_venv, collection_fqcn):
         team_name = utils.random_title()
         org = factories.organization()
         request.addfinalizer(lambda *args: v2.teams.get(name=team_name).results[0].delete())
@@ -736,26 +737,26 @@ class Test_Ansible_Tower_Modules(APITest):
             'name': team_name,
             'organization': org.name
         }
-        module_output = self.run_module(venv_path(python_venv['name']), ansible_adhoc, is_docker, request, 'awx.awx.tower_team', module_args)
+        module_output = self.run_module(venv_path(python_venv['name']), ansible_adhoc, is_docker, request, collection_fqcn + '.tower_team', module_args)
         self.check_module_output(request, ansible_adhoc, module_output, module_args, True)
 
         team = v2.teams.get(name=team_name).results.pop()
         assert team_name == team['name']
         assert team['organization'] == org.id
 
-    def test_ansible_tower_module_team_delete(self, factories, v2, venv_path, is_docker, request, ansible_collections_path, ansible_adhoc, python_venv):
+    def test_ansible_tower_module_team_delete(self, factories, v2, venv_path, is_docker, request, ansible_collections_path, ansible_adhoc, python_venv, collection_fqcn):
         team = factories.team()
         module_args = {
             'name': team.name,
             'organization': team.summary_fields.organization.name,
             'state': 'absent',
         }
-        module_output = self.run_module(venv_path(python_venv['name']), ansible_adhoc, is_docker, request, 'awx.awx.tower_team', module_args)
+        module_output = self.run_module(venv_path(python_venv['name']), ansible_adhoc, is_docker, request, collection_fqcn + '.tower_team', module_args)
         self.check_module_output(request, ansible_adhoc, module_output, module_args, True)
 
         utils.poll_until(lambda: not v2.teams.get(name=team.name).results, interval=1, timeout=30)
 
-    def test_ansible_tower_module_user_create(self, request, ansible_collections_path, v2, factories, venv_path, is_docker, ansible_adhoc, python_venv):
+    def test_ansible_tower_module_user_create(self, request, ansible_collections_path, v2, factories, venv_path, is_docker, ansible_adhoc, python_venv, collection_fqcn):
         username = utils.random_title(non_ascii=False)
         request.addfinalizer(lambda *args: v2.users.get(username=username).results[0].delete())
         module_args = {
@@ -763,7 +764,7 @@ class Test_Ansible_Tower_Modules(APITest):
             'password': username,
             'email': 'example@example.com',
         }
-        module_output = self.run_module(venv_path(python_venv['name']), ansible_adhoc, is_docker, request, 'awx.awx.tower_user', module_args)
+        module_output = self.run_module(venv_path(python_venv['name']), ansible_adhoc, is_docker, request, collection_fqcn + '.tower_user', module_args)
         # TODO (calebb): find a way to check this parameter that makes sense
         modified_module_args = deepcopy(module_args)
         modified_module_args.pop('username')
@@ -774,32 +775,32 @@ class Test_Ansible_Tower_Modules(APITest):
         assert username == user['username']
         assert user['email'] == 'example@example.com'
 
-    def test_ansible_tower_module_user_delete(self, factories, v2, venv_path, is_docker, request, ansible_collections_path, ansible_adhoc, python_venv):
+    def test_ansible_tower_module_user_delete(self, factories, v2, venv_path, is_docker, request, ansible_collections_path, ansible_adhoc, python_venv, collection_fqcn):
         user = factories.user()
         module_args = {
             'username': user.username,
             'email': user.email,
             'state': 'absent',
         }
-        module_output = self.run_module(venv_path(python_venv['name']), ansible_adhoc, is_docker, request, 'awx.awx.tower_user', module_args)
+        module_output = self.run_module(venv_path(python_venv['name']), ansible_adhoc, is_docker, request, collection_fqcn + '.tower_user', module_args)
         self.check_module_output(request, ansible_adhoc, module_output, module_args, True)
 
         utils.poll_until(lambda: not v2.users.get(username=user.username).results, interval=1, timeout=30)
 
-    def test_ansible_tower_module_label_create(self, request, ansible_collections_path, v2, factories, venv_path, is_docker, ansible_adhoc, python_venv):
+    def test_ansible_tower_module_label_create(self, request, ansible_collections_path, v2, factories, venv_path, is_docker, ansible_adhoc, python_venv, collection_fqcn):
         label_name = utils.random_title()
         org = factories.organization()
         module_args = {
             'name': label_name,
             'organization': org.name
         }
-        module_output = self.run_module(venv_path(python_venv['name']), ansible_adhoc, is_docker, request, 'awx.awx.tower_label', module_args)
+        module_output = self.run_module(venv_path(python_venv['name']), ansible_adhoc, is_docker, request, collection_fqcn + '.tower_label', module_args)
         self.check_module_output(request, ansible_adhoc, module_output, module_args, True)
 
         label = v2.labels.get(name=label_name).results.pop()
         assert label_name == label['name']
 
-    def test_ansible_tower_module_workflow(self, request, ansible_collections_path, factories, v2, venv_path, is_docker, ansible_adhoc, python_venv):
+    def test_ansible_tower_module_workflow(self, request, ansible_collections_path, factories, v2, venv_path, is_docker, ansible_adhoc, python_venv, collection_fqcn):
         wf_name = utils.random_title()
 
         # We need this to teardown the WF if it fails before the end. The try
@@ -815,7 +816,7 @@ class Test_Ansible_Tower_Modules(APITest):
         wfjt_module_args = {
             'name': wf_name,
         }
-        module_output = self.run_module(venv_path(python_venv['name']), ansible_adhoc, is_docker, request, 'awx.awx.tower_workflow_template', wfjt_module_args)
+        module_output = self.run_module(venv_path(python_venv['name']), ansible_adhoc, is_docker, request, collection_fqcn + '.tower_workflow_template', wfjt_module_args)
         self.check_module_output(request, ansible_adhoc, module_output, wfjt_module_args, True)
 
         wf = v2.workflow_job_templates.get(name=wf_name).results.pop()
@@ -825,7 +826,7 @@ class Test_Ansible_Tower_Modules(APITest):
         wf_module_args = {
             'workflow_template': wf_name,
         }
-        module_output = self.run_module(venv_path(python_venv['name']), ansible_adhoc, is_docker, request, 'awx.awx.tower_workflow_launch', wf_module_args)
+        module_output = self.run_module(venv_path(python_venv['name']), ansible_adhoc, is_docker, request, collection_fqcn + '.tower_workflow_launch', wf_module_args)
         # TODO (calebb): This should probably report Changed: True, as we are
         # modifying the state of things, might be a thing to fix when we
         # replace the tower-cli
@@ -837,7 +838,7 @@ class Test_Ansible_Tower_Modules(APITest):
 
         # Remove our workflow
         wfjt_module_args['state'] = 'absent'
-        module_output = self.run_module(venv_path(python_venv['name']), ansible_adhoc, is_docker, request, 'awx.awx.tower_workflow_template', wfjt_module_args)
+        module_output = self.run_module(venv_path(python_venv['name']), ansible_adhoc, is_docker, request, collection_fqcn + '.tower_workflow_template', wfjt_module_args)
         self.check_module_output(request, ansible_adhoc, module_output, wfjt_module_args, True)
 
         workflow_templates = v2.workflow_job_templates.get(name=wf_name).results
@@ -859,7 +860,7 @@ class Test_Ansible_Tower_Inventory_Plugin(APITest):
             assert '_raw_params' in module_output.contacted[hostname]['invocation']['module_args'], f'shell module did not return command run: {module_output.__dict__}'
             module_output.contacted[hostname]['invocation']['module_args']['_raw_params'] = module_output.contacted[hostname]['invocation']['module_args']['_raw_params'].replace(config.credentials.users.admin.password, "FILTERED")
 
-    def test_inventory_plugin(self, factories, venv_path, ansible_collections_path, request, v2, is_docker, ansible_adhoc, python_venv):
+    def test_inventory_plugin(self, factories, venv_path, ansible_collections_path, request, v2, is_docker, ansible_adhoc, python_venv, collection_fqcn):
         fixture_args = request.node.get_closest_marker('fixture_args')
         venv_group = fixture_args.kwargs.get('venv_group')
         # if we're not in the docker deployment we need to specify using the
@@ -879,7 +880,7 @@ class Test_Ansible_Tower_Inventory_Plugin(APITest):
         # deploying the tower build of the collection in the future
         module_output = ansible_adhoc.shell(
             'ANSIBLE_INVENTORY_UNPARSED_FAILED=true '
-            f'ANSIBLE_INVENTORY_ENABLED="awx.awx.tower" '
+            f'ANSIBLE_INVENTORY_ENABLED="{collection_fqcn}.tower" '
             f'TOWER_HOST={config.base_url} '
             f'TOWER_USERNAME={config.credentials.users.admin.username} '
             f'TOWER_PASSWORD=\'{config.credentials.users.admin.password}\' '
