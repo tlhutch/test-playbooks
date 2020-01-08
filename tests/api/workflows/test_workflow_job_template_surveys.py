@@ -46,6 +46,32 @@ class TestWorkflowJobTemplateSurveys(APITest):
         assert '"var1": "var1_default"' in job.result_stdout
         assert '"var2": "var2_default"' in job.result_stdout
 
+    def test_survey_default_must_be_from_choices(self, factories):
+        wfjt = factories.workflow_job_template()
+        survey = [dict(required=False,
+                   question_name='Test-Default-MultiSelect',
+                   variable='var1',
+                   type='multiselect',
+                   default='var1_default',
+                   choices='not\nan\noption')]
+
+        with pytest.raises(exc.BadRequest) as e:
+            wfjt.add_survey(spec=survey)
+
+        assert 'Default choice must be answered from the choices listed' in str(e)
+
+        survey = [dict(required=False,
+                question_name='Test-Default-MultipleChoice',
+                variable='var1',
+                type='multiplechoice',
+                default='var1_default',
+                choices='not\nan\noption')]
+
+        with pytest.raises(exc.BadRequest) as e:
+            wfjt.add_survey(spec=survey)
+
+        assert 'Default choice must be answered from the choices listed' in str(e)
+
     def test_wfjt_and_wfjn_jt_survey_password_defaults_passed_to_jobs(self, debug_extra_vars_job_template, factories):
         wfjt = factories.workflow_job_template()
         jt = debug_extra_vars_job_template
