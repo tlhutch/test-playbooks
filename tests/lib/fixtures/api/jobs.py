@@ -82,7 +82,7 @@ def wait_for_jobs(v2):
 
 @pytest.fixture
 def do_all_jobs_overlap():
-    def fn(jobs):
+    def fn(jobs, error_margin=0):
         started_series = [datetime.datetime.strptime(job.started, '%Y-%m-%dT%H:%M:%S.%fZ') for job in jobs]
         if None in started_series:
             return False  # if a job hasn't started yet, we can't say they overlap
@@ -91,5 +91,5 @@ def do_all_jobs_overlap():
         ]
         if finished_series == []:
             return True  # all jobs have started but none have finished, so we can say they overlap
-        return max(started_series) < min(finished_series)
+        return max(started_series) < min(finished_series) + datetime.timedelta(seconds=error_margin)
     return fn

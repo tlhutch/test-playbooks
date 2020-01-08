@@ -56,7 +56,7 @@ class TestExecutionNodeAssignment(APITest):
                                            playbook='sleep.yml',
                                            extra_vars=dict(sleep_interval=60),
                                            limit="all[0]")
-            [factories.host(inventory=jt.ds.inventory) for _ in range(0, capacity_size + 1)]
+            [factories.host(inventory=jt.ds.inventory) for _ in range(0, capacity_size - 2)]
             return jt
         return fn
 
