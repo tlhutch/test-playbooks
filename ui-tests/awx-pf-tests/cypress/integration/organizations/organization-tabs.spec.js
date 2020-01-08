@@ -28,11 +28,11 @@ context('Add users to Organization', function() {
     cy.get('[class="pf-c-wizard__footer"] [class="pf-c-button pf-m-primary"]').click()
     cy.get('[aria-label="Admin"][type="checkbox"]').click()
     cy.get('[class="pf-c-wizard__footer"] [class="pf-c-button pf-m-primary"]').click()
-    cy.get(`[href="#/api/v2/users/${this.user1.id}/"]`).should(
+    cy.get(`[href="#/users/${this.user1.id}/details"]`).should(
       'have.text',
       `${this.user1.username}`
     )
-    cy.get(`[href="#/api/v2/users/${this.user2.id}/"]`).should(
+    cy.get(`[href="#/users/${this.user2.id}/details"]`).should(
       'have.text',
       `${this.user2.username}`
     )
