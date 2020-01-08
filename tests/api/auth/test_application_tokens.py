@@ -378,17 +378,20 @@ class TestApplicationTokens(APITest):
         tokens = v2.tokens.get(id=token.id)
         assert tokens.count == 1
 
+        conn = Connection(qe_config.base_url)
+        conn.login(token=token.token, auth_type='Bearer')
         if with_self:
             # Test that we can then delete the token with itself
             # See https://github.com/ansible/awx/issues/5478
-            conn = Connection(qe_config.base_url)
-            conn.login(token=token.token, auth_type='Bearer')
             resp = conn.delete(
                 '/api/v2/tokens/{}'.format(token.id),
             )
             assert resp.status_code == 204
         else:
             token.delete()
+        
+        resp = conn.get('/api/v2/me/')
+        assert resp.status_code == 401
 
         tokens = v2.tokens.get(id=token.id)
         assert tokens.count == 0
