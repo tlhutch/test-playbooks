@@ -47,24 +47,6 @@ Tower Version: ${_TOWER_VERSION}"""
             }
         }
 
-        stage('Checkout tower-qa') {
-            steps {
-                script {
-                    branch_name = _TOWER_VERSION == 'devel' ? 'devel' : "release_${_TOWER_VERSION}"
-                }
-                checkout([
-                    $class: 'GitSCM',
-                    branches: [[name: "*/${branch_name}" ]],
-                    userRemoteConfigs: [
-                        [
-                            credentialsId: 'github-ansible-jenkins-nopassphrase',
-                            url: 'git@github.com:ansible/tower-qa.git'
-                        ]
-                    ]
-                ])
-            }
-        }
-
         stage ('Setup Platform - Prereq') {
             steps {
                 withCredentials([file(credentialsId: '171764d8-e57c-4332-bff8-453670d0d99f', variable: 'PUBLIC_KEY'),
@@ -125,6 +107,26 @@ Tower Version: ${_TOWER_VERSION}"""
                 }
             }
         }
+
+        stage('Checkout tower-qa') {
+            steps {
+                script {
+                    branch_name = _TOWER_VERSION == 'devel' ? 'devel' : "release_${_TOWER_VERSION}"
+                }
+                checkout([
+                    $class: 'GitSCM',
+                    branches: [[name: "*/${branch_name}" ]],
+                    userRemoteConfigs: [
+                        [
+                            credentialsId: 'github-ansible-jenkins-nopassphrase',
+                            url: 'git@github.com:ansible/tower-qa.git'
+                        ]
+                    ]
+                ])
+            }
+        }
+
+
 
         stage ('Test Tower') {
             steps {
