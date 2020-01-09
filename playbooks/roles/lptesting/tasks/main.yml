@@ -18,10 +18,8 @@
       password: '{{ red_hat_password }}'
       pool_ids: 8a85f98260c27fc50160c323247e39e0
 
-  - name: Disable rhel-7-server-rpms
-    yum_repository:
-      name: rhel-7-server-rpms
-      state: absent
+  - name: Disable rhel-7-server-rpms and rhel-7-server-htb-rpms
+    command: yum-config-manager --disable rhel-7-server-rpms --disable rhel-7-server-htb-rpms
 
   - name: Enable rhel-7-server-extras-rpms
     command: yum-config-manager --enable rhel-7-server-extras-rpms
