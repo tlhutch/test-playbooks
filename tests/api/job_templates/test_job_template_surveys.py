@@ -327,3 +327,49 @@ class TestJobTemplateSurveys(APITest):
         else:
             target_text = pg_dump[undesired_location - 200:undesired_location + 200]
             pytest.fail('Found plaintext survey password secret in db:\n\n{}'.format(target_text))
+
+    def test_wrong_survey_variable_type_server_error(self, factories):
+        """Test whether wrong survey variable type produces server error.
+
+        This test targets the following issue:
+
+        https://github.com/ansible/tower-qa/issues/942
+        """
+        host = factories.host()
+        jt = factories.job_template(inventory=host.ds.inventory)
+
+        survey = [dict(
+            required=True,
+            question_name='Q1',
+            variable='var1',
+            type='text',
+            default='survey')]
+
+        jt.add_survey(spec=survey)
+
+        with pytest.raises(exc.BadRequest) as e:
+            jt.launch(dict(extra_vars={'var1': 5})).wait_until_completed()
+
+        assert 'expected to be a string' in str(e)
+
+        survey = [
+            dict(required=True, question_name='Q2', variable='var2', type='float')
+        ]
+
+        jt.add_survey(spec=survey)
+
+        with pytest.raises(exc.BadRequest) as e:
+            jt.launch(dict(extra_vars={'var2': 'abc'})).wait_until_completed()
+
+        assert 'expected to be a numeric type' in str(e)
+
+        survey = [
+            dict(required=True, question_name='Q3', variable='var3', type='integer')
+        ]
+
+        jt.add_survey(spec=survey)
+
+        with pytest.raises(exc.BadRequest) as e:
+            jt.launch(dict(extra_vars={'var3': 'abc'})).wait_until_completed()
+
+        assert 'expected to be an integer' in str(e)
