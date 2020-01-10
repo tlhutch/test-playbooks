@@ -371,6 +371,27 @@ class TestJobTemplateExtraVars(APITest):
                 j = jt.launch(dict(extra_vars=dict())).wait_until_completed()
             assert "variables_needed_to_start" in e.value.msg
 
+    def test_inspect_encrypted_password(self, factories):
+        """Test whether survey password field is encrypted.
+
+        This test targets the following issue:
+
+        https://github.com/ansible/tower-qa/issues/712
+        """
+        host = factories.host()
+        jt = factories.job_template(inventory=host.ds.inventory)
+
+        survey = [dict(required=True,
+                       question_name='Q1',
+                       variable='var1',
+                       type='password',
+                       default='survey')]
+        jt.add_survey(spec=survey)
+
+        j = jt.launch(dict(extra_vars={'var1': 'password'})).wait_until_completed()
+        j.assert_successful()
+        assert json.loads(j.extra_vars) == dict(var1='$encrypted$')
+
     def test_included_extra_vars_with_vault_content(self, factories):
         cred = factories.credential(kind='vault', vault_password='password')
         jt = factories.job_template(playbook='custom_json.yml')
