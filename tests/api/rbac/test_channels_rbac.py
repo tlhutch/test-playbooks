@@ -77,18 +77,32 @@ class TestChannelsRBAC(APITest):
             expected_status_changes.append(expected_msg)
         for expected in expected_status_changes:
             assert expected in filtered_received
+        filtered_received = [{
+            'id': f['id'],
+            'uuid': f['uuid'],
+            'event': f['event']
+        } for f in filtered_received if 'uuid' in f]
 
         with self.current_user(user.username, user.password):
             ahc_events = [result for result in ahc.related.events.get().results]
         assert ahc_events
         filtered_ahc_events = [{k: event[k] for k in set(event) - not_of_interest} for event in ahc_events]
+        filtered_ahc_events = [{
+            'id': f['id'],
+            'uuid': f['uuid'],
+            'event': f['event']
+        } for f in filtered_ahc_events if 'uuid' in f]
 
         base_ahc_event = dict(ad_hoc_command=ahc.id, group_name='ad_hoc_command_events',
                               type='ad_hoc_command_event')
         expected_ahc_events = [{k: v for d in [event, base_ahc_event] for k, v in d.items()}
                                for event in filtered_ahc_events]
         for expected in expected_ahc_events:
-            assert expected in filtered_received
+            assert {
+                'id': expected['id'],
+                'uuid': expected['uuid'],
+                'event': expected['event'],
+            } in filtered_received
 
     def test_job_events_unauthorized_subscription(self, factories, user_ws_client):
         user = factories.user()
@@ -138,9 +152,14 @@ class TestChannelsRBAC(APITest):
             if status == 'waiting':
                 expected_msg['instance_group_name'] = 'tower'
             expected_status_changes.append(expected_msg)
-
         for expected in expected_status_changes:
             assert expected in filtered_received
+
+        filtered_received = [{
+            'id': f['id'],
+            'uuid': f['uuid'],
+            'event': f['event']
+        } for f in filtered_received if 'uuid' in f]
 
         with self.current_user(user.username, user.password):
             job_events = [result.json for result in job.related.job_events.get().results]
@@ -151,7 +170,11 @@ class TestChannelsRBAC(APITest):
         expected_job_events = [{k: v for d in [event, base_job_event] for k, v in d.items()}
                                for event in filtered_job_events]
         for expected in expected_job_events:
-            assert expected in filtered_received
+            assert {
+                'id': expected['id'],
+                'uuid': expected['uuid'],
+                'event': expected['event']
+            } in filtered_received
 
     @pytest.mark.github('https://github.com/ansible/tower/issues/669', skip=True)
     @pytest.mark.parametrize('role', ['admin', 'update', 'use', 'read'])

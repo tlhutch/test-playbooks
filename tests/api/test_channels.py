@@ -22,7 +22,14 @@ class ChannelsTest(object):
         filtered = []
         for event in events:
             filtered.append({k: event[k] for k in set(event) - set(not_of_interest)})
-        return filtered
+        return [
+            {
+                'id': f['id'],
+                'uuid': f['uuid'],
+                'event': f['event']
+            }
+            for f in filtered if 'uuid' in f
+        ]
 
     def expected_events(self, events, base_event):
         return [{k: v for d in [event, base_event] for k, v in d.items()} for event in events]
@@ -128,7 +135,11 @@ class TestAdHocCommandChannels(ChannelsTest, APITest):
                                                                              group_name='ad_hoc_command_events',
                                                                              type='ad_hoc_command_event'))
         for expected in expected_ahc_events:
-            assert expected in filtered_ws_events
+            assert {
+                'id': expected['id'],
+                'uuid': expected['uuid'],
+                'event': expected['event'],
+            } in filtered_ws_events
 
     @pytest.mark.github('https://github.com/ansible/tower-qa/issues/2299', skip=True)
     def test_ad_hoc_command_events_unsubscribe(self, factories, ws_client):
@@ -196,7 +207,11 @@ class TestJobChannels(ChannelsTest, APITest):
                                                                              group_name='job_events',
                                                                              type='job_event'))
         for expected in expected_ahc_events:
-            assert expected in filtered_ws_events
+            assert {
+                'id': expected['id'],
+                'uuid': expected['uuid'],
+                'event': expected['event'],
+            } in filtered_ws_events
 
     def test_job_events_unsubscribe(self, factories, ws_client):
         host = factories.host()
@@ -331,7 +346,11 @@ class TestInventoryChannels(ChannelsTest, APITest):
                                                                              group_name='inventory_update_events',
                                                                              type='inventory_update_event'))
         for expected in expected_ahc_events:
-            assert expected in filtered_ws_events, f'{pformat(expected)} not found in {pformat(filtered_ws_events)}'
+            assert {
+                'id': expected['id'],
+                'uuid': expected['uuid'],
+                'event': expected['event'],
+            } in filtered_ws_events, f'{pformat(expected)} not found in {pformat(filtered_ws_events)}'
 
     def test_inventory_update_events_unsubscribe(self, factories, ws_client):
         ws = ws_client.connect()
@@ -395,7 +414,11 @@ class TestProjectUpdateChannels(ChannelsTest, APITest):
                                                                              group_name='project_update_events',
                                                                              type='project_update_event'))
         for expected in expected_ahc_events:
-            assert expected in filtered_ws_events
+            assert {
+                'id': expected['id'],
+                'uuid': expected['uuid'],
+                'event': expected['event'],
+            } in filtered_ws_events
 
     @pytest.mark.ansible_integration
     def test_project_update_events_unsubscribe(self, factories, ws_client):
