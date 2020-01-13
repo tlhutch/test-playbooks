@@ -47,9 +47,17 @@ class Test_Copy_Credential(APITest):
 
     @pytest.mark.yolo
     def test_check_copied_input_sources(self, factories, v2, k8s_vault, copy_with_teardown):
+        """Test whether copying a credential with lookup sources ignores the lookups.
+
+        This test targets the following issue:
+
+        https://github.com/ansible/awx/issues/4797
+        """
         # create a hashicorp vault lookup credential
         hashi = TestHashiCorpVaultCredentials()
-        hashi_credential = hashi.create_hashicorp_vault_credential(factories, v2, k8s_vault, config.credentials.hashivault.token, 'v1')
+        hashi_credential = hashi.create_hashicorp_vault_credential(
+            factories, v2, k8s_vault, config.credentials.hashivault.token, 'v1'
+        )
 
         # create a credential using the lookup
         cred_type = v2.credential_types.get(managed_by_tower=True, kind='ssh').results.pop()
@@ -72,6 +80,21 @@ class Test_Copy_Credential(APITest):
 
         # copy credential
         copied_credential = copy_with_teardown(credential)
+
+        copied_input_sources = copied_credential.related.input_sources.get()
+        original_input_sources = credential.related.input_sources.get()
+        # assert we got same number of inputs
+        assert len(copied_input_sources.results) == len(original_input_sources.results)
+        # assert we have same input source (the hashicorp vault)
+        assert copied_input_sources.results[0].source_credential == original_input_sources.results[0].source_credential
+        # assert we have same metadata (the secret key and location)
+        assert copied_input_sources.results[0].metadata == original_input_sources.results[0].metadata
+        # assert the copied one knows to target itself as the credential to use the input source for
+        assert copied_input_sources.results[0].target_credential == copied_credential.id
+        # assert it is going to provide the same input filed
+        assert copied_input_sources.results[0].input_field_name == original_input_sources.results[0].input_field_name
+        # assert the input field is not blank
+        assert copied_credential.inputs[copied_input_sources.results[0].input_field_name] != ''
 
         # run job with copied credential
         host = factories.host()
