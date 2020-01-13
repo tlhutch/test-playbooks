@@ -64,6 +64,16 @@ class TestInstances(APITest):
 
         job.wait_until_completed(timeout=120).assert_successful()
 
+    def test_instances_have_uniqe_uuids(self, v2):
+        """Assert all nodes have a unique uuid.
+
+        Regression test for https://github.com/ansible/tower/issues/4056
+        """
+        instances = v2.instances.get().results
+        uuids = set([instance['uuid'] for instance in instances])
+        uuid_and_hostname_tuples = [tuple((instance['uuid'], instance['hostname'])) for instance in instances]
+        assert len(uuids) == len(instances), f'There were fewer instance UUIDs than instances found, {uuid_and_hostname_tuples}'
+
     @pytest.mark.yolo
     def test_disabiling_instance_should_not_impact_currently_running_jobs(self, request, v2, factories,
                                                                           tower_version):
