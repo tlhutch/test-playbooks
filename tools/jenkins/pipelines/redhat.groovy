@@ -89,6 +89,22 @@ Scope selected: ${params.SCOPE}"""
                         )
                     }
                 }
+                stage('Build Ansible Tower Collection') {
+                    when {
+                        expression {
+                            return !(params.TOWER_VERSION ==~ /3.[3-5].[0-9]*/)
+                        }
+                    }
+
+                    steps {
+                        build(
+                            job: 'Build_Ansible_Tower_Collection',
+                            parameters: [
+                              string(name: 'TOWER_PACKAGING_BRANCH', value: branch_name),
+                            ]
+                        )
+                    }
+                }
             }
         }
 
