@@ -108,7 +108,7 @@ class TestContainerGroups(APITest):
         jt.add_instance_group(container_group)
         job = jt.launch().wait_until_completed()
         if problem == 'cacrt':
-            assert 'OpenSSL.SSL.Error' in job.result_traceback
+            assert 'SSLError' in job.result_traceback
         elif problem == 'token':
             assert 'Unauthorized' in job.result_traceback
         elif problem == 'host':
