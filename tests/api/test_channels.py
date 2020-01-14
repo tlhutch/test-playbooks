@@ -236,8 +236,18 @@ class TestJobChannels(ChannelsTest, APITest):
         job.wait_until_completed().assert_successful()
         events = [m for m in ws]
         assert events, 'No events came through!'
-        ws_job_events = [event for event in events if event['group_name'] == 'job_events']
-        assert len(ws_job_events) == job.related.job_events.get(page_size=200).count
+        ws_events = [event for event in events if event['group_name'] == 'job_events']
+        not_of_interest = ('created', 'event_name', 'modified', 'summary_fields', 'related')
+        filtered_ws_events = self.filtered_events(ws_events, not_of_interest)
+
+        job_events = job.related.job_events.get().results
+        assert job_events
+
+        filtered_events = self.filtered_events(job_events, not_of_interest)
+        expected_events = self.expected_events(filtered_events, dict(job=job.id,
+                                                                             group_name='job_events',
+                                                                             type='job_event'))
+        assert_expected_events_found(expected_events, filtered_ws_events)
 
         ws.unsubscribe()
         self.sleep_and_clear_messages(ws)
@@ -301,7 +311,9 @@ class TestWorkflowChannels(ChannelsTest, APITest):
             assert message in messages, \
                 ("Event {} with status {} expected to be found. "
                  "If this is the first couple of events we might have "
-                 "subscribed to the websocket too late.".format(counter, message['status']))
+                 "subscribed to the websocket too late.\n Events that we did find: {}".format(counter,
+                                                                                              message['status'],
+                                                                                              pformat(messages)))
 
         ws.unsubscribe()
         self.sleep_and_clear_messages(ws)
@@ -375,8 +387,18 @@ class TestInventoryChannels(ChannelsTest, APITest):
         inv_update.wait_until_completed().assert_successful()
         events = [m for m in ws]
         assert events, 'No events came through!'
-        ws_inv_events = [event for event in events if event['group_name'] == 'inventory_update_events']
-        assert len(ws_inv_events) == inv_update.related.events.get(page_size=200).count
+        ws_events = [event for event in events if event['group_name'] == 'inventory_update_events']
+        not_of_interest = ('created', 'event_name', 'modified', 'summary_fields', 'related')
+        filtered_ws_events = self.filtered_events(ws_events, not_of_interest)
+
+        inv_update_events = inv_update.related.events.get().results
+        assert inv_update_events
+
+        filtered_events = self.filtered_events(inv_update_events, not_of_interest)
+        expected_events = self.expected_events(filtered_events, dict(inventory_update=inv_update.id,
+                                                                             group_name='inventory_update_events',
+                                                                             type='inventory_update_event'))
+        assert_expected_events_found(expected_events, filtered_ws_events)
 
         ws.unsubscribe()
         self.sleep_and_clear_messages(ws)
@@ -443,8 +465,19 @@ class TestProjectUpdateChannels(ChannelsTest, APITest):
         project_update.wait_until_completed().assert_successful()
         events = [m for m in ws]
         assert events, 'No events came through!'
-        ws_project_events = [event for event in events if event['group_name'] == 'project_update_events']
-        assert len(ws_project_events) == project_update.related.events.get(page_size=200).count
+        ws_events = [event for event in events if event['group_name'] == 'project_update_events']
+        not_of_interest = ('created', 'event_name', 'modified', 'summary_fields', 'related')
+        filtered_ws_events = self.filtered_events(ws_events, not_of_interest)
+
+        project_update_events = project_update.related.events.get().results
+        assert project_update_events, 'No events found in API'
+
+        filtered_events = self.filtered_events(project_update_events, not_of_interest)
+        expected_events = self.expected_events(filtered_events, dict(project_update=project_update.id,
+                                                                             group_name='project_update_events',
+                                                                             type='project_update_event'))
+
+        assert_expected_events_found(expected_events, filtered_ws_events)
 
         ws.unsubscribe()
         self.sleep_and_clear_messages(ws)
