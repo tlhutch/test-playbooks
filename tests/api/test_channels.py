@@ -58,6 +58,19 @@ def ws_client(request, v2, authtoken):
     return _ws_client(request, v2)
 
 
+def assert_expected_events_found(expected_events, filtered_ws_events):
+    not_found = set()
+    for expected in expected_events:
+        if {
+            'id': expected['id'],
+            'uuid': expected['uuid'],
+            'event': expected['event']
+            } not in filtered_ws_events:
+            not_found.add(expected)
+
+    assert len(not_found) == 0, f'Did not find the following expected events:\n {pformat(not_found)}'
+
+
 class TestWebSocketRequestForgery(ChannelsTest, APITest):
 
     def test_missing_csrf_cookie(self, class_ws_client):
@@ -134,12 +147,7 @@ class TestAdHocCommandChannels(ChannelsTest, APITest):
         expected_ahc_events = self.expected_events(filtered_ahc_events, dict(ad_hoc_command=ahc.id,
                                                                              group_name='ad_hoc_command_events',
                                                                              type='ad_hoc_command_event'))
-        for expected in expected_ahc_events:
-            assert {
-                'id': expected['id'],
-                'uuid': expected['uuid'],
-                'event': expected['event'],
-            } in filtered_ws_events
+        assert_expected_events_found(expected_ahc_events, filtered_ws_events)
 
     @pytest.mark.github('https://github.com/ansible/tower-qa/issues/2299', skip=True)
     def test_ad_hoc_command_events_unsubscribe(self, factories, ws_client):
@@ -209,16 +217,11 @@ class TestJobChannels(ChannelsTest, APITest):
         job_events = job.related.job_events.get().results
         assert job_events
 
-        filtered_ahc_events = self.filtered_events(job_events, not_of_interest)
-        expected_ahc_events = self.expected_events(filtered_ahc_events, dict(job=job.id,
+        filtered_events = self.filtered_events(job_events, not_of_interest)
+        expected_events = self.expected_events(filtered_events, dict(job=job.id,
                                                                              group_name='job_events',
                                                                              type='job_event'))
-        for expected in expected_ahc_events:
-            assert {
-                'id': expected['id'],
-                'uuid': expected['uuid'],
-                'event': expected['event'],
-            } in filtered_ws_events
+        assert_expected_events_found(expected_events, filtered_ws_events)
 
     def test_job_events_unsubscribe(self, factories, ws_client):
         host = factories.host()
@@ -355,16 +358,11 @@ class TestInventoryChannels(ChannelsTest, APITest):
         inv_update_events = inv_update.related.events.get().results
         assert inv_update_events
 
-        filtered_ahc_events = self.filtered_events(inv_update_events, not_of_interest)
-        expected_ahc_events = self.expected_events(filtered_ahc_events, dict(inventory_update=inv_update.id,
+        filtered_events = self.filtered_events(inv_update_events, not_of_interest)
+        expected_events = self.expected_events(filtered_events, dict(inventory_update=inv_update.id,
                                                                              group_name='inventory_update_events',
                                                                              type='inventory_update_event'))
-        for expected in expected_ahc_events:
-            assert {
-                'id': expected['id'],
-                'uuid': expected['uuid'],
-                'event': expected['event'],
-            } in filtered_ws_events, f'{pformat(expected)} not found in {pformat(filtered_ws_events)}'
+        assert_expected_events_found(expected_events, filtered_ws_events)
 
     def test_inventory_update_events_unsubscribe(self, factories, ws_client):
         ws = ws_client.connect()
@@ -426,16 +424,12 @@ class TestProjectUpdateChannels(ChannelsTest, APITest):
         project_update_events = project_update.related.events.get().results
         assert project_update_events
 
-        filtered_ahc_events = self.filtered_events(project_update_events, not_of_interest)
-        expected_ahc_events = self.expected_events(filtered_ahc_events, dict(project_update=project_update.id,
+        filtered_events = self.filtered_events(project_update_events, not_of_interest)
+        expected_events = self.expected_events(filtered_events, dict(project_update=project_update.id,
                                                                              group_name='project_update_events',
                                                                              type='project_update_event'))
-        for expected in expected_ahc_events:
-            assert {
-                'id': expected['id'],
-                'uuid': expected['uuid'],
-                'event': expected['event'],
-            } in filtered_ws_events
+
+        assert_expected_events_found(expected_events, filtered_ws_events)
 
     @pytest.mark.ansible_integration
     def test_project_update_events_unsubscribe(self, factories, ws_client):
