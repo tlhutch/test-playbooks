@@ -1,0 +1,24 @@
+---
+- hosts: local:tower:isolated_group_protected
+  vars:
+    ansible_galaxy_bin: ansible-galaxy
+  become: true
+  tasks:
+    - name: set the collection prefix awx
+      set_fact:
+        collection_prefix: 'awx-awx'
+      when: product == 'awx'
+
+    - name: set the collection prefix tower
+      set_fact:
+        collection_prefix: 'ansible-tower'
+      when: product == 'tower'
+
+    - name: install the tower collection
+      shell: "{{ ansible_galaxy_bin }} collection install -p /usr/share/ansible/collections {{ aw_repo_url }}/collection/{{ collection_prefix }}-latest.tar.gz"
+
+    - name: chmod the tower collection
+      file:
+        path: '/usr/share/ansible/collections'
+        mode: u=rwX,g=rX,o=rX
+        recurse: yes

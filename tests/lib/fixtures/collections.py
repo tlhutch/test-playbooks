@@ -12,6 +12,33 @@ result_to_str = functools.partial(json.dumps, indent=2, sort_keys=True)
 
 
 @pytest.fixture(scope='session')
+def collection_package(is_docker):
+    if is_docker:
+        return 'awx'
+
+    product = os.environ.get('PRODUCT', 'awx')
+    if product == 'tower':
+        return 'ansible'
+    else:
+        return 'awx'
+
+
+@pytest.fixture(scope='session')
+def collection_namespace(is_docker):
+    if is_docker:
+        return 'awx'
+
+    product = os.environ.get('PRODUCT', 'awx')
+    return product
+
+
+# This is the Fully Qualified Collection Name (fqcn) for the tower/awx collection
+@pytest.fixture(scope='session')
+def collection_fqcn(is_docker, collection_package, collection_namespace):
+    return collection_package + '.' + collection_namespace
+
+
+@pytest.fixture(scope='session')
 def ansible_collections_path(is_docker):
     """Return the ansible collections path to use depending on the deployment.
 
@@ -30,7 +57,7 @@ def _run_uninstall_tower_modules_collection(ansible_adhoc, collection_path):
 
 
 @pytest.fixture(scope='class')
-def tower_modules_collection(request, modified_ansible_adhoc, ansible_collections_path):
+def tower_modules_collection(request, modified_ansible_adhoc, ansible_collections_path, is_docker):
     '''
     Emulate ansible 2.9 ansible-galaxy collection install. This fixture exists
     because the aforementioned command doesn't yet exist. Thus, our emulation.
@@ -41,13 +68,15 @@ def tower_modules_collection(request, modified_ansible_adhoc, ansible_collection
     # because it needs that a local directory is present on the host's
     # filesystem that is receiving the API call. On the other hand, for
     # standalone deployments the target group should be `tower`
+    if not is_docker:
+        return
 
     # Default to installing awx collection from ansible awx repo
     fork = os.environ.get('TOWER_FORK', 'ansible')
     product = os.environ.get('PRODUCT', 'awx')
     branch = os.environ.get('TOWER_BRANCH', 'devel')
     if product == 'tower':
-        pytest.skip("Current approach does not work because we don't have creds on tower box, skip because otherwise git command will hang.")
+        pytest.skip("Installing the tower collection in docker is not supported")
 
     ansible_path = ''
     # If we set the venv_group in fixture_args, override the defaults
