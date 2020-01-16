@@ -195,8 +195,12 @@ Tower Memcached Container Image: ${params.MEMCACHED_CONTAINER_IMAGE}"""
 
         stage ('Verify data integrity') {
             steps {
-                sshagent(credentials : ['github-ansible-jenkins-nopassphrase']) {
-                    sh './tools/jenkins/scripts/verify.sh'
+                retry(3) {
+                    sshagent(credentials : ['github-ansible-jenkins-nopassphrase']) {
+                        withEnv(["OPENSHIFT_DEPLOYMENT=true"]) {
+                            sh './tools/jenkins/scripts/verify.sh'
+                        }
+                    }
                 }
             }
         }

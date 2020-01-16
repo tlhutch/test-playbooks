@@ -1035,7 +1035,7 @@ job_templates:
     inventory: local
     credential: 'SSH (team:Ansible Users, ssh_key_data)'
     extra_vars:
-      num_hosts: 100
+      num_hosts: 10
 
   - name: ansible-playbooks.git/fail_unless.yml
     job_type: run

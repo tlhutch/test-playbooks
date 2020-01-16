@@ -207,7 +207,7 @@ function is_tower_cluster {
 function is_tower_ready {
 
     tower_url=$1
-    http_code=$(curl -k -L -s -o /dev/null -I -w "%{http_code}" "${tower_url}")
+    http_code=$(curl -k -s -o /dev/null -I -w "%{http_code}" "${tower_url}/api/v2/ping/")
     if [[ "${http_code}" == 200 ]]; then
         return 0
     else
