@@ -11,7 +11,7 @@ source "$(dirname "${0}")"/lib/common
 
 setup_python3_env
 local_python_path=$(command -v python)
-pip install -U boto boto3 botocore pip ansible
+pip install -U boto boto3 botocore pip ansible==2.9.2
 
 PLAYBOOK=$(retrieve_value_from_vars_file "${VARS_FILE}" awx_playbook)
 VERBOSITY=$(retrieve_value_from_vars_file "${VARS_FILE}" awx_verbosity)
