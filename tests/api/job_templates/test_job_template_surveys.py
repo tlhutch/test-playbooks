@@ -373,3 +373,45 @@ class TestJobTemplateSurveys(APITest):
             jt.launch(dict(extra_vars={'var3': 'abc'})).wait_until_completed()
 
         assert 'expected to be an integer' in str(e)
+
+    def test_survey_field_unique_constraints(self, factories):
+        """Test survery fields for uniqueness constraint.
+
+        This test targets the following issue:
+
+        https://github.com/ansible/tower-qa/issues/1211
+
+        """
+        host = factories.host()
+        jt = factories.job_template(inventory=host.ds.inventory)
+        survey = [dict(required=False,
+                       question_name='Test-1',
+                       variable='var1',
+                       type='text',
+                       default='var1_default'),
+                  dict(required=False,
+                       question_name='Test-2',
+                       variable='var1',
+                       type='text',
+                       default='var2_default')]
+
+        # Test whether variables can have the same name
+        with pytest.raises(exc.BadRequest) as e:
+            jt.add_survey(spec=survey)
+
+        assert "'variable' 'var1' duplicated in survey question 1." in str(e)
+
+        # Test whether default values can be the same for different variables
+        survey[0]['default'] = 'default'
+        survey[1]['default'] = 'default'
+        survey[1]['variable'] = 'var2'
+
+        jt.add_survey(spec=survey)
+        job = jt.launch().wait_until_completed()
+        job.assert_successful()
+
+        # Test whether names can be the same
+        survey[1]['question_name'] = survey[0]['question_name']
+        jt.add_survey(spec=survey)
+        job = jt.launch().wait_until_completed()
+        job.assert_successful()
