@@ -338,7 +338,7 @@ def job_template_with_random_attributes(v2, factories, api_job_templates_options
                                      limit=fauxfactory.gen_alpha(),
                                      project=project,
                                      extra_vars=extra_vars,
-                                     forks=fauxfactory.gen_integer(min_value=0, max_value=max_int32),
+                                     forks=fauxfactory.gen_integer(min_value=0, max_value=200),
                                      verbosity=fauxfactory.gen_choice(verbosities),
                                      job_tags=fauxfactory.gen_alpha(),
                                      force_handlers=fauxfactory.gen_boolean(),
