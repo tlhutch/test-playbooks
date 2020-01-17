@@ -17,13 +17,17 @@ context('Add users to Organization', function() {
     cy.get('[class="pf-c-wizard__inner-wrap"] [aria-label="Search text input"]').type(
       `${this.user1.username}{enter}`
     )
-    cy.get('[class*=FilterTags__ResultCount-sc-4lbi43-1]').should('have.text', '1 results')
+    cy.get('[aria-label="Items List"]')
+      .find('li')
+      .should('have.length', 1)
     cy.get(`[name="${this.user1.username}"][type="checkbox"]`).click()
-    cy.get('.searchTagChip button[aria-label="close"]').click()
+    cy.get('[id="resource-list-toolbar"] button[aria-label="close"]').click()
     cy.get('[class="pf-c-wizard__inner-wrap"] [aria-label="Search text input"]').type(
       `${this.user2.username}{enter}`
     )
-    cy.get('[class*=FilterTags__ResultCount-sc-4lbi43-1]').should('have.text', '1 results')
+    cy.get('[aria-label="Items List"]')
+      .find('li')
+      .should('have.length', 1)
     cy.get(`[name="${this.user2.username}"][type="checkbox"]`).click()
     cy.get('[class="pf-c-wizard__footer"] [class="pf-c-button pf-m-primary"]').click()
     cy.get('[aria-label="Admin"][type="checkbox"]').click()
@@ -71,13 +75,17 @@ context('Add teams to Organization', function() {
     cy.get('[class="pf-c-wizard__inner-wrap"] [aria-label="Search text input"]').type(
       `${this.team1.name}{enter}`
     )
-    cy.get('[class*=FilterTags__ResultCount-sc-4lbi43-1]').should('have.text', '1 results')
+    cy.get('[aria-label="Items List"]')
+    .find('li')
+    .should('have.length', 1)
     cy.get(`[name="${this.team1.name}"][type="checkbox"]`).click()
-    cy.get('.searchTagChip button[aria-label="close"]').click()
+    cy.get('[id="resource-list-toolbar"] button[aria-label="close"]').click()
     cy.get('[class="pf-c-wizard__inner-wrap"] [aria-label="Search text input"]').type(
       `${this.team2.name}{enter}`
     )
-    cy.get('[class*=FilterTags__ResultCount-sc-4lbi43-1]').should('have.text', '1 results')
+    cy.get('[aria-label="Items List"]')
+      .find('li')
+      .should('have.length', 1)
     cy.get(`[name="${this.team2.name}"][type="checkbox"]`).click()
     cy.get('[class="pf-c-wizard__footer"] [class="pf-c-button pf-m-primary"]').click()
     cy.get('[aria-label="Admin"][type="checkbox"]').click()
