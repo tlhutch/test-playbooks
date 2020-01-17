@@ -1,4 +1,3 @@
-
 from awxkit.config import config
 from awxkit import utils
 
@@ -8,129 +7,16 @@ import json
 import os
 
 from tests.api import APITest
-
-TOWER_MODULES_PARAMS = [
-    'common',
-    'credential',
-    'credential_type',
-    'group',
-    'host',
-    'inventory',
-    'inventory_source',
-    'job_cancel',
-    'job_launch',
-    'job_list',
-    'job_template',
-    'job_wait',
-    'label',
-    'notification',
-    'project',
-    'project_manual',
-    pytest.param('receive', marks=pytest.mark.serial),
-    'role',
-    'send',
-    'settings',
-    'team',
-    'user',
-    'workflow_template',
-]
-
-
-'''
-Note: We include ansible + psutil in both environments so that the streams aren't crossed.
-The streams get crossed when the ansible virtualenv contains a different version of python
-than the version in the custom virtualenv. When a package is not found in the custom
-virtualenv, the ansible virtualenv is the fallback virtualenv. This is problematic when
-the python lib found doesn't support both versions of python.
-Second Note: Collections were only added in Ansible 2.9, and are rapidly changing
-with relevant fixes as of the time this was written, so the current version is used.
-'''
-CUSTOM_VENVS = [
-    {
-        'name': 'python2_tower_modules',
-        'packages': 'ansible-tower-cli psutil git+https://github.com/ansible/ansible.git',
-        'python_interpreter': 'python2'
-    },
-    {
-        'name': 'python3_tower_modules',
-        'packages': 'ansible-tower-cli psutil git+https://github.com/ansible/ansible.git',
-        'python_interpreter': 'python36'
-    },
-]
-
-
-CUSTOM_VENVS_NAMES = [venv['name'] for venv in CUSTOM_VENVS]
+from tests.collection import CUSTOM_VENVS,CUSTOM_VENVS_NAMES
 
 TEST_REPO_URL = "https://github.com/ansible/test-playbooks.git"
-
-
-@pytest.fixture(scope='module')
-def os_python_version(session_ansible_python):
-    """Return the Tower base OS Python version."""
-    return session_ansible_python['version']['major']
-
-
-@pytest.fixture(autouse=True)
-def skip_if_wrong_python(request, os_python_version, is_docker):
-    """Skip when the venv python version does not match the OS base Python
-    version.
-
-    This is to avoid getting the test failed because Python 3 on RHEL7 doens't
-    have libsexlinux-python available.
-    """
-    python_venv_name = request.getfixturevalue('python_venv')['name']
-    if is_docker and not python_venv_name.startswith(f'python3'):
-        pytest.skip(f'Docker collection tests only use the python3 tower-qa venv')
-    elif not python_venv_name.startswith(f'python{os_python_version}'):
-        pytest.skip(f'OS Python version is {os_python_version} which does not match venv')
-
-
-@pytest.fixture
-def tower_credential(factories):
-    return factories.credential(kind='tower', username=config.credentials.default.username,
-                                password=config.credentials.default.password, host=config.base_url)
-
-
-# FIXME Remove "skip_if_cluster" fixture. We must skip if cluster right now
-# because the node we're installing awx collection on doesn't have access to
-# the tower repo in a cluster deployment.
-@pytest.mark.fixture_args(venvs=CUSTOM_VENVS, cluster=True)
-@pytest.mark.usefixtures('skip_if_pre_ansible29', 'skip_if_openshift', 'authtoken', 'skip_if_cluster')
-@pytest.mark.parametrize('python_venv', CUSTOM_VENVS, ids=CUSTOM_VENVS_NAMES)
-class Test_Ansible_Tower_Modules_via_Playbooks(APITest):
-    @pytest.mark.parametrize('tower_module', TOWER_MODULES_PARAMS)
-    def test_ansible_tower_module(self, factories, tower_module, project, tower_credential, venv_path, python_venv, is_cluster, collection_fqcn):
-        """
-        Ansible modules that interact with Tower live in an Ansible Collection.
-        This test invokes the integration tests that ran in Ansible core CI
-        before it was split out into a standalone collection.
-        """
-        if is_cluster and tower_module == 'project_manual':
-            pytest.skip(
-                'Manual projects are discouraged in general, specially on cluster deployments.'
-            )
-
-        virtual_env_path = venv_path(python_venv['name'])
-
-        extra_vars = {
-            'tower_module_under_test': tower_module,
-            'ansible_python_interpreter': os.path.join(virtual_env_path, 'bin/python'),
-            'collection_id': collection_fqcn
-        }
-        jt = factories.job_template(project=project, playbook='tower_modules/wrapper.yml',
-                                    extra_vars=json.dumps(extra_vars), verbosity=5)
-        jt.add_credential(tower_credential)
-        jt.custom_virtualenv = virtual_env_path
-        job = jt.launch().wait_until_completed()
-
-        job.assert_successful()
 
 
 # FIXME Remove "skip_if_cluster" fixture. We must skip if cluster right now
 # because the node we're installing awx collection on doesn't have access to
 # the tower repo in a cluster deployment.
 @pytest.mark.fixture_args(venvs=CUSTOM_VENVS, cluster=True, venv_group='local')
-@pytest.mark.usefixtures('skip_if_pre_ansible29', 'skip_if_openshift', 'authtoken', 'skip_if_cluster')
+@pytest.mark.usefixtures('skip_if_pre_ansible29', 'skip_if_openshift', 'authtoken', 'skip_if_cluster', 'skip_if_wrong_python')
 @pytest.mark.parametrize('python_venv', CUSTOM_VENVS, ids=CUSTOM_VENVS_NAMES)
 class Test_Ansible_Tower_Modules(APITest):
     def run_module(self, venv_path, ansible_adhoc, is_docker, request, module_name, module_args=None):
@@ -843,70 +729,3 @@ class Test_Ansible_Tower_Modules(APITest):
 
         workflow_templates = v2.workflow_job_templates.get(name=wf_name).results
         assert not workflow_templates
-
-
-@pytest.mark.fixture_args(venvs=CUSTOM_VENVS, cluster=True, venv_group='local')
-@pytest.mark.usefixtures('skip_if_pre_ansible29', 'skip_if_openshift', 'authtoken', 'skip_if_cluster')
-@pytest.mark.parametrize('python_venv', CUSTOM_VENVS, ids=CUSTOM_VENVS_NAMES)
-class Test_Ansible_Tower_Inventory_Plugin(APITest):
-    def replace_password(self, module_output):
-        assert hasattr(module_output, 'contacted'), f'module execution failed: {module_output.__dict__}'
-        for hostname in module_output.contacted.keys():
-            assert 'cmd' in module_output.contacted[hostname], f'shell module did not return command run: {module_output.__dict__}'
-            module_output.contacted[hostname]['cmd'] = module_output.contacted[hostname]['cmd'].replace(config.credentials.users.admin.password, "FILTERED")
-            module_output.contacted[hostname]['stderr'] = module_output.contacted[hostname]['stderr'].replace(config.credentials.users.admin.password, "FILTERED")
-            assert 'invocation' in module_output.contacted[hostname], f'shell module did not return command run: {module_output.__dict__}'
-            assert 'module_args' in module_output.contacted[hostname]['invocation'], f'shell module did not return command run: {module_output.__dict__}'
-            assert '_raw_params' in module_output.contacted[hostname]['invocation']['module_args'], f'shell module did not return command run: {module_output.__dict__}'
-            module_output.contacted[hostname]['invocation']['module_args']['_raw_params'] = module_output.contacted[hostname]['invocation']['module_args']['_raw_params'].replace(config.credentials.users.admin.password, "FILTERED")
-
-    def test_inventory_plugin(self, factories, venv_path, ansible_collections_path, request, v2, is_docker, ansible_adhoc, python_venv, collection_fqcn):
-        fixture_args = request.node.get_closest_marker('fixture_args')
-        venv_group = fixture_args.kwargs.get('venv_group')
-        # if we're not in the docker deployment we need to specify using the
-        # virtualenv ansible-inventory
-        ansible_inv_path = "ansible-inventory"
-        if not is_docker:
-            virtual_env_path = venv_path(python_venv['name'])
-            ansible_inv_path = os.path.join(virtual_env_path, "bin", "ansible-inventory")
-
-        inv = factories.inventory()
-        hosts = []
-        hosts.append(factories.host(inventory=inv))
-        hosts.append(factories.host(inventory=inv))
-        hosts.append(factories.host(inventory=inv))
-        ansible_adhoc = ansible_adhoc()[venv_group]
-        # Change this awx.awx.tower to use ansible.tower.tower when we're
-        # deploying the tower build of the collection in the future
-        module_output = ansible_adhoc.shell(
-            'ANSIBLE_INVENTORY_UNPARSED_FAILED=true '
-            f'ANSIBLE_INVENTORY_ENABLED="{collection_fqcn}.tower" '
-            f'TOWER_HOST={config.base_url} '
-            f'TOWER_USERNAME={config.credentials.users.admin.username} '
-            f'TOWER_PASSWORD=\'{config.credentials.users.admin.password}\' '
-            'TOWER_VERIFY_SSL=0 '
-            f'TOWER_INVENTORY={inv.id} '
-            f'{ansible_inv_path} -i @tower_inventory --list'
-        )
-
-        self.replace_password(module_output)
-
-        for hostname in ansible_adhoc.options['inventory_manager'].groups[venv_group].host_names:
-            assert 'rc' in module_output.contacted[hostname], f'module is missing an "rc" value: {module_output.__dict__}'
-            rc = module_output.contacted[hostname]['rc']
-            assert rc == 0, f'ansible-inventory command failed with rc: {rc} module output: {module_output.contacted[hostname]["stderr"]}'
-            assert 'invocation' in module_output.contacted[hostname], f'module could not be invoked: {module_output.__dict__}'
-            assert 'stdout' in module_output.contacted[hostname], f'module stdout was not captured: {module_output.__dict__}'
-
-            inventory_list = json.loads(module_output.contacted[hostname]['stdout'])
-            for host in hosts:
-                assert host.name in inventory_list['_meta']['hostvars']
-                host_vars = inventory_list['_meta']['hostvars'][host.name]
-                assert 'ansible_connection' in host_vars
-                assert 'local' == host_vars['ansible_connection']
-                assert 'ansible_host' in host_vars
-                assert '127.0.0.1' == host_vars['ansible_host']
-                assert 'remote_tower_enabled' in host_vars
-                assert 'true' == host_vars['remote_tower_enabled']
-                assert 'remote_tower_id' in host_vars
-                assert host.id == host_vars['remote_tower_id']

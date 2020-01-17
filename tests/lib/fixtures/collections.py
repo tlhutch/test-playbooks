@@ -163,3 +163,24 @@ def tower_modules_collection(request, modified_ansible_adhoc, ansible_collection
         pytest.fail(
             'Failed to install awx.awx\n{}'.format(e)
         )
+
+
+@pytest.fixture(scope='module')
+def os_python_version(session_ansible_python):
+    """Return the Tower base OS Python version."""
+    return session_ansible_python['version']['major']
+
+
+@pytest.fixture()
+def skip_if_wrong_python(request, os_python_version, is_docker):
+    """Skip when the venv python version does not match the OS base Python
+    version.
+
+    This is to avoid getting the test failed because Python 3 on RHEL7 doens't
+    have libsexlinux-python available.
+    """
+    python_venv_name = request.getfixturevalue('python_venv')['name']
+    if is_docker and not python_venv_name.startswith(f'python3'):
+        pytest.skip(f'Docker collection tests only use the python3 tower-qa venv')
+    elif not python_venv_name.startswith(f'python{os_python_version}'):
+        pytest.skip(f'OS Python version is {os_python_version} which does not match venv')
