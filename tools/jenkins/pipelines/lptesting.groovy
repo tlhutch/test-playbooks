@@ -54,7 +54,8 @@ Tower Version: ${_TOWER_VERSION}"""
                                  string(credentialsId: 'awx_admin_password', variable: 'AWX_ADMIN_PASSWORD')]) {
                     withEnv(["OUT_OF_BOX=yes", "AWS_SECRET_KEY=DUMMY", "AWS_ACCESS_KEY=DUMMY",
                              "ANSIBLE_INSTALL_METHOD=none",
-                             "AWX_ADMIN_PASSWORD=${AWX_ADMIN_PASSWORD}", "TOWER_VERSION=${_TOWER_VERSION}"]) {
+                             "AWX_ADMIN_PASSWORD=${AWX_ADMIN_PASSWORD}", "TOWER_VERSION=${_TOWER_VERSION}",
+                             "GENERATE_ONLY_ASCII_PASSWORDS=True"]) {
                         sh 'pip install -U openstackclient'
                         sh 'mkdir -p ~/.ssh && cp ${PUBLIC_KEY} ~/.ssh/id_rsa.pub'
                         sh 'ansible-vault decrypt --vault-password-file="${VAULT_FILE}" config/credentials.vault --output=config/credentials.yml'

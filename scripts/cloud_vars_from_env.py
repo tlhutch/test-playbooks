@@ -16,7 +16,8 @@ import string
 
 # This is done by sourcing the following environment variables:
 # CLOUD_PROVIDER, PLATFORM and
-env_vars = ['AUTHORIZED_KEYS', 'DELETE_ON_START', 'MINIMUM_VAR_SPACE', 'OUT_OF_BOX_OS', 'TOWER_VERSION']
+env_vars = ['AUTHORIZED_KEYS', 'DELETE_ON_START', 'MINIMUM_VAR_SPACE', 'OUT_OF_BOX_OS', 'TOWER_VERSION',
+            'GENERATE_ONLY_ASCII_PASSWORDS']
 # as well as environment variables with the prefixes:
 prefixes = ['ANSIBLE', 'AW_', 'AWS', 'AWX', 'AZURE', 'CREATE_EC2', 'EC2',
             'GALAXY', 'GCE', 'INSTANCE', 'TERMINATE_EC2']
@@ -58,7 +59,7 @@ def parse_args():
 
 
 def random_password(length=16):
-    if (int(time.time()) % 2) == 0:
+    if (int(time.time()) % 2) == 0 or os.environ.get('GENERATE_ONLY_ASCII_PASSWORDS', 'False') == "True":
         password = ''.join(random.SystemRandom().choices(string.ascii_letters + string.digits, k=length))
     else:
         # Single and double quote are not properly handled currently. Hence
