@@ -95,7 +95,7 @@ def tower_credential(factories):
 # because the node we're installing awx collection on doesn't have access to
 # the tower repo in a cluster deployment.
 @pytest.mark.fixture_args(venvs=CUSTOM_VENVS, cluster=True)
-@pytest.mark.usefixtures('skip_if_pre_ansible29', 'skip_if_openshift', 'authtoken', 'tower_modules_collection', 'shared_custom_venvs', 'skip_if_cluster')
+@pytest.mark.usefixtures('skip_if_pre_ansible29', 'skip_if_openshift', 'authtoken', 'skip_if_cluster')
 @pytest.mark.parametrize('python_venv', CUSTOM_VENVS, ids=CUSTOM_VENVS_NAMES)
 class Test_Ansible_Tower_Modules_via_Playbooks(APITest):
     @pytest.mark.parametrize('tower_module', TOWER_MODULES_PARAMS)
@@ -130,7 +130,7 @@ class Test_Ansible_Tower_Modules_via_Playbooks(APITest):
 # because the node we're installing awx collection on doesn't have access to
 # the tower repo in a cluster deployment.
 @pytest.mark.fixture_args(venvs=CUSTOM_VENVS, cluster=True, venv_group='local')
-@pytest.mark.usefixtures('skip_if_pre_ansible29', 'skip_if_openshift', 'authtoken', 'tower_modules_collection', 'shared_custom_venvs', 'skip_if_cluster')
+@pytest.mark.usefixtures('skip_if_pre_ansible29', 'skip_if_openshift', 'authtoken', 'skip_if_cluster')
 @pytest.mark.parametrize('python_venv', CUSTOM_VENVS, ids=CUSTOM_VENVS_NAMES)
 class Test_Ansible_Tower_Modules(APITest):
     def run_module(self, venv_path, ansible_adhoc, is_docker, request, module_name, module_args=None):
@@ -846,7 +846,7 @@ class Test_Ansible_Tower_Modules(APITest):
 
 
 @pytest.mark.fixture_args(venvs=CUSTOM_VENVS, cluster=True, venv_group='local')
-@pytest.mark.usefixtures('skip_if_pre_ansible29', 'skip_if_openshift', 'authtoken', 'tower_modules_collection', 'shared_custom_venvs', 'skip_if_cluster')
+@pytest.mark.usefixtures('skip_if_pre_ansible29', 'skip_if_openshift', 'authtoken', 'skip_if_cluster')
 @pytest.mark.parametrize('python_venv', CUSTOM_VENVS, ids=CUSTOM_VENVS_NAMES)
 class Test_Ansible_Tower_Inventory_Plugin(APITest):
     def replace_password(self, module_output):
