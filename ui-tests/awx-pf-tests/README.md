@@ -2,6 +2,8 @@
 ### Introduction
 This is an automated functional test suite for the AWX Patternfly UI. It uses Cypress as its base framework.
 
+*See CONTRIBUTING.md for guidelines on what to do before opening a PR.*
+
 ### Framework Reference 
 - [Cypress Github page](https://github.com/cypress-io/cypress)
 - [Cypress Docs](https://docs.cypress.io)
@@ -91,14 +93,6 @@ At the top level, there is a `cypress.json` file and a `cypress/` directory; wit
 - `integration/`: Contains the tests themselves.
 - `plugins/`: Contains the loader for Cypress plugins and any plugins you might like to add.
 - `support/`: Contains custom commands and setup functions for global use in the test suite.
-
-### Contributing
-Before making commits, ensure that `eslint` likes your code, and use `prettier` to automatically format it.
-From the directory containing `cypress.json` and `package.json`, some useful commands:
-`npm run lint` -  Fix any errors or warnings you see.
-`npm run prettier-check` - See what files will be changed before you run `prettier`.
-`npm run prettier` - This will clean your files up for you, but be careful with it! Run `git diff` afterwards for a sanity check.
-`npm run cypress-headless` - Are tests passing successfully?
 
 For more information regarding these folders, please see the Cypress documentation.
 
