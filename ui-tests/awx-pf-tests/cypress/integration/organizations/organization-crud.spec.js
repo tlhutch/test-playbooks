@@ -56,7 +56,9 @@ context('Delete Organization', function() {
   it('can delete an organization', function() {
     cy.visit('/#/organizations')
     cy.get('input[aria-label*="Search"]').type(`${this.org.name}{enter}`)
-    cy.get('[class*=FilterTags__ResultCount-sc-4lbi43-1]').should('have.text', '1 results')
+    cy.get('[aria-label="Organizations List"]')
+      .find('li')
+      .should('have.length', 1)
     cy.get(`input[id="select-organization-${this.org.id}"][type="checkbox"]:enabled`).click()
     cy.get('button[aria-label="Delete"]:enabled').click()
     cy.get('button[aria-label="confirm delete"]:enabled').click()
