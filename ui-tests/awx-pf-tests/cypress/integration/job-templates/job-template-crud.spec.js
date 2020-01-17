@@ -38,7 +38,7 @@ context('Create Job Template', function() {
     cy.get('[aria-label="Select Project"] button[class="pf-c-button pf-m-primary"]').click()
     cy.get('#template-playbook').select('ping.yml')
     cy.get('button[aria-label=Save]').click()
-    cy.get('dd:nth-of-type(1)').should('have.text', `create-jt-${this.testID}`)
+    cy.get('dd[data-cy*="name"]').should('have.text', `create-jt-${this.testID}`)
   })
 })
 
@@ -57,7 +57,7 @@ context('Edit Job Template', function() {
       .clear()
       .type(`Edited test for JTs. Test ID: ${this.testID}`)
     cy.get('button[aria-label=Save]').click()
-    cy.get('dd:nth-of-type(1)').should('have.text', `edited-jt-${this.testID}`)
+    cy.get('dd[data-cy*="name"]').should('have.text', `edited-jt-${this.testID}`)
   })
 })
 
