@@ -130,10 +130,10 @@ class Test_Copy_Inventory(APITest):
         assert not new_facts.json
 
     @pytest.mark.github('https://github.com/ansible/tower/issues/2679', skip=True)
-    def test_copy_inventory_with_sources(self, inventory_with_known_schema, copy_with_teardown):
-        assert inventory_with_known_schema.get().has_inventory_sources
-        new_inventory = copy_with_teardown(inventory_with_known_schema)
-        poll_until(lambda: check_fields(inventory_with_known_schema, new_inventory.get(),
+    def test_copy_inventory_with_sources(self, cloud_inventory, copy_with_teardown):
+        assert cloud_inventory.get().has_inventory_sources
+        new_inventory = copy_with_teardown(cloud_inventory)
+        poll_until(lambda: check_fields(cloud_inventory, new_inventory.get(),
                                         self.identical_fields, self.unequal_fields, no_assert=True),
                    timeout=30)
 

@@ -225,6 +225,11 @@ def _parallel_run_all_inventory_updates(request, class_factories):
 
 
 @pytest.fixture(scope="class", params=['ec2', 'azure_rm', 'gce', 'openstack'], ids=['aws', 'azure', 'gce', 'openstack'])
+def cloud_inventory(request, class_factories, _parallel_run_all_inventory_updates):
+    return _parallel_run_all_inventory_updates[request.param]
+
+
+@pytest.fixture(scope="class", params=['ec2', 'azure_rm', 'gce', 'openstack'], ids=['aws', 'azure', 'gce', 'openstack'])
 def inventory_with_known_schema(request, class_factories, _parallel_run_all_inventory_updates):
     return _parallel_run_all_inventory_updates[request.param]
 
