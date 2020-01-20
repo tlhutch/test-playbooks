@@ -68,7 +68,7 @@ Platform under test: ${params.PLATFORM}"""
                         prev_min_version = '3.2.7'
                     }
 
-                    if (params.ANSIBLE_VERSION != 'stable-2.9') {
+                    if (params.ANSIBLE_VERSION != 'stable-2.9' || params.PLATFORM.contains('ubuntu')) {
                         testexpr = 'yolo or ansible_integration'
                     } else {
                         testexpr = ''
@@ -372,7 +372,7 @@ Platform under test: ${params.PLATFORM}"""
                                         string(name: 'SCENARIO', value: 'standalone'),
                                         string(name: 'PLATFORM', value: params.PLATFORM),
                                         string(name: 'BUNDLE', value: 'yes'),
-                                        string(name: 'TESTEXPR', value: testexpr),
+                                        string(name: 'TESTEXPR', value: 'yolo or ansible_integration'),
                                         string(name: 'AWX_USE_FIPS', value: awx_use_fips),
                                         string(name: 'UPDATE_QE_DASHBOARD', value: params.UPDATE_QE_DASHBOARD),
                                         string(name: 'DEPLOYMENT_NAME', value: 'evergreen-jenkins-tower-bundle-standalone-integration')
@@ -472,7 +472,7 @@ Platform under test: ${params.PLATFORM}"""
                                         string(name: 'PLATFORM', value: params.PLATFORM),
                                         string(name: 'BUNDLE', value: 'yes'),
                                         string(name: 'AWX_USE_FIPS', value: awx_use_fips),
-                                        string(name: 'TESTEXPR', value: testexpr),
+                                        string(name: 'TESTEXPR', value: 'yolo or ansible_integration'),
                                         string(name: 'UPDATE_QE_DASHBOARD', value: params.UPDATE_QE_DASHBOARD),
                                         string(name: 'DEPLOYMENT_NAME', value: 'evergreen-jenkins-tower-bundle-cluster-integration')
                                     ]
