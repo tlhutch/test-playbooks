@@ -7,7 +7,7 @@ context('Navigation', function() {
     cy.akit('organizations.create()').then(function(org) {
       cy.visit('/#/organizations')
       cy.get('input[type="search"]').type(org.name)
-      cy.get('button[type="submit"]').click()
+      cy.get('[aria-label="Search submit button"]').click()
 
       // View search result and ensure link is functional
       cy.get(`#check-action-${org.id} > a > b`)
