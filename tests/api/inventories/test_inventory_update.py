@@ -620,3 +620,19 @@ print(json.dumps({
         loaded_hosts = tower_source.ds.inventory.related.hosts.get()
         assert loaded_hosts.count == 1
         assert loaded_hosts.results[0].name == target_host.name
+
+    def test_inventory_sync_happens_with_job_running(self, factories):
+        """Ensure that an inventory sync can happen while a related job is running."""
+        inv_source = factories.inventory_source()
+
+        jt = factories.job_template(
+            inventory=inv_source.ds.inventory,
+            playbook='sleep.yml',
+            extra_vars={'sleep_interval': 180},
+        )
+        jt.ds.inventory.add_host()
+        job = jt.launch().wait_until_status('running')
+
+        inv_source.update().wait_until_completed().assert_successful()
+        job.assert_status('running')
+        job.cancel().wait_until_completed().assert_status('canceled')
