@@ -1,0 +1,19 @@
+---
+hostvars:
+  ansible_ssh_host:
+  gce_id:
+  gce_image:
+  gce_machine_type:
+  gce_metadata:
+  gce_name:
+  gce_network:
+  gce_private_ip:
+  gce_public_ip:
+  gce_status:
+  gce_subnetwork:
+  gce_tags:
+  #- gce_uuid #  not recoverable, was artifact of libcloud
+  gce_zone:
+
+hostgroups:
+  status_running:

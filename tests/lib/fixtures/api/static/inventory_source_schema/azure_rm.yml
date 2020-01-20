@@ -1,0 +1,30 @@
+---
+hostvars:
+  ansible_host:
+  computer_name:
+  id:
+  image:
+  location:
+  mac_address:
+  name:
+  network_interface:
+  network_interface_id:
+  os_disk:
+  plan:
+  powerstate:
+  private_ip:
+  provisioning_state:
+  public_ip:
+  public_ip_id:
+  public_ip_name:
+  resource_group:
+  security_group:
+  security_group_id:
+  tags:
+  type:
+  virtual_machine_size:
+
+hostgroups:
+  azure:
+  eastus:
+  linux:

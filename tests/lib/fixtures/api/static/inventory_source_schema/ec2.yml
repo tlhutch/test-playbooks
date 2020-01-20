@@ -1,0 +1,47 @@
+---
+hostvars:
+  ansible_host:
+  ec2_account_id:
+  ec2_ami_launch_index:
+  ec2_architecture:
+  ec2_block_devices:
+  ec2_client_token:
+  ec2_dns_name:
+  ec2_ebs_optimized:
+  ec2_group_name:
+  ec2_hypervisor:
+  ec2_id:
+  ec2_image_id:
+  ec2_instance_type:
+  ec2_ip_address:
+  ec2_kernel:
+  ec2_launch_time:
+  ec2_monitored:
+  ec2_monitoring_state:
+  ec2_placement:
+  ec2_platform:
+  ec2_private_dns_name:
+  ec2_private_ip_address:
+  ec2_public_dns_name:
+  ec2_ramdisk:
+  ec2_reason:
+  ec2_region:
+  ec2_root_device_name:
+  ec2_root_device_type:
+  ec2_security_group_ids:
+  ec2_security_group_names:
+  ec2_sourceDestCheck:
+  ec2_state:
+  ec2_state_code:
+  ec2_subnet_id:
+  ec2_virtualization_type:
+  ec2_vpc_id:
+
+hostgroups:
+  zones:
+  security_groups:
+  ec2:
+  regions:
+  platforms:
+  tags:
+  vpcs:
