@@ -23,6 +23,7 @@ setup_python3_env
 
 pip install -Ur scripts/requirements.install
 pip install -Ur requirements.txt
+pip install -Ur collection-test-requirements.txt
 pip install -U "git+ssh://git@github.com/${AWXKIT_FORK}/${AWXKIT_REPO}.git@${AWXKIT_BRANCH}#egg=awxkit[formatting,websockets]&subdirectory=awxkit"
 
 if [[ -z "${AW_REPO_URL}" ]]; then
@@ -81,7 +82,17 @@ pytest -v -c config/api.cfg \
     --base-url="https://${TOWER_HOST}" \
     tests/collection
 
+# Run the sanity tests
+sudo mkdir -p /usr/share/ansible/collections/ansible_collections/awx/awx/tests/output
+sudo chown ec2-user /usr/share/ansible/collections/ansible_collections/awx/awx/tests/output
+
+pushd /usr/share/ansible/collections/ansible_collections/awx/awx
+ansible-test sanity --junit
+popd
+
 ./scripts/merge_junit \
-    reports/junit/results{-collection-serial,-collection-parallel,-collection-rerun,-collection}.xml
+    reports/junit/results{-collection-serial,-collection-parallel,-collection-rerun}.xml \
+    /usr/share/ansible/collections/ansible_collections/awx/awx/tests/output/junit/*.xml \
+    reports/junit/results-collection.xml
 
 set -e
