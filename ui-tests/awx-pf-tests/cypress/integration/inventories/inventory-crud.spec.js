@@ -27,8 +27,10 @@ context('Create an Inventory', function() {
     cy.get(`#selected-${this.org.id}`).click()
     cy.get('.pf-c-modal-box__footer button[class="pf-c-button pf-m-primary"]').click()
     cy.get('button[aria-label=Save]').click()
-    // This doesn't lead to the correct URL, issue open here: https://github.com/ansible/awx/issues/5652
-    // cy.get('dd:nth-of-type(1)').should('have.text', `create-inv-${this.testID}`)
+    cy.get('[aria-label="Details"]').should('be.visible')
+    cy.get('[class*="CardBody__TabbedCardBody"]').within(() => {
+      cy.contains(`create-inv-${this.testID}`).should('exist')
+    })
   })
 })
 
@@ -47,8 +49,10 @@ context('Edit an Inventory', function() {
       .clear()
       .type(`Edited test for inv. Test ID: ${this.testID}`)
     cy.get('button[aria-label=Save]').click()
-    // This doesn't reflect the edited values, issue open here: https://github.com/ansible/awx/issues/5657
-    //cy.get('dd:nth-of-type(1)').should('have.text', `edited-jt-${this.testID}`)
+    cy.get('[aria-label="Details"]').should('be.visible')
+    cy.get('[class*="CardBody__TabbedCardBody"]').within(() => {
+      cy.contains(`edited-inv-${this.testID}`).should('exist')
+    })
   })
 })
 

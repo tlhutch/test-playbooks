@@ -33,7 +33,7 @@ context('Create Job Template', function() {
     cy.get('[aria-label="close"]')
     cy.get('[aria-label="Project List"]')
       .find('li')
-      .should('have.length', 1)    
+      .should('have.length', 1)
     cy.get(`#selected-${this.project.id}`).click()
     cy.get('[aria-label="Select Project"] button[class="pf-c-button pf-m-primary"]').click()
     cy.get('#template-playbook').select('ping.yml')

@@ -76,8 +76,8 @@ context('Add teams to Organization', function() {
       `${this.team1.name}{enter}`
     )
     cy.get('[aria-label="Items List"]')
-    .find('li')
-    .should('have.length', 1)
+      .find('li')
+      .should('have.length', 1)
     cy.get(`[name="${this.team1.name}"][type="checkbox"]`).click()
     cy.get('[id="resource-list-toolbar"] button[aria-label="close"]').click()
     cy.get('[class="pf-c-wizard__inner-wrap"] [aria-label="Search text input"]').type(

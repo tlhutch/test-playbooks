@@ -17,16 +17,19 @@ context('Create an Inventory group', function() {
       `Creation test for Inventory groups. Test ID: ${this.testID}`
     )
     cy.get('button[aria-label=Save]').click()
-    cy.get('dd:nth-of-type(1)').should('have.text', `create-inv-group-${this.testID}`)
+    cy.get('[aria-label="Details"]').should('be.visible')
+    cy.get('[class*="CardBody__TabbedCardBody"]').within(() => {
+      cy.contains(`create-inv-group-${this.testID}`).should('exist')
+    })
   })
 })
 
 context('Edit an Inventory group', function() {
   before(function() {
-    cy.akit('groups.get_or_create(inventory=v2.inventory.create_or_replace(name="abcde"))').as(
-      'inv_group'
-    )
-    cy.akit('inventory.get_or_create(name="abcde")').as('inv')
+    cy.akit(
+      'groups.get_or_create(inventory=v2.inventory.create_or_replace(name="inventory-for-group"))'
+    ).as('inv_group')
+    cy.akit('inventory.get_or_create(name="inventory-for-group")').as('inv')
   })
 
   it('can edit an inventory group', function() {
@@ -41,7 +44,10 @@ context('Edit an Inventory group', function() {
       .clear()
       .type(`Edited test for inv group. Test ID: ${this.testID}`)
     cy.get('button[aria-label=Save]').click()
-    cy.get('dd:nth-of-type(1)').should('have.text', `edited-inv-group-${this.testID}`)
+    cy.get('[aria-label="Details"]').should('be.visible')
+    cy.get('[class*="CardBody__TabbedCardBody"]').within(() => {
+      cy.contains(`edited-inv-group-${this.testID}`).should('exist')
+    })
   })
 })
 
