@@ -13,6 +13,7 @@ import pytest
 from tests.api import APITest
 
 
+@pytest.mark.serial
 @pytest.mark.usefixtures('authtoken')
 class TestInsights(APITest):
 
@@ -250,6 +251,7 @@ class TestInsights(APITest):
         assert result[0]['stdout'] == project.scm_revision
 
 
+@pytest.mark.serial
 @pytest.mark.usefixtures('authtoken')
 class TestInsightsAnalytics(APITest):
 

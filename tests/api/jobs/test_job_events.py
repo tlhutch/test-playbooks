@@ -517,6 +517,7 @@ class Test_Job_Events(APITest):
                     'The event {} is not listed as a child of {}'.format(child, parent)
                 )
 
+    @pytest.mark.serial
     def test_event_ingestion_performance(self, factories, ansible_runner):
         # if this test is failing, it's indicative of a performance
         # regression in our event processing (either on the runner side where
