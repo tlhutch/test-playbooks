@@ -40,23 +40,15 @@ class Test_Organizations(APITest):
     def test_organization_related_counts(self, organization, related_organization_object, api_job_templates_pg):
         """Verify summary_fields 'related_field_counts' content."""
         # determine the expected JTs count
-        #
-        # note: the API determines the organization of a non-scan JT by looking at the organization of the JT project. For scan JTs, it
-        # looks at the organization of the JT inventory instead.
         inventory_pg = organization.get_related('inventories')
         org_inventory_ids = [inv_pg.id for inv_pg in inventory_pg.results]
         project_pg = organization.get_related('projects')
         org_project_ids = [proj_pg.id for proj_pg in project_pg.results]
 
-        params = dict(job_type='scan', inventory__in=-1)
-        if org_inventory_ids:
-            params['inventory__in'] = ','.join(str(entry) for entry in org_inventory_ids)
-        scan_job_templates_count = api_job_templates_pg.get(**params).count
-
-        params = dict(not__job_type='scan', project__in=-1)
+        params = dict(project__in=-1)
         if org_project_ids:
             params['project__in'] = ','.join(str(entry) for entry in org_project_ids)
-        other_job_templates_count = api_job_templates_pg.get(**params).count
+        job_templates_count = api_job_templates_pg.get(**params).count
 
         # check related_field_counts
         # note: there is no 'job_templates' get_related field so we handle job_templates differently
@@ -66,7 +58,6 @@ class Test_Organizations(APITest):
                 assert related_field_counts[key] == organization.get_related(key).count, \
                     "Incorrect value for %s. Expected %s, got %s." % (key, organization.get_related(key).count, related_field_counts[key])
 
-        job_templates_count = scan_job_templates_count + other_job_templates_count
         assert job_templates_count == related_field_counts['job_templates'], \
             "Incorrect value for job_templates. Expected %s, got %s." % (job_templates_count, related_field_counts['job_templates'])
 
