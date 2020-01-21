@@ -108,6 +108,36 @@ py.test -c config/docker.cfg
 py.test -c config/api.cfg --base-url='https://<tower-host\>'
 
 
+### Run Collection tests
+
+Note: It is recommended you run Python 3.6.6 if possible to match what is
+running on Jenkins.  There are some notable differences between Python 3.6 and
+Python 3.7, which is the default python on Fedora 29+. You can install multiple
+Python versions on Fedora, see [the
+docs](https://developer.fedoraproject.org/tech/languages/python/multiple-pythons.html)
+for more information.
+
+```
+# navigate to tower-qa on your local file system
+exit
+cd ../tower-qa
+
+# Tweak the location of the virtualenv to taste
+python3.6 -m venv ~/venvs/tower-qa
+source ~/venvs/tower-qa/bin/activate
+pip install -r requirements.txt
+pip install -r collection-test-requirements.txt
+ansible-vault decrypt config/credentials.vault --output=config/credentials.yml    # you will need the vault password
+# When running tests using docker ensure that the password and username created previously are present on the credentials.yml file
+scripts/install-collection-venv.sh # this installs the virtualenv needed for collection tests in the docker container
+scripts/install-collection.sh ../awx # this installs the collection locally and in the docker container
+py.test -c config/docker.cfg tests/collection
+
+# Run the sanity tests
+cd ~/.ansible/collections/ansible_collections/awx/awx/
+ansible-test sanity
+```
+
 ### Infrastructure dependencies
 
 Some infrastructure is spawned by tests by provisioning services on a kubernetes cluster we have in GCE. Other tests rely on static infrastructure.
