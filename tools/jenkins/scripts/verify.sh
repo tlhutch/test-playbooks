@@ -14,8 +14,6 @@ pip install -Ur requirements.txt
 
 echo "y" | pip uninstall pytest-mp || true
 
-until is_tower_ready "${TOWER_HOST}"; do sleep 10; done
-
 INVENTORY=$(retrieve_inventory_file)
 TOWER_HOST="$(retrieve_tower_server_from_inventory "${INVENTORY}")"
 CREDS=$(retrieve_credential_file "${INVENTORY}")
