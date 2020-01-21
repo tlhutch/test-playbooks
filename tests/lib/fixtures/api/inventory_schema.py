@@ -9,17 +9,17 @@ log = logging.getLogger(__name__)
 SUPPORTED_INV_SOURCES = ('ec2', 'azure_rm', 'gce', 'openstack')
 
 
-def load_schema_file(inv_source):
-    return load_file(os.path.join(os.path.dirname(__file__),
-                                  'static/inventory_source_schema/{}.yml'.format(inv_source)))
-
-
-inventory_schema = {inv_source: load_schema_file(inv_source)
-                    for inv_source in SUPPORTED_INV_SOURCES}
+@pytest.fixture(scope="session")
+def inventory_schema():
+    def _load_schema_file(inv_source):
+        return load_file(os.path.join(os.path.dirname(__file__),
+                         'static/inventory_source_schema/{}.yml'.format(inv_source)))
+    return {inv_source: _load_schema_file(inv_source)
+            for inv_source in SUPPORTED_INV_SOURCES}
 
 
 @pytest.fixture(scope="function")
-def inventory_hostvars():
+def inventory_hostvars(inventory_schema):
     """Return map to each inventory type's expected hostvars when run in compatibility mode.
 
     These are what we consider a minimum acceptable set of hostvars that each host should have defined.
@@ -73,7 +73,7 @@ def hostvars_that_create_host_names():
 
 
 @pytest.fixture(scope="function")
-def inventory_hostgroups():
+def inventory_hostgroups(inventory_schema):
     """Return map to each inventory type's expected groups created when run in compatibility mode.
 
     These are what we consider a minimum acceptable set of groups that each inventory should create on import.
