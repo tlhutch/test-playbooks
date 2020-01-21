@@ -11,6 +11,7 @@ context('reaches a 404 when trying to get the orgs list', function() {
       response: {},
     }).as('orgs')
     cy.visit('/#/organizations')
+    // Assert that the organizations page returns a 404 and a link to navigate to the Dashboard
     cy.get('h1[class*="pf-c-title"]').should('have.text', 'Not Found')
     cy.get('a[href="#/home"]').should('have.text', 'Back to Dashboard.')
     cy.get(`button[class=pf-c-expandable__toggle]`).click()
@@ -62,6 +63,7 @@ context('Delete Organization', function() {
     cy.get(`input[id="select-organization-${this.org.id}"][type="checkbox"]:enabled`).click()
     cy.get('button[aria-label="Delete"]:enabled').click()
     cy.get('button[aria-label="confirm delete"]:enabled').click()
+    // Assert that the org is deleted and there are no orgs that match the filter criteria
     cy.get('.pf-c-empty-state .pf-c-empty-state__body').should(
       'have.class',
       'pf-c-empty-state__body'

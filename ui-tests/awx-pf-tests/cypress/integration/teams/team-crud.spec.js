@@ -10,6 +10,7 @@ context('Reaches a 404', function() {
       response: {},
     }).as('teams')
     cy.visit('/#/teams')
+    // Assert that the Teams page returns a 404 and a link to navigate to the Dashboard
     cy.get('h1[class*="pf-c-title"]').should('have.text', 'Not Found')
     cy.get('a[href="#/home"]').should('have.text', 'Back to Dashboard.')
     cy.get(`button[class=pf-c-expandable__toggle]`).click()
@@ -69,6 +70,7 @@ context('Delete a team', function() {
     cy.get(`input[id="select-team-${this.del.id}"][type="checkbox"]:enabled`).click()
     cy.get('button[aria-label="Delete"]:enabled').click()
     cy.get('button[aria-label="confirm delete"]:enabled').click()
+    // Assert that the team is deleted and there are no teams that match the filter criteria
     cy.get('.pf-c-empty-state .pf-c-empty-state__body').should(
       'have.class',
       'pf-c-empty-state__body'

@@ -17,6 +17,7 @@ context('Create an Inventory group', function() {
       `Creation test for Inventory groups. Test ID: ${this.testID}`
     )
     cy.get('button[aria-label=Save]').click()
+    // Assert that the inventory group is created and is navigated to the Inventory Group Details page
     cy.get('[aria-label="Details"]').should('be.visible')
     cy.get('[class*="CardBody__TabbedCardBody"]').within(() => {
       cy.contains(`create-inv-group-${this.testID}`).should('exist')
@@ -44,6 +45,7 @@ context('Edit an Inventory group', function() {
       .clear()
       .type(`Edited test for inv group. Test ID: ${this.testID}`)
     cy.get('button[aria-label=Save]').click()
+    // Assert that the page is navigated to the Inventory group Details page and the details are updated
     cy.get('[aria-label="Details"]').should('be.visible')
     cy.get('[class*="CardBody__TabbedCardBody"]').within(() => {
       cy.contains(`edited-inv-group-${this.testID}`).should('exist')
@@ -68,6 +70,7 @@ context('Delete an Inventory group', function() {
     cy.get('button[aria-label="Delete"]:enabled').click()
     cy.get('label[for="radio-delete"]').click()
     cy.get('[aria-label="Delete Group"] button[aria-label="Delete"]:enabled').click()
+    // Assert that the inventory group is deleted and there are no groups that match the filter criteria
     cy.get('.pf-c-empty-state .pf-c-empty-state__body').should(
       'have.class',
       'pf-c-empty-state__body'
