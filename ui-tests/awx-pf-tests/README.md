@@ -22,7 +22,7 @@ source ~/.envs/awxkit/bin/activate
 pip install nodeenv
 nodeenv -p
 git clone https://github.com/ansible/awx
-pip install -e awx/awxkit -r awx/awxkit/requirements.txt -r awx/requirements/requirements_dev.txt
+pip install -e awx/awxkit[crypto] -r awx/awxkit/requirements.txt -r awx/requirements/requirements_dev.txt
 ```
 
 In *this* directory (the directory containing cypress.json), run:
@@ -54,7 +54,7 @@ nodeenv -p
 To install awxkit for use in fixtures:
 ```
 git clone https://github.com/ansible/awx
-pip install -e awx/awxkit -r awx/awxkit/requirements.txt
+pip install -e awx/awxkit[crypto] -r awx/awxkit/requirements.txt -r awx/requirements/requirements_dev.txt
 
 ```
 
@@ -99,8 +99,20 @@ For more information regarding these folders, please see the Cypress documentati
 ### Tips and Tricks
 - `support/commands.js` contains plenty of helper functions. Of note are `akit` and `createOrReplace`, the first of which calls `akit_client.py` to authenticate with `akit` and perform any awxkit v2 command you'd like. For example, calling `cy.akit('job_templates.create()')` in Cypress is the same thing as going to awxkit directly and calling `v2.job_templates.create()`. 
 
-  - `cy.createOrReplace('job_templates', 'something')` is just a shortcut function to avoid having to write `cy.akit('job_templates.create_or_replace("name=something")')`. In case you don't know, v2.xyz.create_or_replace requires a `username` param instead of `name` when creating users, but the wrapper function handles that for you.
-  - When calling commands directly with `cy.akit()`, make sure you look at how the command is accepted in awxkit to ensure correct syntax. 
+- `cy.createOrReplace('job_templates', 'something')` is just a shortcut function to avoid having to write `cy.akit('job_templates.create_or_replace("name=something")')`. In case you don't know, v2.xyz.create_or_replace requires a `username` param instead of `name` when creating users, but the wrapper function handles that for you.
+- When calling commands directly with `cy.akit()`, make sure you look at how the command is accepted in awxkit to ensure correct syntax. 
+- If you need a for-loop that can iterate over a list of elements, you can't do a traditional loop, unfortunately. Seems to be because of the async nature of Cypress and the way event ordering is handled. You can generate an array, then use that array within the same test context to iterate over numbered elements. An example:
+    ```
+    // Generate an array of the numbers 1-5
+    let arr = Array.from({length:5}, (v, k) => k + 1)
+
+    // cy.wrap the array, which will keep the event order straight 
+    cy.wrap(arr).each(function(i) {
+      cy.createOrReplace('credentials', `test-credentials-${i}`).as(`cred${i}`)
+    })
+
+    ```
+This will then generate five credential objects, named `test-credentials-1`, and so forth. The .as(`cred${i}`) section will make each object available as `this.creds1`, `this.creds2`, and so on.
 
 - Cypress clears UI session data entirely during each test to avoid caching and cookie issues. Sometimes, this means you need to manipulate cookies directly yourself. For an example, see the custom `apiRequest()` function present in `cypress/support/commands.js`.
 
