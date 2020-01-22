@@ -14,7 +14,7 @@ from tests.license.license import LicenseTest
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license')
 class TestEnterpriseLicense(LicenseTest):
 
-    def test_metadata(self, api_config_pg):
+    def test_enterprise_license_metadata(self, api_config_pg):
         conf = api_config_pg.get()
         print(json.dumps(conf.json, indent=4))
 
@@ -54,12 +54,12 @@ class TestEnterpriseLicense(LicenseTest):
         assert conf.license_info['features'] == default_features, \
             "Unexpected features returned for enterprise license: %s." % conf.license_info
 
-    def test_job_launch(self, factories):
+    def test_enterprise_license_job_launch(self, factories):
         """Verify that job templates can be launched."""
         job_template = factories.job_template()
         job_template.launch().wait_until_completed()
 
-    def test_instance_counts(self, request, api_config_pg, api_hosts_pg, inventory, group):
+    def test_enterprise_license_instance_counts(self, request, api_config_pg, api_hosts_pg, inventory, group):
         self.assert_instance_counts(request, api_config_pg, api_hosts_pg, group)
 
     @pytest.fixture
@@ -71,7 +71,7 @@ class TestEnterpriseLicense(LicenseTest):
                                         contact_email=fauxfactory.gen_email(),
                                         license_type="basic")
 
-    def test_downgrade_to_basic(self, basic_license_json, api_config_pg):
+    def test_enterprise_license_downgrade_to_basic(self, basic_license_json, api_config_pg):
         """Verify that an enterprise license can get downgraded to a basic license by posting to api_config_pg."""
         # Update the license
         api_config_pg.post(basic_license_json)
@@ -91,7 +91,7 @@ class TestEnterpriseLicense(LicenseTest):
         assert after_license_key == expected_license_key, \
             "Unexpected license_key. Expected %s, found %s" % (expected_license_key, after_license_key)
 
-    def test_unable_to_change_system_license(self, v2):
+    def test_enterprise_license_unable_to_change_system_license(self, v2):
         system_settings = v2.settings.get().get_endpoint('system')
         license = system_settings.LICENSE
 
@@ -99,7 +99,7 @@ class TestEnterpriseLicense(LicenseTest):
         system_settings.delete()
         assert system_settings.get().LICENSE == license
 
-    def test_delete_license(self, api_config_pg):
+    def test_enterprise_license_delete_license(self, api_config_pg):
         """Verify the license_info field is empty after deleting the license"""
         api_config_pg.delete()
         conf = api_config_pg.get()
@@ -111,7 +111,7 @@ class TestEnterpriseLicense(LicenseTest):
 @pytest.mark.usefixtures('authtoken', 'install_enterprise_license_expired')
 class TestEnterpriseLicenseExpired(LicenseTest):
 
-    def test_metadata(self, api_config_pg):
+    def test_enterprise_license_expired_metadata(self, api_config_pg):
         conf = api_config_pg.get()
         print(json.dumps(conf.json, indent=4))
 
@@ -138,11 +138,11 @@ class TestEnterpriseLicenseExpired(LicenseTest):
             "returned %s." % conf.license_info['license_type']
 
     @pytest.mark.fixture_args(days=1000, older_than='5y', granularity='5y')
-    def test_system_job_launch(self, system_job_with_status_completed):
+    def test_enterprise_license_expired_system_job_launch(self, system_job_with_status_completed):
         """Verify that system jobs can be launched"""
         system_job_with_status_completed.assert_successful()
 
-    def test_import_license_exceeded(self, skip_if_openshift, api_config_pg, ansible_runner, inventory):
+    def test_enterprise_license_expired_import_license_exceeded(self, skip_if_openshift, api_config_pg, ansible_runner, inventory):
         """Verify import succeeds with a non-trial license thats host count is exceeded."""
         enterprise_license_1000 = generate_license(license_type='enterprise', instance_count=1000, days=365)
         api_config_pg.post(enterprise_license_1000)
@@ -152,12 +152,13 @@ class TestEnterpriseLicenseExpired(LicenseTest):
         for result in contacted.values():
             assert result['rc'] == 0, "Unexpected awx-manage inventory_import failure." \
                 "\n[stdout]\n%s\n[stderr]\n%s" % (result['stdout'], result['stderr'])
-            assert 'ERROR    Number of licensed instances exceeded, would bring available instances to 2001, system is licensed for 1000.' in result['stderr']
+            assert 'WARNING  Number of licensed instances exceeded' in result['stderr']
+            assert 'http://www.ansible.com/renew for license extension information' in result['stderr']
 
         assert inventory.get_related('groups').count != 0
         assert inventory.get_related('hosts').count == 2000
 
-    def test_import_license_expired(self, skip_if_openshift, api_config_pg, ansible_runner, inventory):
+    def test_enterprise_license_expired_import_license_expired(self, skip_if_openshift, api_config_pg, ansible_runner, inventory):
         """Verify import succeeds with a non-trial license that is expired."""
         trial_license_1000 = generate_license(license_type='enterprise', instance_count=1000, days=-1000)
         api_config_pg.post(trial_license_1000)
@@ -167,12 +168,13 @@ class TestEnterpriseLicenseExpired(LicenseTest):
         for result in contacted.values():
             assert result['rc'] == 0, "Unexpected awx-manage inventory_import failure." \
                 "\n[stdout]\n%s\n[stderr]\n%s" % (result['stdout'], result['stderr'])
-            assert 'ERROR    License expired.' in result['stderr']
+            assert 'WARNING  License expired' in result['stderr']
+            assert 'http://www.ansible.com/renew for license extension information' in result['stderr']
 
         assert inventory.get_related('groups').count != 0
         assert inventory.get_related('hosts').count == 100
 
-    def test_import_license_exceeded_and_expired(self, skip_if_openshift, api_config_pg, ansible_runner, inventory):
+    def test_enterprise_license_expired_import_license_exceeded_and_expired(self, skip_if_openshift, api_config_pg, ansible_runner, inventory):
         """Verify import succeeds with a non-trial license that is expired and thats host count is exceeded."""
         enterprise_license_1000 = generate_license(license_type='enterprise', instance_count=1000, days=-1000)
         api_config_pg.post(enterprise_license_1000)
@@ -182,13 +184,13 @@ class TestEnterpriseLicenseExpired(LicenseTest):
         for result in contacted.values():
             assert result['rc'] == 0, "Unexpected awx-manage inventory_import failure." \
                 "\n[stdout]\n%s\n[stderr]\n%s" % (result['stdout'], result['stderr'])
-            assert 'ERROR    Number of licensed instances exceeded, would bring available instances to 2001, system is licensed for 1000.' in result['stderr']
-            assert 'ERROR    License expired.' in result['stderr']
+            assert 'WARNING  Number of licensed instances exceeded' in result['stderr']
+            assert 'http://www.ansible.com/renew for license extension information' in result['stderr']
 
         assert inventory.get_related('groups').count != 0
         assert inventory.get_related('hosts').count == 2000
 
-    def test_project_update_license_expired(self, api_config_pg, factories):
+    def test_enterprise_license_expired_project_update_license_expired(self, api_config_pg, factories):
         """Verify project update succeeds with a non-trial license that is expired."""
         trial_license_1000 = generate_license(license_type='enterprise', instance_count=1000, days=-1000)
         api_config_pg.post(trial_license_1000)
@@ -197,7 +199,7 @@ class TestEnterpriseLicenseExpired(LicenseTest):
 
         assert p1_update.failed is False, 'project failed to update when it should have succeeded'
 
-    def test_workflow_launch_license_expired(self, api_config_pg, factories):
+    def test_enterprise_license_expired_workflow_launch_license_expired(self, api_config_pg, factories):
         """Verify workflow launch succeeds with a non-trial license that is expired."""
         trial_license_1000 = generate_license(license_type='enterprise', instance_count=1000, days=-1000)
         api_config_pg.post(trial_license_1000)
@@ -206,7 +208,7 @@ class TestEnterpriseLicenseExpired(LicenseTest):
 
         assert wfjt_launch.failed is False, 'workflow failed to launch when it should have succeeded'
 
-    def test_job_launch_license_expired(self, api_config_pg, factories):
+    def test_enterprise_license_expired_job_launch_license_expired(self, api_config_pg, factories):
         """Verify job launch succeeds with a non-trial license that is expired."""
         trial_license_1000 = generate_license(license_type='enterprise', instance_count=1000, days=-1000)
         api_config_pg.post(trial_license_1000)
@@ -215,7 +217,7 @@ class TestEnterpriseLicenseExpired(LicenseTest):
 
         assert job.failed is False, 'job failed to launch when it should have succeeded'
 
-    def test_inventory_update_license_expired(self, api_config_pg, factories):
+    def test_enterprise_license_expired_inventory_update_license_expired(self, api_config_pg, factories):
         """Verify inventory update succeeds with a non-trial license that is expired."""
         trial_license_1000 = generate_license(license_type='enterprise', instance_count=1000, days=-1000)
         api_config_pg.post(trial_license_1000)
@@ -245,9 +247,9 @@ print(json.dumps({
         )
         inv_update = inv.update_inventory_sources()[0].wait_until_completed()
         assert inv_update.failed is False, 'inventory failed to update when it should have succeeded'
-        assert 'ERROR    License expired.\nSee' in inv_update.result_stdout
+        assert 'WARNING  License expired' in inv_update.result_stdout
 
-    def test_inventory_update_license_expired_trial(self, api_config_pg, v2, factories, is_docker):
+    def test_enterprise_license_expired_inventory_update_license_expired_trial(self, api_config_pg, v2, factories, is_docker):
         """Verify job launch fails with a trial license that is expired."""
         trial_license_1000 = generate_license(license_type='enterprise', instance_count=1000, days=-1000, trial=True)
         api_config_pg.post(trial_license_1000)
@@ -284,7 +286,7 @@ print(json.dumps({
         assert iu.status == 'failed'
         assert 'License has expired!' in iu.result_stdout
 
-    def test_job_launch_license_expired_trial(self, api_config_pg, factories):
+    def test_enterprise_license_job_launch_license_expired_trial(self, api_config_pg, factories):
         """Verify job launch fails with a trial license that is expired."""
         trial_license_1000 = generate_license(license_type='enterprise', instance_count=1000, days=-1000, trial=True)
         api_config_pg.post(trial_license_1000)
@@ -295,7 +297,7 @@ print(json.dumps({
         assert 'detail' in e.value[1], f'Exception is missing expected "detail" key: {e.value[1]}'
         assert e.value[1]['detail'] == 'License has expired.', f'Exception was not caused by expired license: {e.value[1]["detail"]}'
 
-    def test_workflow_launch_license_expired_trial(self, api_config_pg, factories):
+    def test_enterprise_license_workflow_launch_license_expired_trial(self, api_config_pg, factories):
         """Verify workflow launch fails with a trial license that is expired."""
         trial_license_1000 = generate_license(license_type='enterprise', instance_count=1000, days=-1000, trial=True)
         api_config_pg.post(trial_license_1000)
@@ -306,7 +308,7 @@ print(json.dumps({
         assert 'detail' in e.value[1], f'Exception is missing expected "detail" key: {e.value[1]}'
         assert e.value[1]['detail'] == 'License has expired.', f'Exception was not caused by expired license: {e.value[1]["detail"]}'
 
-    def test_import_license_exceeded_trial(self, skip_if_openshift, api_config_pg, ansible_runner, inventory):
+    def test_enterprise_license_import_license_exceeded_trial(self, skip_if_openshift, api_config_pg, ansible_runner, inventory):
         """Verify import fails if the number of imported hosts exceeds licensed host allowance and tower is using a trial license."""
         trial_license_1000 = generate_license(license_type='enterprise', trial=True, instance_count=1000, days=365)
         api_config_pg.post(trial_license_1000)
@@ -321,7 +323,7 @@ print(json.dumps({
         assert inventory.get_related('groups').count == 0
         assert inventory.get_related('hosts').count == 0
 
-    def test_import_license_expired_trial(self, skip_if_openshift, api_config_pg, ansible_runner, inventory):
+    def test_enterprise_license_import_license_expired_trial(self, skip_if_openshift, api_config_pg, ansible_runner, inventory):
         """Verify import fails if a trial license is expired"""
         trial_license_1000 = generate_license(license_type='enterprise', trial=True, instance_count=1000, days=-1000, )
         api_config_pg.post(trial_license_1000)

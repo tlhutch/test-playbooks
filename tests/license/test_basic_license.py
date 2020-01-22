@@ -52,17 +52,17 @@ class TestBasicLicense(LicenseTest):
         assert conf.license_info['features'] == default_features, \
             "Unexpected features returned for basic license: %s." % conf.license_info
 
-    def test_job_launch(self, v2, factories):
+    def test_basic_license_job_launch(self, v2, factories):
         """Verify that job templates can be launched."""
         if v2.hosts.get(page_size=50).count >= 10:
             pytest.skip("Skipping because tower has too many hosts for this to work. Clean up tower and try again.")
         job_template = factories.job_template()
         job_template.launch().wait_until_completed()
 
-    def test_instance_counts(self, request, api_config_pg, api_hosts_pg, inventory, group):
+    def test_basic_license_instance_counts(self, request, api_config_pg, api_hosts_pg, inventory, group):
         self.assert_instance_counts(request, api_config_pg, api_hosts_pg, group)
 
-    def test_upgrade_to_enterprise(self, enterprise_license_json, api_config_pg):
+    def test_basic_license_upgrade_to_enterprise(self, enterprise_license_json, api_config_pg):
         """Verify that a basic license can get upgraded to an enterprise license."""
         # Update the license
         api_config_pg.post(enterprise_license_json)
@@ -82,7 +82,7 @@ class TestBasicLicense(LicenseTest):
             "Incorrect license_type returned. Expected 'enterprise,' " \
             "returned %s." % conf.license_info['license_type']
 
-    def test_delete_license(self, api_config_pg):
+    def test_basic_license_delete_license(self, api_config_pg):
         """Verify the license_info field is empty after deleting the license"""
         api_config_pg.delete()
         conf = api_config_pg.get()

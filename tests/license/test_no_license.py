@@ -32,7 +32,7 @@ class TestNoLicense(LicenseTest):
         assert conf.license_info == {}, "Expecting empty license_info, found: %s" % json.dumps(conf.license_info,
                                                                                                indent=4)
 
-    def test_cannot_add_host(self, api_hosts_pg, inventory, group):
+    def test_no_license_cannot_add_host(self, api_hosts_pg, inventory, group):
         """Verify that no hosts can be added"""
         payload = dict(name="host-%s" % fauxfactory.gen_utf8().replace(':', ''),
                        description="host-%s" % fauxfactory.gen_utf8(),
@@ -44,12 +44,12 @@ class TestNoLicense(LicenseTest):
         with pytest.raises(exc.LicenseExceeded):
             api_hosts_pg.post(payload)
 
-    def test_can_launch_project_update(self, project_ansible_playbooks_git_nowait):
+    def test_no_license_can_launch_project_update(self, project_ansible_playbooks_git_nowait):
         """Verify that project_updates can be launched"""
         job_pg = project_ansible_playbooks_git_nowait.update().wait_until_completed()
         job_pg.assert_successful()
 
-    def test_can_launch_inventory_update_but_it_should_fail(self, custom_inventory_source):
+    def test_no_license_can_launch_inventory_update_but_it_should_fail(self, custom_inventory_source):
         job = custom_inventory_source.update().wait_until_completed()
         assert job.status == 'failed'
         assert 'CommandError: No license found!' in job.result_stdout
@@ -100,7 +100,7 @@ class TestNoLicense(LicenseTest):
         assert conf.license_info != {}, "License expected, but none found"
         assert conf.license_info.license_key == legacy_license_json['license_key']
 
-    def test_cannot_launch_job(self, v2, func_install_basic_license, api_config_pg, factories):
+    def test_no_license_cannot_launch_job(self, v2, func_install_basic_license, api_config_pg, factories):
         """Verify that job_templates cannot be launched"""
         api_config_pg.delete()
         poll_until(lambda: not v2.config.get().license_info, interval=1, timeout=15)
