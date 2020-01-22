@@ -10,6 +10,7 @@ context('Reaches a 404', function() {
       response: {},
     }).as('jt')
     cy.visit('/#/projects')
+    // Assert that the project page returns a 404 and a link to navigate to the Dashboard
     cy.get('h1[class*="pf-c-title"]').should('have.text', 'Not Found')
     cy.get('a[href="#/home"]').should('have.text', 'Back to Dashboard.')
     cy.get(`button[class=pf-c-expandable__toggle]`).click()
@@ -73,6 +74,7 @@ context('Delete Project', function() {
     cy.get(`input[id="select-project-${this.proj.id}"][type="checkbox"]:enabled`).click()
     cy.get('button[aria-label="Delete"]:enabled').click()
     cy.get('button[aria-label="confirm delete"]:enabled').click()
+    // Assert that the project is deleted and there are no projects that match the filter criteria
     cy.get('.pf-c-empty-state .pf-c-empty-state__body').should(
       'have.class',
       'pf-c-empty-state__body'

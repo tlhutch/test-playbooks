@@ -4,6 +4,7 @@
 context('Reaches a 404', function() {
   it('reaches a 404 when trying to get the JT list', function() {
     cy.visit('/#/job_templates/999')
+    // Assert that the JT is not found and a link to navigate to the dashboard exist
     cy.get('h1[class*="pf-c-title"]').should('have.text', 'Not Found')
     cy.get('a[href="#/home"]').should('have.text', 'Back to Dashboard.')
   })
@@ -33,7 +34,7 @@ context('Create Job Template', function() {
     cy.get('[aria-label="close"]')
     cy.get('[aria-label="Project List"]')
       .find('li')
-      .should('have.length', 1)    
+      .should('have.length', 1)
     cy.get(`#selected-${this.project.id}`).click()
     cy.get('[aria-label="Select Project"] button[class="pf-c-button pf-m-primary"]').click()
     cy.get('#template-playbook').select('ping.yml')
@@ -76,6 +77,7 @@ context('Delete Job Template', function() {
     cy.get(`input[id="select-jobTemplate-${this.del.id}"][type="checkbox"]:enabled`).click()
     cy.get('button[aria-label="Delete"]:enabled').click()
     cy.get('button[aria-label="confirm delete"]:enabled').click()
+    // Assert that the JT is deleted and there are no Jts that match the filter criteria
     cy.get('.pf-c-empty-state .pf-c-empty-state__body').should(
       'have.class',
       'pf-c-empty-state__body'
