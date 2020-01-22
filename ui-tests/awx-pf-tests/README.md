@@ -22,7 +22,7 @@ source ~/.envs/awxkit/bin/activate
 pip install nodeenv
 nodeenv -p
 git clone https://github.com/ansible/awx
-pip install -e awx/awxkit[crypto] -r awx/awxkit/requirements.txt -r awx/requirements/requirements_dev.txt
+pip install -e awx/awxkit[crypto] -r awx/awxkit/requirements.txt
 ```
 
 In *this* directory (the directory containing cypress.json), run:
