@@ -18,7 +18,10 @@ class LicenseTest(APITest):
     ACTIVITY_STREAM_FLAGS = ["ACTIVITY_STREAM_ENABLED", "ACTIVITY_STREAM_ENABLED_FOR_INVENTORY_SYNC"]
     ENTERPRISE_AUTH_SERVICES = ['radius', 'ldap', 'saml']
 
-    license_instance_count = 10
+    # as discovered in https://github.com/ansible/tower/issues/4086
+    # all 10 node instance count licenses are thought to be basic licenses
+    license_instance_count = 15
+    basic_license_instance_count = 10
 
     @pytest.fixture()
     def apply_generated_license(self, api):
@@ -73,12 +76,12 @@ class LicenseTest(APITest):
 
     @pytest.fixture(scope='class')
     def install_basic_license(self, apply_license):
-        with apply_license('basic', days=31, instance_count=self.license_instance_count):
+        with apply_license('basic', days=31, instance_count=self.basic_license_instance_count):
             yield
 
     @pytest.fixture
     def func_install_basic_license(self, apply_license):
-        with apply_license('basic', days=31, instance_count=self.license_instance_count):
+        with apply_license('basic', days=31, instance_count=self.basic_license_instance_count):
             yield
 
     @pytest.fixture(scope='class')
@@ -133,22 +136,23 @@ class LicenseTest(APITest):
 
         return obj
 
-    def assert_instance_counts(self, request, config, hosts, group):
+    def assert_instance_counts(self, request, config, hosts, group, is_basic=False):
         """Verify hosts can be added up to the provided 'license_instance_count' variable"""
         group_hosts = group.related.hosts.get()
 
         config.get()
+        expected_instance_count = self.license_instance_count if not is_basic else self.basic_license_instance_count
 
         current_hosts = config.license_info.current_instances
 
-        while current_hosts < self.license_instance_count:
+        while current_hosts < expected_instance_count:
             payload = dict(name="host-%s" % fauxfactory.gen_utf8().replace(':', ''),
                            description="host-%s" % fauxfactory.gen_utf8(),
                            inventory=group.inventory)
 
             assert config.license_info.current_instances == current_hosts
-            assert config.license_info.free_instances == self.license_instance_count - current_hosts
-            assert config.license_info.available_instances == self.license_instance_count
+            assert config.license_info.free_instances == expected_instance_count - current_hosts
+            assert config.license_info.available_instances == expected_instance_count
 
             log.debug("current_instances: {0.license_info.current_instances}, free_instances: "
                       "{0.license_info.free_instances}, available_instances: {0.license_info.available_instances}"
@@ -164,12 +168,23 @@ class LicenseTest(APITest):
                             description="host-%s" % fauxfactory.gen_utf8(),
                             inventory=group.inventory)
 
-        with pytest.raises(exc.LicenseExceeded):
-            group_hosts.post(host_payload)
-        with pytest.raises(exc.LicenseExceeded):
-            hosts.post(host_payload)
+        assert config.license_info.available_instances == expected_instance_count
 
-        assert current_hosts == self.license_instance_count
-        assert config.license_info.current_instances == self.license_instance_count
-        assert config.license_info.free_instances == 0
-        assert config.license_info.available_instances == self.license_instance_count
+        if is_basic:
+            # if its not basic, we don't block them from exceeding licensed instance count anymore
+            # https://github.com/ansible/tower/issues/3550
+            with pytest.raises(exc.LicenseExceeded):
+                group_hosts.post(host_payload)
+            with pytest.raises(exc.LicenseExceeded):
+                hosts.post(host_payload)
+
+            assert current_hosts == expected_instance_count
+            assert config.license_info.current_instances == expected_instance_count
+            assert config.license_info.free_instances == 0
+        else:
+            group_hosts.post(host_payload)
+            host_payload['name'] = f'another-{host_payload["name"]}'
+            hosts.post(host_payload)
+            config.get()
+            assert config.license_info.current_instances > expected_instance_count
+            assert config.license_info.free_instances < 0

@@ -60,7 +60,7 @@ class TestBasicLicense(LicenseTest):
         job_template.launch().wait_until_completed()
 
     def test_basic_license_instance_counts(self, request, api_config_pg, api_hosts_pg, inventory, group):
-        self.assert_instance_counts(request, api_config_pg, api_hosts_pg, group)
+        self.assert_instance_counts(request, api_config_pg, api_hosts_pg, group, is_basic=True)
 
     def test_basic_license_upgrade_to_enterprise(self, enterprise_license_json, api_config_pg):
         """Verify that a basic license can get upgraded to an enterprise license."""
