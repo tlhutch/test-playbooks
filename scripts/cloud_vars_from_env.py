@@ -20,7 +20,7 @@ env_vars = ['AUTHORIZED_KEYS', 'DELETE_ON_START', 'MINIMUM_VAR_SPACE', 'OUT_OF_B
             'GENERATE_ONLY_ASCII_PASSWORDS']
 # as well as environment variables with the prefixes:
 prefixes = ['ANSIBLE', 'AW_', 'AWS', 'AWX', 'AZURE', 'CREATE_EC2', 'EC2',
-            'GALAXY', 'GCE', 'INSTANCE', 'TERMINATE_EC2']
+            'GALAXY', 'GCE', 'INSTANCE', 'PG', 'TERMINATE_EC2']
 # and obtaining the desired image vars from playbooks/images-{cloud-provider}.yml.
 # If any of the following environment variables aren't provided and the cloud image
 # variable files are missing them, a random 10 character value will be generated:
@@ -145,7 +145,7 @@ def variables_from_env_vars():
             env_var_vars[env_var.lower()] = var_value
     for env_var in env:
         for prefix in prefixes:
-            if env_var.startswith(prefix):
+            if env_var.startswith(prefix) and env[env_var] != '':
                 env_var_vars[env_var.lower()] = env[env_var]
 
     return env_var_vars

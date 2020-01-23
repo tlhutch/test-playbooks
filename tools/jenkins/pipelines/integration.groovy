@@ -94,6 +94,31 @@ pipeline {
             description: 'Should the deployment be cleaned if job fails ?',
             choices: ['yes', 'no']
         )
+        string(
+            name: 'PG_HOST',
+            description: 'Provide a database host. If none provided, the database will be installed on standalone or on its own ec2 host for cluster.',
+            defaultValue: ''
+        )
+        string(
+            name: 'PG_PORT',
+            description: 'Provide the database port if using pre-configured database with PG_HOST',
+            defaultValue: ''
+        )
+        string(
+            name: 'PG_DATABASE',
+            description: 'Provide the name of the database in the postgres instance if using pre-configured database with PG_HOST',
+            defaultValue: ''
+        )
+        string(
+            name: 'PG_USERNAME',
+            description: 'Override default database user. If nothing provided, default will be used.',
+            defaultValue: ''
+        )
+        string(
+            name: 'PG_PASSWORD',
+            description: 'Override default database user password. If nothing provided, default will be used.',
+            defaultValue: ''
+        )
         choice(
             name: 'CREATE_POLARION_TEST_RUN',
             description: 'Should the test results be uploaded to Polarion as a new Test Run?',
@@ -164,6 +189,11 @@ Bundle?: ${params.BUNDLE}"""
                              "AWX_USE_TLS=${AWX_USE_TLS}",
                              "AWX_USE_FIPS=${AWX_USE_FIPS}",
                              "AWX_ADMIN_PASSWORD=${AWX_ADMIN_PASSWORD}",
+                             "PG_PASSWORD=${PG_PASSWORD}",
+                             "PG_HOST=${PG_HOST}",
+                             "PG_USERNAME=${PG_USERNAME}",
+                             "PG_DATABASE=${PG_DATABASE}",
+                             "PG_PORT=${PG_PORT}",
                              "ANSIBLE_FORCE_COLOR=true"]) {
                         sshagent(credentials : ['github-ansible-jenkins-nopassphrase']) {
                             sh './tools/jenkins/scripts/prep_test_runner.sh'
@@ -181,7 +211,12 @@ Bundle?: ${params.BUNDLE}"""
 
         stage ('Install') {
             steps {
-                withEnv(["ANSIBLE_FORCE_COLOR=true"]) {
+                withEnv(["PG_PASSWORD=${PG_PASSWORD}",
+                         "PG_HOST=${PG_HOST}",
+                         "PG_USERNAME=${PG_USERNAME}",
+                         "PG_DATABASE=${PG_DATABASE}",
+                         "PG_PORT=${PG_PORT}",
+                         "ANSIBLE_FORCE_COLOR=true"]) {
                     sshagent(credentials : ['github-ansible-jenkins-nopassphrase']) {
                         sh "ssh ${SSH_OPTS} ec2-user@${TEST_RUNNER_HOST} 'cd tower-qa && ./tools/jenkins/scripts/install.sh'"
                         script {
@@ -198,7 +233,12 @@ Bundle?: ${params.BUNDLE}"""
 
         stage ('Install Idempotence') {
             steps {
-                withEnv(["ANSIBLE_FORCE_COLOR=true"]) {
+                withEnv(["PG_PASSWORD=${PG_PASSWORD}",
+                         "PG_HOST=${PG_HOST}",
+                         "PG_USERNAME=${PG_USERNAME}",
+                         "PG_DATABASE=${PG_DATABASE}",
+                         "PG_PORT=${PG_PORT}",
+                         "ANSIBLE_FORCE_COLOR=true"]) {
                     sshagent(credentials : ['github-ansible-jenkins-nopassphrase']) {
                         sh "ssh ${SSH_OPTS} ec2-user@${TEST_RUNNER_HOST} 'cd tower-qa && ./tools/jenkins/scripts/install.sh'"
                     }

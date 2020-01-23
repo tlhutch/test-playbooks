@@ -47,7 +47,7 @@ pipeline {
             defaultValue: ''
         )
         string(
-            name: 'PG_HOSTNAME',
+            name: 'PG_HOST',
             description: 'Provide a database host. If none provided, an ephemeral database will be created in openshift.',
             defaultValue: ''
         )
@@ -150,7 +150,7 @@ Tower Memcached Container Image: ${params.MEMCACHED_CONTAINER_IMAGE}"""
                     withEnv(["OPENSHIFT_PASS=${OPENSHIFT_PASS}",
                              "OPENSHIFT_TOKEN=${OPENSHIFT_TOKEN}",
                              "PG_PASSWORD=${PG_PASSWORD}",
-                             "PG_HOSTNAME=${PG_HOSTNAME}",
+                             "PG_HOST=${PG_HOST}",
                              "PG_USERNAME=${PG_USERNAME}",
                              "PG_DATABASE=${PG_DATABASE}",
                              "PG_PORT=${PG_PORT}",

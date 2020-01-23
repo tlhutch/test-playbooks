@@ -15,7 +15,7 @@ OPENSHIFT_TOKEN=${OPENSHIFT_TOKEN:-''}
 OPENSHIFT_PROJECT=${OPENSHIFT_PROJECT:-"tower-qe-$(date +'%s')"}
 OPENSHIFT_ROUTE=${OPENSHIFT_ROUTE:-"https://ansible-tower-web-svc-${OPENSHIFT_PROJECT}.ocp3.ansible.eng.rdu2.redhat.com"}
 
-PG_HOSTNAME=${PG_HOSTNAME:-''}
+PG_HOST=${PG_HOST:-''}
 PG_PORT=${PG_PORT:-'5432'}
 PG_USERNAME=${PG_USERNAME:-'tower'}
 PG_PASSWORD=${PG_PASSWORD:-'towerpass'}
@@ -37,7 +37,7 @@ openshift_login
 
 if [[ "${AWX_UPGRADE}" == false ]]; then
     openshift_bootstrap_project "${OPENSHIFT_PROJECT}"
-    if [[ -z "${PG_HOSTNAME}" ]] ; then
+    if [[ -z "${PG_HOST}" ]] ; then
         cat << EOF > pvc.yml
 ---
 kind: PersistentVolumeClaim
@@ -160,9 +160,10 @@ kubernetes_memcached_image: ${MEMCACHED_CONTAINER_IMAGE}
 kubernetes_memcached_version: ${MEMCACHED_CONTAINER_IMAGE_VERSION}
 EOF
 
-if [[ -n "${PG_HOSTNAME}" ]] ; then
+# It is unfortunate, but for openshift it is "pg_hostname" and for regular tower installs it is "pg_host"
+if [[ -n "${PG_HOST}" ]] ; then
     cat <<EOF >> vars.yml
-pg_hostname: ${PG_HOSTNAME}
+pg_hostname: ${PG_HOST}
 EOF
 fi
 

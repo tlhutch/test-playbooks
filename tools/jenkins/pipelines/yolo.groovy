@@ -165,6 +165,31 @@ pipeline {
             choices: ['devel', 'stable-2.9', 'stable-2.8', 'stable-2.7', 'stable-2.6', 'stable-2.5', 'stable-2.4', 'stable-2.3']
         )
         string(
+            name: 'PG_HOST',
+            description: 'Provide a database host. If none provided, the database will be installed on standalone or on its own ec2 host for cluster.',
+            defaultValue: ''
+        )
+        string(
+            name: 'PG_PORT',
+            description: 'Provide the database port if using pre-configured database with PG_HOST',
+            defaultValue: ''
+        )
+        string(
+            name: 'PG_DATABASE',
+            description: 'Provide the name of the database in the postgres instance if using pre-configured database with PG_HOST',
+            defaultValue: ''
+        )
+        string(
+            name: 'PG_USERNAME',
+            description: 'Override default database user. If nothing provided, default will be used.',
+            defaultValue: ''
+        )
+        string(
+            name: 'PG_PASSWORD',
+            description: 'Override default database user password. If nothing provided, default will be used.',
+            defaultValue: ''
+        )
+        string(
             name: 'SLACK_USERNAME',
             description: """\
             Send slack DM on completion. Use space separate list to sent to multiple people, for example: @johill @elyezer.
@@ -439,6 +464,10 @@ pipeline {
                                      "PLATFORM=${PLATFORM}",
                                      "ANSIBLE_VERSION=${ANSIBLE_NIGHTLY_BRANCH}",
                                      "DEPLOYMENT_NAME=yolo-build-${env.BUILD_ID}",
+                                     "PG_HOST=${PG_HOST}",
+                                     "PG_USERNAME=${PG_USERNAME}",
+                                     "PG_DATABASE=${PG_DATABASE}",
+                                     "PG_PORT=${PG_PORT}",
                                      "AW_REPO_URL=http://nightlies.testing.ansible.com/ansible-tower_nightlies_m8u16fz56qr6q7/${NIGHTLY_REPO_DIR}"]) {
                                 sshagent(credentials : ['github-ansible-jenkins-nopassphrase']) {
                                     sh 'mkdir -p artifacts'

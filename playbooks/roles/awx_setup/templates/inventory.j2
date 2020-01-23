@@ -27,6 +27,9 @@ pg_password="{{ hostvars['localhost']['tower_db']['pg_password'] }}"
 {% if 'database' in groups %}
 pg_host="{{ groups['database'][0] }}"
 pg_port="{{ pg_port|default(5432) }}"
+{% elif pg_host != '' | default(false) %}
+pg_host="{{ pg_host }}"
+pg_port="{{ pg_port | default(5432) }}"
 {% elif awx_ipv6_deployment | default(false) %}
 pg_host="::1"
 pg_port="{{ pg_port | default(5432) }}"
