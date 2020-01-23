@@ -231,7 +231,7 @@ Bundle?: ${params.BUNDLE}"""
         stage('Run Collection Tests') {
             steps {
                 sshagent(credentials : ['github-ansible-jenkins-nopassphrase']) {
-                    sh "ssh ${SSH_OPTS} ec2-user@${TEST_RUNNER_HOST} 'cd tower-qa && TESTEXPR=\"${params.TESTEXPR}\" TOWERKIT_FORK=\"${params.TOWERKIT_FORK}\" TOWERKIT_BRANCH=\"${params.TOWERKIT_BRANCH}\" PRODUCT=\"${params.PRODUCT}\" AWXKIT_REPO=\"${params.AWXKIT_REPO}\" TOWER_FORK=\"${params.TOWER_FORK}\" TOWER_BRANCH=\"${params.TOWER_BRANCH}\" ./tools/jenkins/scripts/test-collection.sh'"
+                    sh "ssh ${SSH_OPTS} ec2-user@${TEST_RUNNER_HOST} 'cd tower-qa && TESTEXPR=\"${params.TESTEXPR}\" TOWER_BRANCH=\"${tower_branch_name}\" PRODUCT=\"tower\" ./tools/jenkins/scripts/test-collection.sh'"
                     sh 'ansible-playbook -v -i playbooks/inventory.test_runner playbooks/test_runner/run_fetch_artifacts_test_collection.yml'
                     junit allowEmptyResults: true, testResults: 'artifacts/results-collection.xml'
                 }
