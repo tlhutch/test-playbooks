@@ -145,8 +145,12 @@ def variables_from_env_vars():
             env_var_vars[env_var.lower()] = var_value
     for env_var in env:
         for prefix in prefixes:
-            if env_var.startswith(prefix) and env[env_var] != '':
-                env_var_vars[env_var.lower()] = env[env_var]
+            if env_var.startswith(prefix):
+                if env_var.startswith('PG_') and not env[env_var]:
+                    # We don't want to record the empty PG_HOST, PG_PASSWORD, etc vars
+                    continue
+                else:
+                    env_var_vars[env_var.lower()] = env[env_var]
 
     return env_var_vars
 
