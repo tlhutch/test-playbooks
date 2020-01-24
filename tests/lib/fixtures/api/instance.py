@@ -27,18 +27,22 @@ def reset_instance(request):
 
 
 @pytest.fixture(params=['regular', 'isolated', 'container_group'], ids=['regular_tower_instance', 'isolated_node', 'container_group'])
-def instance_group(request, authtoken, is_traditional_cluster, v2, session_container_group):
+def instance_group(request, authtoken, is_traditional_cluster, is_openshift_cluster, v2, session_container_group):
     """Return first the tower instance group, then an isolated instance group, then a container group.
 
     This is to enable running tests a second time on an isolated node if the platform
     under test is a traditional cluster and includes isolated nodes.
     """
     if request.param == 'isolated':
-        if is_traditional_cluster:
+        if is_traditional_cluster or is_openshift_cluster:
             return v2.instance_groups.get(name='protected').results.pop()
         else:
             pytest.skip("Not on a cluster, cannot run on isolated node.")
     if request.param == 'regular':
         return v2.instance_groups.get(name='tower').results.pop()
     if request.param == 'container_group':
-        return session_container_group
+        if is_traditional_cluster or is_openshift_cluster:
+            # We are overloading our k8s cluster running these on all platforms
+            pytest.skip("Only running container group tests from standalone instances to not overwhelm our k8s cluster nightly.")
+        else:
+            return session_container_group
