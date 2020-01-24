@@ -54,6 +54,11 @@ setup_env_based_on_deployment_scenario "${SCENARIO}"
 if [[ -z "${AW_REPO_URL}" ]]; then
     AW_REPO_URL=$(retrieve_aw_repo_url_based_on_version "${TOWER_VERSION}")
 fi
+
+if [[ -n "${PG_HOST}" ]] && [[ ${SCENARIO} == "cluster" ]]; then
+    export IMAGE_VARS='playbooks/images-external-db.yml'
+fi
+
 AWX_USE_FIPS=$(retrieve_boolean_value "${AWX_USE_FIPS}")
 AWX_USE_TLS=$(retrieve_boolean_value "${AWX_USE_TLS}")
 AWX_IPV6_DEPLOYMENT=$(retrieve_boolean_value "${AWX_IPV6_DEPLOYMENT}")

@@ -1,0 +1,146 @@
+---
+instance_name_prefix: "{{ lookup('env','USER') }}-tower-isolated-groups"
+my_inventory_file: '{{inventory_dir}}/inventory.cluster'
+cluster_install: true
+
+create_ec2_assign_public_ip: true
+create_ec2_vpc_id: vpc-552da032
+create_ec2_vpc_subnet_id: subnet-9cdddbb0
+
+ec2_images:
+  # - {'name': 'haproxy-rhel-7.4-x86_64', 'user': 'ec2-user', 'id': 'ami-7a96b801', 'type': 'm5.large', 'groups': 'haproxy', 'security_group': 'tower-cluster'}
+  - {'name': 'cluster-1-rhel-7.4-x86_64', 'user': 'ec2-user', 'id': 'ami-7a96b801', 'type': 'm5.large', 'groups': 'tower, cluster_installer, instance_group_ordinary_instances, instance_group_partition_1, instance_group_1, instance_group_ッ_ッ', 'security_group': 'tower-cluster'}
+  - {'name': 'cluster-2-rhel-7.4-x86_64', 'user': 'ec2-user', 'id': 'ami-7a96b801', 'type': 'm5.large', 'groups': 'tower, instance_group_ordinary_instances, instance_group_partition_1, instance_group_2, instance_group_6', 'security_group': 'tower-cluster'}
+  - {'name': 'cluster-3-rhel-7.4-x86_64', 'user': 'ec2-user', 'id': 'ami-7a96b801', 'type': 'm5.large', 'groups': 'tower, instance_group_ordinary_instances, instance_group_future_controller, instance_group_partition_2, instance_group_3, instance_group_6, instance_group_7', 'security_group': 'tower-cluster'}
+  - {'name': 'cluster-4-rhel-7.4-x86_64', 'user': 'ec2-user', 'id': 'ami-7a96b801', 'type': 'm5.large', 'groups': 'tower, instance_group_ordinary_instances, instance_group_controller, instance_group_partition_2, instance_group_4, instance_group_7', 'security_group': 'tower-cluster'}
+  - {'name': 'cluster-5-rhel-7.4-x86_64', 'user': 'ec2-user', 'id': 'ami-7a96b801', 'type': 'm5.large', 'groups': 'tower, instance_group_ordinary_instances, instance_group_controller, instance_group_partition_2, instance_group_5, instance_group_7', 'security_group': 'tower-cluster'}
+  - {'name': 'cluster-6-rhel-7.4-x86_64', 'user': 'ec2-user', 'id': 'ami-7a96b801', 'type': 'm5.large', 'groups': 'isolated_group_protected, isolated_group_protected_cdg, isolated_group_protected_rdu, isolated_group_protected_lhr', 'controller': 'controller', 'security_group': 'tower-cluster'}
+  - {'name': 'cluster-7-rhel-7.4-x86_64', 'user': 'ec2-user', 'id': 'ami-7a96b801', 'type': 'm5.large', 'groups': 'isolated_group_protected, isolated_group_protected_sfo, isolated_group_protected_lax', 'controller': 'controller', 'security_group': 'tower-cluster'}
+  - {'name': 'cluster-managed-host-rhel-7.4-x86_64', 'user': 'ec2-user', 'id': 'ami-7a96b801', 'type': 'm5.large', 'groups': 'managed_hosts', 'security_group': 'tower-cluster'}
+
+  # - {'name': 'haproxy-rhel-7.5-x86_64', 'user': 'ec2-user', 'id': 'ami-0d70a070', 'type': 'm5.large', 'groups': 'haproxy', 'security_group': 'tower-cluster'}
+  - {'name': 'cluster-1-rhel-7.5-x86_64', 'user': 'ec2-user', 'id': 'ami-0d70a070', 'type': 'm5.large', 'groups': 'tower, cluster_installer, instance_group_ordinary_instances, instance_group_partition_1, instance_group_1, instance_group_ッ_ッ', 'security_group': 'tower-cluster'}
+  - {'name': 'cluster-2-rhel-7.5-x86_64', 'user': 'ec2-user', 'id': 'ami-0d70a070', 'type': 'm5.large', 'groups': 'tower, instance_group_ordinary_instances, instance_group_partition_1, instance_group_2, instance_group_6', 'security_group': 'tower-cluster'}
+  - {'name': 'cluster-3-rhel-7.5-x86_64', 'user': 'ec2-user', 'id': 'ami-0d70a070', 'type': 'm5.large', 'groups': 'tower, instance_group_ordinary_instances, instance_group_future_controller, instance_group_partition_2, instance_group_3, instance_group_6, instance_group_7', 'security_group': 'tower-cluster'}
+  - {'name': 'cluster-4-rhel-7.5-x86_64', 'user': 'ec2-user', 'id': 'ami-0d70a070', 'type': 'm5.large', 'groups': 'tower, instance_group_ordinary_instances, instance_group_controller, instance_group_partition_2, instance_group_4, instance_group_7', 'security_group': 'tower-cluster'}
+  - {'name': 'cluster-5-rhel-7.5-x86_64', 'user': 'ec2-user', 'id': 'ami-0d70a070', 'type': 'm5.large', 'groups': 'tower, instance_group_ordinary_instances, instance_group_controller, instance_group_partition_2, instance_group_5, instance_group_7', 'security_group': 'tower-cluster'}
+  - {'name': 'cluster-6-rhel-7.5-x86_64', 'user': 'ec2-user', 'id': 'ami-0d70a070', 'type': 'm5.large', 'groups': 'isolated_group_protected, isolated_group_protected_cdg, isolated_group_protected_rdu, isolated_group_protected_lhr', 'controller': 'controller', 'security_group': 'tower-cluster'}
+  - {'name': 'cluster-7-rhel-7.5-x86_64', 'user': 'ec2-user', 'id': 'ami-0d70a070', 'type': 'm5.large', 'groups': 'isolated_group_protected, isolated_group_protected_sfo, isolated_group_protected_lax', 'controller': 'controller', 'security_group': 'tower-cluster'}
+  - {'name': 'cluster-managed-host-rhel-7.5-x86_64', 'user': 'ec2-user', 'id': 'ami-0d70a070', 'type': 'm5.large', 'groups': 'managed_hosts', 'security_group': 'tower-cluster'}
+
+  # - {'name': 'haproxy-rhel-7.6-x86_64', 'user': 'ec2-user', 'id': 'ami-06fd194eff2ab1451', 'type': 'm5.large', 'groups': 'haproxy', 'security_group': 'tower-cluster'}
+  - {'name': 'cluster-1-rhel-7.6-x86_64', 'user': 'ec2-user', 'id': 'ami-06fd194eff2ab1451', 'type': 'm5.large', 'groups': 'tower, cluster_installer, instance_group_ordinary_instances, instance_group_partition_1, instance_group_1, instance_group_ッ_ッ', 'security_group': 'tower-cluster'}
+  - {'name': 'cluster-2-rhel-7.6-x86_64', 'user': 'ec2-user', 'id': 'ami-06fd194eff2ab1451', 'type': 'm5.large', 'groups': 'tower, instance_group_ordinary_instances, instance_group_partition_1, instance_group_2, instance_group_6', 'security_group': 'tower-cluster'}
+  - {'name': 'cluster-3-rhel-7.6-x86_64', 'user': 'ec2-user', 'id': 'ami-06fd194eff2ab1451', 'type': 'm5.large', 'groups': 'tower, instance_group_ordinary_instances, instance_group_future_controller, instance_group_partition_2, instance_group_3, instance_group_6, instance_group_7', 'security_group': 'tower-cluster'}
+  - {'name': 'cluster-4-rhel-7.6-x86_64', 'user': 'ec2-user', 'id': 'ami-06fd194eff2ab1451', 'type': 'm5.large', 'groups': 'tower, instance_group_ordinary_instances, instance_group_controller, instance_group_partition_2, instance_group_4, instance_group_7', 'security_group': 'tower-cluster'}
+  - {'name': 'cluster-5-rhel-7.6-x86_64', 'user': 'ec2-user', 'id': 'ami-06fd194eff2ab1451', 'type': 'm5.large', 'groups': 'tower, instance_group_ordinary_instances, instance_group_controller, instance_group_partition_2, instance_group_5, instance_group_7', 'security_group': 'tower-cluster'}
+  - {'name': 'cluster-6-rhel-7.6-x86_64', 'user': 'ec2-user', 'id': 'ami-06fd194eff2ab1451', 'type': 'm5.large', 'groups': 'isolated_group_protected, isolated_group_protected_cdg, isolated_group_protected_rdu, isolated_group_protected_lhr', 'controller': 'controller', 'security_group': 'tower-cluster'}
+  - {'name': 'cluster-7-rhel-7.6-x86_64', 'user': 'ec2-user', 'id': 'ami-06fd194eff2ab1451', 'type': 'm5.large', 'groups': 'isolated_group_protected, isolated_group_protected_sfo, isolated_group_protected_lax', 'controller': 'controller', 'security_group': 'tower-cluster'}
+  - {'name': 'cluster-managed-host-rhel-7.6-x86_64', 'user': 'ec2-user', 'id': 'ami-06fd194eff2ab1451', 'type': 'm5.large', 'groups': 'managed_hosts', 'security_group': 'tower-cluster'}
+
+  # - {'name': 'haproxy-rhel-7.7-x86_64', 'user': 'ec2-user', 'id': 'ami-00936483548a6d57f', 'type': 'm5.large', 'groups': 'haproxy', 'security_group': 'tower-cluster'}
+  - {'name': 'cluster-1-rhel-7.7-x86_64', 'user': 'ec2-user', 'id': 'ami-00936483548a6d57f', 'type': 'm5.large', 'groups': 'tower, cluster_installer, instance_group_ordinary_instances, instance_group_partition_1, instance_group_1, instance_group_ッ_ッ', 'security_group': 'tower-cluster'}
+  - {'name': 'cluster-2-rhel-7.7-x86_64', 'user': 'ec2-user', 'id': 'ami-00936483548a6d57f', 'type': 'm5.large', 'groups': 'tower, instance_group_ordinary_instances, instance_group_partition_1, instance_group_2, instance_group_6', 'security_group': 'tower-cluster'}
+  - {'name': 'cluster-3-rhel-7.7-x86_64', 'user': 'ec2-user', 'id': 'ami-00936483548a6d57f', 'type': 'm5.large', 'groups': 'tower, instance_group_ordinary_instances, instance_group_future_controller, instance_group_partition_2, instance_group_3, instance_group_6, instance_group_7', 'security_group': 'tower-cluster'}
+  - {'name': 'cluster-4-rhel-7.7-x86_64', 'user': 'ec2-user', 'id': 'ami-00936483548a6d57f', 'type': 'm5.large', 'groups': 'tower, instance_group_ordinary_instances, instance_group_controller, instance_group_partition_2, instance_group_4, instance_group_7', 'security_group': 'tower-cluster'}
+  - {'name': 'cluster-5-rhel-7.7-x86_64', 'user': 'ec2-user', 'id': 'ami-00936483548a6d57f', 'type': 'm5.large', 'groups': 'tower, instance_group_ordinary_instances, instance_group_controller, instance_group_partition_2, instance_group_5, instance_group_7', 'security_group': 'tower-cluster'}
+  - {'name': 'cluster-6-rhel-7.7-x86_64', 'user': 'ec2-user', 'id': 'ami-00936483548a6d57f', 'type': 'm5.large', 'groups': 'isolated_group_protected, isolated_group_protected_cdg, isolated_group_protected_rdu, isolated_group_protected_lhr', 'controller': 'controller', 'security_group': 'tower-cluster'}
+  - {'name': 'cluster-7-rhel-7.7-x86_64', 'user': 'ec2-user', 'id': 'ami-00936483548a6d57f', 'type': 'm5.large', 'groups': 'isolated_group_protected, isolated_group_protected_sfo, isolated_group_protected_lax', 'controller': 'controller', 'security_group': 'tower-cluster'}
+  - {'name': 'cluster-managed-host-rhel-7.7-x86_64', 'user': 'ec2-user', 'id': 'ami-00936483548a6d57f', 'type': 'm5.large', 'groups': 'managed_hosts', 'security_group': 'tower-cluster'}
+
+  # - {'name': 'haproxy-rhel-8.0-x86_64', 'user': 'ec2-user', 'id': 'ami-098bb5d92c8886ca1', 'type': 'm5.large', 'groups': 'haproxy', 'security_group': 'tower-cluster'}
+  - {'name': 'cluster-1-rhel-8.0-x86_64', 'user': 'ec2-user', 'id': 'ami-098bb5d92c8886ca1', 'type': 'm5.large', 'groups': 'tower, cluster_installer, instance_group_ordinary_instances, instance_group_partition_1, instance_group_1, instance_group_ッ_ッ', 'security_group': 'tower-cluster'}
+  - {'name': 'cluster-2-rhel-8.0-x86_64', 'user': 'ec2-user', 'id': 'ami-098bb5d92c8886ca1', 'type': 'm5.large', 'groups': 'tower, instance_group_ordinary_instances, instance_group_partition_1, instance_group_2, instance_group_6', 'security_group': 'tower-cluster'}
+  - {'name': 'cluster-3-rhel-8.0-x86_64', 'user': 'ec2-user', 'id': 'ami-098bb5d92c8886ca1', 'type': 'm5.large', 'groups': 'tower, instance_group_ordinary_instances, instance_group_future_controller, instance_group_partition_2, instance_group_3, instance_group_6, instance_group_7', 'security_group': 'tower-cluster'}
+  - {'name': 'cluster-4-rhel-8.0-x86_64', 'user': 'ec2-user', 'id': 'ami-098bb5d92c8886ca1', 'type': 'm5.large', 'groups': 'tower, instance_group_ordinary_instances, instance_group_controller, instance_group_partition_2, instance_group_4, instance_group_7', 'security_group': 'tower-cluster'}
+  - {'name': 'cluster-5-rhel-8.0-x86_64', 'user': 'ec2-user', 'id': 'ami-098bb5d92c8886ca1', 'type': 'm5.large', 'groups': 'tower, instance_group_ordinary_instances, instance_group_controller, instance_group_partition_2, instance_group_5, instance_group_7', 'security_group': 'tower-cluster'}
+  - {'name': 'cluster-6-rhel-8.0-x86_64', 'user': 'ec2-user', 'id': 'ami-098bb5d92c8886ca1', 'type': 'm5.large', 'groups': 'isolated_group_protected, isolated_group_protected_cdg, isolated_group_protected_rdu, isolated_group_protected_lhr', 'controller': 'controller', 'security_group': 'tower-cluster'}
+  - {'name': 'cluster-7-rhel-8.0-x86_64', 'user': 'ec2-user', 'id': 'ami-098bb5d92c8886ca1', 'type': 'm5.large', 'groups': 'isolated_group_protected, isolated_group_protected_sfo, isolated_group_protected_lax', 'controller': 'controller', 'security_group': 'tower-cluster'}
+  - {'name': 'cluster-managed-host-rhel-8.0-x86_64', 'user': 'ec2-user', 'id': 'ami-098bb5d92c8886ca1', 'type': 'm5.large', 'groups': 'managed_hosts', 'security_group': 'tower-cluster'}
+
+  # - {'name': 'haproxy-rhel-8.1-x86_64', 'user': 'ec2-user', 'id': 'ami-002cdac160d085b42', 'type': 'm5.large', 'groups': 'haproxy', 'security_group': 'tower-cluster'}
+  - {'name': 'cluster-1-rhel-8.1-x86_64', 'user': 'ec2-user', 'id': 'ami-002cdac160d085b42', 'type': 'm5.large', 'groups': 'tower, cluster_installer, instance_group_ordinary_instances, instance_group_partition_1, instance_group_1, instance_group_ッ_ッ', 'security_group': 'tower-cluster'}
+  - {'name': 'cluster-2-rhel-8.1-x86_64', 'user': 'ec2-user', 'id': 'ami-002cdac160d085b42', 'type': 'm5.large', 'groups': 'tower, instance_group_ordinary_instances, instance_group_partition_1, instance_group_2, instance_group_6', 'security_group': 'tower-cluster'}
+  - {'name': 'cluster-3-rhel-8.1-x86_64', 'user': 'ec2-user', 'id': 'ami-002cdac160d085b42', 'type': 'm5.large', 'groups': 'tower, instance_group_ordinary_instances, instance_group_future_controller, instance_group_partition_2, instance_group_3, instance_group_6, instance_group_7', 'security_group': 'tower-cluster'}
+  - {'name': 'cluster-4-rhel-8.1-x86_64', 'user': 'ec2-user', 'id': 'ami-002cdac160d085b42', 'type': 'm5.large', 'groups': 'tower, instance_group_ordinary_instances, instance_group_controller, instance_group_partition_2, instance_group_4, instance_group_7', 'security_group': 'tower-cluster'}
+  - {'name': 'cluster-5-rhel-8.1-x86_64', 'user': 'ec2-user', 'id': 'ami-002cdac160d085b42', 'type': 'm5.large', 'groups': 'tower, instance_group_ordinary_instances, instance_group_controller, instance_group_partition_2, instance_group_5, instance_group_7', 'security_group': 'tower-cluster'}
+  - {'name': 'cluster-6-rhel-8.1-x86_64', 'user': 'ec2-user', 'id': 'ami-002cdac160d085b42', 'type': 'm5.large', 'groups': 'isolated_group_protected, isolated_group_protected_cdg, isolated_group_protected_rdu, isolated_group_protected_lhr', 'controller': 'controller', 'security_group': 'tower-cluster'}
+  - {'name': 'cluster-7-rhel-8.1-x86_64', 'user': 'ec2-user', 'id': 'ami-002cdac160d085b42', 'type': 'm5.large', 'groups': 'isolated_group_protected, isolated_group_protected_sfo, isolated_group_protected_lax', 'controller': 'controller', 'security_group': 'tower-cluster'}
+  - {'name': 'cluster-managed-host-rhel-8.1-x86_64', 'user': 'ec2-user', 'id': 'ami-002cdac160d085b42', 'type': 'm5.large', 'groups': 'managed_hosts', 'security_group': 'tower-cluster'}
+
+  # - {'name': 'haproxy-centos-7.latest-x86_64', 'user': 'centos', 'id': 'ami-9887c6e7', 'type': 'm5.large', 'groups': 'haproxy', 'security_group': 'tower-cluster'}
+  - {'name': 'cluster-1-centos-7.latest-x86_64', 'user': 'centos', 'id': 'ami-9887c6e7', 'type': 'm5.large', 'groups': 'tower, cluster_installer, instance_group_ordinary_instances, instance_group_partition_1, instance_group_1, instance_group_ッ_ッ', 'security_group': 'tower-cluster'}
+  - {'name': 'cluster-2-centos-7.latest-x86_64', 'user': 'centos', 'id': 'ami-9887c6e7', 'type': 'm5.large', 'groups': 'tower, instance_group_ordinary_instances, instance_group_partition_1, instance_group_2, instance_group_6', 'security_group': 'tower-cluster'}
+  - {'name': 'cluster-3-centos-7.latest-x86_64', 'user': 'centos', 'id': 'ami-9887c6e7', 'type': 'm5.large', 'groups': 'tower, instance_group_ordinary_instances, instance_group_future_controller, instance_group_partition_2, instance_group_3, instance_group_6, instance_group_7', 'security_group': 'tower-cluster'}
+  - {'name': 'cluster-4-centos-7.latest-x86_64', 'user': 'centos', 'id': 'ami-9887c6e7', 'type': 'm5.large', 'groups': 'tower, instance_group_ordinary_instances, instance_group_controller, instance_group_partition_2, instance_group_4, instance_group_7', 'security_group': 'tower-cluster'}
+  - {'name': 'cluster-5-centos-7.latest-x86_64', 'user': 'centos', 'id': 'ami-9887c6e7', 'type': 'm5.large', 'groups': 'tower, instance_group_ordinary_instances, instance_group_controller, instance_group_partition_2, instance_group_5, instance_group_7', 'security_group': 'tower-cluster'}
+  - {'name': 'cluster-6-centos-7.latest-x86_64', 'user': 'centos', 'id': 'ami-9887c6e7', 'type': 'm5.large', 'groups': 'isolated_group_protected, isolated_group_protected_cdg, isolated_group_protected_rdu, isolated_group_protected_lhr', 'controller': 'controller', 'security_group': 'tower-cluster'}
+  - {'name': 'cluster-7-centos-7.latest-x86_64', 'user': 'centos', 'id': 'ami-9887c6e7', 'type': 'm5.large', 'groups': 'isolated_group_protected, isolated_group_protected_sfo, isolated_group_protected_lax', 'controller': 'controller', 'security_group': 'tower-cluster'}
+  - {'name': 'cluster-managed-host-centos-7.latest-x86_64', 'user': 'centos', 'id': 'ami-9887c6e7', 'type': 'm5.large', 'groups': 'managed_hosts', 'security_group': 'tower-cluster'}
+
+ec2_security_groups:
+  - name: tower-cluster
+    description: Security group for Tower instances
+    rules:
+      - proto: tcp
+        from_port: 22
+        to_port: 22
+        cidr_ip: 0.0.0.0/0
+        cidr_ipv6: ::/0
+      - proto: tcp
+        from_port: 80
+        to_port: 80
+        cidr_ip: 0.0.0.0/0
+        cidr_ipv6: ::/0
+      - proto: tcp
+        from_port: 389
+        to_port: 389
+        cidr_ip: 0.0.0.0/0
+        cidr_ipv6: ::/0
+      - proto: tcp
+        from_port: 443
+        to_port: 443
+        cidr_ip: 0.0.0.0/0
+        cidr_ipv6: ::/0
+      - proto: tcp
+        from_port: 1936
+        to_port: 1936
+        cidr_ip: 0.0.0.0/0
+        cidr_ipv6: ::/0
+      - proto: tcp
+        from_port: 4369
+        to_port: 4369
+        cidr_ip: 0.0.0.0/0
+        cidr_ipv6: ::/0
+      - proto: tcp
+        from_port: 5432
+        to_port: 5432
+        cidr_ip: 0.0.0.0/0
+        cidr_ipv6: ::/0
+      - proto: tcp
+        from_port: 5672
+        to_port: 5672
+        cidr_ip: 0.0.0.0/0
+        cidr_ipv6: ::/0
+      - proto: tcp
+        from_port: 8080
+        to_port: 8080
+        cidr_ip: 0.0.0.0/0
+        cidr_ipv6: ::/0
+      - proto: tcp
+        from_port: 15672
+        to_port: 15672
+        cidr_ip: 0.0.0.0/0
+        cidr_ipv6: ::/0
+      - proto: tcp
+        from_port: 25672
+        to_port: 25672
+        cidr_ip: 0.0.0.0/0
+        cidr_ipv6: ::/0
+  - name: tower-isolated-group
+    description: Security group for Tower HA isolated groups
+    rules:
+      - proto: tcp
+        from_port: 22
+        to_port: 22
+        cidr_ip: 0.0.0.0/0

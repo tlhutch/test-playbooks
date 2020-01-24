@@ -48,11 +48,11 @@ pg_host="{{ hostvars[groups['database'][0]].ansible_default_ipv6.address }}"
 {% else %}
 pg_host="{{ hostvars[groups['database'][0]].ansible_default_ipv4.address }}"
 {% endif %}
+
 pg_port="{{ pg_port | default('5432') }}"
 pg_database="{{ pg_database }}"
 pg_username="{{ pg_username }}"
 pg_password="{{ pg_password }}"
-{% endif %}
 
 {% if 'tower' in groups %}
 rabbitmq_port='{{ rabbitmq_port }}'
