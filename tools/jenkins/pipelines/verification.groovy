@@ -52,11 +52,11 @@ Platform under test: ${params.PLATFORM}"""
                     if (params.TOWER_VERSION == 'devel') {
                         prev_maj_version = '3.6.2'
                     } else if (params.TOWER_VERSION ==~ /3.6.[0-9]*/) {
-                        prev_maj_version = '3.5.3'
+                        prev_maj_version = '3.5.4'
                         prev_min_version = '3.6.2'
                     } else if (params.TOWER_VERSION ==~ /3.5.[0-9]*/) {
                         prev_maj_version = '3.4.5'
-                        prev_min_version = '3.5.3'
+                        prev_min_version = '3.5.4'
                     } else if (params.TOWER_VERSION ==~ /3.4.[0-9]*/) {
                         prev_maj_version = '3.3.7'
                         prev_min_version = '3.4.5'
