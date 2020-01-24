@@ -569,7 +569,7 @@ class TestApplicationTokens(APITest):
 
     @pytest.mark.serial
     @pytest.mark.ansible(host_pattern='tower[0]')  # target 1 normal instance
-    def test_revoked_tokens_cleaned_up(self, ansible_runner, v2, factories):
+    def test_revoked_tokens_cleaned_up(self, skip_if_openshift, ansible_runner, v2, factories):
         """Regression test for https://github.com/ansible/awx/issues/3825
 
         Once tokens have been revoked, all of them should be removed by the management
@@ -607,7 +607,7 @@ class TestApplicationTokens(APITest):
 
     @pytest.mark.serial
     @pytest.mark.ansible(host_pattern='tower[0]')  # target 1 normal instance
-    def test_expired_tokens_cleaned_up(self, v2, update_setting_pg, ansible_runner, factories):
+    def test_expired_tokens_cleaned_up(self, skip_if_openshift, v2, update_setting_pg, ansible_runner, factories):
         auth_settings = v2.settings.get().get_endpoint('authentication')
         payload = {
             'OAUTH2_PROVIDER': {
