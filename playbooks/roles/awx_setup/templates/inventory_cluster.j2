@@ -41,7 +41,7 @@ pg_port="{{ hostvars['localhost']['tower_db']['pg_port'] }}"
 pg_database="{{ hostvars['localhost']['tower_db']['pg_database'] }}"
 pg_username="{{ hostvars['localhost']['tower_db']['pg_username'] }}"
 pg_password="{{ hostvars['localhost']['tower_db']['pg_password'] }}"
-{% elif pg_host != '' | default(false) %}
+{% elif pg_host | default('') %}
 pg_host="{{ pg_host }}"
 {% elif awx_ipv6_deployment | default(false) | bool %}
 pg_host="{{ hostvars[groups['database'][0]].ansible_default_ipv6.address }}"
