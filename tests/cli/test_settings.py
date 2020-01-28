@@ -64,3 +64,23 @@ class TestSettingsCLI(object):
         settings = v2.settings.get().get_endpoint('jobs')
         assert settings[key] == 1
         v2.settings.get().get_endpoint('jobs').patch(key=0)
+
+    @pytest.mark.serial
+    def test_update_string(self, cli, v2):
+        key = 'LOG_AGGREGATOR_TOWER_UUID'
+        cli([
+            'awx', 'settings', 'modify', key, 'some-random-value'
+        ], auth=True)
+        settings = v2.settings.get().get_endpoint('logging')
+        assert settings[key] == 'some-random-value'
+        v2.settings.get().get_endpoint('logging').patch(key='')
+
+    @pytest.mark.serial
+    def test_update_json(self, cli, v2):
+        key = 'AWX_TASK_ENV'
+        cli([
+            'awx', 'settings', 'modify', key, '{"X_FOO": "bar"}'
+        ], auth=True)
+        settings = v2.settings.get().get_endpoint('jobs')
+        assert settings[key] == {"X_FOO": "bar"}
+        v2.settings.get().get_endpoint('jobs').patch(key='{}')
