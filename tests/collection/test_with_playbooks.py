@@ -1,13 +1,11 @@
 from awxkit.config import config
-from awxkit import utils
 
-from copy import deepcopy
 import pytest
 import json
 import os
 
 from tests.api import APITest
-from tests.collection import CUSTOM_VENVS,CUSTOM_VENVS_NAMES
+from tests.collection import CUSTOM_VENVS, CUSTOM_VENVS_NAMES
 
 TOWER_MODULES_PARAMS = [
     'common',
@@ -75,5 +73,3 @@ class Test_Ansible_Tower_Modules_via_Playbooks(APITest):
         job = jt.launch().wait_until_completed()
 
         job.assert_successful()
-
-

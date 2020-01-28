@@ -1,5 +1,4 @@
 from collections import Counter
-import dateutil
 import json
 
 from awxkit.utils import poll_until
@@ -541,7 +540,7 @@ class Test_Job_Events(APITest):
             "        'created': datetime.datetime.utcnow().isoformat()",
             '    })',
         ])
-        contacted = ansible_runner.shell(f'echo "{firehose}" | awx-manage shell')
+        ansible_runner.shell(f'echo "{firehose}" | awx-manage shell')
 
         # confirm a baseline of _at least_ 500 inserts per minute
         try:

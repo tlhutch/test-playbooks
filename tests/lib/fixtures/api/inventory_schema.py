@@ -24,7 +24,7 @@ def inventory_hostvars(inventory_schema):
 
     These are what we consider a minimum acceptable set of hostvars that each host should have defined.
     """
-    return {inv_source:inventory_schema[inv_source]['hostvars']
+    return {inv_source: inventory_schema[inv_source]['hostvars']
             for inv_source in SUPPORTED_INV_SOURCES}
 
 
@@ -84,5 +84,5 @@ def inventory_hostgroups(inventory_schema):
     If a test began to fail because of these groups missing, it would also be prudent to look to see if the
     hostvar that would provide the data is present.
     """
-    return {inv_source:inventory_schema[inv_source]['hostgroups']
+    return {inv_source: inventory_schema[inv_source]['hostgroups']
             for inv_source in SUPPORTED_INV_SOURCES}

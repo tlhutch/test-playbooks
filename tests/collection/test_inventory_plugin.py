@@ -1,13 +1,11 @@
 from awxkit.config import config
-from awxkit import utils
 
-from copy import deepcopy
 import pytest
 import json
 import os
 
 from tests.api import APITest
-from tests.collection import CUSTOM_VENVS,CUSTOM_VENVS_NAMES
+from tests.collection import CUSTOM_VENVS, CUSTOM_VENVS_NAMES
 
 
 @pytest.mark.fixture_args(venvs=CUSTOM_VENVS, cluster=True, venv_group='local')

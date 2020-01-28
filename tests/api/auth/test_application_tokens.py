@@ -389,7 +389,7 @@ class TestApplicationTokens(APITest):
             assert resp.status_code == 204
         else:
             token.delete()
-        
+
         resp = conn.get('/api/v2/me/')
         assert resp.status_code == 401
 

@@ -21,4 +21,4 @@
       file:
         path: '/usr/share/ansible/collections'
         mode: u=rwX,g=rX,o=rX
-        recurse: yes
+        recurse: true

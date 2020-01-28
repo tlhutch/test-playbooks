@@ -3,11 +3,9 @@ from awxkit import utils
 
 from copy import deepcopy
 import pytest
-import json
-import os
 
 from tests.api import APITest
-from tests.collection import CUSTOM_VENVS,CUSTOM_VENVS_NAMES
+from tests.collection import CUSTOM_VENVS, CUSTOM_VENVS_NAMES
 
 TEST_REPO_URL = "https://github.com/ansible/test-playbooks.git"
 
@@ -504,7 +502,7 @@ class Test_Ansible_Tower_Modules(APITest):
             'inventory': inventory.name,
             'playbook': 'sleep.yml',
             'project': project.name,
-            'extra_vars': { 'sleep_interval': 120 },
+            'extra_vars': {'sleep_interval': 120},
         }
         module_output = self.run_module(venv_path(python_venv['name']), ansible_adhoc, is_docker, request, collection_fqcn + '.tower_job_template', jt_module_args)
         self.check_module_output(request, ansible_adhoc, module_output, jt_module_args, True)
@@ -542,7 +540,7 @@ class Test_Ansible_Tower_Modules(APITest):
 
         # Update the JT
         jt_module_args['description'] = 'updated description'
-        jt_module_args['extra_vars'] = { 'sleep_interval': 5 }
+        jt_module_args['extra_vars'] = {'sleep_interval': 5}
         module_output = self.run_module(venv_path(python_venv['name']), ansible_adhoc, is_docker, request, collection_fqcn + '.tower_job_template', jt_module_args)
         self.check_module_output(request, ansible_adhoc, module_output, jt_module_args, True)
 

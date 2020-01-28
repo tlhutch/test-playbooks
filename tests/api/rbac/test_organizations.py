@@ -40,8 +40,6 @@ class Test_Organizations(APITest):
     def test_organization_related_counts(self, organization, related_organization_object, api_job_templates_pg):
         """Verify summary_fields 'related_field_counts' content."""
         # determine the expected JTs count
-        inventory_pg = organization.get_related('inventories')
-        org_inventory_ids = [inv_pg.id for inv_pg in inventory_pg.results]
         project_pg = organization.get_related('projects')
         org_project_ids = [proj_pg.id for proj_pg in project_pg.results]
 
