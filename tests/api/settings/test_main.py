@@ -708,3 +708,22 @@ class TestGeneralSettings(APITest):
         ahc.wait_until_completed()
         ahc.assert_successful()
         assert ahc.job_env.SOME_TEST_ENV_VAR == desired_val
+
+    @pytest.mark.serial
+    def test_update_tower_base_url(self, api_settings_system_pg, update_setting_pg):
+        """Test whether setting base url fails.
+
+        This test targets the following issue:
+
+        https://github.com/ansible/awx/issues/5081
+
+        """
+        base_url = api_settings_system_pg.get()['TOWER_URL_BASE']
+        payload = dict(TOWER_URL_BASE='http://tower.org.les800')
+        update_setting_pg(api_settings_system_pg, payload)
+        assert api_settings_system_pg.get()['TOWER_URL_BASE'] == payload['TOWER_URL_BASE']
+
+        # Update tower_url_base to the value that was before the test execution
+        payload = dict(TOWER_URL_BASE=base_url)
+        update_setting_pg(api_settings_system_pg, payload)
+        assert api_settings_system_pg.get()['TOWER_URL_BASE'] == payload['TOWER_URL_BASE']
