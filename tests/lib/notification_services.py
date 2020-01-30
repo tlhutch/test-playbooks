@@ -42,6 +42,9 @@ def confirm_slack_message(msg, notification_template_pg):
         history = slack.channels.history(channel=channel_id).body['messages']
         for line in history:
             if msg == line['text']:
+                # Regression test for https://github.com/ansible/tower/issues/3294
+                assert not line.get('username', '') == 'bot'
+                assert 'bot_profile' in line
                 return True
     return False
 
