@@ -74,7 +74,6 @@ context('Delete an Inventory', function() {
     cy.createOrReplace('inventory', `inv-to-delete`).as('del')
   })
 
-  // TODO: Cover scenarios given in this issue and add assertions accordingly, https://github.com/ansible/awx/issues/5267
   it('can delete an inventory', function() {
     cy.visit('/#/inventories')
     cy.get('input[aria-label*="Search"]').type(`${this.del.name}{enter}`)
@@ -92,3 +91,7 @@ context('Delete an Inventory', function() {
     )
   })
 })
+
+// https://github.com/ansible/awx/issues/5267
+context.skip('While deleting an inventory, choose the option to delete the group children', function() {})
+context.skip('While deleting an inventory, choose the option to promote the group children', function() {})
