@@ -30,6 +30,7 @@ context('Create an Inventory', function() {
     cy.get('a[href*="/inventory/add/"]').click()
     cy.get('#inventory-name').type(`create-inv-${this.testID}`)
     cy.get('#inventory-description').type(`Creation test for Inventories. Test ID: ${this.testID}`)
+    // TODO: Also enter some value in Variables field since it has been buggy
     cy.get('#organization').click()
     cy.get('input[aria-label*="Search text input"]').type(`${this.org.name}{enter}`)
     cy.get(`#selected-${this.org.id}`).click()
@@ -58,6 +59,7 @@ context('Edit an Inventory', function() {
     cy.get('#inventory-description')
       .clear()
       .type(`Edited test for inv. Test ID: ${this.testID}`)
+    // TODO: Enter command to edit the Variables field since it has been buggy: https://github.com/ansible/awx/issues/5502
     cy.get('button[aria-label=Save]').click()
     // Assert that the page is navigated to the Inventory Details page and the details are updated
     cy.get('[aria-label="Details"]').should('be.visible')
@@ -72,6 +74,7 @@ context('Delete an Inventory', function() {
     cy.createOrReplace('inventory', `inv-to-delete`).as('del')
   })
 
+  // TODO: Cover scenarios given in this issue and add assertions accordingly, https://github.com/ansible/awx/issues/5267
   it('can delete an inventory', function() {
     cy.visit('/#/inventories')
     cy.get('input[aria-label*="Search"]').type(`${this.del.name}{enter}`)
