@@ -210,7 +210,6 @@ def global_config_ini_oauth(request, ansible_adhoc, skip_docker, clear_config, i
     request.addfinalizer(lambda *args: delete_file(ansible_adhoc, global_config))
 
 
-@pytest.mark.serial
 @pytest.mark.fixture_args(venvs=CUSTOM_VENVS, cluster=True, venv_group='local')
 @pytest.mark.usefixtures('skip_if_pre_ansible29', 'skip_if_openshift', 'authtoken', 'skip_if_cluster', 'skip_if_wrong_python')
 @pytest.mark.parametrize('python_venv', CUSTOM_VENVS, ids=CUSTOM_VENVS_NAMES)
