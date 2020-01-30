@@ -31,6 +31,24 @@ class TestWorkflowExtraVars(APITest):
         assert wfj_vars == wfjt_vars
         assert node_job_vars == wfjt_vars
 
+    def test_launch_nested_workflow_with_workflow_extra_vars(self, factories):
+        """Regression test for https://github.com/ansible/awx/issues/5046.
+
+        Tests that nested workflows that set extra vars on the node which contains a workflow pass through data correclty.
+        """
+        child_wf = factories.workflow_job_template(ask_inventory_on_launch=True)
+        parent_wf = factories.workflow_job_template()
+        node = parent_wf.related.workflow_nodes.post({'unified_job_template': child_wf.id})
+        node.extra_data == '---\n'
+
+        wfj = parent_wf.launch().wait_until_completed()
+        wfj.assert_successful()
+
+        nodes = wfj.related.workflow_nodes.get()
+        assert len(nodes.results) == 1, "Only expecting one node, found:\n\n{0}".format(nodes)
+        node_job = nodes.results.pop().related.job.get()
+        node_job.assert_successful()
+
     @pytest.mark.parametrize("launch_time_vars", [
         "{'likes_chicken': ['yes'], 'favorite_color': 'green'}",
         "---\nlikes_chicken:\n  - 'yes'\nfavorite_color: green"
