@@ -14,11 +14,16 @@ ini_config = f"""[general]
 host = {config.base_url}
 username = {config.credentials.users.admin.username}
 password = {config.credentials.users.admin.password}
-verify_ssl = 0\n"""
+verify_ssl = 0"""
 
 yaml_config = f"""host: {config.base_url}
 username: {config.credentials.users.admin.username}
 password: {config.credentials.users.admin.password}
+verify_ssl: 0"""
+
+bad_config = """host: invalid
+username: invalid
+password: invalid
 verify_ssl: 0"""
 
 user_config = os.path.join(os.environ['HOME'], '.tower_cli.cfg')
@@ -67,14 +72,50 @@ def delete_file(ansible_adhoc, location):
     )
 
 
+def reset_environment_vars(tower_host=None, tower_username=None, tower_password=None, tower_verify_ssl=None):
+    if tower_host:
+        os.environ['TOWER_HOST'] = tower_host
+    elif 'TOWER_HOST' in os.environ:
+        del os.environ['TOWER_HOST']
+    if tower_username:
+        os.environ['TOWER_USERNAME'] = tower_username
+    elif 'TOWER_USERNAME' in os.environ:
+        del os.environ['TOWER_USERNAME']
+    if tower_password:
+        os.environ['TOWER_PASSWORD'] = tower_password
+    elif 'TOWER_PASSWORD' in os.environ:
+        del os.environ['TOWER_PASSWORD']
+    if tower_verify_ssl:
+        os.environ['TOWER_VERIFY_SSL'] = tower_verify_ssl
+    elif 'TOWER_VERIFY_SSL' in os.environ:
+        del os.environ['TOWER_VERIFY_SSL']
+
+
 @pytest.fixture(scope='function')
-def clear_config(ansible_adhoc, is_docker):
+def clear_config(request, ansible_adhoc, is_docker):
     # I feel uncomfortable deleting /etc/tower/tower_cli.cfg on people's
     # laptops, so instead of just doing it, lets ask them to do it
     if os.path.exists('/etc/tower/tower_cli.cfg') and is_docker:
         pytest.skip('/etc/tower/tower_cli.cfg exists, please delete it before running the collection config tests')
     delete_file(ansible_adhoc, user_config)
     delete_file(ansible_adhoc, global_config)
+
+    # We dont want to use the environment variables accidentally
+    old_tower_host = os.environ.get('TOWER_HOST', None)
+    if old_tower_host:
+        del os.environ['TOWER_HOST']
+    old_tower_username = os.environ.get('TOWER_USERNAME', None)
+    if old_tower_username:
+        del os.environ['TOWER_USERNAME']
+    old_tower_password = os.environ.get('TOWER_PASSWORD', None)
+    if old_tower_password:
+        del os.environ['TOWER_PASSWORD']
+    old_tower_verify_ssl = os.environ.get('TOWER_VERIFY_SSL', None)
+    if old_tower_verify_ssl:
+        del os.environ['TOWER_VERIFY_SSL']
+
+    request.addfinalizer(lambda *args: reset_environment_vars(old_tower_host,
+        old_tower_username, old_tower_password, old_tower_verify_ssl))
 
 
 @pytest.fixture(scope='function')
@@ -296,5 +337,79 @@ class Test_Ansible_Tower_Collection_Config(APITest):
             'name': org_name,
             'description': 'hello world',
             'tower_config_file': local_config,
+        }
+        self.create_and_verify_organization(venv_path, request, v2, is_docker, ansible_adhoc, python_venv, collection_fqcn, module_args)
+
+    def test_ansible_tower_module_parameter_config(self, venv_path, request, update_setting_pg, v2, is_docker, ansible_adhoc, python_venv, collection_fqcn, clear_config):
+        org_name = utils.random_title()
+        module_args = {
+            'name': org_name,
+            'description': 'hello world',
+            'tower_username': config.credentials.default.username,
+            'tower_password': config.credentials.default.password,
+            'tower_host': config.base_url,
+            'validate_certs': False,
+        }
+        self.create_and_verify_organization(venv_path, request, v2, is_docker, ansible_adhoc, python_venv, collection_fqcn, module_args)
+
+    def test_ansible_tower_module_config_heirarchy_params(self, venv_path, request, update_setting_pg, v2, is_docker, ansible_adhoc, python_venv, collection_fqcn, clear_config):
+        org_name = utils.random_title()
+        write_config(ansible_adhoc, user_config, bad_config)
+        request.addfinalizer(lambda *args: delete_file(ansible_adhoc, user_config))
+
+        old_tower_host = os.environ.get('TOWER_HOST', None)
+        old_tower_username = os.environ.get('TOWER_USERNAME', None)
+        old_tower_password = os.environ.get('TOWER_PASSWORD', None)
+        old_tower_verify_ssl = os.environ.get('TOWER_VERIFY_SSL', None)
+
+        os.environ['TOWER_HOST'] = 'badhost'
+        os.environ['TOWER_USERNAME'] = 'badusername'
+        os.environ['TOWER_PASSWORD'] = 'badpassword'
+
+        module_args = {
+            'name': org_name,
+            'description': 'hello world',
+            'tower_username': config.credentials.default.username,
+            'tower_password': config.credentials.default.password,
+            'tower_host': config.base_url,
+            'validate_certs': False,
+        }
+        self.create_and_verify_organization(venv_path, request, v2, is_docker, ansible_adhoc, python_venv, collection_fqcn, module_args)
+
+        # Reset our environment variable so we dont potentially step on other tests
+        reset_environment_vars(old_tower_host, old_tower_username, old_tower_password, old_tower_verify_ssl)
+
+    def test_ansible_tower_module_config_heirarchy_tower_config_file(self, venv_path, request, update_setting_pg, v2, is_docker, ansible_adhoc, python_venv, collection_fqcn, local_config_yaml):
+        org_name = utils.random_title()
+        write_config(ansible_adhoc, user_config, bad_config)
+        request.addfinalizer(lambda *args: delete_file(ansible_adhoc, user_config))
+
+        old_tower_host = os.environ.get('TOWER_HOST', None)
+        old_tower_username = os.environ.get('TOWER_USERNAME', None)
+        old_tower_password = os.environ.get('TOWER_PASSWORD', None)
+        old_tower_verify_ssl = os.environ.get('TOWER_VERIFY_SSL', None)
+
+        os.environ['TOWER_HOST'] = 'badhost'
+        os.environ['TOWER_USERNAME'] = 'badusername'
+        os.environ['TOWER_PASSWORD'] = 'badpassword'
+
+        module_args = {
+            'name': org_name,
+            'description': 'hello world',
+            'tower_config_file': local_config,
+        }
+        self.create_and_verify_organization(venv_path, request, v2, is_docker, ansible_adhoc, python_venv, collection_fqcn, module_args)
+
+        # Reset our environment variable so we dont potentially step on other tests
+        reset_environment_vars(old_tower_host, old_tower_username, old_tower_password, old_tower_verify_ssl)
+
+    def test_ansible_tower_module_config_heirarchy_user(self, venv_path, request, update_setting_pg, v2, is_docker, ansible_adhoc, python_venv, collection_fqcn, skip_docker, user_config_yaml):
+        org_name = utils.random_title()
+        write_config(ansible_adhoc, global_config, bad_config)
+        request.addfinalizer(lambda *args: delete_file(ansible_adhoc, global_config))
+
+        module_args = {
+            'name': org_name,
+            'description': 'hello world',
         }
         self.create_and_verify_organization(venv_path, request, v2, is_docker, ansible_adhoc, python_venv, collection_fqcn, module_args)
