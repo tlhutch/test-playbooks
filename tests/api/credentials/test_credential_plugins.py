@@ -1075,6 +1075,7 @@ def check_cyberark_aim(request):
     if '200 OK' not in ''.join([e.stdout for e in job_events.results]):
         pytest.skip('cyberark aim server is unavailable')
 
+
 @pytest.mark.github('https://github.com/ansible/tower-qa/issues/4607', skip=True)
 @pytest.mark.usefixtures(
     'authtoken', 'check_cyberark_aim')

@@ -1,13 +1,11 @@
 from awxkit.config import config
 from awxkit import utils
 
-from copy import deepcopy
 import pytest
-import json
 import os
 
 from tests.api import APITest
-from tests.collection import CUSTOM_VENVS,CUSTOM_VENVS_NAMES
+from tests.collection import CUSTOM_VENVS, CUSTOM_VENVS_NAMES
 
 
 k_v_config = f"host={config.base_url} username={config.credentials.users.admin.username} password={config.credentials.users.admin.password} verify_ssl=0\n"
@@ -47,6 +45,7 @@ verify_ssl: 0\n"""
 def k_v_config_oauth(session_oauth2_authtoken):
     return f"host={config.base_url} oauth_token={session_oauth2_authtoken} verify_ssl=0\n"
 
+
 def write_config(ansible_adhoc, location, content, mode=None, owner=None):
     if not mode:
         mode = '600'
@@ -60,11 +59,13 @@ def write_config(ansible_adhoc, location, content, mode=None, owner=None):
         content=content,
     )
 
+
 def delete_file(ansible_adhoc, location):
     ansible_adhoc()['local'].file(
         dest=location,
         state='absent'
     )
+
 
 @pytest.fixture(scope='function')
 def clear_config(ansible_adhoc, is_docker):
@@ -75,45 +76,54 @@ def clear_config(ansible_adhoc, is_docker):
     delete_file(ansible_adhoc, user_config)
     delete_file(ansible_adhoc, global_config)
 
+
 @pytest.fixture(scope='function')
 def local_config_yaml(request, ansible_adhoc, clear_config):
     write_config(ansible_adhoc, local_config, yaml_config)
     request.addfinalizer(lambda *args: delete_file(ansible_adhoc, local_config))
+
 
 @pytest.fixture(scope='function')
 def local_config_k_v(request, ansible_adhoc, clear_config):
     write_config(ansible_adhoc, local_config, k_v_config)
     request.addfinalizer(lambda *args: delete_file(ansible_adhoc, local_config))
 
+
 @pytest.fixture(scope='function')
 def local_config_yaml_oauth(request, ansible_adhoc, clear_config, yaml_config_oauth):
     write_config(ansible_adhoc, local_config, yaml_config_oauth)
     request.addfinalizer(lambda *args: delete_file(ansible_adhoc, local_config))
+
 
 @pytest.fixture(scope='function')
 def local_config_k_v_oauth(request, ansible_adhoc, clear_config, k_v_config_oauth):
     write_config(ansible_adhoc, local_config, k_v_config_oauth)
     request.addfinalizer(lambda *args: delete_file(ansible_adhoc, local_config))
 
+
 @pytest.fixture(scope='function')
 def user_config_yaml(request, ansible_adhoc, clear_config):
     write_config(ansible_adhoc, user_config, yaml_config)
     request.addfinalizer(lambda *args: delete_file(ansible_adhoc, user_config))
+
 
 @pytest.fixture(scope='function')
 def user_config_ini(request, ansible_adhoc, clear_config):
     write_config(ansible_adhoc, user_config, ini_config)
     request.addfinalizer(lambda *args: delete_file(ansible_adhoc, user_config))
 
+
 @pytest.fixture(scope='function')
 def user_config_yaml_oauth(request, ansible_adhoc, clear_config, yaml_config_oauth):
     write_config(ansible_adhoc, user_config, yaml_config_oauth)
     request.addfinalizer(lambda *args: delete_file(ansible_adhoc, user_config))
 
+
 @pytest.fixture(scope='function')
 def user_config_ini_oauth(request, ansible_adhoc, clear_config, ini_config_oauth):
     write_config(ansible_adhoc, user_config, ini_config_oauth)
     request.addfinalizer(lambda *args: delete_file(ansible_adhoc, user_config))
+
 
 @pytest.fixture(scope='function')
 def global_config_yaml(request, ansible_adhoc, skip_docker, clear_config):
@@ -125,6 +135,7 @@ def global_config_yaml(request, ansible_adhoc, skip_docker, clear_config):
     write_config(ansible_adhoc, global_config, ini_config, mode='644', owner=0)
     request.addfinalizer(lambda *args: delete_file(ansible_adhoc, global_config))
 
+
 @pytest.fixture(scope='function')
 def global_config_ini(request, ansible_adhoc, skip_docker, clear_config):
     ansible_adhoc()['local'].file(
@@ -134,6 +145,7 @@ def global_config_ini(request, ansible_adhoc, skip_docker, clear_config):
     )
     write_config(ansible_adhoc, global_config, ini_config, mode='644', owner=0)
     request.addfinalizer(lambda *args: delete_file(ansible_adhoc, global_config))
+
 
 @pytest.fixture(scope='function')
 def global_config_yaml_oauth(request, ansible_adhoc, skip_docker, clear_config, yaml_config_oauth):
@@ -145,6 +157,7 @@ def global_config_yaml_oauth(request, ansible_adhoc, skip_docker, clear_config, 
     write_config(ansible_adhoc, global_config, yaml_config_oauth, mode='644', owner=0)
     request.addfinalizer(lambda *args: delete_file(ansible_adhoc, global_config))
 
+
 @pytest.fixture(scope='function')
 def global_config_ini_oauth(request, ansible_adhoc, skip_docker, clear_config, ini_config_oauth):
     ansible_adhoc()['local'].file(
@@ -154,6 +167,7 @@ def global_config_ini_oauth(request, ansible_adhoc, skip_docker, clear_config, i
     )
     write_config(ansible_adhoc, global_config, ini_config_oauth, mode='644', owner=0)
     request.addfinalizer(lambda *args: delete_file(ansible_adhoc, global_config))
+
 
 @pytest.mark.serial
 @pytest.mark.fixture_args(venvs=CUSTOM_VENVS, cluster=True, venv_group='local')
@@ -218,11 +232,10 @@ class Test_Ansible_Tower_Collection_Config(APITest):
             }
 
         request.addfinalizer(lambda *args: v2.organizations.get(name=module_args['name']).results[0].delete())
-        module_output = self.run_module(venv_path(python_venv['name']),
+        self.run_module(venv_path(python_venv['name']),
                 ansible_adhoc, is_docker, request, collection_fqcn + '.tower_organization', module_args)
 
         org = v2.organizations.get(name=module_args['name']).results.pop()
-        org_id = org.id
         assert module_args['name'] == org['name']
         assert org['description'] == 'hello world'
 

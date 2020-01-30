@@ -1,8 +1,6 @@
 from collections import Counter
 import json
 
-from awxkit.utils import poll_until
-from awxkit import exceptions as exc
 import pytest
 
 from tests.api import APITest
