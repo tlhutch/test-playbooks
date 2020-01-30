@@ -515,39 +515,3 @@ class Test_Job_Events(APITest):
                 assert child_event.parent_uuid == parent_event.uuid, (
                     'The event {} is not listed as a child of {}'.format(child, parent)
                 )
-
-    @pytest.mark.serial
-    def test_event_ingestion_performance(self, factories, ansible_runner):
-        # if this test is failing, it's indicative of a performance
-        # regression in our event processing (either on the runner side where
-        # we push events *onto* RabbitMQ, or on the processing side where we
-        # save them (the callback receiver).
-        cred = factories.credential()
-        inv = factories.inventory()
-        jt = factories.job_template(
-            credential=cred, inventory=inv, playbook='debug.yml',
-        )
-        job = jt.launch().wait_until_completed()
-        firehose = '\n'.join([
-            'import datetime, uuid',
-            'from awx.main.queue import CallbackQueueDispatcher',
-            'd = CallbackQueueDispatcher()',
-            'for i in range(30000):',
-            '    d.dispatch({',
-            "        'uuid': str(uuid.uuid4()),",
-            "        'stdout': 'Line %d\' % i,",
-            "        'job_id': %d," % job.id,
-            "        'created': datetime.datetime.utcnow().isoformat()",
-            '    })',
-        ])
-        ansible_runner.shell(f'echo "{firehose}" | awx-manage shell')
-
-        # confirm a baseline of _at least_ 500 inserts per minute
-        try:
-            poll_until(
-                lambda: job.related.job_events.get().count >= 30000,
-                interval=1, timeout=60
-            )
-        except exc.WaitUntilTimeout:
-            total = job.related.job_events.get().count
-            pytest.fail(f"expected 30k events per minute, only got {total}")
