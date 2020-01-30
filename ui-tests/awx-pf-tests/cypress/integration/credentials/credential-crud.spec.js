@@ -2,6 +2,11 @@
  * Tests for basic operations on credentials and credential lists.
  */
 
+context.skip('Advanced search on credentials', function() {})
+context.skip('Empty list of credentials', function() {
+  it('Shows the add button when there is an empty list of credentials', function() {})
+})
+
 context('Credential Lists', function() {
   // See tips and tricks section in the README for elaboration on
   // why we build for-loops with premade arrays

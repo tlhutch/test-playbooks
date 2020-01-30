@@ -35,3 +35,10 @@ context.skip('Launch a Job Template with prompts', function() {
     cy.get('[data-cy="job-status"]').should('have.text', 'Successful')
   })
 })
+context.skip('Job Template form validation', function() {})
+context.skip('Job Template form actions', function() {
+  it('Can toggle the advanced section of the form', function() {})
+  it('Persists variables saved in prompts', function() {})
+  it('Has playbook typeahead functionality', function() {})
+})
+context.skip('Survey operations', function() {})

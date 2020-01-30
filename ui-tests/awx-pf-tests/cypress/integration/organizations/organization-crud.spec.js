@@ -19,6 +19,8 @@ context('reaches a 404 when trying to get the orgs list', function() {
   })
 })
 
+context.skip('Organization advanced search', function() {})
+
 context('Create Organization', function() {
   it('can create an organization', function() {
     cy.visit('/#/organizations')

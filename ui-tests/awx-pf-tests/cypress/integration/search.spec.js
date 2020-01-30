@@ -18,4 +18,6 @@ context('Navigation', function() {
       })
     })
   })
+  it.skip('does not persist search filters between multiple lookups', function() {})
+  it.skip('can perform more advanced search options', function() {})
 })

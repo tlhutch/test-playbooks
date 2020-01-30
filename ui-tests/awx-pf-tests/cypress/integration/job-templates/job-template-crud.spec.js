@@ -9,6 +9,9 @@ context('Reaches a 404', function() {
     cy.get('a[href="#/home"]').should('have.text', 'Back to Dashboard.')
   })
 })
+context('Empty list of job templates', function() {
+  it('Shows the add button when there is an empty list of templates', function() {})
+})
 context('Create Job Template', function() {
   before(function() {
     cy.createOrReplace('inventory', `create-jt-inv`).as('inv')
@@ -84,3 +87,5 @@ context('Delete Job Template', function() {
     )
   })
 })
+
+context.skip('Job Template advanced search', function() {})

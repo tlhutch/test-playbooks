@@ -88,3 +88,5 @@ context('Delete a User', function() {
     )
   })
 })
+
+context('Users advanced search', function() {})

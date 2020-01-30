@@ -17,6 +17,7 @@ context('Reaches a 404', function() {
     cy.get('.pf-c-expandable__content strong').should('have.text', '404')
   })
 })
+context.skip('Project advanced search', function() {})
 context('Create Project', function() {
   before(function() {
     cy.createOrReplace('organizations', `create-proj-org`).as('org')

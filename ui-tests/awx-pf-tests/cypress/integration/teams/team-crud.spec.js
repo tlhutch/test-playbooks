@@ -17,6 +17,7 @@ context('Reaches a 404', function() {
     cy.get('.pf-c-expandable__content strong').should('have.text', '404')
   })
 })
+context.skip('Advanced search on teams', function() {})
 context('Create a team', function() {
   before(function() {
     cy.createOrReplace('organizations', `organization-for-team`).as('org')

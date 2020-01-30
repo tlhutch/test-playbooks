@@ -1,6 +1,12 @@
 /**
  * Verifies CRUD operations on inventories.
  */
+
+context.skip('Empty list of inventories', function() {
+  it('Shows the add button when there is an empty list of inventories', function() {})
+})
+
+context.skip('Inventory advanced search', function() {})
 context('Reaches a 404', function() {
   it('reaches a 404 when trying to get the inventory list', function() {
     cy.visit('/#/inventories/inventory/999')
