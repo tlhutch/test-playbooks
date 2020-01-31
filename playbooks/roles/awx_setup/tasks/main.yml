@@ -81,3 +81,13 @@
   until: result['status']|default(0) == 200
   retries: 6
   delay: 10
+
+- name: verify memcached is up and running
+  block:
+    - name: install ncat
+      package:
+        name: nmap-ncat
+        state: installed
+
+    - name: check memcached uptime stat
+      shell: "echo stats | nc -U /var/run/memcached/memcached.sock | grep uptime"
