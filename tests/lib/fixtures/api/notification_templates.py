@@ -1,11 +1,13 @@
 import pytest
-import requests
+
+from tests.lib.helpers.http_requests import session_retry
 
 
 @pytest.fixture
 def webhook_binId():
     # Rely on https://postb.in to really test our webhooks
-    return requests.post('https://postb.in/api/bin').json()['binId']
+    response = session_retry().post('https://postb.in/api/bin')
+    return response.json()['binId']
 
 
 @pytest.fixture(scope="function", params=[
