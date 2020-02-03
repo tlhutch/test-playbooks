@@ -53,12 +53,23 @@ class APITest(object):
         return True
 
     def primary_instance_group(self, api_version):
+        """Clusters normally are deployed with each instance having a numbered instance group.
+
+        The instance group '1' is for the 'primary instance', e.g. the one we connect with '--base-url=`
+
+        Otherwise, even for standalone instances we can't be guaranteed that other instance groups are not present.
+        In this case the most trustworthy instance group is 'tower', which should be the standard instance group
+        made for the standalone instance.
+
+        Note that a standalone instance group could have any number of empty instance groups or instance groups pointing to the same instance.
+        """
         igs = api_version.instance_groups.get(controller__isnull=True).results
+        is_cluster = api_version.ping.get().ha
         igs = [ig for ig in igs if not ig.is_containerized]
-        if len(igs) > 1:
+        if len(igs) > 1 and is_cluster:
             return [ig for ig in igs if ig.name == '1'].pop()
         else:
-            return igs.pop()
+            return [ig for ig in igs if ig.name == 'tower'].pop()
 
     def ensure_jt_runs_on_primary_instance(self, jt, api_version):
         jt.add_instance_group(self.primary_instance_group(api_version))
