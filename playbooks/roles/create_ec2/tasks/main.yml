@@ -1,4 +1,8 @@
 ---
+- include_role:
+    name: terminate_ec2
+  when: delete_on_start | default(true) | bool
+
 - name: Ensure security groups exist
   ec2_group:
     aws_access_key: '{{ aws_access_key }}'
