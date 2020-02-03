@@ -234,9 +234,22 @@ Bundle?: ${params.BUNDLE}"""
         }
 
         cleanup {
-            sshagent(credentials : ['github-ansible-jenkins-nopassphrase']) {
-                sh "ssh ${SSH_OPTS} ec2-user@${TEST_RUNNER_HOST} 'cd tower-qa && ./tools/jenkins/scripts/cleanup.sh'"
-                sh 'ansible-playbook -v -i playbooks/inventory -e @playbooks/test_runner_vars.yml playbooks/reap-tower-ec2.yml'
+            script {
+                if (params.CLEAN_DEPLOYMENT_AFTER_JOB_RUN == 'yes') {
+                    sshagent(credentials : ['github-ansible-jenkins-nopassphrase']) {
+                        sh "ssh ${SSH_OPTS} ec2-user@${TEST_RUNNER_HOST} 'cd tower-qa && ./tools/jenkins/scripts/cleanup.sh'"
+                    }
+                }
+            }
+        }
+
+        failure {
+            script {
+                if (params.CLEAN_DEPLOYMENT_ON_JOB_FAILURE == 'yes') {
+                    sshagent(credentials : ['github-ansible-jenkins-nopassphrase']) {
+                        sh "ssh ${SSH_OPTS} ec2-user@${TEST_RUNNER_HOST} 'cd tower-qa && ./tools/jenkins/scripts/cleanup.sh'"
+                    }
+                }
             }
         }
     }
