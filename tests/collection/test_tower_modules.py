@@ -1,11 +1,15 @@
 from awxkit.config import config
 from awxkit import utils
+from awxkit.utils import poll_until
 
 from copy import deepcopy
+import json
 import pytest
 
 from tests.api import APITest
 from tests.collection import CUSTOM_VENVS, CUSTOM_VENVS_NAMES
+from tests.lib.tower.license import generate_license
+from tests.lib.license import apply_license_until_effective
 
 TEST_REPO_URL = "https://github.com/ansible/test-playbooks.git"
 
@@ -683,6 +687,47 @@ class Test_Ansible_Tower_Modules(APITest):
 
         label = v2.labels.get(name=label_name).results.pop()
         assert label_name == label['name']
+
+    @pytest.mark.serial
+    def test_ansible_tower_module_license(self, request, ansible_collections_path, v2, factories, venv_path, is_docker, ansible_adhoc, python_venv, api, collection_fqcn):
+        config = api.current_version.get().config.get()
+        initial_license_info = deepcopy(config.license_info)
+        initial_license_info['eula_accepted'] = True
+        request.addfinalizer(lambda *args: apply_license_until_effective(config, initial_license_info))
+
+        license_data_json = generate_license(company_name="tower_modules",
+                contact_email="tower_modules@example.com", days=9999,
+                instance_count=20000, license_type="enterprise")
+        license_data_string = json.dumps(license_data_json)
+
+        module_args = {
+            'data': license_data_string,
+            'eula_accepted': True,
+        }
+        module_output = self.run_module(venv_path(python_venv['name']), ansible_adhoc, is_docker, request, collection_fqcn + '.tower_license', module_args)
+        module_args = {
+            'data': license_data_json,
+            'eula_accepted': True,
+        }
+        self.check_module_output(request, ansible_adhoc, module_output, module_args, True)
+
+        poll_until(lambda: config.get().license_info and config.get().license_info.instance_count == license_data_json['instance_count'], interval=1, timeout=90)
+        license_info = config.get().license_info
+
+        # I believe we need to do this because the "features" key is
+        # deprecated, so the uploaded features is not necessarily what we'll
+        # get back
+        license_data_json.pop('features')
+
+        # The api doesnt tell us if the eula was accepted or not because it had
+        # to have been to get uploaded
+        license_data_json.pop('eula_accepted')
+
+        # Assert that the license we uploaded is a subset or equal to the
+        # license we got back
+        for (k, v) in license_data_json.items():
+            assert k in license_info
+            assert license_info[k] == v
 
     def test_ansible_tower_module_workflow(self, request, ansible_collections_path, factories, v2, venv_path, is_docker, ansible_adhoc, python_venv, collection_fqcn):
         wf_name = utils.random_title()
