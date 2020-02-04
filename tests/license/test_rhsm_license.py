@@ -29,7 +29,7 @@ class TestRHSMLicense(LicenseTest):
                 assert sub_license['instance_count'] == 9999999, sub_license
             elif 'Self-Support' in sub_license['subscription_name']:
                 assert sub_license['instance_count'] == 1400, sub_license
-            elif '80639 Managed Nodes' in sub_license['subscription_name']:
+            elif '216710 Managed Nodes' in sub_license['subscription_name']:
                 assert sub_license['instance_count'] == 216710, sub_license
             elif 'Managed Hosting Provider' in sub_license['subscription_name']:
                 assert sub_license['instance_count'] == 4, sub_license
