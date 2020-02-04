@@ -1,6 +1,7 @@
 import json
 import uuid
 import functools
+import re
 
 import pytest
 import requests
@@ -194,8 +195,15 @@ class TestSplunkLogging(APITest):
         adhoc_results_exist = functools.partial(results_exist, expected_results=9, expected_content=host.name)
         utils.poll_until(adhoc_results_exist, interval=5, timeout=120)
 
+        project = factories.project()
+        project_update = project.update()
+        bad_user = 'foo'
+        bad_password = 'what'
+        bad_cred = factories.credential(kind='scm', username=bad_user, password=bad_password)
+        failed_project = factories.project(credential=bad_cred, scm_url='https://github.com/ansible/tower-qa')
+        failed_project_update = failed_project.update()
         wfjt = factories.workflow_job_template()
-        jt = factories.job_template(inventory=inv2)
+        jt = factories.job_template(project=project, inventory=inv2)
         factories.workflow_job_template_node(workflow_job_template=wfjt, unified_job_template=jt)
         wf_job = wfjt.launch().wait_until_completed()
         wf_job.assert_successful()
@@ -210,6 +218,8 @@ class TestSplunkLogging(APITest):
         event_with_adhoc_host_name = None
         event_with_wfjob_host_name = None
         workflow_job_events_logged = []
+        project_update_events_logged = []
+        failed_project_update_events_logged = []
         for result in results:
             try:
                 result = dict(json.loads(result))
@@ -224,7 +234,20 @@ class TestSplunkLogging(APITest):
             if spawned_job_id == result.get('job'):
                 assert wf_job.id == result.get('workflow_job_id')
                 workflow_job_events_logged.append(result)
+            if project_update.id == result.get('project_update'):
+                project_update_events_logged.append(result)
+            if failed_project_update.id == result.get('project_update'):
+                failed_project_update_events_logged.append(result)
+
         assert adhoc_results_logged, results
         assert event_with_adhoc_host_name, results
         assert workflow_job_events_logged, results
         assert event_with_wfjob_host_name, results
+        assert project_update_events_logged, results
+        assert failed_project_update_events_logged, results
+
+        for event in failed_project_update_events_logged:
+            username_matches = re.search(bad_user, str(event['event_data']))
+            password_matches = re.search(bad_password, str(event['event_data']))
+            assert not username_matches, f'Found username in failed project update event: {event}'
+            assert not password_matches, f'Found password in failed project update event: {event}'
