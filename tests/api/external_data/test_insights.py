@@ -611,7 +611,7 @@ class TestInsightsAnalytics(APITest):
         )
 
     @pytest.mark.ansible(become=True, become_user='awx')
-    def test_ship_insights_succeeds(self, v2, update_setting_pg, ansible_runner, analytics_enabled):
+    def test_ship_insights_succeeds(self, v2, update_setting_pg, ansible_runner, analytics_enabled, skip_if_openshift):
         error_strings = ['Upload failed',
                         'Automation Analytics TAR not found',
                         'A valid license was not found:',
