@@ -77,3 +77,9 @@ context('Delete an Inventory group', function() {
     )
   })
 })
+
+context.skip('Edit button should be hidden for users without user_capabilities.edit', function() {})
+context.skip(
+  'Delete button should be hidden for users without user_capabilities.delete',
+  function() {}
+)
