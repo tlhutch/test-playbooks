@@ -84,3 +84,20 @@ class TestSettingsCLI(object):
         settings = v2.settings.get().get_endpoint('jobs')
         assert settings[key] == {"X_FOO": "bar"}
         v2.settings.get().get_endpoint('jobs').patch(key='{}')
+
+    def test_modify_settings_ldap(self, cli):
+        """Test whether one can modify a list or dict setting from the awx command line tool.
+
+        This test targets the following issue:
+
+        https://github.com/ansible/awx/issues/5528
+        """
+        result = cli([
+            'awx',
+            'settings',
+            'modify',
+            'AUTH_LDAP_USER_SEARCH',
+            r'["DC=ansible,DC=com","SCOPE_SUBTREE","(uid=%(user)s)"]'
+        ], auth=True)
+        assert result.json['key'] == 'AUTH_LDAP_USER_SEARCH'
+        assert result.json['value'] == ['DC=ansible,DC=com', 'SCOPE_SUBTREE', '(uid=%(user)s)']
