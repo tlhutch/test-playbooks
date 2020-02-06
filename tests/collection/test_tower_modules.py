@@ -42,6 +42,8 @@ class Test_Ansible_Tower_Modules(APITest):
         for hostname in ansible_adhoc.options['inventory_manager'].groups[venv_group].host_names:
             assert hasattr(module_output, 'contacted'), f'module execution failed: {module_output.__dict__}'
             assert hostname in module_output.contacted, f'module could not contact localhost: {module_output.__dict__}'
+            if 'exception' in module_output.contacted[hostname]:
+                pytest.fail(f'module threw an exception: {module_output.__dict__}')
             assert 'invocation' in module_output.contacted[hostname], f'module could not be invoked: {module_output.__dict__}'
 
         return module_output
