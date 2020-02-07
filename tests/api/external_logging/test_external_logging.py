@@ -3,6 +3,8 @@ import uuid
 import functools
 import re
 
+from pprint import pformat
+
 import pytest
 import requests
 import xml.etree.ElementTree as ET
@@ -169,6 +171,7 @@ class TestSplunkLogging(APITest):
 
     def test_splunk_job_events_logging(self,
         factories,
+        v2,
         api_settings_logging_pg,
         splunk_logger_url,
         splunk_logger_token,
@@ -195,10 +198,11 @@ class TestSplunkLogging(APITest):
         adhoc_results_exist = functools.partial(results_exist, expected_results=9, expected_content=host.name)
         utils.poll_until(adhoc_results_exist, interval=5, timeout=120)
 
+        # project updates add coverage for https://github.com/ansible/tower/issues/4111
         project = factories.project()
         project_update = project.update()
-        bad_user = 'foo'
-        bad_password = 'what'
+        bad_user = utils.random_title()
+        bad_password = utils.random_title()
         bad_cred = factories.credential(kind='scm', username=bad_user, password=bad_password)
         failed_project = factories.project(credential=bad_cred, scm_url='https://github.com/ansible/tower-qa')
         failed_project_update = failed_project.update()
@@ -208,6 +212,14 @@ class TestSplunkLogging(APITest):
         wf_job = wfjt.launch().wait_until_completed()
         wf_job.assert_successful()
         spawned_job_id = jt.related.jobs.get().results.pop().id
+        user = factories.user()
+
+        with self.current_user(user.username, user.password):
+            # login as a different user to generate a logging event
+            # this is for coverage of the awx.api.* logging
+            # https://github.com/ansible/tower/issues/3793
+            user_me_page = v2.me.get().results.pop()
+            assert user_me_page.username == user.username
 
         # Expect 19 events, 9 from adhoc job and 10 from workflow job
         wf_results_exist = functools.partial(results_exist, expected_results=19, expected_content=host2.name)
@@ -220,6 +232,7 @@ class TestSplunkLogging(APITest):
         workflow_job_events_logged = []
         project_update_events_logged = []
         failed_project_update_events_logged = []
+        login_event = None
         for result in results:
             try:
                 result = dict(json.loads(result))
@@ -238,6 +251,8 @@ class TestSplunkLogging(APITest):
                 project_update_events_logged.append(result)
             if failed_project_update.id == result.get('project_update'):
                 failed_project_update_events_logged.append(result)
+            if user.username in result.get('message'):
+                login_event = result
 
         assert adhoc_results_logged, results
         assert event_with_adhoc_host_name, results
@@ -245,6 +260,7 @@ class TestSplunkLogging(APITest):
         assert event_with_wfjob_host_name, results
         assert project_update_events_logged, results
         assert failed_project_update_events_logged, results
+        assert login_event, f'No login for user {user.username}, results found: {pformat(results)}'
 
         for event in failed_project_update_events_logged:
             username_matches = re.search(bad_user, str(event['event_data']))
