@@ -263,7 +263,7 @@ class TestSplunkLogging(APITest):
         assert login_event, f'No login for user {user.username}, results found: {pformat(results)}'
 
         for event in failed_project_update_events_logged:
-            username_matches = re.search(bad_user, str(event['event_data']))
-            password_matches = re.search(bad_password, str(event['event_data']))
+            username_matches = re.search(bad_user, str(event))
+            password_matches = re.search(bad_password, str(event))
             assert not username_matches, f'Found username in failed project update event: {event}'
             assert not password_matches, f'Found password in failed project update event: {event}'
