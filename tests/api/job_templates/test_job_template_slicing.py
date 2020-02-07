@@ -436,6 +436,20 @@ class TestJobTemplateSlicing(APITest):
         for job in v2.unified_jobs.get(unified_job_node__workflow_job=workflow_job.id).results:
             assert job.get().host_status_counts['ok'] == 3
 
+    def test_relaunch_with_prompted_inventory(self, factories):
+        jt = factories.job_template(
+            ask_inventory_on_launch=True,
+            job_slice_count=2
+        )
+        prompt_inv = factories.inventory()
+        for i in range(3):
+            prompt_inv.add_host()
+        workflow_job = jt.launch(payload=dict(
+            inventory=prompt_inv.id
+        ))
+        assert workflow_job.get_related('workflow_nodes').count == 2
+        workflow_job.relaunch()
+
     def test_job_template_admin_can_set_slices(self, factories, sliced_jt_factory):
         org = factories.organization()
         inv = factories.inventory(organization=org)
