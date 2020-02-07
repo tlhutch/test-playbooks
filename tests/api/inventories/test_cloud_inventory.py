@@ -245,7 +245,7 @@ class TestCloudInventoryUpdate(APITest):
             assert actual_group_names == set(['azure', 'linux'])  # assuming no windows servers running
         elif only_group_by == 'resource_group':
             # potentially flaky if Azure resources are modified
-            assert set(['azure', 'demo-dj', 'mperz', 'qe']).issubset(actual_group_names)  # Azure users could change
+            assert set(['azure', 'demo-dj', 'qe']).issubset(actual_group_names)  # Azure users could change
         elif only_group_by == 'security_group':
             assert 'towerqe-nsg' in actual_group_names
         else:
