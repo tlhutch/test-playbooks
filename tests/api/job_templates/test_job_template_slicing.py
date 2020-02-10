@@ -448,7 +448,11 @@ class TestJobTemplateSlicing(APITest):
             inventory=prompt_inv.id
         ))
         assert workflow_job.get_related('workflow_nodes').count == 2
-        workflow_job.relaunch()
+        relaunched_job = workflow_job.relaunch()
+        for wj in (workflow_job, relaunched_job):
+            # to prevent teardown errors
+            wj.cancel()
+            wj.wait_until_completed()
 
     def test_job_template_admin_can_set_slices(self, factories, sliced_jt_factory):
         org = factories.organization()
