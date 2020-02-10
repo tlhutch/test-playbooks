@@ -44,7 +44,7 @@ class TestRHSMLicense(LicenseTest):
         subs_page = Subscriptions(connection=connection)
         with pytest.raises(exceptions.BadRequest) as e:
             subs_page.get_possible_licenses(rh_username='bad', rh_password='fake')
-        assert "401 Client Error: Unauthorized for url" in str(e.value)
+        assert "401" in str(e.value)
 
     def test_missing_username_and_password(self, connection):
         subs_page = Subscriptions(connection=connection)
