@@ -87,7 +87,7 @@ pipeline {
         choice(
             name: 'CLEAN_DEPLOYMENT_AFTER_JOB_RUN',
             description: 'Should the deployment be cleaned after job is run ?',
-            choices: ['no', 'yes']
+            choices: ['yes', 'no']
         )
         choice(
             name: 'CLEAN_DEPLOYMENT_ON_JOB_FAILURE',

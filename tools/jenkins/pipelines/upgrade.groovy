@@ -86,7 +86,7 @@ pipeline {
         choice(
             name: 'CLEAN_DEPLOYMENT_AFTER_JOB_RUN',
             description: 'Should the deployment be cleaned after job is run ?',
-            choices: ['no', 'yes']
+            choices: ['yes', 'no']
         )
         choice(
             name: 'CLEAN_DEPLOYMENT_ON_JOB_FAILURE',
@@ -202,12 +202,12 @@ Bundle?: ${params.BUNDLE}"""
                              "AWS_ACCESS_KEY=${AWS_ACCESS_KEY}",
                              "AWX_ADMIN_PASSWORD=${AWX_ADMIN_PASSWORD}",
                              "TOWER_VERSION=${params.TOWER_VERSION_TO_UPGRADE_TO}",
-                             "AWX_UPGRADE=true",
-                             "CLEAN_DEPLOYMENT_BEFORE_JOB_RUN=no"]) {
+                             "AWX_UPGRADE=true"]) {
                         sshagent(credentials : ['github-ansible-jenkins-nopassphrase']) {
                             sh "ssh ${SSH_OPTS} ec2-user@${TEST_RUNNER_HOST} 'cd tower-qa && ./tools/jenkins/scripts/clean_cache.sh'"
                             sh './tools/jenkins/scripts/generate_vars.sh'
                             sh "ansible test-runner -i playbooks/inventory.test_runner -m copy -a 'src=playbooks/vars.yml dest=/home/ec2-user/tower-qa/playbooks/vars.yml'"
+                            sh "ansible test-runner -i playbooks/inventory.test_runner -a 'sed -i \"s/delete_on_start: .*/delete_on_start: false/g\" /home/ec2-user/tower-qa/playbooks/vars.yml'"
                             sh "ansible test-runner -i playbooks/inventory.test_runner -m git -a 'repo=git@github.com:ansible/tower-qa version=${branch_name} dest=tower-qa ssh_opts=\"-o StrictHostKeyChecking=no\" force=yes'"
                         }
                     }
