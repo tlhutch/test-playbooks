@@ -99,16 +99,6 @@ Tower Version: ${_TOWER_VERSION}"""
             }
         }
 
-        stage ('Install Tower') {
-            steps {
-                withEnv(["ANSIBLE_FORCE_COLOR=true"]) {
-                    sshagent(credentials : ['github-ansible-jenkins-nopassphrase']) {
-                        sh 'ansible-playbook -i playbooks/inventory.lptesting playbooks/lptesting.yml -e @playbooks/vars.yml --tags install'
-                    }
-                }
-            }
-        }
-
         stage('Checkout tower-qa') {
             steps {
                 script {
@@ -127,7 +117,15 @@ Tower Version: ${_TOWER_VERSION}"""
             }
         }
 
-
+        stage ('Install Tower') {
+            steps {
+                withEnv(["ANSIBLE_FORCE_COLOR=true"]) {
+                    sshagent(credentials : ['github-ansible-jenkins-nopassphrase']) {
+                        sh 'ansible-playbook -i playbooks/inventory.lptesting playbooks/lptesting.yml -e @playbooks/vars.yml --tags install'
+                    }
+                }
+            }
+        }
 
         stage ('Test Tower') {
             steps {
