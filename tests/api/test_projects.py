@@ -779,9 +779,23 @@ class Test_Projects(APITest):
         job.assert_status(['failed', 'error'])
 
     def test_galaxy_validation_errors(self, api_settings_jobs_pg, api_settings_all_pg, update_setting_pg):
+        # Ensure PRIMARY_GALAXY_URL is empty and PUBLIC_GALAXY_ENABLED is
+        # enabled
+        update_setting_pg(api_settings_jobs_pg, dict(PRIMARY_GALAXY_URL='', PUBLIC_GALAXY_ENABLED=True))
+
+        # Check that the validation error will happen when just changing the
+        # PUBLIC_GALAXY_ENABLED. This happens when interacting with the UI
+        # toggle.
         for settings_pg in (api_settings_jobs_pg, api_settings_all_pg):
             with pytest.raises(exc.BadRequest) as e:
-                update_setting_pg(api_settings_jobs_pg, dict(PUBLIC_GALAXY_ENABLED=False, PRIMARY_GALAXY_URL=''))
+                update_setting_pg(settings_pg, dict(PUBLIC_GALAXY_ENABLED=False))
+            assert 'URL for Primary Galaxy must be defined before disabling public Galaxy' in str(e)
+
+        # Now check when both PUBLIC_GALAXY_ENABLED and PRIMARY_GALAXY_URL are
+        # present. This happens when the save button is pressed on the UI
+        for settings_pg in (api_settings_jobs_pg, api_settings_all_pg):
+            with pytest.raises(exc.BadRequest) as e:
+                update_setting_pg(settings_pg, dict(PUBLIC_GALAXY_ENABLED=False, PRIMARY_GALAXY_URL=''))
             assert 'URL for Primary Galaxy must be defined before disabling public Galaxy' in str(e)
 
     def test_galaxy_server_credential_redaction(self, factories,
