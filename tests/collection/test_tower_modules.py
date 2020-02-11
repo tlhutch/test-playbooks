@@ -162,6 +162,7 @@ class Test_Ansible_Tower_Modules(APITest):
         proj = factories.project()
         module_args = {
             'name': proj.name,
+            'organization': proj.summary_fields.organization.name,
             'state': 'absent',
         }
 
