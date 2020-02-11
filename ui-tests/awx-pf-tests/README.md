@@ -165,5 +165,10 @@ For more information regarding these folders and files, please see the Cypress d
 ```
 cd tower-qa/ui-tests/awx-pf-tests
 docker build -t awx-pf-tests .
+
+# If running tests locally
+docker run --network host -v $PWD:/e2e -w /e2e awx-pf-tests run --project .
+
+# If running tests within CI
 docker run --network tools_default --link 'tools_ui_next_1:ui-next' -v $PWD:/e2e -w /e2e awx-pf-tests run --project .
 ```
